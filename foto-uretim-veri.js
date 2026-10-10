@@ -596,9 +596,11 @@
   // Kalıcı yer D1 `foto_isler.cesit` ('' = türün varsayılan kolu). Metinler pazarlama sayfa metni satır 16–17 AYNEN.
   //   acik    : false = çeşit sunulmaz; sunucu müşteri isteğini `cesit-yakinda` ile AÇIKÇA reddeder (sessiz değil)
   //   girdi   : çeşidin girdi listesi (yoksa türün `girdi`si); figür = fotoğraf, yazı formu YOK (parametre 0)
-  //   olcu_en_cok : çeşidin ölçü tavanı (figür: köprü figur_kulak figür uzun kenarı ≤ 50 mm). TEK sabit (aşağıda
-  //                 figür çeşidi). Anahtarlık en_az 60 iken 60..50 BOŞ aralık: sürgüde ölçü yok, sunucu 400
-  //                 gecersiz-olcu (fail-closed). TeKiN köprüyü 80'e çıkarınca YALNIZ bu değer 80 olur.
+  //   olcu_en_cok : çeşidin ölçü tavanı. TEK sabit (aşağıda figür çeşidi). Figür: köprü `2950833` figur_kulak çıplak
+  //                 figür XY ≤ 72 mm, kulak dahil ≤ 80 mm. Sürgü = KULAKÇIK DAHİL en uzun boyut (KraL 10 Eki, BaBa
+  //                 14:0x); sırt konumunda kulak uzun kenarı büyütmez -> 60..72 HER figür yöneliminde üretilir
+  //                 (tepe sığmazsa koşucu sırta düşer; VERI.olcekHedefMm). 73..80 SUNULMAZ (yalnız bazı yönelimde
+  //                 mümkün -> ödeme sonrası elle düşüşü riski).
   //   saglayici_tur : önizleme+model sağlayıcıda bu türün yolundan (TUR_ORTAM); üretim sonrası `uretec` koşucuda
   VERI.cesitler = {
     anahtarlik: {
@@ -606,7 +608,7 @@
       secenekler: [
         { kod: "yazi", ad: "Yazı ile", aciklama: "Kısa bir isim ya da yazı, kabartma harflerle.", acik: true },
         { kod: "figur", ad: "Figür olarak", aciklama: "Yüklediğin fotoğraftan küçük bir figür, tepesinde kulakçık.",
-          acik: true, girdi: ["foto-1"], olcu_en_cok: 50, saglayici_tur: "figur", uretec: "figur_kulak" }
+          acik: true, girdi: ["foto-1"], olcu_en_cok: 72, saglayici_tur: "figur", uretec: "figur_kulak" }
       ]
     }
   };
@@ -617,6 +619,11 @@
     for (var i = 0; i < k.secenekler.length; i++) { if (k.secenekler[i].kod === c) { return k.secenekler[i]; } }
     return null;
   };
+  // ÖLÇEK HEDEFİ (B2, KraL 10 Eki — kuralın TEK yeri): sağlayıcı 3MF'inin en uzun kenarının ölçekleneceği değer.
+  // Anahtarlık figür çeşidinde sürgü = kulakçık DAHİL en uzun boyut; kulak sırtta ya da XY-uzun figürde uzun kenarı
+  // büyütmez -> çıplak hedef = ölçü (tepe ancak sığarsa; koşucu tools/foto-uretec-kosucu.py figur_kos tepe ->
+  // sırt düşüşü + figur_olcu_kabul kulak dahil = ölçü ± tolerans). Diğer türlerde hedef = ölçü.
+  VERI.olcekHedefMm = function (olcu) { return olcu; };
   // İstekteki çeşidi çözer (istemci + sunucu ORTAK): çeşitli türde yok -> varsayılan, küme içi -> kendisi,
   // küme dışı -> null; çeşitsiz türde yok -> "" , dolu -> null (kapalı küme, fail-closed).
   VERI.cesitCoz = function (kod, c) {

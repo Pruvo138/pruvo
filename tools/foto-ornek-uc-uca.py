@@ -94,10 +94,11 @@ TOLERANS = {"D": 0.01, "R": 0.03, "M": 0.01}
 # bittikten sonra analizBaslat yalniz bir sonraki (ucretsiz re-)analiz->renk kapisini acar.
 KREDI_ONIZLEME = 6
 # CESIT KOLU (TUR-C2c, --cesit figur): anahtarlik figur cesidi saglayici koluna gider (shop/src/foto.js figurKolu).
-# Olcu 45: cesit tavani (olcu_en_cok 50) KULAK DAHIL uzun kenar; saglayici figuru 45 mm, kulak payi 5 mm. Kulak
+# Olcu 60 (B2, KraL 10 Eki): surgu = KULAK DAHIL en uzun boyut (cesit 60..72, olcu_en_cok 72); sunucu ciplak figuru
+# olcuye olcekler, koşucu tepe sigmazsa sirta duser -> model (figur + kulak) uzun kenari = olcu ± tol. Kulak
 # olcumleri koşucunun --kanit-dizin kopyasindan (figur_kulak ozet.json `kulak`) okunur; 4 alan sayi > 0 olmali.
 # TUR-C2d (K2 tepe -> sirt dususu): kullanilan `konum` da ④ ekseninde (tepe|sirt; yoksa EKSIK).
-FIGUR_OLCU_MM = 45
+FIGUR_OLCU_MM = 60
 KULAK_ALANLARI = ("dis_cap_olculen_mm", "delik_cap_olculen_mm", "min_et_mm", "bag_genislik_mm")
 KULAK_KONUMLARI = ("tepe", "sirt")
 KREDI_TIK = {"build-baslat": 30, "analiz": 10, "onarim": 10, "doku": 0}
@@ -1250,9 +1251,10 @@ def olc_4(tr, bulut, gecici):
     eksen_yolu = "tabla"
     eksen = bool(m) and abs(m["uzun"] - tr.olcu) <= tr.olcu * tol + 1e-9
     if tr.cesit:
-        # CESIT KOLU: model = figur + kulak (figur_kulak) -> olcek ekseni cesit TAVANI (kulak dahil uzun kenar).
-        eksen_yolu = "cesit-tavan<=%d" % tr.cesit_tavan
-        eksen = bool(m) and m["uzun"] <= tr.cesit_tavan + 1e-9
+        # CESIT KOLU: model = figur + kulak (figur_kulak) -> olcek ekseni KULAK DAHIL uzun kenar = olcu ± tol
+        # (B2: surgu kulak dahil; olcu cesit tavanini asamaz).
+        eksen_yolu = "cesit-kulak-dahil=%d" % tr.olcu
+        eksen = bool(m) and tr.olcu <= tr.cesit_tavan and abs(m["uzun"] - tr.olcu) <= tr.olcu * tol + 1e-9
     elif m and not eksen and m["parca"] > 1 and m["uzun"] > tr.olcu:
         eksen_yolu = "montaj"
         eksen = (m["parca_en_uzun"] <= tr.olcu * (1 + tol) + 1e-9 and isinstance(uk, (int, float)) and

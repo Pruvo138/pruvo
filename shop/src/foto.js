@@ -1074,7 +1074,7 @@ function onayKaydi(onaySurum, simdi) {
   return onaySurum ? { tarih: simdiIso(simdi), surum: onaySurum } : { tarih: "", surum: "" };
 }
 
-/** Cesidin olcu tavani (figur: olcu_en_cok 50 mm); cesitsiz/tavansiz -> uygun. */
+/** Cesidin olcu tavani (figur: olcu_en_cok 72 mm, kulak dahil); cesitsiz/tavansiz -> uygun. */
 function cesitOlcuUygun(tur, cesit, olcu) {
   const ck = cesit ? VERI.cesitKaydi(tur, cesit) : null;
   return !ck || !Number.isInteger(ck.olcu_en_cok) || (Number.isInteger(olcu) && olcu <= ck.olcu_en_cok);
@@ -2105,7 +2105,8 @@ async function uretimAdimi(env, u, simdi, telegram) {
     const glb = await dosyaIndir(glbAdres);
     if (!ucmf || !glb) { return gecici(env, u, simdi, telegram); }
     // OLCU KAPISI (onarimli + onarimsiz HER yol buradan gecer): olcu tutmazsa R2'ye YAZILMAZ.
-    const olc = await ucmfOlcekle(ucmf.tampon, u.olcu_mm);
+    // Hedef VERI.olcekHedefMm (figur cesidi: surgu kulak DAHIL; ciplak hedef = olcu, kulak sirtta buyutmez).
+    const olc = await ucmfOlcekle(ucmf.tampon, VERI.olcekHedefMm(u.olcu_mm));
     const ozet = analizOlcekli(u.analiz, olc);
     if (!olc.tampon) { return elleDusur(env, u, "olcu-tutmadi", ozet, simdi, telegram); }
     // ONARIM KAPISI (8 Eki 2026, BaBa hukmu): saglayici 3MF'i ASLA model.3mf olmaz. Ham dosya
