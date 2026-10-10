@@ -2436,6 +2436,8 @@
           adimKoy("S1", "Metin güncellendi, sayfayı yenile.", true);
           return;
         }
+        // TUR-A3 (BaBa 05:02): program kapalıyken "biraz sonra" YAZILMAZ (ArTisT metni AYNEN).
+        if (kod === 503 && veri && veri.hata === "kapali") { adimKoy("S1", "Fotoğraftan sipariş şu an kapalı.", true); return; }
         adimKoy("S1", "Şu an önizleme üretilemiyor, biraz sonra yeniden dene.", true);
       });
     });
@@ -2489,6 +2491,7 @@
         if (kod === 403) { adimKoy("S1", "Doğrulama tamamlanamadı, kutucuğu yeniden işaretleyip dene.", true); return; }
         if (kod === 400 && veri && veri.hata === "onay-surumu-eski") { adimKoy("S1", "Metin güncellendi, sayfayı yenile.", true); return; }
         if (kod === 400 && veri && NOT_HATA[veri.hata]) { turnsSifirla(S.alanCap1); adimKoy("S1", NOT_HATA[veri.hata], true); return; }
+        if (kod === 503 && veri && veri.hata === "kapali") { adimKoy("S1", "Fotoğraftan sipariş şu an kapalı.", true); return; }
         adimKoy("S1", "Şu an önizleme hazırlanamıyor, biraz sonra yeniden dene.", true);
       });
     };
