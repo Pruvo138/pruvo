@@ -1603,6 +1603,56 @@ function veriYukle(kaynak) {
   vm.runInNewContext(kaynak, k, { filename: "foto-uretim-veri.js" });
   return k.PRUVO_FOTO;
 }
+
+// ================================================================ FG — FIGUR OLCU ALT SINIRI 60 (Okan 10 Eki 12:4x)
+// "slider figürlerde 60mm den başlasın": figur kaydi olcu_mm.en_az 60 (en_cok 200); sunucu araligi kayittan
+// TURETIR (ikinci sabit yok), istemci surgusu sunucunun olculer dizisinden. Beklenen sayilar BAGIMSIZ (kayittan okunmaz).
+// figurSenaryo(V): V'nin fonksiyonlari sunucunun global VERI'sine gecici takilir (mutant da sunucudan olculur).
+async function figurSenaryo(V) {
+  const ad = ["turBul", "olcuAraligi", "olcuGecerli", "olcuSecenekleri", "fiyatKurus", "ornekSayisi"];
+  const yedek = {};
+  for (const a of ad) { yedek[a] = VERI[a]; VERI[a] = a === "ornekSayisi" ? (() => 1) : V[a]; }
+  const s = {};
+  try {
+    const a = VERI.olcuAraligi("figur") || {};
+    s.V1 = a.en_az === 60 && a.en_cok === 200 && VERI.olcuGecerli("figur", 60) && VERI.olcuGecerli("figur", 70) &&
+      !VERI.olcuGecerli("figur", 65) && !VERI.olcuGecerli("figur", 59) && VERI.olcuGecerli("figur", 200);
+    s.V2 = VERI.fiyatKurus("figur", 60) === 60000 && VERI.fiyatKurus("figur", 100) === 100000 &&
+      VERI.fiyatKurus("figur", 200) === 200000;
+    const oj = (L) => ({ sozlesme: 1, kategori: "figur", uzun_kenar_mm: L, kutu_mm: { x: L, y: L, z: L }, renk_sayisi: 1, sizdirmaz: true });
+    s.r59 = foto.uretecOlcuDogrula(oj(59), { tur: "figur", olcu_mm: 59 });
+    s.r60 = foto.uretecOlcuDogrula(oj(60), { tur: "figur", olcu_mm: 60 });
+    s.V3 = s.r59 === "olcu-aralik-disi" && s.r60 !== "olcu-aralik-disi";
+    const ea = (k) => (VERI.olcuAraligi(k) || {}).en_az;
+    const kulak = V.cesitKaydi("anahtarlik", "figur");
+    s.alt = { plaket: ea("plaket"), bust: ea("bust"), anahtarlik: ea("anahtarlik"), yapboz: ea("yapboz"),
+      kulak_en_cok: kulak ? kulak.olcu_en_cok : null };
+    s.V4 = s.alt.plaket === 10 && s.alt.bust === 60 && s.alt.anahtarlik === 30 && s.alt.yapboz === 100 &&
+      s.alt.kulak_en_cok === 50 && foto.OLCU_MM_EN_AZ === 10;
+    // Istemci surgusu = sunucunun /foto/acik tur kaydindaki olculer dizisi (olcuSurgusu nt.olculer[0]'dan baslar).
+    const nt = foto.acikTurler(new Set(["figur"])).find((t) => t.kod === "figur");
+    s.ilk = nt && nt.olculer[0] ? nt.olculer[0] : null;
+    s.V5 = !!s.ilk && s.ilk.mm === 60 && s.ilk.fiyat_kurus === 60000 && VERI.olcuSecenekleri("figur")[0] === 60;
+  } finally {
+    for (const a of ad) { VERI[a] = yedek[a]; }
+  }
+  return s;
+}
+console.log("FG) FIGUR OLCU ALT SINIRI 60 mm (Okan 10 Eki 12:4x)");
+{
+  const s = await figurSenaryo(veriYukle(VERI_KAYNAK));
+  ol("V1 figur araligi en_az 60 · en_cok 200 (60/70/200 gecerli; 59/65 gecersiz)", s.V1, JSON.stringify(s));
+  ol("V2 figur 60/100/200 mm = 600/1000/2000 TL (60000/100000/200000 kurus)", s.V2, "");
+  ol("V3 sunucu figur 59 mm -> olcu-aralik-disi, 60 mm kabul", s.V3, JSON.stringify({ r59: s.r59, r60: s.r60 }));
+  ol("V4 plaket 10 · bust 60 · anahtarlik 30 · yapboz 100 alt siniri DEGISMEDI (figur_kulak <=50, OLCU_MM_EN_AZ 10)", s.V4, JSON.stringify(s.alt));
+  ol("V5 istemci surgu listesi figurde 60 mm (600 TL) ile baslar", s.V5, JSON.stringify(s.ilk));
+  // MUTANT (kopyada): figur en_az 10'a geri -> V1/V3/V5 KIRMIZI.
+  const capa = "olcu_mm: { en_az: 60, en_cok: 200 },";
+  const m = VERI_KAYNAK.split(capa).length === 2
+    ? await figurSenaryo(veriYukle(VERI_KAYNAK.replace(capa, "olcu_mm: { en_az: 10, en_cok: 200 },"))) : null;
+  const kir = m ? ["V1", "V2", "V3", "V4", "V5"].filter((x) => m[x] !== true) : null;
+  ol("FGM mutant figur en_az 10 -> KIRMIZI tam olarak [V1,V3,V5]", JSON.stringify(kir) === '["V1","V3","V5"]', JSON.stringify(kir));
+}
 /**
  * Veri nesnesi V (dosya ya da mutant) ile sunucu kapisi: foto.js ornek sayisini V'den okur.
  * Temiz SQLite'ta plaket + litofan 120 mm fiyat satiri VAR. Donus: her senaryo tuttu mu.

@@ -111,11 +111,14 @@ function tabansizSenaryo(kaynak) {
 // K3a (8 Eki 2026): 15 tür silindi; hiçbir tür türetilmiş eksen DEĞİL -> "türetilmiş 59/61 mm" kolu YOK.
 // K3d: elle tür kümesi MANIFESTTEN türetilir (sabit liste yazılmaz): köprü kaydı (kopru-manifest-uret.py)
 // `olcu_ekseni` taşır; taşımayan tür KraL'in elle tuttuğu türdür. Küme boşsa ya da plaket yoksa F8 KIRMIZI.
+// Okan 10 Eki 12:4x: "slider figürlerde 60mm den başlasın" -> figürün alt sınırı 60 (60 mm = 600 TL); diğerleri 10.
+const SURGU_ALT_ISTISNA = { figur: 60 };
+const surguAlt = (k) => SURGU_ALT_ISTISNA[k] || 10;
 const elleSurgu = (V) => V.turler.filter((t) => !("olcu_ekseni" in t)).map((t) => t.kod);
 function surguSenaryo(V) {
   const elle = elleSurgu(V);
-  const alt = elle.filter((k) => { const a = V.olcuAraligi(k); return a && a.en_az === 10 && V.olcuSecenekleri(k)[0] === 10; });
-  const on = elle.filter((k) => V.fiyatKurus(k, 10) === TABAN_KURUS);
+  const alt = elle.filter((k) => { const a = V.olcuAraligi(k), m = surguAlt(k); return a && a.en_az === m && V.olcuSecenekleri(k)[0] === m; });
+  const on = elle.filter((k) => V.fiyatKurus(k, surguAlt(k)) === TABAN_KURUS);
   return { F8: elle.includes("plaket") && alt.length === elle.length && on.length === elle.length, elle, alt, on, tu: null, sinir: true };
 }
 
@@ -181,7 +184,7 @@ ol("F7 taban_tl'siz tur -> fiyat null (sunulmaz), diger turler etkilenmez", taba
   const sg = surguSenaryo(VERI);
   const kopruAlt = VERI.turler.filter((t) => !elleSurgu(VERI).includes(t.kod) && t.olcu_ekseni === "sabit")
     .map((t) => t.kod + ":" + t.olcu_mm.en_az);
-  ol("F8 surgu alt siniri 10 mm: " + sg.alt.length + "/" + sg.elle.length + " elle tur (" + sg.elle.join(",") + ") · 10 mm = 600 TL " + sg.on.length + "/" +
+  ol("F8 surgu alt siniri 10 mm (figur 60): " + sg.alt.length + "/" + sg.elle.length + " elle tur (" + sg.elle.join(",") + ") · alt sinir = 600 TL " + sg.on.length + "/" +
      sg.elle.length + " · turetilmis " + sg.tu + " 59 mm = 600 TL, 61 mm = 610 TL", sg.F8, JSON.stringify(sg));
   console.log("     bilgi: kopru (TeKiN kaydi) sabit turlerin alt siniri: " + kopruAlt.join(" "));
 }
