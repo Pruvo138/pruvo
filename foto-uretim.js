@@ -571,7 +571,7 @@
         }
       }
     }
-    if (S.pencereAciklama) S.pencereAciklama.textContent = PENCERELER[n - 1].aciklama;
+    if (S.pencereAciklama) S.pencereAciklama.textContent = pencereAciklamasi(n);
     if (n === 4 && S.adim === "S3") cizS3();
     gezintiGuncelle();
   }
@@ -645,7 +645,19 @@
   // Malzeme PLA ya da PETG (+%30) kartı. Fiyat F.fiyatKurus(kod, mm, fiyatSecimi()) — sunucu AYNI fonksiyonu çağırır.
   var RENKLI = "Renkli";
   function renkliSunulur(kod) {
-    return !!F.renkliSecilebilir(kod) && !!(S.fotoRenkleri && S.fotoRenkleri.length);
+    return !!renkliTurde(kod) && !!(S.fotoRenkleri && S.fotoRenkleri.length);
+  }
+  // Tür + SEÇİLİ çeşitte Renkli sunulabilir mi (F.renkliSecilebilir — çeşit kolu: figür anahtarlık TEK gövde -> hayır).
+  function renkliTurde(kod) {
+    return !!F.renkliSecilebilir(kod, kod === S.tur && cesitliTur() ? seciliCesit() : undefined);
+  }
+  // ③ cümlesi TÜR/ÇEŞİT bazlı (Okan 10 Eki "renkli seçeneği yok"): seçili tür + çeşitte Renkli SUNULAMIYORSA
+  // (fotoğrafsız yazı anahtarlık; tek gövde figür anahtarlık) cümle Renkli'yi ANMAZ — ekranda yanlış vaat yok.
+  var RENK_CUMLESI_RENKLI = "Renk: Siyah, Beyaz, Gri ya da Renkli (+%15; renkler fotoğrafından otomatik seçilir). ";
+  var RENK_CUMLESI_TEK = "Renk: Siyah, Beyaz ya da Gri. ";
+  function pencereAciklamasi(n) {
+    var a = PENCERELER[n - 1].aciklama;
+    return n === 3 && S.tur && !renkliTurde(S.tur) ? a.replace(RENK_CUMLESI_RENKLI, RENK_CUMLESI_TEK) : a;
   }
   function renkliMi() { return S.renkSecim === RENKLI && renkliSunulur(S.tur); }
   function anaRenk() { return F.ANA_RENKLER.indexOf(S.renkSecim) >= 0 ? S.renkSecim : F.VARSAYILAN_RENK; }
