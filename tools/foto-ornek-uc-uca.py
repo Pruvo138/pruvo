@@ -1051,6 +1051,8 @@ def saglayici_2(tr, kredi, devam_is_no=""):
             tr.koy("2", False, "ornek-onizleme kod=%s hata=%s" % (k, j.get("hata")))
             return
         tr.is_no = j["is"]
+        # Kosum yarida kesilirse (oturum/zaman tavani) zincir --devam-is <is> ile surer: is_no HEMEN basilir.
+        print("ORNEK_IS tur=%s is=%s (devam: --devam-is %s)" % (tr.kod, tr.is_no, tr.is_no), flush=True)
     d = {}
     for _ in range(YOKLAMA_SAYI):
         k, _, b = yonet("GET", "/foto/ornek-durum?is=" + tr.is_no)
@@ -1100,6 +1102,7 @@ def saglayici_4(tr, kredi):
             tr.koy("4", False, "yabanci-kuyruk=%d (tik onlari da ilerletir; kredi yakilmaz, DUR)" % y[0]["n"])
             return False
         if asama != onceki:
+            print("ASAMA siparis=%s asama=%s rezerv=%d" % (no, asama, kredi.ayrilan), flush=True)
             ok, sebep = kredi.ayir(KREDI_TIK.get(asama, 0))
             if not ok:
                 tr.koy("4", False, "siparis=%s asama=%s %s" % (no, asama, sebep))
