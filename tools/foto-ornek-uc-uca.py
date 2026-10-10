@@ -113,6 +113,19 @@ KREDI_TIK_POST_TAVAN_KONTROLU = True
 # SUM(foto_kredi.kredi) WHERE is_no IN (dilimin is_no'lari) + bu koşumda ayrilan (yazilmamis) ust sinir.
 DILIM_GOC = os.path.join(KOK, "tools", "d1-goc", "2026-10-10-foto-kredi-dilim.sql")
 DILIM_DESEN = re.compile(r"^[a-z0-9-]{3,40}$")
+# DENGE (BaBa 10 Eki 16:5x, 6 MODEL "ayakta duran" insan/pet): TeKiN taban/denge kapisi (devrilme/kopma = RED)
+# ucretli kabul turunda prova olcutune girecek. Kapi bu betikte HENUZ YOK -> rapor satirinda DENGE=OLCULEMEDI;
+# OLCULEMEDI YESIL SAYILMAZ (DENGE_HAZIR'a girmez). Kapi gelince DENGE_KAPISI(tr) -> True/False baglanir.
+DENGE_KAPISI = None
+
+
+def denge_hukmu(tr):
+    """DENGE alani: kapi yoksa OLCULEMEDI (YESIL degil) · kapi varsa HAZIR | RED."""
+    if DENGE_KAPISI is None:
+        return "OLCULEMEDI"
+    return "HAZIR" if DENGE_KAPISI(tr) else "RED"
+
+
 YOKLAMA_SAYI = 120
 OLCUTLER = ["1", "2", "3", "4", "5", "6"]
 ETIKET = {"1": "①", "2": "②", "3": "③", "4": "④", "5": "⑤", "6": "⑥"}
@@ -1563,11 +1576,13 @@ def main(argv=None):
         finally:
             for tr in provalar:
                 prova_sil(tr, bulut)
-        n = 0
+        n = denge_n = 0
         for tr in turler:
             satir = " ".join("%s%s" % (ETIKET[o], "HAZIR" if tr.s[o][0] else "EKSIK") for o in OLCUTLER)
-            print("TUR %s %s => %s%s" % (tr.kod, satir, "HAZIR" if tr.hazir() else "EKSIK",
-                                         (" is=%s" % tr.is_no) if tr.is_no else ""))
+            denge = denge_hukmu(tr)
+            denge_n += 1 if denge == "HAZIR" else 0
+            print("TUR %s %s DENGE=%s => %s%s" % (tr.kod, satir, denge, "HAZIR" if tr.hazir() else "EKSIK",
+                                                  (" is=%s" % tr.is_no) if tr.is_no else ""))
             for o in OLCUTLER:
                 print("  %s %s %s" % (ETIKET[o], "HAZIR" if tr.s[o][0] else "EKSIK", tr.s[o][1]))
             n += 1 if tr.hazir() else 0
@@ -1576,6 +1591,7 @@ def main(argv=None):
             print("KREDI_HARCANAN=%d/%d taban=%d ayrilan=%d D1_fark=%d" % (
                 kredi.harcanan(), kredi.tavan, kredi.taban, kredi.ayrilan, kredi.toplam() - kredi.taban))
             print("DILIM=%s HARCANAN=%d TAVAN=%d" % (kredi.dilim, kredi.dilim_harcanan(), kredi.dilim_tavan))
+        print("DENGE_HAZIR=%d/%d" % (denge_n, len(turler)))
         print("HAZIR=%d/%d rc=%d" % (n, len(turler), rc))
         return rc
     except Ayar as e:

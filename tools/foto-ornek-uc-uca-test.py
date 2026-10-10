@@ -481,6 +481,16 @@ def vakalar(kaynak, sadece=None):
         return ok, son if ok else c[-900:]
     vaka("U1", u1)
 
+    def vdenge(o):
+        # DENGE (BaBa 16:5x): taban/denge kapisi yokken TUR satirinda DENGE=OLCULEMEDI ve YESIL SAYILMAZ
+        # (DENGE_HAZIR=0/1; "DENGE=HAZIR" 0) — mutlu yolda bile.
+        rc, son, c = tek(o)
+        tur = [x for x in c.splitlines() if x.startswith("TUR %s " % D_TUR)]
+        ok = (rc == 0 and len(tur) == 1 and " DENGE=OLCULEMEDI " in tur[0] and "DENGE_HAZIR=0/1" in c and
+              "DENGE=HAZIR" not in c)
+        return ok, "%s | %s" % (tur, son)
+    vaka("V-DENGE", vdenge)
+
     def u2(o):
         o.sunucu.ayar["kapali_kod"] = 200
         rc, son, c = tek(o)
@@ -1224,6 +1234,9 @@ MUTANTLAR = {
     "M-DT1": ("            if dh + n > self.dilim_tavan:", "            if False:", {"V-DT2"}),
     "M-DT2": ('        self.bulut.sql("INSERT OR IGNORE INTO foto_kredi_dilim',
               '        (lambda q: None)("INSERT OR IGNORE INTO foto_kredi_dilim', {"V-DT1", "V-DT2"}),
+    # DENGE kapisi yokken OLCULEMEDI yerine HAZIR basilirsa (YESIL sayilirsa) V-DENGE KIRMIZI.
+    "M-DENGE": ('    if DENGE_KAPISI is None:\n        return "OLCULEMEDI"', '    if DENGE_KAPISI is None:\n        return "HAZIR"',
+                {"V-DENGE"}),
     "MB0": ("# ------------------------------------------------------------------ HTTP",
             "# ------------------------------------------------------------------ HTTP (mutant yorum)", set()),
 }
