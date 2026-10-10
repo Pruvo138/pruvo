@@ -23,7 +23,7 @@
  *                    tur fiyatsiz. (Eski F9 "ek renk +100 TL" Okan 9 Eki emriyle KALKTI.)
  * MUTANTLAR (veri dosyasinin BELLEKTEKI kopyasi / foto.js'in GECICI kopyasi; agaca yazim YOK):
  *   FM1 formul ×100 · FM2 en_az yerine en_cok · FM3 adim izgarasi silindi · FM4 anahtar fail-open ·
- *   FM6 taban kalkti (F1/F3/F6) · FM7 tabansiz tur fail-open (F7) · FM9 Renkli carpani dustu · FM10 PETG carpani
+ *   FM6 taban kalkti (F6; 10 Eki sonrasi 60 alti durak yok) · FM7 tabansiz tur fail-open (F7) · FM9 Renkli carpani dustu · FM10 PETG carpani
  *   dustu · FM11 ASA secilebilir · FM12 renk adedi yeniden ucretlenir (F9)
  *   -> hedef grup KIRMIZI; FM0 (yalniz yorum) -> hicbiri. Olcu EKSENI (X/Y'ye bakan olcum) mutanti
  *   shop/test/foto-uretim.mjs OZ-M1'de (sentetik 3MF orada).
@@ -119,12 +119,13 @@ function tabansizSenaryo(kaynak) {
 }
 
 // F8 (Okan 8 Eki 14:0x "slider 10 mm'den baslasin ama min fiyat 600 TL kalsin"): KraL'in elle tuttugu
-// (kopru-disi) sabit eksenli turlerde surgu alt siniri 10 mm ve 10 mm = 600 TL.
+// (kopru-disi) sabit eksenli turlerde surgu alt siniri 10 mm ve 10 mm = 600 TL. GUNCEL (Okan 10 Eki): figur ve plaket 60.
 // K3a (8 Eki 2026): 15 tür silindi; hiçbir tür türetilmiş eksen DEĞİL -> "türetilmiş 59/61 mm" kolu YOK.
 // K3d: elle tür kümesi MANIFESTTEN türetilir (sabit liste yazılmaz): köprü kaydı (kopru-manifest-uret.py)
 // `olcu_ekseni` taşır; taşımayan tür KraL'in elle tuttuğu türdür. Küme boşsa ya da plaket yoksa F8 KIRMIZI.
-// Okan 10 Eki 12:4x: "slider figürlerde 60mm den başlasın" -> figürün alt sınırı 60 (60 mm = 600 TL); diğerleri 10.
-const SURGU_ALT_ISTISNA = { figur: 60 };
+// Okan 10 Eki 12:4x: "slider figürlerde 60mm den başlasın" -> figürün alt sınırı 60 (60 mm = 600 TL);
+// Okan 10 Eki ~13:4x: "plaket de 60 mm olsun" -> elle türlerin TAMAMI 60.
+const SURGU_ALT_ISTISNA = { figur: 60, plaket: 60 };
 const surguAlt = (k) => SURGU_ALT_ISTISNA[k] || 10;
 const elleSurgu = (V) => V.turler.filter((t) => !("olcu_ekseni" in t)).map((t) => t.kod);
 function surguSenaryo(V) {
@@ -140,7 +141,7 @@ function surguSenaryo(V) {
 // VERI'den OKUNMAZ. Eski F9 (ek renk +100 TL) bu emirle KALKTI.
 const SPEC_ORNEKLERI = [
   [100, {}, 100000], [100, { malzeme: "PETG" }, 130000], [100, { renkli: true }, 115000],
-  [100, { renkli: true, malzeme: "PETG" }, 149500], [40, {}, 60000], [40, { renkli: true, malzeme: "PETG" }, 89700],
+  [100, { renkli: true, malzeme: "PETG" }, 149500], [60, {}, 60000], [60, { renkli: true, malzeme: "PETG" }, 89700],
 ];
 const MALZEME_KARTLARI = [["PLA", "~55-60°C", "Ev içi"], ["PETG", "~70-75°C", "Dış mekân / genel amaçlı"]];
 // K3d: palet türleri MANIFESTTEN (`renk_secimi: "palet"` ham alanı); VERI.renkPaleti fonksiyonu buna uymalı.
@@ -196,7 +197,7 @@ ol("F7 taban_tl'siz tur -> fiyat null (sunulmaz), diger turler etkilenmez", taba
   const sg = surguSenaryo(VERI);
   const kopruAlt = VERI.turler.filter((t) => !elleSurgu(VERI).includes(t.kod) && t.olcu_ekseni === "sabit")
     .map((t) => t.kod + ":" + t.olcu_mm.en_az);
-  ol("F8 surgu alt siniri 10 mm (figur 60): " + sg.alt.length + "/" + sg.elle.length + " elle tur (" + sg.elle.join(",") + ") · alt sinir = 600 TL " + sg.on.length + "/" +
+  ol("F8 surgu alt siniri 60 mm (figur 60 · plaket 60): " + sg.alt.length + "/" + sg.elle.length + " elle tur (" + sg.elle.join(",") + ") · alt sinir = 600 TL " + sg.on.length + "/" +
      sg.elle.length + " · turetilmis " + sg.tu + " 59 mm = 600 TL, 61 mm = 610 TL", sg.F8, JSON.stringify(sg));
   console.log("     bilgi: kopru (TeKiN kaydi) sabit turlerin alt siniri: " + kopruAlt.join(" "));
 }
@@ -268,14 +269,15 @@ const VERI_MUTANTLAR = [
    "return true;", ["F2"]],
   // K3a: FM5 (TURETILMIS DE IZGARAYA BAGLI) SİLİNDİ. Kalan 4 türün TAMAMI foto, hiçbiri türetilmiş değil.
   // VERI.olcuTuretilmis(kod) her zaman false → mutant no-op olurdu. null/no-op mutant YASAK.
-  // Okan 8 Eki tabani: taban kalkinca 60 mm alti turler 600 TL'nin altina iner -> F1/F3/F6 KIRMIZI.
+  // Okan 8 Eki tabani: taban kalkinca 60 mm alti olculer 600 TL'nin altina iner. Okan 10 Eki ~13:4x sonrasi gercek
+  // veride 60 mm alti durak YOK (F1/F3/F8/F9 tabani goremez) -> yalniz F6 kopya kontrol kolu (plaket 10 mm) KIRMIZI.
   ["FM6 TABAN KALKTI", "return VERI.secimliKurus(Math.max(mm * f, taban), secim);", "return VERI.secimliKurus(mm * f, secim);",
-   ["F1", "F3", "F6", "F8", "F9"]],
+   ["F6"]],
   // Tabansiz tur fail-open (taban yoksa 0 sayilir) -> F7 KIRMIZI.
-  // Okan 14:0x: surgu alti 60'a geri cekilirse F8 KIRMIZI.
+  // Okan 10 Eki ~13:4x: plaket alt siniri 60; 10'a geri cekilirse F8 KIRMIZI.
   // Capa plaketin kendi yorum satirini tasir: ayni olcu_mm satiri dinamik-min ile ses turunde de gecer (tek capa sarti).
-  ["FM8 PLAKET SURGU ALTI 60", "        // Okan 6 Eki 2026: \"min 60 max 300\".\n        olcu_mm: { en_az: 10, en_cok: 300 },",
-   "        // Okan 6 Eki 2026: \"min 60 max 300\".\n        olcu_mm: { en_az: 60, en_cok: 300 },", ["F8", "F9"]],
+  ["FM8 PLAKET SURGU ALTI 10'A GERI", "        // Okan 6 Eki 2026: \"min 60 max 300\"; Okan 10 Eki ~13:4x: \"plaket de 60 mm olsun\" (en_cok 300 aynen).\n        olcu_mm: { en_az: 60, en_cok: 300 },",
+   "        // Okan 6 Eki 2026: \"min 60 max 300\"; Okan 10 Eki ~13:4x: \"plaket de 60 mm olsun\" (en_cok 300 aynen).\n        olcu_mm: { en_az: 10, en_cok: 300 },", ["F8"]],
   ["FM7 TABANSIZ TUR FAIL-OPEN", "if (!f || taban === null || tavan === null || !VERI.olcuGecerli(kod, mm)) { return null; }",
    "if (!f || tavan === null || !VERI.olcuGecerli(kod, mm)) { return null; }", ["F7"]],
   // Okan 9 Eki: Renkli carpani (%15) duserse F9 KIRMIZI.
