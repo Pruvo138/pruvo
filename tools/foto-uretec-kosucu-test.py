@@ -1483,6 +1483,9 @@ def manifest_vakalari():
     ret_ok = (mod.ret_kodu("RET: plaka/QR renk kontrasti 1.80 < 4.5 (acik/koyu cift sec)") == "kontrast" and
               mod.ret_kodu("RET: parca kisa kenari 18.0 mm < 24 mm: satir/sutun sayisini azaltin") == "parca" and
               mod.ret_kodu("RET: en ince cizgi 0.512 mm < 0.8 mm (yaziyi buyut: plakayi buyut)") == "metin-sigmadi" and
+              mod.ret_kodu("RET: en ince cizgi 0.561 mm < 0.8 mm (genislik_mm'yi buyut / metni kisalt / kalin font)")
+              == "metin-sigmadi" and
+              mod.ret_kodu("RET: ince cizgi (< 0.60 mm) var; ince_cizgi=reddet") == "ince-cizgi" and
               mod.ret_kodu("RET: SVG: desteklenmeyen eleman <text> (metin/filter/gorsel/maske/stil yok)") == "svg" and
               mod.ret_kodu("RET: bilinmeyen alan: x") == "genel")
     s["V6"] = ("renkler birbirine çok yakın" in m["red_kontrast"] and m["red_bilinmez"] == m["red"][""] and

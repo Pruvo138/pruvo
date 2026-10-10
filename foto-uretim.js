@@ -1758,6 +1758,13 @@
     for (var i = 0; i < nt.olculer.length; i++) { if (nt.olculer[i].mm === b) return b; }
     return nt.olculer[0].mm;
   }
+  // ÖLÇÜ RETTİ (Okan 10 Eki "önizleme yapılamıyor"): sunucu ölçüyü reddederse (gecersiz-olcu / olcu-aralik-disi)
+  // genel "hazırlanamıyor" yerine ölçü cümlesi — aralık seçili tür + çeşidin sürgüsünden (sunucuyla aynı küme).
+  function olcuRetMetni() {
+    var nt = cesitOlculeri(seciliTurBul()), o = nt && nt.olculer ? nt.olculer : [];
+    return o.length ? "Seçtiğin ölçü bu ürün için sunulmuyor; ölçüyü " + o[0].mm + "–" + o[o.length - 1].mm +
+      " mm arasında seçip tekrar dene." : "Seçtiğin ölçü bu ürün için sunulmuyor; ölçüyü değiştirip tekrar dene.";
+  }
   function seciliTurBul() {
     if (!S.acikVeri || !S.acikVeri.turler) return null;
     for (var i = 0; i < S.acikVeri.turler.length; i++) {
@@ -2554,6 +2561,10 @@
         }
         if (kod === 403) { adimKoy("S1", "Doğrulama tamamlanamadı, kutucuğu yeniden işaretleyip dene.", true); return; }
         if (kod === 400 && veri && veri.hata === "onay-surumu-eski") { adimKoy("S1", "Metin güncellendi, sayfayı yenile.", true); return; }
+        if (kod === 400 && veri && (veri.hata === "gecersiz-olcu" || veri.hata === "olcu-aralik-disi")) {
+          adimKoy("S1", olcuRetMetni(), true);
+          return;
+        }
         if (kod === 400 && veri && NOT_HATA[veri.hata]) { turnsSifirla(S.alanCap1); adimKoy("S1", NOT_HATA[veri.hata], true); return; }
         if (kod === 503 && veri && veri.hata === "kapali") { adimKoy("S1", "Fotoğraftan sipariş şu an kapalı.", true); return; }
         adimKoy("S1", "Şu an önizleme hazırlanamıyor, biraz sonra yeniden dene.", true);

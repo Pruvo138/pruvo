@@ -982,7 +982,9 @@ RET_KALIPLARI = [
     (r"parca kisa kenari|satir\*sutun|parca tabladan", "parca"),
     (r"metin cok uzun|modul boyutu", "qr-uzun"),
     (r"fontta bulunmayan|denetim/gorunmez|surrogate", "karakter"),
-    (r"yazi|satir|harf", "metin-sigmadi"),
+    # isimlik_uret anahtarlik kolu (genislik_mm) ince cizgi RET'i "yazi" icermez -> "metni kisalt" yazi reddidir
+    # (Okan 10 Eki "onizleme yapilamiyor": 30 mm "Ayşe" -> eskiden ince-cizgi "gorsel dene" cumlesi).
+    (r"yazi|satir|harf|metni kisalt", "metin-sigmadi"),
     (r"ince cizgi|ink kisa kenari", "ince-cizgi"),
     (r"koprusuz|yuzen ada", "kopru"),
     (r"oran", "oran"),
