@@ -1804,12 +1804,12 @@ async function ahSenaryo(V, kaynak) {
     // VO6: ④ "Örnek" çeşide göre — yazı çeşidinde yazı örneği 1, figür çeşidinde (örneği yok) 0.
     s.VO6 = JSON.stringify(iz.ist.ornekYazi) === '["https://media.pruvo3d.com/foto/ornek/anahtarlik-1-render.webp"]' &&
       iz.ist.ornekFigur.length === 0;
-    // VO7: Renkli çeşit başına (yazı: fotoğrafsız -> yok · figür: figur_kulak TEK gövde -> yok · figür türü: var) +
-    // figür anahtarlık ③ cümlesi Renkli'yi ANMAZ.
+    // VO7 (renk = palet dilimi, BaBa 16:0x 2a): Renkli çeşit başına (yazı: fotoğrafsız -> YOK · figür: köprü kolu
+    // renk_modu tek|palet -> VAR · figür türü: var) + figür anahtarlık ③ cümlesi Renkli'yi ANAR.
     iz.renkli = { yazi: V.renkliSecilebilir("anahtarlik", "yazi"), figur: V.renkliSecilebilir("anahtarlik", "figur"),
       figur_turu: V.renkliSecilebilir("figur") };
-    s.VO7 = iz.renkli.yazi === false && iz.renkli.figur === false && iz.renkli.figur_turu === true &&
-      iz.ist.pencere3.indexOf("Renkli") < 0 && iz.ist.pencere3.indexOf("Renk: Siyah, Beyaz ya da Gri.") === 0;
+    s.VO7 = iz.renkli.yazi === false && iz.renkli.figur === true && iz.renkli.figur_turu === true &&
+      iz.ist.pencere3.indexOf("Renk: Siyah, Beyaz, Gri ya da Renkli (+%15;") === 0;
   } finally {
     for (const a of ad) { VERI[a] = yedek[a]; }
     k.kapat();
@@ -1835,7 +1835,7 @@ console.log("AH) ANAHTARLIK OLCU 30–300 (kopru 300), ACILIS 60 (Okan 10 Eki 15
   ol("VO5 figur cesidi tavani = kopruden tureyen foto_kolu.olcu_en_cok (291)", s.VO5, String(s.iz.tavan));
   ol("VO6 ④ Ornek cesside gore: yazi cesidinde yazi ornegi 1, figur cesidinde 0", s.VO6,
      JSON.stringify([s.iz.ist.ornekYazi, s.iz.ist.ornekFigur]));
-  ol("VO7 Renkli cesit basina (yazi yok · figur yok [tek govde] · figur turu var) + figur anahtarlik ③ cumlesi Renkli'yi anmaz",
+  ol("VO7 Renkli cesit basina (yazi yok · figur VAR [kopru renk_modu palet] · figur turu var) + figur anahtarlik ③ cumlesi Renkli'yi anar",
      s.VO7, JSON.stringify([s.iz.renkli, s.iz.ist.pencere3]));
   // KÖPRÜ 300 GERÇEK (TeKiN 2f13d23): VO1S/VO3S gerçek veride; VO5S figür tavanı sahte köprü 300 kopyasında (elle sabit yok —
   // kopru-manifest-uret-test R-OK2'de üretecin kendisiyle de ölçülür).
@@ -5634,5 +5634,67 @@ ol("ASENKRON temiz kaynakta (EKRAN_KAYNAK) yakalanmamis istisna 0",
 
 kopru.kapat();
 await Promise.allSettled(ctx.bekleyen);
+// ---------------------------------------------------------------- RENK = PALET A (BaBa 16:0x 2a, 10 Eki)
+// Figür anahtarlıkta Renkli: köprü kolu renk_modu tek|palet -> VERI.cesitPaleti; fiyat farkı palet/figür türüyle AYNI
+// mekanizma (VERI.secimliKurus, RENKLI_EK_YUZDE); sunucu satırı foto_renk_modu (palet | tek; alan yoksa koşucu tek).
+async function rpaSenaryo(renkModuFn) {
+  const asil = VERI.renkModu, asilOrnek = VERI.ornekSayisi;
+  if (renkModuFn) { VERI.renkModu = renkModuFn; }
+  // Tür hazırlığı örnek ister (c2a2 ile AYNI geçici yama; finally'de geri).
+  VERI.ornekSayisi = (kod) => (kod === "anahtarlik" || kod === "figur" ? 1 : asilOrnek(kod));
+  const k = koprukur(); await k.hazir;
+  const e2 = envKur(k.d1, r2Kur());
+  await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('anahtarlik', 1, 'x')").run();
+  const iso = new Date().toISOString(), fig = "rpa0" + "f".repeat(28);
+  await k.d1.prepare("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, gorev, hazir_tarih, son_kontrol, cesit)" +
+    " VALUES (?, 'anahtarlik', 60, 'z', ?, 'hazir', 'gorev-rpa', ?, 0, 'figur')").bind(fig, iso, iso).run();
+  const s = {}, iz = {};
+  try {
+    const fiyatla = (ek) => foto.fotoKalemFiyatla(e2, { foto_is: fig, olcu_mm: AH_MM, adet: 1, ...ek }, Date.now());
+    const R3 = ["Kırmızı", "Mavi", "Beyaz"];
+    const fr = await fiyatla({ renkli: true, renkler: R3 });
+    const f5 = await fiyatla({ renkli: true, renkler: ["Kırmızı", "Mavi", "Beyaz", "Siyah", "Sarı"] });
+    const ft = await fiyatla({ renkler: ["Beyaz"] });
+    const formul = Math.round(VERI.fiyatKurus("anahtarlik", AH_MM) * (100 + VERI.RENKLI_EK_YUZDE) / 100);
+    iz.renkli = fr.satir ? { birim: fr.satir.birim_kurus, mod: fr.satir.foto_renk_modu, renkler: fr.satir.foto_renkler } : fr;
+    iz.bes = f5.kod; iz.tek = ft.satir ? { birim: ft.satir.birim_kurus, mod: ft.satir.foto_renk_modu } : ft;
+    iz.formul = formul;
+    // RA1: figür + Renkli fiyatı = formül (60 mm: 600 TL × 1,15 = 690 TL), renkler kalemden, mod palet; 5 renk -> 400.
+    s.RA1 = !!fr.satir && formul === 69000 && fr.satir.birim_kurus === formul &&
+      fr.satir.birim_kurus === VERI.fiyatKurus("anahtarlik", AH_MM, { renkli: true, malzeme: "PLA" }) &&
+      fr.satir.foto_renk_modu === "palet" && JSON.stringify(fr.satir.foto_renkler) === JSON.stringify(R3) && f5.kod === 400;
+    // RA2: yazı çeşidinde Renkli YOK (radyo = renkliSunulur -> F.renkliSecilebilir AYNI fonksiyon), mod hep tek.
+    s.RA2 = VERI.renkliSecilebilir("anahtarlik", "yazi") === false && VERI.cesitPaleti("anahtarlik", "yazi") === false &&
+      VERI.renkModu("anahtarlik", "yazi", true) === "tek" && VERI.renkliSecilebilir("anahtarlik", "figur") === true;
+    // RA3: tek renk figür (renkli alanı yok = eski sipariş biçimi) -> mod tek, fiyat ana renk (600 TL).
+    s.RA3 = !!ft.satir && ft.satir.foto_renk_modu === "tek" && ft.satir.birim_kurus === 60000 &&
+      VERI.renkModu("anahtarlik", "figur", undefined) === "tek";
+  } finally {
+    VERI.renkModu = asil; VERI.ornekSayisi = asilOrnek;
+  }
+  Object.defineProperty(s, "iz", { value: iz, enumerable: false });
+  return s;
+}
+console.log("RPA) RENK = PALET A — figur anahtarlikta Renkli (kopru renk_modu), fiyat formulu, foto_renk_modu");
+{
+  const s = await rpaSenaryo(null);
+  ol("RA1 figur + Renkli 60 mm = formul (600 TL x 1,15 = 690 TL; VERI.secimliKurus), renkler kalemden, foto_renk_modu palet; 5 renk 400",
+     s.RA1, JSON.stringify(s.iz));
+  ol("RA2 yazi cesidinde Renkli 0 (renkliSecilebilir yazi false, cesitPaleti false, mod tek); figur cesidinde var", s.RA2, "");
+  ol("RA3 eski siparis bicimi (renkli yok) -> foto_renk_modu tek, 600 TL", s.RA3, JSON.stringify(s.iz.tek));
+  const capa = 'return renkli === true && VERI.cesitPaleti(kod, cesit) ? "palet" : "tek";';
+  const RPA_MUT = [
+    ["RPA-M1 varsayilan palet'e doner (renkli yoksa palet)", 'return renkli !== false && VERI.cesitPaleti(kod, cesit) ? "palet" : "tek";', ["RA3"]],
+    ["RPA-K0 KONTROL (ayni govde)", capa, []],
+  ];
+  for (const [ad, yerine, olmeli] of RPA_MUT) {
+    if (VERI_KAYNAK.split(capa).length - 1 !== 1) { ol(ad + " capa bulundu", false, capa); continue; }
+    const V = veriYukle(VERI_KAYNAK.replace(capa, yerine));
+    const m = await rpaSenaryo(V.renkModu);
+    const kir = Object.keys(m).filter((x) => m[x] !== true).sort();
+    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli), JSON.stringify(kir));
+  }
+}
+
 console.log(kirmizi ? "\n❌ " + kirmizi + " iddia KIRMIZI" : "\n✅ HEPSI GECTI");
 process.exit(kirmizi ? 1 : 0);
