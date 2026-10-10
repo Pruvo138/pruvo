@@ -305,7 +305,7 @@ def main():
         # nobetcideki "ornek 0" iddiasi geri gelir ve KIRMIZI yanar. M6b = kayit silinir · M6c = magnet
         # tur listesine girer.
         ("M6 anahtarlik ornegi kaldirildi (ornek sarti geri gelir)",
-         (index, bolum, re.sub(r'\s*\{\s*tur:\s*"anahtarlik",\s*kanit:\s*"render",\s*olcu_mm:\s*45,.*?\}\n', "\n", veri, count=1, flags=re.S), build), True),
+         (index, bolum, re.sub(r'\s*\{\s*tur:\s*"anahtarlik",\s*(?://[^\n]*\n\s*)?(?:cesit:\s*"yazi",\s*)?kanit:\s*"render",\s*olcu_mm:\s*45,.*?\}\n', "\n", veri, count=1, flags=re.S), build), True),
         ("M6b anahtarlik tur kaydi silindi",
          (index, bolum, veri.replace('kod: "anahtarlik",', 'kod: "anahtarlikYOK",', 1), build), True),
         ("M6c magnet tur listesine eklendi",

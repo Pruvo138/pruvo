@@ -778,10 +778,12 @@
     var acik = !!(F && F.kolu && F.kolu(S.tur) === "deterministik");
     S.alanOnizlemeSonra.hidden = !acik;
     if (!acik) return;
-    var t = litofanKaydi();
+    var t = litofanKaydi(), cz = seciliCesit();
+    // ÖRNEK ÇEŞİDE GÖRE (Okan 10 Eki "figür yükledim örnekte hâlâ isim var"): çeşitli türde yalnız SEÇİLİ çeşidin
+    // örneği (`cesit` alanı eşleşmeli); o çeşidin örneği yoksa "Örnek" bloğu ÇİZİLMEZ (başka çeşidinki ASLA).
     for (var i = 0; i < F.ornekler.length; i++) {
       var o = F.ornekler[i];
-      if (o && o.tur === S.tur && F.ornekGecerli(o) && (o.render || o.baski)) {
+      if (o && o.tur === S.tur && (o.cesit || "") === cz && F.ornekGecerli(o) && (o.render || o.baski)) {
         S.alanOnizlemeSonra.appendChild(el("p", "foto-uretim-form-etiket", "Örnek"));
         var img = el("img", "foto-uretim-ornek-gorsel");
         img.src = o.render || o.baski; img.alt = t.ad + " örnek";
@@ -1609,6 +1611,8 @@
       doldurS1Dosya();
       cizUyum();
     }
+    // ④ "Örnek" çeşide göre (Okan 10 Eki): çeşit değişince yeniden çizilir (eski çeşidin örneği kalmaz).
+    doldurS1OnizlemeSonra();
     guncelleS1Buton();
   }
 
