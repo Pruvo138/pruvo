@@ -3822,10 +3822,10 @@ console.log("K3b) TEK KUTU 4 PENCERE — kartlar · tek pencere · Geri/İleri �
 }
 
 // ---------------------------------------------------------------- TUR-B (10 Eki) ① sebep cümlesi + hak · ② makine anahtarı
-// ① "Önizleme oluştur" KAPALIYKEN altında TEK cümle (ilk eksik koşul, sıra: not · foto · yazı · onay · doğrulama
-// · hak · program; ArTisT sayfa metni AYNEN); hepsi tamken düğme AÇIK + cümle GİZLİ. "Son 24 saatte kalan
-// önizleme hakkın: N/<sınır>": N sunucu yanıtından, sınır VERI'den (3 YAZILMAZ); "Bugün" YASAK.
-// yazı cümlesi YALNIZ anahtarlık + yazı çeşidi + yazı boşken (F.girdiYeterli aynı kapı).
+// ① "Önizleme oluştur" KAPALIYKEN altında TEK cümle (ilk eksik koşul, sıra — TUR-A4: foto · yazı · not ·
+// onay · doğrulama · hak · program; ArTisT sayfa metni AYNEN); hepsi tamken düğme AÇIK + cümle GİZLİ.
+// "Son 24 saatte kalan önizleme hakkın: N/<sınır>": N sunucu yanıtından, sınır VERI'den (3 YAZILMAZ);
+// "Bugün" YASAK. yazı cümlesi YALNIZ anahtarlık + yazı çeşidi + yazı boşken (F.girdiYeterli aynı kapı).
 const SEBEP = {
   not: "Önce \"Nasıl olsun?\" kısmına kısa bir not yaz.",
   foto: "Önce fotoğrafını yükle.",
@@ -3880,11 +3880,13 @@ async function sebepSenaryolar(kaynak) {
   const tam = await sebepEkrani(kaynak, {});
   iz.tam = tam;
   s.V1_TAM = tam.acik && tam.gizli && tam.sebep === "";
-  // SIRA: birden çok koşul eksikken İLK eksik yazılır (tek eksik vakaları sırayı ölçemez).
-  const hepsi = await sebepEkrani(kaynak, { notYok: true, fotoYok: true, onayYok: true, dogrulamaYok: true });
-  const notlu = await sebepEkrani(kaynak, { fotoYok: true, onayYok: true, dogrulamaYok: true });
-  iz.sira = [hepsi.sebep, notlu.sebep];
-  s.V1_SIRA = hepsi.kapali && hepsi.sebep === SEBEP.not && notlu.kapali && notlu.sebep === SEBEP.foto;
+  // SIRA (TUR-A4): yeni sıra foto · yazı · not · onay · doğrulama · hak · program.
+  //   notlu   = foto VAR + not boş + onay yok + doğrulama yok → foto skip · yazi skip · not fires → SEBEP.not.
+  //   fotosuz = foto YOK + not var  + onay yok + doğrulama yok → foto fires → SEBEP.foto.
+  const notlu = await sebepEkrani(kaynak, { notYok: true, onayYok: true, dogrulamaYok: true });
+  const fotosuz = await sebepEkrani(kaynak, { fotoYok: true, onayYok: true, dogrulamaYok: true });
+  iz.sira = [notlu.sebep, fotosuz.sebep];
+  s.V1_SIRA = notlu.kapali && notlu.sebep === SEBEP.not && fotosuz.kapali && fotosuz.sebep === SEBEP.foto;
   // V2: 429 sonrası S1'de sayaç sunucudan gelen N ile görünür; yanıt gelmeden sayı UYDURULMAZ (sınır cümlesi).
   // Sayaç biçimi ArTisT'ten (ArTisT 10 Eki, birebir): "Son 24 saatte kalan önizleme hakkın: N/3.".
   s.V2_HAK = iz.hak.hak === "Son 24 saatte kalan önizleme hakkın: 0/" + VERI.sinir_ziyaretci_24s + "." &&
@@ -3903,7 +3905,7 @@ console.log("TB) TUR-A2 SEBEP CÜMLESİ + Son 24 saat N/" + VERI.sinir_ziyaretci
   ol("V1 429 onizleme-siniri -> \"" + SEBEP.hak + "\"", s.V1_HAK, JSON.stringify(s.iz.hak));
   ol("V1 503 kapali -> \"" + SEBEP.program + "\"", s.V1_PROGRAM, JSON.stringify(s.iz.program));
   ol("V1 hepsi tam -> düğme AÇIK, sebep cümlesi 0 (gizli)", s.V1_TAM, JSON.stringify(s.iz.tam));
-  ol("V1 sıra: çok eksikte İLK eksik (not; not varken foto)", s.V1_SIRA, JSON.stringify(s.iz.sira));
+  ol("V1 sıra: foto VAR+not boş -> not (foto skip), foto YOK -> foto (yeni sıra)", s.V1_SIRA, JSON.stringify(s.iz.sira));
   ol("V2 sayaç \"Son 24 saatte kalan önizleme hakkın: 0/" + VERI.sinir_ziyaretci_24s + ".\" 429 sonrası görünür; yanıtsız sayı uydurulmaz",
     s.V2_HAK, JSON.stringify([s.iz.hak.hak, s.iz.tam.hak]));
   const TB_MUT = [
@@ -3969,6 +3971,98 @@ console.log("TA3) TUR-A3 503 kapali BİLDİRİMİ — iki önizleme işleyicisi"
   for (const [ad, capa, yerine, olmeli] of A3_MUT) {
     if (EKRAN_KAYNAK.split(capa).length - 1 !== 1) { ol(ad + " capa bulundu", false, capa.slice(0, 60)); continue; }
     const m = await kapaliBildirimSenaryolar(EKRAN_KAYNAK.replace(capa, yerine));
+    const kir = Object.keys(m).filter((x) => m[x] !== true).sort();
+    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(kir));
+  }
+}
+
+// ---------------------------------------------------------------- TUR-A4 (10 Eki, BaBa 06:3x) sebep sırası = ekran sırası · 429 metni tek kaynak · insan kartına dürüst yer tutucu
+// (a) 429 onizleme-siniri dalında sabit "Bugünkü ... Yarın ..." metinleri SİLİNDİ; yerine S1_SEBEP.hak
+//     (değişkenin kendisi, metin kopyası değil). Kaynakta "Yarın yeniden deneyebilirsin" / "Bugünkü önizleme" 0.
+// (b) s1Sebep() sira dizisi ekran sırasına: foto · yazı · not (büstte atla) · onay · doğrulama · hak · program.
+//     S1_SEBEP METİNLERİ + koşul ifadeleri aynen; yalnız SIRA.
+// (c) KARTLAR.insan = { ornek: false } → ornekCiz bu kartta görsel yerine dürüst yer tutucu çizer
+//     (img.src="" + "Örnek yakında" etiketi); kart AKTİF ve tıklanabilir kalır (disabled DEĞİL, gizleme YOK).
+//     hayvan_model kartı aynı türün (figur) GERÇEK örneğini gösterir (img.src=figur-1-render.webp).
+const A4_ORNEK_YAKINDA = "Örnek yakında";
+async function a4Kartlar(kaynak) {
+  const V = veriYukle(VERI_KAYNAK);
+  const DORT_ACIK = acikGercek(V, ["plaket", "figur", "yapboz", "bust"]);
+  const e = await ekranKos(kaynak, V, DORT_ACIK);
+  const kartlar = [...e.bolum.agac()].filter((n) => n.classList.contains("foto-uretim-kart"));
+  const insan = kartlar.find((k) => k.getAttribute("data-kart") === "insan") || null;
+  const hayvan = kartlar.find((k) => k.getAttribute("data-kart") === "hayvan_model") || null;
+  const insanImg = insan && [...insan.agac()].find((n) => n.tagName === "IMG") || null;
+  const hayvanImg = hayvan && [...hayvan.agac()].find((n) => n.tagName === "IMG") || null;
+  return { insan, hayvan, insanImg, hayvanImg, kartlar };
+}
+async function a4Senaryolar(kaynak) {
+  const s = {}, iz = {};
+  // V1 figür fotoğrafsız + not boş → foto cümlesi (yeni sıra: foto önce).
+  const r1 = await sebepEkrani(kaynak, { kod: "figur", notYok: true, fotoYok: true });
+  iz.r1 = r1; s.V1 = r1.kapali && r1.sebep === SEBEP.foto;
+  // V2 fotoğraf var + not boş → not cümlesi (yeni sıra: foto skip, yazi skip, not fires).
+  const r2 = await sebepEkrani(kaynak, { kod: "plaket", notYok: true });
+  iz.r2 = r2; s.V2 = r2.kapali && r2.sebep === SEBEP.not;
+  // V3 büst fotoğrafsız → foto cümlesi (notIstegeBagli("bust")=true → not satırı false).
+  const r3 = await sebepEkrani(kaynak, { kod: "bust", fotoYok: true });
+  iz.r3 = r3; s.V3 = r3.kapali && r3.sebep === SEBEP.foto;
+  // V4 anahtarlık + yazı çeşidi boş → yazı cümlesi.
+  const r4 = await sebepEkrani(kaynak, { kod: "anahtarlik", fotoYok: true, notYok: true });
+  iz.r4 = r4; s.V4 = r4.kapali && r4.sebep === SEBEP.yazi;
+  // V5 hepsi tamam + onay yok → onay cümlesi.
+  const r5 = await sebepEkrani(kaynak, { kod: "plaket", onayYok: true });
+  iz.r5 = r5; s.V5 = r5.kapali && r5.sebep === SEBEP.onay;
+  // V6 kalanHak 0 → hak cümlesi (sunucu 429 sonrası S.kalanHak=0 ile s1Sebep'ten hak).
+  const r6 = await sebepEkrani(kaynak, { kod: "plaket", postKod: 429, postYanit: { hata: "onizleme-siniri", sinir: VERI.sinir_ziyaretci_24s } });
+  iz.r6 = r6; s.V6 = r6.kapali && r6.sebep === SEBEP.hak;
+  // V7 429 onizleme-siniri yanıtı sonrası ekranda SEBEP.hak metni (adimKoy("S1", S1_SEBEP.hak, true)).
+  s.V7 = r6.durum === SEBEP.hak;
+  // V8 insan kartı: img.src ≠ hayvan_model img.src (insan figur örneğini KULLANMAZ), insan kartı not disabled,
+  // insan kartında "Örnek yakında" etiketi var. hayvan_model kartı figur-1-render.webp gösterir.
+  const kk = await a4Kartlar(kaynak);
+  iz.kart = kk;
+  // Sahte DOM'da img.src bir öznitelik DEĞİL property (Oge.setAttribute çağrısı yok); doğrudan property okunur.
+  // disabled da property — atanmamışsa undefined; === false yerine !== true (DEVRE DIŞI yapılmamış) kullanılır.
+  const insanSrc = kk.insanImg ? kk.insanImg.src : null;
+  const hayvanSrc = kk.hayvanImg ? kk.hayvanImg.src : null;
+  s.V8 = !!kk.insan && !!kk.hayvan && typeof insanSrc === "string" && typeof hayvanSrc === "string" &&
+    insanSrc !== hayvanSrc && kk.insan.disabled !== true && kk.insan.textContent.indexOf(A4_ORNEK_YAKINDA) >= 0;
+  Object.defineProperty(s, "iz", { value: iz, enumerable: false });
+  return s;
+}
+console.log("TA4) TUR-A4 sebep sırası + 429 tek kaynak + insan kartı dürüst yer tutucu");
+{
+  const s = await a4Senaryolar(EKRAN_KAYNAK);
+  ol("A4 V1 figür fotoğrafsız + not boş -> foto cümlesi (yeni sıra: foto önce)", s.V1, JSON.stringify(s.iz.r1));
+  ol("A4 V2 fotoğraf var + not boş -> not cümlesi (yeni sıra)", s.V2, JSON.stringify(s.iz.r2));
+  ol("A4 V3 büst fotoğrafsız -> foto cümlesi (büst notIstegeBagli)", s.V3, JSON.stringify(s.iz.r3));
+  ol("A4 V4 anahtarlık + yazı çeşidi boş -> yazı cümlesi", s.V4, JSON.stringify(s.iz.r4));
+  ol("A4 V5 hepsi tamam + onay yok -> onay cümlesi", s.V5, JSON.stringify(s.iz.r5));
+  ol("A4 V6 kalanHak 0 -> hak cümlesi (429 sonrası)", s.V6, JSON.stringify(s.iz.r6));
+  ol("A4 V7 429 onizleme-siniri -> ekranda SEBEP.hak (adimKoy S1_SEBEP.hak)", s.V7, JSON.stringify(s.iz.r6 && s.iz.r6.durum));
+  ol("A4 V8 insan kartı img.src ≠ hayvan_model, not disabled, \"Örnek yakında\" var", s.V8,
+     JSON.stringify({ insan: !!(s.iz.kart && s.iz.kart.insan), insanSrc: s.iz.kart && s.iz.kart.insanImg && s.iz.kart.insanImg.src,
+       hayvanSrc: s.iz.kart && s.iz.kart.hayvanImg && s.iz.kart.hayvanImg.src,
+       insanDisabled: s.iz.kart && s.iz.kart.insan && s.iz.kart.insan.disabled,
+       insanTxt: s.iz.kart && s.iz.kart.insan && s.iz.kart.insan.textContent.slice(0, 80) }));
+  const A4_MUT = [
+    // M1: not satırı foto'nun ÖNÜNE geri alındı (eski sıra); V1 figür+fotoYok+notYok artık not döner (foto KIRMIZI).
+    ["M1 not satırı foto'nun önüne geri alındı (eski sıra)",
+     "      [fotoGerekir() && !S.dosya, S1_SEBEP.foto],\n",
+     "      [!notIstegeBagli(S.tur) && fotoGerekir() && !((S.uretimNotu || \"\").trim()), S1_SEBEP.not],\n      [fotoGerekir() && !S.dosya, S1_SEBEP.foto],\n",
+     ["V1"]],
+    // M2: insan kartı ornek:false kaldırıldı → insan kart figur örneğini gösterir (img.src=figur-1-render.webp ==
+    // hayvan_model img.src), V8 KIRMIZI.
+    ["M2 insan kartı ornek:false kaldırıldı",
+     "{ kod: \"insan\", tur: \"figur\", alt: \"insan\", ad: \"İnsan figürü\", ornek: false,",
+     "{ kod: \"insan\", tur: \"figur\", alt: \"insan\", ad: \"İnsan figürü\",",
+     ["V8"]],
+    ["A4-K0 KONTROL (yorum)", "  function s1Sebep() {", "  // kontrol\n  function s1Sebep() {", []],
+  ];
+  for (const [ad, capa, yerine, olmeli] of A4_MUT) {
+    if (EKRAN_KAYNAK.split(capa).length - 1 !== 1) { ol(ad + " capa bulundu", false, capa.slice(0, 60)); continue; }
+    const m = await a4Senaryolar(EKRAN_KAYNAK.replace(capa, yerine));
     const kir = Object.keys(m).filter((x) => m[x] !== true).sort();
     ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(kir));
   }

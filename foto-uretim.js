@@ -38,8 +38,10 @@
   // 5-anahtarlık, 6- yapboz"). kod = kart · tur = üretim türü (manifest/`/acik` kodu) · alt = istemcide tutulan
   // alt tür (S.altTur; sepet kalemine GİRMEZ) · ad + ret = sayfa metni tablosu (ArTisT c35a848d, BİREBİR).
   // Türü `/acik` listesinde olmayan kart ÇİZİLMEZ ("Yakında" etiketi YOK).
+  // KARTLAR — `ornek:false` ile işaretlenen kartın örneği ÇİZİLMEZ; ornekCiz nötr yer tutucu + "Örnek
+  // yakında" etiketi basar (kart aktif/tıklanabilir kalır, gizleme YOK). Yeni görsel/URL UYDURMA.
   var KARTLAR = [
-    { kod: "insan", tur: "figur", alt: "insan", ad: "İnsan figürü",
+    { kod: "insan", tur: "figur", alt: "insan", ad: "İnsan figürü", ornek: false,
       ret: "İnsan figürü için tek kişinin cepheden net fotoğrafı gerekir." },
     { kod: "hayvan_model", tur: "figur", alt: "hayvan_model", ad: "Hayvan ve model figürü",
       ret: "Figür için tek hayvan, araç ya da oyuncağın net fotoğrafı gerekir." },
@@ -1275,7 +1277,11 @@
     for (var i = 0; i < KARTLAR.length; i++) {
       var k = KARTLAR[i];
       if (!acikKodlar || acikKodlar.indexOf(k.tur) < 0) continue;
-      var t = F.turBul(k.tur), o = kartOrnegi(t);
+      var t = F.turBul(k.tur);
+      // `ornek:false` (BaBa 10 Eki 06:3x): dürüst yer tutucu — kart AKTİF kalır (disabled DEĞİL), görsel yok,
+      // etiket "Örnek yakında". ornekCiz kendi rengi/URL'i UYDURMAZ, yalnız boş img.src + nötr kutu.
+      if (k.ornek === false) { liste.push({ kart: k, tur: t, ornek: null, kanit: "ornek-yok" }); continue; }
+      var o = kartOrnegi(t);
       // Madde 4: orneği olmayan kart YAKINDA kartı olarak görünür ama DEVRE DIŞI (tıklanamaz).
       // Anahtarlık örneği 9 Eki'de eklendi; yakında kolu artık örneği olmayan YENİ tür içindir.
       if (!o) { if (k.yakinda) liste.push({ kart: k, tur: t, ornek: null, kanit: "yakinda" }); continue; }
@@ -1299,14 +1305,16 @@
         }
         var im = el("img");
         im.src = it.kanit === "render" ? it.ornek.render
-          : it.kanit === "yakinda" ? "" : it.ornek.baski;
+          : (it.kanit === "yakinda" || it.kanit === "ornek-yok") ? "" : it.ornek.baski;
         im.alt = ""; im.width = 240; im.height = 240; im.decoding = "async";
         if (sira > 0) im.loading = "lazy";
         d.appendChild(im);
         d.appendChild(el("span", "foto-uretim-kart-ad",
           devreDisi ? (it.kart.yakinda || it.kart.ad) : it.kart.ad));
         d.appendChild(el("span", "foto-uretim-kart-etiket",
-          devreDisi ? "yakında" : (it.kanit === "render" ? "önizleme/render" : "basılmış ürün")));
+          devreDisi ? "yakında"
+          : it.kanit === "ornek-yok" ? "Örnek yakında"
+          : (it.kanit === "render" ? "önizleme/render" : "basılmış ürün")));
         if (!devreDisi) d.addEventListener("click", function () { galeriSec(it.kart.kod); });
         ornekBlok.appendChild(d);
       })(liste[n], n);
@@ -1902,10 +1910,12 @@
     // "Sepete ekle" tik kapısı ③'te zaten aydınlatma + B2 + (türetilmiş eksen fiyatsız) ile çalışır.
   }
 
-  // ① "Önizleme oluştur" kapalıyken gösterilen sebep — SIRA sabit: ilk eksik koşul yazılır, diğerleri yazılmaz.
-  // Cümleler ArTisT sayfa metni bölümünden ("## "Önizleme oluştur" kapalıyken sebep cümlesi") AYNEN — sıra ve
-  // söz değişmez; sabit gün ifadeleri (BAŞLANGIÇ/BTÜ ifadeleri) YASAK (kayan 24 saat; ilk hak boşalınca
-  // yenilenir; program kapalıyken beklemek bir şey değiştirmez). BaBa 05:02 hükmü 2.
+  // ① "Önizleme oluştur" kapalıyken gösterilen sebep — SIRA ekran sırası: ilk eksik koşul yazılır,
+  // diğerleri yazılmaz. Cümleler ArTisT sayfa metni bölümünden ("## "Önizleme oluştur" kapalıyken sebep
+  // cümlesi") AYNEN — söz değişmez; sabit gün ifadeleri (BAŞLANGIÇ/BTÜ) YASAK (kayan 24 saat; ilk hak
+  // boşalınca yenilenir; program kapalıyken beklemek bir şey değiştirmez). BaBa 05:02 hükmü 2.
+  // Sıra: foto · yazı (anahtarlık yazı çeşidi) · not (büstte atla) · onay · doğrulama · hak · program.
+  // Not satırı ekranda foto ve yazının ARDINDAN gelir; "büstte atla" notIstegeBagli ile aynen.
   var S1_SEBEP = {
     not: "Önce \"Nasıl olsun?\" kısmına kısa bir not yaz.",
     foto: "Önce fotoğrafını yükle.",
@@ -1920,16 +1930,16 @@
   function notIstegeBagli(kod) { return NOT_ISTEGE_BAGLI_TURLER.indexOf(kod) >= 0; }
   function s1Sebep() {
     var sira = [
-      // Not alanı yalnız fotoğraflı girdide çizilir (cizUretimNotu); yazılı anahtarlıkta not istenmez (TUR-C2b).
-      [!notIstegeBagli(S.tur) && fotoGerekir() && !((S.uretimNotu || "").trim()), S1_SEBEP.not],
       [fotoGerekir() && !S.dosya, S1_SEBEP.foto],
       // Anahtarlık + yazı çeşidi: yazı alanı (② "metin" formu) boşsa. cesitliTur() yalnız anahtarlıkta true
       // (VERI.cesitler); seciliCesit() == "yazi" çeşidi figürden ayırır (figür çeşidinin fotoğraf kapısı
-      // cümle 2'de). F.girdiYeterli aynı kapıyı tutar — yeni mantık UYDURMA.
+      // cümle 1'de). F.girdiYeterli aynı kapıyı tutar — yeni mantık UYDURMA.
       [cesitliTur() && seciliCesit() === "yazi" &&
        F.girdiYeterli(S.tur, { foto: !!S.dosya, parametreler: parametreGovde(),
          cesit: seciliCesit() }) !== "",
        S1_SEBEP.yazi],
+      // Not alanı yalnız fotoğraflı girdide çizilir (cizUretimNotu); yazılı anahtarlıkta not istenmez (TUR-C2b).
+      [!notIstegeBagli(S.tur) && fotoGerekir() && !((S.uretimNotu || "").trim()), S1_SEBEP.not],
       [!S.aydinlatmaOnay, S1_SEBEP.onay],
       [!S.captchaToken1, S1_SEBEP.dogrulama],
       [S.kalanHak === 0, S1_SEBEP.hak],
@@ -2411,10 +2421,7 @@
           return;
         }
         if (kod === 429 && veri.hata === "onizleme-siniri") {
-          var sinir = typeof veri.sinir === "number" ? veri.sinir : F.sinir_ziyaretci_24s;
-          adimKoy("S1",
-            "Bugünkü önizleme hakkın doldu (günde " + sinir + "). Yarın yeniden deneyebilirsin.",
-            true);
+          adimKoy("S1", S1_SEBEP.hak, true);
           return;
         }
         if (kod === 403) {
@@ -2485,7 +2492,7 @@
           return;
         }
         if (kod === 429 && veri && veri.hata === "onizleme-siniri") {
-          adimKoy("S1", "Bugünkü önizleme hakkın doldu. Yarın yeniden deneyebilirsin.", true);
+          adimKoy("S1", S1_SEBEP.hak, true);
           return;
         }
         if (kod === 403) { adimKoy("S1", "Doğrulama tamamlanamadı, kutucuğu yeniden işaretleyip dene.", true); return; }
