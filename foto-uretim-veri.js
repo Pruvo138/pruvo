@@ -286,7 +286,6 @@
         girdi: ["metin"],
         motor: "D",
         uretec: "isimlik_uret",
-        // Okan 10 Eki ~13:4x: "Anahtarlık 30 mm — 60mm yap" (kulak DAHİL en uzun boyut; en_cok 80 aynen).
         olcu_mm: { en_az: 60, en_cok: 80 },
         renk_bolgeleri: [
           {

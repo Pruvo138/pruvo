@@ -1,5 +1,5 @@
 {
-  "surum": "kopru-uret-1.3",
+  "surum": "kopru-uret-1.4",
   "kayitlar": [
     {
       "kod": "yapboz",
@@ -333,7 +333,7 @@
       "parametreler": [
         {
           "ad": "figur",
-          "etiket": "Figür (3MF/STL dosya; uzun kenar 50 mm'ye kadar, 50 mm üzeri reddedilir)",
+          "etiket": "Figür (3MF/STL dosya; uzun kenar 72 mm'ye kadar, 72 mm üzeri reddedilir)",
           "tip": "dosya",
           "zorunlu": true
         },
@@ -351,8 +351,8 @@
       "olcek": {
         "eksen": "uzun_kenar_mm",
         "kaynak": "ozet.uzun_kenar_mm",
-        "min_mm": 0,
-        "max_mm": 60,
+        "min_mm": 60,
+        "max_mm": 80,
         "adim_mm": 5,
         "belirleyen_parametre": "figur"
       },
@@ -372,7 +372,7 @@
       ],
       "ornek": {
         "girdi": {
-          "figur": "<FIGUR 3MF YOLU> (40 mm kapsul+kure, testte runtime'da uretilir)",
+          "figur": "<FIGUR 3MF YOLU> (71 mm kapsul+kure, testte runtime'da uretilir)",
           "konum": "tepe"
         }
       },
@@ -455,6 +455,78 @@
         {
           "ad": "konum",
           "deger": "ust-orta"
+        }
+      ]
+    },
+    {
+      "kod": "bust-kaide",
+      "kategori_adi": "Büst (foto, kaideli 3B)",
+      "uretec": "bust_kaide",
+      "cagri": {
+        "betik": "jeneratorler/foto/bust_kaide.py",
+        "bayraklar": [],
+        "girdi_bayragi": "--girdi",
+        "cikti_bayragi": "--cikti",
+        "parametre_bayraklari": {
+          "renk_modu": "--renk-modu"
+        }
+      },
+      "sema_adi": "BUST_KAIDE_SEMA",
+      "girdi_tipi": [
+        "bust-3mf"
+      ],
+      "parametreler": [
+        {
+          "ad": "bust",
+          "etiket": "Büst (3MF/STL dosya; baş + omuz, tek parça)",
+          "tip": "dosya",
+          "zorunlu": true
+        },
+        {
+          "ad": "renk_modu",
+          "etiket": "Renk modu (tek: tek renk; iki: büst + kaide ayrı renk)",
+          "tip": "secim",
+          "secenekler": [
+            "tek",
+            "iki"
+          ],
+          "varsayilan": "tek"
+        }
+      ],
+      "olcek": {
+        "eksen": "toplam_yukseklik_mm",
+        "kaynak": "ozet.toplam_yukseklik_mm",
+        "min_mm": 60,
+        "max_mm": 300,
+        "adim_mm": 10,
+        "belirleyen_parametre": "bust",
+        "bayrak": "--olcu-mm",
+        "dinamik_max_kaynak": "ozet.azami_olcu_mm"
+      },
+      "cikti": {
+        "stl": null,
+        "uc_mf": "uretec.3mf",
+        "onizleme_png": "onizleme.png",
+        "ozet": "ozet.json",
+        "onizleme_max_px": 800
+      },
+      "renk_bolgeleri": [],
+      "izinli_malzeme": [
+        "PLA",
+        "PETG",
+        "ASA",
+        "ABS"
+      ],
+      "ornek": {
+        "girdi": {
+          "bust": "<BUST 3MF YOLU> (sentetik bust, testte runtime'da uretilir)",
+          "renk_modu": "tek"
+        }
+      },
+      "varyantlar": [
+        {
+          "ad": "renk_modu",
+          "deger": "iki"
         }
       ]
     }
