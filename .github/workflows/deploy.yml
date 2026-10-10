@@ -1581,6 +1581,7 @@ jobs:
           node shop/test/foto-uretim.mjs
           node shop/test/foto-sepet.mjs
           python3 tools/foto-uretim-bolum-test.py
+          python3 tools/foto-canli-gizli-kapisi-test.py
           node shop/test/foto-girdi-tipleri.mjs
           node shop/test/foto-fiyat-formul.mjs
           node shop/test/onizleme-kapisi.mjs
@@ -1848,3 +1849,14 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: python3 tools/yayin-kapisi.py --durum
+      # FOTO CANLI GIZLI (Okan 10 Eki: "calismayan ozellik canlida GORUNMEZ"): deploy SONRASI gercek
+      # pruvo3d.com'da program kapaliyken #fotoUretim statik `hidden` + yayindaki foto-uretim.js bu /acik
+      # yanitiyla bolumu ACMIYOR mu (sahte DOM, KG1-3 yolu; pozitif kontrol kosucunun kor olmadigini olcer).
+      # Program aciksa UYGULANMAZ (rc 0). BLOKLAYICI: continue-on-error YOK. OLCULEMEDI (ag/kor kosucu) =
+      # rc 2 = KIRMIZI is (fail-closed; build/serit emsali); gecici ag sarsintisi yayini boyamasin diye
+      # kapinin ICINDE 3 deneme x 15 sn tavan. `if: always()`: urun yayin adimlarinin kirmizisi bu olcumu
+      # susturmasin, bu olcumun kirmizisi da urun yayinini (yukaridaki adimlar) bekletmesin. Otomatik
+      # rollback YOK: KIRMIZI cikti onceki Pages dagitimini yeniden yayinlama komutunu basar.
+      - name: "Foto canli gizli kapisi (program kapaliyken bolum canlida gorunmez)"
+        if: always()
+        run: python3 tools/foto-canli-gizli-kapisi.py --deneme 3 --bekle 15
