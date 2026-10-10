@@ -161,14 +161,34 @@ SAHTE_FIGUR = SAHTE_TEKIN.replace(
     '    sys.stderr.write("RET: " + os.environ["FAKE_FIGUR_RET_" + kn.upper()] + "\\n"); sys.exit(2)\n'
     'if os.environ.get("FAKE_TEKIN_RET"):').replace(
     '"hacim_mm3": {"a": 1000.0, "toplam": 1000.0}}',
-    '"hacim_mm3": {"a": 1000.0, "toplam": 1000.0}, "kulak": {"konum": kn}}')
+    '"hacim_mm3": {"a": 1000.0, "toplam": 1000.0}, "kulak": {"konum": kn}}').replace(
+    # RENK=PALET B: `--renk-modu palet` -> girdi 3MF olmali (STL: rc 2, gercek figur_kulak gibi); cikti GERCEK palet
+    # bicimi: TEK govde (extruder 1) + girdideki her FARKLI paint_color bir ucgende AYNEN (boya yok -> rc 2).
+    # Bayraksiz (tek) -> ucgensiz tek govde (bugunku sahte AYNEN).
+    'kn = a[a.index("--konum") + 1] if "--konum" in a else "tepe"\n',
+    'kn = a[a.index("--konum") + 1] if "--konum" in a else "tepe"\n'
+    'tri = ""\n'
+    'if "--renk-modu" in a and a[a.index("--renk-modu") + 1] == "palet":\n'
+    '    import re\n'
+    '    gy = a[a.index("--girdi") + 1]\n'
+    '    if not gy.endswith(".3mf"):\n'
+    '        sys.stderr.write("RET: renk_modu palet 3MF girdi ister\\n"); sys.exit(2)\n'
+    '    z0 = zipfile.ZipFile(gy)\n'
+    '    bp = sorted({m for n0 in z0.namelist() if n0.endswith(".model")\n'
+    '                 for m in re.findall(r\'paint_color="([^"]+)"\', z0.read(n0).decode())})\n'
+    '    if not bp:\n'
+    '        sys.stderr.write("RET: renk_modu palet: girdide ucgen boyasi (paint_color) yok\\n"); sys.exit(2)\n'
+    '    tri = "<triangles>" + "".join(\'<triangle v1="0" v2="1" v3="2" paint_color="%s"/>\' % p for p in bp) + "</triangles>"\n'
+    ).replace("'</vertices></mesh></object>", "'</vertices>' + tri + '</mesh></object>")
 assert SAHTE_FIGUR.count("FAKE_FIGUR_RET_") == 2 and '"kulak": {"konum": kn}' in SAHTE_FIGUR
+assert SAHTE_FIGUR.count("tri = ") == 2 and "'</vertices>' + tri + '</mesh></object>" in SAHTE_FIGUR
 
 
-def uretim_3mf(govde=1):
+def uretim_3mf(govde=1, boya=None):
     """GERCEK saglayici onarim bicimi (TUR-C2c kok neden): kok model YALNIZ `<component p:path=...>` (Production),
     mesh alt dosyada. 10 mm kup; bilesen donusumu x*2 (20x10x10), build donusumu z etrafinda 90° (-> 10x20x10) +
-    oteleme. govde>1 -> ayni bilesene ikinci build ogesi (iki govde). Kucuk (<2 KB), testin icinde uretilir."""
+    oteleme. govde>1 -> ayni bilesene ikinci build ogesi (iki govde). Kucuk (<2 KB), testin icinde uretilir.
+    boya: paint_color dizgeleri listesi -> ucgen n'ye boya[n % len] (BambuStudio boyali figur; None = boyasiz AYNEN)."""
     import io
     import zipfile
     v = [(x, y, z) for x in (0, 10) for y in (0, 10) for z in (0, 10)]
@@ -179,7 +199,8 @@ def uretim_3mf(govde=1):
     alt = ('<?xml version="1.0" encoding="UTF-8"?><model unit="millimeter" %s><resources><object id="1" type="model">'
            '<mesh><vertices>%s</vertices><triangles>%s</triangles></mesh></object></resources><build/></model>' %
            (ns, "".join('<vertex x="%d" y="%d" z="%d"/>' % p for p in v),
-            "".join('<triangle v1="%d" v2="%d" v3="%d"/>' % u for u in ucgen)))
+            "".join(('<triangle v1="%d" v2="%d" v3="%d" paint_color="%s"/>' % (u + (boya[n % len(boya)],))) if boya
+                    else ('<triangle v1="%d" v2="%d" v3="%d"/>' % u) for n, u in enumerate(ucgen))))
     ogeler = "".join('<item objectid="2" transform="0 1 0 -1 0 0 0 0 1 %d 7 3" p:printable="1"/>' % (100 + 50 * n)
                      for n in range(govde))
     kok = ('<?xml version="1.0" encoding="UTF-8"?><model unit="millimeter" %s %s requiredextensions="p"><resources>'
@@ -194,6 +215,28 @@ def uretim_3mf(govde=1):
         z.writestr("3D/3dmodel.model", kok)
         z.writestr("3D/Objects/object_1.model", alt)
     return b.getvalue()
+
+
+# Fikstur boya dizgeleri -> yaprak durumlari (TABLO; koşucunun TriangleSelector cozucusunden BAGIMSIZ). "841" = bir
+# kenari bolunmus ucgen (durum 1 + durum 2; TeKiN test_figur_kulak.BOYA_TABLO ile ayni dizge).
+BOYA_DURUM = {"4": {1}, "8": {2}, "0C": {3}, "1C": {4}, "841": {1, 2}}
+
+
+def extruder_say(bayt):
+    """3MF baytlari -> FARKLI extruder sayisi (koşucudan BAGIMSIZ okuma): model_settings govde extruder'lari; ucgen
+    boyasi varsa durum d>=1 -> extruder d (BOYA_DURUM tablosu; tabloda olmayan dizge -> -1). Okunamazsa 0."""
+    import io
+    import zipfile
+    try:
+        with zipfile.ZipFile(io.BytesIO(bayt)) as z:
+            govde = set(re.findall(r'key="extruder"\s+value="(\d+)"', z.read("Metadata/model_settings.config").decode()))
+            boya = [p for n in z.namelist() if n.endswith(".model")
+                    for p in re.findall(r'paint_color="([^"]*)"', z.read(n).decode())]
+    except (KeyError, zipfile.BadZipFile, UnicodeDecodeError):
+        return 0
+    if any(p not in BOYA_DURUM for p in boya):
+        return -1
+    return len({str(d) for p in boya for d in BOYA_DURUM[p]}) if boya else len(govde)
 
 
 def stl_ozet(bayt):
@@ -817,8 +860,12 @@ def vakalar(kosucu):
     # TUR-C2d K1: onarim ciktisi GERCEK bicimli Production 3MF (kok yalniz p:path bileseni) -> koşucu tek govde
     # ikili STL'e duzlestirir (donusumler uygulanmis, min 0) -> figur_kulak --girdi figur.stl.
     def figur_ortami(o, **girdi):
-        o.onarim_is(tur="anahtarlik", olcu=60, ham=uretim_3mf(girdi.pop("govde", 1)),
+        kalem = girdi.pop("kalem", None)
+        o.onarim_is(tur="anahtarlik", olcu=60, ham=uretim_3mf(girdi.pop("govde", 1), girdi.pop("boya", None)),
                     girdi=dict({"cesit": "figur", "uretec": "figur_kulak"}, **girdi))
+        if kalem is not None:  # RENK=PALET B: odenen siparis satiri (kalem 0); None = siparis satiri YOK (eski T6x)
+            o.sql("INSERT INTO siparisler (siparis_no, tarih, durum, tutar_kurus, urunler) VALUES (?,?,?,?,?)",
+                  SIP, GUNCEL0, "odendi", 69000, json.dumps([dict({"foto_is": IS, "foto_tur": "anahtarlik"}, **kalem)]))
         jen = o.jen()
         with open(os.path.join(jen, "jeneratorler", "foto", "figur_kulak.py"), "w") as f:
             f.write(SAHTE_FIGUR)
@@ -957,6 +1004,33 @@ def vakalar(kosucu):
         return (u["asama"] == "elle" and u["sebep"] == "uretec-red:genel" and o.model() is None and
                 figur_cagrilari(o) == [] and "cok govdeli (2 govde)" in c), "%s %s" % (son, u)
 
+    # RENK=PALET B (Renkli +%15 satiliyor): palet siparisinde onarilmis 3MF AYNEN figur.3mf + `--renk-modu palet`
+    # -> uretilen model.3mf extruder sayisi >= 2 (boya korunur); tek / alan yok / gecersiz -> bugunku STL yolu, bayrak
+    # YOK, 1 extruder. Extruder sayisi model.3mf'ten koşucudan BAGIMSIZ okunur (extruder_say).
+    BOYA3 = ["4", "841", "0C"]  # durumlar {1}, {1,2} (bolunmus), {3} -> 3 extruder
+
+    def renk_vaka(kalem, beklenen_renk, palet):
+        def fn(o):
+            jen = figur_ortami(o, boya=BOYA3, kalem=kalem)
+            # Onarim girdisinin KENDISI (uretim_3mf zip zaman damgasi tasir; yeniden uretmek saniye siniri flaky'si)
+            with open(os.path.join(o.r2, "foto", SIP, "0", "model.ham.3mf"), "rb") as f:
+                ham = f.read()
+            rc, son, c = o.kos("--uygula", FOTO_KOSUCU_JENERATOR=jen, FAKE_KOPRU="aynen")
+            u = o.uretim()
+            fg = figur_cagrilari(o)
+            av = fg[0]["argv"] if len(fg) == 1 else []
+            gb = fg[0]["figur_girdi"].encode("latin-1") if len(fg) == 1 else b""
+            n = extruder_say(o.model() or b"")
+            bayrak = ["--renk-modu", "palet"] if palet else []
+            girdi_ok = (gb == ham and b'paint_color="0C"' in gb and "figur.3mf" in av) if palet else \
+                (gb.startswith(b"PRUVO figur duz") and "figur.stl" in av)
+            return (son == "HAL=ISLEDI uretildi=1 red=0 ariza=0 rc=0" and u["asama"] == "hazir" and
+                    av[:2 + len(bayrak)] == ["--konum", "tepe"] + bayrak and av.count("--renk-modu") == len(bayrak) // 2
+                    and girdi_ok and n == beklenen_renk and
+                    ("renk_modu=%s renk=%d" % ("palet" if palet else "tek", beklenen_renk)) in c), \
+                "%s %s argv=%s renk=%s" % (son, u, av, n)
+        return fn
+
     # SAGLIK DAMGASI (10 Eki): K1 --uygula BOS turu foto_ayar.kosucu_son_tik = taze ISO (+ guncel ms) yazar ·
     # K2 KURU kip (bos ve is varken) damga YAZMAZ · K1b OLCULEMEDI turu damga yazmaz (bayat damga = cevrimdisi).
     def damga(o):
@@ -997,6 +1071,10 @@ def vakalar(kosucu):
     vaka("T64K", t64k)
     vaka("T65K", t65k)
     vaka("T66", t66)
+    vaka("RB1", renk_vaka({"foto_renk_modu": "palet"}, 3, True))   # palet 3MF -> 3 renk, bayrak VAR
+    vaka("RB2", renk_vaka({"foto_renk_modu": "tek"}, 1, False))    # tek (boyali 3MF bile) -> STL, 1 renk, bayrak YOK
+    vaka("RB3", renk_vaka({}, 1, False))                           # eski siparis (alan yok) -> tek STL, 1 renk
+    vaka("RB4", renk_vaka({"foto_renk_modu": "Renkli"}, 1, False))  # gecersiz deger -> tek (fail-safe)
     vaka("T67", t67)
     vaka("T68", t68)
     for ad, fn in (("T1", t1), ("T2", t2), ("T3", t3), ("T4", t4), ("T5", t5), ("T6", t6), ("T7", t7),
@@ -1266,11 +1344,22 @@ MUTANTLAR = {
     # >50 mm reddinde de sirt denenir (T61).
     "M63": ('    hata = figur_duzlestir(model, os.path.join(gd, "figur.stl"))\n',
             '    hata = shutil.copyfile(model, os.path.join(gd, "figur.stl")) and None\n',
-            {"T60", "T66", "VB3", "VB4"}),
+            {"T60", "T66", "VB3", "VB4", "RB2", "RB3", "RB4"}),
     "M64": ('FIGUR_KONUM_SIRASI = ("tepe", "sirt")\n', 'FIGUR_KONUM_SIRASI = ("tepe",)\n',
             {"T64", "T65", "T67", "T68", "VB3", "VB4", "T64K", "T65K"}),
     # C: kulak dahil tepe reddinde sirt dususu kalkarsa (TEPE_RED yalniz `kulak yerlesmez`) T64K KIRMIZI.
     "M-C-SIRT": ('|kulak dahil uzun kenar [0-9.]+ mm > [0-9.]+ mm \\(konum=tepe\\b")', '")', {"T64K", "T65K"}),
+    # RENK=PALET B: palette STL'e duzlestirme (boya silinir; gercek uretec gibi sahte de STL+palet'i reddeder) ->
+    # RB1 KIRMIZI; uretec bayragi duserse 3MF tek renk uretilir (renk 1) -> RB1; onarim SELECT'i siparis kalemini
+    # okumazsa palet hic secilmez -> RB1.
+    "M-RB-STL": ('    figur = "figur.3mf" if palet else "figur.stl"\n    if palet:\n',
+                 '    figur = "figur.stl"\n    if False:\n', {"RB1"}),
+    "M-RB-BAYRAK": ('    if rm == "palet":\n        u["renk_modu"] = "palet"\n', "", {"RB1"}),
+    # palet ciktisi TEK govde + ucgen boyasi: koşucu boyayi saymazsa renk=1 (gercek prova 10 Eki: 4 boyali figur -> 1).
+    "M-RB-BOYA": ("    if not boya:\n        return len(govde)\n", "    if True:\n        return len(govde)\n", {"RB1"}),
+    # bolunmus ucgende yalniz ilk yaprak sayilirsa ("841" -> {1}) durum 2 kaybolur -> renk=2 (RB1).
+    "M-RB-BOLUNMUS": ("            bekleyen += (kod & 3) + 1\n", "            bekleyen += 1\n", {"RB1"}),
+    "M-RB-SELECT": (' u.guncel, s.urunler"\n', ' u.guncel"\n', {"RB1"}),
     "M65": ("        if not (rc == 2 and TEPE_RED.search(ozet)):\n", "        if not rc == 2:\n", {"T61"}),
     # B2: tepe olcuye sigmadiginda sirt dususu kapali -> tepe kulak dahil > olcu -> kabul reddi ('elle').
     "M-B2-SIRT": ("        if rc == 0 and konum != FIGUR_KONUM_SIRASI[-1] and not figur_tepe_sigar(i, cd):\n            continue\n",
@@ -1279,7 +1368,7 @@ MUTANTLAR = {
     "M-B2-KABUL": ("        if red:\n            rc, ozet = 2, red\n", "        if False:\n            rc, ozet = 2, red\n",
                    {"T68"}),
     "M60": ('    if not isinstance(g, dict) or "uretec" not in g:\n', "    if True:\n",
-            {"T60", "T61", "T62", "T63", "T64", "T65", "T66", "T67", "T68", "T64K", "T65K"}),
+            {"T60", "T61", "T62", "T63", "T64", "T65", "T66", "T67", "T68", "T64K", "T65K", "RB1", "RB2", "RB3", "RB4"}),
     # TUR-C2a: girdi.json zorunlu sayilirsa eski is (dosya yok) 'elle'ye duser (T27 = V7).
     "M61": ('    if not r2_al(ONIZLEME_DIZIN % i["is_no"] + "girdi.json", oy):\n        return None\n',
             '    if not r2_al(ONIZLEME_DIZIN % i["is_no"] + "girdi.json", oy):\n        return ""\n', {"T27"}),
@@ -1295,9 +1384,10 @@ MUTANTLAR = {
     "M44": ('    if any(b not in pb for b in (g.get("renkler") or {})):\n        raise KopruRed("renk")\n', "", {"T36"}),
     # ANAHTARLIK FOTO KOLU: foto dali / parametre_bayraklari / >50 mm cumlesi / yazi kolu ayrimi.
     "M45": ('    if (g or {}).get("kol") == "foto":\n        return ESLEMELER.get(g.get("esle"))\n', "",
-            {"T40", "T60", "T61", "T63", "T64", "T65", "T67", "T68", "VB3", "VB4", "T64K", "T65K"}),
+            {"T40", "T60", "T61", "T63", "T64", "T65", "T67", "T68", "VB3", "VB4", "T64K", "T65K",
+             "RB1", "RB2", "RB3", "RB4"}),
     "M46": ("        komut += [pb[ad], str(u[ad])]\n", "        pass\n",
-            {"T41", "T60", "T61", "T64", "T65", "T67", "T68", "VB3", "VB4", "T64K", "T65K"}),
+            {"T41", "T60", "T61", "T64", "T65", "T67", "T68", "VB3", "VB4", "T64K", "T65K", "RB1", "RB2", "RB3", "RB4"}),
     "M47": ('    (r"figur uzun kenar|kulak dahil uzun kenar|kulak yerlesmez", "anahtarlik-boyut"),\n',
             "", {"T42", "T44", "T61", "T65", "T65K"}),
     # 10 Eki figur_kulak: varsayilan konum tepe; STL girdisi de kabul; eski plaket eslemesi geri gelirse KIRMIZI.
@@ -1305,10 +1395,12 @@ MUTANTLAR = {
     # oldugu icin M51 tum onarim figur vakalarini dusurur (olculen kumeler).
     "M50": ('KONUM_VARSAYILAN = "tepe"\n', 'KONUM_VARSAYILAN = "sirt"\n', {"T40", "T41"}),
     "M51": ('not ad.endswith((".3mf", ".stl"))', 'not ad.endswith(".3mf")',
-            {"T40", "T44", "T60", "T61", "T63", "T64", "T65", "T67", "T68", "VB3", "VB4", "T64K", "T65K"}),
+            {"T40", "T44", "T60", "T61", "T63", "T64", "T65", "T67", "T68", "VB3", "VB4", "T64K", "T65K",
+             "RB2", "RB3", "RB4"}),
     "M52": ('    "figur_kulak": {"bicim": "tekin-ortak", "betik": "jeneratorler/foto/figur_kulak.py",',
             '    "plaket_kulak": {"bicim": "tekin-ortak", "betik": "jeneratorler/foto/plaket_kulak.py",',
-            {"T40", "T41", "T44", "T60", "T61", "T63", "T64", "T65", "T67", "T68", "VB3", "VB4", "T64K", "T65K"}),
+            {"T40", "T41", "T44", "T60", "T61", "T63", "T64", "T65", "T67", "T68", "VB3", "VB4", "T64K", "T65K",
+             "RB1", "RB2", "RB3", "RB4"}),
     "M48": ('"anahtarlik-boyut": "Bu fotoğraftan anahtarlık boyutunda bir parça çıkmadı;',
             '"anahtarlik-boyut": "Bu fotoğraftan parça çıkmadı;', {"T42", "T44"}, "foto-uretim-veri.js"),
     # Yazi kolu gerilemesi: foto dali her ureteci yakalar -> anahtarlik yazi isi esle_isimlik'e duser (T13/T14/...).
