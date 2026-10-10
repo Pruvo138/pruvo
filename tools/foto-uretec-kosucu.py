@@ -115,6 +115,17 @@ DOSYA_ADI_KALIBI = re.compile(r"^[a-z_]{1,24}\.(png|jpg|jpeg|svg|wav|3mf|stl)$")
 # Kopru yoksa is KUYRUKTA kalir (fail-closed: hazir yazilmaz). ④ bunu pruvo `uc_mf_olc` ile AYRICA olcer.
 KOPRU_BETIK = "jeneratorler/foto/uc_mf_onar.py"
 ONARIM_SURE_SN = 600
+# FIGUR ZINCIRI (BaBa 10 Eki 22:3x; insan · pet · model = foto_uretim.tur 'figur', cesitsiz): onarim gecince
+# TeKiN `figur_duzelt.py --girdi --cikti` (kaide + kabuk birlestirme; olcek DEGISTIRMEZ) -> koşucu OLCEKLER (siparis
+# olcusu = teslim edilen parcanin KAIDE DAHIL en uzun boyutu, 3 eksen; kaide eklendikten SONRA) -> `figur_denge.py
+# --girdi` olcer: DENGE=OK -> 'hazir' · DENGE=RED -> 'elle' uretec-red:denge-<sebep> (musteri metni mevcut genel
+# cumle, VERI.uretecRedMetni) · duzelt rc != 0 (rc 2 + sebep denge_* HARIC: geometri yazildi, kalan kapi olcek
+# meselesi -> olcekli denge karar verir) / denge rc 1 / olcek tutmadi -> ariza. Betik yoksa Erisilemedi (kuyrukta).
+# Anahtarlik-figur (figur_kos) ve plaket (onarilmis model AYNEN) zinciri DEGISMEZ.
+FIGUR_ZINCIR_TURLERI = ("figur",)
+FIGUR_DUZELT_BETIK = "jeneratorler/foto/figur_duzelt.py"
+FIGUR_DENGE_BETIK = "jeneratorler/foto/figur_denge.py"
+FIGUR_OLCEK_TOLERANS = 0.01
 
 # KOMUT ESLEMESI — TEK YER: manifest `uretec` kimligi -> CLI. bicim "sozlesme" = §1 dogal cagri
 # (`<komut> --girdi girdi.json --cikti <dizin>`); "litofan" = litofan_uret.py'nin kendi CLI'i
@@ -1645,6 +1656,158 @@ def figur_kos(i, t, uretec, model, gecici):
     return rc, ozet, os.path.join(cd, "model.3mf"), konum
 
 
+UC_MF_VERTEX = re.compile(r'(<vertex\b[^>]*?\bx=")([-0-9.eE+]+)("[^>]*?\by=")([-0-9.eE+]+)("[^>]*?\bz=")([-0-9.eE+]+)(")')
+UC_MF_DONUSUM = re.compile(r'(<(?:item|component)\b[^>]*?\btransform=")([^"]*)(")')
+
+
+def _uc_mf_modeller(yol):
+    """3MF -> (zip ogeleri [(ZipInfo, bayt)], {ad: model xml}). Okunamazsa ValueError."""
+    import zipfile
+    try:
+        with zipfile.ZipFile(yol) as z:
+            ogeler = [(zi, z.read(zi.filename)) for zi in z.infolist()]
+        return ogeler, {zi.filename: b.decode("utf-8") for zi, b in ogeler if zi.filename.endswith(".model")}
+    except (OSError, KeyError, zipfile.BadZipFile, UnicodeDecodeError) as e:
+        raise ValueError("3mf okunamadi: %s" % e)
+
+
+def uc_mf_dunya_uzun(modeller):
+    """Production 3MF (kok build -> `<component p:path=...>` alt dosya) dahil DUNYA koordinatinda en uzun boyut
+    (x/y/z, kaide dahil). Butun koseler donusturulur (kutu ustu tahmin yok). Geometri yoksa None."""
+    nesne = {}
+    for ad, xml in modeller.items():
+        for m in re.finditer(r'<object\b([^>]*)>(.*?)</object>', xml, re.S):
+            oid = re.search(r'\bid="(\d+)"', m.group(1))
+            if not oid:
+                continue
+            vs = [(float(v[1]), float(v[3]), float(v[5])) for v in UC_MF_VERTEX.findall(m.group(2))]
+            komp = []
+            for k in re.finditer(r'<component\b([^>]*)/?>', m.group(2)):
+                a = k.group(1)
+                cid = re.search(r'\bobjectid="(\d+)"', a)
+                yol = re.search(r'\bp:path="/?([^"]*)"', a)
+                t = re.search(r'\btransform="([^"]*)"', a)
+                if cid:
+                    komp.append(((yol.group(1) if yol else ad), cid.group(1), t.group(1) if t else ""))
+            nesne[(ad, oid.group(1))] = (vs, komp)
+
+    def donustur(ps, t):
+        if not t:
+            return ps
+        a = [float(x) for x in t.split()]
+        return [(p[0] * a[0] + p[1] * a[3] + p[2] * a[6] + a[9], p[0] * a[1] + p[1] * a[4] + p[2] * a[7] + a[10],
+                 p[0] * a[2] + p[1] * a[5] + p[2] * a[8] + a[11]) for p in ps]
+
+    def noktalar(anahtar, derinlik=0):
+        if anahtar not in nesne or derinlik > 8:
+            return []
+        vs, komp = nesne[anahtar]
+        out = list(vs)
+        for kad, cid, ct in komp:
+            out += donustur(noktalar((kad, cid), derinlik + 1), ct)
+        return out
+
+    mn, mx = [float("inf")] * 3, [float("-inf")] * 3
+    for ad, xml in modeller.items():
+        for b in re.finditer(r'<item\b([^>]*)/?>', xml):
+            cid = re.search(r'\bobjectid="(\d+)"', b.group(1))
+            t = re.search(r'\btransform="([^"]*)"', b.group(1))
+            for p in donustur(noktalar((ad, cid.group(1) if cid else "")), t.group(1) if t else ""):
+                for e in range(3):
+                    mn[e] = min(mn[e], p[e])
+                    mx[e] = max(mx[e], p[e])
+    if mn[0] == float("inf"):
+        return None
+    return max(mx[e] - mn[e] for e in range(3))
+
+
+def _sayi_yaz(x):
+    s = ("%.4f" % x).rstrip("0").rstrip(".")
+    return "0" if s in ("", "-0") else s
+
+
+def uc_mf_olcekle(kaynak, hedef, olcu_mm):
+    """3MF'i (Production dahil) en uzun DUNYA boyutu olcu_mm olacak sekilde orijin etrafinda DUZGUN olcekler: her
+    `<vertex>` x/y/z * s, her `<item>`/`<component>` donusumunun OTELEME ogeleri (10-12) * s (dogrusal kisim
+    ayni) -> dunya = s * eski dunya. Diger zip ogeleri (boya, Metadata) AYNEN, sira ve sikistirma korunur.
+    Donus: olcek SONRASI yeniden olculen uzun kenar (mm); okunamaz/geometrisiz -> None."""
+    import zipfile
+    try:
+        ogeler, modeller = _uc_mf_modeller(kaynak)
+    except ValueError:
+        return None
+    L = uc_mf_dunya_uzun(modeller)
+    if not L or L <= 0:
+        return None
+    s = float(olcu_mm) / L
+
+    def vertex(m):
+        return "".join((m.group(1), _sayi_yaz(float(m.group(2)) * s), m.group(3), _sayi_yaz(float(m.group(4)) * s),
+                        m.group(5), _sayi_yaz(float(m.group(6)) * s), m.group(7)))
+
+    def donusum(m):
+        a = m.group(2).split()
+        if len(a) == 12:
+            a = a[:9] + [_sayi_yaz(float(x) * s) for x in a[9:]]
+        return m.group(1) + " ".join(a) + m.group(3)
+
+    with zipfile.ZipFile(hedef, "w") as z:
+        for zi, b in ogeler:
+            if zi.filename in modeller:
+                b = UC_MF_DONUSUM.sub(donusum, UC_MF_VERTEX.sub(vertex, modeller[zi.filename])).encode("utf-8")
+            z.writestr(zi, b)
+    try:
+        return uc_mf_dunya_uzun(_uc_mf_modeller(hedef)[1])
+    except ValueError:
+        return None
+
+
+def figur_zinciri_turu(i):
+    return i.get("tur") in FIGUR_ZINCIR_TURLERI
+
+
+def _jen_kos(betik, arg):
+    """Uretec deposundaki betigi kosar -> (rc, stdout son satiri). Betik yoksa Erisilemedi (is KUYRUKTA)."""
+    py, kopru = kopru_bul()
+    yol = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(kopru))), betik)
+    if not os.path.isfile(yol):
+        raise Erisilemedi(os.path.basename(betik).replace(".py", "").replace("_", "-") + "-yok")
+    try:
+        p = subprocess.run([py, yol] + arg, capture_output=True, text=True, timeout=ONARIM_SURE_SN, env=SALT_OKUMA_ENV)
+    except subprocess.TimeoutExpired:
+        return 1, "sure-asimi"
+    except OSError as e:
+        return 1, "baslatilamadi " + str(e)[:120]
+    return p.returncode, ((p.stdout or "").strip().splitlines() or [""])[-1][:300]
+
+
+def figur_zinciri(i, model, gecici):
+    """FIGUR ZINCIRI (insan · pet · model): onarilmis model -> figur_duzelt -> olcek (kaide dahil = siparis olcusu)
+    -> figur_denge. Donus (karar hazir|elle|ariza, sebep, ozet, teslim edilecek model yolu | None)."""
+    dz = os.path.join(gecici, "figur-duzelt")
+    rc, dsatir = _jen_kos(FIGUR_DUZELT_BETIK, ["--girdi", model, "--cikti", dz])
+    duz = os.path.join(dz, "duzelt.3mf")
+    m = re.search(r"\bsebep=(\S+)", dsatir)
+    dsebep = m.group(1) if m else ""
+    ozet = "duzelt rc=%d [%s]" % (rc, dsatir)
+    if not (rc == 0 or (rc == 2 and dsebep.startswith("denge_"))) or not os.path.isfile(duz):
+        return "ariza", "figur-duzelt", ozet, None
+    olcekli = os.path.join(gecici, "figur-olcekli.3mf")
+    olcu = i["olcu_mm"]
+    L = uc_mf_olcekle(duz, olcekli, olcu) if isinstance(olcu, int) and olcu > 0 else None
+    ozet += " olcek=%s/%s" % ("?" if L is None else "%.2f" % L, olcu)
+    if L is None or abs(L - olcu) > olcu * FIGUR_OLCEK_TOLERANS + 1e-9:
+        return "ariza", "figur-olcek", ozet, None
+    rc, satir = _jen_kos(FIGUR_DENGE_BETIK, ["--girdi", olcekli])
+    ozet += " denge rc=%d [%s]" % (rc, satir)
+    if rc == 0 and satir.startswith("DENGE=OK "):
+        return "hazir", "", ozet, olcekli
+    m = re.match(r"^DENGE=RED sebep=([a-z_]{1,30}) ", satir)
+    if rc == 2 and m:
+        return "elle", "uretec-red:denge-" + m.group(1).replace("_", "-"), ozet, None
+    return "ariza", "figur-denge", ozet, None
+
+
 def kanit_yaz(i, cd):
     """--kanit-dizin verildiyse figur ureteci ciktisi (<cd>.ham/ozet.json + <cd>/onizleme.png) -> <dizin>/<siparis_no>/.
     Kopya hatasi isin kararini DEGISTIRMEZ (olcum araci eksik dosyayi kendisi EKSIK sayar)."""
@@ -1671,8 +1834,14 @@ def onarim_isle(i, jeton, yaz, t=None):
             karar, sebep, ozet = "elle", "onarim-ham-yok", ""
         else:
             karar, sebep, ozet = onarim_kapisi(ham, cikti)
-        fu = onarim_figur_ureteci(i, t or {}, gecici) if karar == "hazir" else None
-        if fu == "":
+        zincir = karar == "hazir" and figur_zinciri_turu(i)
+        fu = onarim_figur_ureteci(i, t or {}, gecici) if karar == "hazir" and not zincir else None
+        if zincir:
+            karar, sebep, zozet, zcikti = figur_zinciri(i, cikti, gecici)
+            ozet = (ozet + " " if ozet else "") + zozet
+            if zcikti:
+                cikti = zcikti
+        elif fu == "":
             karar, sebep = "elle", "uretec-uyusmaz"
         elif fu:
             rc, fozet, cikti, konum = figur_kos(i, t or {}, fu, cikti, gecici)
