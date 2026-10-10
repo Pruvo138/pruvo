@@ -5862,6 +5862,49 @@ console.log("FG) FİGÜR ÖLÇÜSÜ MODEL BAŞINA — insan 41–105 · pet 60�
   ol("M-FG-VERI insan tavanı 200 -> KIRMIZI tam olarak [FG1,FG2,FG3,FG4]", JSON.stringify(kirV) === '["FG1","FG2","FG3","FG4"]', JSON.stringify(kirV));
 }
 
+// ================================================================ DZ — ANAHTARLIK–FİGÜR ② DÜRÜSTLÜK CÜMLESİ (ArTisT 874b2a85)
+// ② dürüstlük kutusu: Anahtarlık – figür kartında stilize-yorum cümlesi (çeşit paragrafı) VAR (beklenen metin BAĞIMSIZ,
+// pazarlama metni AYNEN), Anahtarlık – yazı kartında YOK; türün kendi notu (halka/zincir) iki kartta da AYNEN (ilk
+// paragraf); insan figüründe çeşit paragrafı YOK (figür TEK cümle). Örnek notu paragrafı bu vakanın ekseni DEĞİL.
+const DZ_CUMLE = "Önizleme fotoğrafının stilize bir yorumudur; basılmış anahtarlık en çok 4 renkli, sadeleştirilmiş bir hâlidir ve tam kopyası değildir (küçük ayrıntılar sadeleşir).";
+const DZ_HALKA = "Metal halka ve zincir dahil değildir; zincir ya da halka takılan kulakçıklı plastik gövde (delik Ø 3,5–4 mm).";
+async function dzSenaryo(kaynak, V) {
+  const s = {}, iz = {};
+  const kutu = async (kart) => {
+    const e = await ekranKos(kaynak, V, acikGercek(V, V6_TUM), null, null, { kart });
+    const d = [...e.bolum.agac()].find((n) => n.classList.contains("foto-uretim-durustluk"));
+    const c = d ? [...d.agac()].find((n) => n.classList.contains("foto-uretim-durustluk-cesit")) : null;
+    return d && d.childNodes[0] ? [d.childNodes[0].textContent, c && !c.hidden ? c.textContent : ""] : null;
+  };
+  iz.figur = await kutu("anahtarlik_figur");
+  iz.yazi = await kutu("anahtarlik");
+  iz.insan = await kutu("insan");
+  s.DZ1 = JSON.stringify(iz.figur) === JSON.stringify([DZ_HALKA, DZ_CUMLE]);
+  s.DZ2 = JSON.stringify(iz.yazi) === JSON.stringify([DZ_HALKA, ""]);
+  s.DZ3 = Array.isArray(iz.insan) && iz.insan[0] === (V.turBul("figur") || {}).durustluk && iz.insan[1] === "";
+  Object.defineProperty(s, "iz", { value: iz, enumerable: false });
+  return s;
+}
+console.log("DZ) ANAHTARLIK–FİGÜR ② DÜRÜSTLÜK CÜMLESİ (ArTisT 874b2a85; yazı çeşidinde YOK)");
+{
+  const V = veriYukle(VERI_KAYNAK);
+  const s = await dzSenaryo(EKRAN_KAYNAK, V);
+  ol("DZ1 anahtarlık–figür ② kutusu: halka notu + stilize-yorum cümlesi (ArTisT AYNEN)", s.DZ1, JSON.stringify(s.iz.figur));
+  ol("DZ2 anahtarlık–yazı ② kutusu: YALNIZ halka notu (stilize cümle YOK)", s.DZ2, JSON.stringify(s.iz.yazi));
+  ol("DZ3 insan figürü ② kutusu TEK cümle (türün durustluk'u)", s.DZ3, JSON.stringify(s.iz.insan));
+  // MUTANT: çeşit paragrafı basılmazsa DZ1 KIRMIZI; çeşit kaydı yerine tür kaydı okunursa (yazıda da basılır) DZ2.
+  const capaI = '      S.durustCesitP.textContent = ck && ck.durustluk ? ck.durustluk : "";\n';
+  const capaV = '          durustluk: "' + DZ_CUMLE + '",\n';
+  const mI = EKRAN_KAYNAK.split(capaI).length === 2 ? await dzSenaryo(EKRAN_KAYNAK.replace(capaI, '      S.durustCesitP.textContent = "";\n'), V) : null;
+  const mY = EKRAN_KAYNAK.split(capaI).length === 2
+    ? await dzSenaryo(EKRAN_KAYNAK.replace(capaI, "      S.durustCesitP.textContent = " + JSON.stringify(DZ_CUMLE) + ";\n"), V) : null;
+  const mV = VERI_KAYNAK.split(capaV).length === 2 ? await dzSenaryo(EKRAN_KAYNAK, veriYukle(VERI_KAYNAK.replace(capaV, ""))) : null;
+  const kir = (m) => (m ? Object.keys(m).filter((x) => m[x] !== true).sort() : null);
+  ol("M-DZ-ISTEMCI çeşit cümlesi basılmaz -> KIRMIZI tam olarak [DZ1]", JSON.stringify(kir(mI)) === '["DZ1"]', JSON.stringify(kir(mI)));
+  ol("M-DZ-HER-CESIT cümle yazı çeşidine de basılır -> KIRMIZI tam olarak [DZ2,DZ3]", JSON.stringify(kir(mY)) === '["DZ2","DZ3"]', JSON.stringify(kir(mY)));
+  ol("M-DZ-VERI çeşit kaydında cümle yok -> KIRMIZI tam olarak [DZ1]", JSON.stringify(kir(mV)) === '["DZ1"]', JSON.stringify(kir(mV)));
+}
+
 await new Promise((c) => setTimeout(c, 0));
 ol("ASENKRON temiz kaynakta (EKRAN_KAYNAK) yakalanmamis istisna 0",
    ASENKRON_ISTISNA.filter((x) => x.temiz).length === 0, JSON.stringify(ASENKRON_ISTISNA.filter((x) => x.temiz).slice(0, 3)));
