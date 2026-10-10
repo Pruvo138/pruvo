@@ -54,7 +54,8 @@ SEMA = os.path.join(KOK, "tools", "d1-sema.sql")
 # foto.js: hermetik kopru-15 ONKOSUL bekcisi `shop/src/foto.js` /foto/onizleme icinde TURE RED metnini
 # okur; test ortaminda `_red_metni_onizleme()` acabilsin diye KOPYA'ya eklenir.
 KOPYA_DOSYALAR = ["foto-uretim-veri.js", "shop/wrangler.toml", "shop/wrangler.onizleme.toml",
-                  "shop/src/foto.js", "tools/foto-onizleme.py", "tools/saglayici-ornek.py"]
+                  "shop/src/foto.js", "tools/foto-onizleme.py", "tools/saglayici-ornek.py",
+                  "tools/d1-goc/2026-10-10-foto-kredi-dilim.sql"]
 
 SAHTE_WRANGLER = r'''
 import json, os, shutil, sqlite3, sys
@@ -540,10 +541,12 @@ def vakalar(kaynak, sadece=None):
 
     # SAGLAYICI KOLU (kopru-15 SAGLAYICI-2): --kredi-tavani. Olculen tur plaket (ACIK); kapali M tur = figur
     # (mutant on kosulu yalniz M kapali turu secer, 8b0a4a10).
-    def sag(o, tavan, devam_is="", **ek):
+    def sag(o, tavan, devam_is="", dilim="test-dilim", dilim_tavan=1000, **ek):
         hazir_ortam(o, "plaket")
         o.sunucu.ayar["acik"] = [k for k in o.sunucu.ayar["acik"] if k != "figur"]
         args = ["--tur", "plaket", "--kredi-tavani", str(tavan)]
+        if tavan > 0:
+            args += ["--dilim", dilim, "--dilim-tavan", str(dilim_tavan)]
         if devam_is:
             args += ["--devam-is", devam_is]
         rc, son, c = o.kos(*args, **ek)
@@ -743,7 +746,7 @@ def vakalar(kaynak, sadece=None):
         o.sunucu.ayar["acik"] = [k for k in o.sunucu.ayar["acik"] if k != "figur"]
         cd = os.path.join(o.d, "cikti")
         rc, son, c = o.kos("--tur", "anahtarlik", "--cesit", "figur", "--kredi-tavani", str(tavan),
-                           "--cikti-dizin", cd, **ek)
+                           "--dilim", "test-dilim", "--dilim-tavan", "1000", "--cikti-dizin", cd, **ek)
         return rc, son, c, o.sunucu.ayar, cd
 
     def s16(o):
@@ -783,6 +786,55 @@ def vakalar(kaynak, sadece=None):
               rc2 == 1 and olcut(c2, "anahtarlik", "4") == "EKSIK")
         return ok, "%s | %s" % (c[-400:], c2[-400:])
     vaka("S19", s19)
+
+    # DILIM TAVANI (10 Eki): tavan ZINCIR/DILIM TOPLAMI (koşum basi degil). V-DT1 dilim tam sinirda (46/46) ->
+    # HAZIR + defterde 1 is_no · V-DT2 onceki koşum (66 kredi, is_no'yu BETIK deftere yazar) + yeni koşum
+    # --devam-is build 30, koşum tavani 100 ama dilim tavani 70 -> "kredi-dilim-tavani 66+30>70" DUR rc 1, tik 0 ·
+    # V-DT3 --kredi-tavani > 0 iken --dilim yok / gecersiz -> HATA dilim rc 2, panel + wrangler istegi 0.
+    def dilim_satir(o, dilim):
+        c0 = sqlite3.connect(o.db)
+        try:
+            return c0.execute("SELECT COUNT(*) FROM foto_kredi_dilim WHERE dilim = ?", (dilim,)).fetchone()[0]
+        except sqlite3.OperationalError:
+            return -1
+        finally:
+            c0.close()
+
+    def vdt1(o):
+        rc, son, c, y = sag(o, 100, dilim="v-dt1", dilim_tavan=46)
+        n = dilim_satir(o, "v-dt1")
+        ok = rc == 0 and son == "HAZIR=1/1 rc=0" and "DILIM=v-dt1 HARCANAN=46 TAVAN=46" in c and n == 1
+        return ok, "defter=%d yonet=%s %s" % (n, y, c[-600:])
+    vaka("V-DT1", vdt1)
+
+    def vdt2(o):
+        o.sunucu.ayar["bedel_build"] = 50  # onceki koşum: onizleme 6 + build 50 + renk 10 = 66
+        rc1, son1, c1, _ = sag(o, 100, dilim="v-dt2", dilim_tavan=1000)
+        o.sunucu.ayar["bedel_build"] = 30
+        is_no = "d" * 32
+        c0 = sqlite3.connect(o.db)
+        c0.execute("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, hazir_tarih, gorev)"
+                   " VALUES (?, 'plaket', 160, 'ornek', 't', 'hazir', 't', 'g')", (is_no,))
+        c0.commit()
+        c0.close()
+        tik0 = o.sunucu.ayar["yonet"].get("/foto/uretim-tik", 0)
+        rc, son, c, y = sag(o, 100, devam_is=is_no, dilim="v-dt2", dilim_tavan=70)
+        ok = (rc1 == 0 and "DILIM=v-dt2 HARCANAN=66 TAVAN=1000" in c1 and rc == 1 and
+              olcut(c, "plaket", "4") == "EKSIK" and
+              "kredi-dilim-tavani 66+30>70 (DUR, saglayiciya istek YOK)" in c and
+              y.get("/foto/uretim-tik", 0) == tik0 and "DILIM=v-dt2 HARCANAN=66 TAVAN=70" in c)
+        return ok, "rc1=%s rc=%s yonet=%s %s | %s" % (rc1, rc, y, c1[-300:], c[-600:])
+    vaka("V-DT2", vdt2)
+
+    def vdt3(o):
+        hazir_ortam(o, "plaket")
+        sonuc = []
+        for ek in ([], ["--dilim", "AB"], ["--dilim", "v-dt3"], ["--dilim", "v-dt3", "--dilim-tavan", "0"]):
+            rc, son, c = o.kos("--tur", "plaket", "--kredi-tavani", "100", *ek)
+            sonuc.append(rc == 2 and "HATA dilim" in c)
+        ok = all(sonuc) and sum(o.sunucu.ayar["yonet"].values()) == 0 and not o.cagrilar()
+        return ok, "sonuc=%s yonet=%s wrangler=%d" % (sonuc, o.sunucu.ayar["yonet"], len(o.cagrilar()))
+    vaka("V-DT3", vdt3)
 
     def u7(o):
         hazir_ortam(o)
@@ -1167,6 +1219,11 @@ MUTANTLAR = {
              "            alanlar = alanlar and bool(b)\n", {"S17", "S19"}),
     # TUR-C2d: konum kontrolu duserse konumsuz kanit HAZIR sayilir -> S19 KIRMIZI.
     "MB36": ("    if kd.get(\"konum\") not in KULAK_KONUMLARI:\n        return False\n", "", {"S19"}),
+    # DILIM TAVANI (10 Eki): dilim kontrolu silinince koşum tavani (100) gecirir -> V-DT2 KIRMIZI; defter yazimi
+    # silinince onceki koşumun is_no'su dilime girmez (dilim 0) -> V-DT2 gecer + V-DT1 defter satiri 0 -> KIRMIZI.
+    "M-DT1": ("            if dh + n > self.dilim_tavan:", "            if False:", {"V-DT2"}),
+    "M-DT2": ('        self.bulut.sql("INSERT OR IGNORE INTO foto_kredi_dilim',
+              '        (lambda q: None)("INSERT OR IGNORE INTO foto_kredi_dilim', {"V-DT1", "V-DT2"}),
     "MB0": ("# ------------------------------------------------------------------ HTTP",
             "# ------------------------------------------------------------------ HTTP (mutant yorum)", set()),
 }
