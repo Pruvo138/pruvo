@@ -1843,10 +1843,9 @@
     say();
     kap.appendChild(ta);
     kap.appendChild(sayac);
-    // Okan 10 Eki 01:3x: büstte not İSTEĞE BAĞLI (ArTisT cümlesi, icerik/foto-ozel-uretim-sayfa-metni.md);
-    // diğer türlerde zorunluluk cümlesi AYNEN.
-    kap.appendChild(el("p", "foto-uretim-ayrinti", notIstegeBagli(S.tur) ?
-      "İsteğe bağlı: kısa bir not ekleyebilirsin." : "Üretim notu zorunlu; boşsa önizleme oluşturulamaz."));
+    // Okan 10 Eki 12:5x "not yazma zorunluluğunu kaldır": not HER türde İSTEĞE BAĞLI (ArTisT cümlesi,
+    // icerik/foto-ozel-uretim-sayfa-metni.md; önce yalnız büstteydi).
+    kap.appendChild(el("p", "foto-uretim-ayrinti", "İsteğe bağlı: kısa bir not ekleyebilirsin."));
     S.alanDosya.appendChild(kap);
     notAlaniGoster();
   }
@@ -1925,10 +1924,9 @@
   // diğerleri yazılmaz. Cümleler ArTisT sayfa metni bölümünden ("## "Önizleme oluştur" kapalıyken sebep
   // cümlesi") AYNEN — söz değişmez; sabit gün ifadeleri (BAŞLANGIÇ/BTÜ) YASAK (kayan 24 saat; ilk hak
   // boşalınca yenilenir; program kapalıyken beklemek bir şey değiştirmez). BaBa 05:02 hükmü 2.
-  // Sıra: foto · yazı (anahtarlık yazı çeşidi) · not (büstte atla) · onay · doğrulama · hak · program.
-  // Not satırı ekranda foto ve yazının ARDINDAN gelir; "büstte atla" notIstegeBagli ile aynen.
+  // Sıra: foto · yazı (anahtarlık yazı çeşidi) · onay · doğrulama · hak · program.
+  // Okan 10 Eki 12:5x "not yazma zorunluluğunu kaldır": "Nasıl olsun?" notu HİÇBİR türde düğmeyi kapatmaz.
   var S1_SEBEP = {
-    not: "Önce \"Nasıl olsun?\" kısmına kısa bir not yaz.",
     foto: "Önce fotoğrafını yükle.",
     yazi: "Önce anahtarlığa yazılacak yazıyı gir.",
     onay: "Aydınlatma metnini okuyup onay kutusunu işaretle.",
@@ -1936,9 +1934,6 @@
     hak: "Önizleme hakkın doldu; ilk hakkın 24 saat içinde yeniden açılır.",
     program: "Fotoğraftan sipariş şu an kapalı."
   };
-  // Okan 10 Eki 01:3x "büstte not zorunlu olmasın": bu türlerde boş not düğmeyi KAPATMAZ, sebep listesinde "not" YOK.
-  var NOT_ISTEGE_BAGLI_TURLER = ["bust"];
-  function notIstegeBagli(kod) { return NOT_ISTEGE_BAGLI_TURLER.indexOf(kod) >= 0; }
   function s1Sebep() {
     var sira = [
       [fotoGerekir() && !S.dosya, S1_SEBEP.foto],
@@ -1949,8 +1944,6 @@
        F.girdiYeterli(S.tur, { foto: !!S.dosya, parametreler: parametreGovde(),
          cesit: seciliCesit() }) !== "",
        S1_SEBEP.yazi],
-      // Not alanı yalnız fotoğraflı girdide çizilir (cizUretimNotu); yazılı anahtarlıkta not istenmez (TUR-C2b).
-      [!notIstegeBagli(S.tur) && fotoGerekir() && !((S.uretimNotu || "").trim()), S1_SEBEP.not],
       [!S.aydinlatmaOnay, S1_SEBEP.onay],
       [!S.captchaToken1, S1_SEBEP.dogrulama],
       [S.kalanHak === 0, S1_SEBEP.hak],
@@ -1973,7 +1966,7 @@
     // K2b: uyum kontrolü geçmeden önizleme düğmesi AÇILMAZ ("uygun_degil" ise).
     var uyumOK = uyumKontrol(S.tur, S.uretimNotu) === "uygun";
     // Madde 1 (Okan 8 Eki 14:1x): "Nasıl olsun?" üretim notu ZORUNLU; boşken "Önizleme oluştur" KAPALI.
-    // ① not · fotoğraf · onay · doğrulama · günlük hak · program — s1Sebep TEK kaynak (cümle ile kapı aynı).
+    // ① fotoğraf · yazı · onay · doğrulama · günlük hak · program — s1Sebep TEK kaynak (cümle ile kapı aynı).
     var sebep = s1Sebep();
     var tam = uyumOK && !sebep && !!S.tur && !!S.olcu && (!lit || !!null) &&
       formDogrula().ok;

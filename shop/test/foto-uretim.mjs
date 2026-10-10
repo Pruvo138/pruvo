@@ -3615,16 +3615,18 @@ const acikGercek = (V, kodlar) => ({ acik: true, turler: kodlar.map((k) => acikG
     return btn3 ? btn3.disabled : null;
   };
   const tarifKontrol = await tarifDene2(EKRAN_KAYNAK);
-  ol("M-TARIF kontrol not boş + onaylı ⇒ onizle disabled=true", tarifKontrol === true, "disabled=" + tarifKontrol);
+  // Okan 10 Eki 12:5x "not yazma zorunluluğunu kaldır": not boş + onaylı ⇒ düğme AÇIK.
+  ol("M-TARIF kontrol not boş + onaylı ⇒ onizle disabled=false (not isteğe bağlı)", tarifKontrol === false, "disabled=" + tarifKontrol);
   // capa: guncelleS1Buton içindeki notZorunlu satırı (unique); mutant: değeri true yapar →
   // not boşken bile onizle AÇIK. Sırf satırı yorum yapmak yetmez (undefined && x = undefined,
   // yine falsy → buton yine disabled; JS sessiz hata sınıfı).
   // TUR-B ①: not kosulu s1Sebep sirasinda (guncelleS1Buton TEK kaynaktan okur).
-  const mTCapa = "[!notIstegeBagli(S.tur) && fotoGerekir() && !((S.uretimNotu || \"\").trim()), S1_SEBEP.not],";
+  // Mutant: s1Sebep'e not satırı geri konur ⇒ not boşken düğme KAPALI (kontrol KIRMIZI olur).
+  const mTCapa = "      [!S.aydinlatmaOnay, S1_SEBEP.onay],\n";
   const mTCount = EKRAN_KAYNAK.split(mTCapa).length - 1;
-  const mTNot = mTCount === 1 ? await tarifDene2(EKRAN_KAYNAK.split(mTCapa).join("[false, S1_SEBEP.not],")) : null;
-  ol("M-TARIF mutant notZorunlu=true ⇒ not boşken onizle AÇIK (KIRMIZI)",
-     mTCount === 1 && mTNot === false,
+  const mTNot = mTCount === 1 ? await tarifDene2(EKRAN_KAYNAK.split(mTCapa).join("      [fotoGerekir() && !((S.uretimNotu || \"\").trim()), \"Önce \\\"Nasıl olsun?\\\" kısmına kısa bir not yaz.\"],\n" + mTCapa)) : null;
+  ol("M-TARIF mutant not satırı geri ⇒ not boşken onizle KAPALI (kontrol KIRMIZI)",
+     mTCount === 1 && mTNot === true,
      mTCount === 1 ? "disabled=" + mTNot : "MUTANT_UYGULANMADI capa_sayisi=" + mTCount);
 
   // M3) METİN/UI İDDİALARI (9 Eki onizleme-duzeltme · 7 iddia) — kaynak + ekrandan TÜRETİLİR, kaynakta
@@ -3980,12 +3982,11 @@ console.log("K3b) TEK KUTU 4 PENCERE — kartlar · tek pencere · Geri/İleri �
 }
 
 // ---------------------------------------------------------------- TUR-B (10 Eki) ① sebep cümlesi + hak · ② makine anahtarı
-// ① "Önizleme oluştur" KAPALIYKEN altında TEK cümle (ilk eksik koşul, sıra — TUR-A4: foto · yazı · not ·
-// onay · doğrulama · hak · program; ArTisT sayfa metni AYNEN); hepsi tamken düğme AÇIK + cümle GİZLİ.
+// ① "Önizleme oluştur" KAPALIYKEN altında TEK cümle (ilk eksik koşul, sıra — TUR-A4: foto · yazı ·
+// onay · doğrulama · hak · program; not satırı Okan 10 Eki 12:5x ile KALKTI; ArTisT sayfa metni AYNEN); hepsi tamken düğme AÇIK + cümle GİZLİ.
 // "Son 24 saatte kalan önizleme hakkın: N/<sınır>": N sunucu yanıtından, sınır VERI'den (3 YAZILMAZ);
 // "Bugün" YASAK. yazı cümlesi YALNIZ anahtarlık + yazı çeşidi + yazı boşken (F.girdiYeterli aynı kapı).
 const SEBEP = {
-  not: "Önce \"Nasıl olsun?\" kısmına kısa bir not yaz.",
   foto: "Önce fotoğrafını yükle.",
   yazi: "Önce anahtarlığa yazılacak yazıyı gir.",
   onay: "Aydınlatma metnini okuyup onay kutusunu işaretle.",
@@ -4028,7 +4029,9 @@ async function sebepSenaryolar(kaynak) {
     iz[ad] = r;
     return r.kapali && r.sebep === beklenen;
   };
-  s.V1_NOT = await tek("not", { notYok: true }, SEBEP.not);
+  // Okan 10 Eki 12:5x: not boş düğmeyi KAPATMAZ (sebep listesinde "not" yok).
+  iz.not = await sebepEkrani(kaynak, { notYok: true });
+  s.V1_NOT = iz.not.acik && iz.not.gizli;
   s.V1_FOTO = await tek("foto", { fotoYok: true }, SEBEP.foto);
   s.V1_YAZI = await tek("yazi", { kod: "anahtarlik", fotoYok: true, notYok: true }, SEBEP.yazi);
   s.V1_ONAY = await tek("onay", { onayYok: true }, SEBEP.onay);
@@ -4038,13 +4041,13 @@ async function sebepSenaryolar(kaynak) {
   const tam = await sebepEkrani(kaynak, {});
   iz.tam = tam;
   s.V1_TAM = tam.acik && tam.gizli && tam.sebep === "";
-  // SIRA (TUR-A4): yeni sıra foto · yazı · not · onay · doğrulama · hak · program.
-  //   notlu   = foto VAR + not boş + onay yok + doğrulama yok → foto skip · yazi skip · not fires → SEBEP.not.
+  // SIRA (TUR-A4 + 12:5x): foto · yazı · onay · doğrulama · hak · program (not satırı YOK).
+  //   notlu   = foto VAR + not boş + onay yok + doğrulama yok → foto skip · yazi skip · onay fires → SEBEP.onay.
   //   fotosuz = foto YOK + not var  + onay yok + doğrulama yok → foto fires → SEBEP.foto.
   const notlu = await sebepEkrani(kaynak, { notYok: true, onayYok: true, dogrulamaYok: true });
   const fotosuz = await sebepEkrani(kaynak, { fotoYok: true, onayYok: true, dogrulamaYok: true });
   iz.sira = [notlu.sebep, fotosuz.sebep];
-  s.V1_SIRA = notlu.kapali && notlu.sebep === SEBEP.not && fotosuz.kapali && fotosuz.sebep === SEBEP.foto;
+  s.V1_SIRA = notlu.kapali && notlu.sebep === SEBEP.onay && fotosuz.kapali && fotosuz.sebep === SEBEP.foto;
   // V2: 429 sonrası S1'de sayaç sunucudan gelen N ile görünür; yanıt gelmeden sayı UYDURULMAZ (sınır cümlesi).
   // Sayaç biçimi ArTisT'ten (ArTisT 10 Eki, birebir): "Son 24 saatte kalan önizleme hakkın: N/3.".
   s.V2_HAK = iz.hak.hak === "Son 24 saatte kalan önizleme hakkın: 0/" + VERI.sinir_ziyaretci_24s + "." &&
@@ -4055,7 +4058,7 @@ async function sebepSenaryolar(kaynak) {
 console.log("TB) TUR-A2 SEBEP CÜMLESİ + Son 24 saat N/" + VERI.sinir_ziyaretci_24s);
 {
   const s = await sebepSenaryolar(EKRAN_KAYNAK);
-  ol("V1 not boş -> \"" + SEBEP.not + "\"", s.V1_NOT, JSON.stringify(s.iz.not));
+  ol("V1 not boş -> düğme AÇIK, sebep cümlesi yok (not isteğe bağlı)", s.V1_NOT, JSON.stringify(s.iz.not));
   ol("V1 fotoğraf yok -> \"" + SEBEP.foto + "\"", s.V1_FOTO, JSON.stringify(s.iz.foto));
   ol("V1 anahtarlık + yazı çeşidi + yazı boş -> \"" + SEBEP.yazi + "\"", s.V1_YAZI, JSON.stringify(s.iz.yazi));
   ol("V1 aydınlatma onayı yok -> \"" + SEBEP.onay + "\"", s.V1_ONAY, JSON.stringify(s.iz.onay));
@@ -4063,7 +4066,7 @@ console.log("TB) TUR-A2 SEBEP CÜMLESİ + Son 24 saat N/" + VERI.sinir_ziyaretci
   ol("V1 429 onizleme-siniri -> \"" + SEBEP.hak + "\"", s.V1_HAK, JSON.stringify(s.iz.hak));
   ol("V1 503 kapali -> \"" + SEBEP.program + "\"", s.V1_PROGRAM, JSON.stringify(s.iz.program));
   ol("V1 hepsi tam -> düğme AÇIK, sebep cümlesi 0 (gizli)", s.V1_TAM, JSON.stringify(s.iz.tam));
-  ol("V1 sıra: foto VAR+not boş -> not (foto skip), foto YOK -> foto (yeni sıra)", s.V1_SIRA, JSON.stringify(s.iz.sira));
+  ol("V1 sıra: foto VAR+not boş+onay yok -> onay (not satırı yok), foto YOK -> foto", s.V1_SIRA, JSON.stringify(s.iz.sira));
   ol("V2 sayaç \"Son 24 saatte kalan önizleme hakkın: 0/" + VERI.sinir_ziyaretci_24s + ".\" 429 sonrası görünür; yanıtsız sayı uydurulmaz",
     s.V2_HAK, JSON.stringify([s.iz.hak.hak, s.iz.tam.hak]));
   const TB_MUT = [
@@ -4137,7 +4140,7 @@ console.log("TA3) TUR-A3 503 kapali BİLDİRİMİ — iki önizleme işleyicisi"
 // ---------------------------------------------------------------- TUR-A4 (10 Eki, BaBa 06:3x) sebep sırası = ekran sırası · 429 metni tek kaynak · insan kartına dürüst yer tutucu
 // (a) 429 onizleme-siniri dalında sabit "Bugünkü ... Yarın ..." metinleri SİLİNDİ; yerine S1_SEBEP.hak
 //     (değişkenin kendisi, metin kopyası değil). Kaynakta "Yarın yeniden deneyebilirsin" / "Bugünkü önizleme" 0.
-// (b) s1Sebep() sira dizisi ekran sırasına: foto · yazı · not (büstte atla) · onay · doğrulama · hak · program.
+// (b) s1Sebep() sira dizisi ekran sırasına: foto · yazı · onay · doğrulama · hak · program (not 12:5x ile kalktı).
 //     S1_SEBEP METİNLERİ + koşul ifadeleri aynen; yalnız SIRA.
 // (c) KARTLAR.insan = { ornek: false } → ornekCiz bu kartta görsel yerine dürüst yer tutucu çizer
 //     (img.src="" + "Örnek yakında" etiketi); kart AKTİF ve tıklanabilir kalır (disabled DEĞİL, gizleme YOK).
@@ -4159,10 +4162,10 @@ async function a4Senaryolar(kaynak) {
   // V1 figür fotoğrafsız + not boş → foto cümlesi (yeni sıra: foto önce).
   const r1 = await sebepEkrani(kaynak, { kod: "figur", notYok: true, fotoYok: true });
   iz.r1 = r1; s.V1 = r1.kapali && r1.sebep === SEBEP.foto;
-  // V2 fotoğraf var + not boş → not cümlesi (yeni sıra: foto skip, yazi skip, not fires).
+  // V2 fotoğraf var + not boş → düğme AÇIK, sebep yok (Okan 10 Eki 12:5x: not isteğe bağlı).
   const r2 = await sebepEkrani(kaynak, { kod: "plaket", notYok: true });
-  iz.r2 = r2; s.V2 = r2.kapali && r2.sebep === SEBEP.not;
-  // V3 büst fotoğrafsız → foto cümlesi (notIstegeBagli("bust")=true → not satırı false).
+  iz.r2 = r2; s.V2 = r2.acik && r2.gizli;
+  // V3 büst fotoğrafsız → foto cümlesi.
   const r3 = await sebepEkrani(kaynak, { kod: "bust", fotoYok: true });
   iz.r3 = r3; s.V3 = r3.kapali && r3.sebep === SEBEP.foto;
   // V4 anahtarlık + yazı çeşidi boş → yazı cümlesi.
@@ -4194,8 +4197,8 @@ console.log("TA4) TUR-A4 sebep sırası + 429 tek kaynak + insan kartı dürüst
 {
   const s = await a4Senaryolar(EKRAN_KAYNAK);
   ol("A4 V1 figür fotoğrafsız + not boş -> foto cümlesi (yeni sıra: foto önce)", s.V1, JSON.stringify(s.iz.r1));
-  ol("A4 V2 fotoğraf var + not boş -> not cümlesi (yeni sıra)", s.V2, JSON.stringify(s.iz.r2));
-  ol("A4 V3 büst fotoğrafsız -> foto cümlesi (büst notIstegeBagli)", s.V3, JSON.stringify(s.iz.r3));
+  ol("A4 V2 fotoğraf var + not boş -> düğme AÇIK (not isteğe bağlı)", s.V2, JSON.stringify(s.iz.r2));
+  ol("A4 V3 büst fotoğrafsız -> foto cümlesi", s.V3, JSON.stringify(s.iz.r3));
   ol("A4 V4 anahtarlık + yazı çeşidi boş -> yazı cümlesi", s.V4, JSON.stringify(s.iz.r4));
   ol("A4 V5 hepsi tamam + onay yok -> onay cümlesi", s.V5, JSON.stringify(s.iz.r5));
   ol("A4 V6 kalanHak 0 -> hak cümlesi (429 sonrası)", s.V6, JSON.stringify(s.iz.r6));
@@ -4206,11 +4209,11 @@ console.log("TA4) TUR-A4 sebep sırası + 429 tek kaynak + insan kartı dürüst
        insanDisabled: s.iz.kart && s.iz.kart.insan && s.iz.kart.insan.disabled,
        insanTxt: s.iz.kart && s.iz.kart.insan && s.iz.kart.insan.textContent.slice(0, 80) }));
   const A4_MUT = [
-    // M1: not satırı foto'nun ÖNÜNE geri alındı (eski sıra); V1 figür+fotoYok+notYok artık not döner (foto KIRMIZI).
-    ["M1 not satırı foto'nun önüne geri alındı (eski sıra)",
+    // M1: not satırı foto'nun ÖNÜNE geri kondu; V1 figür+fotoYok+notYok not döner, V2 plaket not boş KAPANIR.
+    ["M1 not satırı foto'nun önüne geri kondu",
      "      [fotoGerekir() && !S.dosya, S1_SEBEP.foto],\n",
-     "      [!notIstegeBagli(S.tur) && fotoGerekir() && !((S.uretimNotu || \"\").trim()), S1_SEBEP.not],\n      [fotoGerekir() && !S.dosya, S1_SEBEP.foto],\n",
-     ["V1"]],
+     "      [fotoGerekir() && !((S.uretimNotu || \"\").trim()), \"Önce \\\"Nasıl olsun?\\\" kısmına kısa bir not yaz.\"],\n      [fotoGerekir() && !S.dosya, S1_SEBEP.foto],\n",
+     ["V1", "V2"]],
     // M2: insan kartı ornek:false kaldırıldı → insan kart figur örneğini gösterir (img.src=figur-1-render.webp ==
     // hayvan_model img.src), V8 KIRMIZI.
     ["M2 insan kartı ornek:false kaldırıldı",
@@ -4278,22 +4281,36 @@ console.log("TB) TUR-B ② MAKINE ANAHTARI ziyaretci sayacina yazilmaz");
   }
 }
 
-// ---------------------------------------------------------------- TUR-B2 (10 Eki) Okan 01:3x "büstte not zorunlu olmasın"
-// Büst: boş not düğmeyi KAPATMAZ, sebep listesinde "not" YOK, ② cümlesi "İsteğe bağlı…" (ArTisT); diğer türlerde AYNEN.
-// ④ ayrı uyarı satırı YOK: ① sebep cümlesi (not sırada İLK) aynı bilgiyi düğmenin altında verir. Ters ilk durum KAPALI.
+// ---------------------------------------------------------------- TUR-B2 (10 Eki) not İSTEĞE BAĞLI — Okan 12:5x "not yazma zorunluluğunu kaldır"
+// (01:3x yalnız büstteydi; 12:5x HER türe.) Boş not düğmeyi KAPATMAZ, ① sebep listesinde "not" YOK, ② cümlesi
+// "İsteğe bağlı…" (ArTisT) her türde; eski "zorunlu" cümlesi 0. Ters ilk durum KAPALI (değişmedi).
 const B2_NOT_ESKI = "Üretim notu zorunlu; boşsa önizleme oluşturulamaz.";
-const B2_NOT_BUST = "İsteğe bağlı: kısa bir not ekleyebilirsin.";
-async function b2Ekran(kaynak, kod, kart) {
+const B2_NOT_ISTEGE = "İsteğe bağlı: kısa bir not ekleyebilirsin.";
+const B2_SEBEP_NOT_ESKI = "Önce \"Nasıl olsun?\" kısmına kısa bir not yaz.";
+// 6 tür: plaket · figür (insan kartı) · yapboz · büst · anahtarlık yazı çeşidi · anahtarlık figür çeşidi.
+const B2_TURLER = [["plaket"], ["figur", "insan"], ["yapboz"], ["bust"], ["anahtarlik", "anahtarlik", "yazi"],
+  ["anahtarlik", "anahtarlik", "figur"]];
+async function b2Ekran(kaynak, kod, kart, cesit) {
   const V = veriYukle(VERI_KAYNAK);
   const acik = { acik: true, turler: [{ kod, ad: V.turBul(kod).ad, aciklama: "x", ornek_sayisi: 1,
     olculer: V.olcuSecenekleri(kod).map((mm) => ({ mm, fiyat_kurus: V.fiyatKurus(kod, mm) })) }] };
   const e = await ekranKos(kaynak, V, acik, null, { asama: "bekliyor" }, { kart: kart || kod, turnstileOto: true,
     zamanlayici: true, gorselSahte: true });
   const id = (x) => [...e.bolum.agac()].find((n) => n.id === x) || null;
+  if (cesit) {
+    const cb = [...e.bolum.agac()].find((n) => n.tagName === "BUTTON" && n.getAttribute("data-cesit") === cesit);
+    if (cb) { cb.tetikle("click"); }
+  }
   const ters0 = id("foto-param-ters");
   const ters = ters0 ? { aria: ters0.getAttribute("aria-checked"), metin: ters0.textContent } : null;
   const f = id("foto-dosya");
-  if (f) { f.files = [{ name: "yuz.jpg", type: "image/jpeg", size: 4096 }]; f.tetikle("change"); }
+  if (f && cesit !== "yazi") { f.files = [{ name: "yuz.jpg", type: "image/jpeg", size: 4096 }]; f.tetikle("change"); }
+  const y = id("foto-yazi");
+  if (cesit === "yazi") {
+    // Yazı çeşidi: yazı alanı doldurulur (yazı cümlesi bu vakanın ekseni değil); not alanı bu çeşitte çizilmez.
+    const ta = id("foto-param-satirlar");
+    if (ta) { ta.value = "Ayşe"; ta.tetikle("input"); }
+  }
   const hy = id("foto-uyum-hayir");
   if (hy) { hy.tetikle("click"); }
   const o = id("foto-aydinlatma-onay");
@@ -4301,36 +4318,40 @@ async function b2Ekran(kaynak, kod, kart) {
   const na = id("foto-not-alani");
   const notMetin = na ? [...na.agac()].filter((n) => n.tagName === "P").map((n) => n.textContent) : [];
   const b = id("foto-onizle-buton"), sb = id("foto-onizle-sebep");
-  return { acik: !!b && b.disabled === false, kapali: !!b && b.disabled === true,
+  return { acik: !!b && b.disabled === false, kapali: !!b && b.disabled === true, yazi: !!y,
            sebep: sb && sb.hidden !== true ? sb.textContent : "", notMetin, ters, notBos: !(id("foto-not") || {}).value };
 }
 async function b2Senaryolar(kaynak) {
   const s = {}, iz = {};
-  const bu = await b2Ekran(kaynak, "bust"), fi = await b2Ekran(kaynak, "figur", "insan");
-  iz.bust = bu; iz.figur = fi;
-  s.V1 = bu.notBos && bu.acik && bu.sebep === "";
-  s.V2 = fi.notBos && fi.kapali && fi.sebep === SEBEP.not;
-  s.V5 = bu.notMetin.includes(B2_NOT_BUST) && !bu.notMetin.includes(B2_NOT_ESKI) &&
-    fi.notMetin.includes(B2_NOT_ESKI) && !fi.notMetin.includes(B2_NOT_BUST);
-  s.V6 = VERI.turBul("bust").form.ters.varsayilan === false && !!bu.ters && bu.ters.aria === "false" && bu.ters.metin === "Kapalı";
+  for (const [kod, kart, cesit] of B2_TURLER) { iz[kod + (cesit ? "-" + cesit : "")] = await b2Ekran(kaynak, kod, kart, cesit); }
+  const hep = Object.values(iz);
+  // V6: her türde not BOŞ + foto/yazı + onay + doğrulama -> sebep listesinde "not" YOK (cümle eski not cümlesi değil).
+  s.V6 = hep.length === 6 && hep.every((r) => r.notBos && r.sebep !== B2_SEBEP_NOT_ESKI && !/not yaz/.test(r.sebep));
+  // V6b: fotoğraflı 5 durumda (yazı çeşidi hariç) düğme AÇIK, sebep satırı yok.
+  s.V6b = Object.keys(iz).filter((k) => k !== "anahtarlik-yazi").every((k) => iz[k].acik && iz[k].sebep === "");
+  // V5: ② cümlesi fotoğraflı her türde "İsteğe bağlı…", eski "zorunlu" cümlesi HİÇBİR türde yok.
+  s.V5 = Object.keys(iz).filter((k) => k !== "anahtarlik-yazi").every((k) => iz[k].notMetin.includes(B2_NOT_ISTEGE)) &&
+    hep.every((r) => !r.notMetin.includes(B2_NOT_ESKI));
+  s.TERS = VERI.turBul("bust").form.ters.varsayilan === false && !!iz.bust.ters && iz.bust.ters.aria === "false" && iz.bust.ters.metin === "Kapalı";
   Object.defineProperty(s, "iz", { value: iz, enumerable: false });
   return s;
 }
-console.log("B2) TUR-B2 büstte not İSTEĞE BAĞLI (istemci) + Ters ilk durum");
+console.log("B2) TUR-B2 not HER türde İSTEĞE BAĞLI (istemci, Okan 10 Eki 12:5x) + Ters ilk durum");
 {
   const s = await b2Senaryolar(EKRAN_KAYNAK);
-  ol("V1 büst + foto + onay + doğrulama, not BOŞ -> düğme AÇIK, sebep satırı yok", s.V1, JSON.stringify(s.iz.bust));
-  ol("V2 figür aynı durumda not BOŞ -> KAPALI + \"" + SEBEP.not + "\"", s.V2, JSON.stringify(s.iz.figur));
-  ol("V5 ② cümlesi: büst \"" + B2_NOT_BUST + "\" · figür eski cümle", s.V5, JSON.stringify([s.iz.bust.notMetin, s.iz.figur.notMetin]));
-  ol("V6 Ters varsayılan false + ③ düğmesi aria-checked=false \"Kapalı\" başlar", s.V6, JSON.stringify(s.iz.bust.ters));
+  const oz = (k) => JSON.stringify(Object.fromEntries(Object.entries(s.iz).map(([a, r]) => [a, r[k]])));
+  ol("V6 6 türde not BOŞ -> ① sebep listesinde \"not\" YOK", s.V6, oz("sebep"));
+  ol("V6b fotoğraflı 5 durumda not BOŞ -> düğme AÇIK, sebep satırı yok", s.V6b, oz("acik"));
+  ol("V5b ② cümlesi her fotoğraflı türde \"" + B2_NOT_ISTEGE + "\" · \"zorunlu\" cümlesi 0", s.V5, oz("notMetin"));
+  ol("TERS Ters varsayılan false + ③ düğmesi aria-checked=false \"Kapalı\" başlar", s.TERS, JSON.stringify(s.iz.bust.ters));
   const B2_MUT = [
-    ["M1 büst muafiyeti istemciden kaldırıldı", "  var NOT_ISTEGE_BAGLI_TURLER = [\"bust\"];", "  var NOT_ISTEGE_BAGLI_TURLER = [];", ["V1", "V5"]],
-    ["M1b muafiyet yalnız sebep sırasından silindi", "[!notIstegeBagli(S.tur) && fotoGerekir() && !((S.uretimNotu", "[fotoGerekir() && !((S.uretimNotu", ["V1"]],
-    ["M2 muafiyet tüm türlere yayıldı", "function notIstegeBagli(kod) { return NOT_ISTEGE_BAGLI_TURLER.indexOf(kod) >= 0; }",
-     "function notIstegeBagli(kod) { return true; }", ["V2", "V5"]],
-    ["M5 ② cümlesi türden bağımsız eski", "kap.appendChild(el(\"p\", \"foto-uretim-ayrinti\", notIstegeBagli(S.tur) ?",
-     "kap.appendChild(el(\"p\", \"foto-uretim-ayrinti\", false ?", ["V5"]],
-    ["M6 Ters ilk durum açık", "S.parametre[a] = sema.varsayilan === true;", "S.parametre[a] = true;", ["V6"]],
+    // Spec B MUTANT: s1Sebep'e not satırı geri konur -> V6 KIRMIZI (fotoğraflı türlerde düğme de kapanır -> V6b).
+    ["M1 s1Sebep'e not satırı geri kondu", "      [!S.aydinlatmaOnay, S1_SEBEP.onay],\n",
+     "      [fotoGerekir() && !((S.uretimNotu || \"\").trim()), " + JSON.stringify(B2_SEBEP_NOT_ESKI) + "],\n      [!S.aydinlatmaOnay, S1_SEBEP.onay],\n",
+     ["V6", "V6b"]],
+    ["M5 ② cümlesi eski zorunlu cümleye döndü", "kap.appendChild(el(\"p\", \"foto-uretim-ayrinti\", \"İsteğe bağlı: kısa bir not ekleyebilirsin.\"));",
+     "kap.appendChild(el(\"p\", \"foto-uretim-ayrinti\", \"Üretim notu zorunlu; boşsa önizleme oluşturulamaz.\"));", ["V5"]],
+    ["M6 Ters ilk durum açık", "S.parametre[a] = sema.varsayilan === true;", "S.parametre[a] = true;", ["TERS"]],
     ["B2-K0 KONTROL (yorum)", "  function s1Sebep() {", "  // kontrol\n  function s1Sebep() {", []],
   ];
   for (const [ad, capa, yerine, olmeli] of B2_MUT) {
@@ -4347,10 +4368,11 @@ console.log("B2) TUR-B2 büstte not İSTEĞE BAĞLI (istemci) + Ters ilk durum")
 async function b2SunucuSenaryolar(fm) {
   const k = koprukur(); await k.hazir;
   const e2 = envKur(k.d1, r2Kur());
-  await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('bust', 1, 'x'), ('plaket', 1, 'x')").run();
+  await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('bust', 1, 'x'), ('plaket', 1, 'x'), " +
+    "('figur', 1, 'x'), ('yapboz', 1, 'x'), ('anahtarlik', 1, 'x')").run();
   let ipNo = 0;
   const cag = async (govde) => {
-    const h = { "CF-Connecting-IP": "10.0.9." + (++ipNo), "Content-Type": "application/json" };
+    const h = { "CF-Connecting-IP": "10.0." + (9 + (ipNo >> 8)) + "." + ((++ipNo) & 255), "Content-Type": "application/json" };
     const r = await fm.fotoUclari(new Request("https://pruvo3d.com/api/shop/foto/onizleme", { method: "POST", headers: h,
       body: JSON.stringify(govde) }), e2, new URL("https://pruvo3d.com/api/shop/foto/onizleme"), "/foto/onizleme", null);
     let v = null; try { v = await r.json(); } catch (e) { v = null; }
@@ -4363,6 +4385,39 @@ async function b2SunucuSenaryolar(fm) {
   // yalnız bu senaryo süresince bellekte 1 sayılır, finally'de geri alınır.
   const asilOrnek = VERI.ornekSayisi;
   VERI.ornekSayisi = (kod) => (kod === "bust" ? 1 : asilOrnek(kod));
+  // V7/V8 (Okan 10 Eki 12:5x "not yazma zorunluluğunu kaldır"): 6 türde boş not -> 400 DEĞİL, dolu notla AYNI kod;
+  // M kolu (sağlayıcı) prototip istemi boş notta "undefined"/"null" taşımaz. Örnek şartı yine bellekte 1.
+  const asilFetch = globalThis.fetch, istemler = [];
+  globalThis.fetch = (h, i) => {
+    if (i && i.method === "POST" && /\/v1\/prototype$/.test(String(h && h.url ? h.url : h))) { istemler.push(String(i.body)); }
+    return asilFetch(h, i);
+  };
+  VERI.ornekSayisi = () => 1;
+  const ahSecim = { plaka_renk: "Beyaz", yazi_renk: "Siyah", govde_malzeme: "PLA" };
+  const ALTI = {
+    plaket: (ek) => onizlemeGovde(ek),
+    figur: (ek) => onizlemeGovde({ tur: "figur", olcu_mm: 100, ...ek }),
+    yapboz: (ek) => onizlemeGovde({ tur: "yapboz", olcu_mm: 150, parametreler: { uzun_kenar_mm: 150, satir: 3, sutun: 4,
+      tohum: 1, kabartma_yon: "acik_yuksek" }, secim: { govde_malzeme: "PLA" }, ...ek }),
+    bust: (ek) => bust(ek),
+    "anahtarlik-yazi": (ek) => onizlemeGovde({ tur: "anahtarlik", olcu_mm: 45, gorsel: undefined, cesit: "yazi", secim: ahSecim,
+      parametreler: { satirlar: ["Ayşe"], yazi_tipi: "script", hizalama: "orta", genislik_mm: 45,
+        anahtarlik_kulak_konum: "sol-ust", kontur_tasma_mm: 1.5 }, ...ek }),
+    "anahtarlik-figur": (ek) => onizlemeGovde({ tur: "anahtarlik", olcu_mm: 45, cesit: "figur", secim: ahSecim, ...ek }),
+  };
+  iz.alti = {};
+  try {
+    for (const [ad, g] of Object.entries(ALTI)) {
+      const once = istemler.length;
+      const bos = await cag(g({ not: "" })), yok = await cag(g({})), dolu = await cag(g({ not: "deniz manzarası" }));
+      iz.alti[ad] = { bos, yok, dolu, istem: istemler.slice(once) };
+    }
+  } finally { globalThis.fetch = asilFetch; VERI.ornekSayisi = (kod) => (kod === "bust" ? 1 : asilOrnek(kod)); }
+  s.V7 = Object.keys(iz.alti).length === 6 && Object.values(iz.alti).every((r) =>
+    r.bos.kod !== 400 && r.yok.kod !== 400 && r.bos.kod === r.dolu.kod && r.yok.kod === r.dolu.kod && r.dolu.kod === 200);
+  const mIstem = ["plaket", "figur"].map((a) => iz.alti[a].istem).flat();
+  iz.mIstem = mIstem;
+  s.V8 = mIstem.length >= 6 && mIstem.every((b) => !/undefined|null/.test(b));
   try {
   iz.bos = await cag(bust({ not: "" }));
   iz.bosluk = await cag(bust({ not: "   " }));
@@ -4379,11 +4434,17 @@ async function b2SunucuSenaryolar(fm) {
 console.log("B2) TUR-B2 sunucu büst boş not");
 {
   const s = await b2SunucuSenaryolar(foto);
-  ol("V3 sunucu: büst boş/boşluk/yok not -> 200 (400 DEĞİL); dolu not 200, telefonlu not 400 not-kisisel-veri", s.V3, JSON.stringify(s.iz));
+  ol("V3 sunucu: büst boş/boşluk/yok not -> 200 (400 DEĞİL); dolu not 200, telefonlu not 400 not-kisisel-veri", s.V3,
+     JSON.stringify({ bos: s.iz.bos, bosluk: s.iz.bosluk, yok: s.iz.yok, dolu: s.iz.dolu, tel: s.iz.tel }));
+  ol("V7 sunucu: 6 türde boş/yok not önizleme -> 400 DEĞİL, dolu notla AYNI kod (200)", s.V7,
+     JSON.stringify(Object.fromEntries(Object.entries(s.iz.alti).map(([a, r]) => [a, [r.bos.kod, r.yok.kod, r.dolu.kod, r.bos.hata || r.dolu.hata]]))));
+  ol("V8 M kolu (plaket+figür) prototip istemi boş notta \"undefined\"/\"null\" 0", s.V8, JSON.stringify(s.iz.mIstem.slice(0, 2)));
   console.log("  ÖLÇÜM V4 plaket boş not -> " + JSON.stringify(s.iz.plaketBos) + " (sunucuda boş-not reddi yok; kapı istemcide)");
   const B2S_MUT = [
     ["M3 sunucu boş notu reddeder (büst muafiyeti yok)", "  if (x === undefined || x === null) { return { ok: true, deger: \"\" }; }\n",
-     "  if (x === undefined || x === null || (typeof x === \"string\" && !x.trim())) { return { ok: false, hata: \"not-bos\" }; }\n", ["V3"]],
+     "  if (x === undefined || x === null || (typeof x === \"string\" && !x.trim())) { return { ok: false, hata: \"not-bos\" }; }\n",
+     // V8 de düşer: boş notlu istek sağlayıcıya hiç gitmez -> ölçülecek istem 0 (V8 istem sayısı >= 6 ister).
+     ["V3", "V7", "V8"]],
     ["B2S-K0 KONTROL (yorum)", "export function uretimNotuDogrula(x) {\n", "// kontrol\nexport function uretimNotuDogrula(x) {\n", []],
   ];
   for (const [ad, capa, yerine, olmeli] of B2S_MUT) {
