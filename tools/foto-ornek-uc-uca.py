@@ -494,6 +494,24 @@ def olcu_sec(t):
     return s[len(s) // 2] if s else None
 
 
+# --foto: yerel girdi gorseli (SPEC-PROVA-6MODEL-2 K3; sentetik elips yerine saglayicinin tanidigi girdi). Tip
+# DOSYA BASLIGINDAN okunur (uzanti degil); bilinmeyen bicim saglayiciya gitmez.
+FOTO_BASLIKLARI = ((b"\x89PNG\r\n\x1a\n", "image/png", "png"), (b"\xff\xd8\xff", "image/jpeg", "jpg"))
+
+
+def foto_oku(yol):
+    """--foto dosyasi -> (ad, bayt, tip) ya da (None, sebep)."""
+    try:
+        with open(yol, "rb") as f:
+            b = f.read()
+    except OSError:
+        return None, "okunamadi"
+    for bas, tip, uz in FOTO_BASLIKLARI:
+        if b.startswith(bas):
+            return ("foto." + uz, b, tip), ""
+    return None, "bicim-desteksiz (PNG/JPEG)"
+
+
 def _ayni(a, b):
     """JS `===` esdegeri (True == 1 Python'da esit; JS'te DEGIL)."""
     return (isinstance(a, bool) == isinstance(b, bool)) and a == b
@@ -1006,11 +1024,14 @@ def olc_1(tr, acik_kodlar):
         len(orn), tamam, len(gorseller), 1 if tr.kod in acik_kodlar else 0, 1 if girdi_acik else 0))
 
 
-def hazirla(tr):
+def hazirla(tr, olcu=0):
     t = tr.t
-    tr.olcu = olcu_sec(t)
+    tr.olcu = olcu or olcu_sec(t)
     if tr.olcu is None:
         tr.hazirlik = "olcu-yok"
+        return
+    if olcu and olcu not in (t.get("olcu_secenekleri") or []):
+        tr.hazirlik = "olcu-secenek-disi:%d" % olcu
         return
     p, h = ornek_parametre(t, tr.olcu)
     d, h2 = ornek_dosyalar(t)
@@ -1020,17 +1041,19 @@ def hazirla(tr):
     tr.parametre, tr.dosyalar, tr.secim = p, d, ornek_secim(t)
 
 
-def cesit_kur(tr, cesit, gecici):
-    """--cesit: turun cesit kaydi (VERI.cesitler) -> saglayici kolu; olcu FIGUR_OLCU_MM, parametre YOK, girdi foto
-    (istemci figurde ③ formunu gizler, secim.cesit gonderir). Donus "" ya da hazirlik sebebi."""
+def cesit_kur(tr, cesit, gecici, olcu=0):
+    """--cesit: turun cesit kaydi (VERI.cesitler) -> saglayici kolu; olcu FIGUR_OLCU_MM (--olcu verilirse o), parametre
+    YOK, girdi foto (istemci figurde ③ formunu gizler, secim.cesit gonderir). Donus "" ya da hazirlik sebebi.
+    --olcu cesit tavanini (olcu_en_cok) asarsa yerelde DURDURULMAZ: sunucunun reddi (400, kredi 0) olcumun kendisidir."""
     ck = next((c for c in tr.t.get("cesitler") or [] if c.get("kod") == cesit), None)
     if not ck or not ck.get("saglayici_tur") or not isinstance(ck.get("olcu_en_cok"), int):
         return "cesit-kaydi-yok:%s" % cesit
-    if FIGUR_OLCU_MM not in (tr.t.get("olcu_secenekleri") or []) or FIGUR_OLCU_MM > ck["olcu_en_cok"]:
-        return "cesit-olcu:%d" % FIGUR_OLCU_MM
+    mm = olcu or FIGUR_OLCU_MM
+    if mm not in (tr.t.get("olcu_secenekleri") or []) or (not olcu and mm > ck["olcu_en_cok"]):
+        return "cesit-olcu:%d" % mm
     tr.cesit, tr.cesit_tavan, tr.kanit = cesit, ck["olcu_en_cok"], os.path.join(gecici, "kanit")
     tr.t = dict(tr.t, kol="saglayici")
-    tr.olcu, tr.parametre, tr.secim = FIGUR_OLCU_MM, {}, {"cesit": cesit}
+    tr.olcu, tr.parametre, tr.secim = mm, {}, {"cesit": cesit}
     tr.dosyalar = {"foto": ("foto.png", figur_foto(), "image/png")}
     return ""
 
@@ -1540,6 +1563,12 @@ def main(argv=None):
                     help="saglayici kolu: onceki kosumda park etmis is_no'dan zinciri surdurur "
                          "(ornek-onizleme POST'U YAPMAZ, KREDI_ONIZLEME ayirmaz). Yalniz --kredi-tavani > 0 "
                          "ve TEK --tur ile gecerli; --hepsi ile birlikte kullanilamaz.")
+    ap.add_argument("--foto", default="",
+                    help="foto girdili turde ornek gorsel yerine bu YEREL dosya (PNG/JPEG; tip basliktan). Yalniz TEK "
+                         "--tur ile; sha256 rapora basilir.")
+    ap.add_argument("--olcu", type=int, default=0,
+                    help="ornek olcusu (mm; turun olcu seceneklerinden). Yalniz TEK --tur ile; --cesit ile cesit "
+                         "olcusu (tavani asarsa sunucu reddi olculur).")
     a = ap.parse_args(argv)
     if a.kredi_tavani > 0 and (not DILIM_DESEN.match(a.dilim or "") or a.dilim_tavan <= 0):
         print("HATA dilim: --kredi-tavani > 0 iken --dilim <^[a-z0-9-]{3,40}$> ve --dilim-tavan <N > 0> ZORUNLU "
@@ -1558,6 +1587,19 @@ def main(argv=None):
         print("HATA --alt-tur yalniz TEK --tur figur ile (cesitsiz, --hepsi'siz) gecerli")
         print("HAZIR=0/0 rc=2")
         return 2
+    if (a.foto or a.olcu) and (len(a.tur) != 1 or a.hepsi):
+        print("HATA --foto / --olcu yalniz TEK --tur ile (--hepsi'siz) gecerli")
+        print("HAZIR=0/0 rc=2")
+        return 2
+    foto = None
+    if a.foto:
+        foto, sebep = foto_oku(a.foto)
+        if not foto:
+            print("HATA --foto %s: %s (saglayiciya istek YOK)" % (os.path.basename(a.foto), sebep))
+            print("HAZIR=0/0 rc=2")
+            return 2
+        print("FOTO dosya=%s sha256=%s bayt=%d tip=%s" % (
+            os.path.basename(a.foto), hashlib.sha256(foto[1]).hexdigest(), len(foto[1]), foto[2]))
     gecici = tempfile.mkdtemp(prefix="foto-uu-")
     try:
         MAN.clear()
@@ -1592,9 +1634,14 @@ def main(argv=None):
                     tr.koy(o, False, "manifestte-yok")
                 continue
             olc_1(tr, acik_kodlar)
-            hazirla(tr)
+            hazirla(tr, a.olcu)
             if a.cesit and not tr.hazirlik:
-                tr.hazirlik = cesit_kur(tr, a.cesit, gecici)
+                tr.hazirlik = cesit_kur(tr, a.cesit, gecici, a.olcu)
+            if foto and not tr.hazirlik:
+                if "foto" not in tr.dosyalar:
+                    tr.hazirlik = "foto-girdisi-yok"
+                else:
+                    tr.dosyalar["foto"] = foto
             if tr.hazirlik:
                 for o in ("2", "3", "4", "5"):
                     tr.koy(o, False, "ornek-girdi: " + tr.hazirlik)
