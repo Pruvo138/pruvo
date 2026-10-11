@@ -313,7 +313,7 @@
     ".foto-uretim-blok{background:#fff;color:var(--navy);border-radius:8px;" +
     "padding:16px;margin:0 0 14px;}" +
     ".foto-uretim-ornek-gorsel{display:block;width:100%;max-width:300px;aspect-ratio:1/1;height:auto;" +
-    "object-fit:cover;border-radius:6px;background:#eef0f3;}" +
+    "object-fit:contain;border-radius:6px;background:#eef0f3;}" +
     ".foto-uretim-alani{min-width:0;}" +
     ".foto-uretim-durum{padding:8px 12px;border-radius:6px;background:#eef0f3;" +
     "font-size:14px;margin:0 0 12px;}" +

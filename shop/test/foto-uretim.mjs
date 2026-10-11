@@ -6264,9 +6264,81 @@ function simSenaryo(V) {
   s.N = V.dortRenkSimule(Nn, W, W, ["Mor"]) === null && V.dortRenkSimule(Nn, W, W, []) === null &&
     V.dortRenkSimule(Nn, W + 1, W, PA) === null && V.dortRenkSimule(Nn, 0, W, PA) === null &&
     Nn.every((v, i) => v === A[i]);
+  // BU (bölge bütünlüğü, KraL-Foto4Renk-2): tek yüzey, rengi Mavi ile Lacivert'in (doğrusal) TAM ortası; soldan sağa
+  // yumuşak gölge 0,35..1 + doku -> ışıklı yanı Mavi'ye, gölgesi Lacivert'e daha yakın. Hücre hücre palete boyama
+  // yüzeyi ikiye böler (müşteri paletinde saçın yarısı Siyah yarısı Ahşap olması); bölge-önce: TEK bileşen, TEK renk.
+  const PBU = ["Mavi", "Lacivert", "Beyaz", "Kırmızı"], hm = simHex(V, "Mavi"), hl = simHex(V, "Lacivert");
+  const orta = [0, 1, 2].map((j) => simSrgb((simLin(hm[j]) + simLin(hl[j])) / 2));
+  const BUg = simGorselRgb((x) => [orta, 0.35 + 0.65 * x / (W - 1)]);
+  const bbu = V.simulasyonBolgeleri(BUg, W, W, PBU), kbu = bbu ? simBilesen(bbu.et, bbu.sw, bbu.sh) : [];
+  iz.BU = kbu.map((b) => PBU[b.renk] + ":" + b.n);
+  s.BU = !!bbu && kbu.length === 1 && kbu[0].n === W * W;
+  // KK (kontrast koruma): üstte koyu kahve (saç), altta açık ten; ikisi de en yakın Ahşap'a düşer (aynı renk = saç
+  // kaybolur). Belirgin farklı iki büyük komşu bölge -> FARKLI renk, her biri tek parça.
+  const PKK = ["Beyaz", "Ahşap", "Mavi", "Lacivert"];
+  const KKg = simGorselRgb((x, y) => [y < 40 ? [110, 85, 70] : [222, 184, 152], 0.85 + 0.15 * x / (W - 1)]);
+  const bkk = V.simulasyonBolgeleri(KKg, W, W, PKK), kkk = bkk ? simBilesen(bkk.et, bkk.sw, bkk.sh) : [];
+  const ust = bkk ? PKK[bkk.et[20 * W + 48]] : "", alt = bkk ? PKK[bkk.et[70 * W + 48]] : "";
+  iz.KK = { bilesen: kkk.map((b) => PKK[b.renk] + ":" + b.n), ust, alt };
+  s.KK = !!bkk && kkk.length === 2 && ust !== alt && alt === "Ahşap";
+  // LT (ton önceliği): açık mavi gömlek (120,160,210) -> Mavi (açıklığı Ahşap'a yakın olsa da tonu mavi).
+  const PLT = ["Mavi", "Ahşap", "Siyah"];
+  const blt = V.simulasyonBolgeleri(simGorselRgb(() => [[120, 160, 210], 1]), W, W, PLT);
+  iz.LT = blt ? PLT[blt.et[48 * W + 48]] : null;
+  s.LT = !!blt && blt.et.every((e) => PLT[e] === "Mavi");
+  // S (siluet parlaması): saydam zemin üstünde Kırmızı disk (yarıçap 40), kenarında 3 px açık parlama halkası ->
+  // halka gövdeye katılır (kenar şeridi); Beyaz hücre kalmaz.
+  const PS = ["Kırmızı", "Beyaz", "Siyah"];
+  const Sg = simGorselRgb((x, y) => {
+    const r = Math.hypot(x - 47.5, y - 47.5);
+    return [r >= 37 ? [240, 214, 214] : simHex(V, "Kırmızı"), 1, r < 40 ? 255 : 0];
+  });
+  const bs = V.simulasyonBolgeleri(Sg, W, W, PS);
+  const sBeyaz = bs ? bs.et.filter((e) => PS[e] === "Beyaz").length : -1, sOpak = bs ? bs.et.filter((e) => e >= 0).length : 0;
+  iz.S = { sBeyaz, sOpak };
+  s.S = !!bs && sOpak > 4000 && sBeyaz === 0;
   Object.defineProperty(s, "iz", { value: iz, enumerable: false });
   return s;
 }
+function simGorselRgb(fn, w = SIM_W, h = SIM_W) {   // fn(x, y) -> [[r,g,b], gölge, alfa=255]; %12 doku
+  let s = 777;
+  const rnd = () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
+  const p = new Uint8ClampedArray(w * h * 4);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4, [c, golge, alfa] = fn(x, y), doku = 1 + 0.12 * (rnd() - 0.5);
+      for (let j = 0; j < 3; j++) { p[i + j] = simSrgb(simLin(c[j]) * golge * doku); }
+      p[i + 3] = alfa === undefined ? 255 : alfa;
+    }
+  }
+  return p;
+}
+// CZ İNCE AYRINTI (KraL-Foto4Renk-2): 384 px (küçültme ×2: 2 px çizgi 1 hücreye ortalanır, mod süzgeci siler) düz Ahşap
+// yüzey + 2 px koyu yatay çizgi (120 px, ağız) + 4×4 koyu benek. Çizgi KORUNUR (≥ %90'ı Ahşap'tan koyu palet rengi /
+// kontur), benek SİLİNİR (hepsi Ahşap). Palet Ahşap·Siyah·Mavi.
+function czSenaryo(V) {
+  const s = {}, iz = {}, W = 384, PC = ["Ahşap", "Siyah", "Mavi"], ah = simHex(V, "Ahşap"), koyu = [62, 40, 30];
+  const cizgi = (x, y) => y >= 150 && y < 152 && x >= 130 && x < 250, benek = (x, y) => x >= 300 && x < 304 && y >= 300 && y < 304;
+  const g = simGorselRgb((x, y) => [cizgi(x, y) || benek(x, y) ? koyu : ah, 1], W, W);
+  const r = V.dortRenkSimule(g, W, W, PC);
+  const renkAd = (i) => { for (const a of PC) { const c = simHex(V, a); if (g[i] === c[0] && g[i + 1] === c[1] && g[i + 2] === c[2]) return a; } return "kontur"; };
+  let cizgiKoyu = 0, cizgiTop = 0, benekAhsap = 0;
+  for (let y = 0; y < W; y++) {
+    for (let x = 0; x < W; x++) {
+      const i = (y * W + x) * 4;
+      if (cizgi(x, y)) { cizgiTop++; if (renkAd(i) !== "Ahşap") { cizgiKoyu++; } }
+      if (benek(x, y) && renkAd(i) === "Ahşap") { benekAhsap++; }
+    }
+  }
+  iz.L = { cizgiKoyu, cizgiTop, ornek: r ? renkAd((151 * W + 190) * 4) : null };
+  iz.B = { benekAhsap };
+  s.L = !!r && cizgiKoyu >= cizgiTop * 0.9;
+  s.B = !!r && benekAhsap === 16;
+  Object.defineProperty(s, "iz", { value: iz, enumerable: false });
+  return s;
+}
+// Mutant -> beklenen KIRMIZI kümesi (bağımsız sabit; ölçülüp çivilendi).
+const SIM_MUT_BEKLENEN = { ADACIK: ["S"], L: ["LT"], BOLGE: ["BU", "G", "KK"], KONTRAST: ["KK"], KAPALI: ["T"], GRI: ["Y"], K0: [] };
 console.log("SIM) ④ 4 RENK SİMÜLASYONU — bölge tabanlı (VERI.dortRenkSimule); figür render-yok kolu + plaket");
 {
   const s = simSenaryo(veriYukle(VERI_KAYNAK));
@@ -6276,23 +6348,54 @@ console.log("SIM) ④ 4 RENK SİMÜLASYONU — bölge tabanlı (VERI.dortRenkSim
   ol("SIM-T saydam piksel AYNEN; opak piksel yalnız palet rengi / kontur koyusu", s.T, JSON.stringify(s.iz.T));
   ol("SIM-Y tek ana renk -> gri ölçek, gölge kalır, doku bastırılır", s.Y, JSON.stringify(s.iz.Y));
   ol("SIM-N geçersiz palet / boyut -> null, piksel değişmez", s.N, "");
+  ol("SIM-BU bölge bütünlüğü: iki palet renginin tam ortasında, gölgeli tek yüzey -> TEK bileşen, TEK renk", s.BU, JSON.stringify(s.iz.BU));
+  ol("SIM-KK kontrast koruma: koyu saç + açık ten (ikisi de en yakın Ahşap) -> farklı renk, ten Ahşap", s.KK, JSON.stringify(s.iz.KK));
+  ol("SIM-LT ton önceliği: açık mavi yüzey -> Mavi (Ahşap değil)", s.LT, JSON.stringify(s.iz.LT));
+  ol("SIM-S siluet parlaması halkası gövdeye katılır (Beyaz hücre 0)", s.S, JSON.stringify(s.iz.S));
   ol("SIM-E ④ çizimi F.dortRenkSimule; eski paleteIndirge/paletleGoster YOK; plaket kolu simülasyon",
      EKRAN_KAYNAK.includes("if (!F.dortRenkSimule(d.data, c.width, c.height, renkler)) throw") &&
      EKRAN_KAYNAK.includes("else simuleGoster(img, S.gorsel, simulasyonRenkleri());") &&
      !/paleteIndirge|paletleGoster/.test(EKRAN_KAYNAK) && !/paleteIndirge/.test(VERI_KAYNAK), "");
+  const SIM_BOLGE_CAPA = "    for (k = 0; k < n; k++) { et[k] = B.bol[k] < 0 ? -1 : renk[B.bol[k]]; }\n";
   const SIM_MUT = [
-    ["M-SIM-ADACIK mod/adacık süzgeci kalktı (G: kalan benekler gölge birleştirmesinin karşılıklı eşini çalar)",
-     "    simAdacik(et, sw, sh, P.length, opak);\n", "", ["A", "G"]],
-    ["M-SIM-L L ağırlığı ton ile eşit", "SIM_L_AGIRLIK = 0.2,", "SIM_L_AGIRLIK = 1,", ["G"]],
-    ["M-SIM-KAPALI renkli kol piksel AYNEN", "    return simBuyut(piksel, w, h, k0, simEtiketle(k0, rgb), rgb);\n",
-     "    return piksel;\n", ["T"]],
+    ["M-SIM-ADACIK mod/adacık süzgeci kalktı", "    simAdacik(et, sw, sh, P.length, B.opak);\n", "", "ADACIK"],
+    ["M-SIM-L L ağırlığı ton ile eşit (bölge ataması)", "SIM_L_AGIRLIK = 0.3,", "SIM_L_AGIRLIK = 1,", "L"],
+    // Bölge-önce adımı kalkar: her hücre kendi tonuyla en yakın palet rengine (Foto4Renk-1 öncesi hücre boyaması).
+    ["M-SIM-BOLGE bölge-önce adımı kalktı (hücre hücre palet)", SIM_BOLGE_CAPA,
+     "    for (k = 0; k < n; k++) { if (B.bol[k] < 0) { et[k] = -1; continue; } var e1 = 0; for (j = 1; j < np; j++) { " +
+     "if (simMesafe(F.L[k], F.U[k], F.V[k], P[j][0], P[j][1], P[j][2]) < simMesafe(F.L[k], F.U[k], F.V[k], P[e1][0], P[e1][1], P[e1][2])) { e1 = j; } } et[k] = e1; }\n",
+     "BOLGE"],
+    ["M-SIM-KONTRAST kontrast koruma kalktı", "    simKontrastKoru(B, sw, sh, top, D, np, renk);\n", "", "KONTRAST"],
+    ["M-SIM-KAPALI renkli kol piksel AYNEN",
+     "    return simBuyut(piksel, w, h, k0, simEtiketle(k0, rgb), rgb, simCizgi(piksel, w, h, rgb));\n",
+     "    return piksel;\n", "KAPALI"],
     ["M-SIM-GRI tek renk kolu kapalı", "    if (renkler.length === 1 && VERI.ANA_RENKLER.indexOf(renkler[0]) >= 0) {",
-     "    if (false) {", ["Y"]],
-    ["M-SIM-K0 KONTROL (aynı gövde)", "SIM_L_AGIRLIK = 0.2,", "SIM_L_AGIRLIK = 0.2,", []],
-  ];
+     "    if (false) {", "GRI"],
+    ["M-SIM-K0 KONTROL (aynı gövde)", "SIM_L_AGIRLIK = 0.3,", "SIM_L_AGIRLIK = 0.3,", "K0"],
+  ].map(([ad, capa, yerine, anahtar]) => [ad, capa, yerine, SIM_MUT_BEKLENEN[anahtar]]);
   for (const [ad, capa, yerine, olmeli] of SIM_MUT) {
     if (VERI_KAYNAK.split(capa).length - 1 !== 1) { ol(ad + " capa bulundu", false, capa); continue; }
     const m = simSenaryo(veriYukle(VERI_KAYNAK.replace(capa, yerine)));
+    const kir = Object.keys(m).filter((x) => m[x] !== true).sort();
+    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli), JSON.stringify(kir) + " " + JSON.stringify(m.iz));
+  }
+}
+
+console.log("CZ) ④ simülasyon İNCE AYRINTI — koyu ince çizgi (ağız/kaş) korunur, 4×4 benek silinir");
+{
+  const c = czSenaryo(veriYukle(VERI_KAYNAK));
+  ol("CZ-L 2 px koyu çizgi korunur (≥ %90 koyu palet rengi / kontur)", c.L, JSON.stringify(c.iz.L));
+  ol("CZ-B 4×4 koyu benek çizgi sayılmaz, silinir (16/16 Ahşap)", c.B, JSON.stringify(c.iz.B));
+  const CZ_MUT = [
+    ["M-CZ-YOK çizgi koruması kalktı", "simBuyut(piksel, w, h, k0, simEtiketle(k0, rgb), rgb, simCizgi(piksel, w, h, rgb));",
+     "simBuyut(piksel, w, h, k0, simEtiketle(k0, rgb), rgb, null);", ["L"]],
+    ["M-CZ-BENEK çizgi biçim süzgeci kalktı (her koyu leke çizgi)",
+     "cizgi = uzun >= SIM_CIZGI_BOY * r && ust / uzun <= 2 * r + 1;", "cizgi = true;", ["B"]],
+    ["M-CZ-K0 KONTROL (aynı gövde)", "SIM_CIZGI_BOY = 5,", "SIM_CIZGI_BOY = 5,", []],
+  ];
+  for (const [ad, capa, yerine, olmeli] of CZ_MUT) {
+    if (VERI_KAYNAK.split(capa).length - 1 !== 1) { ol(ad + " capa bulundu", false, capa); continue; }
+    const m = czSenaryo(veriYukle(VERI_KAYNAK.replace(capa, yerine)));
     const kir = Object.keys(m).filter((x) => m[x] !== true).sort();
     ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli), JSON.stringify(kir) + " " + JSON.stringify(m.iz));
   }
@@ -6313,6 +6416,24 @@ console.log("KC1) kart görseli contain (kare olmayan örnek kesilmez)");
     ol("KC1 kural gövdesinde object-fit:contain VAR", kcGovde.includes("object-fit:contain"), kcGovde);
     ol("KC1 kural gövdesinde object-fit:cover YOK", !kcGovde.includes("object-fit:cover"), kcGovde);
   }
+}
+
+console.log("OC1) ④ \"Örnek\" görseli contain (anahtarlık–yazı örneği 800×530 kırpılmaz; KC1 emsali, 14. okuma bulgu 1)");
+{
+  // `.foto-uretim-ornek-gorsel{...}` gövdesi (ilk `}`'e kadar; kural iki dizgi parçasına bölünmüş, birleştirilip
+  // okunur) object-fit:contain içermeli, cover İÇERMEMELİ. M-OC1-COVER: aynı kaynakta contain -> cover -> KIRMIZI.
+  const ocOlc = (metin) => {
+    const duz = metin.replace(/"\s*\+\s*\n\s*"/g, "");
+    const b = duz.indexOf(".foto-uretim-ornek-gorsel{"), e = b >= 0 ? duz.indexOf("}", b) : -1;
+    const g = b >= 0 && e > b ? duz.slice(b, e) : "";
+    return { bulundu: !!g, govde: g, ok: !!g && g.includes("object-fit:contain") && !g.includes("object-fit:cover") };
+  };
+  const oc = ocOlc(EKRAN_KAYNAK);
+  ol("OC1 .foto-uretim-ornek-gorsel{ kuralı BULUNDU", oc.bulundu, "");
+  ol("OC1 Örnek görseli object-fit:contain, cover YOK", oc.ok, oc.govde);
+  const ocCapa = "object-fit:contain;border-radius:6px;background:#eef0f3;}";
+  ol("M-OC1-COVER capa tek", EKRAN_KAYNAK.split(ocCapa).length - 1 === 1, ocCapa);
+  ol("M-OC1-COVER contain -> cover -> KIRMIZI", !ocOlc(EKRAN_KAYNAK.replace(ocCapa, ocCapa.replace("contain", "cover"))).ok, "");
 }
 
 // ---------------------------------------------------------------- FR: ④ FİGÜR = RENDER varsa O, yoksa 4 RENK SİMÜLASYONU
