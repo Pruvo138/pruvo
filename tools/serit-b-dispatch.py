@@ -36,7 +36,7 @@ UC_KAPISI = os.path.join(KOK, "tools", "serit-b-uc-kapisi.py")
 REPO = "Pruvo138/pruvo"
 GH = os.environ.get("PRUVO_SERIT_GH", "gh")
 GIT = os.environ.get("PRUVO_SERIT_GIT", "git")
-AKTIF = ("queued", "in_progress", "pending", "waiting")
+AKTIF = ("requested", "queued", "in_progress", "pending", "waiting")
 ARAMA_TUR = 10
 ARAMA_BEKLE = float(os.environ.get("PRUVO_SERIT_BEKLE", "3"))
 
