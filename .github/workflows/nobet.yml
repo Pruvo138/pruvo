@@ -2562,6 +2562,14 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/serit-b-uc-kapisi-test.py
 
+      # SERIT B DISPATCH KAPISI (12 Eki 2026, BaBa 00:1x) — K438/K434: dal main'in GERISINDEN
+      # SERIT B'ye gonderildi, parite (filament-test TEST 5) KIRMIZI, ~90 dk kosucu bosa.
+      # Arac dispatch ANINDA elle kosulur; burada HERMETIK batarya: 7 vaka + taban + 2 mutant
+      # (izole kopya, mutant kirmizi kumesi TAM esit).
+      - name: "SERIT B dispatch kapisi kabul bataryasi (bayat taban + eszamanli dal, mutant MA/ME)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/serit-b-dispatch-test.py
+
       # HAYALI NOBETCI KAPISI (11 Eyl 2026, BaBa ⑤) — "tools/ icindeki bir YORUM bir .py
       # dosyasini NOBETCI diye aniyorsa o dosya VAR OLMALI". Olculen ariza: ca8c3815
       # supurmesiyle silinen serbest-kume-tekkaynak-test.py'yi DORT yer hala nobetci diye
