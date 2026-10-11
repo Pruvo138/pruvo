@@ -848606,10 +848606,6 @@
       "https://media.pruvo3d.com/urunler/c3dmini-fuse-puller-for-all-cars-1.png"
     ],
     "altkategori": "Montaj Parçaları ve Klipsler",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    },
     "tavsiyeFilament": [
       "ABS"
     ]
@@ -848626,11 +848622,7 @@
     "gorseller": [
       "https://media.pruvo3d.com/urunler/c3dsaab-9-5-aeroshield-antenna-cover-1.png"
     ],
-    "altkategori": "Dış Aksam",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    }
+    "altkategori": "Dış Aksam"
   },
   {
     "id": "c3d-mazda-rx7-dash-havalandirma-izgarasi-v2",
@@ -848650,11 +848642,7 @@
       "https://media.pruvo3d.com/urunler/c3dmazda-rx7-dash-vent-5.jpg",
       "https://media.pruvo3d.com/urunler/c3dmazda-rx7-dash-vent-6.jpg"
     ],
-    "altkategori": "Klima ve Havalandırma",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    }
+    "altkategori": "Klima ve Havalandırma"
   },
   {
     "id": "c3d-honda-civic-1995-2000-siperlik-klipsi-v2",
@@ -848670,11 +848658,7 @@
       "https://media.pruvo3d.com/urunler/c3dhonda-visor-clip-for-1995-2000-1.png",
       "https://media.pruvo3d.com/urunler/c3dhonda-visor-clip-for-1995-2000-2.png"
     ],
-    "altkategori": "Tavan ve Güneşlik",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    }
+    "altkategori": "Tavan ve Güneşlik"
   },
   {
     "id": "c3d-peugeot-205-kabin-isik-yuvasi-v2",
@@ -848691,11 +848675,7 @@
       "https://media.pruvo3d.com/urunler/c3dpeugeot-205-cabin-light-housing-2.jpg",
       "https://media.pruvo3d.com/urunler/c3dpeugeot-205-cabin-light-housing-3.png"
     ],
-    "altkategori": "Aydınlatma",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    }
+    "altkategori": "Aydınlatma"
   },
   {
     "id": "c3d-renault-keyless-sensor-butonu-v2",
@@ -848709,11 +848689,7 @@
     "gorseller": [
       "https://media.pruvo3d.com/urunler/c3drenault-keyless-sensor-button-1.png"
     ],
-    "altkategori": "İç Aksam",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    }
+    "altkategori": "İç Aksam"
   },
   {
     "id": "c3d-alfa-romeo-159-far-toz-kapagi-v2",
@@ -848728,11 +848704,7 @@
     "gorseller": [
       "https://media.pruvo3d.com/urunler/c3dalfa-romeo-159-head-light-cover-1.png"
     ],
-    "altkategori": "Aydınlatma",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    }
+    "altkategori": "Aydınlatma"
   },
   {
     "id": "c3d-peugeot-205-sunroof-karsit-kolu-v2",
@@ -848749,11 +848721,7 @@
       "https://media.pruvo3d.com/urunler/c3dpeugeot-205-sun-roof-handle-2.jpg",
       "https://media.pruvo3d.com/urunler/c3dpeugeot-205-sun-roof-handle-3.png"
     ],
-    "altkategori": "Tavan ve Güneşlik",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    }
+    "altkategori": "Tavan ve Güneşlik"
   },
   {
     "id": "c3d-mazda-3-on-kapi-hoparlor-adaptoru-v2",
@@ -848769,11 +848737,7 @@
       "https://media.pruvo3d.com/urunler/c3dmazda-3-door-speaker-adaptor-1.png",
       "https://media.pruvo3d.com/urunler/c3dmazda-3-door-speaker-adaptor-2.png"
     ],
-    "altkategori": "Ses ve Multimedya",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    }
+    "altkategori": "Ses ve Multimedya"
   },
   {
     "id": "c3d-ford-mondeo-mk3-yan-etek-kriko-kapagi-v2",
@@ -848789,11 +848753,7 @@
       "https://media.pruvo3d.com/urunler/c3dford-mondeo-mk3-side-skirt-cover-jacking-point-1.jpg",
       "https://media.pruvo3d.com/urunler/c3dford-mondeo-mk3-side-skirt-cover-jacking-point-2.jpg"
     ],
-    "altkategori": "Dış Aksam",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    }
+    "altkategori": "Dış Aksam"
   },
   {
     "id": "c3d-isuzu-on-izgara-klipsi-v2",
@@ -848808,10 +848768,6 @@
       "https://media.pruvo3d.com/urunler/c3disuzu-grill-clip-1.jpg"
     ],
     "altkategori": "Dış Aksam",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    },
     "tavsiyeFilament": [
       "ABS"
     ]
@@ -848830,11 +848786,7 @@
       "https://media.pruvo3d.com/urunler/c3dpeugeot-205-tailgate-cover-1.jpg",
       "https://media.pruvo3d.com/urunler/c3dpeugeot-205-tailgate-cover-2.jpg"
     ],
-    "altkategori": "Dış Aksam",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    }
+    "altkategori": "Dış Aksam"
   },
   {
     "id": "c3d-fiat-siperlik-kilitleme-parcasi-v2",
@@ -848851,11 +848803,7 @@
       "https://media.pruvo3d.com/urunler/c3dsunviser-lock-fiat-3.png",
       "https://media.pruvo3d.com/urunler/c3dsunviser-lock-fiat-4.png"
     ],
-    "altkategori": "Tavan ve Güneşlik",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    }
+    "altkategori": "Tavan ve Güneşlik"
   },
   {
     "id": "c3d-saab-900-siperlik-klipsi-v2",
@@ -848871,11 +848819,7 @@
       "https://media.pruvo3d.com/urunler/c3dsaab-900-sun-visor-clip-1.jpg",
       "https://media.pruvo3d.com/urunler/c3dsaab-900-sun-visor-clip-2.jpg"
     ],
-    "altkategori": "Tavan ve Güneşlik",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    }
+    "altkategori": "Tavan ve Güneşlik"
   },
   {
     "id": "c3d-alfa-romeo-166-elektrikli-koltuk-disli-v2",
@@ -848890,11 +848834,7 @@
     "gorseller": [
       "https://media.pruvo3d.com/urunler/c3dalfa-romeo-166-electric-seat-gear-1.png"
     ],
-    "altkategori": "Koltuk ve Kemer",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    }
+    "altkategori": "Koltuk ve Kemer"
   },
   {
     "id": "c3d-alfa-romeo-gt-koltuk-mesafe-ayi-v2",
@@ -848910,11 +848850,7 @@
       "https://media.pruvo3d.com/urunler/c3dalfa-romeo-gt-seat-spacer-1.png",
       "https://media.pruvo3d.com/urunler/c3dalfa-romeo-gt-seat-spacer-2.png"
     ],
-    "altkategori": "Koltuk ve Kemer",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    }
+    "altkategori": "Koltuk ve Kemer"
   },
   {
     "id": "c3d-alfa-romeo-giulia-arka-tampon-kapagi-v3",
@@ -848929,11 +848865,7 @@
     "gorseller": [
       "https://media.pruvo3d.com/urunler/c3dalfa-romeo-giulia-rear-bumper-cap-1.png"
     ],
-    "altkategori": "Dış Aksam",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    }
+    "altkategori": "Dış Aksam"
   },
   {
     "id": "c3d-alfa-romeo-hiz-gostergesi-mesafe-ayi-v2",
@@ -848947,11 +848879,7 @@
     "gorseller": [
       "https://media.pruvo3d.com/urunler/c3dalfa-romeo-speedometer-spacer-1.png"
     ],
-    "altkategori": "Sürüş Kumandaları",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    }
+    "altkategori": "Sürüş Kumandaları"
   },
   {
     "id": "c3d-psa-fiat-boxer-kayar-kapi-dayama-v2",
@@ -848969,11 +848897,7 @@
       "https://media.pruvo3d.com/urunler/c3dsliding-door-block-for-psa-fiat-boxer-1.png",
       "https://media.pruvo3d.com/urunler/c3dsliding-door-block-for-psa-fiat-boxer-2.png"
     ],
-    "altkategori": "Kapı ve Cam",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    }
+    "altkategori": "Kapı ve Cam"
   },
   {
     "id": "c3d-mazda-mx5-mk1-mk2-arka-silecek-kapagi-v2",
@@ -848989,11 +848913,7 @@
       "https://media.pruvo3d.com/urunler/c3dmazda-mx5-mk1-mk2-wiper-cover-1.jpg",
       "https://media.pruvo3d.com/urunler/c3dmazda-mx5-mk1-mk2-wiper-cover-2.jpg"
     ],
-    "altkategori": "Ayna ve Silecek",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    }
+    "altkategori": "Ayna ve Silecek"
   },
   {
     "id": "c3d-psa-panelvan-usb-yuvasi-v2",
@@ -849011,11 +848931,7 @@
       "https://media.pruvo3d.com/urunler/c3dusb-mount-on-peugeot-citroen-fiat-panelvans-2.jpg",
       "https://media.pruvo3d.com/urunler/c3dusb-mount-on-peugeot-citroen-fiat-panelvans-3.jpg"
     ],
-    "altkategori": "Telefon ve Şarj",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    }
+    "altkategori": "Telefon ve Şarj"
   },
   {
     "id": "c3d-alfa-romeo-159-kaput-acma-kolu-v2",
@@ -849033,10 +848949,6 @@
       "https://media.pruvo3d.com/urunler/c3dalfa-romeo-159-motor-hood-handle-3.png"
     ],
     "altkategori": "Motor Bölümü",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    },
     "tavsiyeFilament": [
       "ABS"
     ]
@@ -849055,10 +848967,6 @@
       "https://media.pruvo3d.com/urunler/c3dalfa-door-handle-gasket-2.jpg"
     ],
     "altkategori": "Kapı ve Cam",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    },
     "tavsiyeFilament": [
       "TPU"
     ]
@@ -849077,11 +848985,7 @@
       "https://media.pruvo3d.com/urunler/c3dsaab-c900-lock-cylinder-gasket-8408361-1.png",
       "https://media.pruvo3d.com/urunler/c3dsaab-c900-lock-cylinder-gasket-8408361-2.png"
     ],
-    "altkategori": "Kapı ve Cam",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    }
+    "altkategori": "Kapı ve Cam"
   },
   {
     "id": "c3d-citroen-xsara-picasso-radyo-dugmesi-v3",
@@ -849096,11 +849000,7 @@
     "gorseller": [
       "https://media.pruvo3d.com/urunler/c3dcitroen-xsara-picasso-radio-button-1.png"
     ],
-    "altkategori": "Ses ve Multimedya",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    }
+    "altkategori": "Ses ve Multimedya"
   },
   {
     "id": "c3d-alfa-romeo-75-sis-lambasi-klipsi-v2",
@@ -849116,11 +849016,7 @@
       "https://media.pruvo3d.com/urunler/c3dfog-light-klip-for-alfa-romeo-75-1.png",
       "https://media.pruvo3d.com/urunler/c3dfog-light-klip-for-alfa-romeo-75-2.png"
     ],
-    "altkategori": "Aydınlatma",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    }
+    "altkategori": "Aydınlatma"
   },
   {
     "id": "c3d-mazda-3-2003-2006-siperlik-klipsi-v2",
@@ -849136,11 +849032,7 @@
       "https://media.pruvo3d.com/urunler/c3dmazda-3-visor-clip-2003-2006-3d-printable-replacement-part-1.jpg",
       "https://media.pruvo3d.com/urunler/c3dmazda-3-visor-clip-2003-2006-3d-printable-replacement-part-2.png"
     ],
-    "altkategori": "Tavan ve Güneşlik",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    }
+    "altkategori": "Tavan ve Güneşlik"
   },
   {
     "id": "c3d-renault-espace-mk2-kapi-kolu-grubu-v2",
@@ -849156,11 +849048,7 @@
       "https://media.pruvo3d.com/urunler/c3despacegrip-door-handle-renault-espace-mk2-1.png",
       "https://media.pruvo3d.com/urunler/c3despacegrip-door-handle-renault-espace-mk2-2.png"
     ],
-    "altkategori": "Kapı ve Cam",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    }
+    "altkategori": "Kapı ve Cam"
   },
   {
     "id": "c3d-alfa-romeo-159-kaput-ici-kolu-v2",
@@ -849176,10 +849064,6 @@
       "https://media.pruvo3d.com/urunler/c3dalfa-romeo-159-motor-hood-lever-1.png"
     ],
     "altkategori": "Motor Bölümü",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    },
     "tavsiyeFilament": [
       "ABS"
     ]
@@ -849198,11 +849082,7 @@
       "https://media.pruvo3d.com/urunler/c3dford-mondeo-mk3-sunroof-handle-1.jpg",
       "https://media.pruvo3d.com/urunler/c3dford-mondeo-mk3-sunroof-handle-2.jpg"
     ],
-    "altkategori": "Tavan ve Güneşlik",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    }
+    "altkategori": "Tavan ve Güneşlik"
   },
   {
     "id": "c3d-mazda-mx5-tweeter-montaj-braketi-v2",
@@ -849218,11 +849098,7 @@
       "https://media.pruvo3d.com/urunler/c3dmazda-miata-tweeter-mount-bracket-1.jpg",
       "https://media.pruvo3d.com/urunler/c3dmazda-miata-tweeter-mount-bracket-2.jpg"
     ],
-    "altkategori": "Ses ve Multimedya",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    }
+    "altkategori": "Ses ve Multimedya"
   },
   {
     "id": "c3d-fiat-stilo-bagaj-trim-parcasi-v2",
@@ -849238,11 +849114,7 @@
       "https://media.pruvo3d.com/urunler/c3dfiat-stilo-trunk-part-1.jpg",
       "https://media.pruvo3d.com/urunler/c3dfiat-stilo-trunk-part-2.jpg"
     ],
-    "altkategori": "Bagaj ve Taşıma",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    }
+    "altkategori": "Bagaj ve Taşıma"
   },
   {
     "id": "c3d-alfa-romeo-116-dis-kapi-kolu-kapagi-v2",
@@ -849256,11 +849128,7 @@
     "gorseller": [
       "https://media.pruvo3d.com/urunler/c3dalfa-romeo-116-door-handle-cover-cadcamonline-1.png"
     ],
-    "altkategori": "Kapı ve Cam",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    }
+    "altkategori": "Kapı ve Cam"
   },
   {
     "id": "c3d-alfa-romeo-916-spider-vites-baglantisi-v2",
@@ -849276,10 +849144,6 @@
       "https://media.pruvo3d.com/urunler/c3dalfa-romeo-916-spider-gear-linkage-1.png"
     ],
     "altkategori": "Sürüş Kumandaları",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    },
     "tavsiyeFilament": [
       "ABS"
     ]
@@ -849300,11 +849164,7 @@
       "https://media.pruvo3d.com/urunler/c3dmazda-3-5-6-power-window-gear-3d-printable-replacement-part-1.jpg",
       "https://media.pruvo3d.com/urunler/c3dmazda-3-5-6-power-window-gear-3d-printable-replacement-part-2.jpg"
     ],
-    "altkategori": "Kapı ve Cam",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    }
+    "altkategori": "Kapı ve Cam"
   },
   {
     "id": "c3d-vw-caddy-2003-2010-siperlik-klipsi-v2",
@@ -849320,11 +849180,7 @@
       "https://media.pruvo3d.com/urunler/c3dvw-caddy-2003-2010-sun-visor-clip-3d-printed-replacement-1.jpg",
       "https://media.pruvo3d.com/urunler/c3dvw-caddy-2003-2010-sun-visor-clip-3d-printed-replacement-2.jpg"
     ],
-    "altkategori": "Tavan ve Güneşlik",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    }
+    "altkategori": "Tavan ve Güneşlik"
   },
   {
     "id": "c3d-bmw-e39-far-ayar-vidasi-tamir-parcasi-v2",
@@ -849340,11 +849196,7 @@
       "https://media.pruvo3d.com/urunler/c3dbmw-e39-headlight-adjuster-3d-printable-repair-part-1.jpg",
       "https://media.pruvo3d.com/urunler/c3dbmw-e39-headlight-adjuster-3d-printable-repair-part-2.jpg"
     ],
-    "altkategori": "Aydınlatma",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    }
+    "altkategori": "Aydınlatma"
   },
   {
     "id": "c3d-mercedes-w123-w124-sunroof-motor-dislisi-v2",
@@ -849361,11 +849213,7 @@
       "https://media.pruvo3d.com/urunler/c3dmercedes-w123-w124-sunroof-motor-repair-gear-oem-1247800407-1.jpg",
       "https://media.pruvo3d.com/urunler/c3dmercedes-w123-w124-sunroof-motor-repair-gear-oem-1247800407-2.jpg"
     ],
-    "altkategori": "Tavan ve Güneşlik",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    }
+    "altkategori": "Tavan ve Güneşlik"
   },
   {
     "id": "c3d-vw-golf-mk2-emniyet-kemeri-tokasi-kapagi-v2",
@@ -849383,11 +849231,7 @@
       "https://media.pruvo3d.com/urunler/c3dvw-golf-mk2-jetta-caddy-seat-belt-buckle-cover-1.jpg",
       "https://media.pruvo3d.com/urunler/c3dvw-golf-mk2-jetta-caddy-seat-belt-buckle-cover-2.jpg"
     ],
-    "altkategori": "Koltuk ve Kemer",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    }
+    "altkategori": "Koltuk ve Kemer"
   },
   {
     "id": "c3d-mazda-mx5-kabin-hava-filtresi-yuvasi-v2",
@@ -849405,10 +849249,6 @@
       "https://media.pruvo3d.com/urunler/c3dmazda-miata-mx-5-cabin-air-filter-housing-aftermarket-retrofit-3.jpg"
     ],
     "altkategori": "Klima ve Havalandırma",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    },
     "tavsiyeFilament": [
       "ABS"
     ]
@@ -849429,11 +849269,7 @@
       "https://media.pruvo3d.com/urunler/c3dalfa-romeo-156-166-visor-clip-2.png",
       "https://media.pruvo3d.com/urunler/c3dalfa-romeo-156-166-visor-clip-3.png"
     ],
-    "altkategori": "Tavan ve Güneşlik",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    }
+    "altkategori": "Tavan ve Güneşlik"
   },
   {
     "id": "c3d-alfa-romeo-156-166-rolanti-sensor-kapagi-v2",
@@ -849451,10 +849287,6 @@
       "https://media.pruvo3d.com/urunler/c3dalfa-romeo-156-166-idle-sensor-cover-2.png"
     ],
     "altkategori": "Motor Bölümü",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    },
     "tavsiyeFilament": [
       "ABS"
     ]
@@ -849476,11 +849308,7 @@
       "https://media.pruvo3d.com/urunler/c3dalfa-romeo-159-spider-head-light-dust-cover-3.png",
       "https://media.pruvo3d.com/urunler/c3dalfa-romeo-159-spider-head-light-dust-cover-4.png"
     ],
-    "altkategori": "Aydınlatma",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    }
+    "altkategori": "Aydınlatma"
   },
   {
     "id": "c3d-alfa-romeo-116-kaput-dikme-ayi-v2",
@@ -849496,10 +849324,6 @@
       "https://media.pruvo3d.com/urunler/c3dalfa-116-bonnet-stand-1.png"
     ],
     "altkategori": "Motor Bölümü",
-    "lisans": {
-      "tasarimci": "uyelik",
-      "tur": "uyelik"
-    },
     "tavsiyeFilament": [
       "ABS"
     ]

@@ -1267,6 +1267,14 @@ jobs:
       - name: "Urun denetim kapisi — ATIF KOLU kabul + mutant (K418: atif-zorunlu => public lisans)"
         if: ${{ !cancelled() }}
         run: python3 tools/atif-kolu-test.py
+      # UCRETLI-ATIF KOLU (10 Eki 2026): atif kolunun TERS yonu — para odenen kaynakli kayit
+      # public `lisans`/atif TASIMAZ (taban 0). Gizli kayit CI'da YOK -> GIZLI kol OLCULEMEDI
+      # basar; PUBLIC kol (lisans icinde ucretli jeton) gercek katalogda olculur. Sentetik
+      # fikstur + 5 oldurucu mutant (rc baglantisi / gizli kol / sahte YESIL / public kol /
+      # "public" alt-dizge) + K0 kontrol + sha256 once==sonra. Agsiz, urunler.json'a DOKUNMAZ.
+      - name: "Urun denetim kapisi — UCRETLI-ATIF KOLU kabul + mutant (para odenen kaynak => atif YOK)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/ucretli-atif-kolu-test.py
       # RIZA TAVANI (21 Eyl 2026, cip KraL-RizaOrani-21Eyl): Ads'e OCI ile yuklenebilecek
       # satin almanin UST SINIRI riza oranidir — tiklama kimligi rizasiz oturumda HIC
       # saklanmiyor (attribution-ref.js:355). Olcum ekseni SIPARIS: payda `siparisler.atif.
