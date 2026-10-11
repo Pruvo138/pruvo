@@ -2425,6 +2425,10 @@
         // Renkli önizleme yeniden yüklemede fotoğrafsız döner: fotoğraftan çıkmış renkler kayıttan gelir.
         if (kayit.renk_secim === RENKLI && Array.isArray(kayit.renkler)) {
           S.fotoRenkleri = kayit.renkler.filter(function (x) { return F.PLA_RENKLERI.indexOf(x) >= 0; }).slice(0, 4);
+          // PARA: kayıttaki renkler "dosyasız" (null) fotoğrafa aittir — form çizimindeki fotoRenkCikar(null) bunları
+          // SIFIRLAMAZ (sıfırlasaydı Renkli seçimi Beyaz'a döner, +%15 sessizce düşerdi). Yeni fotoğraf seçilince
+          // renkler o fotoğraftan yeniden çıkarılır.
+          S.fotoRenkDosya = null;
         }
         // Onay yalnız AYNI metin sürümüne verildiyse geri gelir (eski sürüm onayı sayılmaz).
         S.aydinlatmaOnay = kayit.onay === F.onay_surum;

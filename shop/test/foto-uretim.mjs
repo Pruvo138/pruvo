@@ -1298,7 +1298,8 @@ async function ekranKos(kaynak, fotoVeri, acikYanit, kayit, durumYanit, ek) {
   const sonuc = { gorunur: !bolum.hidden, tur: radyo("foto-tur"), olcu: radyo("foto-olcu"), olcuS3: radyo("foto-olcu-s3"), adim2,
            turGrubuGizli: !!turGrubu && turGrubu.hidden === true, ornekler, ornekBaslik,
            surgu: surguler.length, surguFiyat, listeSatiri, kaydir: null };
-  if (surguler[0]) { surguler[0].value = surguler[0].max; surguler[0].tetikle("input"); sonuc.kaydir = fiyatYazilari()[0] || ""; }
+  // ek.kaydir === false: sürgü kaydırılmaz (RY: ④ fiyatı ile sepet ölçüsü aynı ekran durumundan ölçülür).
+  if (surguler[0] && ek.kaydir !== false) { surguler[0].value = surguler[0].max; surguler[0].tetikle("input"); sonuc.kaydir = fiyatYazilari()[0] || ""; }
   // DOM koku sayilmayan alan (JSON.stringify'a girmez; FM senaryolari dugumleri dogrudan okur).
   Object.defineProperty(sonuc, "bolum", { value: bolum, enumerable: false });
   Object.defineProperty(sonuc, "istekler", { value: istekler, enumerable: false });
@@ -6068,6 +6069,79 @@ console.log("RPA) RENK = PALET A — figur anahtarlikta Renkli (kopru renk_modu)
     const m = await rpaSenaryo(V.renkModu);
     const kir = Object.keys(m).filter((x) => m[x] !== true).sort();
     ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli), JSON.stringify(kir));
+  }
+}
+
+// ---------------------------------------------------------------- RY: RENKLİ SEÇİMİ OTURUM YENİLEMEDE KORUNUR (PARA)
+// FotoOnizleme bulgusu (11 Eki): sayfa yenilenince oturum kaydındaki Renkli renkleri S.fotoRenkleri'ne yüklenir, ama
+// form çizimindeki fotoRenkCikar(null) onları SIFIRLIYORDU -> renk seçici Beyaz'a döner, +%15 Renkli farkı SESSİZCE
+// düşerdi. RY1 Renkli radyosu seçili · RY2 sepet satırı renkli + kayıttaki renkler + gösterim = Renkli formülü ·
+// RY3 sunucunun kendi hesabı (fotoKalemFiyatla) = sepet gösterimi = Renkli formülü · RY4 KONTROL: Beyaz kaydı Beyaz kalır.
+async function rySenaryo(kaynak) {
+  const V = veriYukle(VERI_KAYNAK), IS = "a0" + "e".repeat(30), R3 = ["Kırmızı", "Mavi", "Beyaz"];
+  const yukle = async (renkSecim, renkler) => {
+    const sepet = [];
+    const e = await ekranKos(kaynak, V, acikGercek(V, V6_TUM),
+      { is: IS, tur: "anahtarlik", cesit: "figur", olcu: AH_MM, renk_secim: renkSecim, ...(renkler ? { renkler } : {}),
+        malzeme: "PLA", onay: V.onay_surum },
+      { asama: "hazir", tur: "anahtarlik", olcu_mm: AH_MM, gorsel: "/api/shop/foto/gorsel?is=" + IS,
+        gecerlilik_bitis: "2099-01-01T00:00:00.000Z" },
+      { turnstileOto: true, paletSahte: true, kaydir: false, sepet });
+    const d = [...e.bolum.agac()];
+    const radyo = d.find((n) => n.tagName === "INPUT" && n.name === "foto-renk" && n.checked);
+    const b2 = d.find((n) => n.id === "foto-b2-onay");
+    if (b2) { b2.checked = true; b2.tetikle("change"); }
+    const sip = [...e.bolum.agac()].find((n) => n.id === "foto-sip-btn");
+    if (sip) { sip.tetikle("click"); }
+    return { renk: radyo ? radyo.value : null, satir: sepet[0] || null };
+  };
+  const s = {}, iz = {};
+  const rk = await yukle("Renkli", R3), bz = await yukle("Beyaz", null);
+  const renkliFormul = V.fiyatKurus("anahtarlik", AH_MM, { renkli: true, malzeme: "PLA" });
+  const tekFormul = V.fiyatKurus("anahtarlik", AH_MM, { renkli: false, malzeme: "PLA" });
+  iz.renkli = { renk: rk.renk, renkli: rk.satir && rk.satir.renkli, renkler: rk.satir && rk.satir.renkler,
+                gosterim: rk.satir && rk.satir.gosterim_kurus, renkliFormul };
+  iz.beyaz = { renk: bz.renk, renkli: bz.satir && bz.satir.renkli, gosterim: bz.satir && bz.satir.gosterim_kurus, tekFormul };
+  s.RY1 = rk.renk === "Renkli";
+  s.RY2 = !!rk.satir && rk.satir.renkli === true && JSON.stringify(rk.satir.renkler) === JSON.stringify(R3) &&
+    renkliFormul === 69000 && rk.satir.gosterim_kurus === renkliFormul;
+  // RY3: sunucu fiyatı kendisi hesaplar (gösterim /baslat'a gitmez) -> aynı kalemle sunucu birim fiyatı = gösterim.
+  const asilOrnek = VERI.ornekSayisi;
+  VERI.ornekSayisi = (kod) => (kod === "anahtarlik" || kod === "figur" ? 1 : asilOrnek(kod));
+  const k = koprukur(); await k.hazir;
+  try {
+    const e2 = envKur(k.d1, r2Kur()), iso = new Date().toISOString();
+    await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('anahtarlik_figur', 1, 'x')").run();
+    await k.d1.prepare("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, gorev, hazir_tarih, son_kontrol, cesit)" +
+      " VALUES (?, 'anahtarlik', ?, 'z', ?, 'hazir', 'gorev-ry', ?, 0, 'figur')").bind(IS, AH_MM, iso, iso).run();
+    const sv = rk.satir ? await foto.fotoKalemFiyatla(e2, { foto_is: IS, olcu_mm: rk.satir.olcu_mm, adet: 1, renkli: rk.satir.renkli,
+      renkler: rk.satir.renkler, malzeme: rk.satir.malzeme }, Date.now()) : null;
+    iz.sunucu = sv && sv.satir ? sv.satir.birim_kurus : sv;
+    s.RY3 = !!(sv && sv.satir) && sv.satir.birim_kurus === rk.satir.gosterim_kurus && sv.satir.birim_kurus === renkliFormul;
+  } finally {
+    VERI.ornekSayisi = asilOrnek; k.kapat();
+  }
+  s.RY4 = bz.renk === "Beyaz" && !!bz.satir && bz.satir.renkli === false && bz.satir.gosterim_kurus === tekFormul;
+  Object.defineProperty(s, "iz", { value: iz, enumerable: false });
+  return s;
+}
+console.log("RY) RENKLİ SEÇİMİ OTURUM YENİLEMEDE KORUNUR — fiyat +%15 sessizce düşmez; sunucu tutarı = istemci");
+{
+  const s = await rySenaryo(EKRAN_KAYNAK);
+  ol("RY1 yenileme sonrası Renkli radyosu seçili", s.RY1, JSON.stringify(s.iz.renkli));
+  ol("RY2 sepet satırı renkli + kayıttaki renkler + gösterim = Renkli formülü (690 TL)", s.RY2, JSON.stringify(s.iz.renkli));
+  ol("RY3 sunucu birim fiyatı (kendi hesabı) = sepet gösterimi = Renkli formülü", s.RY3, JSON.stringify(s.iz));
+  ol("RY4 KONTROL Beyaz kaydı Beyaz kalır (renkli false, 600 TL)", s.RY4, JSON.stringify(s.iz.beyaz));
+  const capa = "          S.fotoRenkDosya = null;\n";
+  const RY_MUT = [
+    ["M-RY-SIFIR fotoRenkCikar(null) kayıttaki renkleri sıfırlar (eski kusur)", capa, "", ["RY1", "RY2", "RY3"]],
+    ["M-RY-K0 KONTROL (aynı gövde)", capa, capa, []],
+  ];
+  for (const [ad, c, yerine, olmeli] of RY_MUT) {
+    if (EKRAN_KAYNAK.split(c).length - 1 !== 1) { ol(ad + " capa bulundu", false, c); continue; }
+    const m = await rySenaryo(EKRAN_KAYNAK.replace(c, yerine));
+    const kir = Object.keys(m).filter((x) => m[x] !== true).sort();
+    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli), JSON.stringify(kir) + " " + JSON.stringify(m.iz));
   }
 }
 
