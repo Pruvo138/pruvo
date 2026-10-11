@@ -292,7 +292,7 @@
     ".foto-uretim-kart{display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:8px;" +
     "border:2px solid transparent;border-radius:12px;background:#eef0f3;cursor:pointer;text-align:left;" +
     "color:inherit;font:inherit;min-width:0;}" +
-    ".foto-uretim-kart img{display:block;width:100%;aspect-ratio:1/1;height:auto;object-fit:cover;" +
+    ".foto-uretim-kart img{display:block;width:100%;aspect-ratio:1/1;height:auto;object-fit:contain;" +
     "border-radius:8px;background:#fff;}" +
     ".foto-uretim-kart-yer{display:block;width:100%;aspect-ratio:1/1;border-radius:8px;background:#fff;}" +
     ".foto-uretim-kart-ad{display:block;font-size:15px;font-weight:700;color:var(--navy);line-height:1.3;}" +

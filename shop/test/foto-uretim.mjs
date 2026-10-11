@@ -6071,5 +6071,22 @@ console.log("RPD) RENK = PALET D — ④ onizleme palete indirgenir (VERI.palete
   }
 }
 
+console.log("KC1) kart görseli contain (kare olmayan örnek kesilmez)");
+{
+  // KC1: `.foto-uretim-kart img{...}` kuralının gövdesi (ilk `}`'e kadar) object-fit:contain
+  // içermeli, object-fit:cover İÇERMEMELİ (13. okuma bulgu 1: kare olmayan örnek görsel %34
+  // kesiliyordu). Mutant kanıtı için çevre değişkeniyle dosya yolu geçilebilir.
+  const KC1_KAYNAK = process.env.KC1_FOTO_KAYNAK || path.join(KOK, "foto-uretim.js");
+  const kcFotoMetni = fs.readFileSync(KC1_KAYNAK, "utf8");
+  const kcBasla = kcFotoMetni.indexOf(".foto-uretim-kart img{");
+  const kcBitis = kcBasla >= 0 ? kcFotoMetni.indexOf("}", kcBasla) : -1;
+  ol("KC1 .foto-uretim-kart img{ kuralı BULUNDU", kcBasla >= 0 && kcBitis > kcBasla, "");
+  if (kcBasla >= 0 && kcBitis > kcBasla) {
+    const kcGovde = kcFotoMetni.slice(kcBasla, kcBitis);
+    ol("KC1 kural gövdesinde object-fit:contain VAR", kcGovde.includes("object-fit:contain"), kcGovde);
+    ol("KC1 kural gövdesinde object-fit:cover YOK", !kcGovde.includes("object-fit:cover"), kcGovde);
+  }
+}
+
 console.log(kirmizi ? "\n❌ " + kirmizi + " iddia KIRMIZI" : "\n✅ HEPSI GECTI");
 process.exit(kirmizi ? 1 : 0);
