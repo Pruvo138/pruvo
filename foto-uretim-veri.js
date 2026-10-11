@@ -1081,8 +1081,8 @@
   // FOTOĞRAFTAN RENK (deterministik, kredi 0, harici API YOK): piksel dizisi (RGBA, Uint8 benzeri) -> filament
   // renklerine (RENK_HEX) en yakın eşleme -> en sık `tavan` farklı renk (çok sıktan aza). Saydam piksel sayılmaz;
   // %2'nin altındaki renk elenir (gürültü). Hiç renk çıkmazsa [] (bölüm Renkli'yi açmaz).
-  // fotoRenkleri ve paleteIndirge ORTAK eşlemesi: filament adları -> [r, g, b] (RENK_HEX) ve ağırlıklı mesafe
-  // 2·dr² + 4·dg² + 3·db² ile en yakın indeks (ikisi AYNI fonksiyonu kullanır; ayrı kopya yok).
+  // Filament adları -> [r, g, b] (RENK_HEX; fotoRenkleri ve 4 renk simülasyonu ORTAK) ve fotoRenkleri'nin ağırlıklı mesafesi
+  // 2·dr² + 4·dg² + 3·db² ile en yakın indeks (simülasyon kendi OKLab mesafesini kullanır, aşağıda).
   function renkRgb(adlar) {
     return adlar.map(function (a) {
       var h = String(VERI.RENK_HEX[a] || "").replace("#", "");
@@ -1109,34 +1109,439 @@
     return adlar.filter(function (a) { return say[a] && say[a] / top >= 0.02; })
       .sort(function (a, b) { return say[b] - say[a] || adlar.indexOf(a) - adlar.indexOf(b); }).slice(0, n);
   };
-  // ④ FİGÜR KOLU (Okan 11 Eki "bu 4 renkli bir figür değil"): figür + anahtarlık–figür ④ görseli PALETE İNDİRGENMEZ.
-  // Basılacak dosyanın çizimi (sunucu `render`) varsa O gösterilir; yoksa sağlayıcı görseli AYNEN + aşağıdaki dürüst
-  // cümle (renkler basılacak figürü göstermez). Sessiz geri düşüş YOK: hangi görselin gösterildiği cümleyle söylenir.
+  // ④ FİGÜR KOLU (Okan 11 Eki "bu 4 renkli bir figür değil" · 16:0x "4 renk simülasyonu"): basılacak dosyanın
+  // çizimi (sunucu `render`) varsa O AYNEN gösterilir; yoksa sağlayıcı görselinin 4 RENK SİMÜLASYONU
+  // (VERI.dortRenkSimule, aşağıda) + simülasyon cümlesi. Hangi görselin gösterildiği her durumda cümleyle söylenir.
   VERI.FIGUR_RENDER_NOTU = "Bu görüntü basılacak dosyadan çizildi: figür bu renk bölgeleriyle basılır.";
+  VERI.FIGUR_SIMULASYON_RENKLI = "Önizleme: figürün seçtiğin renklerle (en çok 4 renk bölgesi) yaklaşık görünümü; " +
+    "basılan figür sadeleştirilmiş hâlidir, tam kopyası değildir.";
+  VERI.FIGUR_SIMULASYON_TEK = "Önizleme: figürün seçtiğin tek renkle yaklaşık görünümü; " +
+    "basılan figür sadeleştirilmiş hâlidir, tam kopyası değildir.";
+  // Simülasyon tarayıcıda çalışamazsa (tuval okunamadı vb.) sağlayıcı görseli AYNEN gösterilir; cümle bunu söyler.
   VERI.FIGUR_ORNEK_NOTU = "Örnek görünüm — renkler basılacak figürü göstermez.";
-  VERI.FIGUR_ORNEK_RENKLI = "Figür seçtiğin renklerle, en çok 4 renk bölgesi hâlinde ve sadeleştirilmiş olarak basılır.";
-  VERI.FIGUR_ORNEK_TEK = "Figür seçtiğin tek renkte ve sadeleştirilmiş olarak basılır.";
-  // ④ ÖNİZLEME PALETE İNDİRGENİR (figür kolu HARİÇ, yukarı): ④'te gösterilen görsel ③'te seçilen palete deterministik
-  // indirgenir (tarayıcıda, kredi 0; kaynak görsel sunucuda AYNEN, üretime giden görsel değişmez).
-  // renkler = seçili filament adları (Renkli: fotoğraftan çıkan renkler; tek renk: [ana renk]). Her opak piksel
-  // fotoRenkleri ile AYNI mesafeyle en yakın palet rengine; tek renk Siyah/Beyaz/Gri ise gri ölçek (ton korunur,
-  // renk tonu yok). Saydam piksel (alfa < 128) dokunulmaz. piksel YERİNDE değişir ve döner; boş palet ya da
-  // bilinmeyen renk -> null (çağıran kaynak görseli gösterir).
-  VERI.paleteIndirge = function (piksel, renkler) {
-    if (!piksel || !Array.isArray(renkler) || !renkler.length ||
-        renkler.some(function (a) { return !VERI.RENK_HEX[a]; })) { return null; }
-    var gri = renkler.length === 1 && VERI.ANA_RENKLER.indexOf(renkler[0]) >= 0, hex = renkRgb(renkler);
-    for (var i = 0; i + 3 < piksel.length; i += 4) {
-      if (piksel[i + 3] < 128) { continue; }
-      if (gri) {
-        var y = Math.round(0.299 * piksel[i] + 0.587 * piksel[i + 1] + 0.114 * piksel[i + 2]);
-        piksel[i] = y; piksel[i + 1] = y; piksel[i + 2] = y;
-        continue;
+  // ④ 4 RENK SİMÜLASYONU (Okan 11 Eki 16:0x "4 renk simülasyonu"; figür render-yok kolu + plaket): sağlayıcının
+  // dokulu görseli piksel piksel boyanmaz (eski indirgeme gölge/dokuyu benekli gri-bej postere çeviriyordu); düzgün
+  // renk BÖLGELERİNE sadeleştirilir — deterministik, tarayıcıda, kredi 0, harici API YOK:
+  //  (a) gürültü/doku: uzun kenar SIM_KENAR px'e kutu ortalamasıyla (doğrusal ışıkta) küçültülür + 3×3 median (kenar korur);
+  //  (b) palet: OKLab'da en yakın palet rengi. GÖLGE RENK SANILMAZ: gölge (doğrusal RGB × s) OKLab'da L, a, b'yi AYNI
+  //      oranla küçültür -> ton a/L, b/L ile karşılaştırılır (L tabanı SIM_L_TABAN) ve açıklık farkı SIM_L_AGIRLIK ile
+  //      AZ ağırlıklandırılır; ardından gölge bandı birleştirmesi (simBolge) aynı yüzeyi tek renge indirir;
+  //  (c) adacık: 3×3 çoğunluk (mod) süzgeci + siluet parlaması şeridi (simKenarSeridi) + opak alanın SIM_ADACIK'inden
+  //      küçük adacık en uzun sınırı paylaştığı komşu bölgeye katılır;
+  //  (d) orijinal boyuta büyütülür (yumuşatılmış bölge üyeliği, merdivensiz); bölge sınırına ince koyu kontur.
+  // Tek renk Siyah/Beyaz/Gri: aynı (a) yumuşatmasından o rengin tonunda gri ölçek (gölge kalır, doku/benek kalmaz).
+  // renkler = seçili filament adları (Renkli: fotoğraftan çıkan renkler; tek renk: [ana renk]). Saydam piksel
+  // (alfa < 128) dokunulmaz. piksel YERİNDE değişir ve döner; boş palet / bilinmeyen renk / boyut uyuşmazlığı -> null
+  // (çağıran kaynak görseli gösterir). Küçük ölçekteki bölge etiketleri VERI.simulasyonBolgeleri ile okunur (ölçüm).
+  // Süre (node, 1024 px prova görselleri, soğuk): 50–90 ms.
+  var SIM_KENAR = 256, SIM_L_AGIRLIK = 0.2, SIM_L_TABAN = 0.6, SIM_BIRLES = 0.009, SIM_ADACIK = 0.0015, SIM_SERIT = 2, SIM_KONTUR = 0.62, SIM_KONTUR_BANT = 0.3;
+  var LIN = null;
+  function linTablo() {
+    if (!LIN) {
+      LIN = new Float64Array(256);
+      for (var i = 0; i < 256; i++) { var c = i / 255; LIN[i] = c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }
+    }
+    return LIN;
+  }
+  function linSrgb(v) {
+    var c = v <= 0.0031308 ? 12.92 * v : 1.055 * Math.pow(Math.max(v, 0), 1 / 2.4) - 0.055;
+    return Math.max(0, Math.min(255, Math.round(c * 255)));
+  }
+  // Doğrusal RGB -> OKLab (Ottosson 2020).
+  function oklab(r, g, b) {
+    var l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+    var m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+    var s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+    return [0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s,
+            1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s,
+            0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s];
+  }
+  // Öznitelik mesafesi (L, a/k, b/k): açıklık farkı SIM_L_AGIRLIK ile AZ ağırlıklı.
+  function simMesafe(L1, u1, v1, L2, u2, v2) {
+    var dL = L1 - L2, du = u1 - u2, dv = v1 - v2;
+    return SIM_L_AGIRLIK * dL * dL + du * du + dv * dv;
+  }
+  function median9(v, n) {
+    for (var i = 1; i < n; i++) { var x = v[i], j = i - 1; while (j >= 0 && v[j] > x) { v[j + 1] = v[j]; j--; } v[j + 1] = x; }
+    return v[n >> 1];
+  }
+  // (a) küçült + median -> { sw, sh, olc, say, L, A, B }; boyut uyuşmazlığında null.
+  function simKucult(piksel, w, h) {
+    if (!piksel || !(w > 0) || !(h > 0) || w % 1 || h % 1 || piksel.length < w * h * 4) { return null; }
+    var T = linTablo(), olc = Math.max(1, Math.ceil(Math.max(w, h) / SIM_KENAR));
+    var sw = Math.ceil(w / olc), sh = Math.ceil(h / olc), n = sw * sh;
+    var sr = new Float64Array(n), sg = new Float64Array(n), sb = new Float64Array(n), say = new Uint32Array(n);
+    var x, y, k, i;
+    for (y = 0; y < h; y++) {
+      var sat = ((y / olc) | 0) * sw;
+      for (x = 0; x < w; x++) {
+        i = (y * w + x) * 4;
+        if (piksel[i + 3] < 128) { continue; }
+        k = sat + ((x / olc) | 0);
+        sr[k] += T[piksel[i]]; sg[k] += T[piksel[i + 1]]; sb[k] += T[piksel[i + 2]]; say[k]++;
       }
-      var c = hex[enYakinRenk(hex, piksel[i], piksel[i + 1], piksel[i + 2])];
-      piksel[i] = c[0]; piksel[i + 1] = c[1]; piksel[i + 2] = c[2];
+    }
+    var L0 = new Float64Array(n), A0 = new Float64Array(n), B0 = new Float64Array(n);
+    for (k = 0; k < n; k++) {
+      if (!say[k]) { continue; }
+      var o = oklab(sr[k] / say[k], sg[k] / say[k], sb[k] / say[k]);
+      L0[k] = o[0]; A0[k] = o[1]; B0[k] = o[2];
+    }
+    var L = new Float64Array(n), A = new Float64Array(n), B = new Float64Array(n);
+    var vl = [], va = [], vb = [];
+    for (y = 0; y < sh; y++) {
+      for (x = 0; x < sw; x++) {
+        k = y * sw + x;
+        if (!say[k]) { continue; }
+        var c = 0;
+        for (var dy = -1; dy <= 1; dy++) {
+          var yy = y + dy;
+          if (yy < 0 || yy >= sh) { continue; }
+          for (var dx = -1; dx <= 1; dx++) {
+            var xx = x + dx, q = yy * sw + xx;
+            if (xx < 0 || xx >= sw || !say[q]) { continue; }
+            vl[c] = L0[q]; va[c] = A0[q]; vb[c] = B0[q]; c++;
+          }
+        }
+        L[k] = median9(vl, c); A[k] = median9(va, c); B[k] = median9(vb, c);
+      }
+    }
+    return { sw: sw, sh: sh, olc: olc, say: say, L: L, A: A, B: B };
+  }
+  // (b) + (c): küçük görüntüde palet etiketleri (-1 = saydam hücre).
+  // (b) palet: hücre özniteliği (L, a/k, b/k), k = max(L, SIM_L_TABAN) — gölge (doğrusal RGB × s) OKLab'da L, a, b'yi
+  // aynı oranla küçültür, ton a/L, b/L'de kalır; açıklık farkı SIM_L_AGIRLIK ile AZ ağırlıklı (simMesafe). Her hücre
+  // en yakın palet rengini alır; (c) temizliği; sonra BÖLGE BİRLEŞTİRME (simBolge): aynı yüzeyin gölge bantları tek
+  // renge iner. Çıktı etiketi = palet indeksi (-1 saydam).
+  function simOznitelik(k0) {
+    var n = k0.sw * k0.sh, U = new Float64Array(n), V = new Float64Array(n);
+    for (var k = 0; k < n; k++) {
+      if (!k0.say[k]) { continue; }
+      var bol = Math.max(k0.L[k], SIM_L_TABAN);
+      U[k] = k0.A[k] / bol; V[k] = k0.B[k] / bol;
+    }
+    return { L: k0.L, U: U, V: V };
+  }
+  function simEtiketle(k0, hex) {
+    var sw = k0.sw, sh = k0.sh, n = sw * sh, et = new Int8Array(n), opak = 0, F = simOznitelik(k0), k, j;
+    var T = linTablo(), P = hex.map(function (c) {
+      var o = oklab(T[c[0]], T[c[1]], T[c[2]]), bp = Math.max(o[0], SIM_L_TABAN);
+      return [o[0], o[1] / bp, o[2] / bp];
+    });
+    for (k = 0; k < n; k++) {
+      if (!k0.say[k]) { et[k] = -1; continue; }
+      opak++;
+      var en = 0, ed = Infinity;
+      for (j = 0; j < P.length; j++) {
+        var d = simMesafe(F.L[k], F.U[k], F.V[k], P[j][0], P[j][1], P[j][2]);
+        if (d < ed) { ed = d; en = j; }
+      }
+      et[k] = en;
+    }
+    simAdacik(et, sw, sh, P.length, opak);
+    simBolge(et, sw, sh, P.length, F);
+    return et;
+  }
+  // BÖLGE BİRLEŞTİRME (gölge bandı): 4-komşulu bileşenler; iki komşu bileşenin SINIR ADIMI = sınırın iki yanından
+  // birer hücre öteden simMesafe ortalaması (yumuşatılmış geçiş 1–2 hücre: komşu hücre farkı keskin parça sınırını
+  // küçük gösterirdi). KARŞILIKLI en küçük adımlı çiftler (adım < SIM_BIRLES) TEK geçişte birleşir; birleşen çiftin
+  // rengi hücrelerinin çoğunluk oyu (ışıklı yanı Gri, gölgesi Lacivert'e düşen yüzey tek renk olur). Tek geçiş
+  // bilinçli: tekrarlı/tek yönlü birleştirme ortalama adımı seyreltip benzer tonlu parçaları zincirle yığıyordu
+  // (prova: gömlek tene karıştı). Keskin adımlı parça sınırı (burun, göz, lastik) birleşmez.
+  function simBolge(et, sw, sh, np, F) {
+    var n = sw * sh, bil = new Int32Array(n).fill(-1), yigin = new Int32Array(n), nb = 0, k, j, x, y;
+    for (var s0 = 0; s0 < n; s0++) {
+      if (et[s0] < 0 || bil[s0] >= 0) { continue; }
+      var ust = 0, alt = 0;
+      bil[s0] = nb; yigin[ust++] = s0;
+      while (alt < ust) {
+        var p0 = yigin[alt++], px = p0 % sw, py = (p0 / sw) | 0;
+        if (px > 0 && et[p0 - 1] === et[s0] && bil[p0 - 1] < 0) { bil[p0 - 1] = nb; yigin[ust++] = p0 - 1; }
+        if (px < sw - 1 && et[p0 + 1] === et[s0] && bil[p0 + 1] < 0) { bil[p0 + 1] = nb; yigin[ust++] = p0 + 1; }
+        if (py > 0 && et[p0 - sw] === et[s0] && bil[p0 - sw] < 0) { bil[p0 - sw] = nb; yigin[ust++] = p0 - sw; }
+        if (py < sh - 1 && et[p0 + sw] === et[s0] && bil[p0 + sw] < 0) { bil[p0 + sw] = nb; yigin[ust++] = p0 + sw; }
+      }
+      nb++;
+    }
+    if (nb < 2) { return; }
+    var top = new Map();
+    for (y = 0; y < sh; y++) {
+      for (x = 0; x < sw; x++) {
+        k = y * sw + x;
+        if (bil[k] < 0) { continue; }
+        for (var yon = 0; yon < 2; yon++) {
+          var q = yon ? (y + 1 < sh ? k + sw : -1) : (x + 1 < sw ? k + 1 : -1);
+          if (q < 0 || bil[q] < 0 || bil[q] === bil[k]) { continue; }
+          var ad1 = yon ? sw : 1, p = (yon ? y > 0 : x > 0) && bil[k - ad1] >= 0 ? k - ad1 : k;
+          var s = (yon ? y + 2 < sh : x + 2 < sw) && bil[q + ad1] >= 0 ? q + ad1 : q;
+          var anahtar = Math.min(bil[k], bil[q]) * nb + Math.max(bil[k], bil[q]), t = top.get(anahtar);
+          if (!t) { t = [0, 0]; top.set(anahtar, t); }
+          t[0] += simMesafe(F.L[p], F.U[p], F.V[p], F.L[s], F.U[s], F.V[s]); t[1]++;
+        }
+      }
+    }
+    var es = new Int32Array(nb).fill(-1), ea = new Float64Array(nb).fill(Infinity);
+    top.forEach(function (t, anahtar) {
+      var a = Math.floor(anahtar / nb), b = anahtar % nb, ort = t[0] / t[1];
+      if (ort < ea[a]) { ea[a] = ort; es[a] = b; }
+      if (ort < ea[b]) { ea[b] = ort; es[b] = a; }
+    });
+    var oy = new Int32Array(nb * np), renk = new Int8Array(nb).fill(-1);
+    for (k = 0; k < n; k++) { if (bil[k] >= 0) { oy[bil[k] * np + et[k]]++; } }
+    for (j = 0; j < nb; j++) {
+      var e = es[j];
+      if (e <= j || es[e] !== j || !(ea[j] < SIM_BIRLES)) { continue; }
+      var en = 0;
+      for (var c = 1; c < np; c++) { if (oy[j * np + c] + oy[e * np + c] > oy[j * np + en] + oy[e * np + en]) { en = c; } }
+      renk[j] = en; renk[e] = en;
+    }
+    for (k = 0; k < n; k++) { if (bil[k] >= 0 && renk[bil[k]] >= 0) { et[k] = renk[bil[k]]; } }
+  }
+  function simAdacik(et, sw, sh, np, opak) {
+    var n = sw * sh, k, j, x, y, tur;
+    // 3×3 çoğunluk (mod) süzgeci, 2 tur: komşuların yarısından fazlası başka renkse hücre o renge geçer.
+    var sayac = new Int32Array(np);
+    for (tur = 0; tur < 2; tur++) {
+      var yeni = et.slice();
+      for (y = 0; y < sh; y++) {
+        for (x = 0; x < sw; x++) {
+          k = y * sw + x;
+          if (et[k] < 0) { continue; }
+          sayac.fill(0);
+          var top = 0;
+          for (var dy = -1; dy <= 1; dy++) {
+            var yy = y + dy;
+            if (yy < 0 || yy >= sh) { continue; }
+            for (var dx = -1; dx <= 1; dx++) {
+              var xx = x + dx;
+              if (xx < 0 || xx >= sw || et[yy * sw + xx] < 0) { continue; }
+              sayac[et[yy * sw + xx]]++; top++;
+            }
+          }
+          var en = et[k];
+          for (j = 0; j < np; j++) { if (sayac[j] > sayac[en]) { en = j; } }
+          if (sayac[en] * 2 > top) { yeni[k] = en; }
+        }
+      }
+      et.set(yeni);
+    }
+    simKenarSeridi(et, sw, sh, np);
+    // Adacık: 4-komşulu bileşen opak alanın SIM_ADACIK'inden küçükse en uzun sınırı paylaştığı komşu renge katılır.
+    var esik = Math.max(1, Math.floor(opak * SIM_ADACIK)), bil = new Int32Array(n), yigin = new Int32Array(n);
+    var sinir = new Int32Array(np);
+    for (tur = 0; tur < 8; tur++) {
+      bil.fill(-1);
+      var degisti = false, no = 0;
+      for (var s = 0; s < n; s++) {
+        if (et[s] < 0 || bil[s] >= 0) { continue; }
+        var renk = et[s], ust = 0, alt = 0;
+        bil[s] = no; yigin[ust++] = s;
+        sinir.fill(0);
+        while (alt < ust) {
+          var p = yigin[alt++], px = p % sw, py = (p / sw) | 0;
+          var kom = [px > 0 ? p - 1 : -1, px < sw - 1 ? p + 1 : -1, py > 0 ? p - sw : -1, py < sh - 1 ? p + sw : -1];
+          for (j = 0; j < 4; j++) {
+            var q = kom[j];
+            if (q < 0 || et[q] < 0) { continue; }
+            if (et[q] === renk) { if (bil[q] < 0) { bil[q] = no; yigin[ust++] = q; } } else { sinir[et[q]]++; }
+          }
+        }
+        no++;
+        if (ust >= esik) { continue; }
+        var hedef = -1;
+        for (j = 0; j < np; j++) { if (sinir[j] > 0 && (hedef < 0 || sinir[j] > sinir[hedef])) { hedef = j; } }
+        if (hedef < 0) { continue; }                     // komşusu yalnız saydam: ayrı parça, dokunulmaz
+        for (j = 0; j < ust; j++) { et[yigin[j]] = hedef; }
+        degisti = true;
+      }
+      if (!degisti) { break; }
+    }
+  }
+  // Kenar şeridi: saydamlığa SIM_SERIT+1 hücreden yakın ve 2·SIM_SERIT+1 hücreden İNCE bölge parçası (stüdyo
+  // ışığının siluet parlaması: saç kenarı tene, gövde kenarı açık renge düşüyordu) — açma (aşındır + genişlet)
+  // işleminde kaybolan hücreler — kalın komşu bölgeye katılır. İç ayrıntı (kaş, kapı kolu) siluetten uzak: dokunulmaz.
+  // Görüntü dışı saydam sayılır.
+  function simKenarSeridi(et, sw, sh, np) {
+    var n = sw * sh, r = SIM_SERIT, k, x, y, t, dx, dy, xx, yy, q;
+    var ero = et.slice(), gec;
+    for (t = 0; t < r; t++) {                            // aşındır: 8 komşunun hepsi aynı bölgeyse kalır
+      gec = ero.slice();
+      for (y = 0; y < sh; y++) {
+        for (x = 0; x < sw; x++) {
+          k = y * sw + x;
+          if (gec[k] < 0) { continue; }
+          if (x === 0 || y === 0 || x === sw - 1 || y === sh - 1) { ero[k] = -1; continue; }
+          for (dy = -1; dy <= 1 && ero[k] >= 0; dy++) {
+            for (dx = -1; dx <= 1; dx++) { if (gec[k + dy * sw + dx] !== gec[k]) { ero[k] = -1; break; } }
+          }
+        }
+      }
+    }
+    for (t = 0; t < r; t++) {                            // genişlet: aynı bölgenin içinde, aşınmış çekirdekten
+      gec = ero.slice();
+      for (y = 0; y < sh; y++) {
+        for (x = 0; x < sw; x++) {
+          k = y * sw + x;
+          if (gec[k] >= 0 || et[k] < 0) { continue; }
+          for (dy = -1; dy <= 1 && ero[k] < 0; dy++) {
+            yy = y + dy;
+            if (yy < 0 || yy >= sh) { continue; }
+            for (dx = -1; dx <= 1; dx++) {
+              xx = x + dx;
+              if (xx >= 0 && xx < sw && gec[yy * sw + xx] === et[k]) { ero[k] = et[k]; break; }
+            }
+          }
+        }
+      }
+    }
+    var yakin = new Uint8Array(n), on;                   // saydamlığa (ya da görüntü kenarına) ≤ r+1 hücre
+    for (k = 0; k < n; k++) { yakin[k] = et[k] < 0 ? 1 : 0; }
+    for (t = 0; t <= r; t++) {
+      on = yakin.slice();
+      for (y = 0; y < sh; y++) {
+        for (x = 0; x < sw; x++) {
+          k = y * sw + x;
+          if (on[k]) { continue; }
+          if (x === 0 || y === 0 || x === sw - 1 || y === sh - 1) { yakin[k] = 1; continue; }
+          for (dy = -1; dy <= 1 && !yakin[k]; dy++) {
+            for (dx = -1; dx <= 1; dx++) { if (on[k + dy * sw + dx]) { yakin[k] = 1; break; } }
+          }
+        }
+      }
+    }
+    var ince = new Uint8Array(n), kalan = 0, sayac = new Int32Array(np), cozulen = new Int32Array(n), yeni;
+    for (k = 0; k < n; k++) { if (et[k] >= 0 && ero[k] !== et[k] && yakin[k]) { ince[k] = 1; kalan++; } }
+    for (t = 0; t < 4 * r + 4 && kalan; t++) {           // ince hücre, ince OLMAYAN komşularının en sık bölgesine
+      var nc = 0;
+      yeni = et.slice();
+      for (y = 0; y < sh; y++) {
+        for (x = 0; x < sw; x++) {
+          k = y * sw + x;
+          if (!ince[k]) { continue; }
+          sayac.fill(0);
+          var en = -1;
+          for (dy = -1; dy <= 1; dy++) {
+            yy = y + dy;
+            if (yy < 0 || yy >= sh) { continue; }
+            for (dx = -1; dx <= 1; dx++) {
+              xx = x + dx;
+              if (xx < 0 || xx >= sw) { continue; }
+              q = yy * sw + xx;
+              if (ince[q] || et[q] < 0 || et[q] === et[k]) { continue; }
+              sayac[et[q]]++;
+              if (en < 0 || sayac[et[q]] > sayac[en]) { en = et[q]; }
+            }
+          }
+          if (en >= 0) { yeni[k] = en; cozulen[nc++] = k; }
+        }
+      }
+      if (!nc) { break; }
+      for (q = 0; q < nc; q++) { ince[cozulen[q]] = 0; }
+      kalan -= nc;
+      et.set(yeni);
+    }
+  }
+  // Tek ana renk: yumuşatılmış açıklık (OKLab L; a = b = 0 gri) çift doğrusal büyütülür ve rengin tonuna oturtulur
+  // (taban rengin %55'i .. %105'i): gölge kalır, doku/benek kalmaz; r = g = b.
+  function simGri(piksel, w, h, k0, taban) {
+    var sw = k0.sw, sh = k0.sh, olc = k0.olc, gl = new Float64Array(sw * sh), x, y, k;
+    for (k = 0; k < sw * sh; k++) { gl[k] = k0.say[k] ? linSrgb(k0.L[k] * k0.L[k] * k0.L[k]) / 255 : -1; }
+    for (y = 0; y < h; y++) {
+      var fy = (y + 0.5) / olc - 0.5, y0 = Math.floor(fy), ty = fy - y0;
+      for (x = 0; x < w; x++) {
+        var i = (y * w + x) * 4;
+        if (piksel[i + 3] < 128) { continue; }
+        var fx = (x + 0.5) / olc - 0.5, x0 = Math.floor(fx), tx = fx - x0, top = 0, ag = 0;
+        for (var j = 0; j < 4; j++) {
+          var ox = j & 1, oy = j >> 1, a = (ox ? tx : 1 - tx) * (oy ? ty : 1 - ty);
+          var v = gl[Math.max(0, Math.min(sh - 1, y0 + oy)) * sw + Math.max(0, Math.min(sw - 1, x0 + ox))];
+          if (v >= 0 && a > 0) { top += v * a; ag += a; }
+        }
+        var g = ag > 0 ? top / ag : Math.max(0, gl[((y / olc) | 0) * sw + ((x / olc) | 0)]);
+        var c = Math.max(0, Math.min(255, Math.round(taban * (0.55 + 0.5 * g))));
+        piksel[i] = c; piksel[i + 1] = c; piksel[i + 2] = c;
+      }
     }
     return piksel;
+  }
+  // (d) büyütme: her hücrenin bölge ÜYELİĞİ küçük ölçekte 3×3 çadır süzgeciyle yumuşatılır (köşeler yuvarlanır),
+  // piksele en yakın 4 hücre merkezinden çift doğrusal toplanır, en ağır bölge kazanır (en-yakın büyütmenin merdiveni
+  // yok). İki opak bölge arasında kazanan ile ikincinin farkı SIM_KONTUR_BANT'tan küçükse piksel ince koyu konturdur
+  // (bölgenin kendi renginin SIM_KONTUR katı; saydam komşu kontur üretmez).
+  function simBuyut(piksel, w, h, k0, et, rgb) {
+    var sw = k0.sw, sh = k0.sh, olc = k0.olc, np = rgb.length, n = sw * sh, x, y, j, k;
+    var koyu = rgb.map(function (c) { return c.map(function (v) { return Math.round(v * SIM_KONTUR); }); });
+    var uy = new Float32Array(n * np), ag = new Float64Array(np);
+    for (y = 0; y < sh; y++) {
+      for (x = 0; x < sw; x++) {
+        k = y * sw + x;
+        if (et[k] < 0) { continue; }
+        var top = 0;
+        for (var dy = -1; dy <= 1; dy++) {
+          var yy = y + dy;
+          if (yy < 0 || yy >= sh) { continue; }
+          for (var dx = -1; dx <= 1; dx++) {
+            var xx = x + dx, q = yy * sw + xx;
+            if (xx < 0 || xx >= sw || et[q] < 0) { continue; }
+            var a0 = (dx ? 1 : 2) * (dy ? 1 : 2);
+            uy[k * np + et[q]] += a0; top += a0;
+          }
+        }
+        for (j = 0; j < np; j++) { uy[k * np + j] /= top; }
+      }
+    }
+    for (y = 0; y < h; y++) {
+      var fy = (y + 0.5) / olc - 0.5, y0 = Math.floor(fy), ty = fy - y0;
+      for (x = 0; x < w; x++) {
+        var i = (y * w + x) * 4;
+        if (piksel[i + 3] < 128) { continue; }
+        var fx = (x + 0.5) / olc - 0.5, x0 = Math.floor(fx), tx = fx - x0;
+        for (j = 0; j < np; j++) { ag[j] = 0; }
+        for (var c4 = 0; c4 < 4; c4++) {
+          var ox = c4 & 1, oy = c4 >> 1, a = (ox ? tx : 1 - tx) * (oy ? ty : 1 - ty);
+          if (a <= 0) { continue; }
+          var b = (Math.max(0, Math.min(sh - 1, y0 + oy)) * sw + Math.max(0, Math.min(sw - 1, x0 + ox))) * np;
+          for (j = 0; j < np; j++) { ag[j] += a * uy[b + j]; }
+        }
+        var en = -1, iki = 0;
+        for (j = 0; j < np; j++) {
+          if (ag[j] <= 0) { continue; }
+          if (en < 0 || ag[j] > ag[en]) { if (en >= 0) { iki = ag[en]; } en = j; } else if (ag[j] > iki) { iki = ag[j]; }
+        }
+        if (en < 0) { en = simEnYakinEtiket(et, sw, sh, (x / olc) | 0, (y / olc) | 0); }
+        if (en < 0) { continue; }
+        var c = iki > 0 && ag[en] - iki < SIM_KONTUR_BANT ? koyu[en] : rgb[en];
+        piksel[i] = c[0]; piksel[i + 1] = c[1]; piksel[i + 2] = c[2];
+      }
+    }
+    return piksel;
+  }
+  // Opak piksel 4 komşusu da saydam hücrede kaldıysa: en yakın etiketli hücre (yarıçap ≤ 2), yoksa -1.
+  function simEnYakinEtiket(et, sw, sh, cx, cy) {
+    for (var r = 1; r < 3; r++) {
+      for (var dy = -r; dy <= r; dy++) {
+        for (var dx = -r; dx <= r; dx++) {
+          var nx = cx + dx, ny = cy + dy;
+          if (nx >= 0 && nx < sw && ny >= 0 && ny < sh && et[ny * sw + nx] >= 0) { return et[ny * sw + nx]; }
+        }
+      }
+    }
+    return -1;
+  }
+  function simPalet(renkler) {
+    if (!Array.isArray(renkler) || !renkler.length || renkler.some(function (a) { return !VERI.RENK_HEX[a]; })) { return null; }
+    return renkRgb(renkler);
+  }
+  // Ölçüm/test kapısı: aynı (a)–(c) adımlarının küçük görüntüdeki bölge etiketleri { sw, sh, olc, et } (null = geçersiz).
+  VERI.simulasyonBolgeleri = function (piksel, w, h, renkler) {
+    var rgb = simPalet(renkler), k0 = rgb && simKucult(piksel, w, h);
+    return k0 ? { sw: k0.sw, sh: k0.sh, olc: k0.olc, et: simEtiketle(k0, rgb) } : null;
+  };
+  VERI.dortRenkSimule = function (piksel, w, h, renkler) {
+    var rgb = simPalet(renkler), k0 = rgb && simKucult(piksel, w, h);
+    if (!k0) { return null; }
+    if (renkler.length === 1 && VERI.ANA_RENKLER.indexOf(renkler[0]) >= 0) { return simGri(piksel, w, h, k0, rgb[0][0]); }
+    return simBuyut(piksel, w, h, k0, simEtiketle(k0, rgb), rgb);
   };
   // fiyat_kurus = round( max(taban, en uzun boyut (mm) × formülün mm başı kuruşu) × (Renkli ? 1,15 : 1)
   //               × (PETG ? 1,30 : 1) ) — TEK kaynak (bölüm, sunucu, araçlar). secim = {renkli, malzeme}; verilmezse
