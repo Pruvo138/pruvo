@@ -1,5 +1,321 @@
 [
   {
+    "id": "dji-th4717719",
+    "kategori": "Kamera",
+    "marka": [
+      "DJI"
+    ],
+    "uyum": [
+      {
+        "marka": "DJI"
+      }
+    ],
+    "baslik": "DJI Mini 2 için Dört Parçalı İniş Pedi (Cebe Sığacak Boyutta, H İşaretli)",
+    "aciklama": "DJI Mini 2 için dört parçalı iniş pedi; parçalar birbirine geçerek birleşir ve drone'un temiz bir zeminden kalkış ve inişine yardımcı olur. Tasarım cebe sığacak şekilde küçültülmüştür; parçalar manyetik değil, kenarlardaki küçük tırnaklarla birbirine bağlanır. Her parça 1–4 numaralıdır ve yön oklarıyla işaretlidir; birleşince ortada H işareti oluşur. Fotoğraflardaki siyah işaretlemeler örnek parçalara sonradan eklenmiştir, ürünün parçası değildir. Fotoğraflarda ped üzerinde drone, dört ayrı parça ve birleşmiş ped görülür; drone ürüne dahil değildir.\nYaklaşık dış ölçüler: her parça 162 × 151 × 5 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4717719-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4717719-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4717719-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4717719-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "schura200 (özgün tasarım: Jonokorbaba)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dji-th4837759",
+    "kategori": "Kamera",
+    "marka": [
+      "DJI"
+    ],
+    "uyum": [
+      {
+        "marka": "DJI"
+      }
+    ],
+    "baslik": "DJI FPV Goggles V2 Pil Tutucu (Baş Bandına Takılır, Kablo Toplayıcılı, 3 Sürüm)",
+    "aciklama": "DJI FPV Goggles V2 gözlüğünün baş bandına takılan pil tutucu; pili bandın arkasında sabit tutar, uzun USB/güç kablosunu toplar ve denge ağırlığı görevi görerek gözlüğü alnınıza kaldırmayı kolaylaştırır. Pilin düğmesine erişim açık kalır, pil takılıp çıkarılabilir. Üç sürüm bulunur: orijinal tutucu, elastik bandı daha sıkı tutan dar yuvalı sürüm ve kablo tutucu bölümü sadeleştirilmiş sürüm. Fotoğraflarda tutucu baş bandına takılı olarak pil ve kabloyla görülür; gözlük, pil ve kablo ürüne dahil değildir.\nYaklaşık dış ölçüler: 78 × 56–57 × 33–34 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4837759-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4837759-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4837759-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4837759-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "hyperion917",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dji-th2179209",
+    "kategori": "Kamera",
+    "marka": [
+      "DJI"
+    ],
+    "uyum": [
+      {
+        "marka": "DJI"
+      }
+    ],
+    "baslik": "DJI Mavic Kemer Yedek Pil Tutucusu (Kemer Klipsli, İki Parçalı)",
+    "aciklama": "DJI Mavic'in yedek pilini sırt çantası olmadan kemerinize takarak taşımak için tutucu. Set, kemere geçen bir klips ile pilin oturduğu taşıyıcı gövdeden oluşur; iki parça iki adet M3 × 16 mm vidayla birleştirilir (vidalar ürüne dahil değildir). Fotoğraflarda tutucu pille birlikte kemerde ve tek başına görülür; pil ve üzerindeki etiket ürüne ait değildir.\nYaklaşık dış ölçüler: klips 83 × 42 × 7 mm; taşıyıcı gövde 105 × 61 × 30 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2179209-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2179209-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2179209-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2179209-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Narayan1986",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dji-th4237834",
+    "kategori": "Kamera",
+    "marka": [
+      "DJI"
+    ],
+    "uyum": [
+      {
+        "marka": "DJI"
+      }
+    ],
+    "baslik": "DJI Mavic Mini Kumandası için Anten Yansıtıcı Kanatlar (Anten Tutuculu)",
+    "aciklama": "DJI Mavic Mini kumandasının antenlerinin arkasına yerleştirilen kavisli yansıtıcı kanat; iç yüzeyine yansıtıcı folyo bant yapıştırılır (bant ürüne dahil değildir) ve kanat, antenin üzerine geçen küçük bir tutucuyla anten üzerinde durur. Asıl uyumlu model Mavic Mini kumandasıdır; Mavic Pro, Air ve Spark gibi benzer anten yapılı kumandalar için uyum beklenir ancak denenmemiştir. Fotoğraflarda iki kanat kumandada ve yakın çekimde görülür, görsellerden biri anten tutucusudur; kumanda ve folyo ürüne dahil değildir.\nYaklaşık dış ölçüler: yansıtıcı kanat 67 × 65 × 21 mm; anten tutucusu 17 × 12 × 4 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4237834-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4237834-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4237834-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "pcwzrd13",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dji-th877956",
+    "kategori": "Kamera",
+    "marka": [
+      "DJI"
+    ],
+    "uyum": [
+      {
+        "marka": "DJI"
+      }
+    ],
+    "baslik": "DJI Phantom 3 Kamera ve Gimbal Koruyucu Kapak (Menteşeli Kilit, İniş Ayağına Takılır)",
+    "aciklama": "DJI Phantom 3 kamera ve gimbal grubunu taşıma sırasında koruyan kapak; orijinal, takması zaman alan plastik parçanın yerine geçer ve iniş ayağına menteşeli bir kelepçeyle bağlanır. Phantom 3 Professional üzerinde denendiği belirtilmiştir; kamera ölçüsünün aynı olduğu varsayılır ancak doğrulanmamıştır. Daha geniş tabanlı bir sürümün dosyası da vardır. Fotoğraflarda koruyucu gimbalin üzerinde ve iniş ayağına bağlı olarak, ayrıca yan yana dizili parçalar hâlinde görülür; drone ürüne dahil değildir.\nYaklaşık dış ölçüler: koruyucu 106 × 62 × 50 mm; taban parçası 44 × 18 × 14 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th877956-1.jpg",
+      "https://media.pruvo3d.com/urunler/th877956-2.jpg",
+      "https://media.pruvo3d.com/urunler/th877956-3.jpg",
+      "https://media.pruvo3d.com/urunler/th877956-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jeanmariecannie (özgün tasarım: falcon20cne)",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "dji-th92014",
+    "kategori": "Kamera",
+    "marka": [
+      "DJI"
+    ],
+    "uyum": [
+      {
+        "marka": "DJI"
+      }
+    ],
+    "baslik": "DJI Phantom için Titreşim Önleyici (Anti-Jello) Kamera Montajı (O-Ringli)",
+    "aciklama": "DJI Phantom'un altına takılan titreşim önleyici kamera montajı; orta parça çerçeveye O-ringlerle bağlanır, farklı sertlikte O-ringler kullanarak gevşeklik ayarlanabilir ve iki ek büyük O-ring orta parçayı daha sıkı tutar. Su geçirmez kutulu aksiyon kamerası için hazırlanmıştır ve sert darbede kırılacak şekilde tasarlanmıştır. Orijinal plakanın yerine geçen sade bir plaka sürümü de vardır. O-ringler ürüne dahil değildir; Phantom'un tam modeli belirtilmemiştir. Fotoğraflarda montaj tek başına ve Phantom'un alt gövdesinde takılı görülür.\nYaklaşık dış ölçüler: çerçeve 62 × 62 × 4 mm; orta parça 28 × 28 × 27 mm; sade plaka 50 × 29 × 17 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th92014-1.jpg",
+      "https://media.pruvo3d.com/urunler/th92014-2.jpg",
+      "https://media.pruvo3d.com/urunler/th92014-3.jpg",
+      "https://media.pruvo3d.com/urunler/th92014-4.jpg"
+    ]
+  },
+  {
+    "id": "dji-th470945",
+    "kategori": "Kamera",
+    "marka": [
+      "DJI"
+    ],
+    "uyum": [
+      {
+        "marka": "DJI"
+      }
+    ],
+    "baslik": "DJI F450 için Aksiyon Kamerası Montajı (Düz Alt ve 90° Açılı İki Sürüm)",
+    "aciklama": "DJI F450 çerçevesinin altına, su geçirmez aksiyon kamerası kutusunun standart bağlantısıyla kamera takmak için montaj; iki sürümü vardır: kamerayı doğrudan aşağıya bakacak şekilde bağlayan sürüm ve boşluk sorun olduğunda kamerayı yukarı kaldırmak için 90 derece açılı sürüm (ikinci sürümün çıkıntısı kutunun sığması için uzatılmıştır). Görseller yalnızca montaj parçasını gösterir; çerçeve ve kamera ürüne dahil değildir.\nYaklaşık dış ölçüler: düz sürüm 45 × 24 × 17 mm; açılı sürüm 48 × 45 × 20 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th470945-1.jpg",
+      "https://media.pruvo3d.com/urunler/th470945-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jc61990",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "dji-th2781948",
+    "kategori": "Kamera",
+    "marka": [
+      "DJI"
+    ],
+    "uyum": [
+      {
+        "marka": "DJI"
+      }
+    ],
+    "baslik": "DJI Spark ve Mavic Pro Duvar Askı Aparatı (Vidalı Montaj, İki Model İçin)",
+    "aciklama": "DJI Spark ve DJI Mavic Pro drone'larını katlanmış hâlde duvara asmak için basit duvar askısı; iki model için ayrı parça bulunur. Arka plakadaki iki delikten duvara vidalanır (vidalar ürüne dahil değildir); plakanın üzerinde 'Fly safe!' yazısı yer alır. Fotoğraflarda askı tek başına ve Spark ile birlikte, görsellerde ise iki modelin parçası görülür; drone ve üzerindeki yazılar ürüne ait değildir.\nYaklaşık dış ölçüler: Spark parçası 70 × 70 × 60 mm; Mavic Pro parçası 90 × 70 × 60 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2781948-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2781948-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2781948-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2781948-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "mik_online",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dji-th3840374",
+    "kategori": "Kamera",
+    "marka": [
+      "DJI"
+    ],
+    "uyum": [
+      {
+        "marka": "DJI"
+      }
+    ],
+    "baslik": "DJI FPV Goggles için Yüz Ara Pedleri (Işık Sızıntısını Azaltan Sol ve Sağ Set)",
+    "aciklama": "DJI FPV Goggles'ın yüz süngerinin altına yerleştirilen sol ve sağ ara pedler; gözlüğün yüze daha iyi oturmasını, yan ve üst kısımlardaki ışık sızıntısının azalmasını ve basıncın daha dengeli dağılmasını amaçlar. Pedler çift taraflı bantla gözlüğe yapıştırılır; gözlüğün orijinal cırt bandı ve sünger pedlerin üzerine yeniden takılır (bant ürüne dahil değildir). Fotoğrafta pedler gözlüğün yüz tarafında süngerin altında görülür, diğer görsellerde sol ve sağ ped tek başınadır; gözlük ürüne dahil değildir.\nYaklaşık dış ölçüler: sol ve sağ pedin her biri 87 × 83 × 9 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3840374-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3840374-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3840374-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "kwboost",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dji-th4701342",
+    "kategori": "Kamera",
+    "marka": [
+      "DJI"
+    ],
+    "uyum": [
+      {
+        "marka": "DJI"
+      }
+    ],
+    "baslik": "DJI Mini 2 / Mavic Air 2 Kumandası için Tablet Tutucu (100–125 mm Genişlikli Tabletler)",
+    "aciklama": "DJI Mini 2 ve DJI Mavic Air 2 kumandasına tablet takmak için tutucu; 100–125 mm genişliğindeki tabletlerle uyumlu olacak şekilde hazırlanmıştır ve 8 inç bir tabletle denenmiştir. Fotoğraflarda tutucu kumandaya takılı tabletle, elde ve tablet kenarında yakın çekimle görülür; tablet ve kumanda ürüne dahil değildir.\nYaklaşık dış ölçüler: 51 × 50 × 14 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4701342-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4701342-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4701342-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4701342-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "mich88",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dji-th2547567",
+    "kategori": "Kamera",
+    "marka": [
+      "DJI"
+    ],
+    "uyum": [
+      {
+        "marka": "DJI"
+      }
+    ],
+    "baslik": "DJI Spark ve Kumanda için Menteşeli Taşıma Kutusu (Fly More Çantasına Sığar)",
+    "aciklama": "DJI Spark drone'unu ve kumandasını mümkün olduğunca küçük bir kutuda taşımak için menteşeli kutu; pil, kablolar ve yedek pervaneler için de yer kalır ve kutunun Fly More setinin çantasına sığdığı belirtilmiştir. Menteşe pimi olarak 1,75 mm çaplı bir çubuk kullanılır, kapak mandalı ayrı parçadır ve kapağa yapıştırılır; drone ve kumandayı kapalıyken yerinde tutan iç pedler ürüne dahil değildir. Fotoğrafta kutu drone, kumanda ve pille dolu hâlde görülür; cihazlardaki yazılar cihazlara aittir.\nYaklaşık dış ölçüler: alt kasa 220 × 148 × 60 mm; üst kapak 220 × 148 × 25 mm; mandal 43 × 41 × 1 mm.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2547567-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2547567-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2547567-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "quix",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dji-th3143469",
+    "kategori": "Kamera",
+    "marka": [
+      "DJI"
+    ],
+    "uyum": [
+      {
+        "marka": "DJI"
+      }
+    ],
+    "baslik": "DJI Mavic 2 Pro / Zoom için Pil ve Motor Kapak Seti",
+    "aciklama": "DJI Mavic 2 Pro ve Mavic 2 Zoom için pil ucuna takılan kapak ile motor yuvalarına geçen yuvarlak kapaklardan oluşan set; drone ve pil taşınırken ya da depolanırken açıkta kalan kısımları tozdan ve çizilmeden korumaya yardımcı olur. Fotoğrafta kapaklar pil ve katlanmış drone yanında görülür; drone ve pil ürüne dahil değildir.\nYaklaşık dış ölçüler: motor kapağı 21 × 21 × 15 mm; pil kapağı 49 × 13 × 8 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3143469-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3143469-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3143469-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3143469-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "draxialle",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dji-th381536",
+    "kategori": "Kamera",
+    "marka": [
+      "DJI"
+    ],
+    "uyum": [
+      {
+        "marka": "DJI"
+      }
+    ],
+    "baslik": "DJI F550 Çerçevesi için LED Şerit Montajı (Sol ve Ayna Görüntülü Parça)",
+    "aciklama": "DJI F550 çerçevesinin kollarının altına LED şerit takmak için montaj; silikon kaplı standart RGB LED şeritler için hazırlanmıştır. Şerit üçlü LED'li parçalara kesilir, iki montaj parçası arasında yapıştırıcıyla birleştirilir ve kola küçük kablo bağlarıyla sabitlenir. Parça ve ayna görüntüsü sürümü birlikte gelir. Fotoğraflarda montaj kolun altında LED şeritle, LED yanıkken ve tek başına görülür; LED şerit, kablo ve kablo bağları ürüne dahil değildir; kol üzerindeki yazılar çerçeveye aittir.\nYaklaşık dış ölçüler: 40 × 29 × 7 mm; ayna görüntülü parça 40 × 29 × 8 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th381536-1.jpg",
+      "https://media.pruvo3d.com/urunler/th381536-2.jpg",
+      "https://media.pruvo3d.com/urunler/th381536-3.jpg",
+      "https://media.pruvo3d.com/urunler/th381536-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "michiwend, total1ty",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "dji-th4499731",
     "kategori": "Kamera",
     "marka": [
