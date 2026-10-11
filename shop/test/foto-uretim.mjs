@@ -6071,92 +6071,156 @@ console.log("RPA) RENK = PALET A — figur anahtarlikta Renkli (kopru renk_modu)
   }
 }
 
-// ---------------------------------------------------------------- RENK = PALET D (④ önizleme palete indirgenir)
-// VERI.paleteIndirge saf fonksiyonu (fotoRenkleri ile AYNI ağırlıklı mesafe); ④ çizimi deterministik kol dışında
-// indirgenmiş kopyayı gösterir. TOLERANS (kabul, anti-alias payı): ayrık renk sayımında kanal farkı ≤ 2 olan renkler
-// TEK renk sayılır ve opak piksellerin %0,5'inden azını tutan renk SAYILMAZ; saydam (alfa < 128) piksel sayılmaz.
-// D1 Renkli 4 renk · D2 plaket Renkli (palet = fotoRenkleri, renkTavani) · D3 Siyah tek -> gri ölçek · D4 sınır.
-function rpdGorsel() {
-  const w = 64, p = new Uint8ClampedArray(w * w * 4);
-  for (let y = 0; y < w; y++) {
-    for (let x = 0; x < w; x++) {
-      const i = (y * w + x) * 4;
-      p[i] = (x * 4) % 256; p[i + 1] = (y * 4) % 256; p[i + 2] = ((x + y) * 2) % 256;
-      p[i + 3] = x === 0 && y < 8 ? 0 : 255;  // 8 saydam piksel (dokunulmaz)
+// ---------------------------------------------------------------- SIM: ④ 4 RENK SİMÜLASYONU (Okan 11 Eki 16:0x)
+// VERI.dortRenkSimule: sağlayıcının dokulu görseli piksel piksel palete boyanmaz (benekli gri-bej poster), BÖLGE
+// tabanlı sadeleştirilir (yumuşatma · L'yi az ağırlıklandıran OKLab mesafesi + gölge bandı birleştirme · mod/adacık
+// süzgeci · büyütme + ince kontur). Bölge sayımı VERI.simulasyonBolgeleri (aynı adımlar, küçük ölçek; 96 px'te 1:1).
+// G gölgeli TEK renk yüzey (yumuşak gölge + sert düşen gölge ×0,3 + doku) -> TEK bölge, Mavi
+// B 4 renk bloklu görsel (gölge + doku) -> 4 bölge, her blok kendi renginde, sınırlar yerinde
+// A adacık: 4×4 benekler SİLİNİR, 10×10 blok KALIR (eşik opak alanın %0,15'i)
+// T saydam piksel bayt bayt AYNEN; opak piksel yalnız palet rengi ya da onun kontur koyusu
+// Y tek ana renk (Beyaz): r = g = b, gölge düzeyleri kalır (≥ 8), doku/benek bastırılır (komşu farkı < girdinin yarısı)
+// N bilinmeyen renk / boş palet / boyut uyuşmazlığı -> null, piksel değişmez
+// E ④ çizimi F.dortRenkSimule (eski paleteIndirge/paletleGoster YOK); plaket kolu da simülasyon
+const SIM_W = 96;
+function simLin(c) { c /= 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }
+function simSrgb(v) {
+  const c = v <= 0.0031308 ? 12.92 * v : 1.055 * Math.pow(Math.max(v, 0), 1 / 2.4) - 0.055;
+  return Math.max(0, Math.min(255, Math.round(c * 255)));
+}
+function simHex(V, ad) { const h = V.RENK_HEX[ad].replace("#", ""); return [0, 2, 4].map((j) => parseInt(h.slice(j, j + 2), 16)); }
+function simGorsel(V, renkFn) {
+  let s = 12345;
+  const rnd = () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
+  const p = new Uint8ClampedArray(SIM_W * SIM_W * 4);
+  for (let y = 0; y < SIM_W; y++) {
+    for (let x = 0; x < SIM_W; x++) {
+      const i = (y * SIM_W + x) * 4, [ad, golge] = renkFn(x, y), c = simHex(V, ad), doku = 1 + 0.12 * (rnd() - 0.5);
+      for (let j = 0; j < 3; j++) { p[i + j] = simSrgb(simLin(c[j]) * golge * doku); }
+      p[i + 3] = 255;
     }
   }
   return p;
 }
-function rpdAyrik(p) {
-  const say = new Map(); let top = 0;
-  for (let i = 0; i + 3 < p.length; i += 4) {
-    if (p[i + 3] < 128) { continue; }
-    const k = p[i] + "," + p[i + 1] + "," + p[i + 2];
-    say.set(k, (say.get(k) || 0) + 1); top++;
+function simBilesen(et, w, h) {   // 4-komşulu bileşenler: [{renk, n}]
+  const gor = new Int8Array(et.length), b = [];
+  for (let s = 0; s < et.length; s++) {
+    if (et[s] < 0 || gor[s]) { continue; }
+    let n = 0; const st = [s]; gor[s] = 1;
+    while (st.length) {
+      const q = st.pop(); n++;
+      const x = q % w, y = (q / w) | 0;
+      for (const r of [x > 0 ? q - 1 : -1, x < w - 1 ? q + 1 : -1, y > 0 ? q - w : -1, y < h - 1 ? q + w : -1]) {
+        if (r >= 0 && !gor[r] && et[r] === et[s]) { gor[r] = 1; st.push(r); }
+      }
+    }
+    b.push({ renk: et[s], n });
   }
-  const temsil = [];
-  for (const [k, n] of [...say.entries()].sort((a, b) => b[1] - a[1])) {
-    const c = k.split(",").map(Number);
-    const t = temsil.find((x) => x.c.every((v, j) => Math.abs(v - c[j]) <= 2));
-    if (t) { t.n += n; } else { temsil.push({ c, n }); }
-  }
-  return temsil.filter((x) => x.n / top >= 0.005).map((x) => x.c.join(","));
+  return b;
 }
-function rpdRgb(V, ad) {
-  const h = V.RENK_HEX[ad].replace("#", "");
-  return [0, 2, 4].map((j) => parseInt(h.slice(j, j + 2), 16)).join(",");
-}
-function rpdSenaryo(V) {
-  const s = {}, iz = {}, kaynak = rpdGorsel();
-  const indir = (renkler) => { const p = kaynak.slice(); const r = V.paleteIndirge(p, renkler); return r ? p : null; };
-  const altKume = (a, b) => a.every((x) => b.includes(x));
-  // D1: Renkli 4 renk -> ayrık renk ≤ 4, hepsi palet renginin TAM değeri, en az 2 renk görünür (boş indirgeme değil).
-  const P4 = ["Kırmızı", "Mavi", "Sarı", "Beyaz"], d1 = indir(P4), a1 = d1 ? rpdAyrik(d1) : [];
-  iz.D1 = a1;
-  s.D1 = !!d1 && a1.length >= 2 && a1.length <= 4 && altKume(a1, P4.map((x) => rpdRgb(V, x)));
-  // D2: plaket Renkli -> palet fotoRenkleri(kaynak, renkTavani(plaket)); görseldeki renk kümesi = liste (birebir).
-  const Pp = V.fotoRenkleri(kaynak, V.renkTavani("plaket")), d2 = Pp.length ? indir(Pp) : null, a2 = d2 ? rpdAyrik(d2) : [];
-  iz.D2 = { palet: Pp, ayrik: a2 };
-  s.D2 = !!d2 && Pp.length >= 2 && a2.length === Pp.length && altKume(a2, Pp.map((x) => rpdRgb(V, x)));
-  // D3: Siyah tek renk -> gri ölçek: her opak piksel r = g = b, ton korunur (≥ 8 farklı gri düzey).
-  const d3 = indir(["Siyah"]);
-  let renkli = 0; const duzey = new Set();
-  for (let i = 0; d3 && i + 3 < d3.length; i += 4) {
-    if (d3[i + 3] < 128) { continue; }
-    if (d3[i] !== d3[i + 1] || d3[i + 1] !== d3[i + 2]) { renkli++; }
-    duzey.add(d3[i]);
+function simSenaryo(V) {
+  const s = {}, iz = {}, W = SIM_W;
+  // G: Mavi yüzey; soldan sağa yumuşak gölge 0,55..1, alt üçte birde sert düşen gölge ×0,3, %12 doku.
+  const PG = ["Mavi", "Lacivert", "Beyaz", "Kırmızı"];
+  const G = simGorsel(V, (x, y) => ["Mavi", (0.55 + 0.45 * x / (W - 1)) * (y >= 64 ? 0.3 : 1)]);
+  const bg = V.simulasyonBolgeleri(G, W, W, PG), kg = bg ? simBilesen(bg.et, bg.sw, bg.sh) : [];
+  iz.G = kg.map((b) => PG[b.renk] + ":" + b.n);
+  s.G = !!bg && bg.olc === 1 && kg.length === 1 && PG[kg[0].renk] === "Mavi";
+  // B: 4 blok (sol üst Kırmızı · sağ üst Mavi · sol alt Sarı · sağ alt Beyaz), gölge 0,8..1 + doku.
+  const PB = ["Beyaz", "Sarı", "Mavi", "Kırmızı"], blok = (x, y) => (y < 48 ? (x < 48 ? "Kırmızı" : "Mavi") : (x < 48 ? "Sarı" : "Beyaz"));
+  const B = simGorsel(V, (x, y) => [blok(x, y), 0.8 + 0.2 * (x + y) / (2 * W - 2)]);
+  const bb = V.simulasyonBolgeleri(B, W, W, PB), kb = bb ? simBilesen(bb.et, bb.sw, bb.sh) : [];
+  let icHata = 0;
+  for (let y = 0; bb && y < W; y++) {
+    for (let x = 0; x < W; x++) {
+      if (Math.abs(x - 47.5) < 3 || Math.abs(y - 47.5) < 3) { continue; }
+      if (PB[bb.et[y * W + x]] !== blok(x, y)) { icHata++; }
+    }
   }
-  iz.D3 = { renkli, duzey: duzey.size };
-  s.D3 = !!d3 && renkli === 0 && duzey.size >= 8;
-  // D4: saydam piksel dokunulmaz; bilinmeyen renk / boş palet -> null.
-  s.D4 = !!d1 && d1[3] === 0 && d1[0] === kaynak[0] && d1[1] === kaynak[1] && d1[2] === kaynak[2] &&
-    V.paleteIndirge(kaynak.slice(), ["Mor"]) === null && V.paleteIndirge(kaynak.slice(), []) === null;
+  const et = (x, y) => PB[bb.et[y * W + x]];
+  iz.B = { bilesen: kb.map((b) => PB[b.renk] + ":" + b.n), icHata };
+  s.B = !!bb && kb.length === 4 && new Set(kb.map((b) => b.renk)).size === 4 && icHata === 0 &&
+    et(47, 20) === "Kırmızı" && et(48, 20) === "Mavi" && et(20, 47) === "Kırmızı" && et(20, 48) === "Sarı";
+  // A: Mavi zemin; üst yarıda 16 adet 4×4 Kırmızı benek; sağ altta 10×10 Kırmızı blok.
+  const PA = ["Mavi", "Kırmızı"];
+  const benek = (x, y) => y < 48 && x >= 8 && x < 88 && (x - 8) % 20 < 4 && y >= 8 && (y - 8) % 12 < 4;
+  const A = simGorsel(V, (x, y) => [benek(x, y) || (x >= 60 && x < 70 && y >= 60 && y < 70) ? "Kırmızı" : "Mavi", 1]);
+  const ba = V.simulasyonBolgeleri(A, W, W, PA), ka = ba ? simBilesen(ba.et, ba.sw, ba.sh) : [];
+  let ustKirmizi = 0, blokKirmizi = 0;
+  for (let y = 0; ba && y < W; y++) {
+    for (let x = 0; x < W; x++) {
+      if (PA[ba.et[y * W + x]] !== "Kırmızı") { continue; }
+      if (y < 48) { ustKirmizi++; } else if (x >= 58 && x < 72 && y >= 58 && y < 72) { blokKirmizi++; }
+    }
+  }
+  const adacik = ka.filter((b) => b.n < W * W * 0.005).reduce((t, b) => t + b.n, 0) / (W * W);
+  iz.A = { bilesen: ka.map((b) => PA[b.renk] + ":" + b.n), ustKirmizi, blokKirmizi, adacik };
+  s.A = !!ba && ustKirmizi === 0 && blokKirmizi >= 80 && ka.length === 2 && adacik === 0;
+  // T: A'nın sol 6 sütunu saydam (rastgele RGB), bir sütun yarı saydam alfa 100.
+  const Tg = A.slice();
+  for (let y = 0; y < W; y++) {
+    for (let x = 0; x < 7; x++) { const i = (y * W + x) * 4; Tg[i] = 13; Tg[i + 1] = 77 + y; Tg[i + 2] = 201; Tg[i + 3] = x === 6 ? 100 : 0; }
+  }
+  const T0 = Tg.slice(), Tr = V.dortRenkSimule(Tg, W, W, PA);
+  const izin = new Set();
+  for (const ad of PA) { const c = simHex(V, ad); izin.add(c.join(",")); izin.add(c.map((v) => Math.round(v * 0.62)).join(",")); }
+  let saydamFark = 0, yabanci = 0;
+  for (let i = 0; i < Tg.length; i += 4) {
+    if (T0[i + 3] < 128) { if (Tg[i] !== T0[i] || Tg[i + 1] !== T0[i + 1] || Tg[i + 2] !== T0[i + 2] || Tg[i + 3] !== T0[i + 3]) { saydamFark++; } continue; }
+    if (!izin.has(Tg[i] + "," + Tg[i + 1] + "," + Tg[i + 2])) { yabanci++; }
+  }
+  iz.T = { saydamFark, yabanci };
+  s.T = Tr === Tg && saydamFark === 0 && yabanci === 0;
+  // Y: G görseli Beyaz tek renk -> gri ölçek.
+  const Y = G.slice(), Yr = V.dortRenkSimule(Y, W, W, ["Beyaz"]);
+  let renkli = 0, dGir = 0, dCik = 0, nd = 0; const duzey = new Set();
+  const luma = (p, i) => 0.299 * p[i] + 0.587 * p[i + 1] + 0.114 * p[i + 2];
+  for (let y = 0; y < W; y++) {
+    for (let x = 0; x < W; x++) {
+      const i = (y * W + x) * 4;
+      if (Y[i] !== Y[i + 1] || Y[i + 1] !== Y[i + 2]) { renkli++; }
+      duzey.add(Y[i]);
+      if (x < W - 1 && y !== 63 && y !== 64) { dGir += Math.abs(luma(G, i) - luma(G, i + 4)); dCik += Math.abs(Y[i] - Y[i + 4]); nd++; }
+    }
+  }
+  iz.Y = { renkli, duzey: duzey.size, dGir: +(dGir / nd).toFixed(2), dCik: +(dCik / nd).toFixed(2) };
+  s.Y = Yr === Y && renkli === 0 && duzey.size >= 8 && dCik < dGir / 2;
+  // N: geçersiz girdi -> null, piksel değişmez.
+  const Nn = A.slice();
+  s.N = V.dortRenkSimule(Nn, W, W, ["Mor"]) === null && V.dortRenkSimule(Nn, W, W, []) === null &&
+    V.dortRenkSimule(Nn, W + 1, W, PA) === null && V.dortRenkSimule(Nn, 0, W, PA) === null &&
+    Nn.every((v, i) => v === A[i]);
   Object.defineProperty(s, "iz", { value: iz, enumerable: false });
   return s;
 }
-console.log("RPD) RENK = PALET D — ④ onizleme palete indirgenir (VERI.paleteIndirge; tolerans kanal ±2, <%0,5 sayilmaz)");
+console.log("SIM) ④ 4 RENK SİMÜLASYONU — bölge tabanlı (VERI.dortRenkSimule); figür render-yok kolu + plaket");
 {
-  const s = rpdSenaryo(veriYukle(VERI_KAYNAK));
-  ol("D1 Renkli 4 renk -> ayrik renk <= 4, hepsi palet rengi", s.D1, JSON.stringify(s.iz.D1));
-  ol("D2 plaket Renkli -> gorseldeki renk kumesi = fotoRenkleri listesi (birebir)", s.D2, JSON.stringify(s.iz.D2));
-  ol("D3 Siyah tek -> gri olcek (r=g=b, ton korunur)", s.D3, JSON.stringify(s.iz.D3));
-  ol("D4 saydam piksel dokunulmaz; bilinmeyen renk / bos palet -> null", s.D4, "");
-  // ④ çizimi deterministik kol ve figür kolu (FR) dışında indirgenmiş kopyayı gösterir.
-  ol("D5 ④ cizimi paletleGoster -> F.paleteIndirge (deterministik kol disinda)",
-     EKRAN_KAYNAK.includes("if (!F.paleteIndirge(d.data, renkler)) throw") &&
-     EKRAN_KAYNAK.includes("else paletleGoster(img, S.gorsel, renkliMi() ? paletRenkleri(S.tur) : [anaRenk()]);") &&
-     EKRAN_KAYNAK.split("img.src = S.gorsel").length - 1 === 1, "");
-  const capa = "    for (var i = 0; i + 3 < piksel.length; i += 4) {\n      if (piksel[i + 3] < 128) { continue; }\n      if (gri) {";
-  const RPD_MUT = [
-    ["RPD-M1 indirgeme kapali (piksel aynen)", "    return piksel;\n" + capa, ["D1", "D2", "D3"]],
-    ["RPD-M2 gri olcek kapali (Siyah tek de en yakin renge)", capa.replace("if (gri) {", "if (false) {"), ["D3"]],
-    ["RPD-K0 KONTROL (ayni govde)", capa, []],
+  const s = simSenaryo(veriYukle(VERI_KAYNAK));
+  ol("SIM-G gölgeli tek renk yüzey (yumuşak + sert gölge + doku) -> TEK bölge (Mavi)", s.G, JSON.stringify(s.iz.G));
+  ol("SIM-B 4 renk bloklu görsel -> 4 bölge, bloklar kendi renginde, sınırlar yerinde", s.B, JSON.stringify(s.iz.B));
+  ol("SIM-A adacık: 4×4 benekler silinir, 10×10 blok kalır (adacık oranı 0)", s.A, JSON.stringify(s.iz.A));
+  ol("SIM-T saydam piksel AYNEN; opak piksel yalnız palet rengi / kontur koyusu", s.T, JSON.stringify(s.iz.T));
+  ol("SIM-Y tek ana renk -> gri ölçek, gölge kalır, doku bastırılır", s.Y, JSON.stringify(s.iz.Y));
+  ol("SIM-N geçersiz palet / boyut -> null, piksel değişmez", s.N, "");
+  ol("SIM-E ④ çizimi F.dortRenkSimule; eski paleteIndirge/paletleGoster YOK; plaket kolu simülasyon",
+     EKRAN_KAYNAK.includes("if (!F.dortRenkSimule(d.data, c.width, c.height, renkler)) throw") &&
+     EKRAN_KAYNAK.includes("else simuleGoster(img, S.gorsel, simulasyonRenkleri());") &&
+     !/paleteIndirge|paletleGoster/.test(EKRAN_KAYNAK) && !/paleteIndirge/.test(VERI_KAYNAK), "");
+  const SIM_MUT = [
+    ["M-SIM-ADACIK mod/adacık süzgeci kalktı (G: kalan benekler gölge birleştirmesinin karşılıklı eşini çalar)",
+     "    simAdacik(et, sw, sh, P.length, opak);\n", "", ["A", "G"]],
+    ["M-SIM-L L ağırlığı ton ile eşit", "SIM_L_AGIRLIK = 0.2,", "SIM_L_AGIRLIK = 1,", ["G"]],
+    ["M-SIM-KAPALI renkli kol piksel AYNEN", "    return simBuyut(piksel, w, h, k0, simEtiketle(k0, rgb), rgb);\n",
+     "    return piksel;\n", ["T"]],
+    ["M-SIM-GRI tek renk kolu kapalı", "    if (renkler.length === 1 && VERI.ANA_RENKLER.indexOf(renkler[0]) >= 0) {",
+     "    if (false) {", ["Y"]],
+    ["M-SIM-K0 KONTROL (aynı gövde)", "SIM_L_AGIRLIK = 0.2,", "SIM_L_AGIRLIK = 0.2,", []],
   ];
-  for (const [ad, yerine, olmeli] of RPD_MUT) {
+  for (const [ad, capa, yerine, olmeli] of SIM_MUT) {
     if (VERI_KAYNAK.split(capa).length - 1 !== 1) { ol(ad + " capa bulundu", false, capa); continue; }
-    const m = rpdSenaryo(veriYukle(VERI_KAYNAK.replace(capa, yerine)));
+    const m = simSenaryo(veriYukle(VERI_KAYNAK.replace(capa, yerine)));
     const kir = Object.keys(m).filter((x) => m[x] !== true).sort();
-    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli), JSON.stringify(kir));
+    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli), JSON.stringify(kir) + " " + JSON.stringify(m.iz));
   }
 }
 
@@ -6177,21 +6241,25 @@ console.log("KC1) kart görseli contain (kare olmayan örnek kesilmez)");
   }
 }
 
-// ---------------------------------------------------------------- FR: ④ FİGÜR = BASILACAK DOSYANIN RENDER'I
-// Okan 11 Eki ("bu 4 renkli bir figür değil"): figür (insan · pet · model) + anahtarlık–figür ④ görseli palete
-// İNDİRGENMEZ. Sunucu /durum `render` verdiyse img.src = O adres; vermediyse sağlayıcı görseli AYNEN + dürüst cümle
-// (VERI.FIGUR_ORNEK_NOTU …). Sessiz geri düşüş YOK. Plaket DEĞİŞMEZ (palete indirgenir, figür notu YOK).
+// ---------------------------------------------------------------- FR: ④ FİGÜR = RENDER varsa O, yoksa 4 RENK SİMÜLASYONU
+// Okan 11 Eki ("bu 4 renkli bir figür değil" · 16:0x "4 renk simülasyonu"): figür (insan · pet · model) +
+// anahtarlık–figür ④ görseli: sunucu /durum `render` verdiyse img.src = O adres AYNEN ve simülasyon ÇAĞRILMAZ;
+// vermediyse sağlayıcı görselinin 4 renk simülasyonu (VERI.dortRenkSimule) + simülasyon cümlesi; simülasyon
+// çalışamazsa kaynak görsel + "renkler basılacak figürü göstermez". Plaket: simülasyon, figür notu YOK.
 const FR_PALETLI = "data:image/png;base64,PALETLI";
 const FR_IS = "f".repeat(32), FR_GORSEL = "/api/shop/foto/gorsel?is=" + FR_IS, FR_RENDER = FR_GORSEL + "&gorunum=render";
 const FR_UST = "Önizleme — ürün bunun seçtiğin renk sayısında olur; tam kopyası değildir.";
-async function frEkran(kaynak, V, kayit, render) {
+async function frEkran(kaynak, V, kayit, render, simNull) {
   const hazir = { asama: "hazir", tur: kayit.tur, olcu_mm: kayit.olcu, gorsel: FR_GORSEL,
                   gecerlilik_bitis: "2099-01-01T00:00:00.000Z", ...(render ? { render: FR_RENDER } : {}) };
-  const e = await ekranKos(kaynak, V, acikGercek(V, V6_TUM), { is: FR_IS, ...kayit }, hazir, { paletSahte: true });
+  // Casus: simülasyon çağrı sayısı (render kolunda 0 olmalı); simNull -> tarayıcıda simülasyon başarısız.
+  let cagri = 0;
+  const Vs = Object.assign({}, V, { dortRenkSimule: (...a) => { cagri++; return simNull ? null : V.dortRenkSimule(...a); } });
+  const e = await ekranKos(kaynak, Vs, acikGercek(V, V6_TUM), { is: FR_IS, ...kayit }, hazir, { paletSahte: true });
   const d = [...e.bolum.agac()];
   const img = d.find((n) => n.classList.contains("foto-uretim-onizleme-img"));
   const not = d.find((n) => n.classList.contains("foto-uretim-gorunum-notu"));
-  return { src: img ? img.src : null, not: not ? not.textContent : null,
+  return { src: img ? img.src : null, not: not ? not.textContent : null, cagri,
            ust: d.some((n) => n.tagName === "P" && n.textContent === FR_UST) };
 }
 async function frSenaryo(kaynak, V) {
@@ -6203,18 +6271,22 @@ async function frSenaryo(kaynak, V) {
   iz.afR = await frEkran(kaynak, V, AF, true);
   iz.af = await frEkran(kaynak, V, AF, false);
   iz.plaket = await frEkran(kaynak, V, { tur: "plaket", olcu: 100 }, true);
-  // Dürüst cümle LİTERAL (Okan 11 Eki çipi): VERI boşalsa da ekranda aranır -> veri mutantı FR4/FR7'yi de yakar.
-  const tek = "Örnek görünüm — renkler basılacak figürü göstermez. " + V.FIGUR_ORNEK_TEK;
-  s.FR0 = /renkler basılacak figürü göstermez/.test(V.FIGUR_ORNEK_NOTU || "");
-  s.FR1 = iz.insanR.src === FR_RENDER;                      // render varken O (indirgenmiş kopya / sağlayıcı görseli DEĞİL)
+  iz.geri = await frEkran(kaynak, V, INSAN, false, true);
+  // Cümle LİTERAL (Okan 11 Eki çipi): VERI boşalsa da ekranda aranır -> veri mutantı FR4/FR7'yi de yakar.
+  const tek = "Önizleme: figürün seçtiğin tek renkle yaklaşık görünümü; basılan figür sadeleştirilmiş hâlidir, " +
+    "tam kopyası değildir.";
+  const cumle = (x) => typeof x === "string" && /yaklaşık görünümü/.test(x) && /tam kopyası değildir/.test(x) && !/3D|baskı/i.test(x);
+  s.FR0 = cumle(V.FIGUR_SIMULASYON_TEK) && cumle(V.FIGUR_SIMULASYON_RENKLI) &&
+    /renkler basılacak figürü göstermez/.test(V.FIGUR_ORNEK_NOTU || "");
+  s.FR1 = iz.insanR.src === FR_RENDER && iz.insanR.cagri === 0;     // render varken O; simülasyon ÇAĞRILMAZ
   s.FR2 = iz.insanR.not === V.FIGUR_RENDER_NOTU && !iz.insanR.ust;
-  s.FR3 = iz.insan.src === FR_GORSEL;                       // render yok: sağlayıcı görseli AYNEN (palete indirgenmez)
-  s.FR4 = iz.insan.not === tek && !iz.insan.ust;            // ... ve dürüst cümle (tek renk)
-  s.FR5 = typeof V.FIGUR_ORNEK_RENKLI === "string" && /en çok 4 renk/.test(V.FIGUR_ORNEK_RENKLI) &&
-    typeof V.FIGUR_ORNEK_TEK === "string" && /tek renk/.test(V.FIGUR_ORNEK_TEK);   // Renkli/tek ikinci cümlesi (VERI)
-  s.FR6 = iz.afR.src === FR_RENDER && iz.afR.not === V.FIGUR_RENDER_NOTU;
-  s.FR7 = iz.af.src === FR_GORSEL && iz.af.not === tek;
-  s.FR8 = iz.plaket.src === FR_PALETLI && iz.plaket.not === null && iz.plaket.ust;   // plaket DEĞİŞMEZ
+  s.FR3 = iz.insan.src === FR_PALETLI && iz.insan.cagri >= 1;       // render yok: 4 renk simülasyonu
+  s.FR4 = iz.insan.not === tek && !iz.insan.ust;                    // ... ve simülasyon cümlesi (tek renk)
+  s.FR5 = /en çok 4 renk/.test(V.FIGUR_SIMULASYON_RENKLI || "") && /tek renk/.test(V.FIGUR_SIMULASYON_TEK || "");
+  s.FR6 = iz.afR.src === FR_RENDER && iz.afR.not === V.FIGUR_RENDER_NOTU && iz.afR.cagri === 0;
+  s.FR7 = iz.af.src === FR_PALETLI && iz.af.not === tek;
+  s.FR8 = iz.plaket.src === FR_PALETLI && iz.plaket.not === null && iz.plaket.ust;   // plaket: simülasyon, figür notu YOK
+  s.FR9 = iz.geri.src === FR_GORSEL && iz.geri.not === V.FIGUR_ORNEK_NOTU;          // simülasyon olmadı: kaynak + cümle
   Object.defineProperty(s, "iz", { value: iz, enumerable: false });
   return s;
 }
@@ -6252,31 +6324,34 @@ async function frSunucu(fm) {
   k.kapat();
   return s;
 }
-console.log("FR) ④ FİGÜR = BASILACAK DOSYANIN RENDER'I — render varsa O, yoksa sağlayıcı görseli AYNEN + dürüst cümle; plaket AYNEN");
+console.log("FR) ④ FİGÜR — render varsa O (simülasyon çağrılmaz), yoksa 4 renk simülasyonu + cümle; plaket simülasyon");
 {
   const V = veriYukle(VERI_KAYNAK);
   const s = await frSenaryo(EKRAN_KAYNAK, V);
-  ol("FR0 VERI dürüst cümle: 'renkler basılacak figürü göstermez'", s.FR0, V.FIGUR_ORNEK_NOTU);
-  ol("FR1 insan + render -> img.src = render adresi (palete indirgenmez)", s.FR1, JSON.stringify(s.iz.insanR));
+  ol("FR0 VERI simülasyon cümleleri 'yaklaşık görünümü … tam kopyası değildir' + geri düşüş cümlesi", s.FR0, V.FIGUR_SIMULASYON_TEK);
+  ol("FR1 insan + render -> img.src = render adresi, simülasyon ÇAĞRILMAZ", s.FR1, JSON.stringify(s.iz.insanR));
   ol("FR2 insan + render -> görünüm notu = FIGUR_RENDER_NOTU, üst 'Önizleme —' cümlesi YOK", s.FR2, JSON.stringify(s.iz.insanR));
-  ol("FR3 insan render YOK -> sağlayıcı görseli AYNEN (palete indirgenmez)", s.FR3, JSON.stringify(s.iz.insan));
-  ol("FR4 insan render YOK -> dürüst cümle (Örnek görünüm … + tek renk)", s.FR4, JSON.stringify(s.iz.insan));
-  ol("FR5 VERI ikinci cümle: Renkli \"en çok 4 renk\" · tek \"tek renk\"", s.FR5, V.FIGUR_ORNEK_RENKLI + " | " + V.FIGUR_ORNEK_TEK);
-  ol("FR6 anahtarlık–figür + render -> render + render notu", s.FR6, JSON.stringify(s.iz.afR));
-  ol("FR7 anahtarlık–figür render YOK -> görsel AYNEN + dürüst cümle", s.FR7, JSON.stringify(s.iz.af));
-  ol("FR8 plaket DEĞİŞMEZ -> palete indirgenmiş kopya, figür notu YOK, üst cümle VAR", s.FR8, JSON.stringify(s.iz.plaket));
+  ol("FR3 insan render YOK -> 4 renk simülasyonu (dortRenkSimule çağrıldı)", s.FR3, JSON.stringify(s.iz.insan));
+  ol("FR4 insan render YOK -> simülasyon cümlesi (tek renk)", s.FR4, JSON.stringify(s.iz.insan));
+  ol("FR5 VERI: Renkli \"en çok 4 renk\" · tek \"tek renk\"", s.FR5, V.FIGUR_SIMULASYON_RENKLI + " | " + V.FIGUR_SIMULASYON_TEK);
+  ol("FR6 anahtarlık–figür + render -> render + render notu, simülasyon ÇAĞRILMAZ", s.FR6, JSON.stringify(s.iz.afR));
+  ol("FR7 anahtarlık–figür render YOK -> simülasyon + cümle", s.FR7, JSON.stringify(s.iz.af));
+  ol("FR8 plaket -> simülasyon, figür notu YOK, üst cümle VAR", s.FR8, JSON.stringify(s.iz.plaket));
+  ol("FR9 simülasyon çalışamadı -> kaynak görsel + 'renkler basılacak figürü göstermez'", s.FR9, JSON.stringify(s.iz.geri));
   const kir = (m) => (m ? Object.keys(m).filter((x) => m[x] !== true).sort() : null);
-  const C_SRC = "        img.src = S.render || S.gorsel;\n";
-  const C_NOT = '        S.alan.appendChild(el("p", "foto-uretim-ayrinti foto-uretim-gorunum-notu", figurGorunumNotu()));\n';
-  const C_VNOT = '  VERI.FIGUR_ORNEK_NOTU = "Örnek görünüm — renkler basılacak figürü göstermez.";\n';
+  const C_SRC = "        if (S.render) img.src = S.render;\n        else simuleGoster(";
+  const C_SIM = "        else simuleGoster(img, S.gorsel, simulasyonRenkleri(), function () { not.textContent = F.FIGUR_ORNEK_NOTU; });\n";
+  const C_NOT = "        S.alan.appendChild(not);\n";
+  const C_GERI = ", function () { not.textContent = F.FIGUR_ORNEK_NOTU; });\n";
+  const C_VNOT = '  VERI.FIGUR_SIMULASYON_TEK = "Önizleme: figürün seçtiğin tek renkle yaklaşık görünümü; " +\n' +
+    '    "basılan figür sadeleştirilmiş hâlidir, tam kopyası değildir.";\n';
   const FR_MUT = [
-    ["M-FR-PALET render/görsel palete indirgenir (eski paletleGoster)", "E", C_SRC,
-     "        paletleGoster(img, S.render || S.gorsel, renkliMi() ? paletRenkleri(S.tur) : [anaRenk()]);\n",
-     ["FR1", "FR3", "FR6", "FR7"]],
-    ["M-FR-RENDER-YOK render adresi yok sayılır (hep sağlayıcı görseli)", "E", C_SRC, "        img.src = S.gorsel;\n",
-     ["FR1", "FR6"]],
-    ["M-FR-CUMLE-YOK görünüm notu basılmaz", "E", C_NOT, "", ["FR2", "FR4", "FR6", "FR7"]],
-    ["M-FR-VERI-CUMLE dürüst cümle boş", "V", C_VNOT, '  VERI.FIGUR_ORNEK_NOTU = "";\n', ["FR0", "FR4", "FR7"]],
+    ["M-FR-RENDER-SIM render kolu simülasyona düşer", "E", C_SRC, "        simuleGoster(", ["FR1", "FR6"]],
+    ["M-FR-SIM-YOK render yokken sağlayıcı görseli AYNEN (simülasyon yok)", "E", C_SIM, "        else img.src = S.gorsel;\n",
+     ["FR3", "FR7", "FR9"]],
+    ["M-FR-CUMLE-YOK görünüm notu basılmaz", "E", C_NOT, "", ["FR2", "FR4", "FR6", "FR7", "FR9"]],
+    ["M-FR-GERI-NOT simülasyon başarısızken cümle değişmez", "E", C_GERI, ");\n", ["FR9"]],
+    ["M-FR-VERI-CUMLE simülasyon cümlesi boş", "V", C_VNOT, '  VERI.FIGUR_SIMULASYON_TEK = "";\n', ["FR0", "FR4", "FR5", "FR7"]],
     ["M-FR-K0 KONTROL (aynı gövde)", "E", C_SRC, C_SRC, []],
   ];
   for (const [ad, hedef, capa, yerine, olmeli] of FR_MUT) {

@@ -2125,10 +2125,12 @@
     S.alan.appendChild(btn);
   }
 
-  /* ④ önizleme görselinin palete indirgenmiş kopyası (F.paleteIndirge; tarayıcıda, kredi 0). Kaynak sunucuda AYNEN.
-     Görsel aynı kökenden gelir (canvas okunabilir); tarayıcı desteklemezse ya da okuma hatasında kaynak gösterilir. */
-  function paletleGoster(img, url, renkler) {
-    if (typeof Image !== "function") { img.src = url; return; }
+  /* ④ 4 RENK SİMÜLASYONU (Okan 11 Eki): ④ görselinin seçilen palete BÖLGE tabanlı sadeleştirilmiş kopyası
+     (F.dortRenkSimule; tarayıcıda, kredi 0). Kaynak sunucuda AYNEN. Görsel aynı kökenden gelir (canvas okunabilir);
+     tarayıcı desteklemezse ya da okuma hatasında kaynak gösterilir ve `geriDus` çağrılır (cümle bunu söyler). */
+  function simuleGoster(img, url, renkler, geriDus) {
+    var kaynak = function () { img.src = url; if (geriDus) geriDus(); };
+    if (typeof Image !== "function") { kaynak(); return; }
     var k = new Image();
     k.onload = function () {
       try {
@@ -2137,20 +2139,20 @@
         var ctx = c.getContext("2d");
         ctx.drawImage(k, 0, 0);
         var d = ctx.getImageData(0, 0, c.width, c.height);
-        if (!F.paleteIndirge(d.data, renkler)) throw new Error("palet");
+        if (!F.dortRenkSimule(d.data, c.width, c.height, renkler)) throw new Error("simulasyon");
         ctx.putImageData(d, 0, 0);
         img.src = c.toDataURL("image/png");
-      } catch (e) { img.src = url; }
+      } catch (e) { kaynak(); }
     };
-    k.onerror = function () { img.src = url; };
+    k.onerror = kaynak;
     k.src = url;
   }
+  function simulasyonRenkleri() { return renkliMi() ? paletRenkleri(S.tur) : [anaRenk()]; }
 
   /* ④ render kolu (sunucu renderKolu ile AYNI): figür türü (insan · pet · model) + anahtarlık–figür çeşidi. */
   function figurKoluMu() { return S.tur === "figur" || (cesitliTur() && seciliCesit() === "figur"); }
   function figurGorunumNotu() {
-    return S.render ? F.FIGUR_RENDER_NOTU :
-      F.FIGUR_ORNEK_NOTU + " " + (renkliMi() ? F.FIGUR_ORNEK_RENKLI : F.FIGUR_ORNEK_TEK);
+    return S.render ? F.FIGUR_RENDER_NOTU : (renkliMi() ? F.FIGUR_SIMULASYON_RENKLI : F.FIGUR_SIMULASYON_TEK);
   }
 
   /* ============== S3 ============== */
@@ -2175,19 +2177,22 @@
 
     if (S.gorsel || (figurKol && S.render)) {
       var img = el("img", "foto-uretim-onizleme-img");
-      img.alt = figurKol ? (S.render ? "Basılacak figürün görüntüsü" : "Örnek görünüm") : "Önizleme";
+      img.alt = figurKol ? (S.render ? "Basılacak figürün görüntüsü" : "Figürün yaklaşık görünümü") : "Önizleme";
       img.width = 300; img.height = 300;
       img.loading = "lazy"; img.decoding = "async";
       if (figurKol) {
-        // ④ FİGÜR KOLU (Okan 11 Eki): palete İNDİRGENMEZ. Render varsa basılacak dosyanın çizimi; yoksa sağlayıcı
-        // görseli AYNEN + dürüst cümle — hangisinin gösterildiği her durumda görselin altında söylenir.
-        img.src = S.render || S.gorsel;
+        // ④ FİGÜR KOLU (Okan 11 Eki): render varsa basılacak dosyanın çizimi AYNEN; yoksa sağlayıcı görselinin 4 renk
+        // simülasyonu — hangisinin gösterildiği her durumda görselin altında söylenir (simülasyon çalışamazsa kaynak
+        // görsel + "renkler basılacak figürü göstermez").
+        var not = el("p", "foto-uretim-ayrinti foto-uretim-gorunum-notu", figurGorunumNotu());
+        if (S.render) img.src = S.render;
+        else simuleGoster(img, S.gorsel, simulasyonRenkleri(), function () { not.textContent = F.FIGUR_ORNEK_NOTU; });
         S.alan.appendChild(img);
-        S.alan.appendChild(el("p", "foto-uretim-ayrinti foto-uretim-gorunum-notu", figurGorunumNotu()));
+        S.alan.appendChild(not);
       } else {
-        // Deterministik kolun görseli üretecin kendi çizimi (üretilen renklerle); diğer kollarda seçilen palete indirgenir.
+        // Deterministik kolun görseli üretecin kendi çizimi (üretilen renklerle); diğer kollarda (plaket) 4 renk simülasyonu.
         if (F.kolu && F.kolu(S.tur) === "deterministik") img.src = S.gorsel;
-        else paletleGoster(img, S.gorsel, renkliMi() ? paletRenkleri(S.tur) : [anaRenk()]);
+        else simuleGoster(img, S.gorsel, simulasyonRenkleri());
         S.alan.appendChild(img);
       }
     }
