@@ -1762,6 +1762,9 @@ G2_SATIR = {
         "form": {"satirlar": "metin", "yazi_tipi": "secim", "hizalama": "secim", "genislik_mm": "sayi",
                  "anahtarlik_kulak_konum": "secim", "kontur_tasma_mm": "sayi"},
         "ornek_render": 1,  # 9 Eki: TeKiN ornegi (anahtarlik-kart-9eki) — K3c'de 0 idi
+        # 11 Eki: anahtarlik–figur cesidinin KENDI render'i (TeKiN; onizleme ayri dosya) — yazi orneginin ARDINDA.
+        "ornek_ek": [("https://media.pruvo3d.com/foto/ornek/anahtarlik-figur-1-render.webp",
+                      "https://media.pruvo3d.com/foto/ornek/anahtarlik-figur-onizleme.webp")],
         # 9 Eki (anahtarlik-foto-kolu): dürüstlük cümlesi ②'de 2× basılıyordu -> render notu AYRI cümle.
         "notu": "Üretim dosyasının görüntüsüdür; yazı, renk ve kulak konumu seçimine göre üretilir.",
         "durust": "Metal halka ve zincir dahil değildir; zincir ya da halka takılan kulakçıklı plastik gövde "
@@ -1865,7 +1868,7 @@ def manifest_vakalari():
     for t_, r_, o_ in m["ornek_render"]:
         ornek.setdefault(t_, []).append((r_, o_))
     eksik = [k for k, x in G2_SATIR.items() if ornek.get(k, []) !=
-             [("https://media.pruvo3d.com/foto/ornek/%s-1-render.webp" % k,) * 2] * x["ornek_render"]]
+             [("https://media.pruvo3d.com/foto/ornek/%s-1-render.webp" % k,) * 2] * x["ornek_render"] + x.get("ornek_ek", [])]
     s["V4"] = (not tarayici and not tarayicili and not kol_yanlis and not eksik,
                "tarayici_onizleyici=%s onizleyicili_tur=%d kol_yanlis=%s render-ornegi-eksik/yanlis=%s" % (
                    "var" if m.get("tarayici_var") else "yok", len(tarayicili), kol_yanlis, eksik))

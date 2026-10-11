@@ -495,9 +495,10 @@ console.log("P) TUR LISTESI — plaket + figur; magnet SUNULMAZ; anahtarlik KAYI
   // render'i): sayilan ornegi 1 -> /acik'te VAR, panel acilis anahtari acilinca gorunur. Magnet
   // icin 5 Eki kurali AYNEN (kayit 0).
   const p1 = () => VERI.turler.some((t) => t.kod === "plaket") && VERI.turler.some((t) => t.kod === "figur") &&
-    VERI.turler.some((t) => t.kod === "anahtarlik") && VERI.ornekSayisi("anahtarlik") === 1 &&
+    // 11 Eki: anahtarlık–figür render kaydı eklendi -> sayılan örnek 2 (yazı + figür çeşidi).
+    VERI.turler.some((t) => t.kod === "anahtarlik") && VERI.ornekSayisi("anahtarlik") === 2 &&
     !VERI.turler.some((t) => t.kod === "magnet");
-  ol("P1 veri dosyasinda plaket + figur + anahtarlik kaydi VAR, anahtarligin sayilan ornegi 1, magnet kaydi 0",
+  ol("P1 veri dosyasinda plaket + figur + anahtarlik kaydi VAR, anahtarligin sayilan ornegi 2 (yazi + figur), magnet kaydi 0",
      p1(), JSON.stringify({ kodlar: VERI.turler.map((t) => t.kod), anahtarlik_ornek: VERI.ornekSayisi("anahtarlik") }));
   const m = await ornekSartiKapali(async () => p1());
   ol("P1-M ornek sarti kapali (anahtarlik ornegi sayilmaz) -> P1 KIRMIZI", m.uygulandi && m.sonuc === false, JSON.stringify(m));
@@ -1784,9 +1785,9 @@ async function ahSenaryo(V, kaynak) {
     // VO5: figür çeşidi tavanı köprüden türeyen kol tavanı (foto_kolu.olcu_en_cok) — bugün 291.
     const fk = (V.turBul("anahtarlik") || {}).foto_kolu || {};
     s.VO5 = ck.olcu_en_cok === fk.olcu_en_cok && ck.olcu_en_cok === KULAK_TAVAN;
-    // VO6: ④ "Örnek" çeşide göre — yazı çeşidinde yazı örneği 1, figür çeşidinde (örneği yok) 0.
+    // VO6: ④ "Örnek" çeşide göre — yazı çeşidinde yazı örneği 1, figür çeşidinde (11 Eki render kaydı) figür örneği 1.
     s.VO6 = JSON.stringify(iz.ist.ornekYazi) === '["https://media.pruvo3d.com/foto/ornek/anahtarlik-1-render.webp"]' &&
-      iz.ist.ornekFigur.length === 0;
+      JSON.stringify(iz.ist.ornekFigur) === '["https://media.pruvo3d.com/foto/ornek/anahtarlik-figur-1-render.webp"]';
     // VO7 (renk = palet dilimi, BaBa 16:0x 2a): Renkli çeşit başına (yazı: fotoğrafsız -> YOK · figür: köprü kolu
     // renk_modu tek|palet -> VAR · figür türü: var) + figür anahtarlık ③ cümlesi Renkli'yi ANAR.
     iz.renkli = { yazi: V.renkliSecilebilir("anahtarlik", "yazi"), figur: V.renkliSecilebilir("anahtarlik", "figur"),
@@ -1816,7 +1817,7 @@ console.log("AH) ANAHTARLIK OLCU 30–300 (kopru 300), ACILIS 60 (Okan 10 Eki 15
   ol("VB2 sunucu figur cesidi 30/60/290 kabul; 29 (kopru kol tabani 30 alti) ve 295/300 (tavan 291 ustu) -> 400 gecersiz-olcu, saglayici 0", s.VB2,
      JSON.stringify([s.iz.f29, s.iz.f30, s.iz.f60, s.iz.f70, s.iz.f75, s.iz.f80, s.iz.proto]));
   ol("VO5 figur cesidi tavani = kopruden tureyen foto_kolu.olcu_en_cok (291)", s.VO5, String(s.iz.tavan));
-  ol("VO6 ④ Ornek cesside gore: yazi cesidinde yazi ornegi 1, figur cesidinde 0", s.VO6,
+  ol("VO6 ④ Ornek cesside gore: yazi cesidinde yazi ornegi 1, figur cesidinde figur ornegi 1", s.VO6,
      JSON.stringify([s.iz.ist.ornekYazi, s.iz.ist.ornekFigur]));
   ol("VO7 Renkli cesit basina (yazi yok · figur VAR [kopru renk_modu palet] · figur turu var) + figur anahtarlik ③ cumlesi Renkli'yi anar",
      s.VO7, JSON.stringify([s.iz.renkli, s.iz.ist.pencere3]));
@@ -2057,7 +2058,7 @@ console.log("ES) EKRAN — ① kart: render 'Örnek görsel (bilgisayar çizimi)
      'S.ornekNotP.textContent = "";', ["ORNEK_NOTU"]],
     ["ES-M3 render sarti kalkti (render cumlesi baskiya yazilir)", 'S.ornekNotP.textContent = it && it.kanit === "render" ? it.tur.ornek_notu || "" : "";',
      'S.ornekNotP.textContent = it ? it.tur.ornek_notu || "" : "";', ["BASKI_NOTU"]],
-    ["ES-MK KONTROL (yorum)", "  function kartOrnegi(t, cesit) {", "  // kontrol\n  function kartOrnegi(t, cesit) {", []],
+    ["ES-MK KONTROL (yorum)", "  function kartOrnegi(t, cesit, alt) {", "  // kontrol\n  function kartOrnegi(t, cesit, alt) {", []],
   ];
   for (const [ad, capa, yerine, olmeli] of ES_MUT) {
     if (EKRAN_KAYNAK.split(capa).length - 1 !== 1) { ol(ad + " capa bulundu", false, capa); continue; }
@@ -4422,9 +4423,8 @@ console.log("TA3) TUR-A3 503 kapali BİLDİRİMİ — iki önizleme işleyicisi"
 //     (değişkenin kendisi, metin kopyası değil). Kaynakta "Yarın yeniden deneyebilirsin" / "Bugünkü önizleme" 0.
 // (b) s1Sebep() sira dizisi ekran sırasına: foto · yazı · onay · doğrulama · hak · program (not 12:5x ile kalktı).
 //     S1_SEBEP METİNLERİ + koşul ifadeleri aynen; yalnız SIRA.
-// (c) KARTLAR.insan = { ornek: false } → ornekCiz bu kartta görsel yerine dürüst yer tutucu çizer
-//     (img.src="" + "Örnek yakında" etiketi); kart AKTİF ve tıklanabilir kalır (disabled DEĞİL, gizleme YOK).
-//     hayvan_model kartı aynı türün (figur) GERÇEK örneğini gösterir (img.src=figur-1-render.webp).
+// (c) 11 Eki (TeKiN insan render'ı): KARTLAR.insan `ornek:false` KALKTI; kart KENDİ alt türünün örneğini gösterir
+//     (insan-1-render.webp), pet kartı kedi örneğini (figur-1-render.webp) — alt-duyarlı kartOrnegi. Kart AKTİF.
 const A4_ORNEK_YAKINDA = "Örnek yakında";
 async function a4Kartlar(kaynak) {
   const V = veriYukle(VERI_KAYNAK);
@@ -4459,17 +4459,17 @@ async function a4Senaryolar(kaynak) {
   iz.r6 = r6; s.V6 = r6.kapali && r6.sebep === SEBEP.hak;
   // V7 429 onizleme-siniri yanıtı sonrası ekranda SEBEP.hak metni (adimKoy("S1", S1_SEBEP.hak, true)).
   s.V7 = r6.durum === SEBEP.hak;
-  // V8 insan kartı: img.src ≠ hayvan_model img.src (insan figur örneğini KULLANMAZ), insan kartı not disabled,
-  // insan kartında "Örnek yakında" etiketi var. hayvan_model kartı figur-1-render.webp gösterir.
+  // V8 insan kartı: KENDİ render'ı (insan-1-render.webp; pet'in kedi örneği DEĞİL), not disabled, "Örnek yakında" YOK.
+  // pet kartı figur-1-render.webp gösterir.
   const kk = await a4Kartlar(kaynak);
   iz.kart = kk;
   // Sahte DOM'da img.src bir öznitelik DEĞİL property (Oge.setAttribute çağrısı yok); doğrudan property okunur.
   // disabled da property — atanmamışsa undefined; === false yerine !== true (DEVRE DIŞI yapılmamış) kullanılır.
   const insanSrc = kk.insanImg ? kk.insanImg.src : null;
   const hayvanSrc = kk.hayvanImg ? kk.hayvanImg.src : null;
-  // ArTisT 8. okuma: insan kartında img HİÇ yok (boş src kırık simge çizer); hayvan kartı gerçek görseli taşır.
-  s.V8 = !!kk.insan && !!kk.hayvan && insanSrc === null && typeof hayvanSrc === "string" && hayvanSrc !== "" &&
-    kk.insan.disabled !== true && kk.insan.textContent.indexOf(A4_ORNEK_YAKINDA) >= 0;
+  s.V8 = !!kk.insan && !!kk.hayvan && insanSrc === "https://media.pruvo3d.com/foto/ornek/insan-1-render.webp" &&
+    hayvanSrc === "https://media.pruvo3d.com/foto/ornek/figur-1-render.webp" &&
+    kk.insan.disabled !== true && kk.insan.textContent.indexOf(A4_ORNEK_YAKINDA) < 0;
   Object.defineProperty(s, "iz", { value: iz, enumerable: false });
   return s;
 }
@@ -4483,7 +4483,7 @@ console.log("TA4) TUR-A4 sebep sırası + 429 tek kaynak + insan kartı dürüst
   ol("A4 V5 hepsi tamam + onay yok -> onay cümlesi", s.V5, JSON.stringify(s.iz.r5));
   ol("A4 V6 kalanHak 0 -> hak cümlesi (429 sonrası)", s.V6, JSON.stringify(s.iz.r6));
   ol("A4 V7 429 onizleme-siniri -> ekranda SEBEP.hak (adimKoy S1_SEBEP.hak)", s.V7, JSON.stringify(s.iz.r6 && s.iz.r6.durum));
-  ol("A4 V8 insan kartı img.src ≠ hayvan_model, not disabled, \"Örnek yakında\" var", s.V8,
+  ol("A4 V8 insan kartı insan-1-render (pet = figur-1-render), not disabled, \"Örnek yakında\" yok", s.V8,
      JSON.stringify({ insan: !!(s.iz.kart && s.iz.kart.insan), insanSrc: s.iz.kart && s.iz.kart.insanImg && s.iz.kart.insanImg.src,
        hayvanSrc: s.iz.kart && s.iz.kart.hayvanImg && s.iz.kart.hayvanImg.src,
        insanDisabled: s.iz.kart && s.iz.kart.insan && s.iz.kart.insan.disabled,
@@ -4494,11 +4494,10 @@ console.log("TA4) TUR-A4 sebep sırası + 429 tek kaynak + insan kartı dürüst
      "      [fotoGerekir() && !S.dosya, S1_SEBEP.foto],\n",
      "      [fotoGerekir() && !((S.uretimNotu || \"\").trim()), \"Önce \\\"Nasıl olsun?\\\" kısmına kısa bir not yaz.\"],\n      [fotoGerekir() && !S.dosya, S1_SEBEP.foto],\n",
      ["V1", "V2"]],
-    // M2: insan kartı ornek:false kaldırıldı → insan kart figur örneğini gösterir (img.src=figur-1-render.webp ==
-    // hayvan_model img.src), V8 KIRMIZI.
-    ["M2 insan kartı ornek:false kaldırıldı",
-     "{ kod: \"insan\", tur: \"figur\", alt: \"insan\", ad: \"İnsan figürü (ayakta)\", ornek: false,",
-     "{ kod: \"insan\", tur: \"figur\", alt: \"insan\", ad: \"İnsan figürü (ayakta)\",",
+    // M2: kartOrnegi alt koşulu silindi → insan kartına türün İLK figür örneği (kedi, figur-1) düşer, V8 KIRMIZI.
+    ["M2 kartOrnegi alt koşulu silindi",
+     "(!alt || o.alt === alt) && ",
+     "",
      ["V8"]],
     ["A4-K0 KONTROL (yorum)", "  function s1Sebep() {", "  // kontrol\n  function s1Sebep() {", []],
   ];
@@ -5386,11 +5385,11 @@ const C2_PLAKET = "Önizleme fotoğrafının stilize bir yorumudur; basılmış 
 const C2_ESKI = "Önizleme ve üretim dosyasının görüntüsüdür;";
 const C2_OLCU = "Anahtarlığın kulakçık dahil en uzun boyutudur; fiyat bu ölçüye göre canlı hesaplanır.";
 // VM4 beklenen ① kart listesi — 6 MODEL (Okan 10 Eki, sıra + kod): [data-kart, görsel dosyası | null, "Örnek yakında"].
-// Kart başına yalnız KENDİ örneği: pet = bugünkü hayvan örneği (figur-1-render), insan/model/anahtarlık figür örneği yok
-// -> "Örnek yakında". Büst/yapboz /acik'te olsa da kart 0.
-const C2_KARTLAR = JSON.stringify([["anahtarlik_yazi", "anahtarlik-1-render.webp", false], ["insan", null, true],
+// Kart başına yalnız KENDİ örneği (11 Eki: TeKiN 3 render'ı; alt-duyarlı kartOrnegi): 6/6 kartta görsel,
+// "Örnek yakında" 0. Büst/yapboz /acik'te olsa da kart 0.
+const C2_KARTLAR = JSON.stringify([["anahtarlik_yazi", "anahtarlik-1-render.webp", false], ["insan", "insan-1-render.webp", false],
   ["pet", "figur-1-render.webp", false], ["plaket", "plaket-1-render.webp", false],
-  ["anahtarlik_figur", null, true], ["model", null, true]]);
+  ["anahtarlik_figur", "anahtarlik-figur-1-render.webp", false], ["model", "model-1-render.webp", false]]);
 async function c2Senaryo(ekranKaynak, veriKaynak) {
   const s = {}, iz = {};
   const kod6 = ["plaket", "figur", "yapboz", "bust", "anahtarlik"];
@@ -5432,7 +5431,7 @@ console.log("C2) ② TEK dürüstlük cümlesi (figür + plaket) + anahtarlık �
   ol("VM2 plaket ② dürüstlük cümlesi TEK (ArTisT), eski ikinci cümle 0", s.VM2, JSON.stringify(s.iz.plaket));
   ol("VM3 anahtarlık ③ 'Ölçü: kulakçık dahil' cümlesi yazı + figür çeşidinde 1×", s.VM3,
      JSON.stringify([s.iz.olcuYazi, s.iz.olcuFigur]));
-  ol("VM4 ① 6 kart + görselleri (insan/model/anahtarlık figür 'Örnek yakında', pet figur-1-render, büst/yapboz 0)", s.VM4,
+  ol("VM4 ① 6 kart + görselleri (6/6 kendi render'ı, 'Örnek yakında' 0, büst/yapboz 0)", s.VM4,
      s.iz.kartlar);
   const C2_MUT = [
     ["VM-M1 eski ikinci cümle geri (figür ornek_notu)", "veri", 'küçük ayrıntılar sadeleşir).",\n        ornek_notu: ""',
@@ -5453,6 +5452,80 @@ console.log("C2) ② TEK dürüstlük cümlesi (figür + plaket) + anahtarlık �
       : await c2Senaryo(EKRAN_KAYNAK.replace(capa, yerine), VERI_KAYNAK);
     const kir = Object.keys(m).filter((x) => m[x] !== true).sort();
     ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli), JSON.stringify(kir));
+  }
+}
+
+// ================================================================ FK — FOTO KART GÖRSELLERİ (11 Eki, BaBa 02:03 hüküm 2)
+// ArTisT 13. okuma BULGU 2: insan · model · anahtarlık–figür kartları boş kutu. TeKiN 3 render'ı (R2, sha kutuda) kartlara
+// bağlandı; kartOrnegi ALT türü ayırır (insan kartına kedi düşmez). Beklenen dosya adları BAĞIMSIZ yazılır.
+const FK_BEKLENEN = { anahtarlik_yazi: "anahtarlik-1-render.webp", insan: "insan-1-render.webp", pet: "figur-1-render.webp",
+  model: "model-1-render.webp", anahtarlik_figur: "anahtarlik-figur-1-render.webp" };
+async function fkSenaryo(ekranKaynak, veriKaynak) {
+  const s = {}, iz = {};
+  const V = veriYukle(veriKaynak);
+  const e = await ekranKos(ekranKaynak, V, acikGercek(V, ["plaket", "figur", "yapboz", "bust", "anahtarlik"]));
+  const kart = {};
+  for (const k of [...e.bolum.agac()].filter((n) => n.classList.contains("foto-uretim-kart"))) {
+    const img = [...k.agac()].find((n) => n.tagName === "IMG");
+    kart[k.getAttribute("data-kart")] = { src: img && img.src ? img.src.split("/").pop() : null,
+      yer: [...k.agac()].some((n) => n.classList && n.classList.contains("foto-uretim-kart-yer")) };
+  }
+  iz.kart = kart;
+  const dogru = (kod) => !!kart[kod] && kart[kod].src === FK_BEKLENEN[kod] && kart[kod].yer === false;
+  s.FK_INSAN = dogru("insan");
+  s.FK_PET = dogru("pet");
+  s.FK_MODEL = dogru("model");
+  s.FK_AN_FIGUR = dogru("anahtarlik_figur");
+  s.FK_AN_YAZI = dogru("anahtarlik_yazi");
+  // FK_FAIL: `alt` bilinmeyen değer / modelsiz türde / metin değil -> SAYILMAZ; alan yok -> sayılır (türü açar).
+  const r = { kanit: "render", onizleme: "https://media.pruvo3d.com/x.webp", render: "https://media.pruvo3d.com/x.webp" };
+  iz.fail = { robot: V.ornekGecerli(Object.assign({ tur: "figur", alt: "robot" }, r)),
+    bos: V.ornekGecerli(Object.assign({ tur: "figur", alt: "" }, r)),
+    nul: V.ornekGecerli(Object.assign({ tur: "figur", alt: null }, r)),
+    proto: V.ornekGecerli(Object.assign({ tur: "figur", alt: "toString" }, r)),
+    modelsiz: V.ornekGecerli(Object.assign({ tur: "anahtarlik", cesit: "figur", alt: "pet" }, r)),
+    yok: V.ornekGecerli(Object.assign({ tur: "figur" }, r)), insan: V.ornekGecerli(Object.assign({ tur: "figur", alt: "insan" }, r)) };
+  s.FK_FAIL = iz.fail.robot === false && iz.fail.bos === false && iz.fail.nul === false && iz.fail.proto === false &&
+    iz.fail.modelsiz === false && iz.fail.yok === true && iz.fail.insan === true;
+  // FK_SAYI: sunucunun tür sayımı (ornekSayisi; /acik + turHazir bunu okur) — figur 3 · anahtarlik 2 · plaket 1; alt alanı
+  // kayıtlardan silinse figur sayımı AYNI (geçerli alt sayımı DEĞİŞTİRMEZ, yalnız kart eşleştirmesini).
+  const Valtsiz = veriYukle(veriKaynak.replace(/\n {8}alt: "(?:pet|insan|model)",/g, ""));
+  iz.sayi = { figur: V.ornekSayisi("figur"), anahtarlik: V.ornekSayisi("anahtarlik"), plaket: V.ornekSayisi("plaket"),
+    figur_altsiz: Valtsiz.ornekSayisi("figur") };
+  s.FK_SAYI = iz.sayi.figur === 3 && iz.sayi.anahtarlik === 2 && iz.sayi.plaket === 1 && iz.sayi.figur_altsiz === 3;
+  Object.defineProperty(s, "iz", { value: iz, enumerable: false });
+  return s;
+}
+console.log("FK) FOTO KART GÖRSELLERİ — alt-duyarlı örnek eşleştirme (insan/pet/model/anahtarlık figür/yazı) + alt fail-closed");
+{
+  const s = await fkSenaryo(EKRAN_KAYNAK, VERI_KAYNAK);
+  ol("FK_INSAN insan kartı -> insan-1-render (kedi DEĞİL), yer tutucu 0", s.FK_INSAN, JSON.stringify(s.iz.kart.insan));
+  ol("FK_PET pet kartı -> kedi örneği figur-1-render", s.FK_PET, JSON.stringify(s.iz.kart.pet));
+  ol("FK_MODEL model kartı -> model-1-render", s.FK_MODEL, JSON.stringify(s.iz.kart.model));
+  ol("FK_AN_FIGUR anahtarlık–figür kartı -> anahtarlik-figur-1-render", s.FK_AN_FIGUR, JSON.stringify(s.iz.kart.anahtarlik_figur));
+  ol("FK_AN_YAZI anahtarlık–yazı kartı -> mevcut yazı örneği anahtarlik-1-render", s.FK_AN_YAZI, JSON.stringify(s.iz.kart.anahtarlik_yazi));
+  ol("FK_FAIL ornekGecerli alt: robot/''/null/toString/modelsiz tür -> SAYILMAZ; alan yok + insan -> sayılır", s.FK_FAIL, JSON.stringify(s.iz.fail));
+  ol("FK_SAYI sunucu tür sayımı figur 3 · anahtarlik 2 · plaket 1; alt alanları silinse figur yine 3", s.FK_SAYI, JSON.stringify(s.iz.sayi));
+  const FK_MUT = [
+    ["FKM1 kartOrnegi alt koşulu silindi", "ekran", "(!alt || o.alt === alt) && ", "", ["FK_INSAN", "FK_MODEL"]],
+    ["FKM2 kart alt türü kartOrnegi'ne geçmez", "ekran", "      var o = kartOrnegi(t, k.cesit, k.alt);\n",
+     "      var o = kartOrnegi(t, k.cesit);\n", ["FK_INSAN", "FK_MODEL"]],
+    ["FKM3 kedi kaydının alt:\"pet\" alanı silindi", "veri", '        alt: "pet",\n', "", ["FK_PET"]],
+    ["FKM4 ornekGecerli alt kontrolü silindi", "veri",
+     "    if (o.alt !== undefined && !(t && t.olcu_modelleri && typeof o.alt === \"string\" &&\n",
+     "    if (false && !(t && t.olcu_modelleri && typeof o.alt === \"string\" &&\n", ["FK_FAIL"]],
+    ["FKM5 ornekGecerli alt kontrolü hasOwnProperty yerine `in`", "veri",
+     "        Object.prototype.hasOwnProperty.call(t.olcu_modelleri, o.alt))) { return false; }\n",
+     "        (o.alt in t.olcu_modelleri))) { return false; }\n", ["FK_FAIL"]],
+    ["FK-MK KONTROL (yorum)", "ekran", "  function kartOrnegi(t, cesit, alt) {", "  // kontrol\n  function kartOrnegi(t, cesit, alt) {", []],
+  ];
+  for (const [ad, hedef, capa, yerine, olmeli] of FK_MUT) {
+    const kaynak = hedef === "veri" ? VERI_KAYNAK : EKRAN_KAYNAK;
+    if (kaynak.split(capa).length - 1 !== 1) { ol(ad + " capa bulundu", false, capa); continue; }
+    const m = hedef === "veri" ? await fkSenaryo(EKRAN_KAYNAK, VERI_KAYNAK.replace(capa, yerine))
+      : await fkSenaryo(EKRAN_KAYNAK.replace(capa, yerine), VERI_KAYNAK);
+    const kir = Object.keys(m).filter((x) => m[x] !== true).sort();
+    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(kir));
   }
 }
 
