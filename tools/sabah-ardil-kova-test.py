@@ -44,6 +44,18 @@ koşumun commit'inin ATASIYSA (`ata_mi`, gerçekte `git merge-base --is-ancestor
   M10 MUTANT git hata=ata (None yerine True)     -> V23 KIRMIZI
   M11 MUTANT bugunun_kirmizilari ata_mi'yi geçirmez -> V25 KIRMIZI
 
+K435 (11 Eki 2026, KraL-Tamirci-11Eki) — spec üretildiği anda main'in ardıl SERIT B koşumları
+KOŞUYORDU; `cancelled` kırmızı "CANLI: ardıl hüküm YOK" bastı ve Tamirci sahte iş aradı
+(9/10/11 Eki: 3 gün, 3/3). Sayı DEĞİŞMEZ (V8 sözleşmesi: görünür yön); satır "ARDIL SÜRÜYOR:
+run <id> <durum> @<sha> — hükmü bekle" der, başlık `ARDIL_SURUYOR=N` taşır:
+  V26 hükümlü ardıl yok + aynı iş akışı/dal'da in_progress|pending ardıl -> etiket, CANLI AYNI
+  V27 başka iş akışı · başka dal · kırmızıdan ÖNCE · tamamlanmış cancelled -> etiket YOK
+  V28 hükümlü failure ardıl VARKEN etiket YOK; o failure'ın koşan ardılı varsa onda VAR
+  V29 bugunun_kirmizilari uçtan uca (fake gh) -> `ARDIL_SURUYOR=1` / kontrol `=0`
+  M12 MUTANT koşan/tamam ayrımı düşer           -> V27 KIRMIZI
+  M13 MUTANT etiket kapsamı `ardil is None`ten genişler -> V28 KIRMIZI
+  M14 MUTANT başlık sayacı 0'a sabitlenir       -> V29 KIRMIZI
+
 Koşum: python3 tools/sabah-ardil-kova-test.py   (rc=0 = hepsi beklenen)
 """
 
@@ -83,6 +95,15 @@ MUTANTLAR = {
             "    if r.returncode == 1:\n        return False\n    return True  # MUTANT\n", "V23"),
     "M11": ("kirmizi_siniflandir(data, bugun, ata_mi_git)\n",
             "kirmizi_siniflandir(data, bugun)  # MUTANT\n", "V25"),
+    # 11 Eki — K435: ardıl SÜRÜYOR etiketi
+    "M12": ("        if tamam == suruyor:\n",
+            "        if False:  # MUTANT\n", "V27"),
+    "M13": ("                bekleyen = (ardil_hukum(data, run, ata_mi, suruyor=True)\n"
+            "                            if ardil is None else None)\n",
+            "                bekleyen = ardil_hukum(data, run, ata_mi, suruyor=True)  # MUTANT\n",
+            "V28"),
+    "M14": ('            suruyor_n = len([x for x in kirmizi if "ARDIL SÜRÜYOR" in x])\n',
+            "            suruyor_n = 0  # MUTANT\n", "V29"),
 }
 
 
@@ -220,6 +241,48 @@ def vakalar(mod, gun=GUN):
     r, _, c, kp = sa([kk(SB, "02:00:00", "success", "bbbbbbbb", 2, dal="kral/y"),
                       kk(SB, "01:00:00", "failure", "aaaaaaaa", 1, dal="main")], EVET)
     sonuc["V24"] = (c == 1 and kp == 0, r)
+
+    # --- K435 (11 Eki): ardıl SÜRÜYOR etiketi — SAYI değişmez, satır "hükmü bekle" der ----
+    ETIKET = "ARDIL SÜRÜYOR"
+    # V26: hükümlü ardıl YOK + aynı iş akışı/dal'da KOŞAN (in_progress | pending) ardıl VAR
+    # -> CANLI sayısı AYNI (görünür yön), satır koşan ardılın run/durum/sha'sını taşır.
+    r, _, c, kp = s([kk(SB, "02:00:00", None, "bbbbbbbb", 2, durum="in_progress"),
+                     kk(SB, "01:00:00", "cancelled", "aaaaaaaa", 1)])
+    r2, _, c2, kp2 = s([kk(SB, "02:00:00", None, "bbbbbbbb", 2, durum="pending"),
+                        kk(SB, "01:00:00", "failure", "aaaaaaaa", 1)])
+    sonuc["V26"] = (c == 1 and kp == 0 and "CANLI: ardıl hüküm YOK" in r[0]
+                    and "ARDIL SÜRÜYOR: run 2 in_progress @`bbbbbbbb`" in r[0]
+                    and "ŞİMDİ TAMİR ETME" in r[0]
+                    and c2 == 1 and kp2 == 0
+                    and "ARDIL SÜRÜYOR: run 2 pending @`bbbbbbbb`" in r2[0], (r, r2))
+    # V27: koşan ardıl SAYILMAZ — başka iş akışı · başka dal · kırmızıdan ÖNCE açılmış ·
+    # koşan DEĞİL tamamlanmış `cancelled` (hüküm değil ama sürmüyor da) -> etiket YOK.
+    olumsuz = {
+        "ad": [kk(BD, "02:00:00", None, "bbbbbbbb", 2, durum="in_progress"),
+               kk(SB, "01:00:00", "failure", "aaaaaaaa", 1)],
+        "dal": [kk(SB, "02:00:00", None, "bbbbbbbb", 2, dal="yan-dal", durum="in_progress"),
+                kk(SB, "01:00:00", "failure", "aaaaaaaa", 1)],
+        "zaman": [kk(SB, "00:30:00", None, "bbbbbbbb", 2, durum="in_progress"),
+                  kk(SB, "01:00:00", "failure", "aaaaaaaa", 1)],
+        "iptal": [kk(SB, "02:00:00", "cancelled", "bbbbbbbb", 2),
+                  kk(SB, "01:00:00", "failure", "aaaaaaaa", 1)],
+    }
+    v27 = {}
+    for ad_, veri_ in olumsuz.items():
+        rr, _, cc, _kp = s(veri_)
+        satir_ = [x for x in rr if "run 1 " in x]
+        v27[ad_] = bool(satir_) and ETIKET not in satir_[0] and cc >= 1
+    sonuc["V27"] = (all(v27.values()), v27)
+    # V28: hükümlü (failure) ardıl VARKEN etiket YOK (kapsam daraltması: görünür yön) —
+    # ama o failure'ın KENDİSİ için koşan ardıl varsa onun satırında etiket VAR.
+    r, _, c, kp = s([kk(SB, "03:00:00", None, "cccccccc", 3, durum="in_progress"),
+                     kk(SB, "02:00:00", "failure", "bbbbbbbb", 2),
+                     kk(SB, "01:00:00", "failure", "aaaaaaaa", 1)])
+    s1 = [x for x in r if "run 1 " in x]
+    s2 = [x for x in r if "run 2 " in x]
+    sonuc["V28"] = (c == 2 and bool(s1) and ETIKET not in s1[0]
+                    and "CANLI: ardılı `bbbbbbbb` failure" in s1[0]
+                    and bool(s2) and "ARDIL SÜRÜYOR: run 3 in_progress" in s2[0], r)
     return sonuc
 
 
@@ -276,6 +339,42 @@ def v25_ata_uctan_uca(mod):
     ok = (hukum == "OK" and adet == 1 and "**CANLI=0**" in blok and "ARDILI_YESIL=1" in blok
           and "dal main'e katıldı" in blok)
     return ok, (hukum, adet, blok[:200])
+
+
+def _fake_gh_blok(mod, data):
+    """bugunun_kirmizilari'yi fake gh + sahte ata ile koşar (ağ YOK) -> (hukum, blok, adet)."""
+    import json
+    with tempfile.TemporaryDirectory() as td:
+        sahte = os.path.join(td, "gh")
+        with open(sahte, "w", encoding="utf-8") as f:
+            f.write("#!%s\nimport sys\nsys.stdout.write(%r)\n" % (sys.executable, json.dumps(data)))
+        os.chmod(sahte, 0o700)
+        eski = (mod.gh_yolu, mod._repo_slug, mod.REPO, mod.ata_mi_git)
+        mod.gh_yolu = lambda: (sahte, "test")
+        mod._repo_slug = lambda: None
+        mod.REPO = type(mod.REPO)(td)
+        mod.ata_mi_git = lambda a, b: False
+        try:
+            hukum, blok, adet, _ = mod.bugunun_kirmizilari()
+        finally:
+            mod.gh_yolu, mod._repo_slug, mod.REPO, mod.ata_mi_git = eski
+    return hukum, blok, adet
+
+
+def v29_ardil_suruyor_uctan_uca(mod):
+    """K435 (11 Eki): başlık `ARDIL_SURUYOR=N` taşır; CANLI ve ADET anlamı DEĞİŞMEZ.
+    Koşan ardıllı kırmızı -> CANLI=1 ∧ ARDIL_SURUYOR=1; ardılsız kırmızı -> ARDIL_SURUYOR=0."""
+    bugun = dt.datetime.now(dt.timezone.utc).date()
+    bekleyen = [k(SB, "00:00:02", None, "bbbbbbbb", 2, gun=bugun, durum="in_progress"),
+                k(SB, "00:00:01", "cancelled", "aaaaaaaa", 1, gun=bugun)]
+    kontrol = [k(SB, "00:00:01", "failure", "aaaaaaaa", 1, gun=bugun)]
+    hk1, blok1, adet1 = _fake_gh_blok(mod, bekleyen)
+    hk0, blok0, adet0 = _fake_gh_blok(mod, kontrol)
+    ok = (hk1 == "OK" and adet1 == 1 and "**CANLI=1**" in blok1
+          and "ARDIL_SURUYOR=1" in blok1 and "ARDIL SÜRÜYOR: run 2 in_progress" in blok1
+          and hk0 == "OK" and adet0 == 1 and "**CANLI=1**" in blok0
+          and "ARDIL_SURUYOR=0" in blok0 and "ARDIL SÜRÜYOR:" not in blok0)
+    return ok, (hk1, adet1, blok1[:260], hk0, adet0, blok0[:200])
 
 
 def v10_uctan_uca(mod):
@@ -345,6 +444,9 @@ def main():
     ok, kanit = v25_ata_uctan_uca(mod)
     print("%s V25 %s" % ("YESIL " if ok else "KIRMIZI", "" if ok else kanit))
     kirmizi += 0 if ok else 1
+    ok, kanit = v29_ardil_suruyor_uctan_uca(mod)
+    print("%s V29 %s" % ("YESIL " if ok else "KIRMIZI", "" if ok else kanit))
+    kirmizi += 0 if ok else 1
 
     with open(KAYNAK, encoding="utf-8") as f:
         govde = f.read()
@@ -362,6 +464,7 @@ def main():
             sonuc = vakalar(mm)
             sonuc["V15"] = v15_devreden_uctan_uca(mm)
             sonuc["V25"] = v25_ata_uctan_uca(mm)
+            sonuc["V29"] = v29_ardil_suruyor_uctan_uca(mm)
         hedef_dustu = not sonuc[hedef][0]
         kontrol = sonuc["V2"][0]
         ok = hedef_dustu and kontrol
@@ -370,7 +473,7 @@ def main():
             "YESIL " if ok else "KIRMIZI", mad, hedef, int(hedef_dustu), int(kontrol)))
         kirmizi += 0 if ok else 1
 
-    print("SABAH_ARDIL_KOVA VAKA=25 MUTANT_OLDU=%d/%d KIRMIZI=%d rc=%d" % (
+    print("SABAH_ARDIL_KOVA VAKA=29 MUTANT_OLDU=%d/%d KIRMIZI=%d rc=%d" % (
         oldu, len(MUTANTLAR), kirmizi, 1 if kirmizi else 0))
     return 1 if kirmizi else 0
 
