@@ -3045,6 +3045,20 @@ IZIN_LISTESI = {
         "BIREBIR gorulur). MUAFIYETIN OLUM SARTI: `~/.claude/cron` bir gun "
         "depoya/CI'ya tasinirsa bu satir SILINIR ve kapi serit-b'ye baglanir."
     ),
+    # 10 EKI 2026 — CLAUDE-API MOTORU (tarif-rutin-api §1)
+    "tools/claude-api-motor-test.py": (
+        "OLCTUGU GOVDE CI KOSUCUSUNDA YOK: `~/.claude/cron/isci.sh` + "
+        "`isci-motor-uc.zsh`'in `claude-api` kolunu (anahtar dosyasi izin 600 + "
+        "sahip, gun 5 $ / ay 150 $ tavani, Haiku/Sonnet secimi, anahtarin argv/"
+        "log'a sizmamasi) olcer; o hat Okan'in MAKINESINDEDIR, depoya girmez, CI "
+        "klonunda dizin dahi yoktur. CI'ya baglansaydi ya SAHTE YESIL ya da tum "
+        "yayini durduran yanlis-pozitif kirmizi olurdu (motor-yok-kapisi-test "
+        "emsali). Betik bu hali KENDISI olcer: hat yoksa `ONKOSUL_YOK` + "
+        "`KABUL=OLCULEMEDI`, rc=3. HUKMU ELLE OKUNUR: yerelde `python3 "
+        "tools/claude-api-motor-test.py` -> `KABUL=GECTI (9/9 vaka, 3/3 mutant "
+        "oldu)`; ag YOK (127.0.0.1 fikstur), gercek anahtar OKUNMAZ. MUAFIYETIN "
+        "OLUM SARTI: `~/.claude/cron` depoya/CI'ya tasinirsa bu satir SILINIR."
+    ),
     # ═══════════════════════════════════════════════════════════════════════
     # CLAUDE.md ZORUNLU KAPI KURTARMASI — CI'DA KOSTURULAMAYAN 2 KALEM
     # (cip KraL-SupurmeKurtarma-30Agu; Okan 30 Agu hukmu)

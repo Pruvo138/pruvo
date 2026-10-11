@@ -20,7 +20,13 @@ import os
 #       ([[yeni-kol-onceki-kolun-golgesinde-olur]]).
 #   (2) 4 Eyl'deki gercek kimi kosumunun kimligi geriye donuk KAYBOLURDU.
 # Yeni is akisi zaten `isci.sh` GECERLI_MOTORLAR'dan cikarilarak KAPATILDI.
-ISCI_MOTORLARI = ("minimax-m3", "kimi", "deepseek-pro", "deepseek-flash", "claude")
+#
+# 10 Eki 2026 (tarif-rutin-api §1): `claude-api` = Console API kredisiyle kosan
+# Claude ucu (Haiku varsayilan, gun 5 $ · ay 150 $ tavan; isci-motor-uc.zsh).
+# CANLI kat DEGIL (dagitim kumesine girmez), EMEKLI de DEGIL. Olcer:
+# tools/claude-api-motor-test.py.
+ISCI_MOTORLARI = ("minimax-m3", "kimi", "deepseek-pro", "deepseek-flash", "claude",
+                  "claude-api")
 
 # 🔴 YENI IS BU KUMEYE GONDERILIR. Sira ANLAMLIDIR: [0] birincil.
 #
