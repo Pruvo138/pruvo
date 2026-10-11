@@ -1109,8 +1109,15 @@
     return adlar.filter(function (a) { return say[a] && say[a] / top >= 0.02; })
       .sort(function (a, b) { return say[b] - say[a] || adlar.indexOf(a) - adlar.indexOf(b); }).slice(0, n);
   };
-  // ④ ÖNİZLEME PALETE İNDİRGENİR: ④'te gösterilen görsel ③'te seçilen palete deterministik indirgenir — müşteri
-  // ne görürse onu alır (tarayıcıda, kredi 0; kaynak görsel sunucuda AYNEN, üretime giden görsel değişmez).
+  // ④ FİGÜR KOLU (Okan 11 Eki "bu 4 renkli bir figür değil"): figür + anahtarlık–figür ④ görseli PALETE İNDİRGENMEZ.
+  // Basılacak dosyanın çizimi (sunucu `render`) varsa O gösterilir; yoksa sağlayıcı görseli AYNEN + aşağıdaki dürüst
+  // cümle (renkler basılacak figürü göstermez). Sessiz geri düşüş YOK: hangi görselin gösterildiği cümleyle söylenir.
+  VERI.FIGUR_RENDER_NOTU = "Bu görüntü basılacak dosyadan çizildi: figür bu renk bölgeleriyle basılır.";
+  VERI.FIGUR_ORNEK_NOTU = "Örnek görünüm — renkler basılacak figürü göstermez.";
+  VERI.FIGUR_ORNEK_RENKLI = "Figür seçtiğin renklerle, en çok 4 renk bölgesi hâlinde ve sadeleştirilmiş olarak basılır.";
+  VERI.FIGUR_ORNEK_TEK = "Figür seçtiğin tek renkte ve sadeleştirilmiş olarak basılır.";
+  // ④ ÖNİZLEME PALETE İNDİRGENİR (figür kolu HARİÇ, yukarı): ④'te gösterilen görsel ③'te seçilen palete deterministik
+  // indirgenir (tarayıcıda, kredi 0; kaynak görsel sunucuda AYNEN, üretime giden görsel değişmez).
   // renkler = seçili filament adları (Renkli: fotoğraftan çıkan renkler; tek renk: [ana renk]). Her opak piksel
   // fotoRenkleri ile AYNI mesafeyle en yakın palet rengine; tek renk Siyah/Beyaz/Gri ise gri ölçek (ton korunur,
   // renk tonu yok). Saydam piksel (alfa < 128) dokunulmaz. piksel YERİNDE değişir ve döner; boş palet ya da

@@ -143,6 +143,7 @@ function r2Kur() {
     m,
     async put(k, v, o) { m.set(k, { bayt: new Uint8Array(v), httpMetadata: (o && o.httpMetadata) || {} }); },
     async get(k) { const x = m.get(k); return x ? { body: x.bayt, httpMetadata: x.httpMetadata } : null; },
+    async head(k) { const x = m.get(k); return x ? { httpMetadata: x.httpMetadata } : null; },
     async delete(k) { m.delete(k); },
     async list() { return { objects: [] }; },
   };
@@ -1197,6 +1198,21 @@ async function ekranKos(kaynak, fotoVeri, acikYanit, kayit, durumYanit, ek) {
     FileReader: class { readAsDataURL() { this.onload({ target: { result: "data:image/png;base64,AAAA" } }); } },
     Image: class { set src(v) { this.width = 100; this.height = 100; this.onload(); } },
   } : {};
+  // ek.paletSahte (FR): tarayicinin Image + canvas OKUMA zinciri; paletleGoster'in indirgenmis kopyasi FR_PALETLI
+  // olur -> ④ img.src'den "palete indirgendi mi" olculur (sahte DOM'da Image yokken paletleGoster kaynagi AYNEN verir).
+  if (ek.paletSahte) {
+    gorselSahte.Image = class { set src(v) { this.naturalWidth = 2; this.naturalHeight = 2; this.onload(); } };
+    const yarat = document.createElement;
+    document.createElement = (e) => {
+      const n = yarat(e);
+      if (String(e).toLowerCase() === "canvas") {
+        n.getContext = () => ({ drawImage() {}, putImageData() {},
+          getImageData: (x, y, w, h) => ({ data: new Uint8ClampedArray(w * h * 4).fill(200) }) });
+        n.toDataURL = () => FR_PALETLI;
+      }
+      return n;
+    };
+  }
   if (ek.gorselSahte) {
     const yarat = document.createElement;
     document.createElement = (e) => {
@@ -6125,7 +6141,7 @@ console.log("RPD) RENK = PALET D — ④ onizleme palete indirgenir (VERI.palete
   ol("D2 plaket Renkli -> gorseldeki renk kumesi = fotoRenkleri listesi (birebir)", s.D2, JSON.stringify(s.iz.D2));
   ol("D3 Siyah tek -> gri olcek (r=g=b, ton korunur)", s.D3, JSON.stringify(s.iz.D3));
   ol("D4 saydam piksel dokunulmaz; bilinmeyen renk / bos palet -> null", s.D4, "");
-  // ④ çizimi deterministik kol dışında indirgenmiş kopyayı gösterir (kaynak görsel doğrudan img.src'ye verilmez).
+  // ④ çizimi deterministik kol ve figür kolu (FR) dışında indirgenmiş kopyayı gösterir.
   ol("D5 ④ cizimi paletleGoster -> F.paleteIndirge (deterministik kol disinda)",
      EKRAN_KAYNAK.includes("if (!F.paleteIndirge(d.data, renkler)) throw") &&
      EKRAN_KAYNAK.includes("else paletleGoster(img, S.gorsel, renkliMi() ? paletRenkleri(S.tur) : [anaRenk()]);") &&
@@ -6158,6 +6174,140 @@ console.log("KC1) kart görseli contain (kare olmayan örnek kesilmez)");
     const kcGovde = kcFotoMetni.slice(kcBasla, kcBitis);
     ol("KC1 kural gövdesinde object-fit:contain VAR", kcGovde.includes("object-fit:contain"), kcGovde);
     ol("KC1 kural gövdesinde object-fit:cover YOK", !kcGovde.includes("object-fit:cover"), kcGovde);
+  }
+}
+
+// ---------------------------------------------------------------- FR: ④ FİGÜR = BASILACAK DOSYANIN RENDER'I
+// Okan 11 Eki ("bu 4 renkli bir figür değil"): figür (insan · pet · model) + anahtarlık–figür ④ görseli palete
+// İNDİRGENMEZ. Sunucu /durum `render` verdiyse img.src = O adres; vermediyse sağlayıcı görseli AYNEN + dürüst cümle
+// (VERI.FIGUR_ORNEK_NOTU …). Sessiz geri düşüş YOK. Plaket DEĞİŞMEZ (palete indirgenir, figür notu YOK).
+const FR_PALETLI = "data:image/png;base64,PALETLI";
+const FR_IS = "f".repeat(32), FR_GORSEL = "/api/shop/foto/gorsel?is=" + FR_IS, FR_RENDER = FR_GORSEL + "&gorunum=render";
+const FR_UST = "Önizleme — ürün bunun seçtiğin renk sayısında olur; tam kopyası değildir.";
+async function frEkran(kaynak, V, kayit, render) {
+  const hazir = { asama: "hazir", tur: kayit.tur, olcu_mm: kayit.olcu, gorsel: FR_GORSEL,
+                  gecerlilik_bitis: "2099-01-01T00:00:00.000Z", ...(render ? { render: FR_RENDER } : {}) };
+  const e = await ekranKos(kaynak, V, acikGercek(V, V6_TUM), { is: FR_IS, ...kayit }, hazir, { paletSahte: true });
+  const d = [...e.bolum.agac()];
+  const img = d.find((n) => n.classList.contains("foto-uretim-onizleme-img"));
+  const not = d.find((n) => n.classList.contains("foto-uretim-gorunum-notu"));
+  return { src: img ? img.src : null, not: not ? not.textContent : null,
+           ust: d.some((n) => n.tagName === "P" && n.textContent === FR_UST) };
+}
+async function frSenaryo(kaynak, V) {
+  const s = {}, iz = {};
+  const INSAN = { tur: "figur", alt_tur: "insan", olcu: 100 };
+  const AF = { tur: "anahtarlik", cesit: "figur", olcu: 60 };
+  iz.insanR = await frEkran(kaynak, V, INSAN, true);
+  iz.insan = await frEkran(kaynak, V, INSAN, false);
+  iz.afR = await frEkran(kaynak, V, AF, true);
+  iz.af = await frEkran(kaynak, V, AF, false);
+  iz.plaket = await frEkran(kaynak, V, { tur: "plaket", olcu: 100 }, true);
+  // Dürüst cümle LİTERAL (Okan 11 Eki çipi): VERI boşalsa da ekranda aranır -> veri mutantı FR4/FR7'yi de yakar.
+  const tek = "Örnek görünüm — renkler basılacak figürü göstermez. " + V.FIGUR_ORNEK_TEK;
+  s.FR0 = /renkler basılacak figürü göstermez/.test(V.FIGUR_ORNEK_NOTU || "");
+  s.FR1 = iz.insanR.src === FR_RENDER;                      // render varken O (indirgenmiş kopya / sağlayıcı görseli DEĞİL)
+  s.FR2 = iz.insanR.not === V.FIGUR_RENDER_NOTU && !iz.insanR.ust;
+  s.FR3 = iz.insan.src === FR_GORSEL;                       // render yok: sağlayıcı görseli AYNEN (palete indirgenmez)
+  s.FR4 = iz.insan.not === tek && !iz.insan.ust;            // ... ve dürüst cümle (tek renk)
+  s.FR5 = typeof V.FIGUR_ORNEK_RENKLI === "string" && /en çok 4 renk/.test(V.FIGUR_ORNEK_RENKLI) &&
+    typeof V.FIGUR_ORNEK_TEK === "string" && /tek renk/.test(V.FIGUR_ORNEK_TEK);   // Renkli/tek ikinci cümlesi (VERI)
+  s.FR6 = iz.afR.src === FR_RENDER && iz.afR.not === V.FIGUR_RENDER_NOTU;
+  s.FR7 = iz.af.src === FR_GORSEL && iz.af.not === tek;
+  s.FR8 = iz.plaket.src === FR_PALETLI && iz.plaket.not === null && iz.plaket.ust;   // plaket DEĞİŞMEZ
+  Object.defineProperty(s, "iz", { value: iz, enumerable: false });
+  return s;
+}
+async function frSunucu(fm) {
+  const k = koprukur(); await k.hazir;
+  const r2b = r2Kur();
+  const e2 = envKur(k.d1, r2b);
+  const simdi = new Date().toISOString(), eski = new Date(Date.now() - 100 * 3600 * 1000).toISOString();
+  const IS = { insan: "1".repeat(32), af: "2".repeat(32), plaket: "3".repeat(32), sil: "4".repeat(32) };
+  const satir = async (no, tur, cesit, alt, tarih) => k.d1.prepare(
+    "INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, gorev, hazir_tarih, cesit, alt_tur)" +
+    " VALUES (?, ?, 100, 'z', ?, 'hazir', 'gorev-fr', ?, ?, ?)").bind(no, tur, tarih, tarih, cesit, alt).run();
+  await satir(IS.insan, "figur", "", "insan", simdi);
+  await satir(IS.af, "anahtarlik", "figur", "", simdi);
+  await satir(IS.plaket, "plaket", "", "", simdi);
+  await satir(IS.sil, "figur", "", "pet", eski);
+  const WEBP = { httpMetadata: { contentType: "image/webp" } };
+  for (const no of [IS.insan, IS.plaket, IS.sil]) { await r2b.put("foto-onizleme/" + no + "-render.webp", PNG, WEBP); }
+  for (const no of Object.values(IS)) { await r2b.put("foto-onizleme/" + no + ".png", PNG, {}); }
+  const cag = async (yol) => fm.fotoUclari(new Request("https://pruvo3d.com/api/shop" + yol, {
+    method: "GET", headers: { "CF-Connecting-IP": "10.0.9.7" } }), e2, new URL("https://pruvo3d.com/api/shop" + yol),
+    yol.split("?")[0], null);
+  const durum = async (no) => { try { return await (await cag("/foto/durum?is=" + no)).json(); } catch (e) { return null; } };
+  const s = {};
+  const di = await durum(IS.insan), da = await durum(IS.af), dp = await durum(IS.plaket);
+  s.SR1 = !!di && di.asama === "hazir" && di.render === "/api/shop/foto/gorsel?is=" + IS.insan + "&gorunum=render";
+  s.SR2 = !!da && da.asama === "hazir" && !("render" in da);       // render yok -> alan YOK (uydurulmuş adres yok)
+  s.SR3 = !!dp && dp.asama === "hazir" && !("render" in dp);       // plaket render kolu DEĞİL
+  const gr = await cag("/foto/gorsel?is=" + IS.insan + "&gorunum=render");
+  s.SR4 = gr.status === 200 && gr.headers.get("Content-Type") === "image/webp";
+  s.SR5 = (await cag("/foto/gorsel?is=" + IS.plaket + "&gorunum=render")).status === 404;
+  await fm.fotoUretimTuru(envKur(k.d1, r2b, { URETIM_API_ANAHTAR: "" }), Date.now(), null);
+  s.SR6 = !r2b.m.has("foto-onizleme/" + IS.sil + "-render.webp") && !r2b.m.has("foto-onizleme/" + IS.sil + ".png") &&
+    r2b.m.has("foto-onizleme/" + IS.insan + "-render.webp");      // 3 gün saklama: render önizlemeyle BİRLİKTE silinir
+  k.kapat();
+  return s;
+}
+console.log("FR) ④ FİGÜR = BASILACAK DOSYANIN RENDER'I — render varsa O, yoksa sağlayıcı görseli AYNEN + dürüst cümle; plaket AYNEN");
+{
+  const V = veriYukle(VERI_KAYNAK);
+  const s = await frSenaryo(EKRAN_KAYNAK, V);
+  ol("FR0 VERI dürüst cümle: 'renkler basılacak figürü göstermez'", s.FR0, V.FIGUR_ORNEK_NOTU);
+  ol("FR1 insan + render -> img.src = render adresi (palete indirgenmez)", s.FR1, JSON.stringify(s.iz.insanR));
+  ol("FR2 insan + render -> görünüm notu = FIGUR_RENDER_NOTU, üst 'Önizleme —' cümlesi YOK", s.FR2, JSON.stringify(s.iz.insanR));
+  ol("FR3 insan render YOK -> sağlayıcı görseli AYNEN (palete indirgenmez)", s.FR3, JSON.stringify(s.iz.insan));
+  ol("FR4 insan render YOK -> dürüst cümle (Örnek görünüm … + tek renk)", s.FR4, JSON.stringify(s.iz.insan));
+  ol("FR5 VERI ikinci cümle: Renkli \"en çok 4 renk\" · tek \"tek renk\"", s.FR5, V.FIGUR_ORNEK_RENKLI + " | " + V.FIGUR_ORNEK_TEK);
+  ol("FR6 anahtarlık–figür + render -> render + render notu", s.FR6, JSON.stringify(s.iz.afR));
+  ol("FR7 anahtarlık–figür render YOK -> görsel AYNEN + dürüst cümle", s.FR7, JSON.stringify(s.iz.af));
+  ol("FR8 plaket DEĞİŞMEZ -> palete indirgenmiş kopya, figür notu YOK, üst cümle VAR", s.FR8, JSON.stringify(s.iz.plaket));
+  const kir = (m) => (m ? Object.keys(m).filter((x) => m[x] !== true).sort() : null);
+  const C_SRC = "        img.src = S.render || S.gorsel;\n";
+  const C_NOT = '        S.alan.appendChild(el("p", "foto-uretim-ayrinti foto-uretim-gorunum-notu", figurGorunumNotu()));\n';
+  const C_VNOT = '  VERI.FIGUR_ORNEK_NOTU = "Örnek görünüm — renkler basılacak figürü göstermez.";\n';
+  const FR_MUT = [
+    ["M-FR-PALET render/görsel palete indirgenir (eski paletleGoster)", "E", C_SRC,
+     "        paletleGoster(img, S.render || S.gorsel, renkliMi() ? paletRenkleri(S.tur) : [anaRenk()]);\n",
+     ["FR1", "FR3", "FR6", "FR7"]],
+    ["M-FR-RENDER-YOK render adresi yok sayılır (hep sağlayıcı görseli)", "E", C_SRC, "        img.src = S.gorsel;\n",
+     ["FR1", "FR6"]],
+    ["M-FR-CUMLE-YOK görünüm notu basılmaz", "E", C_NOT, "", ["FR2", "FR4", "FR6", "FR7"]],
+    ["M-FR-VERI-CUMLE dürüst cümle boş", "V", C_VNOT, '  VERI.FIGUR_ORNEK_NOTU = "";\n', ["FR0", "FR4", "FR7"]],
+    ["M-FR-K0 KONTROL (aynı gövde)", "E", C_SRC, C_SRC, []],
+  ];
+  for (const [ad, hedef, capa, yerine, olmeli] of FR_MUT) {
+    const asil = hedef === "E" ? EKRAN_KAYNAK : VERI_KAYNAK;
+    if (asil.split(capa).length - 1 !== 1) { ol(ad + " capa bulundu", false, capa); continue; }
+    const m = hedef === "E" ? await frSenaryo(EKRAN_KAYNAK.replace(capa, yerine), V)
+      : await frSenaryo(EKRAN_KAYNAK, veriYukle(VERI_KAYNAK.replace(capa, yerine)));
+    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir(m)) === JSON.stringify(olmeli), JSON.stringify(kir(m)));
+  }
+  const ss = await frSunucu(foto);
+  ol("SR1 /durum insan + R2 render -> render adresi (gorunum=render)", ss.SR1, JSON.stringify(ss));
+  ol("SR2 /durum anahtarlık–figür render YOK -> render alanı YOK", ss.SR2, JSON.stringify(ss));
+  ol("SR3 /durum plaket (R2'de render olsa da) -> render alanı YOK", ss.SR3, JSON.stringify(ss));
+  ol("SR4 /gorsel?gorunum=render insan -> 200 image/webp", ss.SR4, JSON.stringify(ss));
+  ol("SR5 /gorsel?gorunum=render plaket -> 404", ss.SR5, JSON.stringify(ss));
+  ol("SR6 3 gün temizliği render'ı önizlemeyle BİRLİKTE siler (taze iş kalır)", ss.SR6, JSON.stringify(ss));
+  const SR_MUT = [
+    ["M-SR-RENDERVAR hiç render bildirilmez",
+     '  if (!is || is.asama !== "hazir" || !renderKolu(is) || !env.OZEL_DOSYA) { return false; }\n', "  return false;\n", ["SR1"]],
+    ["M-SR-GORSEL-KOL kapısı kalktı (plaket render'ı sunulur)",
+     "    return renderKolu(is) ? onizlemeGorseli(", "    return true ? onizlemeGorseli(", ["SR5"]],
+    ["M-SR-KOL figür türü render kolundan düşer",
+     '(figurKolu(is) || (is.tur === "figur" && !is.cesit))', "figurKolu(is)", ["SR1", "SR4", "SR6"]],
+    ["M-SR-SIL temizlik render'ı silmez",
+     "    if (renderKolu(s)) { await env.OZEL_DOSYA.delete(onizlemeRenderAnahtari(s.is_no)); }\n", "", ["SR6"]],
+  ];
+  for (const [ad, capa, yerine, olmeli] of SR_MUT) {
+    const fm = await mutantModul(capa, yerine);
+    if (!fm) { ol(ad + " capa bulundu", false, capa); continue; }
+    const m = await frSunucu(fm);
+    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir(m)) === JSON.stringify(olmeli), JSON.stringify(kir(m)));
   }
 }
 

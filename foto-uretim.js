@@ -137,6 +137,7 @@
     programKapali: false,
     is: null,
     gorsel: null,
+    render: null,   // ④ figür kolu: basılacak dosyanın çizimi (sunucu /durum `render`); yoksa null
     gecerlilik: null,
     ilerleme: null,
     hazirlayiciYas: undefined,
@@ -1764,6 +1765,7 @@
     ssIsSil();
     S.is = null;
     S.gorsel = null;
+    S.render = null;
     S.gecerlilik = null;
     S.fiyatKurus = null;
     S.b2Onay = false;
@@ -2144,6 +2146,13 @@
     k.src = url;
   }
 
+  /* ④ render kolu (sunucu renderKolu ile AYNI): figür türü (insan · pet · model) + anahtarlık–figür çeşidi. */
+  function figurKoluMu() { return S.tur === "figur" || (cesitliTur() && seciliCesit() === "figur"); }
+  function figurGorunumNotu() {
+    return S.render ? F.FIGUR_RENDER_NOTU :
+      F.FIGUR_ORNEK_NOTU + " " + (renkliMi() ? F.FIGUR_ORNEK_RENKLI : F.FIGUR_ORNEK_TEK);
+  }
+
   /* ============== S3 ============== */
   function cizS3() {
     if (!S.alan) return;
@@ -2151,7 +2160,9 @@
     S.captchaToken1 = "";
     while (S.alan.firstChild) S.alan.removeChild(S.alan.firstChild);
 
-    S.alan.appendChild(el("p", "foto-uretim-ayrinti", false ? "" :
+    var figurKol = figurKoluMu();
+    // Figür türünde üst cümle YOK: ④ görselinin altındaki görünüm notu tek dürüstlük cümlesidir (çelişki olmasın).
+    if (!(figurKol && S.tur === "figur")) S.alan.appendChild(el("p", "foto-uretim-ayrinti", false ? "" :
       !!(F && F.kolu && F.kolu(S.tur) === "deterministik") ? ((litofanKaydi() || {}).durustluk || "") :
       "Önizleme — ürün bunun seçtiğin renk sayısında olur; tam kopyası değildir."));
     if (false && S.secim) {
@@ -2162,15 +2173,23 @@
       S.alan.appendChild(el("p", "foto-uretim-ayrinti", "Seçimin: " + secMetin.join(" · ")));
     }
 
-    if (S.gorsel) {
+    if (S.gorsel || (figurKol && S.render)) {
       var img = el("img", "foto-uretim-onizleme-img");
-      img.alt = "Önizleme";
+      img.alt = figurKol ? (S.render ? "Basılacak figürün görüntüsü" : "Örnek görünüm") : "Önizleme";
       img.width = 300; img.height = 300;
       img.loading = "lazy"; img.decoding = "async";
-      // Deterministik kolun görseli üretecin kendi çizimi (üretilen renklerle); diğer kollarda seçilen palete indirgenir.
-      if (F.kolu && F.kolu(S.tur) === "deterministik") img.src = S.gorsel;
-      else paletleGoster(img, S.gorsel, renkliMi() ? paletRenkleri(S.tur) : [anaRenk()]);
-      S.alan.appendChild(img);
+      if (figurKol) {
+        // ④ FİGÜR KOLU (Okan 11 Eki): palete İNDİRGENMEZ. Render varsa basılacak dosyanın çizimi; yoksa sağlayıcı
+        // görseli AYNEN + dürüst cümle — hangisinin gösterildiği her durumda görselin altında söylenir.
+        img.src = S.render || S.gorsel;
+        S.alan.appendChild(img);
+        S.alan.appendChild(el("p", "foto-uretim-ayrinti foto-uretim-gorunum-notu", figurGorunumNotu()));
+      } else {
+        // Deterministik kolun görseli üretecin kendi çizimi (üretilen renklerle); diğer kollarda seçilen palete indirgenir.
+        if (F.kolu && F.kolu(S.tur) === "deterministik") img.src = S.gorsel;
+        else paletleGoster(img, S.gorsel, renkliMi() ? paletRenkleri(S.tur) : [anaRenk()]);
+        S.alan.appendChild(img);
+      }
     }
 
     var nt = seciliTurBul();
@@ -2250,6 +2269,7 @@
       S.aydinlatmaOnay = false;
       S.b2Onay = false;
       S.gorsel = null;
+      S.render = null;
       S.gecerlilik = null;
       S.fiyatKurus = null;
       S.adet = 1;
@@ -2426,6 +2446,7 @@
         if (a === "hazir") {
           S.is = isNo;
           S.gorsel = veri.gorsel || S.gorsel;
+          S.render = typeof veri.render === "string" && veri.render ? veri.render : null;
           if (typeof veri.olcu_mm === "number") S.olcu = veri.olcu_mm;
           // Türetilmiş eksen: fiyat SUNUCUNUN (önizlemede ölçülen ölçüden); bölüm kendisi hesaplamaz.
           S.fiyatKurus = typeof veri.fiyat_kurus === "number" ? veri.fiyat_kurus : null;

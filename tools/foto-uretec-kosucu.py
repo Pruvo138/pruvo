@@ -1826,6 +1826,174 @@ def kanit_yaz(i, cd):
         pass
 
 
+# ④ ONIZLEME = URETIM 3MF'INin RENDER'I (Okan 11 Eki "bu 4 renkli bir figur degil"): figur kolunda (insan · pet ·
+# model + anahtarlik-figur) teslim edilecek model.3mf hazir olunca TeKiN `tools/foto_kart_render.py hepsi` (Blender
+# Cycles, kredi 0) renk BOLGELERINI kare webp'e cizer -> R2 `foto-onizleme/<is>-render.webp`; sunucu /foto/durum'da
+# varsa `render` adresini verir, istemci onu palete indirgemeden gosterir. Render basarisizligi isin kararini
+# DEGISTIRMEZ (log `RENDER=YOK sebep=`); render yoksa ④ durust cumleyle saglayici gorselini gosterir (sessiz dusus YOK).
+RENDER_BETIK = "tools/foto_kart_render.py"
+RENDER_SURE_SN = int(os.environ.get("FOTO_KOSUCU_RENDER_SURE_SN") or 900)
+RENDER_ORNEK = 64  # Cycles ornek sayisi (arac varsayilani 128; ④ 300 px kutuda fark gorunmez, sure yariya iner)
+RENDER_ARKA = (244, 245, 247)  # duz arka plan (aracin `--emsal` satir profili; site kart zemini)
+
+
+def onizleme_render_anahtari(is_no):
+    return "foto-onizleme/%s-render.webp" % is_no  # shop/src/foto.js onizlemeRenderAnahtari ile AYNI
+
+
+def render_paleti(i):
+    """Siparis kaleminin odenen renkleri (`foto_renkler`, renk ADLARI; tek renkte 1 ad). Kalem yok / ait degil /
+    tabloda olmayan ad -> [] (render 3MF bolge renklerini filament tablosunun en yakin rengine esler)."""
+    k = siparis_kalemi(i.get("urunler"), i.get("kalem"))
+    r = k.get("foto_renkler") if k and k.get("foto_is") == i.get("is_no") else None
+    tablo = renk_tablosu()
+    return list(r) if isinstance(r, list) and r and all(isinstance(x, str) and x in tablo for x in r) else []
+
+
+def _hex_rgb(h):
+    h = str(h).lstrip("#")
+    return tuple(int(h[j:j + 2], 16) for j in (0, 2, 4)) if re.match(r"^[0-9a-fA-F]{6}", h) else None
+
+
+def palet_esle(hexler, adlar, tablo):
+    """3MF bolge renkleri (hex) -> `adlar` icinden en yakin filament hex'i (istemci VERI.fotoRenkleri ile AYNI mesafe
+    2·dr² + 4·dg² + 3·db²). adlar bos -> tablonun tum renkleri. Cozulemeyen hex AYNEN kalir."""
+    aday = [(a, _hex_rgb(tablo[a])) for a in (adlar or sorted(tablo)) if a in tablo and _hex_rgb(tablo[a])]
+    out = []
+    for h in hexler:
+        c = _hex_rgb(h)
+        if not c or not aday:
+            out.append(h)
+            continue
+        a = min(aday, key=lambda x: 2 * (c[0] - x[1][0]) ** 2 + 4 * (c[1] - x[1][1]) ** 2 + 3 * (c[2] - x[1][2]) ** 2)
+        out.append("#%02X%02X%02X" % a[1])
+    return out
+
+
+def uc_mf_palet_yaz(kaynak, hedef, adlar):
+    """3MF kopyasi: Metadata/project_settings.config `filament_colour` -> palet_esle. Donus esenen hex listesi;
+    ayar dosyasi/alan yok -> None (kopya AYNEN yazilir, arac 3MF'in kendi rengini cizer)."""
+    import zipfile
+    with zipfile.ZipFile(kaynak) as z, zipfile.ZipFile(hedef, "w", zipfile.ZIP_DEFLATED) as w:
+        yeni = None
+        for ad in z.namelist():
+            veri = z.read(ad)
+            if ad == "Metadata/project_settings.config":
+                try:
+                    d = json.loads(veri.decode("utf-8"))
+                except ValueError:
+                    d = None
+                if isinstance(d, dict) and isinstance(d.get("filament_colour"), list):
+                    yeni = palet_esle(d["filament_colour"], adlar, renk_tablosu())
+                    d["filament_colour"] = yeni
+                    veri = json.dumps(d, ensure_ascii=False).encode("utf-8")
+            w.writestr(ad, veri)
+    return yeni
+
+
+def duz_png(yol, rgb, kenar=16):
+    """stdlib PNG (duz renk) — render aracinin `--emsal` arka plan profili icin."""
+    import zlib
+
+    def parca(tip, veri):
+        return struct.pack(">I", len(veri)) + tip + veri + struct.pack(">I", zlib.crc32(tip + veri) & 0xffffffff)
+    satir = b"\x00" + bytes(rgb) * kenar
+    with open(yol, "wb") as f:
+        f.write(b"\x89PNG\r\n\x1a\n" + parca(b"IHDR", struct.pack(">IIBBBBB", kenar, kenar, 8, 2, 0, 0, 0)) +
+                parca(b"IDAT", zlib.compress(satir * kenar)) + parca(b"IEND", b""))
+
+
+def render_betigi():
+    jen = os.environ.get("FOTO_KOSUCU_JENERATOR") or os.path.expanduser("~/dev/pruvo-jenerator")
+    b = os.path.join(jen, RENDER_BETIK)
+    return b if os.path.isfile(b) else ""
+
+
+def render_uret(model, onizleme_png, adlar, gecici):
+    """model.3mf (+ saglayici onizleme png'si: aracin kadraj kolu ister) -> (webp yolu | None, sebep, sure_sn)."""
+    py = os.environ.get("FOTO_KOSUCU_PYTHON") or sys.executable
+    betik = render_betigi()
+    if not betik:
+        return None, "render-araci-yok", 0
+    if not os.path.isfile(onizleme_png):
+        return None, "onizleme-yok", 0
+    d = os.path.join(gecici, "render")
+    os.makedirs(d, exist_ok=True)
+    paletli = os.path.join(d, "paletli.3mf")
+    uc_mf_palet_yaz(model, paletli, adlar)
+    emsal = os.path.join(d, "arka.png")
+    duz_png(emsal, RENDER_ARKA)
+    is_yol = os.path.join(d, "is.json")
+    with open(is_yol, "w", encoding="utf-8") as f:
+        json.dump([{"kod": "onz", "3mf": paletli, "onizleme": onizleme_png, "az_ofset": 0}], f)
+    out = os.path.join(d, "out")
+    bas = time.time()
+    try:
+        p = subprocess.run([py, betik, "hepsi", "--is", is_yol, "--out", out, "--emsal", emsal,
+                            "--samples", str(RENDER_ORNEK)], capture_output=True, text=True,
+                           timeout=RENDER_SURE_SN, env=SALT_OKUMA_ENV)
+    except subprocess.TimeoutExpired:
+        return None, "sure-asimi", int(time.time() - bas)
+    except OSError:
+        return None, "baslatilamadi", int(time.time() - bas)
+    sure = int(time.time() - bas)
+    webp = os.path.join(out, "onz-1-render.webp")
+    if p.returncode != 0 or not os.path.isfile(webp) or os.path.getsize(webp) == 0:
+        return None, "render-rc-%d" % p.returncode, sure
+    return webp, "", sure
+
+
+def onizleme_render_koy(i, model, gecici, yaz):
+    """Teslim edilecek model.3mf -> ④ render'i R2'ye. Karar DEGISMEZ; donus True/False (log satiri her durumda)."""
+    if not render_betigi():
+        yaz("RENDER=YOK %s sebep=render-araci-yok sure_sn=0" % is_adi(i))
+        return False
+    on = os.path.join(gecici, "render-onizleme.png")
+    try:
+        if not r2_al("foto-onizleme/%s.png" % i["is_no"], on):
+            on = ""
+        webp, sebep, sure = render_uret(model, on, render_paleti(i), gecici)
+        if webp:
+            r2_koy(onizleme_render_anahtari(i["is_no"]), webp, "image/webp")
+    except Erisilemedi:
+        webp, sebep, sure = None, "r2", 0
+    if not webp:
+        yaz("RENDER=YOK %s sebep=%s sure_sn=%d" % (is_adi(i), sebep, sure))
+        return False
+    yaz("RENDER=OK %s anahtar=%s bayt=%d sure_sn=%d" % (is_adi(i), onizleme_render_anahtari(i["is_no"]),
+                                                        os.path.getsize(webp), sure))
+    return True
+
+
+def render_cli(is_no, model, onizleme_png, renkler, uygula, yaz, kaydet=""):
+    """`--render`: hazir bir uretim 3MF'inden ④ render'i (0 kredi uc-uca / elle yenileme). KURU: yalniz uretir;
+    `--kaydet` webp'in yerel kopyasi (gozle bakmak icin)."""
+    if not IS_KALIBI.match(is_no or "") or not os.path.isfile(model):
+        return "HAL=RED sebep=girdi rc=2", 2
+    tablo = renk_tablosu()
+    adlar = [x for x in (renkler or "").split(",") if x]
+    if any(a not in tablo for a in adlar):
+        return "HAL=RED sebep=renk rc=2", 2
+    gecici = tempfile.mkdtemp(prefix="foto-render-")
+    try:
+        webp, sebep, sure = render_uret(model, onizleme_png, adlar, gecici)
+        if not webp:
+            return "HAL=RENDER-YOK sebep=%s sure_sn=%d rc=1" % (sebep, sure), 1
+        if kaydet:
+            shutil.copyfile(webp, kaydet)
+        if uygula:
+            try:
+                r2_koy(onizleme_render_anahtari(is_no), webp, "image/webp")
+            except Erisilemedi as e:
+                return "HAL=OLCULEMEDI sebep=%s rc=4" % e, 4
+            return "HAL=RENDER-OK anahtar=%s bayt=%d sure_sn=%d rc=0" % (
+                onizleme_render_anahtari(is_no), os.path.getsize(webp), sure), 0
+        yaz("KURU: R2 PUT %s/%s (bayt=%d)" % (R2_KOVA, onizleme_render_anahtari(is_no), os.path.getsize(webp)))
+        return "HAL=RENDER-KURU sure_sn=%d rc=0" % sure, 0
+    finally:
+        shutil.rmtree(gecici, ignore_errors=True)
+
+
 def onarim_isle(i, jeton, yaz, t=None):
     """'onarim-bekliyor' satiri: R2 model.ham.3mf -> kopru -> olcum -> model.3mf + 'hazir' (ya da 'elle').
     Figur cesidi (onizleme girdi.json `uretec`): onarilmis model cesidin ureteciyle (figur_kulak) islenir."""
@@ -1870,6 +2038,8 @@ def onarim_isle(i, jeton, yaz, t=None):
             return "cas"
         yaz("%s %s%s %s%s" % (karar.upper(), is_adi(i), (" sebep=" + sebep) if sebep else "", ozet,
                               " renk_sayisi=%d" % renk if renk is not None else ""))
+        if karar == "hazir" and (zincir or fu):
+            onizleme_render_koy(i, cikti, gecici, yaz)
         return {"hazir": "uretildi", "elle": "red", "ariza": "ariza"}[karar]
     except Erisilemedi:
         try:
@@ -2048,12 +2218,22 @@ def main(argv=None):
                     help="olcum araci: onarim figur kolu ozet.json + onizleme.png kopyasi <dizin>/<siparis_no>/")
     ap.add_argument("--donustur-litofan", nargs=3, metavar=("HAM", "CIKTI", "GIRDI"), help=argparse.SUPPRESS)
     ap.add_argument("--donustur-tekin", nargs=4, metavar=("HAM", "CIKTI", "GIRDI", "KOPRU"), help=argparse.SUPPRESS)
+    ap.add_argument("--render", metavar="IS_NO",
+                    help="hazir uretim 3MF'inden ④ render'i (--3mf, --onizleme, ops. --renkler); --uygula R2'ye yazar")
+    ap.add_argument("--3mf", dest="uc_mf", default="")
+    ap.add_argument("--onizleme", default="")
+    ap.add_argument("--renkler", default="", help="virgullu renk ADLARI (bos: filament tablosu)")
+    ap.add_argument("--kaydet", default="", help="--render webp'inin yerel kopyasi")
     a = ap.parse_args(argv)
     if a.donustur_litofan:
         return donustur_litofan(*a.donustur_litofan)
     if a.donustur_tekin:
         return donustur_tekin(*a.donustur_tekin)
     hedef_kur(a.hedef)
+    if a.render:
+        satir, rc = render_cli(a.render, a.uc_mf, a.onizleme, a.renkler, a.uygula, print, a.kaydet)
+        print(satir)
+        return rc
     global KANIT_DIZIN
     KANIT_DIZIN = a.kanit_dizin
     tampon = io.StringIO()

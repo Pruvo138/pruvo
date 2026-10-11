@@ -18,6 +18,10 @@ M6/M7 kopya kolu · M0 yorum -> 0 kirmizi.
 RENK SUTUNU (10 Eki): 'hazir'da foto_uretim.renk_sayisi = uretilen model.3mf extruder sayisi (giris tavani 2 ezilir):
 RB2-RB4 tek -> 1 · RB1 palet 3 boya -> 3 · RB5 palet 4 boya -> 4 · RS1 uretec kolu (ORNEK kopya) 3 extruder -> 3;
 M-RS-ONARIM / M-RS-SIPARIS / M-RS-SQL.
+④ RENDER KOLU (11 Eki, Okan "bu 4 renkli bir figur degil"): RN1 figur hazir -> sahte render araci -> R2
+foto-onizleme/<is>-render.webp, bolge renkleri ODENEN renklere esli · RN2 render rc 1 -> karar AYNEN hazir +
+RENDER=YOK · RN3 plaket render kolu DEGIL · RN4 `--render` CLI (KURU yazmaz, tanimsiz renk rc 2, --uygula yazar);
+M-RN-HOOK / M-RN-PALET / M-RN-KOL / M-RN-KURU.
 
 TEKIN-ORTAK KOPRUSU (yapboz + anahtarlik): T13-<kod> sahte tekin uretecine giden JSON BIREBIR beklenen (form
 AYNEN + olcu alani + palet/bolge renkleri RENK_HEX + anahtarlik sabiti) + onizleme-hazir + olcu.json ·
@@ -192,6 +196,26 @@ m = os.environ.get("FAKE_MIN", "10")
 if m == "yok":
     sys.exit(2)
 print(json.dumps({"min_mm": float(m), "neden": "sahte"}))
+'''
+# Sahte TeKiN render araci (`hepsi --is IS.json --out DIZIN --emsal PNG --samples N`; tools/foto_kart_render.py):
+# is.json'daki 3MF'in filament_colour'unu <out>/<kod>-1-render.webp'e JSON yazar (palet eslemesi testten OLCULUR),
+# cagriyi FAKE_LOG'a ["render", samples] yazar. FAKE_RENDER=rc1 -> rc 1, dosya YOK.
+SAHTE_RENDER = r'''
+import json, os, sys, zipfile
+a = sys.argv[1:]
+open(os.environ["FAKE_LOG"], "a").write(json.dumps(["render", a[a.index("--samples") + 1]]) + "\n")
+if os.environ.get("FAKE_RENDER") == "rc1":
+    sys.exit(1)
+i = json.load(open(a[a.index("--is") + 1]))[0]; out = a[a.index("--out") + 1]
+if a[0] != "hepsi" or not os.path.isfile(a[a.index("--emsal") + 1]) or not os.path.isfile(i["onizleme"]):
+    sys.exit(3)
+with zipfile.ZipFile(i["3mf"]) as z:
+    try:
+        fc = json.loads(z.read("Metadata/project_settings.config")).get("filament_colour")
+    except KeyError:
+        fc = None
+os.makedirs(out, exist_ok=True)
+open(os.path.join(out, i["kod"] + "-1-render.webp"), "w").write(json.dumps({"filament_colour": fc}))
 '''
 
 # Sahte tekin-ortak ureteci (G1/G2 CLI: --girdi <uretec json> --cikti <dizin> -> uretec.3mf + onizleme.png
@@ -543,10 +567,16 @@ class Ortam:
             with open(os.path.join(self.r2, "foto", SIP, "0", "model.ham.3mf"), "wb") as f:
                 f.write(ham if isinstance(ham, bytes) else HAM_3MF)
 
-    def jen(self, kopru=True, zincir=True):
-        """Sahte uretec deposu; kopru=False -> uc_mf_onar.py YOK; zincir=False -> figur_duzelt/figur_denge YOK."""
-        d = os.path.join(self.d, ("jen" if kopru else "jen-bos") + ("" if zincir else "-zincirsiz"))
+    def jen(self, kopru=True, zincir=True, render=False):
+        """Sahte uretec deposu; kopru=False -> uc_mf_onar.py YOK; zincir=False -> figur_duzelt/figur_denge YOK;
+        render=True -> tools/foto_kart_render.py (sahte; ④ render kolu)."""
+        d = os.path.join(self.d, ("jen" if kopru else "jen-bos") + ("" if zincir else "-zincirsiz") +
+                         ("-render" if render else ""))
         os.makedirs(os.path.join(d, "jeneratorler", "foto"), exist_ok=True)
+        if render:
+            os.makedirs(os.path.join(d, "tools"), exist_ok=True)
+            with open(os.path.join(d, "tools", "foto_kart_render.py"), "w") as f:
+                f.write(SAHTE_RENDER)
         if kopru:
             with open(os.path.join(d, "jeneratorler", "foto", "uc_mf_onar.py"), "w") as f:
                 f.write(SAHTE_KOPRU)
@@ -1320,6 +1350,83 @@ def vakalar(kosucu):
                 u["renk_sayisi"] == n), "%s %s extruder=%s" % (son, u, n)
 
     vaka("RS1", rs1)
+
+    # ④ RENDER KOLU (Okan 11 Eki "bu 4 renkli bir figur degil"): figur teslim modeli hazir -> TeKiN render araci
+    # (sahte) -> R2 foto-onizleme/<is>-render.webp; 3MF bolge renkleri kalemin ODENEN renklerine eslenir (en yakin).
+    # Render basarisizligi karari DEGISTIRMEZ; plaket render kolu DEGIL; KURU CLI R2'ye yazmaz.
+    RENDER_ANAHTAR = os.path.join("foto-onizleme", IS + "-render.webp")
+    SAG_RENKLER = ["#562F18", "#F4DACC", "#18243B", "#597FAB"]   # 11 Eki prova insan 3MF'i (saglayici bolge renkleri)
+
+    def renkli_3mf():
+        import io
+        out = io.BytesIO()
+        with zipfile.ZipFile(io.BytesIO(uretim_3mf())) as z, zipfile.ZipFile(out, "w") as w:
+            for n in z.namelist():
+                w.writestr(n, z.read(n))
+            w.writestr("Metadata/project_settings.config", json.dumps({"filament_colour": SAG_RENKLER}))
+        return out.getvalue()
+
+    def render_kur(o, tur="figur", renkler=("Siyah", "Beyaz")):
+        o.onarim_is(tur=tur, olcu=120, ham=renkli_3mf())
+        o.sql("INSERT INTO siparisler (siparis_no, tarih, durum, tutar_kurus, urunler) VALUES (?,?,?,?,?)",
+              SIP, GUNCEL0, "odendi", 120000, json.dumps([{"foto_is": IS, "foto_tur": tur, "olcu_mm": 120,
+                                                            "foto_renkler": list(renkler)}]))
+        os.makedirs(os.path.join(o.r2, "foto-onizleme"), exist_ok=True)
+        with open(os.path.join(o.r2, "foto-onizleme", IS + ".png"), "wb") as f:
+            f.write(png_gri(64, 64))
+
+    def render_cagri(o):
+        return [json.loads(x) for x in open(o.log) if json.loads(x)[0] == "render"]
+
+    def rn1(o):
+        render_kur(o)
+        rc, son, c = o.kos("--uygula", FOTO_KOSUCU_JENERATOR=o.jen(render=True), FAKE_KOPRU="aynen")
+        y = os.path.join(o.r2, RENDER_ANAHTAR)
+        fc = json.load(open(y)).get("filament_colour") if os.path.isfile(y) else None
+        siyah, beyaz = RENK_HEX_KARAR["Siyah"], RENK_HEX_KARAR["Beyaz"]
+        return (son == "HAL=ISLEDI uretildi=1 red=0 ariza=0 rc=0" and o.uretim()["asama"] == "hazir" and
+                fc == [siyah, beyaz, siyah, siyah] and "RENDER=OK" in c and render_cagri(o) == [["render", "64"]]), \
+            "%s fc=%s cagri=%s" % (son, fc, render_cagri(o))
+
+    def rn2(o):
+        render_kur(o)
+        rc, son, c = o.kos("--uygula", FOTO_KOSUCU_JENERATOR=o.jen(render=True), FAKE_KOPRU="aynen", FAKE_RENDER="rc1")
+        return (son == "HAL=ISLEDI uretildi=1 red=0 ariza=0 rc=0" and o.uretim()["asama"] == "hazir" and
+                not os.path.isfile(os.path.join(o.r2, RENDER_ANAHTAR)) and "RENDER=YOK" in c and
+                "sebep=render-rc-1" in c), "%s %s" % (son, o.uretim())
+
+    def rn3(o):
+        render_kur(o, tur="plaket")
+        rc, son, c = o.kos("--uygula", FOTO_KOSUCU_JENERATOR=o.jen(render=True), FAKE_KOPRU="aynen")
+        return (o.uretim()["asama"] == "hazir" and render_cagri(o) == [] and
+                not os.path.isfile(os.path.join(o.r2, RENDER_ANAHTAR)) and "RENDER=" not in c), \
+            "%s cagri=%s" % (son, render_cagri(o))
+
+    def rn4(o):
+        m = os.path.join(o.d, "m.3mf")
+        with open(m, "wb") as f:
+            f.write(renkli_3mf())
+        on = os.path.join(o.d, "on.png")
+        with open(on, "wb") as f:
+            f.write(png_gri(64, 64))
+        jen = o.jen(render=True)
+        rc0, son0, _ = o.kos("--render", IS, "--3mf", m, "--onizleme", on, FOTO_KOSUCU_JENERATOR=jen)
+        put0 = o.r2_put()
+        rc2, son2, _ = o.kos("--render", IS, "--3mf", m, "--onizleme", on, "--renkler", "Mor",
+                             FOTO_KOSUCU_JENERATOR=jen)
+        rc1, son1, _ = o.kos("--render", IS, "--3mf", m, "--onizleme", on, "--renkler", "Kırmızı", "--uygula",
+                             FOTO_KOSUCU_JENERATOR=jen)
+        y = os.path.join(o.r2, RENDER_ANAHTAR)
+        fc = json.load(open(y)).get("filament_colour") if os.path.isfile(y) else None
+        return (rc0 == 0 and son0.startswith("HAL=RENDER-KURU") and put0 == 0 and
+                rc2 == 2 and son2 == "HAL=RED sebep=renk rc=2" and
+                rc1 == 0 and son1.startswith("HAL=RENDER-OK") and fc == [RENK_HEX_KARAR["Kırmızı"]] * 4), \
+            "%s/%s/%s put0=%d fc=%s" % (son0, son2, son1, put0, fc)
+
+    vaka("RN1", rn1)
+    vaka("RN2", rn2)
+    vaka("RN3", rn3)
+    vaka("RN4", rn4)
     vaka("T67", t67)
     vaka("T68", t68)
     for ad, fn in (("T1", t1), ("T2", t2), ("T3", t3), ("T4", t4), ("T5", t5), ("T6", t6), ("T7", t7),
@@ -1622,7 +1729,15 @@ MUTANTLAR = {
                      "                    renk = None\n", {"RS1"}),
     "M-RS-SQL": ('                st += ", renk_sayisi = %d" % int(renk)\n', "                pass\n",
                  {"RB1", "RB2", "RB3", "RB4", "RB5", "RS1"}),
-    "M-RB-SELECT": (' u.guncel, s.urunler"\n', ' u.guncel"\n', {"RB1", "RB5"}),
+    # kalem okunmazsa render paleti de duser (odenen renkler yerine filament tablosu) -> RN1.
+    "M-RB-SELECT": (' u.guncel, s.urunler"\n', ' u.guncel"\n', {"RB1", "RB5", "RN1"}),
+    # ④ RENDER KOLU (Okan 11 Eki): kanca kalkarsa render YOK · palet kalemi yok sayilirsa bolgeler odenmemis renge ·
+    # kol sarti kalkarsa plaket de render'lanir · KURU kol R2'ye yazarsa.
+    "M-RN-HOOK": ("            onizleme_render_koy(i, cikti, gecici, yaz)\n", "            pass\n", {"RN1", "RN2"}),
+    "M-RN-PALET": ("for a in (adlar or sorted(tablo))", "for a in (sorted(tablo))", {"RN1", "RN4"}),
+    "M-RN-KOL": ('        if karar == "hazir" and (zincir or fu):\n', '        if karar == "hazir":\n', {"RN3"}),
+    "M-RN-KURU": ("        if uygula:\n            try:\n", "        if True:\n            try:\n",
+                  {"RN4"}),
     "M65": ("        if not (rc == 2 and TEPE_RED.search(ozet)) and not tepe_suresi:\n",
             "        if not rc == 2 and not tepe_suresi:\n", {"T61"}),
     # B2: tepe olcuye sigmadiginda sirt dususu kapali -> tepe kulak dahil > olcu -> kabul reddi ('elle').
@@ -1633,9 +1748,9 @@ MUTANTLAR = {
                    {"T68"}),
     "M60": ('    if not isinstance(g, dict) or "uretec" not in g:\n', "    if True:\n",
             {"T60", "T61", "T62", "T63", "T64", "T65", "T66", "T67", "T68", "T64K", "T65K", "RB1", "RB5", "RB2", "RB3", "RB4", "TS1", "TS2"}),
-    # TUR-C2a: girdi.json zorunlu sayilirsa eski is (dosya yok) 'elle'ye duser (T27 = V7).
+    # TUR-C2a: girdi.json zorunlu sayilirsa eski is (dosya yok) 'elle'ye duser (T27 = V7; RN3 ayni plaket kolu).
     "M61": ('    if not r2_al(ONIZLEME_DIZIN % i["is_no"] + "girdi.json", oy):\n        return None\n',
-            '    if not r2_al(ONIZLEME_DIZIN % i["is_no"] + "girdi.json", oy):\n        return ""\n', {"T27"}),
+            '    if not r2_al(ONIZLEME_DIZIN % i["is_no"] + "girdi.json", oy):\n        return ""\n', {"T27", "RN3"}),
     "M35": ('            karar, sebep, ozet = "elle", "onarim-ham-yok", ""\n',
             "            karar, sebep, ozet = onarim_kapisi(ham, cikti)\n", {"T30"}),
     # D/R ciktisina kapi baglanmazsa kirmizi model teslim edilir (T33) ve kopru yokken is ilerler (T34).

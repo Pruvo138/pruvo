@@ -125,6 +125,12 @@ function saglayiciIsi(is) { return saglayiciTuru(yolTuru(is)); }
 function uretecOnizlemeIsi(is) { return !figurKolu(is) && !!is && uretecOnizlemeTuru(is.tur); }
 /** Is deterministik kolda mi (figur kolu HARIC). */
 function deterministikIs(is) { return !figurKolu(is) && !!is && deterministikTur(is.tur); }
+/**
+ * ④ RENDER KOLU (Okan 11 Eki "bu 4 renkli bir figur degil"): figur (insan · pet · model) + anahtarlik-figur.
+ * Bu islerde ④ gorseli = uretim 3MF'inin render'i (yerel koşucu R2 `foto-onizleme/<is>-render.webp`); yoksa
+ * istemci saglayici gorselini durust cumleyle gosterir. Plaket ve deterministik kol DEGISMEZ.
+ */
+export function renderKolu(is) { return !!is && (figurKolu(is) || (is.tur === "figur" && !is.cesit)); }
 /** Isin hazirligi: turun ortak sartlari + figur kolunda saglayici yol turunun sartlari. */
 function isHazir(env, is) {
   if (!turHazir(env, is.tur).hazir) { return false; }
@@ -1450,6 +1456,14 @@ async function litofanUcu(request, env, simdi) {
 // ---------------------------------------------------------------- uc: /foto/durum + /foto/gorsel
 
 function onizlemeAnahtari(isNo) { return "foto-onizleme/" + isNo + ".png"; }
+/** ④ render'i (tools/foto-uretec-kosucu.py onizleme_render_anahtari ile AYNI). */
+function onizlemeRenderAnahtari(isNo) { return "foto-onizleme/" + isNo + "-render.webp"; }
+
+/** Render kolunda hazir isin render'i R2'de var mi (okuma hatasi = yok; uydurulmus adres YOK). */
+async function renderVar(env, is) {
+  if (!is || is.asama !== "hazir" || !renderKolu(is) || !env.OZEL_DOSYA) { return false; }
+  try { return !!(await env.OZEL_DOSYA.head(onizlemeRenderAnahtari(is.is_no))); } catch (e) { return false; }
+}
 
 async function isGetir(env, isNo) {
   return env.KATALOG.prepare(
@@ -1465,10 +1479,12 @@ async function isGetirYoksaNull(env, isNo) {
   }
 }
 
-function durumYaniti(is) {
+function durumYaniti(is, render) {
   if (is.asama === "hazir") {
     return fjson({ asama: "hazir", tur: is.tur, olcu_mm: is.olcu_mm,
                    gorsel: "/api/shop/foto/gorsel?is=" + is.is_no,
+                   // ④: render varsa istemci ONU gosterir (palete indirgeme YOK); yoksa alan YOK.
+                   ...(render ? { render: "/api/shop/foto/gorsel?is=" + is.is_no + "&gorunum=render" } : {}),
                    gecerlilik_bitis: new Date(Date.parse(is.hazir_tarih) +
                      VERI.gecerlilik_saat * 3600 * 1000).toISOString() }, 200);
   }
@@ -1493,7 +1509,7 @@ async function durumUcu(env, url, simdi) {
   // Ornek isi (panel) musteri ucunda YOK sayilir: varligi da sizmaz.
   if (ornekMi(is)) { return fjson({ hata: "bulunamadi" }, 404); }
   if (uretecOnizlemeIsi(is)) { return uretecDurumYaniti(env, is, simdi); }
-  return onizlemeIlerle(env, is, simdi, yapilandirma(env).hazir, durumYaniti);
+  return onizlemeIlerle(env, is, simdi, yapilandirma(env).hazir, async (x) => durumYaniti(x, await renderVar(env, x)));
 }
 
 /**
@@ -1561,6 +1577,10 @@ async function gorselUcu(env, url) {
   // Ornek isinin gorseli musteri ucundan SUNULMAZ (panel ucu: /yonet/foto/ornek-gorsel).
   if (ornekMi(is)) { return fjson({ hata: "bulunamadi" }, 404); }
   // Uretec onizlemesi koşucunun R2 dizininde (onizleme.png); digerleri foto-onizleme/<is>.png.
+  // ④ render'i yalniz render kolunda (figur); baska iste `gorunum=render` YOK sayilir.
+  if (url.searchParams.get("gorunum") === "render") {
+    return renderKolu(is) ? onizlemeGorseli(env, isNo, onizlemeRenderAnahtari(isNo)) : fjson({ hata: "bulunamadi" }, 404);
+  }
   return onizlemeGorseli(env, isNo, uretecOnizlemeIsi(is) ? uretecOnizlemeAnahtari(isNo, "onizleme.png") : "");
 }
 
@@ -2272,6 +2292,8 @@ async function onizlemeTemizle(env, simdi) {
   let silinen = 0;
   for (const s of (r.results || [])) {
     await env.OZEL_DOSYA.delete(onizlemeAnahtari(s.is_no));
+    // ④ render'i fotograftan turer: onizlemeyle AYNI saklama (3 gun).
+    if (renderKolu(s)) { await env.OZEL_DOSYA.delete(onizlemeRenderAnahtari(s.is_no)); }
     // Figur kolunun girdi.json'u da uretec dizinindedir.
     if (uretecOnizlemeIsi(s) || figurKolu(s)) {
       for (const ad of URETEC_DIZIN_ADLARI) { await env.OZEL_DOSYA.delete(uretecOnizlemeAnahtari(s.is_no, ad)); }
