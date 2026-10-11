@@ -1442,7 +1442,7 @@
     }
   }
   // Tek ana renk: yumuşatılmış açıklık (OKLab L; a = b = 0 gri) çift doğrusal büyütülür ve rengin tonuna oturtulur
-  // (taban rengin %55'i .. %105'i): gölge kalır, doku/benek kalmaz; r = g = b.
+  // (taban rengin %40'ı .. %105'i; beyaz figür açık zeminde silinmesin): gölge kalır, doku/benek kalmaz; r = g = b.
   function simGri(piksel, w, h, k0, taban) {
     var sw = k0.sw, sh = k0.sh, olc = k0.olc, gl = new Float64Array(sw * sh), x, y, k;
     for (k = 0; k < sw * sh; k++) { gl[k] = k0.say[k] ? linSrgb(k0.L[k] * k0.L[k] * k0.L[k]) / 255 : -1; }
@@ -1458,7 +1458,7 @@
           if (v >= 0 && a > 0) { top += v * a; ag += a; }
         }
         var g = ag > 0 ? top / ag : Math.max(0, gl[((y / olc) | 0) * sw + ((x / olc) | 0)]);
-        var c = Math.max(0, Math.min(255, Math.round(taban * (0.55 + 0.5 * g))));
+        var c = Math.max(0, Math.min(255, Math.round(taban * (0.4 + 0.65 * g))));
         piksel[i] = c; piksel[i + 1] = c; piksel[i + 2] = c;
       }
     }
