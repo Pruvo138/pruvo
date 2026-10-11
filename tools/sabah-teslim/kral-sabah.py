@@ -581,7 +581,7 @@ def _ana_dalda_ardil(run, d, ata_mi):
     return ata_mi(a, b) is True
 
 
-def ardil_hukum(data, run, ata_mi=None):
+def ardil_hukum(data, run, ata_mi=None, suruyor=False):
     """`run` ile AYNI iş akışı + dalda, ondan SONRA açılmış EN YENİ hükümlü koşum.
 
     Yoksa None. Bir kırmızının kapanıp kapanmadığı kırmızının kendisinden değil,
@@ -589,6 +589,13 @@ def ardil_hukum(data, run, ata_mi=None):
 
     K435 (8 Eki 2026): `run` ana dal DEĞİLSE ve `ata_mi` verilmişse, kırmızının
     commit'ini ATA olarak taşıyan ana dal koşumları da (aynı iş akışı) ardıl adayıdır.
+
+    K435 (11 Eki 2026, KraL-Tamirci-11Eki): `suruyor=True` TERSİNİ sorar — aynı aday
+    kümesinde (aynı iş akışı/dal/zaman kuralı) HENÜZ hükümsüz (koşuyor/sırada) EN YENİ
+    koşum. Neden: spec 03:3xZ'de üretilirken main'in ardıl SERIT B koşumları sürüyordu;
+    `cancelled` kırmızı "CANLI: ardıl hüküm YOK" bastı ve Tamirci onu tamir edilecek iş
+    sandı (9 Eki · 10 Eki · 11 Eki: 3 gün, 3/3 sahte). Sayı DEĞİŞMEZ (görünür yön),
+    yalnız satır "ardıl SÜRÜYOR, hükmü bekle" der. Varsayılan (False) davranış BİREBİR eski.
     """
     t0 = _run_zamani(run)
     if t0 is None:
@@ -602,9 +609,10 @@ def ardil_hukum(data, run, ata_mi=None):
         t = _run_zamani(d)
         if t is None or t <= t0:
             continue
-        if (d.get("status") or "").lower() != "completed":
+        tamam = (d.get("status") or "").lower() == "completed"
+        if tamam == suruyor:
             continue
-        if (d.get("conclusion") or "").lower() not in HUKUM_KUME:
+        if not suruyor and (d.get("conclusion") or "").lower() not in HUKUM_KUME:
             continue
         if en_yeni_t is None or t > en_yeni_t:
             en_yeni, en_yeni_t = d, t
@@ -677,6 +685,17 @@ def kirmizi_siniflandir(data, bugun, ata_mi=None):
                               (ardil.get("headSha") or "?")[:8],
                               (ardil.get("conclusion") or "").lower(),
                               ardil.get("databaseId", "?")))
+                # K435 (11 Eki): hükümlü ardıl YOK ama aday kümede KOŞAN ardıl VAR -> sayı
+                # aynı (CANLI), satır "hükmü bekle" der. Yalnız `ardil is None` kolunda:
+                # hükümlü failure ardıl varken satır DEĞİŞMEZ (görünür yön korunur).
+                bekleyen = (ardil_hukum(data, run, ata_mi, suruyor=True)
+                            if ardil is None else None)
+                if bekleyen is not None:
+                    seviye += (" · ARDIL SÜRÜYOR: run {} {} @`{}` — hükmü bekle, "
+                               "ŞİMDİ TAMİR ETME".format(
+                                   bekleyen.get("databaseId", "?"),
+                                   (bekleyen.get("status") or "?").lower(),
+                                   (bekleyen.get("headSha") or "?")[:8]))
             kirmizi.append("- [{}] {} · dal={} · sha=`{}` · run {} → {}".format(
                 conc, ad, dal, sha, rid, seviye))
         elif conc not in YESIL_KUME:
@@ -780,10 +799,13 @@ def bugunun_kirmizilari() -> tuple[str, str, int | None, str]:
         kirmizi, hukumsuz, canli_n, kapanan_n = kirmizi_siniflandir(data, bugun, ata_mi_git)
         devreden = _devreden_blogu(data, bugun)
         if kirmizi:
+            suruyor_n = len([x for x in kirmizi if "ARDIL SÜRÜYOR" in x])
             blok = ("> SEVİYE (iş akışı+dal başına EN YENİ hükümlü koşum; `cancelled` hüküm "
-                    "DEĞİL): **CANLI={}** · ARDILI_YESIL={} — ADET bugünün TÜM kırmızı "
-                    "koşumlarını sayar; tamir edilecek olan yalnız CANLI olanlardır.\n\n".format(
-                        canli_n, kapanan_n)
+                    "DEĞİL): **CANLI={}** · ARDILI_YESIL={} · ARDIL_SURUYOR={} — ADET bugünün TÜM "
+                    "kırmızı koşumlarını sayar; tamir edilecek olan yalnız CANLI olanlardır "
+                    "(ARDIL_SURUYOR = CANLI'nın ardılı HÂLÂ KOŞAN kısmı: hüküm bekle, tamir etme, "
+                    "kapanınca YENİDEN ölç).\n\n".format(
+                        canli_n, kapanan_n, suruyor_n)
                     + "\n".join(kirmizi))
             if hukumsuz:
                 blok += ("\n\n> ⚠️ AYRICA HÜKMÜ OLMAYAN {} koşum var — ADET'e GİRMEZLER, "

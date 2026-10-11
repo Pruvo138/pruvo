@@ -4934,6 +4934,122 @@ def saat_suiti(arac):
         shutil.rmtree(kok, ignore_errors=True)
 
 
+# ------------------------------------------- BASLIKTA JETON (11 Eki 2026, KraL-Tamirci-11Eki)
+# 🔴 OLCULEN VAKA (canli kutu, 11 Eki 09:2x, 518/500): `--kapanislari-isle` 33 blogu cevirmek
+# isterken `CEVRIM DOGRULAMASI KIRMIZI — C5 BASLIK SATIRLARI DEGISTI` verdi ve HICBIR SEY
+# yazmadi -> 32 bekleyen kapanis islenemedi, kutu kilitli kaldi. Sebep: iki TEK SATIRLIK
+# `## ` blogunun (gorev metni) BASLIK PROZASINDA `ARŞİVLENEBİLİRİM` geciyordu;
+# `kapanis_kuyrugu()` govdesiz blokta SON icerik satiri olarak basligi doner, cevrim onu
+# ikame edince C5 (cevrim baslik satirina dokunamaz) ates aldi. Tamir: baslik satiri
+# CEVRILMEZ, blok KORUMALI kalir, sinif `BASLIKTA_JETON` ADIYLA basilir.
+# 🔴 BILEREK VAKALAR'IN DISINDA (`saat_suiti` emsali): VAKALAR'a eklenen her vaka `--mutasyon`
+# turunun hedef-kol atif kumelerini (K182) kaydirir ([[mutant-beklenen-kirmizi-kumesi-taban-degisince-ikinci-kat-bayatlar]]);
+# bu takim kendi mutantini kendisi tasir.
+BJ_TAVAN = 300
+BJ_KAPANIS_IDX = (10, 20)     # govde sonunda gercek kapanis jetonu (cevrilir)
+BJ_BASLIK_IDX = 15            # TEK SATIRLIK blok; jeton BASLIK prozasinda (cevrilmez)
+BJ_BASLIK = ("## 2026-07-16 — MimarA -> MimarB: gorev metni, kapanis 2 satir + %s; "
+             "`branch -d` kurali prompt'ta (kabul testi fiksturu)" % BEKLEYEN_SATIR)
+BJ_MUTANT_CAPA = "        if BLOK_RE.match(satirlar[satir_no - 1]):\n"
+BJ_MUTANT_YENI = "        if False:  # MUTANT: BASLIKTA_JETON korumasi kaldirildi\n"
+
+
+def kutu_uret_bj():
+    """30 blok, AYRACSIZ (canli kutu sekli): 2 kapanis blogu + 1 tek satirlik baslik blogu."""
+    parcalar = [FM]
+    i = 0
+    while i < 30:
+        if i == BJ_BASLIK_IDX:
+            parcalar.append(BJ_BASLIK + "\n\n")
+        else:
+            g = blok(i)
+            if i in BJ_KAPANIS_IDX:
+                g += BEKLEYEN_SATIR + "\n\n"
+            parcalar.append(g)
+        i += 1
+    return "".join(parcalar)
+
+
+def _bj_alan(kok, ad, metin):
+    alt = os.path.join(kok, ad)
+    os.makedirs(alt, exist_ok=True)
+    return Alan(alt, metin, "## eski arsiv blogu\n\ngovde\n")
+
+
+def _bj_vakalari(arac, kok, iddia_fn):
+    metin = kutu_uret_bj()
+    baslik_satiri = BJ_BASLIK
+    ilk_basliklar = [s for s in metin.splitlines() if s.startswith("## ")]
+    # ---- TABAN: bayraksiz kosum — baslik blogu KORUMALI (K313g fail-closed yonu) ----
+    t = _bj_alan(kok, "taban", metin)
+    rc0, c0 = kos(arac, t.kutu, t.arsiv, t.kilit, tavan=BJ_TAVAN, koru=3)
+    iddia_fn("BJ1 TABAN rc=0", rc0 == 0, c0[-600:])
+    iddia_fn("BJ2 TABAN: 3 blok KORUMALI (2 kapanis + baslik blogu)",
+             "KORUMALI_BEKLEYEN=3 " in c0, c0[-900:])
+    # ---- CEVRIMLI kosum ----
+    a = _bj_alan(kok, "cevrim", metin)
+    rc, c = kos(arac, a.kutu, a.arsiv, a.kilit, tavan=BJ_TAVAN, koru=3,
+                kapanislari_isle=True)
+    kutu_s, arsiv_s = oku(a.kutu), oku(a.arsiv)
+    iddia_fn("BJ3 🔴 rc=0 (baslik jetonu C5'i KIRMIZI YAKMAZ, cevrim yazilir)",
+             rc == 0 and "C5 BASLIK" not in c, "rc=%d\n%s" % (rc, c[-1200:]))
+    iddia_fn("BJ4 CEVRIM=2, baslikta_jeton=1 ve atlanan_fail_closed=0 ADIYLA basildi",
+             "CEVRIM=2 atlanan_fail_closed=0 baslikta_jeton=1 " in c, c[-1400:])
+    iddia_fn("BJ5 baslik blogu sinif=BASLIKTA_JETON olarak (blok %d) ADIYLA basildi"
+             % (BJ_BASLIK_IDX + 1),
+             ("CEVRILMEDI blok %d (satir" % (BJ_BASLIK_IDX + 1)) in c
+             and "sinif=BASLIKTA_JETON" in c, c[-1400:])
+    iddia_fn("BJ6 cevrim dogrulamasi GECTI (cevrilen=2, atlanan=1)",
+             "cevrim_dogrulama=GECTI (iddia=8, cevrilen=2, atlanan=1)" in c, c[-1400:])
+    iddia_fn("BJ7 🔴 baslik satiri BIREBIR kutuda duruyor, arsive SIZMADI (blok KORUMALI)",
+             baslik_satiri in kutu_s.splitlines() and baslik_satiri not in arsiv_s.splitlines(),
+             "kutuda=%s arsivde=%s" % (baslik_satiri in kutu_s.splitlines(),
+                                       baslik_satiri in arsiv_s.splitlines()))
+    iddia_fn("BJ8 KORUMALI_BEKLEYEN 3 -> 1 (yalniz baslik blogu kaldi; iki kapanis ACILDI)",
+             "KORUMALI_BEKLEYEN=1 " in c, c[-1400:])
+    cevrilmis_satir = BEKLEYEN_SATIR.replace("ARŞİVLENEBİLİRİM", "ARŞİVLENDİ")
+    iddia_fn("BJ9 iki kapanis ISLENMIS bicime cevrildi, BEKLEYEN jeton yalniz basliktaki kaldi",
+             (kutu_s + arsiv_s).count(cevrilmis_satir) == 2
+             and (kutu_s + arsiv_s).count(BEKLEYEN_SATIR) == 1
+             and arsiv_s.count(BEKLEYEN_SATIR) == 0,
+             "islenmis=%d bekleyen=%d" % ((kutu_s + arsiv_s).count(cevrilmis_satir),
+                                           (kutu_s + arsiv_s).count(BEKLEYEN_SATIR)))
+    kalan_satirlar = set((kutu_s + arsiv_s).splitlines())
+    eksik = [b for b in ilk_basliklar if b not in kalan_satirlar]
+    iddia_fn("BJ10 🔴 TUM basliklar (%d) cevrimden sonra BIREBIR duruyor (C5 ruhu)"
+             % len(ilk_basliklar), not eksik, "eksik=%r" % eksik[:2])
+    bek_tasinan, _bek_kalan = oracle_granuler(metin, BJ_TAVAN, 3, [BJ_BASLIK_IDX])
+    iddia_fn("BJ11 arac BAGIMSIZ oracle ile ayni sayida blok tasidi (%d)" % len(bek_tasinan),
+             len(bek_tasinan) > 0 and ("tasinacak_blok=%d " % len(bek_tasinan)) in c,
+             c[-1400:])
+    iddia_fn("BJ12 rotasyon lossless GECTI", "lossless_dogrulama=GECTI" in c, c[-800:])
+
+
+def baslik_jeton_suiti(arac):
+    print("\n[BASLIKTA JETON] --kapanislari-isle baslik satirina dokunmaz (kendi mutantiyla)")
+    kok = tempfile.mkdtemp(prefix="kutu-bj-test-")
+    try:
+        _bj_vakalari(arac, os.path.join(kok, "asil"), iddia)
+        with open(arac, encoding="utf-8") as f:
+            kaynak = f.read()
+        n = kaynak.count(BJ_MUTANT_CAPA)
+        if n != 1:
+            iddia("BJ-M capasi TEK kez tutmadi (OLCULEMEDI)", False, "bulunan=%d" % n)
+            return
+        mutant = os.path.join(kok, "mutant-bj.py")
+        yaz(mutant, kaynak.replace(BJ_MUTANT_CAPA, BJ_MUTANT_YENI))
+        mutant_kirmizi = []
+        _bj_vakalari(mutant, os.path.join(kok, "mutant"), lambda ad, kosul, tani="": (
+            None if kosul else mutant_kirmizi.append(ad)))
+        iddia("BJ-M mutant (baslik korumasi kaldirildi) -> KIRMIZI (%d vaka dustu)"
+              % len(mutant_kirmizi), len(mutant_kirmizi) > 0,
+              "mutant HICBIR vakayi dusurmedi")
+        iddia("BJ-M2 mutant BJ3'u (rc=0 / C5 yok) DUSURDU (hedef kol olculuyor)",
+              any(x.startswith("BJ3") for x in mutant_kirmizi), "dusenler=%r" % mutant_kirmizi)
+    finally:
+        shutil.rmtree(kok, ignore_errors=True)
+
+
 def main():
     ap = argparse.ArgumentParser(description="tools/kutu-arsivle.py kabul testi")
     ap.add_argument("--arac", default=ARAC, help="test edilecek arac yolu (mutant icin)")
@@ -4950,6 +5066,7 @@ def main():
     print("=" * 78)
     g, k = suite(a.arac)
     saat_suiti(a.arac)
+    baslik_jeton_suiti(a.arac)
     g, k = g + GECTI, k + KIRMIZI
     print("\n" + "=" * 78)
     print("VAKA=%d  IDDIA=%d  GECTI=%d  KIRMIZI=%d" % (len(VAKALAR), len(g) + len(k),
