@@ -763,11 +763,19 @@ def _kaynak_yukle_guvenli(zorunlu):
     return v
 
 
+def _kaynak_damgali(kayit):
+    """Kayit `silindi` damgasi tasiyor mu? Damgali kayit = Okan'in sildigi urunun
+    YENIDEN HASAT KILIDI: ARTIK sayilmaz, --kaynak-temizle onu SILMEZ."""
+    return (isinstance(kayit, dict) and isinstance(kayit.get("silindi"), str)
+            and bool(kayit["silindi"].strip()))
+
+
 def _kaynak_durum_yaz():
-    """Salt okuma: KAYNAK_KAYIT / URUN / ARTIK / ARTIK_ORNEK tek satir basar.
+    """Salt okuma: KAYNAK_KAYIT / URUN / ARTIK / ARTIK_ORNEK / DAMGALI tek satir basar.
 
     ARTıK = kaynak duzleminde olup urunler.json'da OLMAYAN id sayisi (silinmis/eski
     urunlerin ardi). ARTıK_ORNEK = en fazla 5 id; dosya okunamazsa OLCULEMEDI + rc!=0.
+    `silindi` damgali kayit ARTIK SAYILMAZ (yeniden hasat kilidi); DAMGALI = onlarin sayisi.
     Cıktıya kayit govdesi/tedarikci/tasarimci/uyelik BILGISI YAZILMAZ.
     """
     try:
@@ -787,9 +795,11 @@ def _kaynak_durum_yaz():
             uid = p.get("id")
             if isinstance(uid, str) and uid:
                 urun_id_set.add(uid)
-    artik = [k for k in kaynaklar if k not in urun_id_set]
-    print("KAYNAK_KAYIT=%d URUN=%d ARTIK=%d ARTIK_ORNEK=%s"
-          % (len(kaynaklar), len(urun_id_set), len(artik), ",".join(artik[:5])))
+    artik = [k for k in kaynaklar
+             if k not in urun_id_set and not _kaynak_damgali(kaynaklar[k])]
+    damgali = sum(1 for k in kaynaklar if _kaynak_damgali(kaynaklar[k]))
+    print("KAYNAK_KAYIT=%d URUN=%d ARTIK=%d ARTIK_ORNEK=%s DAMGALI=%d"
+          % (len(kaynaklar), len(urun_id_set), len(artik), ",".join(artik[:5]), damgali))
     return 0
 
 
@@ -798,6 +808,8 @@ def _kaynak_temizle_uygula(silinecek_idler):
     yuklemesinin devami olarak calisir.
 
     Idempotent: silinecek id KAYNAKLAR'da yoksa hata DEGIL, ZATEN_YOK sayilir.
+    `silindi` damgali kayit SILINMEZ (yeniden hasat kilidi); sayisi
+    KAYNAK_DAMGALI_KORUNAN satiriyla basilir, silinen/zaten_yok'a GIRMEZ.
     Doner: (silinen, zaten_yok, kalan) — KAYNAKLAR dosyasi yoksa (idempotent sifir)
     (0, 0, 0); KAYNAKLAR ayristirilamiyorsa (None, None, None) ve OLCULEMEDI basar.
     """
@@ -809,8 +821,12 @@ def _kaynak_temizle_uygula(silinecek_idler):
     dosya_yoktu = not os.path.exists(KAYNAKLAR)
     silinen = 0
     zaten_yok = 0
+    korunan = 0
     for uid in sorted(set(silinecek_idler)):
         if not isinstance(uid, str) or not uid:
+            continue
+        if _kaynak_damgali(kaynaklar.get(uid)):
+            korunan += 1
             continue
         if uid in kaynaklar:
             del kaynaklar[uid]
@@ -822,7 +838,65 @@ def _kaynak_temizle_uygula(silinecek_idler):
     # yeniligini SILMEKten daha kotudur.
     if not dosya_yoktu:
         _atomic_write(KAYNAKLAR, kaynaklar)
+    if korunan:
+        print("KAYNAK_DAMGALI_KORUNAN=%d" % korunan)
     return silinen, zaten_yok, len(kaynaklar)
+
+
+def _kaynak_damga(idler, metin):
+    """`--kaynak-damga ID.. --silindi METIN`: gizli kaynak defterinde VAR olan kayda
+    yalniz `silindi` alanini yazar (yeniden hasat kilidi). urunler.json'a DOKUNMAZ.
+
+    Ayni flock altinda defter YENIDEN okunur, tek atomik yazim yapilir.
+      yok      : id defterde yok -> kayit YARATILMAZ (rc=3)
+      zaten    : ayni metin zaten yazili -> dokunulmaz
+      cakisma  : farkli `silindi` var -> UZERINE YAZILMAZ (rc=4; rc=3'ten onceliklidir)
+      yazildi  : damga eklendi; hic yazildi yoksa dosya YENIDEN YAZILMAZ.
+    Cakisma/yok olan id'ler digerlerinin yazimini durdurmaz (her id ayri sayilir).
+    GIZLILIK: ciktiya yalniz sayi basilir; kayit govdesi YAZILMAZ.
+    """
+    lockf = open(LOCK, "w")
+    fcntl.flock(lockf, fcntl.LOCK_EX)
+    try:
+        try:
+            kaynaklar = _kaynak_yukle_guvenli(zorunlu=True)
+        except ValueError as e:
+            print("OLCULEMEDI: %s" % e, file=sys.stderr)
+            return 1
+        yazildi = zaten = yok = cakisma = 0
+        for uid in dict.fromkeys(idler):
+            kayit = kaynaklar.get(uid)
+            if kayit is None:
+                yok += 1
+                continue
+            if not isinstance(kayit, dict):
+                print("HATA: kaynak defterinde kayit dict degil: %s (hicbir sey yazilmadi)"
+                      % uid, file=sys.stderr)
+                return 1
+            mevcut = kayit.get("silindi")
+            if mevcut == metin:
+                zaten += 1
+                continue
+            if mevcut is not None:
+                cakisma += 1
+                continue
+            kayit["silindi"] = metin
+            yazildi += 1
+        if yazildi:
+            _atomic_write(KAYNAKLAR, kaynaklar)
+    finally:
+        fcntl.flock(lockf, fcntl.LOCK_UN)
+        lockf.close()
+    if yazildi:
+        _log("kaynak-damga: yazildi=%d zaten=%d yok=%d cakisma=%d"
+             % (yazildi, zaten, yok, cakisma))
+    print("KAYNAK_DAMGA yazildi=%d zaten=%d yok=%d cakisma=%d"
+          % (yazildi, zaten, yok, cakisma))
+    if cakisma:
+        return 4
+    if yok:
+        return 3
+    return 0
 
 
 def _canon(v):
@@ -1316,7 +1390,32 @@ def main():
                     help="--sil/--toplu ile birlikte: gizli kaynak duzleminden de ayni "
                          "flock icinde id'leri dusur (idempotent, OPT-IN). Yalniz "
                          "--sil/--toplu ile kullanilir; tek basina hata.")
+    ap.add_argument("--kaynak-damga", nargs="+", metavar="ID",
+                    help="gizli kaynak defterinde VAR olan kayitlara yalniz `silindi` "
+                         "damgasi yaz (--silindi ile ZORUNLU; baska argumanla kullanilmaz)")
+    ap.add_argument("--silindi", metavar="METIN",
+                    help="--kaynak-damga ile: yazilacak `silindi` metni (bos olamaz)")
     args = ap.parse_args()
+
+    # --kaynak-damga: kendi dispens; --silindi zorunlu, diger her arguman yasak.
+    if args.kaynak_damga is not None or args.silindi is not None:
+        if args.kaynak_damga is None:
+            print("HATA: --silindi yalniz --kaynak-damga ile kullanilir.", file=sys.stderr)
+            return 2
+        if (args.id or args.toplu is not None or args.alan or args.deger
+                or args.sil is not None or args.alan_sil or args.gerekce is not None
+                or args.yeni_id is not None or args.kaynak_temizle or args.kaynak_durum):
+            print("HATA: --kaynak-damga baska islem argumanlariyla birlikte kullanilamaz.",
+                  file=sys.stderr)
+            return 2
+        if args.silindi is None or not args.silindi.strip():
+            print("HATA: --kaynak-damga icin bos olmayan --silindi metni zorunlu.",
+                  file=sys.stderr)
+            return 2
+        if any(not i.strip() for i in args.kaynak_damga):
+            print("HATA: --kaynak-damga bos id kabul etmez.", file=sys.stderr)
+            return 2
+        return _kaynak_damga(args.kaynak_damga, args.silindi)
 
     # --kaynak-durum: kendi dispens, tum diger argumanlarla mutually exclusive.
     # Once kontrol edilir: hata durumunu erkenden vermek + diger is kollarina

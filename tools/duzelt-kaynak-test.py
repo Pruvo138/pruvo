@@ -38,12 +38,17 @@ veri_kok = importlib.util.module_from_spec(_vk_spec)
 _vk_spec.loader.exec_module(veri_kok)
 
 FAILS = []
+# Vaka etiketi: mutasyon bataryasi her mutantin TAM OLARAK hangi vaka kumesini kirmizi
+# yaktigini son satirdaki `KIRMIZI_VAKA=` uzerinden olcer (etiketsiz eski eksen = "k").
+VAKA = ["k"]
+KIRMIZI_VAKA = set()
 
 
 def kontrol(kosul, mesaj, detay=""):
     print(("  ✔ " if kosul else "  ✘ ") + mesaj + (("   [%s]" % detay) if detay else ""))
     if not kosul:
         FAILS.append(mesaj + (("   [%s]" % detay) if detay else ""))
+        KIRMIZI_VAKA.add(VAKA[0])
 
 
 def cagir(repo, *argv):
@@ -86,6 +91,172 @@ def sahte_repo(kaynaklar=None, urunler=None):
 def temizle(*dizinler):
     for d in dizinler:
         shutil.rmtree(d, ignore_errors=True)
+
+
+def _oku(repo, ad):
+    with open(os.path.join(repo, ad), "rb") as f:
+        return f.read()
+
+
+def _kaynak(repo):
+    with open(os.path.join(repo, ".urun-kaynaklari.json"), encoding="utf-8") as f:
+        return json.load(f)
+
+
+def _urun(uid):
+    return {"id": uid, "kategori": "Otomobil", "marka": ["X"], "baslik": uid,
+            "aciklama": "a", "fiyat": "100 TL",
+            "gorseller": ["https://media.pruvo3d.com/urunler/%s-1.jpg" % uid]}
+
+
+def damga_vakalari():
+    """`--kaynak-damga ID.. --silindi METIN` + damgali kaydin temizlik/ARTIK korumasi.
+    Her vaka KENDI etiketiyle kirmizi yanar (mutasyon bataryasi kumeyi birebir olcer)."""
+    tpl = {"a-1": {"link": "https://a1", "uyelik": "u-a1", "lisans": "CC BY"},
+           "a-2": {"link": "https://a2", "tasarimci": "t2"},
+           "a-3": {"link": "https://a3"}}
+
+    # ── [yaz] ────────────────────────────────────────────────────────────────
+    VAKA[0] = "yaz"
+    print("\n[yaz] — var olan kayitlara damga yazilir, rc=0")
+    repo = sahte_repo(kaynaklar=json.loads(json.dumps(tpl)), urunler=[_urun("u-var")])
+    try:
+        urun_once = _oku(repo, "urunler.json")
+        rc, out, err = cagir(repo, "--kaynak-damga", "a-1", "a-2", "--silindi", "Okan sil 6 Eki")
+        kontrol(rc == 0, "rc=0", "rc=%d err=%r" % (rc, err[-200:]))
+        kontrol(out.strip() == "KAYNAK_DAMGA yazildi=2 zaten=0 yok=0 cakisma=0",
+                "cikti tek satir yazildi=2", "out=%r" % out)
+        k = _kaynak(repo)
+        kontrol(k["a-1"].get("silindi") == "Okan sil 6 Eki"
+                and k["a-2"].get("silindi") == "Okan sil 6 Eki", "a-1/a-2 damgali")
+        kontrol("silindi" not in k["a-3"], "a-3 damgasiz kaldi")
+        kontrol(_oku(repo, "urunler.json") == urun_once, "urunler.json bayt-esit")
+    finally:
+        temizle(repo)
+
+    # ── [alanlar] ───────────────────────────────────────────────────────────
+    VAKA[0] = "alanlar"
+    print("\n[alanlar] — damga disindaki tum alanlar/kayitlar bayt-esit")
+    repo = sahte_repo(kaynaklar=json.loads(json.dumps(tpl)), urunler=[_urun("u-var")])
+    try:
+        rc, out, _ = cagir(repo, "--kaynak-damga", "a-1", "--silindi", "x")
+        kontrol(rc == 0, "rc=0", "rc=%d" % rc)
+        k = _kaynak(repo)
+        a1 = dict(k["a-1"])
+        a1.pop("silindi", None)
+        kontrol(json.dumps(a1) == json.dumps(tpl["a-1"]), "a-1 diger alanlari + sira esit",
+                "a1=%s" % sorted(a1))
+        kontrol(list(k["a-1"].keys())[-1] == "silindi", "silindi SONA eklendi")
+        kontrol(json.dumps(k["a-2"]) == json.dumps(tpl["a-2"])
+                and json.dumps(k["a-3"]) == json.dumps(tpl["a-3"]), "komsu kayitlar esit")
+        kontrol(list(k.keys()) == list(tpl.keys()), "kayit sirasi/kumesi esit")
+    finally:
+        temizle(repo)
+
+    # ── [zaten] ─────────────────────────────────────────────────────────────
+    VAKA[0] = "zaten"
+    print("\n[zaten] — ayni metin: dosya YENIDEN YAZILMAZ, zaten=1")
+    kay = json.loads(json.dumps(tpl))
+    kay["a-1"]["silindi"] = "x"
+    repo = sahte_repo(kaynaklar=kay, urunler=[_urun("u-var")])
+    try:
+        yol = os.path.join(repo, ".urun-kaynaklari.json")
+        st = os.stat(yol)
+        bayt = _oku(repo, ".urun-kaynaklari.json")
+        rc, out, _ = cagir(repo, "--kaynak-damga", "a-1", "--silindi", "x")
+        kontrol(rc == 0, "rc=0", "rc=%d" % rc)
+        kontrol(out.strip() == "KAYNAK_DAMGA yazildi=0 zaten=1 yok=0 cakisma=0",
+                "zaten=1", "out=%r" % out)
+        st2 = os.stat(yol)
+        kontrol(st2.st_ino == st.st_ino and _oku(repo, ".urun-kaynaklari.json") == bayt,
+                "dosya yeniden yazilmadi (inode + bayt esit)")
+    finally:
+        temizle(repo)
+
+    # ── [yok] ───────────────────────────────────────────────────────────────
+    VAKA[0] = "yok"
+    print("\n[yok] — defterde olmayan id: kayit YARATILMAZ, rc=3")
+    repo = sahte_repo(kaynaklar=json.loads(json.dumps(tpl)), urunler=[_urun("u-var")])
+    try:
+        rc, out, _ = cagir(repo, "--kaynak-damga", "a-1", "z-yok", "--silindi", "x")
+        kontrol(rc == 3, "rc=3", "rc=%d" % rc)
+        kontrol(out.strip() == "KAYNAK_DAMGA yazildi=1 zaten=0 yok=1 cakisma=0",
+                "yazildi=1 yok=1", "out=%r" % out)
+        k = _kaynak(repo)
+        kontrol("z-yok" not in k, "z-yok kaydi YARATILMADI")
+        kontrol(len(k) == 3 and k["a-1"].get("silindi") == "x", "a-1 yine damgalandi")
+    finally:
+        temizle(repo)
+
+    # ── [cakisma] ───────────────────────────────────────────────────────────
+    VAKA[0] = "cakisma"
+    print("\n[cakisma] — farkli metin: eski damga KORUNUR, rc=4")
+    kay = json.loads(json.dumps(tpl))
+    kay["a-1"]["silindi"] = "eski metin"
+    repo = sahte_repo(kaynaklar=kay, urunler=[_urun("u-var")])
+    try:
+        rc, out, _ = cagir(repo, "--kaynak-damga", "a-1", "--silindi", "yeni metin")
+        kontrol(rc == 4, "rc=4", "rc=%d" % rc)
+        kontrol("cakisma=1" in out and "yazildi=0" in out, "cakisma=1 yazildi=0",
+                "out=%r" % out)
+        kontrol(_kaynak(repo)["a-1"].get("silindi") == "eski metin", "eski metin korundu")
+    finally:
+        temizle(repo)
+
+    # ── [temizlik] ──────────────────────────────────────────────────────────
+    VAKA[0] = "temizlik"
+    print("\n[temizlik] — --sil --kaynak-temizle damgali kaydi SILMEZ")
+    kay = {"u-dam": {"link": "https://d", "silindi": "Okan sil"},
+           "u-duz": {"link": "https://e"}}
+    repo = sahte_repo(kaynaklar=kay, urunler=[_urun("u-dam"), _urun("u-duz")])
+    try:
+        islem = os.path.join(repo, "islem.json")
+        with open(islem, "w", encoding="utf-8") as f:
+            json.dump([{"id": "u-dam", "sil": "test"}, {"id": "u-duz", "sil": "test"}], f)
+        rc, out, err = cagir(repo, "--toplu", islem, "--kaynak-temizle")
+        kontrol(rc == 0, "rc=0", "rc=%d err=%r" % (rc, err[-200:]))
+        k = _kaynak(repo)
+        kontrol("u-dam" in k and k["u-dam"] == kay["u-dam"], "damgali u-dam KORUNDU")
+        kontrol("u-duz" not in k, "damgasiz u-duz silindi")
+        kontrol("KAYNAK_SILINEN=1" in out and "KAYNAK_DAMGALI_KORUNAN=1" in out,
+                "SILINEN=1 KORUNAN=1", "out=%r" % out)
+    finally:
+        temizle(repo)
+
+    # ── [artik] ─────────────────────────────────────────────────────────────
+    VAKA[0] = "artik"
+    print("\n[artik] — --kaynak-durum damgaliyi ARTIK saymaz, DAMGALI sonda")
+    kay = {"u-var": {"link": "https://v"}, "u-art": {"link": "https://a"},
+           "u-dam": {"link": "https://d", "silindi": "Okan sil"}}
+    repo = sahte_repo(kaynaklar=kay, urunler=[_urun("u-var")])
+    try:
+        rc, out, _ = cagir(repo, "--kaynak-durum")
+        kontrol(rc == 0, "rc=0", "rc=%d" % rc)
+        kontrol(out.strip() == "KAYNAK_KAYIT=3 URUN=1 ARTIK=1 ARTIK_ORNEK=u-art DAMGALI=1",
+                "satir birebir (DAMGALI sonda)", "out=%r" % out)
+    finally:
+        temizle(repo)
+
+    # ── [bos] ───────────────────────────────────────────────────────────────
+    VAKA[0] = "bos"
+    print("\n[bos] — bos/whitespace metin + karisik arguman: rc=2, yazim yok")
+    repo = sahte_repo(kaynaklar=json.loads(json.dumps(tpl)), urunler=[_urun("u-var")])
+    try:
+        bayt = _oku(repo, ".urun-kaynaklari.json")
+        for argv, ad in ((["--kaynak-damga", "a-1", "--silindi", "   "], "whitespace"),
+                         (["--kaynak-damga", "a-1", "--silindi", ""], "bos"),
+                         (["--kaynak-damga", "a-1"], "silindi-yok"),
+                         (["--silindi", "x"], "damga-yok"),
+                         (["--kaynak-damga", "a-1", "--silindi", "x", "--kaynak-durum"],
+                          "karisik-durum"),
+                         (["u-var", "--sil", "t", "--kaynak-damga", "a-1", "--silindi", "x"],
+                          "karisik-sil")):
+            rc, _, _ = cagir(repo, *argv)
+            kontrol(rc == 2, "%s rc=2" % ad, "rc=%d" % rc)
+        kontrol(_oku(repo, ".urun-kaynaklari.json") == bayt, "defter bayt-esit")
+    finally:
+        temizle(repo)
+    VAKA[0] = "k"
 
 
 def main():
@@ -255,7 +426,10 @@ def main():
     finally:
         temizle(repo)
 
+    damga_vakalari()
+
     print("\n" + ("-" * 78))
+    print("KIRMIZI_VAKA=%s" % ",".join(sorted(KIRMIZI_VAKA)))
     if FAILS:
         print("HATALI: %d iddia kirmizi" % len(FAILS))
         for f in FAILS:

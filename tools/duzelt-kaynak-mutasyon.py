@@ -7,6 +7,11 @@ Spec:
   M2: dosya okunamazken ARTIK=0 dondur (sessiz sifir) -> OLCULEMEDI beklenirken 0 -> kirmizi.
   M3: ikinci _atomic_write'i flock DISINA tasi -> eszamanlilik vakasi kirmizi yakmali.
   M4: raporlayiciya kayit govdesini bastir -> gizlilik taramasi bulgu vermeli.
+  KAYNAK-DAMGA (m1-m4; her biri TAM OLARAK beklenen vaka kumesini kirmizi yakar):
+  m1: damga olmayan id'ye kayit yaratir -> [yok]
+  m2: cakismada uzerine yazar          -> [cakisma]
+  m3: temizlik damgaliyi siler         -> [temizlik]
+  m4: ARTIK damgaliyi sayar            -> [artik]
   Uygulanamayan mutant UYGULANAMADI yazilir, 0 SAYILMAZ.
 """
 import importlib.util
@@ -147,8 +152,8 @@ def main():
         # Ornek: ARTıK hesabinda kayit listesini de yaz.
         # Guncel satir: 'print("KAYNAK_KAYIT=%d URUN=%d ARTIK=%d ARTIK_ORNEK=%s" ...)'
         # Mutant: print'e 'len(artik)' yerine 'artik'in govdesini ekleyen satir.
-        m4 = [('    print("KAYNAK_KAYIT=%d URUN=%d ARTIK=%d ARTIK_ORNEK=%s"\n'
-               '          % (len(kaynaklar), len(urun_id_set), len(artik), ",".join(artik[:5])))',
+        m4 = [('    print("KAYNAK_KAYIT=%d URUN=%d ARTIK=%d ARTIK_ORNEK=%s DAMGALI=%d"\n'
+               '          % (len(kaynaklar), len(urun_id_set), len(artik), ",".join(artik[:5]), damgali))',
                '    print("KAYNAK_KAYIT=%d URUN=%d ARTIK=%d ARTIK_ORNEK=%s KAYIT_GOVDESI=%s" % (\n'
                '        len(kaynaklar), len(urun_id_set), len(artik),\n'
                '        ",".join(artik[:5]),\n'
@@ -165,6 +170,37 @@ def main():
                                         or "CC BY" in kuyruk)
         check("M4 mutanti kabul testini KIRAR (K8 KAYIT GOVDESI yakalar)",
               m4_kirmizi, "rc=%d kuyrukSon=%s" % (rc, kuyruk[-400:]))
+
+        # --- KAYNAK-DAMGA mutantlari (m1-m4) ---------------------------------
+        # Her mutant TAM OLARAK beklenen vaka kumesini kirmizi yakmali: kabul testinin
+        # son `KIRMIZI_VAKA=` satiri birebir karsilastirilir (fazla kirmizi = vaka
+        # ayrismiyor, eksik kirmizi = vaka kor).
+        damga_mutantlari = [
+            ("m1", "damga olmayan id icin kayit YARATIR",
+             [("            if kayit is None:\n                yok += 1\n                continue\n",
+               "            if kayit is None:\n                kayit = kaynaklar[uid] = {}\n")],
+             {"yok"}),
+            ("m2", "cakismada eski damganin UZERINE YAZAR",
+             [("                cakisma += 1\n                continue\n",
+               "                cakisma += 1\n")],
+             {"cakisma"}),
+            ("m3", "temizlik damgali kaydi SILER",
+             [("        if _kaynak_damgali(kaynaklar.get(uid)):\n",
+               "        if False:\n")],
+             {"temizlik"}),
+            ("m4", "ARTIK damgali kaydi SAYAR",
+             [("             if k not in urun_id_set and not _kaynak_damgali(kaynaklar[k])]\n",
+               "             if k not in urun_id_set]\n")],
+             {"artik"}),
+        ]
+        for kod, ad, degisim, beklenen in damga_mutantlari:
+            print("\n%s — %s" % (kod, ad))
+            rc, kuyruk = kos(ayna, pristine, kod, degisim)
+            bulunan = re.findall(r"^KIRMIZI_VAKA=(.*)$", kuyruk, re.M)
+            kume = set(filter(None, bulunan[-1].split(","))) if bulunan else None
+            check("%s KIRMIZI-YAKAR tam kume %s" % (kod, sorted(beklenen)),
+                  rc != 0 and kume == beklenen,
+                  "rc=%d kume=%s" % (rc, sorted(kume) if kume is not None else "YOK"))
 
         print("\n" + "-" * 78)
         if FAILS:
