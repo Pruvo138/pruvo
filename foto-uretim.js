@@ -494,12 +494,16 @@
   }
 
   /* ============== FOTOĞRAFTAN RENK (R2, Okan 9 Eki) ==============
-     "ürünün renk seçimini müşterinin eklediği resime otomatik yapılsın": seçilen fotoğraf 64×64'e küçültülür,
-     F.fotoRenkleri baskın renkleri filament renklerine eşler (tarayıcıda; kredi 0, harici API YOK). */
+     "ürünün renk seçimini müşterinin eklediği resime otomatik yapılsın": seçilen fotoğraf F.FOTO_RENK_KENAR karesine
+     küçültülür, F.fotoRenkleri baskın yüzeyleri filament renklerine eşler (tarayıcıda; kredi 0, harici API YOK).
+     PALET KAYNAĞI (KraL-FotoPalet 11 Eki; paletKaynagi): müşterinin ④'te ELLE seçtiği palet HER ZAMAN kazanır >
+     ④'te sağlayıcının arka planı kaldırılmış önizleme görselinden bir kez türetilen palet > ③'te bu fotoğraftan çıkan. */
   function fotoRenkCikar(dosya) {
     if (S.fotoRenkDosya === dosya) return;
     S.fotoRenkDosya = dosya;
     S.fotoRenkleri = [];
+    // Yeni fotoğraf = yeni palet: önceki işin ④ paleti ve müşterinin elle paleti bu fotoğrafa ait değildir.
+    if (dosya) { S.elleRenkler = null; S.onizRenk = null; }
     var yenile = function () { if (S.alanSecim && S.tur) { doldurS1Secim(); guncelleS1Buton(); } };
     if (!dosya || !kok.URL || typeof kok.URL.createObjectURL !== "function" || typeof Image === "undefined") {
       yenile(); return;
@@ -509,11 +513,11 @@
     var img = new Image();
     img.onload = function () {
       try {
-        var tuval = document.createElement("canvas");
-        tuval.width = 64; tuval.height = 64;
+        var n = F.FOTO_RENK_KENAR || 64, tuval = document.createElement("canvas");
+        tuval.width = n; tuval.height = n;
         var ctx = tuval.getContext("2d");
-        ctx.drawImage(img, 0, 0, 64, 64);
-        if (S.fotoRenkDosya === dosya) S.fotoRenkleri = F.fotoRenkleri(ctx.getImageData(0, 0, 64, 64).data, 4);
+        ctx.drawImage(img, 0, 0, n, n);
+        if (S.fotoRenkDosya === dosya) S.fotoRenkleri = F.fotoRenkleri(ctx.getImageData(0, 0, n, n).data, 4, n, n);
       } catch (e) { S.fotoRenkleri = []; }
       try { kok.URL.revokeObjectURL(url); } catch (e) { }
       yenile();
@@ -529,7 +533,11 @@
     if (cesitliTur()) kayit.cesit = seciliCesit();
     if (S.altTur) kayit.alt_tur = S.altTur;
     if (false && S.secim) kayit.secim = S.secim;
-    if (S.renkler && S.renkler.length) kayit.renkler = S.renkler;
+    if (S.renkler && S.renkler.length) {
+      kayit.renkler = S.renkler;
+      // Yenilemede hangi paletin geri geleceği: elle > ④ önizlemeden (bu iş) > ③ fotoğraftan (④ henüz türetmedi).
+      kayit.renk_kaynak = S.elleRenkler && S.elleRenkler.length ? "elle" : (S.onizRenk && S.onizRenk.is === S.is ? "onizleme" : "foto");
+    }
     kayit.renk_secim = S.renkSecim;
     kayit.malzeme = S.malzeme;
     if (S.aydinlatmaOnay) kayit.onay = F.onay_surum;
@@ -679,10 +687,15 @@
   function anaRenk() { return F.ANA_RENKLER.indexOf(S.renkSecim) >= 0 ? S.renkSecim : F.VARSAYILAN_RENK; }
   function seciliMalzeme() { return F.malzemeBul(S.malzeme) ? S.malzeme : F.VARSAYILAN_MALZEME; }
   function fiyatSecimi() { return { renkli: renkliMi(), malzeme: seciliMalzeme() }; }
-  // Palet türünde renkler: ana renkte [renk]; Renkli'de fotoğraftan çıkan renkler (türün tavanı kadar).
+  // Palet türünde renkler: ana renkte [renk]; Renkli'de paletKaynagi() (türün tavanı kadar).
+  function paletTavani(kod) { return (cesitPaletMi(kod) ? F.cesitRenkTavani(kod, seciliCesit()) : F.renkTavani(kod)) || 1; }
+  function paletKaynagi() {
+    if (S.elleRenkler && S.elleRenkler.length) return S.elleRenkler;
+    if (S.onizRenk && S.is && S.onizRenk.is === S.is && S.onizRenk.renkler.length) return S.onizRenk.renkler;
+    return S.fotoRenkleri;
+  }
   function paletRenkleri(kod) {
-    var tavan = (cesitPaletMi(kod) ? F.cesitRenkTavani(kod, seciliCesit()) : F.renkTavani(kod)) || 1;
-    return renkliMi() ? S.fotoRenkleri.slice(0, tavan) : [anaRenk()];
+    return renkliMi() ? paletKaynagi().slice(0, paletTavani(kod)) : [anaRenk()];
   }
   // Bölge türünde (deterministik seçim): ana renkte TÜM bölgeler o renk; Renkli'de fotoğraf renkleri sırayla
   // (tavan kadar). Malzeme her bölgeye aynı (yığılı gövdede karışık malzeme yok).
@@ -747,7 +760,10 @@
     var renkAcik = alanAciklamasi(nt.kod, "renk");
     if (renkAcik) g.appendChild(el("p", "foto-uretim-ayrinti", renkAcik));
     if (renkliMi()) {
-      g.appendChild(el("p", "foto-uretim-ayrinti", "Fotoğrafından seçilen renkler: " + paletRenkleri(nt.kod).join(", ")));
+      // ④ düzenleyicisi yalnız simülasyonlu kolda (figür · anahtarlık–figür · plaket); deterministik türde vaat edilmez.
+      var duzenlenir = figurKoluMu() || !(F.kolu && F.kolu(nt.kod) === "deterministik");
+      g.appendChild(el("p", "foto-uretim-ayrinti", "Fotoğrafından seçilen renkler: " + paletRenkleri(nt.kod).join(", ") +
+        (duzenlenir ? " (önizlemede her birini değiştirebilirsin)" : "")));
     }
     return g;
   }
@@ -1416,6 +1432,8 @@
       S.olcu = acilisOlcusu(nt);
       S.parametre = {};
       S.renkler = [];
+      S.elleRenkler = null;
+      S.onizRenk = null;
       S.cesit = it.kart.cesit || null;
       S.secim = varsayilanSecim(S.tur);
       cizCesit();
@@ -2133,6 +2151,7 @@
     if (typeof Image !== "function") { kaynak(); return; }
     var k = new Image();
     k.onload = function () {
+      if (onizlemePaletiTuret(k)) renkler = simulasyonRenkleri();
       try {
         var c = document.createElement("canvas");
         c.width = k.naturalWidth || k.width; c.height = k.naturalHeight || k.height;
@@ -2148,6 +2167,90 @@
     k.src = url;
   }
   function simulasyonRenkleri() { return renkliMi() ? paletRenkleri(S.tur) : [anaRenk()]; }
+  /* ④ PALET KAYNAĞI = SAĞLAYICININ TEMİZ GÖRSELİ (KraL-FotoPalet 11 Eki): ③'teki palet müşterinin ham fotoğrafından
+     (arka plan, ışık, gölge dahil) çıkar; ④'te arka planı kaldırılmış önizleme görseli elde — Renkli'de, müşteri
+     elle seçmediyse ve bu iş için henüz türetilmediyse palet BİR KEZ ondan türetilir, düzenleyicide GÖSTERİLİR
+     (sessiz değil: müşteri sepete eklemeden önce görür ve değiştirebilir) ve oturum kaydına "onizleme" diye yazılır.
+     Renk adedi/renkler fiyata girmez. Okunamazsa (tuval) ③ paleti kalır. -> palet değişti mi */
+  function onizlemePaletiTuret(k) {
+    if (!renkliMi() || (S.elleRenkler && S.elleRenkler.length) || !S.is || (S.onizRenk && S.onizRenk.is === S.is)) return false;
+    var r = [];
+    try {
+      var n = F.FOTO_RENK_KENAR || 64, t = document.createElement("canvas");
+      t.width = n; t.height = n;
+      var x = t.getContext("2d");
+      x.drawImage(k, 0, 0, n, n);
+      r = F.fotoRenkleri(x.getImageData(0, 0, n, n).data, 4, n, n);
+    } catch (e) { r = []; }
+    S.onizRenk = { is: S.is, renkler: r };
+    if (!r.length) return false;
+    S.renkler = paletRenkleri(S.tur);
+    ssIsKaydet();
+    paletDuzenleyiciGuncelle();
+    return true;
+  }
+  /* ④ RENKLER — MÜŞTERİ ELLE SEÇER (BaBa 11 Eki 20:1x (b)): otomatik palet gösterilir, her yuva filament listesinden
+     (F.PLA_RENKLERI) değiştirilir; yuva sayısı = türün renk tavanı, ilk yuva dolu, diğerleri "Yok" olabilir. Seçilen
+     renk başka yuvadaysa iki yuva yer değiştirir (palet tekrarsız; sunucu da tekrarı RED eder). Değişiklik anında
+     yeniden simüle edilir; seçilen palet siparişe giden `renkler`dir (oturum kaydı "elle"). Fiyat DEĞİŞMEZ: Renkli
+     +%15 sabit, renk adedi ve renklerin kendisi fiyata girmez. Seçiciler yerinde güncellenir (odak kaybolmaz). */
+  var PALET_NOTU = "Renkler otomatik seçildi; istersen her birini değiştirebilirsin — görünüm hemen güncellenir, fiyat değişmez.";
+  function paletDuzenleyici(img, geriDus) {
+    var g = el("div", "foto-uretim-form-grup foto-uretim-palet");
+    var fs_ = el("fieldset", "foto-uretim-palet-secim");
+    fs_.appendChild(el("legend", "foto-uretim-form-etiket", "Renkler"));
+    var satir = el("div");
+    satir.style.display = "flex"; satir.style.flexWrap = "wrap"; satir.style.gap = "8px 14px";
+    S.paletSec = []; S.paletKutu = []; S.paletImg = img; S.paletGeriDus = geriDus;
+    for (var i = 0; i < paletTavani(S.tur); i++) {
+      (function (yuva) {
+        var lbl = el("label", "foto-uretim-form-secenek-inline");
+        lbl.style.display = "inline-flex"; lbl.style.alignItems = "center"; lbl.style.gap = "6px";
+        var kutu = el("span", "foto-uretim-palet-kutu");
+        kutu.setAttribute("aria-hidden", "true");
+        kutu.style.display = "inline-block"; kutu.style.width = "16px"; kutu.style.height = "16px";
+        kutu.style.borderRadius = "3px"; kutu.style.border = "1px solid #c5cbd3";
+        var sec = el("select");
+        sec.setAttribute("data-palet-yuva", String(yuva));
+        sec.setAttribute("aria-label", (yuva + 1) + ". renk");
+        var adlar = (yuva ? [""] : []).concat(F.PLA_RENKLERI);
+        for (var j = 0; j < adlar.length; j++) {
+          var o = el("option", null, adlar[j] || "Yok");
+          o.value = adlar[j];
+          sec.appendChild(o);
+        }
+        sec.addEventListener("change", function (e) { paletDegis(yuva, e.target.value); });
+        ek(lbl, kutu, sec);
+        satir.appendChild(lbl);
+        S.paletSec.push(sec); S.paletKutu.push(kutu);
+      })(i);
+    }
+    fs_.appendChild(satir);
+    g.appendChild(fs_);
+    g.appendChild(el("p", "foto-uretim-ayrinti", PALET_NOTU));
+    paletDuzenleyiciGuncelle();
+    return g;
+  }
+  function paletDuzenleyiciGuncelle() {
+    var p = paletRenkleri(S.tur);
+    for (var i = 0; S.paletSec && i < S.paletSec.length; i++) {
+      S.paletSec[i].value = p[i] || "";
+      S.paletKutu[i].style.background = p[i] ? F.RENK_HEX[p[i]] : "transparent";
+    }
+  }
+  function paletDegis(yuva, deger) {
+    if ((deger && F.PLA_RENKLERI.indexOf(deger) < 0) || (!deger && yuva === 0)) { paletDuzenleyiciGuncelle(); return; }
+    var p = paletRenkleri(S.tur), y = [];
+    for (var i = 0; i < paletTavani(S.tur); i++) y.push(p[i] || "");
+    var j = deger ? y.indexOf(deger) : -1;
+    if (j >= 0 && j !== yuva) y[j] = y[yuva];
+    y[yuva] = deger;
+    S.elleRenkler = y.filter(function (a) { return !!a; });
+    S.renkler = paletRenkleri(S.tur);
+    ssIsKaydet();
+    paletDuzenleyiciGuncelle();
+    if (S.paletImg) simuleGoster(S.paletImg, S.gorsel, simulasyonRenkleri(), S.paletGeriDus);
+  }
 
   /* ④ render kolu (sunucu renderKolu ile AYNI): figür türü (insan · pet · model) + anahtarlık–figür çeşidi. */
   function figurKoluMu() { return S.tur === "figur" || (cesitliTur() && seciliCesit() === "figur"); }
@@ -2185,15 +2288,20 @@
         // simülasyonu — hangisinin gösterildiği her durumda görselin altında söylenir (simülasyon çalışamazsa kaynak
         // görsel + "renkler basılacak figürü göstermez").
         var not = el("p", "foto-uretim-ayrinti foto-uretim-gorunum-notu", figurGorunumNotu());
+        var geriDus = function () { not.textContent = F.FIGUR_ORNEK_NOTU; };
         if (S.render) img.src = S.render;
-        else simuleGoster(img, S.gorsel, simulasyonRenkleri(), function () { not.textContent = F.FIGUR_ORNEK_NOTU; });
+        else simuleGoster(img, S.gorsel, simulasyonRenkleri(), geriDus);
         S.alan.appendChild(img);
         S.alan.appendChild(not);
+        // Renkli + simülasyon (render yok): müşteri paleti burada görür ve değiştirir.
+        if (!S.render && renkliMi()) S.alan.appendChild(paletDuzenleyici(img, geriDus));
       } else {
         // Deterministik kolun görseli üretecin kendi çizimi (üretilen renklerle); diğer kollarda (plaket) 4 renk simülasyonu.
-        if (F.kolu && F.kolu(S.tur) === "deterministik") img.src = S.gorsel;
+        var detKol = !!(F.kolu && F.kolu(S.tur) === "deterministik");
+        if (detKol) img.src = S.gorsel;
         else simuleGoster(img, S.gorsel, simulasyonRenkleri());
         S.alan.appendChild(img);
+        if (!detKol && renkliMi()) S.alan.appendChild(paletDuzenleyici(img, null));
       }
     }
 
@@ -2211,7 +2319,6 @@
 
     /* ozet */
     // Birim fiyat TEK formülden (sunucunun ödemede kullandığı AYNI F.fiyatKurus), renkli + malzeme çarpanıyla.
-    var rs = renkSayisi(nt);
     var fiyat = nt ? (F.olcuTuretilmis(nt.kod) ? (S.fiyatKurus != null ? F.secimliKurus(S.fiyatKurus, fiyatSecimi()) : null)
       : F.fiyatKurus(nt.kod, S.olcu, fiyatSecimi())) : null;
     if (fiyat != null) {
@@ -2250,7 +2357,8 @@
     var sipBtn = el("button", "foto-uretim-buton-birincil", "Sepete ekle");
     sipBtn.type = "button";
     sipBtn.id = "foto-sip-btn";
-    sipBtn.addEventListener("click", function () { sepeteEkle(nt, fiyat, rs); });
+    // Renk sayısı TIK anında (④ paleti değişmiş olabilir); fiyat palete bağlı değil, çizimdeki aynen.
+    sipBtn.addEventListener("click", function () { var rs = renkSayisi(nt); sepeteEkle(nt, fiyat, rs); });
     // Aydınlatma onayı + B2 sorumluluk satırı olmadan sipariş düğmesi açılmaz (K2: B2 tik kapısı);
     // türetilmiş eksende bu önizlemenin ölçülmüş fiyatı yoksa da açılmaz (fiyatsız sipariş yok).
     // K2b-fin: formül TEK fonksiyona toplandı (cizS3 + guncelleSipButonu aynı yerden okur; mutant testi
@@ -2285,6 +2393,8 @@
       S.parametre = {};
       S.secim = null;
       S.renkler = [];
+      S.elleRenkler = null;
+      S.onizRenk = null;
       S.uretimNotu = "";
       S.uyumSonuc = null;
       turSecimiKayitTemizle();
@@ -2425,6 +2535,10 @@
         // Renkli önizleme yeniden yüklemede fotoğrafsız döner: fotoğraftan çıkmış renkler kayıttan gelir.
         if (kayit.renk_secim === RENKLI && Array.isArray(kayit.renkler)) {
           S.fotoRenkleri = kayit.renkler.filter(function (x) { return F.PLA_RENKLERI.indexOf(x) >= 0; }).slice(0, 4);
+          // Kayıttaki palet müşterinin ④'te gördüğü/seçtiği paletse ("elle", "onizleme" ya da alanı olmayan eski kayıt)
+          // ONAYLIDIR: bu iş için ④ yeniden türetmez (yenileme renkleri sessizce değiştirmez). Yalnız "foto" kaydında
+          // (④ henüz görülmedi) ④ bir kez sağlayıcı görselinden türetir.
+          if (kayit.renk_kaynak !== "foto") S.onizRenk = { is: kayit.is, renkler: S.fotoRenkleri.slice() };
           // PARA: kayıttaki renkler "dosyasız" (null) fotoğrafa aittir — form çizimindeki fotoRenkCikar(null) bunları
           // SIFIRLAMAZ (sıfırlasaydı Renkli seçimi Beyaz'a döner, +%15 sessizce düşerdi). Yeni fotoğraf seçilince
           // renkler o fotoğraftan yeniden çıkarılır.
