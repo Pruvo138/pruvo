@@ -1096,6 +1096,64 @@ def atif_kolu_bas(r):
         r["durum"], r["ihlal"], r["sinif"]["SINIFLANAMADI"]))
 
 
+# KOL UCRETLI-ATIF: atif kolunun TERS yonu. CLAUDE.md "para odedigimiz kaynak (royalty-free/
+# ticari uyelik) -> ATIF ve `lisans` YOK". 10 Eki 2026 olcumu: uyelik kaynakli 44 kayit public
+# `lisans` blogu tasiyordu (canli sayfada "Design by uyelik, licensed under uyelik."); hasat
+# hattinin ICERIK lisans blogu sinif kontrolsuz gecirilmisti. Taban YOK: tek kayit KIRMIZI.
+# Iki kol:
+#   GIZLI  — gizli kayit UCRETLI sinifinda (uyelik/satin-alma/deal/parametrik) + public `lisans`
+#            dolu. Gizli dosya yoksa (CI) bu kol OLCULEMEDI yazar, YESIL SAYILMAZ.
+#   PUBLIC — public `lisans` (tur/tasarimci) ucretli jetonu tasiyor (gizli dosyasiz da olculur).
+def _public_lisans_jetonlari(urun):
+    l = urun.get("lisans")
+    if isinstance(l, dict):
+        return [str(l.get(a) or "") for a in ("tur", "tasarimci")]
+    return [l] if isinstance(l, str) else []
+
+
+def ucretli_atif_kolu(urunler, kaynaklar):
+    """Donus: {durum: YESIL|KIRMIZI|OLCULEMEDI, gizli_kol, gizli_ids, public_ids, notlar[]}.
+    durum: herhangi bir kolda ihlal -> KIRMIZI; ihlal yok ama gizli kol olculemedi -> OLCULEMEDI."""
+    r = {"durum": "YESIL", "gizli_kol": "OLCULEMEDI", "gizli_ids": [], "public_ids": [],
+         "notlar": []}
+    gizli_var = isinstance(kaynaklar, dict)
+    if gizli_var:
+        r["gizli_kol"] = "YESIL"
+    else:
+        r["notlar"].append("gizli .urun-kaynaklari.json YOK/bozuk — GIZLI kol OLCULEMEDI "
+                           "(PUBLIC kol olculdu)")
+    for u in urunler:
+        if not isinstance(u, dict) or u.get("id") is None:
+            continue
+        if any(_ATIF_UCRETLI_RE.search(_atif_norm(j)) for j in _public_lisans_jetonlari(u)):
+            r["public_ids"].append(u["id"])
+        if gizli_var and _public_lisans_dolu(u) and \
+                atif_sinifi(kaynaklar.get(str(u.get("id"))), u) == "UCRETLI":
+            r["gizli_ids"].append(u["id"])
+    if r["gizli_ids"]:
+        r["gizli_kol"] = "KIRMIZI"
+    if r["gizli_ids"] or r["public_ids"]:
+        r["durum"] = "KIRMIZI"
+        r["notlar"].append("KIRMIZI: para odenen kaynakli kayit public `lisans`/atif tasiyor — "
+                           "`tools/duzelt.py <id> --alan-sil lisans`")
+    elif not gizli_var:
+        r["durum"] = "OLCULEMEDI"
+    return r
+
+
+def ucretli_atif_kolu_bas(r):
+    print("\n=== UCRETLI-ATIF KOLU (para odenen kaynak => public `lisans`/atif YOK; taban 0) ===")
+    print("  GIZLI kol (ucretli sinif + public lisans) : %s %d" % (r["gizli_kol"],
+                                                                   len(r["gizli_ids"])))
+    print("  PUBLIC kol (lisans icinde ucretli jeton)  : %d" % len(r["public_ids"]))
+    for i in (r["gizli_ids"] + r["public_ids"])[:10]:
+        print("    %s" % i)
+    for n in r["notlar"]:
+        print("  %s" % n)
+    print("  UCRETLI_ATIF_KOLU=%s GIZLI=%d PUBLIC=%d" % (
+        r["durum"], len(r["gizli_ids"]), len(r["public_ids"])))
+
+
 def kapi_maket_auto(urun):
     """TIER-A: olcekli-model/maket ARAÇ (YASAK) anahtar kelimesi baslik+aciklamada
     varsa eslesen ifadeyi dondur (auto_sil), yoksa None."""
@@ -2908,7 +2966,8 @@ def main():
     # K418 ATIF KOLU: gizli dosya YOK/bozuk -> None -> OLCULEMEDI (CI'da beklenen, rc'yi
     # ETKILEMEZ). Asagidaki KAPI 1 eski davranisini korur ({} ile fail-closed auto_sil).
     atif = atif_kolu(urunler, kaynaklar if isinstance(kaynaklar, dict) else None)
-    atif_kirmizi = atif["durum"] == "KIRMIZI"
+    ucretli = ucretli_atif_kolu(urunler, kaynaklar if isinstance(kaynaklar, dict) else None)
+    atif_kirmizi = atif["durum"] == "KIRMIZI" or ucretli["durum"] == "KIRMIZI"
     if not isinstance(kaynaklar, dict):
         kaynaklar = {}
 
@@ -3002,6 +3061,7 @@ def main():
               "ayri temizlik isi)" % len(onceden))
     print("  rapor -> %s" % args.rapor)
     atif_kolu_bas(atif)
+    ucretli_atif_kolu_bas(ucretli)
 
     # === ENVANTER KOLU: BLOKLAMAYAN kural-kural dokum + rc 0 ==========================
     # 🔴 NEDEN BLOKLAMAZ (OLCULDU, 31 Tem): bu depoda kapi birikmesi yayin suresini 21 gunde
