@@ -1078,36 +1078,139 @@
   VERI.renkModu = function (kod, cesit, renkli) {
     return renkli === true && VERI.cesitPaleti(kod, cesit) ? "palet" : "tek";
   };
-  // FOTOĞRAFTAN RENK (deterministik, kredi 0, harici API YOK): piksel dizisi (RGBA, Uint8 benzeri) -> filament
-  // renklerine (RENK_HEX) en yakın eşleme -> en sık `tavan` farklı renk (çok sıktan aza). Saydam piksel sayılmaz;
-  // %2'nin altındaki renk elenir (gürültü). Hiç renk çıkmazsa [] (bölüm Renkli'yi açmaz).
-  // Filament adları -> [r, g, b] (RENK_HEX; fotoRenkleri ve 4 renk simülasyonu ORTAK) ve fotoRenkleri'nin ağırlıklı mesafesi
-  // 2·dr² + 4·dg² + 3·db² ile en yakın indeks (simülasyon kendi OKLab mesafesini kullanır, aşağıda).
+  // Filament adları -> [r, g, b] (RENK_HEX; fotoRenkleri ve 4 renk simülasyonu ORTAK).
   function renkRgb(adlar) {
     return adlar.map(function (a) {
       var h = String(VERI.RENK_HEX[a] || "").replace("#", "");
       return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
     });
   }
-  function enYakinRenk(hex, r, g, b) {
+  // FOTOĞRAFTAN RENK (deterministik, kredi 0, harici API YOK; KraL-FotoPalet 11 Eki): piksel dizisi (RGBA, Uint8
+  // benzeri; w×h, verilmezse kare sayılır) -> en çok `tavan` (≤4) filament rengi, alanı büyükten küçüğe. Eski yol her
+  // pikseli RGB'de en yakın renge sayıyordu: renderin ışığı/gölgesi doygunluğu düşürdüğü için denim ve koyu kahve saç
+  // Gri'ye düşüyor, saç yarı Siyah yarı Gri bölünüyor, sarı gözlük kenarının karışık pikselleri Yeşil seçtiriyordu.
+  // Yeni yol simülasyonun ADIMLARINI kullanır, palete bakmadan:
+  //  (1) küçült + median (simKucult); KENARA BAĞLI AÇIK ARKA PLAN (açık, düşük kromalı, görüntü kenarından kesintisiz
+  //      ulaşılan hücreler; PR_ARKA_*) ve saydam hücre renk SAYILMAZ — figürün içindeki beyaz tişört kenara
+  //      değmediği için kalır;
+  //  (2) kaynak BÖLGELERİ (simKaynakBolge: gölge/parlama bandı yüzeyi bölmez) -> her bölge ORTALAMA OKLab tonuyla
+  //      TEK renge (prEsle) — saç tek bölge, tek renk;
+  //  (3) alan oyu: opak alanın PR_PAY'ından küçük renk elenir (gürültü, kenar pikseli).
+  // prEsle kuralları (her biri ölçülmüş bir hatayı kapatır; gerekçe sayıları KraL-FotoPalet kapanışında):
+  //  · AYDINLATMA PAYI: nötr renklerin hedef açıklığı render aralığına sıkıştırılır (siyah plastik/saç renderde
+  //    L≈0,35–0,5 ölçülür, Siyah filamentin L'si 0,22) — en koyu nötr PR_NOTR_ALT, en açık PR_NOTR_UST, aradakiler
+  //    orantılı; bölgenin kroması nötr maliyetine PR_NOTR_W ile eklenir;
+  //  · ARA NÖTR (Gri) yalnız GERÇEK NÖTR yüzeyde (kroma < PR_GRI_C): ışıklı denim / kahve saç / gölgeli ten Gri olmaz;
+  //  · TON KAPISI: renkli adaya bölgenin kroması ≥ PR_C_MIN ve ton farkı ≤ PR_TON_MAX iken bakılır (görselde
+  //    olmayan Yeşil seçilmez); renk maliyeti OKLab ΔL² + ΔC² + ΔH², bölge kroması PR_K ile büyütülmüş (render
+  //    filamentten soluk: denim C≈0,03, Mavi 0,09);
+  //  · KAHVE: sıcak tonlu (PR_KAHVE_TON) düşük kromalı yüzey (kahve saç, ten, ahşap; kroma < PR_KAHVE_C) canlı renge
+  //    (Kırmızı/Sarı) gitmez — yalnız düşük kromalı renge (Ahşap) ya da nötre: paletin kahvesi yok, koyu kahve Siyah.
+  // Hiç renk çıkmazsa [] (bölüm Renkli'yi açmaz). Müşterinin elle seçtiği palet bu fonksiyondan GEÇMEZ (istemci).
+  var PR_ARKA_L = 0.8, PR_ARKA_C = 0.04, PR_PAY = 0.02, PR_NOTR_C = 0.01, PR_NOTR_ALT = 0.38, PR_NOTR_UST = 0.9,
+    PR_NOTR_W = 3, PR_GRI_C = 0.015, PR_C_MIN = 0.018, PR_TON_MAX = 50, PR_K = 2, PR_KAHVE_C = 0.07, PR_KAHVE_TON = [20, 80], PR_UZAK = 0.08;
+  VERI.FOTO_RENK_KENAR = 128;                            // istemci fotoğrafı bu kareye küçültüp verir
+  // Palet girdileri (OKLab, nötr hedefi); `secili` verilirse yalnız o adlar, o sırayla (simülasyon: seçili palet;
+  // nötr hedefi yine TÜM paletin nötr aralığından — aynı yüzey iki yolda aynı hedefe bakar). Bilinmeyen ad -> null.
+  function prPalet(secili) {
+    var T = linTablo(), adlar = VERI.PLA_RENKLERI, rgb = renkRgb(adlar), P = [], nL = [];
+    for (var j = 0; j < adlar.length; j++) {
+      var o = oklab(T[rgb[j][0]], T[rgb[j][1]], T[rgb[j][2]]), C = Math.sqrt(o[1] * o[1] + o[2] * o[2]);
+      P.push({ ad: adlar[j], L: o[0], a: o[1], b: o[2], C: C, notr: C < PR_NOTR_C });
+      if (C < PR_NOTR_C) { nL.push(o[0]); }
+    }
+    var lo = Math.min.apply(null, nL), hi = Math.max.apply(null, nL);
+    P.forEach(function (p) {
+      if (!p.notr) { return; }
+      p.hedef = hi > lo ? PR_NOTR_ALT + (p.L - lo) / (hi - lo) * (PR_NOTR_UST - PR_NOTR_ALT) : p.L;
+      p.ara = p.L > lo && p.L < hi;                      // ara nötr (Gri)
+    });
+    return secili ? secili.map(function (a) { return P[adlar.indexOf(a)] || null; }) : P;
+  }
+  // Bölge (ortalama OKLab L, a, b) -> palet rengi p maliyeti; kurallara takılan aday Infinity.
+  function prMaliyet(p, L, a, b) {
+    if (!p) { return Infinity; }
+    var C = Math.sqrt(a * a + b * b), kC = PR_K * C, ton = (Math.atan2(b, a) * 180 / Math.PI + 360) % 360;
+    if (p.notr) {
+      if (p.ara && C >= PR_GRI_C) { return Infinity; }
+      return (L - p.hedef) * (L - p.hedef) + PR_NOTR_W * kC * kC;
+    }
+    var cos = C > 0 ? (a * p.a + b * p.b) / (C * p.C) : 1;
+    var kahve = C < PR_KAHVE_C && ton >= PR_KAHVE_TON[0] && ton <= PR_KAHVE_TON[1];
+    if (C < PR_C_MIN || cos < Math.cos(PR_TON_MAX * Math.PI / 180) || (kahve && p.C >= PR_KAHVE_C)) { return Infinity; }
+    return (L - p.L) * (L - p.L) + (p.C - kC) * (p.C - kC) + 2 * kC * p.C * (1 - cos);
+  }
+  function prEsle(P, L, a, b, cik) {
     var en = -1, ed = Infinity;
-    for (var j = 0; j < hex.length; j++) {
-      var dr = r - hex[j][0], dg = g - hex[j][1], db = b - hex[j][2];
-      var d = 2 * dr * dr + 4 * dg * dg + 3 * db * db;
+    for (var j = 0; j < P.length; j++) {
+      var d = prMaliyet(P[j], L, a, b);
       if (d < ed) { ed = d; en = j; }
     }
+    if (cik) { cik[0] = ed; }
     return en;
   }
-  VERI.fotoRenkleri = function (piksel, tavan) {
-    var adlar = VERI.PLA_RENKLERI, hex = renkRgb(adlar), say = {}, top = 0, i;
-    for (i = 0; piksel && i + 3 < piksel.length; i += 4) {
-      if (piksel[i + 3] < 128) { continue; }
-      var en = enYakinRenk(hex, piksel[i], piksel[i + 1], piksel[i + 2]);
-      say[adlar[en]] = (say[adlar[en]] || 0) + 1; top++;
+  // AYNI YÜZEY AYNI RENK: ikisi de renkli (ya da ikisi de nötr; kroma PR_C_MIN eşiği — koyu denim gözlüğün Siyah'ını
+  // almasın), tonu (a, b) PR_BIRLIK_AB'den, açıklığı PR_BIRLIK_L'den az farklı iki bölge yalnız ışıkla ayrışmış aynı
+  // yüzeydir; iki palet renginin tam arasında kalan ton (turuncu: Sarı ile Kırmızı arası) ışığın küçük
+  // farkıyla bir bölgeyi bir renge, öbürünü öbürüne atıyordu (pet: kafa Sarı, gövde Kırmızı). Büyükten küçüğe: bölge,
+  // kendisine benzeyen daha büyük bir bölgenin rengini alır — o renk bu bölge için kurallardan geçiyor ve maliyeti
+  // ≤ PR_UZAK ise. bol = [{ s, L, a, b }] (s = hücre sayısı, ortalamalar), renk = palet indeksleri (YERİNDE değişir).
+  var PR_BIRLIK_AB = 0.025, PR_BIRLIK_L = 0.12;
+  function prBirlik(bol, renk, P) {
+    var sira = bol.map(function (x, i) { return i; }).filter(function (i) { return bol[i].s > 0 && renk[i] >= 0; })
+      .sort(function (i, j) { return bol[j].s - bol[i].s || i - j; });
+    for (var u = 1; u < sira.length; u++) {
+      var i = sira[u], q = bol[i];
+      for (var v = 0; v < u; v++) {
+        var j = sira[v], o = bol[j];
+        if (renk[j] === renk[i] || Math.abs(q.L - o.L) >= PR_BIRLIK_L ||
+            (Math.sqrt(q.a * q.a + q.b * q.b) < PR_C_MIN) !== (Math.sqrt(o.a * o.a + o.b * o.b) < PR_C_MIN) ||
+            Math.sqrt((q.a - o.a) * (q.a - o.a) + (q.b - o.b) * (q.b - o.b)) >= PR_BIRLIK_AB) { continue; }
+        if (prMaliyet(P[renk[j]], q.L, q.a, q.b) <= PR_UZAK) { renk[i] = renk[j]; }
+        break;
+      }
     }
-    var n = Number.isInteger(tavan) && tavan >= 1 ? Math.min(tavan, 4) : 1;
-    return adlar.filter(function (a) { return say[a] && say[a] / top >= 0.02; })
-      .sort(function (a, b) { return say[b] - say[a] || adlar.indexOf(a) - adlar.indexOf(b); }).slice(0, n);
+  }
+  // Kenara bağlı açık arka plan: kenardaki uygun hücrelerden 4-komşu taşma; işaretli hücre saydam sayılır (say = 0).
+  function prArkaSil(k0) {
+    var sw = k0.sw, sh = k0.sh, say = k0.say, yigin = [], gor = new Uint8Array(sw * sh), k, x, y;
+    function uygun(q) {
+      return say[q] && k0.L[q] >= PR_ARKA_L && Math.sqrt(k0.A[q] * k0.A[q] + k0.B[q] * k0.B[q]) <= PR_ARKA_C;
+    }
+    for (y = 0; y < sh; y++) {
+      for (x = 0; x < sw; x++) {
+        k = y * sw + x;
+        if ((x === 0 || y === 0 || x === sw - 1 || y === sh - 1) && uygun(k)) { gor[k] = 1; yigin.push(k); }
+      }
+    }
+    while (yigin.length) {
+      k = yigin.pop(); x = k % sw; y = (k - x) / sw;
+      [x > 0 ? k - 1 : -1, x < sw - 1 ? k + 1 : -1, y > 0 ? k - sw : -1, y < sh - 1 ? k + sw : -1].forEach(function (q) {
+        if (q >= 0 && !gor[q] && uygun(q)) { gor[q] = 1; yigin.push(q); }
+      });
+    }
+    for (k = 0; k < sw * sh; k++) { if (gor[k]) { say[k] = 0; } }
+  }
+  VERI.fotoRenkleri = function (piksel, tavan, w, h) {
+    var n = Number.isInteger(tavan) && tavan >= 1 ? Math.min(tavan, 4) : 1, adet = piksel ? Math.floor(piksel.length / 4) : 0;
+    if (!(w > 0 && h > 0)) { w = Math.round(Math.sqrt(adet)); h = w; if (w * h !== adet) { w = adet; h = 1; } }
+    var k0 = adet ? simKucult(piksel, w, h) : null;
+    if (!k0) { return []; }
+    prArkaSil(k0);
+    var B = simKaynakBolge(k0, simOznitelik(k0, SIM_L_TABAN)), top = new Float64Array(B.nr * 4), k, r;
+    for (k = 0; k < k0.sw * k0.sh; k++) {
+      if ((r = B.bol[k]) < 0) { continue; }
+      top[r * 4] += k0.L[k]; top[r * 4 + 1] += k0.A[k]; top[r * 4 + 2] += k0.B[k]; top[r * 4 + 3]++;
+    }
+    var P = prPalet(), say = new Float64Array(P.length), bol = [], renk = [];
+    for (r = 0; r < B.nr; r++) {
+      var s = top[r * 4 + 3], q = s ? { s: s, L: top[r * 4] / s, a: top[r * 4 + 1] / s, b: top[r * 4 + 2] / s } : { s: 0 };
+      bol.push(q); renk.push(s ? prEsle(P, q.L, q.a, q.b) : -1);
+    }
+    prBirlik(bol, renk, P);
+    for (r = 0; r < B.nr; r++) { if (renk[r] >= 0) { say[renk[r]] += bol[r].s; } }
+    return P.map(function (p, i) { return i; }).filter(function (i) { return B.opak && say[i] / B.opak >= PR_PAY; })
+      .sort(function (i, j) { return say[j] - say[i] || i - j; }).slice(0, n).map(function (i) { return P[i].ad; });
   };
   // ④ FİGÜR KOLU (Okan 11 Eki "bu 4 renkli bir figür değil" · 16:0x "4 renk simülasyonu"): basılacak dosyanın
   // çizimi (sunucu `render`) varsa O AYNEN gösterilir; yoksa sağlayıcı görselinin 4 RENK SİMÜLASYONU
@@ -1233,26 +1336,36 @@
     }
     return { L: k0.L, U: U, V: V };
   }
-  function simEtiketle(k0, hex) {
+  // Bölgenin rengi (KraL-FotoPalet): fotoRenkleri ile AYNI kural (prEsle), seçili paletle sınırlı — otomatik palet
+  // hangi yüzeye hangi rengi seçtiyse simülasyon da o yüzeyi o renge boyar (eski simMesafe en-yakını gözlüğü yarı
+  // Ahşap yarı Mavi, kahve gözü tenle aynı yapıyordu). Seçili paletten hiçbir renk kurallardan geçmezse (ör. mavi
+  // yüzey, palet Kırmızı+Sarı) ya da geçen en iyi renk çok uzaksa (maliyet > PR_UZAK; ör. Beyaz'sız palette beyaz
+  // tişört -> Siyah) simMesafe en-yakını yedektir. Kontrast koruma simMesafe maliyetleriyle (D) çalışır.
+  function simEtiketle(k0, hex, adlar) {
     var sw = k0.sw, sh = k0.sh, n = sw * sh, et = new Int8Array(n), F = simOznitelik(k0, SIM_L_TABAN), k, j, r;
     var T = linTablo(), P = hex.map(function (c) {
       var o = oklab(T[c[0]], T[c[1]], T[c[2]]), bp = Math.max(o[0], SIM_L_TABAN);
       return [o[0], o[1] / bp, o[2] / bp];
     });
-    var B = simKaynakBolge(k0, F), nr = B.nr, top = new Float64Array(nr * 4), renk = new Int8Array(nr);
+    var B = simKaynakBolge(k0, F), nr = B.nr, top = new Float64Array(nr * 4), lab = new Float64Array(nr * 2), renk = new Int8Array(nr);
     for (k = 0; k < n; k++) {
       if ((r = B.bol[k]) < 0) { continue; }
       top[r * 4] += F.L[k]; top[r * 4 + 1] += F.U[k]; top[r * 4 + 2] += F.V[k]; top[r * 4 + 3]++;
+      lab[r * 2] += k0.A[k]; lab[r * 2 + 1] += k0.B[k];
     }
-    var np = P.length, D = new Float64Array(nr * np);
-    for (r = 0; r < nr; r++) {                           // kaynak bölgenin ORTALAMA tonu -> en yakın palet rengi
+    var np = P.length, D = new Float64Array(nr * np), PP = prPalet(adlar), bol = [], rk = [];
+    for (r = 0; r < nr; r++) {                           // kaynak bölgenin ORTALAMA tonu -> TEK palet rengi
       var s = top[r * 4 + 3], en = 0;
       for (j = 0; j < np; j++) {
         D[r * np + j] = simMesafe(top[r * 4] / s, top[r * 4 + 1] / s, top[r * 4 + 2] / s, P[j][0], P[j][1], P[j][2]);
         if (D[r * np + j] < D[r * np + en]) { en = j; }
       }
-      renk[r] = en;
+      var q = { s: s, L: top[r * 4] / s, a: lab[r * 2] / s, b: lab[r * 2 + 1] / s }, pd = [Infinity];
+      var pe = prEsle(PP, q.L, q.a, q.b, pd);
+      bol.push(q); rk.push(pe >= 0 && pd[0] <= PR_UZAK ? pe : en);
     }
+    prBirlik(bol, rk, PP);
+    for (r = 0; r < nr; r++) { renk[r] = rk[r]; }
     simKontrastKoru(B, sw, sh, top, D, np, renk);
     for (k = 0; k < n; k++) { et[k] = B.bol[k] < 0 ? -1 : renk[B.bol[k]]; }
     simAdacik(et, sw, sh, P.length, B.opak);
@@ -1779,13 +1892,13 @@
   // Ölçüm/test kapısı: aynı (a)–(c) adımlarının küçük görüntüdeki bölge etiketleri { sw, sh, olc, et } (null = geçersiz).
   VERI.simulasyonBolgeleri = function (piksel, w, h, renkler) {
     var rgb = simPalet(renkler), k0 = rgb && simKucult(piksel, w, h);
-    return k0 ? { sw: k0.sw, sh: k0.sh, olc: k0.olc, et: simEtiketle(k0, rgb) } : null;
+    return k0 ? { sw: k0.sw, sh: k0.sh, olc: k0.olc, et: simEtiketle(k0, rgb, renkler) } : null;
   };
   VERI.dortRenkSimule = function (piksel, w, h, renkler) {
     var rgb = simPalet(renkler), k0 = rgb && simKucult(piksel, w, h);
     if (!k0) { return null; }
     if (renkler.length === 1 && VERI.ANA_RENKLER.indexOf(renkler[0]) >= 0) { return simGri(piksel, w, h, k0, rgb[0][0]); }
-    return simBuyut(piksel, w, h, k0, simEtiketle(k0, rgb), rgb, simCizgi(piksel, w, h, rgb));
+    return simBuyut(piksel, w, h, k0, simEtiketle(k0, rgb, renkler), rgb, simCizgi(piksel, w, h, rgb));
   };
   // fiyat_kurus = round( max(taban, en uzun boyut (mm) × formülün mm başı kuruşu) × (Renkli ? 1,15 : 1)
   //               × (PETG ? 1,30 : 1) ) — TEK kaynak (bölüm, sunucu, araçlar). secim = {renkli, malzeme}; verilmezse
