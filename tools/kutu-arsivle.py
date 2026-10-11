@@ -721,6 +721,16 @@ def cevrilecek_kapanislar(satirlar, baslar):
 
     Yalnizca sinif=="KAPANIS" cevrilir. sinif=="FAIL_CLOSED" ATLANIR ve SAYILIR —
     sessizce yutulmaz, cikitida ADIYLA basilir.
+
+    🔴 BASLIKTA_JETON (11 Eki 2026, KraL-Tamirci-11Eki): kapanis satiri BLOK BASLIGININ
+    KENDISIYSE (tek satirlik `## ` blogu; jeton baslik prozasinda, ornegin bir gorev
+    metni "kapanis ... ARŞİVLENEBİLİRİM" derken) CEVRILMEZ. `kapanis_kuyrugu()` bos
+    govdeli blokta SON icerik satiri olarak basligi doner; cevrim onu ikame edince
+    `dogrula_cevrim` C5 ("cevrim baslik satirina dokunamaz") KIRMIZI yakar ve HICBIR
+    blok islenemez — OLCULDU 11 Eki: kutu 518/500, 32 bekleyen kapanis, 2 baslik
+    jetonu yuzunden tum cevrim durdu. Baslik cevrilmez AMA blok KORUMALI kalir
+    (fail-closed yon: bilmiyorsam serbest birakmam); sinif ADIYLA basilir. Olcut C5'in
+    kendisiyle AYNI regex (`BLOK_RE`): C5'in saydigi her satir cevrimden muaftir.
     """
     bulgu, govde_anmasi = korumali_bloklar(satirlar, baslar)
     cikti = []
@@ -728,6 +738,9 @@ def cevrilecek_kapanislar(satirlar, baslar):
     for blok_idx, satir_no, ozet, sinif in bulgu:
         if sinif != "KAPANIS":
             atlanan.append((blok_idx, satir_no, ozet, sinif))
+            continue
+        if BLOK_RE.match(satirlar[satir_no - 1]):
+            atlanan.append((blok_idx, satir_no, ozet, "BASLIKTA_JETON"))
             continue
         cikti.append((blok_idx, satir_no - 1, satirlar[satir_no - 1]))
     return cikti, atlanan, govde_anmasi
@@ -3239,9 +3252,11 @@ def main(argv=None):
                 print("KIRMIZI: %s" % ahata)
                 return RC_KIRMIZI
             chatalar = dogrula_cevrim(kutu_metin, yeni_kutu_cevrim, cevrilen, cev_atlanan)
-            print("CEVRIM=%d atlanan_fail_closed=%d govde_anmasi=%d "
+            cev_fc_n = len([x for x in cev_atlanan if x[3] == "FAIL_CLOSED"])
+            cev_bj_n = len([x for x in cev_atlanan if x[3] == "BASLIKTA_JETON"])
+            print("CEVRIM=%d atlanan_fail_closed=%d baslikta_jeton=%d govde_anmasi=%d "
                   "bayt_once=%d bayt_sonra=%d delta=%+d  [KAPI]"
-                  % (len(cevrilen), len(cev_atlanan), cev_govde, disk_once_bayt,
+                  % (len(cevrilen), cev_fc_n, cev_bj_n, cev_govde, disk_once_bayt,
                      len(yeni_kutu_cevrim.encode("utf-8")),
                      len(yeni_kutu_cevrim.encode("utf-8")) - disk_once_bayt))
             for blok_idx, idx, eskisi, _yenisi in cevrilen:
@@ -3251,6 +3266,12 @@ def main(argv=None):
             # 🔴 SESSIZ ATLAMA YASAK: cevrilMEYEN korumali blok ADIYLA/SINIFIYLA basilir,
             # yoksa "13 vardi 11 cevrildi" farki gorunmez ve kutu sebepsiz tavan ustunde kalir.
             for blok_idx, satir_no, ozet, sinif in cev_atlanan:
+                if sinif == "BASLIKTA_JETON":
+                    print("  ! CEVRILMEDI blok %d (satir %d, sinif=%s): jeton blok "
+                          "BASLIGININ icinde (C5: baslik satirina dokunulmaz) -> "
+                          "DOKUNULMADI, blok KORUMALI kalir (fail-closed) | %s"
+                          % (blok_idx + 1, satir_no, sinif, ozet))
+                    continue
                 print("  ! CEVRILMEDI blok %d (satir %d, sinif=%s): blok yapisi "
                       "AYRISTIRILAMADI -> DOKUNULMADI (fail-closed) | %s"
                       % (blok_idx + 1, satir_no, sinif, ozet))
