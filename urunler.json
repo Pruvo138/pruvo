@@ -1,5 +1,201 @@
 [
   {
+    "id": "pul-rondela-70-mm-dis-10-mm-ic-cap-4-mm-kalinlik",
+    "kategori": "Tamirat",
+    "marka": [],
+    "baslik": "Pul / Rondela (70 mm Dış, 10 mm İç Çap, 4 mm Kalınlık)",
+    "aciklama": "Cıvata ve mil bağlantılarında yükü geniş yüzeye yayan, ara dolgusu ya da aralayıcı olarak kullanılan geniş halka pul.\n- Dış çap 70 mm, iç çap 10 mm, kalınlık 4 mm\n- Düz, tek parça\nYaklaşık dış ölçüler: 70 × 70 × 4 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pul-rondela-70-mm-dis-10-mm-ic-cap-4-mm-kalinlik-2.jpg",
+      "https://media.pruvo3d.com/urunler/pul-rondela-70-mm-dis-10-mm-ic-cap-4-mm-kalinlik-1.jpg",
+      "https://media.pruvo3d.com/urunler/pul-rondela-70-mm-dis-10-mm-ic-cap-4-mm-kalinlik-3.jpg",
+      "https://media.pruvo3d.com/urunler/pul-rondela-70-mm-dis-10-mm-ic-cap-4-mm-kalinlik-6.jpg"
+    ]
+  },
+  {
+    "id": "flansli-kademeli-adaptor-50-mm-dis-36-mm-kademe-20-mm-ic-cap-70-mm-flans",
+    "kategori": "Tamirat",
+    "marka": [],
+    "baslik": "Flanşlı Kademeli Adaptör (50 mm Dış, 36 mm Kademe, 20 mm İç Çap, 70 mm Flanş)",
+    "aciklama": "Mil ve boru uçlarını yuvaya dayanarak bağlayan, flanşlı iki kademeli adaptör.\n- Alt gövde dış çapı 50 mm, üst kademe dış çapı 36 mm; iç çap 20 mm\n- Kademe yüksekliği 18 mm, toplam yükseklik 40 mm\n- Flanş çapı 70 mm, flanş kalınlığı 3 mm\nYaklaşık dış ölçüler: 70 × 70 × 40 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/flansli-kademeli-adaptor-50-mm-dis-36-mm-kademe-20-mm-ic-cap-70-mm-flans-2.jpg",
+      "https://media.pruvo3d.com/urunler/flansli-kademeli-adaptor-50-mm-dis-36-mm-kademe-20-mm-ic-cap-70-mm-flans-1.jpg",
+      "https://media.pruvo3d.com/urunler/flansli-kademeli-adaptor-50-mm-dis-36-mm-kademe-20-mm-ic-cap-70-mm-flans-3.jpg",
+      "https://media.pruvo3d.com/urunler/flansli-kademeli-adaptor-50-mm-dis-36-mm-kademe-20-mm-ic-cap-70-mm-flans-6.jpg"
+    ]
+  },
+  {
+    "id": "duz-disli-48-dis-modul-1-5-8-mm-mil-deligi-14-mm-kalinlik",
+    "kategori": "Tamirat",
+    "marka": [],
+    "baslik": "Düz Dişli (48 Diş, Modül 1,5, 8 mm Mil Deliği, 14 mm Kalınlık)",
+    "aciklama": "Güç ileten mekanizmalarda 8 mm şafta takılan, 48 dişli düz dişli; aynı modüldeki dişlilerle çalışır.\n- 48 diş, modül 1,5 mm; adım dairesi çapı 72 mm\n- 8 mm yuvarlak mil deliği, kalınlık 14 mm\nYaklaşık dış ölçüler: 75 × 75 × 14 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/duz-disli-48-dis-modul-1-5-8-mm-mil-deligi-14-mm-kalinlik-2.jpg",
+      "https://media.pruvo3d.com/urunler/duz-disli-48-dis-modul-1-5-8-mm-mil-deligi-14-mm-kalinlik-1.jpg",
+      "https://media.pruvo3d.com/urunler/duz-disli-48-dis-modul-1-5-8-mm-mil-deligi-14-mm-kalinlik-3.jpg",
+      "https://media.pruvo3d.com/urunler/duz-disli-48-dis-modul-1-5-8-mm-mil-deligi-14-mm-kalinlik-6.jpg"
+    ]
+  },
+  {
+    "id": "v-kasnak-80-mm-cap-15-mm-kanal-genisligi-14-mm-mil-deligi",
+    "kategori": "Tamirat",
+    "marka": [],
+    "baslik": "V Kasnak (80 mm Çap, 15 mm Kanal Genişliği, 14 mm Mil Deliği)",
+    "aciklama": "V kayışla hareket ileten, 14 mm şafta takılan, 15 mm kanal genişlikli kasnak.\n- Dış çap 80 mm, kanal genişliği 15 mm, kalınlık 22 mm\n- 14 mm yuvarlak mil deliği\nYaklaşık dış ölçüler: 80 × 80 × 22 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/v-kasnak-80-mm-cap-15-mm-kanal-genisligi-14-mm-mil-deligi-2.jpg",
+      "https://media.pruvo3d.com/urunler/v-kasnak-80-mm-cap-15-mm-kanal-genisligi-14-mm-mil-deligi-1.jpg",
+      "https://media.pruvo3d.com/urunler/v-kasnak-80-mm-cap-15-mm-kanal-genisligi-14-mm-mil-deligi-3.jpg",
+      "https://media.pruvo3d.com/urunler/v-kasnak-80-mm-cap-15-mm-kanal-genisligi-14-mm-mil-deligi-6.jpg"
+    ]
+  },
+  {
+    "id": "yivli-milli-kontrol-dugmesi-55-mm-cap-20-mm-yukseklik-8-mm-mil-set-vidali",
+    "kategori": "Tamirat",
+    "marka": [],
+    "baslik": "Yivli Milli Kontrol Düğmesi (55 mm Çap, 20 mm Yükseklik, 8 mm Mil, Set Vidalı)",
+    "aciklama": "Cihaz ve panellerde 8 mm yivli şafta takılan, yandan set vidasıyla sabitlenen, düz kenarlı kontrol düğmesi.\n- Çap 55 mm, yükseklik 20 mm; tırtılsız, düz kenar\n- 8 mm yivli mil deliği (18 yiv); yandan set vidası deliği\nYaklaşık dış ölçüler: 55 × 55 × 20 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/yivli-milli-kontrol-dugmesi-55-mm-cap-20-mm-yukseklik-8-mm-mil-set-vidali-2.jpg",
+      "https://media.pruvo3d.com/urunler/yivli-milli-kontrol-dugmesi-55-mm-cap-20-mm-yukseklik-8-mm-mil-set-vidali-1.jpg",
+      "https://media.pruvo3d.com/urunler/yivli-milli-kontrol-dugmesi-55-mm-cap-20-mm-yukseklik-8-mm-mil-set-vidali-3.jpg",
+      "https://media.pruvo3d.com/urunler/yivli-milli-kontrol-dugmesi-55-mm-cap-20-mm-yukseklik-8-mm-mil-set-vidali-6.jpg"
+    ]
+  },
+  {
+    "id": "yuvarlak-milli-kontrol-dugmesi-55-mm-cap-16-mm-yukseklik-6-mm-mil-isaret-cizgili",
+    "kategori": "Tamirat",
+    "marka": [],
+    "baslik": "Yuvarlak Milli Kontrol Düğmesi (55 mm Çap, 16 mm Yükseklik, 6 mm Mil, İşaret Çizgili)",
+    "aciklama": "Cihaz ve panellerde 6 mm yuvarlak şafta takılan, üst yüzünde konum işaret çizgisi bulunan, düz kenarlı kontrol düğmesi.\n- Çap 55 mm, yükseklik 16 mm; tırtılsız, düz kenar\n- 6 mm yuvarlak mil deliği; üstte işaret çizgisi\nYaklaşık dış ölçüler: 55 × 55 × 16 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/yuvarlak-milli-kontrol-dugmesi-55-mm-cap-16-mm-yukseklik-6-mm-mil-isaret-cizgili-2.jpg",
+      "https://media.pruvo3d.com/urunler/yuvarlak-milli-kontrol-dugmesi-55-mm-cap-16-mm-yukseklik-6-mm-mil-isaret-cizgili-1.jpg",
+      "https://media.pruvo3d.com/urunler/yuvarlak-milli-kontrol-dugmesi-55-mm-cap-16-mm-yukseklik-6-mm-mil-isaret-cizgili-3.jpg",
+      "https://media.pruvo3d.com/urunler/yuvarlak-milli-kontrol-dugmesi-55-mm-cap-16-mm-yukseklik-6-mm-mil-isaret-cizgili-6.jpg"
+    ]
+  },
+  {
+    "id": "tipa-44-mm-ic-cap-58-mm-dis-cap-26-mm-boy",
+    "kategori": "Tamirat",
+    "marka": [],
+    "baslik": "Tıpa (44 mm İç Çap, 58 mm Dış Çap, 26 mm Boy)",
+    "aciklama": "44 mm iç çaplı boru ve delik uçlarını kapatan, geniş başlıklı kısa tıpa.\n- Tıpa gövdesi 44 mm, başlık çapı 58 mm; tıpa boyu 26 mm\n- Gövde silindirik (çekme açısı yok); geçme boşluğu 0,3 mm\n- Tek parça\nYaklaşık dış ölçüler: 58 × 58 × 28 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tipa-44-mm-ic-cap-58-mm-dis-cap-26-mm-boy-2.jpg",
+      "https://media.pruvo3d.com/urunler/tipa-44-mm-ic-cap-58-mm-dis-cap-26-mm-boy-1.jpg",
+      "https://media.pruvo3d.com/urunler/tipa-44-mm-ic-cap-58-mm-dis-cap-26-mm-boy-3.jpg",
+      "https://media.pruvo3d.com/urunler/tipa-44-mm-ic-cap-58-mm-dis-cap-26-mm-boy-6.jpg"
+    ]
+  },
+  {
+    "id": "kapak-88-mm-dis-76-mm-ic-cap-20-mm-yukseklik",
+    "kategori": "Tamirat",
+    "marka": [],
+    "baslik": "Kapak (88 mm Dış, 76 mm İç Çap, 20 mm Yükseklik)",
+    "aciklama": "76 mm çaplı boru, kutu ve silindirik ağızları kapatan düz, topuzsuz kapak.\n- Dış çap 88 mm, iç çap 76 mm, yükseklik 20 mm\n- Kapalı uç kalınlığı 2 mm; geçme boşluğu 0,3 mm\n- Tek parça\nYaklaşık dış ölçüler: 88 × 88 × 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kapak-88-mm-dis-76-mm-ic-cap-20-mm-yukseklik-2.jpg",
+      "https://media.pruvo3d.com/urunler/kapak-88-mm-dis-76-mm-ic-cap-20-mm-yukseklik-1.jpg",
+      "https://media.pruvo3d.com/urunler/kapak-88-mm-dis-76-mm-ic-cap-20-mm-yukseklik-3.jpg",
+      "https://media.pruvo3d.com/urunler/kapak-88-mm-dis-76-mm-ic-cap-20-mm-yukseklik-6.jpg"
+    ]
+  },
+  {
+    "id": "u-klips-42-mm-ic-aralik-16-mm-genislik-3-mm-kalinlik",
+    "kategori": "Tamirat",
+    "marka": [],
+    "baslik": "U Klips (42 mm İç Aralık, 16 mm Genişlik, 3 mm Kalınlık)",
+    "aciklama": "Geniş boru, kablo demeti ve çubukları tutturmak için kalın, kancasız U biçimli klips.\n- İç aralık 42 mm, kol boyu 26 mm, genişlik 16 mm, kalınlık 3 mm\n- Kol uçları düz (kancasız)\nYaklaşık dış ölçüler: 48 × 29 × 16 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/u-klips-42-mm-ic-aralik-16-mm-genislik-3-mm-kalinlik-2.jpg",
+      "https://media.pruvo3d.com/urunler/u-klips-42-mm-ic-aralik-16-mm-genislik-3-mm-kalinlik-1.jpg",
+      "https://media.pruvo3d.com/urunler/u-klips-42-mm-ic-aralik-16-mm-genislik-3-mm-kalinlik-3.jpg",
+      "https://media.pruvo3d.com/urunler/u-klips-42-mm-ic-aralik-16-mm-genislik-3-mm-kalinlik-6.jpg"
+    ]
+  },
+  {
+    "id": "boru-kelepcesi-42-mm-m4-vida-ile-sabitlenen",
+    "kategori": "Tamirat",
+    "marka": [],
+    "baslik": "Boru Kelepçesi 42 mm (M4 Vida ile Sabitlenen)",
+    "aciklama": "42 mm çaplı boru, kanal ve silindirik gövdeleri yüzeye tutturmak için M4 vida ile sabitlenen boru kelepçesi.\n- Boru çapı 42 mm, ağız payı 3 mm\n- M4 vida deliği; genişlik 14 mm, kalınlık 3 mm\nYaklaşık dış ölçüler: 38 × 69 × 14 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/boru-kelepcesi-42-mm-m4-vida-ile-sabitlenen-2.jpg",
+      "https://media.pruvo3d.com/urunler/boru-kelepcesi-42-mm-m4-vida-ile-sabitlenen-1.jpg",
+      "https://media.pruvo3d.com/urunler/boru-kelepcesi-42-mm-m4-vida-ile-sabitlenen-3.jpg",
+      "https://media.pruvo3d.com/urunler/boru-kelepcesi-42-mm-m4-vida-ile-sabitlenen-6.jpg"
+    ]
+  },
+  {
+    "id": "acik-organizer-kutu-170-x-100-x-30-mm-6-x-3-gozlu",
+    "kategori": "Ev",
+    "marka": [],
+    "baslik": "Açık Organizer Kutu (170 × 100 × 30 mm, 6 × 3 Gözlü)",
+    "aciklama": "Küçük parça, vida, boncuk ve aksesuarları on sekiz ayrı gözde sıralamak için kapaksız organizer kutu.\n- Kutu 170 × 100 mm, yükseklik 30 mm; 6 × 3 = 18 bölme\n- Duvar kalınlığı 1,6 mm, taban 1,6 mm; köşeler 3 mm yuvarlatılmıştır\n- Kapaksız, tek parça\nYaklaşık dış ölçüler: 170 × 100 × 30 mm.",
+    "fiyat": "700 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/acik-organizer-kutu-170-x-100-x-30-mm-6-x-3-gozlu-2.jpg",
+      "https://media.pruvo3d.com/urunler/acik-organizer-kutu-170-x-100-x-30-mm-6-x-3-gozlu-1.jpg",
+      "https://media.pruvo3d.com/urunler/acik-organizer-kutu-170-x-100-x-30-mm-6-x-3-gozlu-3.jpg",
+      "https://media.pruvo3d.com/urunler/acik-organizer-kutu-170-x-100-x-30-mm-6-x-3-gozlu-6.jpg"
+    ]
+  },
+  {
+    "id": "acik-organizer-kutu-160-x-110-x-36-mm-6-x-4-gozlu",
+    "kategori": "Ev",
+    "marka": [],
+    "baslik": "Açık Organizer Kutu (160 × 110 × 36 mm, 6 × 4 Gözlü)",
+    "aciklama": "Küçük parça, vida, boncuk ve aksesuarları yirmi dört ayrı gözde sıralamak için kapaksız organizer kutu.\n- Kutu 160 × 110 mm, yükseklik 36 mm; 6 × 4 = 24 bölme\n- Duvar kalınlığı 1,6 mm, taban 1,6 mm; köşeler 3 mm yuvarlatılmıştır\n- Kapaksız, tek parça\nYaklaşık dış ölçüler: 160 × 110 × 36 mm.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/acik-organizer-kutu-160-x-110-x-36-mm-6-x-4-gozlu-2.jpg",
+      "https://media.pruvo3d.com/urunler/acik-organizer-kutu-160-x-110-x-36-mm-6-x-4-gozlu-1.jpg",
+      "https://media.pruvo3d.com/urunler/acik-organizer-kutu-160-x-110-x-36-mm-6-x-4-gozlu-3.jpg",
+      "https://media.pruvo3d.com/urunler/acik-organizer-kutu-160-x-110-x-36-mm-6-x-4-gozlu-6.jpg"
+    ]
+  },
+  {
+    "id": "konik-saksi-115-mm-ust-cap-75-mm-alt-cap-125-mm-yukseklik-drenaj-delikli",
+    "kategori": "Bahçe",
+    "marka": [],
+    "baslik": "Konik Saksı (115 mm Üst Çap, 75 mm Alt Çap, 125 mm Yükseklik, Drenaj Delikli)",
+    "aciklama": "Orta ve büyük boy bitkiler için aşağı doğru daralan, taban ortasında drenaj deliği olan sade konik saksı.\n- Üst çap 115 mm, alt çap 75 mm, yükseklik 125 mm\n- Duvar kalınlığı 2 mm, taban 3 mm; tabanda 10 mm drenaj deliği\n- Tek parça, altlık tabağı yoktur\nYaklaşık dış ölçüler: 115 × 115 × 125 mm.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/konik-saksi-115-mm-ust-cap-75-mm-alt-cap-125-mm-yukseklik-drenaj-delikli-2.jpg",
+      "https://media.pruvo3d.com/urunler/konik-saksi-115-mm-ust-cap-75-mm-alt-cap-125-mm-yukseklik-drenaj-delikli-1.jpg",
+      "https://media.pruvo3d.com/urunler/konik-saksi-115-mm-ust-cap-75-mm-alt-cap-125-mm-yukseklik-drenaj-delikli-3.jpg",
+      "https://media.pruvo3d.com/urunler/konik-saksi-115-mm-ust-cap-75-mm-alt-cap-125-mm-yukseklik-drenaj-delikli-6.jpg"
+    ]
+  },
+  {
+    "id": "oval-kanalli-saksi-90-x-63-mm-110-mm-yukseklik-8-kanal-altlik-tabakli-drenaj-delikli",
+    "kategori": "Bahçe",
+    "marka": [],
+    "baslik": "Oval Kanallı Saksı (90 × 63 mm, 110 mm Yükseklik, 8 Kanal, Altlık Tabaklı, Drenaj Delikli)",
+    "aciklama": "Sukulent, aromatik bitki ve çiçekler için kesiti oval, dış yüzeyinde dikey kanallar bulunan, taban ortasında drenaj deliği olan saksı; ayrı altlık tabağıyla gelir.\n- Oval gövde 90 × 63 mm, yükseklik 110 mm; 8 kanal, kanal derinliği 1,5 mm\n- Duvar kalınlığı 2 mm, taban 3 mm; tabanda 10 mm drenaj deliği\n- Ayrı altlık tabağıyla birlikte gelir (iki parça)\nSaksı yaklaşık dış ölçüleri: 219,6 × 119,8 × 110 mm.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/oval-kanalli-saksi-90-x-63-mm-110-mm-yukseklik-8-kanal-altlik-tabakli-drenaj-delikli-2.jpg",
+      "https://media.pruvo3d.com/urunler/oval-kanalli-saksi-90-x-63-mm-110-mm-yukseklik-8-kanal-altlik-tabakli-drenaj-delikli-1.jpg",
+      "https://media.pruvo3d.com/urunler/oval-kanalli-saksi-90-x-63-mm-110-mm-yukseklik-8-kanal-altlik-tabakli-drenaj-delikli-3.jpg",
+      "https://media.pruvo3d.com/urunler/oval-kanalli-saksi-90-x-63-mm-110-mm-yukseklik-8-kanal-altlik-tabakli-drenaj-delikli-6.jpg"
+    ]
+  },
+  {
     "id": "pul-rondela-110-mm-dis-12-mm-ic-cap-6-mm-kalinlik",
     "kategori": "Tamirat",
     "marka": [],
