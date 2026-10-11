@@ -18,8 +18,11 @@
  *   - Render kaydında müşterinin / Okan'ın ÖZGÜN fotoğrafı YAYINLANMAZ: `foto` boş ya da yok
  *     olabilir (örnek, özgün fotoğraf yayına çıkmadan önizleme + render ile gösterilir).
  *
- * Örnek kaydı: { tur, kanit, olcu_mm, foto, onizleme, baski, render, not }
+ * Örnek kaydı: { tur, alt, cesit, kanit, olcu_mm, foto, onizleme, baski, render, not }
  *   tur      : turler[].kod
+ *   alt      : figür alt türü (türün `olcu_modelleri` anahtarı: insan|pet|model). Alt türlü kart ① yalnız
+ *              `o.alt === kart.alt` örneği gösterir. Alan yoksa kayıt türde SAYILIR ama alt türlü karta düşmez;
+ *              bilinmeyen değer / modelsiz türde alan -> SAYILMAZ (fail-closed)
  *   kanit    : "baski"  = basılmış ürünün gerçek fotoğrafı (5 Eki anlamı; alan yoksa bu sayılır)
  *              "render" = önizleme + üretim dosyasının render'ı (Okan kararı 7 Eki; yalnız
  *                         `ornek_kanit_izni` "render" içeren türde sayılır)
@@ -537,9 +540,33 @@
         olcu_mm: 130,
         // kopru-15 (8 Eki 2026): GERÇEK sağlayıcı önizlemesi (tools/saglayici-ornek.py); girdi SENTETİK çizim
         // (oyuncak kedi silueti) — kişi/marka/telifli görsel YOK. Önizleme = aynı render.
+        // Alt tür pet (11 Eki): kedi örneği YALNIZ pet kartında; insan/model kartı kendi kaydını gösterir.
+        alt: "pet",
         onizleme: "https://media.pruvo3d.com/foto/ornek/figur-1-render.webp",
         render: "https://media.pruvo3d.com/foto/ornek/figur-1-render.webp",
         not: "130 mm, kaideli figür"
+      },
+      {
+        tur: "figur",
+        alt: "insan",
+        kanit: "render",
+        // 105 = insan ürün tavanı (olcu_modelleri.insan.en_cok). Render ölçeksizdir (3MF bbox 130 mm); aynı geometri
+        // 105 mm'de 0-kredi C provasında figur_zinciri DENGE=OK (106 RED) -> satılabilen ölçü yazılır, 130 YAZILMAZ.
+        // Girdi SENTETİK çizim; gerçek kişi YOK (11 Eki render teslimi).
+        olcu_mm: 105,
+        onizleme: "https://media.pruvo3d.com/foto/ornek/insan-onizleme.webp",
+        render: "https://media.pruvo3d.com/foto/ornek/insan-1-render.webp",
+        not: "105 mm, 4 renk, kaideli insan figürü"
+      },
+      {
+        tur: "figur",
+        alt: "model",
+        kanit: "render",
+        // 130 = 3MF bbox (model aralığı 60–300 içinde). Girdi SENTETİK çizim (11 Eki render teslimi).
+        olcu_mm: 130,
+        onizleme: "https://media.pruvo3d.com/foto/ornek/model-onizleme.webp",
+        render: "https://media.pruvo3d.com/foto/ornek/model-1-render.webp",
+        not: "130 mm, 4 renk, kaideli araç modeli"
       },
       {
         tur: "anahtarlik",
@@ -550,6 +577,16 @@
         onizleme: "https://media.pruvo3d.com/foto/ornek/anahtarlik-1-render.webp",
         render: "https://media.pruvo3d.com/foto/ornek/anahtarlik-1-render.webp",
         not: "45 mm, kulakçıklı, metin: Ayşe"
+      },
+      {
+        tur: "anahtarlik",
+        cesit: "figur",
+        kanit: "render",
+        // 60 mm (3MF bbox, kulakçık dahil). Tek renk dosya -> notta renk iddiası YOK. Girdi SENTETİK çizim.
+        olcu_mm: 60,
+        onizleme: "https://media.pruvo3d.com/foto/ornek/anahtarlik-figur-onizleme.webp",
+        render: "https://media.pruvo3d.com/foto/ornek/anahtarlik-figur-1-render.webp",
+        not: "60 mm, kulakçıklı figür anahtarlık"
       }
     ],
 
@@ -571,6 +608,9 @@
     if (!o) { return false; }
     if (o.cesit !== undefined && !VERI.cesitKaydi(o.tur, o.cesit)) { return false; }
     var t = VERI.turBul(o.tur);
+    // Alt tür: yalnız türün `olcu_modelleri` anahtarı; modelsiz türde ya da bilinmeyen değerde SAYILMAZ (fail-closed).
+    if (o.alt !== undefined && !(t && t.olcu_modelleri && typeof o.alt === "string" &&
+        Object.prototype.hasOwnProperty.call(t.olcu_modelleri, o.alt))) { return false; }
     var k = VERI.ornekKaniti(o);
     var izin = t && Array.isArray(t.ornek_kanit_izni) ? t.ornek_kanit_izni : [];
     if (!k || izin.indexOf(k) < 0) { return false; }

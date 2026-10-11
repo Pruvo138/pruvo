@@ -46,7 +46,7 @@
   var KARTLAR = [
     { kod: "anahtarlik_yazi", tur: "anahtarlik", alt: null, cesit: "yazi", ad: "Anahtarlık – yazı",
       ret: "Anahtarlık için kısa bir yazı gerekir." },
-    { kod: "insan", tur: "figur", alt: "insan", ad: "İnsan figürü (ayakta)", ornek: false,
+    { kod: "insan", tur: "figur", alt: "insan", ad: "İnsan figürü (ayakta)",
       ret: "İnsan figürü için tek kişinin ayakta, baştan ayağa tam boy görünen net fotoğrafı gerekir." },
     { kod: "pet", tur: "figur", alt: "pet", ad: "Pet figürü (ayakta)",
       ret: "Pet figürü için tek hayvanın ayakta, tam boy görünen net fotoğrafı gerekir." },
@@ -54,7 +54,7 @@
       ret: "Kabartma plaket için yüksek çözünürlüklü, iyi aydınlatılmış fotoğraf gerekir." },
     { kod: "anahtarlik_figur", tur: "anahtarlik", alt: null, cesit: "figur", ad: "Anahtarlık – figür",
       ret: "Anahtarlık için net bir fotoğraf gerekir." },
-    { kod: "model", tur: "figur", alt: "model", ad: "Model figür", ornek: false,
+    { kod: "model", tur: "figur", alt: "model", ad: "Model figür",
       ret: "Model figür için tek nesne, araç ya da modelin net fotoğrafı gerekir." }
   ];
   // Eski kart/alt tür kodları (oturum deposu, #tur= bağlantısı): `hayvan_model` -> `pet` (geriye uyum; çökmez).
@@ -1302,11 +1302,12 @@
      baskı "basılmış ürün" — hukuk kapısı 13:4x). Render örneği türün dürüstlük cümlesi alanı (ornek_notu)
      olmadan çizilmez (fail-closed; "" = ② kutusunda tek cümle, `durustluk` kapsar). acikKodlar: /foto/acik türleri; null = henüz bilinmiyor (kart 0). */
   // Çeşit sabitleyen kart (anahtarlık yazı/figür) yalnız KENDİ çeşidinin örneğini gösterir (örneği yoksa yer tutucu).
-  function kartOrnegi(t, cesit) {
+  // Alt türlü kart (figür insan/pet/model) yalnız `o.alt === alt` örneğini gösterir (insan kartına kedi düşmez).
+  function kartOrnegi(t, cesit, alt) {
     if (!t || F.ornekSayisi(t.kod) === 0) return null;
     for (var j = 0; j < F.ornekler.length; j++) {
       var o = F.ornekler[j];
-      if (o && o.tur === t.kod && (!cesit || (o.cesit || "") === cesit) && F.ornekGecerli(o) && (F.ornekKaniti(o) !== "render" || typeof t.ornek_notu === "string")) return o;
+      if (o && o.tur === t.kod && (!cesit || (o.cesit || "") === cesit) && (!alt || o.alt === alt) && F.ornekGecerli(o) && (F.ornekKaniti(o) !== "render" || typeof t.ornek_notu === "string")) return o;
     }
     return null;
   }
@@ -1330,7 +1331,7 @@
       // `ornek:false` (BaBa 10 Eki 06:3x): dürüst yer tutucu — kart AKTİF kalır (disabled DEĞİL), görsel yok,
       // etiket "Örnek yakında". ornekCiz kendi rengi/URL'i UYDURMAZ, yalnız boş img.src + nötr kutu.
       if (k.ornek === false) { liste.push({ kart: k, tur: t, ornek: null, kanit: "ornek-yok" }); continue; }
-      var o = kartOrnegi(t, k.cesit);
+      var o = kartOrnegi(t, k.cesit, k.alt);
       // Yer tutucu: orneği olmayan kart YAKINDA kartı olarak görünür ama DEVRE DIŞI (tıklanamaz).
       // Anahtarlık örneği 9 Eki'de eklendi; yakında kolu artık örneği olmayan YENİ tür içindir.
       // Türün örneği var ama bu kartın (çeşit/alt tür) KENDİ örneği yok -> "Örnek yakında" yer tutucusu.
