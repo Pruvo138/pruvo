@@ -1139,7 +1139,7 @@
   // renkler = seçili filament adları (Renkli: fotoğraftan çıkan renkler; tek renk: [ana renk]). Saydam piksel
   // (alfa < 128) dokunulmaz. piksel YERİNDE değişir ve döner; boş palet / bilinmeyen renk / boyut uyuşmazlığı -> null
   // (çağıran kaynak görseli gösterir). Küçük ölçekteki bölge etiketleri VERI.simulasyonBolgeleri ile okunur (ölçüm).
-  // Süre (node, 1024 px prova görselleri, soğuk, makine yükü ~10 altında): 101–148 ms (Foto4Renk-1 aynı koşulda 53–86).
+  // Süre (node, 1024 px prova görselleri, soğuk ilk çağrı, makine yükü ~10 altında): 104–139 ms (Foto4Renk-1 aynı koşulda 50–81).
   var SIM_KENAR = 256, SIM_L_AGIRLIK = 0.3, SIM_L_TABAN = 0.6, SIM_L_TABAN_B = 0.3, SIM_ADACIK = 0.0015, SIM_SERIT = 2, SIM_KONTUR = 0.62, SIM_KONTUR_BANT = 0.3;
   var SIM_TAU = 0.08, SIM_TAVAN_W = 0.8, SIM_SP_MIN = 6, SIM_SINIR = 0.002, SIM_BOLGE_MIN = 0.002, SIM_L_BOLGE = 0.08, SIM_ORT_TAVAN = 0.006, SIM_KONTRAST_BOY = 0.003, SIM_AYRIK = 0.03, SIM_AYRIK_PAY = 0.03, SIM_CIZGI_FARK = 45, SIM_CIZGI_BOY = 5, SIM_CIZGI_DL = 0.12;
   var LIN = null;
