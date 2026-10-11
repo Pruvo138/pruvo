@@ -210973,33 +210973,6 @@
     }
   },
   {
-    "id": "3162441",
-    "kategori": "Otomobil",
-    "marka": [
-      "Skoda"
-    ],
-    "uyum": [
-      {
-        "marka": "Skoda"
-      }
-    ],
-    "baslik": "Škoda Octavia Octavia",
-    "aciklama": "Octavia parça. Ace24 tasarımı; orijinal Škoda Octavia parça kırıldığında ya da kaybolduğunda değiştirmek için doğru boyutlu yedek. PETG malzemeden üretilir.\nYaklaşık dış ölçüler: 70 × 62 × 4 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th3162441-1.jpg",
-      "https://media.pruvo3d.com/urunler/th3162441-2.jpg",
-      "https://media.pruvo3d.com/urunler/th3162441-3.jpg"
-    ],
-    "tavsiyeFilament": [
-      "PETG"
-    ],
-    "lisans": {
-      "tasarimci": "Ace24",
-      "tur": "kisisel"
-    }
-  },
-  {
     "id": "4054420",
     "kategori": "Otomobil",
     "marka": [
@@ -219850,23 +219823,6 @@
     ]
   },
   {
-    "id": "yamaha-tricity-2015-model-motosiklet",
-    "kategori": "Oyun/Hobi",
-    "marka": [
-      "Yamaha",
-      "Tricity"
-    ],
-    "baslik": "Yamaha Tricity 2015 model motosiklet",
-    "aciklama": "Yamaha Tricity 2015 için hazırlanmış, sergilemeye uygun bir model motosiklettir. Temsili görünümü ve çok açılı detaylarıyla koleksiyon, maket ve hobi amaçlı kullanım için uygundur.\n- Modelin genel formunu ve gövde detaylarını net gösterir.\n- Sergi, koleksiyon ve referans amaçlı kullanılabilir.\n- Ozel tasarim uretim mantigiyla siparise gore hazirlanabilir.",
-    "fiyat": "500 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/cgt6898894-1.jpg",
-      "https://media.pruvo3d.com/urunler/cgt6898894-2.jpg",
-      "https://media.pruvo3d.com/urunler/cgt6898894-3.jpg",
-      "https://media.pruvo3d.com/urunler/cgt6898894-4.jpg"
-    ]
-  },
-  {
     "id": "yamaha-mt-09-sinyal-aparat",
     "kategori": "Motosiklet",
     "marka": [
@@ -220728,33 +220684,6 @@
       "https://media.pruvo3d.com/urunler/cgt644269-1.jpg",
       "https://media.pruvo3d.com/urunler/cgt644269-2.jpg",
       "https://media.pruvo3d.com/urunler/cgt644269-3.jpg"
-    ]
-  },
-  {
-    "id": "vespa-vnb-125",
-    "kategori": "Motosiklet",
-    "marka": [
-      "Vespa",
-      "VNB 125"
-    ],
-    "baslik": "Vespa VNB 125",
-    "aciklama": "Klasik Vespa VNB 125 için özel tasarım üretim odaklı ürün içeriği.\n- Vespa VNB 125 ile uyumlu, vintage çizgiyi koruyan parça/aksesuar kullanımı için uygundur.\n- Mevcut scooter üzerinde referans alınarak değerlendirilmiş görsel, ürünün genel formunu net gösterir.\n- Siparişe göre özel üretilir; uygulama ve montaj detayları ihtiyaç duyulan parçaya göre belirlenir.",
-    "fiyat": "1750 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/cgt3234097-1.jpg"
-    ]
-  },
-  {
-    "id": "vespa-scooter",
-    "kategori": "Motosiklet",
-    "marka": [
-      "Vespa"
-    ],
-    "baslik": "Vespa scooter",
-    "aciklama": "Klasik Vespa formunu koruyan scooter tasarımı, sade ve karakteristik bir görünüm sunar.\n- Vespa tarzı gövde formu ile dikkat çekici bir kullanım alanı oluşturur.\n- Özel tasarım üretim mantığıyla ihtiyaca göre hazırlanabilir.\n- Tek görsellikte sunulan bu ürün için montaj ve uygulama detayları siparişe göre netleştirilir.",
-    "fiyat": "1750 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/cgt3234093-1.jpg"
     ]
   },
   {
@@ -247240,27 +247169,6 @@
     ],
     "lisans": {
       "tasarimci": "Julius3E8",
-      "tur": "CC BY 4.0"
-    }
-  },
-  {
-    "id": "th1762941-1299-panigale-model",
-    "kategori": "Motosiklet",
-    "marka": [
-      "Ducati",
-      "1299 Panigale"
-    ],
-    "baslik": "Ducati 1299 Panigale Superbike Modeli",
-    "aciklama": "Ducati 1299 Panigale Superbike'ın detaylı dekoratif modeli.\nYaklaşık dış ölçüler: 207 × 111 × 75 mm.",
-    "fiyat": "310 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th1762941-1299-panigale-model-1.jpg",
-      "https://media.pruvo3d.com/urunler/th1762941-1299-panigale-model-2.jpg",
-      "https://media.pruvo3d.com/urunler/th1762941-1299-panigale-model-3.jpg",
-      "https://media.pruvo3d.com/urunler/th1762941-1299-panigale-model-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Jace1969",
       "tur": "CC BY 4.0"
     }
   },
