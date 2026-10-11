@@ -164,7 +164,9 @@ ERTELENDI_RC = 5
 # sinif KIRMIZI yakar ([[kapi-varlik-olcer-yokluk-olcmez]]).
 ELE_ALINAN_D1_RC = {0, 1, 4, 5}       # 0 basari · 1 sys.exit(<mesaj>)=GERCEK HATA · 4 canli lease · 5 yerel yaris
 ELE_ALINAN_SEBEP = {"YAZICI_UCUSTA", "YEREL_YARIS"}  # d1-sync'in `SEBEP=<JETON>` makine jetonlari
-TURETILMIS_RC_IZNI = {"_adim_kos"}    # main() icinde sabit olmayan return'lerin izinli kaynagi
+# main() icinde sabit olmayan return'lerin izinli kaynagi. `eszamanli_izli` (K434) seffaf
+# sarmalayicidir: main(_izli=True)'yu kosar ve onun rc'sini AYNEN doner -> yeni rc URETMEZ.
+TURETILMIS_RC_IZNI = {"_adim_kos", "eszamanli_izli"}
 
 
 def _kos(argv, cwd, zaman_asimi=900):
