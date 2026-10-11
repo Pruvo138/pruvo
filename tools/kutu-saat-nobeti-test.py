@@ -12,6 +12,9 @@ dizininden yukler). Capasi bulunmayan mutant YASADI sayilir (sessiz gecis yok).
 
 Her vaka `VAKA=<ad> SONUC=GECTI|KALDI`; son satir `KABUL=GECTI|KALDI (...)`, rc 0 yalniz GECTI.
 """
+import contextlib
+import importlib.util
+import io
 import os
 import shutil
 import subprocess
@@ -98,6 +101,28 @@ def vakalar(arac, dizin):
     rc, cikti = _kos(arac, ["--kutu", yol, "--simdi", "2026-10-11 01:03"])
     sonuc.append(("l-utf8-degil", rc == 2 and cikti[:1] == ["KUTU_ILERI_SAAT=OLCULEMEDI"],
                   "rc=%s" % rc))
+    # (m) CLI girisi modulden SURULUR (sahipsiz-kapi SURULEN olcutu; kardes
+    # kutu-oksuz-nobeti-test VAKA 17 emsali): arac yuklenip `ks.main([...])` FIILEN
+    # cagrilir; rc ve cikti alt surecle ESIT olmali (temiz -> 0/rc0, ileri -> 1/rc1).
+    m_ok, m_ayrinti = True, []
+    try:
+        spec = importlib.util.spec_from_file_location("kutu_saat_nobeti_m", arac)
+        ks = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(ks)
+        for etiket, metin, beklenen in (("m-temiz", temiz, 0),
+                                        ("m-ileri", "## 2026-10-11 01:2x — TeKiN\n", 1)):
+            yol = _kutu(dizin, etiket + ".md", metin)
+            args = ["--kutu", yol, "--simdi", "2026-10-11 01:03"]
+            tampon = io.StringIO()
+            with contextlib.redirect_stdout(tampon):
+                mrc = ks.main(args)
+            alt_rc, alt_cikti = _kos(arac, args)
+            esit = mrc == alt_rc == beklenen and tampon.getvalue().splitlines() == alt_cikti
+            m_ok = m_ok and esit
+            m_ayrinti.append("%s:main=%s alt=%s" % (etiket, mrc, alt_rc))
+    except Exception as e:  # yukleme/cagri kirildi -> KALDI (sessiz gecis yok)
+        m_ok, m_ayrinti = False, ["hata=%s" % type(e).__name__]
+    sonuc.append(("m-main-modulden-surulur", m_ok, " ".join(m_ayrinti)))
     return sonuc
 
 
