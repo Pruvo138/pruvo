@@ -1,5 +1,514 @@
 [
   {
+    "id": "ev-ust-uste-dizilebilen-pil-saklama-kasasi-pr173788",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Üst Üste Dizilebilen Pil Saklama Kasası (AA, AAA, 9V, 18650 ve 16340 Sürümleri)",
+    "aciklama": "Pilleri tek tek yuvalarda tutan, bira kasası biçimli küçük saklama kasası. Kasalar üst üste dizilebilir; ortak taban plakası kasaları çekmecede dağılmadan düzenli tutar. AA sürümü 12, AAA sürümü 20, 9V sürümü 5 pil alır; 18650 ve 16340 sürümlerinde 6'şar pil durur (18650 sürümü 18 mm daha yüksek, 16340 sürümü 12 mm daha alçaktır). Boş sürüm düğme pil ve küçük parçalar için kullanılabilir. Fotoğraflarda yeşil, mavi, kırmızı ve beyaz kasalar görülür.\nYaklaşık dış ölçüler: 69 × 54 × 52 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr173788-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr173788-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr173788-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr173788-4.jpg"
+    ]
+  },
+  {
+    "id": "ev-tasinabilir-kablo-sarici-pr564262",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Taşınabilir Kablo Sarıcı (Kapaklı, Küçük, Orta ve Büyük Boy)",
+    "aciklama": "Şarj ve veri kablolarını dolaşmadan toplayan, çantaya ya da cebe sığan taşınabilir kablo sarıcı. Kablo gövdedeki oluğa orta noktasından yerleştirilir, sıkı kapanan kapak kapatılır ve yandaki tutamaç saat yönünde çevrilerek kablo sarılır; açmak için kablonun iki ucundan çekmek yeterlidir. Ek bir montaj gerektirmez. Küçük, orta ve büyük olmak üzere üç boyu bulunur; farklı kablo uzunluklarına göre seçilir, emin değilseniz orta boy önerilir. Düz yüzeyli ve desenli kenarlı sürümleri vardır. Fotoğraflarda yeşil, mavi, sarı, bordo ve pembe sarıcılar görülür.\nYaklaşık dış ölçüler: 76 × 76 × 30 mm (büyük boy).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr564262-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr564262-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr564262-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr564262-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "squinn",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ev-cift-katli-ayakkabi-duzenleyici-pr393335",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Çift Katlı Ayakkabı Düzenleyici (İstiflenebilir, Delikli ve Tabansız Sürümlü)",
+    "aciklama": "Bir ayakkabıyı diğerinin üzerine taşıyarak aynı alana iki kat ayakkabı sığdıran düzenleyici. Dolap ve ayakkabılıkta yer kazandırır; her çift için iki düzenleyici kullanılır. Delikli sürümü daha hafiftir, tabansız sürümü de bulunur. Fotoğraflarda beyaz ve siyah düzenleyiciler görülür.\nYaklaşık dış ölçüler: 220 × 155 × 150 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr393335-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr393335-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jordi",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ev-tek-elle-kullanilan-anahtar-organizeri-pr125291",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Tek Elle Kullanılan Anahtar Organizeri (Vidalı, Ara Parçalı)",
+    "aciklama": "Anahtarları cep ve cüzdanda çizilmeden taşıyan, hafif ve sessiz anahtar organizeri. Anahtarlar işaret parmağıyla dışarı itilerek seçilir, böylece tek elle kullanılır; ev anahtarından bisiklet zincir anahtarına kadar çoğu anahtara uyar ve şıngırtı yapmaz. Anahtar sayısına göre 3 ile 10 mm arasında ara parça seçilir. Montaj için iki M3 vida ve iki M3 somun gerekir. Fotoğraflarda siyah ve gri organizerler anahtarlarla görülür.\nYaklaşık dış ölçüler: 69 × 30 × 6 mm (tek yarım plaka; iki plaka ve ara parçayla birleşir).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr125291-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr125291-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr125291-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr125291-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "basti30",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ofis-ayarlanabilir-monitor-ustu-raf-pr675840",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Ayarlanabilir Monitör Üstü Raf (Kavisli Arkalı Ekranlara Uyumlu)",
+    "aciklama": "Monitör ya da televizyonun üstüne yerleştirilen, masa üstünde yer kazandıran raf. Ayarlanabilir taşıyıcı kol monitöre tek temas noktasıyla oturur; bu sayede kavisli arkalı ekranlara da sıkıca takılır. Delikli yüzeyi monitörün havalandırmasını engellemez. Kavisli ya da kalın çerçeveli ekranlar için uzun ön dudaklı sürümü, dar alanlar için yarım genişlikli sürümü bulunur; ayrıca deliksiz ve 6 mm kalınlıkta sürümleri vardır. Fotoğraflarda mor ve siyah raflar üzerinde saksı bitkileri görülür.\nYaklaşık dış ölçüler: 155 × 117 × 20 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr675840-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr675840-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr675840-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr675840-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "GiskardReventlov",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ev-mandalli-kapakli-saklama-kutusu-pr782128",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Mandallı Kapaklı Saklama Kutusu (Menteşeli, Üç Boy)",
+    "aciklama": "Menteşesi ve mandalı hazır gelen, ek montaj gerektirmeyen mandallı saklama kutusu. Kapak mandalla sıkıca kilitlenir; küçük el aletleri, kablo, takı ve kırtasiye için uygundur. Üç boyda bulunur: yaklaşık 80 × 53 × 20, 150 × 74 × 24 ve 210 × 94 × 34 mm. Fotoğraflarda turuncu, yeşil, mavi ve pembe kutular görülür.\nYaklaşık dış ölçüler: 210 × 94 × 34 mm (büyük boy).",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr782128-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr782128-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr782128-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr782128-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Windrose",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ofis-masa-alti-kablo-tutucu-seti-pr701810",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Masa Altı Kablo Tutucu Seti (1-6 Gözlü Tutucular, Priz ve SSD Tutucuları)",
+    "aciklama": "Masanın altına vidalanan ve kablo bağıyla kabloları sabitleyen düzenleyici parça seti. Set; 1'den 6'ya kadar gözlü kablo tutucularını, kablo yığını tutucusunu, priz bloğu tutucusunu ve iki ayrı SSD tutucusunu içerir. Masa altındaki kablo karmaşasını toplar, kabloların yerde dolaşmasını önler. İlk karede masa altına monte edilmiş turuncu tutucular, diğer karelerde tek tek parça görüntüleri bulunur.\nYaklaşık dış ölçüler: 118 × 20 × 7 mm (en uzun parça, 6 gözlü tutucu).",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr701810-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr701810-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr701810-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr701810-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dsw73",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mutfak-gridfinity-cekmece-bolme-seti-pr719729",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Gridfinity Mutfak Çekmecesi Bölme Seti (Çatal, Kaşık, Bıçak ve Çubuk Gözleri)",
+    "aciklama": "Gridfinity ızgarasına oturan, mutfak çekmecesindeki çatal, kaşık, bıçak, çay kaşığı, yemek çubuğu, pipet ve kahve karıştırıcısı gibi gereçleri ayrı ayrı gözlerde toplayan modüler bölme koleksiyonu. Gözler tekli ve yan yana iki gözlü düzenlenmiştir; çocuk bıçakları ve peynir çatalları için ayrı gözler, boşlukları kapatan boş modüller ve uç kapakları da koleksiyonda bulunur. İstenen gözler yan yana dizilerek çekmecenin ölçüsüne göre düzenli bir iç yerleşim kurulur. Fotoğraflarda beyaz gözlerle düzenlenmiş çekmeceler görülür.\nModül ızgarası 42 mm'dir; koleksiyondaki en uzun göz (bıçaklar) 252 × 84 × 70 mm'dir.\nYaklaşık dış ölçüler: 252 × 84 × 70 mm.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr719729-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr719729-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr719729-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "The Next Layer",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mutfak-kasik-dinlendirici-ocak-basi-pr577913",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kaşık Dinlendirici (Ocak Başı Spatula ve Kaşık Altlığı)",
+    "aciklama": "Pişirme sırasında kaşık, spatula ve kepçeyi tezgâha değdirmeden dinlendiren sade kaşık altlığı. Yirmi yılı aşkın süredir kullanılan klasik bir kaşık dinlendiricinin yeniden çizilmiş hâlidir; ocak başında yerden tasarruf eder, tezgâhı ve ocak çevresini temiz tutar. Fotoğraflarda siyah ve beyaz altlıklar uzun saplı kaşık ve spatulalarla ocak yanında görülür.\nYaklaşık dış ölçüler: 120 × 95 × 53 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr577913-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr577913-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "wbu",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mutfak-bulasik-tableti-dispenseri-pr1355903",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Bulaşık Makinesi Tableti Dispenseri (Kapaklı, Duvara veya Kapağa Monte)",
+    "aciklama": "Yırtılan ya da dağılan tablet ambalajlarının yerine, çok sayıda bulaşık makinesi tabletini dik biçimde saklayıp alttaki oluktan sırayla elinize veren dayanıklı dispenser. Sade ve güçlü gövdesi dolap kapağına ya da duvara yapıştırılabilir, 50 mm arayla iki adet 5 mm montaj deliğiyle vidalanabilir; ikisi birlikte kullanılırsa daha sağlam tutar. Kapağı tabletleri üstten örter. Standart boy ve daha uzun XL boy olmak üzere iki sürümü bulunur. Fotoğraflarda gri gövdeli dispenser kapı yüzeyinde tabletlerle dolu görülür.\nStandart boy 160 × 150 × 100 mm, XL boy 320 × 180 × 100 mm'dir.\nYaklaşık dış ölçüler: 160 × 150 × 100 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1355903-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1355903-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1355903-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1355903-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Darius V",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mutfak-cift-hatli-yumurta-dagitici-pr1672659",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Çift Hatlı Yerçekimli Yumurta Dağıtıcı (20 Yumurta Kapasiteli)",
+    "aciklama": "Buzdolabı rafında yumurtaları iki eğimli hatta dizen ve yerçekimiyle ilerleterek önden birer birer alınmasını sağlayan yumurta dağıtıcı. Tek hatlı modelin kapasitesini iki katına çıkarır: aynı raf yüksekliğinde iki hatta toplam 20 büyük boy yumurta (hat başına 10) saklanır. Yumurta alındıkça sıradakiler kendiliğinden öne kayar. Buzdolabı rafı ya da tezgâh üstü düzenleyici olarak kullanılır; parçalar birbirine geçirilerek kurulur. Fotoğraflarda siyah dağıtıcı buzdolabı rafında beyaz yumurtalarla ve parçalarına ayrılmış hâliyle görülür.\nYaklaşık dış ölçüler: 302 × 158 × 83 mm.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1672659-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1672659-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1672659-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "MSBstudios (özgün yumurta dağıtıcı: I. Ulianych)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mutfak-cop-torbasi-klipsi-pr585189",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Çöp Torbası Klipsi (Kova Kenarına Sabitleme)",
+    "aciklama": "Çöp torbasını kovanın kenarına sabitleyip içeri kaymasını önleyen basit ve sağlam klips. Torbanın ağzını kova kenarına bastırarak tutar; üç klips yeterli olur, dört klips daha güvenli tutar. Dışarı taşan fazla torba kısmı katlanıp aynı klipslerle sabitlenebilir. Fotoğraflarda turuncu klipsler kırmızı kovada siyah torbayı tutarken görülür.\nYaklaşık dış ölçüler: 56 × 14 × 9 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr585189-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr585189-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr585189-3.jpg"
+    ]
+  },
+  {
+    "id": "mutfak-evye-gideri-suzgec-kapagi-pr1247554",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Evye Gideri Süzgeç Kapağı (80 mm Gider Ağzı, Delikli)",
+    "aciklama": "Evye gider deliğine oturan, ortasında tutamağı olan delikli süzgeç kapağı. Suyu geçirir, yemek artıklarını ve iri parçaları gider ağzında tutar; tutamağından kolayca çıkarılıp temizlenir. 80 mm çaplı gider ağızları için hazırlanmıştır, farklı gider ölçülerine orantılı olarak ayarlanabilir. Fotoğraflarda petek ve yarıklı delik düzenli kapaklar paslanmaz çelik evyede görülür.\nYaklaşık dış ölçüler: 79 × 79 × 20 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1247554-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1247554-2.jpg"
+    ]
+  },
+  {
+    "id": "mutfak-dolap-cekmece-kulp-dugme-seti-pr177439",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Dolap ve Çekmece Kulp / Düğme Seti (9 Model)",
+    "aciklama": "Mutfak dolabı, çekmece ve kapı için dokuz farklı biçimde kulp ve düğme: yuvarlak, kare, oval ve uzun tutamak modelleri. Vida yuvası çevresi güçlendirilmiştir; vidayla sabitlenir (vidalar dahil değildir). Eski, kırık ya da eksik düğmelerin yerine kullanılır, dolap ve çekmecelere farklı bir görünüm verir. Fotoğraflarda mavi-gri düğme ve kulplar ahşap zemin üzerinde dizilmiş görülür.\nDüğmeler yaklaşık 27–35 mm çapında, uzun tutamaklar yaklaşık 50 mm boyundadır; en büyük parça aşağıdaki ölçüdedir.\nYaklaşık dış ölçüler: 50 × 22 × 22 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr177439-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr177439-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr177439-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr177439-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Thorin Oakenshield",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mutfak-yemek-cubugu-tutucu-seti-pr401880",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Yemek Çubuğu Tutucu Seti (4 Parçalı, Tepsili)",
+    "aciklama": "Dört küçük kase biçimli yemek çubuğu tutucusundan ve hepsinin tam oturduğu ortak bir tepsiden oluşan sofra seti. Tutucular tepsiye sıkı geçer ve birlikte yonca düzeninde bir sunum oluşturur; tek tek de sofraya konabilir. Yemek çubuğunu dinlendirmek ya da yanında sos ve baharat için küçük kaplar bulundurmak için uygundur. Fotoğraflarda beyaz mermer desenli tutucular turuncu tepsi içinde yemek çubuklarıyla görülür.\nTepsi 95 × 95 × 15 mm, her tutucu yaklaşık 50 × 50 × 21 mm'dir.\nYaklaşık dış ölçüler: 95 × 95 × 15 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr401880-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr401880-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr401880-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr401880-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "slavik kopanov",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mutfak-damlalikli-sabunluk-sunger-tepsisi-pr212498",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Damlalıklı Mutfak / Banyo Sabunluk ve Sünger Tepsisi (Büyük ve Küçük Boy)",
+    "aciklama": "Evye ya da lavabo kenarında sabunu, sıvı sabun şişesini ve süngeri suyun içinde bırakmayan, kendiliğinden süzülen tepsi. Yivli yüzeyi suyu uzaklaştırır, kenarlı tabanı suyun etrafa taşmasını önler. Büyük boy hem sıvı sabun şişesine hem süngere yer verir; küçük boy yalnız sünger ya da sabun için uygundur. Mutfakta olduğu gibi banyoda da kullanılır. Fotoğraflarda siyah tepsiler evye kenarında sıvı sabun ve sünger taşırken görülür.\nBüyük boy 200 × 150 × 20 mm, küçük boy 146 × 104 × 19 mm'dir.\nYaklaşık dış ölçüler: 200 × 150 × 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr212498-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr212498-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr212498-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "RT3D",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mutfak-moduler-cekmece-bolucu-baglanti-pr1006129",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Modüler Çekmece Bölücü Bağlantı Parçaları (L, T ve X Birleştiriciler)",
+    "aciklama": "Çekmeceye ahşap çıta keserek kendi ölçünüze göre bölme düzeni kurmanızı sağlayan modüler bölücü sistemi. L, T ve X biçimli bağlantı parçaları çıtaları köşelerde ve kesişimlerde birleştirir; ahşap yeterince yumuşak olduğundan çoğu zaman ek tolerans gerekmeden sıkı oturur. Çatal-bıçak, mutfak gereçleri ve çekmece içi eşyalar için ölçüye göre bölmeler oluşturulur. Çıtalar pakete dahil değildir, ayrıca temin edilir; sistem 63 mm yüksekliğinde ve 7 mm kalınlığında çıtalar için hazırlanmıştır. Fotoğraflarda çekmece içinde ahşap çıtalar ve beyaz bağlantı parçalarıyla kurulmuş bölmeler görülür.\nYaklaşık dış ölçüler: 65 × 61 × 57 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1006129-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1006129-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1006129-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1006129-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "NielsW",
+      "tur": "GPL 2.0"
+    }
+  },
+  {
+    "id": "ofis-ayarlanabilir-egimli-kalemlik-usb-kablo-duzenleyici-pr1792478",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Ayarlanabilir Eğimli Kalemlik ve USB Kablo Düzenleyici (Kilitli Açı Ayarı)",
+    "aciklama": "Eğimi yan topuzlarla ayarlanan, kare gözlü ızgara gövdeli masaüstü kalemlik ve USB kablo düzenleyici. Her kalem, ince uçlu kalem, keçeli kalem ya da kablo kendi gözüne oturur; birbirine dolanmaz ve tek hamlede çekilir. Topuzları gevşetip ızgarayı rahat bulduğunuz açıya getirin, sıkarak sabitleyin. Geniş tabanı, ağır metal kalemlerle dolu hâlde bile devrilmeyi önler. Taban, ızgara ve topuzlar ayrı parçalardır; farklı renklerde seçilebilir, montaj alet gerektirmez. Bölme sayısını değiştiren ayırıcı seçenekleri de vardır. Taban 150 × 110 × 84 mm ölçüsündedir. Fotoğraflarda renkli kalemlerle dolu gri gövde, bölmeler ve ahşap masa üzerindeki duruşu görülür.\nYaklaşık dış ölçüler: 142 × 97 × 91 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1792478-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1792478-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1792478-3.jpg"
+    ]
+  },
+  {
+    "id": "ofis-moduler-masa-duzenleme-panosu-pr997093",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Modüler Masa Düzenleme Panosu (Telefon, Kulaklık, Kumpas ve Pil Aksesuarlı)",
+    "aciklama": "Masada yer kazandıran, ihtiyaca göre büyüyen modüler düzenleme panosu. Dişli delikli kare paneller arkadan kare bağlantı parçalarıyla birleştirilir; her parça vidalarla sabitlenir ve kurulum için alet gerekmez. Panoya takılan aksesuarlar: telefon tutucu, kumpas tutucu, kulaklık askısı, oyun kolu tutucu, saat tutucu, büyük ve küçük kutular, AA ve AAA pil kutuları, kalem ve keçeli kalem kabı, farklı boylarda raflar ve çeşitli uzunluklarda askı çubukları. Toplam 41 parçadan oluşur. Kurulu pano yaklaşık 275 mm yüksekliğinde ve 210 mm genişliğindedir. Fotoğraflarda pano telefon, kulaklık, saat ve kalemlerle dolu hâlde görülür.\nYaklaşık dış ölçüler: 69 × 69 × 10 mm (ana panel).",
+    "fiyat": "900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr997093-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr997093-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr997093-3.jpg"
+    ]
+  },
+  {
+    "id": "ofis-kale-kuleli-uclu-kalemlik-pr559897",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kale Kuleli Üçlü Kalemlik (Ofis Masa Düzenleyici)",
+    "aciklama": "Kale burçları desenli üç kuleden oluşan ofis masası kalemliği. Birbirine bitişik kulelerin her biri kalem, fırça ya da cetvel gibi malzemeler için ayrı bir hazne oluşturur; kule iç çapı 49 mm'dir. Yaklaşık 15 × 15 cm tabanıyla masada dengeli durur. Görsellerde üç kuleli gövde farklı açılardan görülür.\nYaklaşık dış ölçüler: 140 × 131 × 119 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr559897-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr559897-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr559897-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr559897-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "REDZC",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ofis-telefon-standli-kalemlik-masa-duzenleyici-pr1352081",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Telefon Standlı Kalemlik ve Küçük Eşya Gözlü Masa Düzenleyici",
+    "aciklama": "Telefon standı, kalemlik ve küçük eşya gözünü tek gövdede toplayan masa düzenleyici. Telefon çoğu akıllı telefon modeline uygun eğimli yuvaya oturur; kalemler, keçeli kalemler ve stylus kalemleri yuvarlak hazneye, USB bellek ve ataç gibi küçük parçalar ise yan göze girer. Tek parça gövdedir, montaj gerektirmez. Fotoğraflarda siyah gövde, telefon standı ve kalemlerle masa düzeni görülür.\nYaklaşık dış ölçüler: 180 × 118 × 90 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1352081-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1352081-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "3DFORGE",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ofis-altigen-yan-panelli-44-gozlu-marker-duzenleyici-pr1138203",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Altıgen Yan Panelli 44 Gözlü Marker Kalem Düzenleyici (4 × 11)",
+    "aciklama": "Altıgen yan panelli, 44 gözlü masaüstü marker kalem düzenleyici. 4 × 11 dizilimli ızgara keçeli kalemleri ve markerları sıra sıra, eğimli tutar; iki altıgen yan panel düz ve kenar desenli yüzleriyle uçlara takılır, iki yan paneli aynı yönde birleştirmek gerekir. Izgara üst ve alt olmak üzere iki parçadır; kapalı tabanlı alt ızgara seçeneği de vardır. Altıgen yan panel 148 × 128 × 10 mm ölçüsündedir. Fotoğraflarda altın-turuncu gövdeye dizilmiş renkli markerlar ve yan panelin farklı yüzleri görülür.\nYaklaşık dış ölçüler: 215 × 72 × 20 mm (ızgara parçası).",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1138203-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1138203-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "3D 2Lab",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ofis-bolmeli-masa-duzenleyici-alet-tasiyici-pr844134",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Bölmeli Masa Düzenleyici ve Alet Taşıyıcı (Kalem, Pense ve Kumpas Yuvalı)",
+    "aciklama": "Kalem, pense, kumpas, fırça ve ufak el aletlerini tek yerde toplayan bölmeli masa düzenleyici. Dikey kalem delikleri, ince alet yuvaları, uzun bölmeler ve geniş gözlü sepet bölümüyle masaüstünü ve atölye masasını toparlar; yan yüzeyleri baklava desenli deliklidir. Fotoğraflarda siyah gövde kalemler, pense, fırça ve kumpasla dolu hâlde görülür.\nYaklaşık dış ölçüler: 180 × 100 × 63 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr844134-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr844134-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr844134-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr844134-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "salois",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ofis-masa-alti-kablo-duzenleyici-kablo-bagi-gecisli-pr127013",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Masa Altı Kablo Düzenleyici (Kablo Bağı Geçişli, Vidalı)",
+    "aciklama": "Masa altına ya da ulaşılması zor yerlere sabitlenen minimal kablo düzenleyici. İki yuvası kablo bağı alır; M3 / M3.5 vida deliği vardır, isterseniz çıkarılabilir yapışkan şeritle de kalıcı olmayan şekilde tutturabilirsiniz. Masa altında, monitör arkasında ya da duvar kenarında kabloları tek hatta toplar. Fotoğraflarda mor renkli parçanın kabloyu tuttuğu görülür.\nYaklaşık dış ölçüler: 40 × 25 × 13 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr127013-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr127013-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Luke",
+      "tur": "GPL"
+    }
+  },
+  {
+    "id": "ofis-cok-gozlu-masaustu-duzenleyici-not-kagidi-yuvali-pr503156",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Çok Gözlü Masaüstü Düzenleyici (Kalem, USB, SD Kart ve 90 × 90 mm Not Kâğıdı Yuvalı)",
+    "aciklama": "Kalem, kurşun kalem, USB bellek, SD kart, neşter ve 90 × 90 mm not kâğıtları için çok gözlü masaüstü düzenleyici. Dikey kalem delikleri, küçük eşya bölmeleri ve not kâğıdı yuvasıyla masa üstünü toparlar; sağlam, köşeli yapısı yoğun kullanımda dayanıklıdır. Görsellerde siyah gövdenin farklı açılardan çizimleri yer alır.\nYaklaşık dış ölçüler: 175 × 100 × 90 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr503156-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr503156-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr503156-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr503156-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "SHQ",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ofis-basamakli-masa-duzenleyici-kalem-usb-sd-kart-pr1215746",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Basamaklı Masa Düzenleyici (Kalem, USB ve SD Kart Yuvalı)",
+    "aciklama": "Kalem, USB bellek ve SD kartlar için basamaklı masa düzenleyici. Üst basamakta makas, kumpas ya da uzun aletler için iki geniş hazne, orta basamakta kurşun kalem delikleri, ince alet bölmeleri ve küçük gözler, alt basamakta ise SD kart rafı ve geniş bir tepsi bulunur. Fotoğrafta gökkuşağı renk geçişli gövde ve çeşitli malzemelerle dolu kullanımı görülür.\nYaklaşık dış ölçüler: 200 × 190 × 165 mm.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1215746-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1215746-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1215746-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1215746-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Sot Kon",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ofis-alti-surumlu-kalemlik-masa-organizeri-a-f-pr562335",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Altı Sürümlü Kalemlik ve Masa Organizeri (A–F)",
+    "aciklama": "Kalem ve ofis malzemeleri için altı sürümlü (A–F) masa organizeri ailesi. Her sürümde kalem delikleri, küçük gözler ve 90 × 90 mm yapıştırılmamış not kâğıtları için ayrı bir bölme bulunur; kalem delikleri yaklaşık 17 × 15,5 mm'dir. C ve F sürümlerinin genişliği 172 mm'dir; duvar kalınlığı 3 mm'dir. Fotoğraflarda sürümlerin yan yana çizimi ve dolu hâldeki organizer görülür.\nYaklaşık dış ölçüler: 152 × 93 × 60 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr562335-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr562335-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr562335-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr562335-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "REDZC",
+      "tur": "GPL"
+    }
+  },
+  {
+    "id": "ofis-ust-uste-dizilen-moduler-masa-duzenleyici-pr564091",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Üst Üste Dizilen Modüler Masa Düzenleyici (Kalem, USB ve Kumbara Modüllü)",
+    "aciklama": "Üst üste kayarak birleşen bölmelerden oluşan modüler ofis masa düzenleyici. Taban ve kapak modülleri ile 1, 2, 3 ve 4 kalem bölmeli modüller, USB bellek modülü, kumbara modülü ve genişletilmiş bölmeler istediğiniz sırayla dizilir; masa düzeniniz ihtiyacınıza göre büyür. Her modül 100 mm genişliğindedir. Ölçü satırı standart bir kalem bölmesi modülüne aittir. Fotoğraflarda renkli modüllerin üst üste dizildiği düzen ve bölmelerin yakın çizimleri görülür.\nYaklaşık dış ölçüler: 112 × 100 × 87 mm.",
+    "fiyat": "800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr564091-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr564091-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr564091-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr564091-4.jpg"
+    ]
+  },
+  {
+    "id": "ofis-kompakt-ofis-organizeri-bes-surumlu-a-e-pr569003",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kompakt Ofis Organizeri (5 Sürümlü: A–E)",
+    "aciklama": "Kalem ve masa malzemeleri için beş sürümlü (A–E) kompakt ofis organizeri. Sürümlerde kalem delikleri (yaklaşık 13,4 × 13,4 mm) ve 90 × 90 mm yapıştırılmamış not kâğıdı bölmesi bulunur; C ve E sürümlerinin uzunluğu 145 mm'dir. Fotoğraflarda sürümlerin yan yana görünümü ve renkli parçaların ayrı ayrı çizimleri yer alır.\nYaklaşık dış ölçüler: 125 × 103 × 95 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr569003-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr569003-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr569003-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr569003-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "REDZC",
+      "tur": "GPL"
+    }
+  },
+  {
     "id": "oyun-sonsuz-kup-fidget-oyuncagi-pr928",
     "kategori": "Oyun/Hobi",
     "marka": [],
@@ -454555,7 +455064,7 @@
     "id": "dp253314",
     "kategori": "Dekorasyon",
     "marka": [],
-    "baslik": "Minimalist Kitap Desteği",
+    "baslik": "Minimalist Kitap Desteği 14.8 x 10cm",
     "aciklama": "Sade minimalist tasarımıyla bir kitap desteği.\n\nFarklı renk seçenekleriyle üretilebilir.",
     "fiyat": "500 TL",
     "gorseller": [

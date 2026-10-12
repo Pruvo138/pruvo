@@ -1016,6 +1016,8 @@ ESLEMELER = {"isimlik": esle_isimlik, "qr": esle_qr, "logo": esle_logo, "muhur":
 
 # Uretec RET cumlesi -> red kodu (ilk eslesen; manifest URETEC_RED_METIN anahtari). Yok -> "genel".
 RET_KALIPLARI = [
+    # figur_kulak 1.1 tabla ankraji yetersiz, TeKiN 281fb3e; BaBa 12 Eki 01:4x
+    (r"ankraj-red|tabla ankraj", "ankraj"),
     # figur_kulak (anahtarlik foto kolu): figur >72 mm / kulak sigmadi -> TEK musteri cumlesi (Okan/BaBa birebir).
     (r"figur uzun kenar|kulak dahil uzun kenar|kulak yerlesmez", "anahtarlik-boyut"),
     (r"kontrast", "kontrast"),
