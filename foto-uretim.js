@@ -2143,119 +2143,10 @@
     S.alan.appendChild(btn);
   }
 
-  /* ④ 4 RENK SİMÜLASYONU (Okan 11 Eki): ④ görselinin seçilen palete BÖLGE tabanlı sadeleştirilmiş kopyası
-     (F.dortRenkSimule; tarayıcıda, kredi 0). Kaynak sunucuda AYNEN. Görsel aynı kökenden gelir (canvas okunabilir);
-     tarayıcı desteklemezse ya da okuma hatasında kaynak gösterilir ve `geriDus` çağrılır (cümle bunu söyler). */
-  function simuleGoster(img, url, renkler, geriDus) {
-    var kaynak = function () { img.src = url; if (geriDus) geriDus(); };
-    if (typeof Image !== "function") { kaynak(); return; }
-    var k = new Image();
-    k.onload = function () {
-      if (onizlemePaletiTuret(k)) renkler = simulasyonRenkleri();
-      try {
-        var c = document.createElement("canvas");
-        c.width = k.naturalWidth || k.width; c.height = k.naturalHeight || k.height;
-        var ctx = c.getContext("2d");
-        ctx.drawImage(k, 0, 0);
-        var d = ctx.getImageData(0, 0, c.width, c.height);
-        if (!F.dortRenkSimule(d.data, c.width, c.height, renkler)) throw new Error("simulasyon");
-        ctx.putImageData(d, 0, 0);
-        img.src = c.toDataURL("image/png");
-      } catch (e) { kaynak(); }
-    };
-    k.onerror = kaynak;
-    k.src = url;
-  }
-  function simulasyonRenkleri() { return renkliMi() ? paletRenkleri(S.tur) : [anaRenk()]; }
-  /* ④ PALET KAYNAĞI = SAĞLAYICININ TEMİZ GÖRSELİ (KraL-FotoPalet 11 Eki): ③'teki palet müşterinin ham fotoğrafından
-     (arka plan, ışık, gölge dahil) çıkar; ④'te arka planı kaldırılmış önizleme görseli elde — Renkli'de, müşteri
-     elle seçmediyse ve bu iş için henüz türetilmediyse palet BİR KEZ ondan türetilir, düzenleyicide GÖSTERİLİR
-     (sessiz değil: müşteri sepete eklemeden önce görür ve değiştirebilir) ve oturum kaydına "onizleme" diye yazılır.
-     Renk adedi/renkler fiyata girmez. Okunamazsa (tuval) ③ paleti kalır. -> palet değişti mi */
-  function onizlemePaletiTuret(k) {
-    if (!renkliMi() || (S.elleRenkler && S.elleRenkler.length) || !S.is || (S.onizRenk && S.onizRenk.is === S.is)) return false;
-    var r = [];
-    try {
-      var n = F.FOTO_RENK_KENAR || 64, t = document.createElement("canvas");
-      t.width = n; t.height = n;
-      var x = t.getContext("2d");
-      x.drawImage(k, 0, 0, n, n);
-      r = F.fotoRenkleri(x.getImageData(0, 0, n, n).data, 4, n, n);
-    } catch (e) { r = []; }
-    S.onizRenk = { is: S.is, renkler: r };
-    if (!r.length) return false;
-    S.renkler = paletRenkleri(S.tur);
-    ssIsKaydet();
-    paletDuzenleyiciGuncelle();
-    return true;
-  }
-  /* ④ RENKLER — MÜŞTERİ ELLE SEÇER (BaBa 11 Eki 20:1x (b)): otomatik palet gösterilir, her yuva filament listesinden
-     (F.PLA_RENKLERI) değiştirilir; yuva sayısı = türün renk tavanı, ilk yuva dolu, diğerleri "Yok" olabilir. Seçilen
-     renk başka yuvadaysa iki yuva yer değiştirir (palet tekrarsız; sunucu da tekrarı RED eder). Değişiklik anında
-     yeniden simüle edilir; seçilen palet siparişe giden `renkler`dir (oturum kaydı "elle"). Fiyat DEĞİŞMEZ: Renkli
-     +%15 sabit, renk adedi ve renklerin kendisi fiyata girmez. Seçiciler yerinde güncellenir (odak kaybolmaz). */
-  var PALET_NOTU = "Renkler otomatik seçildi; istersen her birini değiştirebilirsin — görünüm hemen güncellenir, fiyat değişmez.";
-  function paletDuzenleyici(img, geriDus) {
-    var g = el("div", "foto-uretim-form-grup foto-uretim-palet");
-    var fs_ = el("fieldset", "foto-uretim-palet-secim");
-    fs_.appendChild(el("legend", "foto-uretim-form-etiket", "Renkler"));
-    var satir = el("div");
-    satir.style.display = "flex"; satir.style.flexWrap = "wrap"; satir.style.gap = "8px 14px";
-    S.paletSec = []; S.paletKutu = []; S.paletImg = img; S.paletGeriDus = geriDus;
-    for (var i = 0; i < paletTavani(S.tur); i++) {
-      (function (yuva) {
-        var lbl = el("label", "foto-uretim-form-secenek-inline");
-        lbl.style.display = "inline-flex"; lbl.style.alignItems = "center"; lbl.style.gap = "6px";
-        var kutu = el("span", "foto-uretim-palet-kutu");
-        kutu.setAttribute("aria-hidden", "true");
-        kutu.style.display = "inline-block"; kutu.style.width = "16px"; kutu.style.height = "16px";
-        kutu.style.borderRadius = "3px"; kutu.style.border = "1px solid #c5cbd3";
-        var sec = el("select");
-        sec.setAttribute("data-palet-yuva", String(yuva));
-        sec.setAttribute("aria-label", (yuva + 1) + ". renk");
-        var adlar = (yuva ? [""] : []).concat(F.PLA_RENKLERI);
-        for (var j = 0; j < adlar.length; j++) {
-          var o = el("option", null, adlar[j] || "Yok");
-          o.value = adlar[j];
-          sec.appendChild(o);
-        }
-        sec.addEventListener("change", function (e) { paletDegis(yuva, e.target.value); });
-        ek(lbl, kutu, sec);
-        satir.appendChild(lbl);
-        S.paletSec.push(sec); S.paletKutu.push(kutu);
-      })(i);
-    }
-    fs_.appendChild(satir);
-    g.appendChild(fs_);
-    g.appendChild(el("p", "foto-uretim-ayrinti", PALET_NOTU));
-    paletDuzenleyiciGuncelle();
-    return g;
-  }
-  function paletDuzenleyiciGuncelle() {
-    var p = paletRenkleri(S.tur);
-    for (var i = 0; S.paletSec && i < S.paletSec.length; i++) {
-      S.paletSec[i].value = p[i] || "";
-      S.paletKutu[i].style.background = p[i] ? F.RENK_HEX[p[i]] : "transparent";
-    }
-  }
-  function paletDegis(yuva, deger) {
-    if ((deger && F.PLA_RENKLERI.indexOf(deger) < 0) || (!deger && yuva === 0)) { paletDuzenleyiciGuncelle(); return; }
-    var p = paletRenkleri(S.tur), y = [];
-    for (var i = 0; i < paletTavani(S.tur); i++) y.push(p[i] || "");
-    var j = deger ? y.indexOf(deger) : -1;
-    if (j >= 0 && j !== yuva) y[j] = y[yuva];
-    y[yuva] = deger;
-    S.elleRenkler = y.filter(function (a) { return !!a; });
-    S.renkler = paletRenkleri(S.tur);
-    ssIsKaydet();
-    paletDuzenleyiciGuncelle();
-    if (S.paletImg) simuleGoster(S.paletImg, S.gorsel, simulasyonRenkleri(), S.paletGeriDus);
-  }
-
   /* ④ render kolu (sunucu renderKolu ile AYNI): figür türü (insan · pet · model) + anahtarlık–figür çeşidi. */
   function figurKoluMu() { return S.tur === "figur" || (cesitliTur() && seciliCesit() === "figur"); }
   function figurGorunumNotu() {
-    return S.render ? F.FIGUR_RENDER_NOTU : (renkliMi() ? F.FIGUR_SIMULASYON_RENKLI : F.FIGUR_SIMULASYON_TEK);
+    return S.render ? F.FIGUR_RENDER_NOTU : F.FIGUR_ORNEK_NOTU;
   }
 
   /* ============== S3 ============== */
@@ -2284,24 +2175,17 @@
       img.width = 300; img.height = 300;
       img.loading = "lazy"; img.decoding = "async";
       if (figurKol) {
-        // ④ FİGÜR KOLU (Okan 11 Eki): render varsa basılacak dosyanın çizimi AYNEN; yoksa sağlayıcı görselinin 4 renk
-        // simülasyonu — hangisinin gösterildiği her durumda görselin altında söylenir (simülasyon çalışamazsa kaynak
-        // görsel + "renkler basılacak figürü göstermez").
+        // ④ FİGÜR KOLU (Okan 12 Eki "birebir aynı çıktı"): render varsa basılacak dosyanın çizimi AYNEN; yoksa
+        // sağlayıcı görseli AYNEN (yeniden boyama yok) — hangisinin gösterildiği görselin altında söylenir.
         var not = el("p", "foto-uretim-ayrinti foto-uretim-gorunum-notu", figurGorunumNotu());
-        var geriDus = function () { not.textContent = F.FIGUR_ORNEK_NOTU; };
         if (S.render) img.src = S.render;
-        else simuleGoster(img, S.gorsel, simulasyonRenkleri(), geriDus);
+        else img.src = S.gorsel;
         S.alan.appendChild(img);
         S.alan.appendChild(not);
-        // Renkli + simülasyon (render yok): müşteri paleti burada görür ve değiştirir.
-        if (!S.render && renkliMi()) S.alan.appendChild(paletDuzenleyici(img, geriDus));
       } else {
-        // Deterministik kolun görseli üretecin kendi çizimi (üretilen renklerle); diğer kollarda (plaket) 4 renk simülasyonu.
-        var detKol = !!(F.kolu && F.kolu(S.tur) === "deterministik");
-        if (detKol) img.src = S.gorsel;
-        else simuleGoster(img, S.gorsel, simulasyonRenkleri());
+        // ④ görseli sağlayıcının/üretecin görseli AYNEN (Okan 12 Eki: yeniden boyama yok).
+        img.src = S.gorsel;
         S.alan.appendChild(img);
-        if (!detKol && renkliMi()) S.alan.appendChild(paletDuzenleyici(img, null));
       }
     }
 
