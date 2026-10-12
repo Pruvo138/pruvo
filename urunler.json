@@ -1,5 +1,50 @@
 [
   {
+    "id": "otomobil-koltuk-basligina-asilan-telefon-tutucusu-arka-koltuk-pr177718",
+    "kategori": "Otomobil",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Koltuk Başlığına Asılan Telefon ve Tablet Tutucusu (Arka Koltuk İçin)",
+    "aciklama": "Ön koltuğun başlığına asılarak telefonu ya da küçük tableti arka koltuktaki yolcunun göz hizasında tutan, dört parçalı tutucu. Çocukların cihazlarını arka koltuktan izlemesi için hazırlanmıştır. Fotoğrafta tutucu başlıkta telefonla birlikte, görselde parçalarıyla gösterilir.\nYaklaşık dış ölçüler: ana parça 127 × 76 × 29 mm; kanca parçası 75 × 75 × 53 mm; küçük parçalar 64 × 41 × 10 ve 35 × 35 × 10 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr177718-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr177718-2.jpg"
+    ]
+  },
+  {
+    "id": "ofis-coklu-telefon-ve-tablet-sarj-standi-dort-cihazli-pr300310",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Çoklu Telefon ve Tablet Şarj Standı (4 Cihaz Kapasiteli)",
+    "aciklama": "Evde telefon ve tabletleri aynı anda şarj ederken dik tutan, tarak biçimli çok yuvalı stand. Dört cihaza kadar yer açar; şarj kabloları yuvaların arasından rahatça geçer. Tek parçadır. Fotoğrafta stand telefon ve tabletle yatak örtüsü üzerinde, görsellerde sarı çizimle gösterilir.\nYaklaşık dış ölçüler: 153 × 100 × 44 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr300310-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr300310-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr300310-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "LeoGon",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ofis-katlanir-telefon-standi-cebe-sigan-mentese-pr2855",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Katlanır Telefon Standı (Cebe Sığan, Menteşeli Tek Parça)",
+    "aciklama": "Masada ya da uçak tepsisinde telefonu dik tutan, katlanınca sırt çantasına ya da arka cebe sığan menteşeli tek parça stand. Açıldığında telefona eğimli yaslanma yüzeyi verir. Fotoğraflarda beyaz stand telefonla ve elde katlanmış hâlde görülür.\nYaklaşık dış ölçüler: 204 × 42 × 8 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr2855-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr2855-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr2855-3.jpg"
+    ]
+  },
+  {
     "id": "ofis-masa-alti-laptop-ve-tablet-askisi-pr1797550",
     "kategori": "Ofis",
     "marka": [],
