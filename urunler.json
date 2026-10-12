@@ -1,5 +1,180 @@
 [
   {
+    "id": "ofis-petek-delikli-altigen-gozlu-kalemlik-pr108345",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Petek Delikli Altıgen Gözlü Kalemlik (Çok Gözlü Masa Düzenleyici)",
+    "aciklama": "Altıgen biçimli gözlerden oluşan, yan yüzeyleri petek desenli deliklerle havalandırılmış masa kalemliği. Ortadaki yüksek göz makas, cetvel ve uzun kalemler için, çevresindeki farklı yükseklikteki gözler kurşun kalem, silgi ve küçük ofis malzemeleri için ayrılmıştır. Delikli duvarlar içindekileri bir bakışta görmeyi ve hafif kalmasını sağlar. Tek parça gövdedir, montaj gerektirmez. Fotoğraflarda koyu gövde kalem, makas ve cetvelle dolu hâlde, görsellerde ise boş hâlde görülür.\nYaklaşık dış ölçüler: 140 × 130 × 125 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr108345-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr108345-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr108345-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr108345-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dirk144347",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ofis-kopekbaligi-seklinde-kalemlik-iki-renkli-pr322886",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Köpekbalığı Şeklinde Kalemlik (Açık Ağızlı, İki Renkli)",
+    "aciklama": "Açık ağzı kalem haznesi olan, sevimli köpekbalığı biçimli masa kalemliği. Gövde ve ağız olmak üzere iki parçadır; parçalar yapıştırılarak birleştirilir ve iki renkli (gövde koyu, ağız beyaz) kullanılabilir. Gövdede göz ve solungaç çizgileri işlenmiştir; yayvan tabanı sayesinde masada dengeli durur. Fotoğraflarda masa üzerinde çok sayıda kalemle dolu hâlde ve elde tutulurken görülür.\nYaklaşık dış ölçüler: gövde parçası 114 × 109 × 106 mm; ağız parçası 120 × 83 × 80 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr322886-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr322886-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "PBCreations",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ofis-dort-gozlu-uzun-kalem-tepsisi-gridfinity-uyumlu-pr455293",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Dört Gözlü Uzun Kalem Tepsisi (Gridfinity Uyumlu, 2×4)",
+    "aciklama": "Dört kaleme kadar yer açan, dar ve uzun masa kalem tepsisi. Gridfinity ortak ölçü sistemine uyumlu 2×4 modül boyutundadır; aynı sistemin diğer kutularıyla yan yana dizilebilir. Kalemler yan yatarak yuvalarında durur; çok kalın olmayan kalemlerle üst üste istiflenebilir. Tek parçadır, montaj gerektirmez. Fotoğraflarda beyaz tepsi uzun metal kalemlerle dolu hâlde klavyenin yanında görülür.\nYaklaşık dış ölçüler: 168 × 84 × 25 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr455293-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr455293-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Dissendat",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ofis-lastik-yigini-seklinde-kalemlik-pr120009",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Lastik Yığını Şeklinde Kalemlik (Ofis ve Garaj İçin)",
+    "aciklama": "Üst üste dizilmiş dört otomobil lastiğini taklit eden, yüzeyinde sırt deseni bulunan silindirik kalemlik. Ofiste kalem ve kurşun kalemi, garajda tornavida ve ince aletleri tutmak için kullanılabilir; araç meraklıları için masa süsü ve hediye olarak da uygundur. Tek parça, içi boş bir gövdedir. Fotoğraflarda siyah gövde farklı açılardan görülür.\nYaklaşık dış ölçüler: 73 × 73 × 91 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr120009-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr120009-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "rorys3D",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ofis-baklava-desenli-silindirik-kalemlik-pr208944",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Baklava Desenli Silindirik Kalemlik",
+    "aciklama": "Yüzeyi elmas (baklava) dilimli kabartmalarla kaplı, sade silindirik masa kalemliği. İnce cidarlı ve hafif gövdesi kalem, keçeli kalem ve makas gibi masa malzemelerini taşır; desenli yüzey ışığı farklı açılardan yansıtır. Tek parça, içi boş bir gövdedir. Fotoğraflarda çok renkli ve bakır tonlu örnekler kalemlerle birlikte, görselde ise tek renkli hâli görülür.\nYaklaşık dış ölçüler: 60 × 60 × 90 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr208944-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr208944-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr208944-3.jpg"
+    ]
+  },
+  {
+    "id": "ofis-petek-gozlu-altigen-kalemlik-pr24356",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Petek Gözlü Altıgen Kalemlik",
+    "aciklama": "Yan yana dizilmiş çok sayıda altıgen gözden oluşan, petek biçimli sade masa kalemliği. Her göze bir kalem, kurşun kalem ya da fırça girer; kalemler birbirine karışmadan renklerine göre ayrı yuvalarda tutulur. Tek parça gövdedir, montaj gerektirmez. Fotoğraflarda mavi gövde boş hâlde ve renkli kalemlerle dolu hâlde görülür.\nYaklaşık dış ölçüler: 120 × 102 × 95 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr24356-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr24356-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Matous",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ofis-yengec-figurlu-kalem-dinlendirme-standi-pr562448",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Yengeç Biçimli Kalem Dinlendirme Standı",
+    "aciklama": "Sevimli bir yengeç biçiminde, kalemin üzerine yatırılarak durduğu masa standı. Kalem yengecin açık kıskaçları ve sırtı üzerinde dengede kalır; böylece masada yuvarlanmaz ve el altında durur. Yuvarlatılmış kıskaçları ve geniş ayakları sayesinde sağlam durur. Fotoğraflarda kırmızı gövde üzerinde metal bir kalemle görülür.\nYaklaşık dış ölçüler: 74 × 55 × 49 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr562448-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr562448-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JustMaiaMakes",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ofis-kalem-tutuculu-defter-ayraci-pr204994",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kalem Tutuculu Defter Ayracı (İnce, Sayfaya Takılan)",
+    "aciklama": "Defter ya da ajandanın sayfasına takılan ince ayraç. Hem sayfa işaretler hem de kalemi defterin kenarında taşır; kalem halkaya geçirilir ve defterle birlikte çantaya girer. İnce yapısı defterin kapanmasını engellemez. Aynı ölçüde iki sürüm içerir. Fotoğraflarda turkuaz ayraç sarı bir kalemle farklı defterlerde görülür.\nYaklaşık dış ölçüler: 101 × 30 × 9 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr204994-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr204994-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr204994-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "WallK",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ofis-elmas-kafesli-silindirik-kalemlik-pr41072",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Elmas Kafes Desenli Silindirik Kalemlik",
+    "aciklama": "Duvarları açık, elmas biçimli kafes örgüsünden oluşan silindirik masa kalemliği. Kafes yapı hem hafiftir hem de içindeki kalemlerin bir bakışta görülmesini sağlar. Kalem, keçeli kalem ve küçük ofis malzemeleri için kullanılır. Tek parça, içi boş bir gövdedir. Fotoğraflarda kırmızı gövde kalemlerle dolu hâlde, önden görülür.\nYaklaşık dış ölçüler: 84 × 84 × 124 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr41072-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr41072-2.jpg"
+    ]
+  },
+  {
+    "id": "ofis-spiral-girintili-kalemlik-veya-kucuk-saksi-pr63986",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Spiral Girintili Kalemlik (Küçük Saksı Olarak da Kullanılır)",
+    "aciklama": "Yüzeyinde dönen spiral girintiler bulunan, sade silindirik gövdeli kalemlik. Kalem, makas ve cetvel gibi masa malzemelerini taşır; içi boş, tek parça yapısı sayesinde küçük bir saksı ya da fırça kabı olarak da kullanılabilir. Fotoğrafta mavi gövde kalem ve makasla dolu hâlde, görselde boş hâlde görülür.\nYaklaşık dış ölçüler: 95 × 95 × 100 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr63986-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr63986-2.jpg"
+    ]
+  },
+  {
+    "id": "ofis-dalgali-yuzeyli-kalem-altligi-seti-bes-sekil-pr206501",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Dalgalı Yüzeyli Kalem Altlığı Seti (5 Farklı Biçim)",
+    "aciklama": "Masaya konan kalem ve kurşun kalemleri üzerine yatırarak sabit tutan, yüzeyi dalga profilli ince altlıklar. Set; iki dikdörtgen, bir daire, bir oval ve bir kare olmak üzere beş altlıktan oluşur ve altlıklar yaklaşık 5-6 mm kalınlığındadır. Altlıklar birbirinden bağımsızdır, masada istenen düzende kullanılır. Görsellerde farklı renklerdeki altlıklar kalemlerle ve boş hâlde görülür.\nYaklaşık dış ölçüler: en büyükleri 140 × 80 × 6 mm ve 100 × 100 × 5 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr206501-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr206501-2.jpg"
+    ]
+  },
+  {
     "id": "dekor-sisman-zen-kurbagasi-heykelcigi-pr1343072",
     "kategori": "Dekorasyon",
     "marka": [],
