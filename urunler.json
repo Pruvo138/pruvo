@@ -1,5 +1,197 @@
 [
   {
+    "id": "evcil-kafes-desenli-kedi-topu-pr304880",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kafes Desenli İçi Görünen Kedi Topu (7 cm, Tek Parça)",
+    "aciklama": "Baklava desenli kafes yüzeyli, içi görünen yuvarlak kedi topu. Yüzeydeki aralıklar kedinin pençesini geçirip topu yuvarlamasına izin verir. Tek parçadır, montaj gerektirmez. Fotoğraflarda bakır renkli top ve topla oynayan bir kedi görülür.\nYaklaşık dış ölçüler: 70 × 70 × 65 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr304880-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr304880-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr304880-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr304880-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Stefan",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "evcil-yayli-spiral-kedi-oyuncagi-pr1522165",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Yaylı Spiral Kedi Oyuncağı (Çubuk Ucuna Tüy veya Ponpon Takılan)",
+    "aciklama": "Düz bir spiral yayın ucundaki çubuk yuvasına takılan tüy, ponpon ya da ip ile çalışan, kedinin patiyle vurduğu yaylı oyuncak. Vurulduğunda spiral titreşip eski yerine döner. Uzun bir taban plakası ve iki üçgen ayaktan oluşan gövdeye spiral yay ve çubuk yuvası takılır. Yaklaşık 1,6 mm kalınlığında düz bir çubuk (düzleştirilmiş askı teli gibi), tüy ve ponpon dahil değildir. Fotoğraflarda kurulu oyuncak, bir köpekle kullanımı ve ayrı parçalar görülür.\nSpiral yay 124 × 80 × 12 mm, ayak 75 × 55 × 28 mm'dir.\nYaklaşık dış ölçüler: 182 × 42 × 16 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1522165-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1522165-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1522165-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1522165-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jmcpheron",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "evcil-ic-ice-toplu-kedi-oyuncagi-pr151421",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "İç İçe Geçmiş Toplu Kedi Oyuncağı (Beş Kafes Top)",
+    "aciklama": "Büyük bir kafes topun içinde daha küçük bir kafes top, onun içinde bir başkası olacak biçimde beş topun iç içe yerleştiği kedi oyuncağı. En iç top 10 mm çapındadır; diğerleri sırayla büyüyen kafes toplardır ve içlerindekiler kafes aralıklarından görünür. Fotoğraflarda turuncu kafes top, oyuncakla duran bir kedi ve mavi çizim görülür.\nYaklaşık dış ölçüler: 80 × 77 × 74 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr151421-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr151421-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr151421-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "mrog",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "evcil-eklemli-fare-kedi-oyuncagi-pr409371",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Eklemli Fare Kedi Oyuncağı (Hareketli Gövde, Tek Parça)",
+    "aciklama": "Gövdesi birbirine eklemlenmiş parçalardan oluşan, kıvrılıp yılankavi hareket eden küçük fare biçimli kedi oyuncağı. Tek parça halinde hazırdır, montaj gerektirmez. Fotoğraflarda beyaz fare oyuncağı ve kedilerin onunla ilgilenişi görülür.\nYaklaşık dış ölçüler: 151 × 45 × 8 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr409371-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr409371-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr409371-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "markury",
+      "tur": "GPL 3.0"
+    }
+  },
+  {
+    "id": "evcil-halkali-zincir-kedi-oyuncagi-pr416451",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Uçlarında Halka Bulunan Zincir Kedi Oyuncağı (Tek Parça)",
+    "aciklama": "İki ucunda halka bulunan, halkaları kısa bir zincirle birleştirilmiş tek parça kedi oyuncağı. Halkalarından tutulup sallanabilir ya da yere bırakılıp patiyle itilebilir; zincir halkaları hareketlidir, montaj gerektirmez. Görseller bilgisayar ortamında hazırlanmış çizimlerdir.\nYaklaşık dış ölçüler: 149 × 33 × 9 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr416451-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr416451-2.jpg"
+    ]
+  },
+  {
+    "id": "evcil-oniki-yuzlu-kopek-oyuncagi-pr490565",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Oniki Yüzlü Kafes Köpek Oyuncağı (İçinde Serbest Hareket Eden Parça)",
+    "aciklama": "Oniki yüzlü kafes biçimli gövdenin içinde serbestçe hareket eden bir parça bulunan köpek oyuncağı. Köpeğin ağzıyla ya da patisiyle yuvarlayıp çevirdiği bir oyuncak olarak kullanılabilir. Tek parçadır, montaj gerektirmez. Fotoğraflarda bir köpekle birlikte ve masa üzerinde yakın çekim görülür.\nYaklaşık dış ölçüler: 138 × 131 × 111 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr490565-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr490565-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "OderWat",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "evcil-zincirli-kedi-oyuncagi-pr416264",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Esnek Halkalı Zincirli Kedi Oyuncağı (Sallanan, Tek Parça)",
+    "aciklama": "Birbirine geçmiş halkalardan oluşan esnek zincir biçimli kedi oyuncağı. Tek parçadır, montaj gerektirmez; ucuna ip bağlanarak kedi ağacından sarkıtılabilir ya da elde sallanabilir (ip dahil değildir). Fotoğraflarda zincirin kedi ile kullanımı görülür.\nYaklaşık dış ölçüler: 179 × 22 × 11 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr416264-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr416264-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr416264-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr416264-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "k.makesstuff",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "evcil-telli-kubbe-kedi-oyuncagi-pr408780",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kubbe Tabanlı Telli Kedi Oyuncağı (Uçlarına Top Takılan)",
+    "aciklama": "Kubbe biçimli tabandan çıkan ince tellerin ucuna toplar takılan, kedinin patisiyle vurup salladığı oyuncak. İki taban parçası birleştirilir (istenirse içine kedi nanesi konabilir); tabandaki deliklerden geçirilen ince tel ya da çubukların uçlarına toplar takılır. Tel ya da çubuk dahil değildir. Fotoğraflarda oyuncağın tamamı, tabanın içi ve tel uçları görülür.\nTaban parçaları 75 × 75 × 49 mm ve 75 × 75 × 20 mm, toplar 30 mm çapındadır.\nYaklaşık dış ölçüler: 75 × 75 × 49 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr408780-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr408780-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr408780-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "The_Black_Sheep",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "evcil-kedi-basi-bicimli-kup-kedi-oyuncagi-pr408229",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kedi Başı Biçimli Küp Kedi Oyuncağı (İtilen ve Yuvarlanan)",
+    "aciklama": "Üst kısmında kedi kulakları, ön yüzünde kedi yüzü kabartması bulunan küçük blok biçimli kedi oyuncağı. Kedinin patiyle itip devirdiği, yuvarlayıp çevirdiği tek parça oyuncaktır. Fotoğraflarda sarı oyuncak koltuk üzerinde farklı açılardan görülür.\nYaklaşık dış ölçüler: 50 × 45 × 25 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr408229-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr408229-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr408229-3.jpg"
+    ]
+  },
+  {
+    "id": "evcil-cingirakli-cokyuzlu-top-kedi-oyuncagi-pr413359",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Çıngıraklı Çokyüzlü Kafes Kedi Oyuncağı (İçinde Hapsolmuş Top)",
+    "aciklama": "Tel kafes biçimli çokyüzlü gövdenin içinde serbestçe dönen küçük bir top bulunan kedi oyuncağı. Top içeride çıngırak sesi çıkarır ama dışarı çıkamaz. Gövde tam küre olmadığı için yuvarlandığında mobilya altına kaçmasını zorlaştırmayı amaçlar. Tek parçadır, montaj gerektirmez. Fotoğraflarda kırmızı oyuncak ve onunla ilgilenen birkaç kedi görülür.\nYaklaşık dış ölçüler: 39 × 37 × 32 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr413359-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr413359-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr413359-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr413359-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "markury",
+      "tur": "GPL 3.0"
+    }
+  },
+  {
+    "id": "evcil-madeni-paralik-kafes-kedi-topu-pr408010",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Madeni Para Tuzaklı Kafes Kedi Topu (Çıngıraklı, 44 mm)",
+    "aciklama": "Kafes biçimli gövdesinin içindeki bölmeye bir iki madeni para yerleştirilebilen, yuvarlanan kedi topu. Paralar kafesin içinde parlar ve yuvarlandıkça çıngırak sesi çıkarır; kedinin topun peşinden gitmesi amaçlanır. Para dahil değildir. Fotoğraflarda mavi ve sarı toplar ile çizim görülür.\nYaklaşık dış ölçüler: 44 × 44 × 44 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr408010-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr408010-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr408010-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "squinn",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "evcil-sicrayan-yay-kedi-oyuncagi-pr414645",
     "kategori": "Ev",
     "marka": [],
