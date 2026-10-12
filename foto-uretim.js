@@ -34,32 +34,36 @@
   var MESAFELI_URL = "/mesafeli-satis/";
   var ANA_BOLUM_ID = "fotoUretim";
   var STIL_ID = "fotoUretimStil";
-  // ① KARTLAR — TEK tablo (Okan 9 Eki 01:4x: "1- insan 2- hayvan ve model 3-kabartma plaket, 4-büst,
-  // 5-anahtarlık, 6- yapboz"). kod = kart · tur = üretim türü (manifest/`/acik` kodu) · alt = istemcide tutulan
-  // alt tür (S.altTur; sepet kalemine GİRMEZ) · ad + ret = sayfa metni tablosu (ArTisT c35a848d, BİREBİR).
-  // Türü `/acik` listesinde olmayan kart ÇİZİLMEZ ("Yakında" etiketi YOK).
-  // KARTLAR — `ornek:false` ile işaretlenen kartın örneği ÇİZİLMEZ; ornekCiz nötr yer tutucu + "Örnek
-  // yakında" etiketi basar (kart aktif/tıklanabilir kalır, gizleme YOK). Yeni görsel/URL UYDURMA.
+  // ① KARTLAR — TEK tablo, YALNIZ Okan'ın 6 modeli, Okan'ın SIRASIYLA ve ADLARIYLA (Okan 10 Eki ~16:3x: "1- Anahtarlık –
+  // yazı 2- insan ayakta duran figür 3- pet ayakta duran figür 4- Kabartma plaket 5- Anahtarlık – figür 6- Model figür.
+  // sadece bunları yapalım."). kod = kart · tur = üretim türü (manifest/`/acik` kodu) · alt = figür alt türü (S.altTur;
+  // önizleme isteğine `alt_tur` olarak gider, sağlayıcı istemi SUNUCUDA) · cesit = kartın sabitlediği çeşit (anahtarlık
+  // iki AYRI kart; ② çeşit düğmesi çizilmez) · ad + ret = sayfa metni. Büst/yapboz bu tabloda YOK: hiçbir durumda çizilmez.
+  // Türü `/acik` listesinde olmayan, KENDİ kodu `/acik` `modeller` listesinde olmayan (ya da çeşidi açık olmayan) kart
+  // ÇİZİLMEZ ("Yakında" etiketi YOK).
+  // `ornek:false` ile işaretlenen kartın örneği ÇİZİLMEZ; ornekCiz nötr yer tutucu + "Örnek yakında" etiketi basar
+  // (kart aktif/tıklanabilir kalır, gizleme YOK). Yeni görsel/URL UYDURMA.
   var KARTLAR = [
-    { kod: "insan", tur: "figur", alt: "insan", ad: "İnsan figürü", ornek: false,
-      ret: "İnsan figürü için tek kişinin cepheden net fotoğrafı gerekir." },
-    { kod: "hayvan_model", tur: "figur", alt: "hayvan_model", ad: "Hayvan ve model figürü",
-      ret: "Figür için tek hayvan, araç ya da oyuncağın net fotoğrafı gerekir." },
-    { kod: "plaket", tur: "plaket", alt: null, ad: "Kabartma Plaket",
+    { kod: "anahtarlik_yazi", tur: "anahtarlik", alt: null, cesit: "yazi", ad: "Anahtarlık – yazı",
+      ret: "Anahtarlık için kısa bir yazı gerekir." },
+    { kod: "insan", tur: "figur", alt: "insan", ad: "İnsan figürü (ayakta)",
+      ret: "İnsan figürü için tek kişinin ayakta, baştan ayağa tam boy görünen net fotoğrafı gerekir." },
+    { kod: "pet", tur: "figur", alt: "pet", ad: "Pet figürü (ayakta)",
+      ret: "Pet figürü için tek hayvanın ayakta, tam boy görünen net fotoğrafı gerekir." },
+    { kod: "plaket", tur: "plaket", alt: null, ad: "Kabartma plaket",
       ret: "Kabartma plaket için yüksek çözünürlüklü, iyi aydınlatılmış fotoğraf gerekir." },
-    { kod: "bust", tur: "bust", alt: null, ad: "Büst",
-      ret: "Büst için yüzü net görünen bir portre fotoğrafı gerekir." },
-    { kod: "anahtarlik", tur: "anahtarlik", alt: null, ad: "Anahtarlık",
-      ret: "Anahtarlık için net bir fotoğraf ya da kısa bir yazı gerekir." },
-    { kod: "yapboz", tur: "yapboz", alt: null, ad: "Yapboz",
-      ret: "Yapboz için açık-koyu tonları belirgin, yüksek çözünürlüklü fotoğraf gerekir." }
+    { kod: "anahtarlik_figur", tur: "anahtarlik", alt: null, cesit: "figur", ad: "Anahtarlık – figür",
+      ret: "Anahtarlık için net bir fotoğraf gerekir." },
+    { kod: "model", tur: "figur", alt: "model", ad: "Model figür",
+      ret: "Model figür için tek nesne, araç ya da modelin net fotoğrafı gerekir." }
   ];
-  // İnsan kartı ②'de: ret cümlesinin altında tek satır büste yönlendirme (Büst kartına döner).
-  var BUST_YONLENDIRME = "Portre için Büst";
-  // PENCERELER — kutu başlığındaki ①②③④ göstergesi + açıklama (sayfa metni, BİREBİR).
+  // Eski kart/alt tür kodları (oturum deposu, #tur= bağlantısı): `hayvan_model` -> `pet` (geriye uyum; çökmez).
+  var ESKI_KART = { hayvan_model: "pet" };
+  // PENCERELER — kutu başlığındaki ①②③④ göstergesi + açıklama (sayfa metni, BİREBİR). ① açıklaması SABİT DEĞİL:
+  // çizilen (açık) kartlardan türer (pencereAciklamasi -> birinciAciklama).
   var PENCERELER = [
-    { no: "①", ad: "Tür seç", aciklama: "6 seçenekten birini seç: insan figürü, hayvan ve model figürü, kabartma plaket, büst, anahtarlık ya da yapboz." },
-    { no: "②", ad: "Resim yükle", aciklama: "Resmi yükle; \"Nasıl olsun?\" kısmında ne istediğini kısaca yaz. Uyumsuz resimde tek kısa mesaj gösterilir." },
+    { no: "①", ad: "Tür seç", aciklama: "" },
+    { no: "②", ad: "Resim yükle", aciklama: "Resmi yükle; istersen \"Nasıl olsun?\" kısmında ne istediğini kısaca yaz. Uyumsuz resimde tek kısa mesaj gösterilir." },
     { no: "③", ad: "Renk, boyut ve malzeme", aciklama: "Renk: Siyah, Beyaz, Gri ya da Renkli (+%15; renkler fotoğrafından otomatik seçilir). Malzeme: PLA ya da PETG (+%30). Boyut sürgüden ayarlanır; fiyat ölçüye göre canlı görünür; en uzun boyut mm × 10 TL, en az ₺600." },
     { no: "④", ad: "Önizleme ve onay", aciklama: "Önizlemeyi gör, onayları ver; Sepete ekle açılır." }
   ];
@@ -133,6 +137,7 @@
     programKapali: false,
     is: null,
     gorsel: null,
+    render: null,   // ④ figür kolu: basılacak dosyanın çizimi (sunucu /durum `render`); yoksa null
     gecerlilik: null,
     ilerleme: null,
     hazirlayiciYas: undefined,
@@ -288,7 +293,7 @@
     ".foto-uretim-kart{display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:8px;" +
     "border:2px solid transparent;border-radius:12px;background:#eef0f3;cursor:pointer;text-align:left;" +
     "color:inherit;font:inherit;min-width:0;}" +
-    ".foto-uretim-kart img{display:block;width:100%;aspect-ratio:1/1;height:auto;object-fit:cover;" +
+    ".foto-uretim-kart img{display:block;width:100%;aspect-ratio:1/1;height:auto;object-fit:contain;" +
     "border-radius:8px;background:#fff;}" +
     ".foto-uretim-kart-yer{display:block;width:100%;aspect-ratio:1/1;border-radius:8px;background:#fff;}" +
     ".foto-uretim-kart-ad{display:block;font-size:15px;font-weight:700;color:var(--navy);line-height:1.3;}" +
@@ -297,9 +302,6 @@
     ".foto-uretim-kart:focus-visible{outline:2px solid var(--navy);outline-offset:2px;}" +
     ".foto-uretim-kartlar>.foto-uretim-blok{grid-column:1/-1;margin:0;}" +
     ".foto-uretim-kart-ret{font-size:14px;font-weight:600;margin:0 0 6px;line-height:1.5;}" +
-    ".foto-uretim-yonlendir{font-size:14px;margin:0 0 12px;}" +
-    ".foto-uretim-yonlendir button{background:none;border:0;padding:0;color:#d1332e;text-decoration:underline;" +
-    "font:inherit;font-weight:700;cursor:pointer;}" +
     ".foto-uretim-gezinti{display:flex;justify-content:space-between;gap:10px;margin:18px 0 0;}" +
     ".foto-uretim-gezinti button{margin-top:0;}" +
     ".foto-uretim-gezinti button[hidden]{display:none;}" +
@@ -311,7 +313,7 @@
     ".foto-uretim-blok{background:#fff;color:var(--navy);border-radius:8px;" +
     "padding:16px;margin:0 0 14px;}" +
     ".foto-uretim-ornek-gorsel{display:block;width:100%;max-width:300px;aspect-ratio:1/1;height:auto;" +
-    "object-fit:cover;border-radius:6px;background:#eef0f3;}" +
+    "object-fit:contain;border-radius:6px;background:#eef0f3;}" +
     ".foto-uretim-alani{min-width:0;}" +
     ".foto-uretim-durum{padding:8px 12px;border-radius:6px;background:#eef0f3;" +
     "font-size:14px;margin:0 0 12px;}" +
@@ -492,12 +494,16 @@
   }
 
   /* ============== FOTOĞRAFTAN RENK (R2, Okan 9 Eki) ==============
-     "ürünün renk seçimini müşterinin eklediği resime otomatik yapılsın": seçilen fotoğraf 64×64'e küçültülür,
-     F.fotoRenkleri baskın renkleri filament renklerine eşler (tarayıcıda; kredi 0, harici API YOK). */
+     "ürünün renk seçimini müşterinin eklediği resime otomatik yapılsın": seçilen fotoğraf F.FOTO_RENK_KENAR karesine
+     küçültülür, F.fotoRenkleri baskın yüzeyleri filament renklerine eşler (tarayıcıda; kredi 0, harici API YOK).
+     PALET KAYNAĞI (KraL-FotoPalet 11 Eki; paletKaynagi): müşterinin ④'te ELLE seçtiği palet HER ZAMAN kazanır >
+     ④'te sağlayıcının arka planı kaldırılmış önizleme görselinden bir kez türetilen palet > ③'te bu fotoğraftan çıkan. */
   function fotoRenkCikar(dosya) {
     if (S.fotoRenkDosya === dosya) return;
     S.fotoRenkDosya = dosya;
     S.fotoRenkleri = [];
+    // Yeni fotoğraf = yeni palet: önceki işin ④ paleti ve müşterinin elle paleti bu fotoğrafa ait değildir.
+    if (dosya) { S.elleRenkler = null; S.onizRenk = null; }
     var yenile = function () { if (S.alanSecim && S.tur) { doldurS1Secim(); guncelleS1Buton(); } };
     if (!dosya || !kok.URL || typeof kok.URL.createObjectURL !== "function" || typeof Image === "undefined") {
       yenile(); return;
@@ -507,11 +513,11 @@
     var img = new Image();
     img.onload = function () {
       try {
-        var tuval = document.createElement("canvas");
-        tuval.width = 64; tuval.height = 64;
+        var n = F.FOTO_RENK_KENAR || 64, tuval = document.createElement("canvas");
+        tuval.width = n; tuval.height = n;
         var ctx = tuval.getContext("2d");
-        ctx.drawImage(img, 0, 0, 64, 64);
-        if (S.fotoRenkDosya === dosya) S.fotoRenkleri = F.fotoRenkleri(ctx.getImageData(0, 0, 64, 64).data, 4);
+        ctx.drawImage(img, 0, 0, n, n);
+        if (S.fotoRenkDosya === dosya) S.fotoRenkleri = F.fotoRenkleri(ctx.getImageData(0, 0, n, n).data, 4, n, n);
       } catch (e) { S.fotoRenkleri = []; }
       try { kok.URL.revokeObjectURL(url); } catch (e) { }
       yenile();
@@ -525,8 +531,13 @@
     if (!S.is) return;
     var kayit = { is: S.is, tur: S.tur, olcu: S.olcu };
     if (cesitliTur()) kayit.cesit = seciliCesit();
+    if (S.altTur) kayit.alt_tur = S.altTur;
     if (false && S.secim) kayit.secim = S.secim;
-    if (S.renkler && S.renkler.length) kayit.renkler = S.renkler;
+    if (S.renkler && S.renkler.length) {
+      kayit.renkler = S.renkler;
+      // Yenilemede hangi paletin geri geleceği: elle > ④ önizlemeden (bu iş) > ③ fotoğraftan (④ henüz türetmedi).
+      kayit.renk_kaynak = S.elleRenkler && S.elleRenkler.length ? "elle" : (S.onizRenk && S.onizRenk.is === S.is ? "onizleme" : "foto");
+    }
     kayit.renk_secim = S.renkSecim;
     kayit.malzeme = S.malzeme;
     if (S.aydinlatmaOnay) kayit.onay = F.onay_surum;
@@ -571,7 +582,7 @@
         }
       }
     }
-    if (S.pencereAciklama) S.pencereAciklama.textContent = PENCERELER[n - 1].aciklama;
+    if (S.pencereAciklama) S.pencereAciklama.textContent = pencereAciklamasi(n);
     if (n === 4 && S.adim === "S3") cizS3();
     gezintiGuncelle();
   }
@@ -645,16 +656,46 @@
   // Malzeme PLA ya da PETG (+%30) kartı. Fiyat F.fiyatKurus(kod, mm, fiyatSecimi()) — sunucu AYNI fonksiyonu çağırır.
   var RENKLI = "Renkli";
   function renkliSunulur(kod) {
-    return !!F.renkliSecilebilir(kod) && !!(S.fotoRenkleri && S.fotoRenkleri.length);
+    return !!renkliTurde(kod) && !!(S.fotoRenkleri && S.fotoRenkleri.length);
+  }
+  // Tür + SEÇİLİ çeşitte Renkli sunulabilir mi (F.renkliSecilebilir — çeşit kolu: figür anahtarlık TEK gövde -> hayır).
+  function renkliTurde(kod) {
+    return !!F.renkliSecilebilir(kod, kod === S.tur && cesitliTur() ? seciliCesit() : undefined);
+  }
+  // ③ cümlesi TÜR/ÇEŞİT bazlı (Okan 10 Eki "renkli seçeneği yok"): seçili tür + çeşitte Renkli SUNULAMIYORSA
+  // (fotoğrafsız yazı anahtarlık; tek gövde figür anahtarlık) cümle Renkli'yi ANMAZ — ekranda yanlış vaat yok.
+  var RENK_CUMLESI_RENKLI = "Renk: Siyah, Beyaz, Gri ya da Renkli (+%15; renkler fotoğrafından otomatik seçilir). ";
+  var RENK_CUMLESI_TEK = "Renk: Siyah, Beyaz ya da Gri. ";
+  // ① cümlesi AÇIK kartlardan: "N seçenekten birini seç: a, b, … ya da z." (kart adları, çizim sırasıyla).
+  function birinciAciklama() {
+    var adlar = [];
+    for (var i = 0; S.galeriListe && i < S.galeriListe.length; i++) adlar.push(S.galeriListe[i].kart.ad);
+    if (!adlar.length) return "";
+    var son = adlar.pop();
+    return (adlar.length + 1) + " seçenekten birini seç: " + (adlar.length ? adlar.join(", ") + " ya da " : "") + son + ".";
+  }
+  function pencereAciklamasi(n) {
+    if (n === 1) return birinciAciklama();
+    var a = PENCERELER[n - 1].aciklama;
+    return n === 3 && S.tur && !renkliTurde(S.tur) ? a.replace(RENK_CUMLESI_RENKLI, RENK_CUMLESI_TEK) : a;
   }
   function renkliMi() { return S.renkSecim === RENKLI && renkliSunulur(S.tur); }
+  // Seçili çeşit palet çeşidi mi (figür anahtarlık renk_modu palet; F.cesitPaleti — köprüden türer).
+  function cesitPaletMi(kod) { return kod === S.tur && cesitliTur() && F.cesitPaleti(kod, seciliCesit()); }
+  // Renkler paletten mi: palet türü ya da palet çeşidinde Renkli (tek renkte figür bugünkü yol — renkler gönderilmez).
+  function paletTuru(kod) { return F.renkPaleti(kod) || (cesitPaletMi(kod) && renkliMi()); }
   function anaRenk() { return F.ANA_RENKLER.indexOf(S.renkSecim) >= 0 ? S.renkSecim : F.VARSAYILAN_RENK; }
   function seciliMalzeme() { return F.malzemeBul(S.malzeme) ? S.malzeme : F.VARSAYILAN_MALZEME; }
   function fiyatSecimi() { return { renkli: renkliMi(), malzeme: seciliMalzeme() }; }
-  // Palet türünde renkler: ana renkte [renk]; Renkli'de fotoğraftan çıkan renkler (türün tavanı kadar).
+  // Palet türünde renkler: ana renkte [renk]; Renkli'de paletKaynagi() (türün tavanı kadar).
+  function paletTavani(kod) { return (cesitPaletMi(kod) ? F.cesitRenkTavani(kod, seciliCesit()) : F.renkTavani(kod)) || 1; }
+  function paletKaynagi() {
+    if (S.elleRenkler && S.elleRenkler.length) return S.elleRenkler;
+    if (S.onizRenk && S.is && S.onizRenk.is === S.is && S.onizRenk.renkler.length) return S.onizRenk.renkler;
+    return S.fotoRenkleri;
+  }
   function paletRenkleri(kod) {
-    var tavan = F.renkTavani(kod) || 1;
-    return renkliMi() ? S.fotoRenkleri.slice(0, tavan) : [anaRenk()];
+    return renkliMi() ? paletKaynagi().slice(0, paletTavani(kod)) : [anaRenk()];
   }
   // Bölge türünde (deterministik seçim): ana renkte TÜM bölgeler o renk; Renkli'de fotoğraf renkleri sırayla
   // (tavan kadar). Malzeme her bölgeye aynı (yığılı gövdede karışık malzeme yok).
@@ -668,7 +709,7 @@
   }
   function renkSayisi(nt) {
     if (!nt) return 1;
-    if (F.renkPaleti(nt.kod)) return paletRenkleri(nt.kod).length;
+    if (paletTuru(nt.kod)) return paletRenkleri(nt.kod).length;
     var fark = [], sec = aktifRenkSecimi();
     for (var a in sec) {
       if (Object.prototype.hasOwnProperty.call(sec, a) && /_renk$/.test(a) && fark.indexOf(sec[a]) < 0) fark.push(sec[a]);
@@ -680,7 +721,7 @@
   function sepetKalemi() {
     var k = { foto_is: S.is, olcu_mm: S.olcu, adet: S.adet, renkli: renkliMi(), malzeme: seciliMalzeme() };
     if (F.kolu(S.tur) === "deterministik" && S.secim) k.secim = aktifRenkSecimi();
-    if (F.renkPaleti(S.tur)) k.renkler = paletRenkleri(S.tur);
+    if (paletTuru(S.tur)) k.renkler = paletRenkleri(S.tur);
     return k;
   }
   // Renk seçici: tek seçim — Siyah · Beyaz · Gri · Renkli (+%15) (Renkli yalnız fotoğraflı akışta, renkler çıktıysa).
@@ -688,6 +729,9 @@
   function alanAciklamasi(kod, alan) {
     var t = F && typeof F.turBul === "function" ? F.turBul(kod) : null;
     var m = t && t.alan_aciklamalari ? t.alan_aciklamalari[alan] : "";
+    // Seçili çeşidin kendi cümlesi varsa o geçer (figür anahtarlık ③ renk cümlesi).
+    var ck = kod === S.tur ? cesitKaydi() : null;
+    if (ck && ck.alan_aciklamalari && typeof ck.alan_aciklamalari[alan] === "string") m = ck.alan_aciklamalari[alan];
     return typeof m === "string" ? m : "";
   }
   function renkSecici(nt, degisti) {
@@ -716,7 +760,10 @@
     var renkAcik = alanAciklamasi(nt.kod, "renk");
     if (renkAcik) g.appendChild(el("p", "foto-uretim-ayrinti", renkAcik));
     if (renkliMi()) {
-      g.appendChild(el("p", "foto-uretim-ayrinti", "Fotoğrafından seçilen renkler: " + paletRenkleri(nt.kod).join(", ")));
+      // ④ düzenleyicisi yalnız simülasyonlu kolda (figür · anahtarlık–figür · plaket); deterministik türde vaat edilmez.
+      var duzenlenir = figurKoluMu() || !(F.kolu && F.kolu(nt.kod) === "deterministik");
+      g.appendChild(el("p", "foto-uretim-ayrinti", "Fotoğrafından seçilen renkler: " + paletRenkleri(nt.kod).join(", ") +
+        (duzenlenir ? " (önizlemede her birini değiştirebilirsin)" : "")));
     }
     return g;
   }
@@ -778,10 +825,12 @@
     var acik = !!(F && F.kolu && F.kolu(S.tur) === "deterministik");
     S.alanOnizlemeSonra.hidden = !acik;
     if (!acik) return;
-    var t = litofanKaydi();
+    var t = litofanKaydi(), cz = seciliCesit();
+    // ÖRNEK ÇEŞİDE GÖRE (Okan 10 Eki "figür yükledim örnekte hâlâ isim var"): çeşitli türde yalnız SEÇİLİ çeşidin
+    // örneği (`cesit` alanı eşleşmeli); o çeşidin örneği yoksa "Örnek" bloğu ÇİZİLMEZ (başka çeşidinki ASLA).
     for (var i = 0; i < F.ornekler.length; i++) {
       var o = F.ornekler[i];
-      if (o && o.tur === S.tur && F.ornekGecerli(o) && (o.render || o.baski)) {
+      if (o && o.tur === S.tur && (o.cesit || "") === cz && F.ornekGecerli(o) && (o.render || o.baski)) {
         S.alanOnizlemeSonra.appendChild(el("p", "foto-uretim-form-etiket", "Örnek"));
         var img = el("img", "foto-uretim-ornek-gorsel");
         img.src = o.render || o.baski; img.alt = t.ad + " örnek";
@@ -1266,31 +1315,44 @@
   }
 
   /* ① KARTLAR — `KARTLAR` tablosundan; türü `/acik` listesinde olmayan ya da sayılan örneği olmayan kart
-     ÇİZİLMEZ. Kart = türün sayılan örneğinin görseli + ad (+ kanıt etiketi: render "önizleme/render",
-     baskı "basılmış ürün" — hukuk kapısı 13:4x). Render örneği türün dürüstlük cümlesi (ornek_notu)
-     olmadan çizilmez (fail-closed). acikKodlar: /foto/acik türleri; null = henüz bilinmiyor (kart 0). */
-  function kartOrnegi(t) {
+     ÇİZİLMEZ. Kart = türün sayılan örneğinin görseli + ad (+ kanıt etiketi: render "Örnek görsel (bilgisayar çizimi)",
+     baskı "basılmış ürün" — hukuk kapısı 13:4x). Render örneği türün dürüstlük cümlesi alanı (ornek_notu)
+     olmadan çizilmez (fail-closed; "" = ② kutusunda tek cümle, `durustluk` kapsar). acikKodlar: /foto/acik türleri; null = henüz bilinmiyor (kart 0). */
+  // Çeşit sabitleyen kart (anahtarlık yazı/figür) yalnız KENDİ çeşidinin örneğini gösterir (örneği yoksa yer tutucu).
+  // Alt türlü kart (figür insan/pet/model) yalnız `o.alt === alt` örneğini gösterir (insan kartına kedi düşmez).
+  function kartOrnegi(t, cesit, alt) {
     if (!t || F.ornekSayisi(t.kod) === 0) return null;
     for (var j = 0; j < F.ornekler.length; j++) {
       var o = F.ornekler[j];
-      if (o && o.tur === t.kod && F.ornekGecerli(o) && (F.ornekKaniti(o) !== "render" || t.ornek_notu)) return o;
+      if (o && o.tur === t.kod && (!cesit || (o.cesit || "") === cesit) && (!alt || o.alt === alt) && F.ornekGecerli(o) && (F.ornekKaniti(o) !== "render" || typeof t.ornek_notu === "string")) return o;
     }
     return null;
+  }
+  // 6 MODEL: /acik `modeller` = açık MODEL kodları (sunucu D1 foto_acik'ten; eski tür satırı hiçbirini açmaz).
+  // Alan yoksa/dizi değilse liste BOŞ -> hiçbir kart çizilmez (fail-closed).
+  function acikModeller() {
+    return S.acikVeri && Array.isArray(S.acikVeri.modeller) ? S.acikVeri.modeller : [];
   }
   function ornekCiz(ornekBlok, acikKodlar) {
     while (ornekBlok.firstChild) ornekBlok.removeChild(ornekBlok.firstChild);
     var liste = [];
+    var modeller = acikModeller();
     for (var i = 0; i < KARTLAR.length; i++) {
       var k = KARTLAR[i];
       if (!acikKodlar || acikKodlar.indexOf(k.tur) < 0) continue;
+      // Kart yalnız KENDİ model kodu açıksa çizilir (tür açık olsa bile; sunucu da aynı kodla 400 verir).
+      if (modeller.indexOf(k.kod) < 0) continue;
+      // Çeşit kartı ayrıca statik çeşit bayrağı AÇIKSA çizilir (model listesi VE çeşit bayrağı).
+      if (k.cesit && !(F.cesitler && F.cesitler[k.tur] && F.cesitAcik(k.tur, k.cesit))) continue;
       var t = F.turBul(k.tur);
       // `ornek:false` (BaBa 10 Eki 06:3x): dürüst yer tutucu — kart AKTİF kalır (disabled DEĞİL), görsel yok,
       // etiket "Örnek yakında". ornekCiz kendi rengi/URL'i UYDURMAZ, yalnız boş img.src + nötr kutu.
       if (k.ornek === false) { liste.push({ kart: k, tur: t, ornek: null, kanit: "ornek-yok" }); continue; }
-      var o = kartOrnegi(t);
-      // Madde 4: orneği olmayan kart YAKINDA kartı olarak görünür ama DEVRE DIŞI (tıklanamaz).
+      var o = kartOrnegi(t, k.cesit, k.alt);
+      // Yer tutucu: orneği olmayan kart YAKINDA kartı olarak görünür ama DEVRE DIŞI (tıklanamaz).
       // Anahtarlık örneği 9 Eki'de eklendi; yakında kolu artık örneği olmayan YENİ tür içindir.
-      if (!o) { if (k.yakinda) liste.push({ kart: k, tur: t, ornek: null, kanit: "yakinda" }); continue; }
+      // Türün örneği var ama bu kartın (çeşit/alt tür) KENDİ örneği yok -> "Örnek yakında" yer tutucusu.
+      if (!o) { if (F.ornekSayisi(t.kod) > 0) liste.push({ kart: k, tur: t, ornek: null, kanit: "ornek-yok" }); continue; }
       liste.push({ kart: k, tur: t, ornek: o, kanit: F.ornekKaniti(o) });
     }
     S.galeriListe = liste;
@@ -1325,7 +1387,7 @@
         d.appendChild(el("span", "foto-uretim-kart-etiket",
           devreDisi ? "yakında"
           : it.kanit === "ornek-yok" ? "Örnek yakında"
-          : (it.kanit === "render" ? "önizleme/render" : "basılmış ürün")));
+          : (it.kanit === "render" ? "Örnek görsel (bilgisayar çizimi)" : "basılmış ürün")));
         if (!devreDisi) d.addEventListener("click", function () { galeriSec(it.kart.kod); });
         ornekBlok.appendChild(d);
       })(liste[n], n);
@@ -1334,6 +1396,8 @@
     turSecimiYukle();
     if (S.kartKod && !kartListede(S.kartKod)) { S.kartKod = null; S.altTur = null; }
     kartVurgula();
+    // ① açıklaması çizilen kartlardan türer: liste değişince açık pencere 1 ise yeniden yazılır.
+    if (S.pencere === 1 && S.pencereAciklama) S.pencereAciklama.textContent = pencereAciklamasi(1);
   }
   function kartListede(kod) {
     for (var i = 0; i < S.galeriListe.length; i++) { if (S.galeriListe[i].kart.kod === kod) return S.galeriListe[i]; }
@@ -1354,18 +1418,23 @@
     var it = kartListede(kod);
     if (!it) return;
     S.kartKod = it.kart.kod;
+    var eskiAlt = S.altTur;
     S.altTur = it.kart.alt;
     kartVurgula();
     var eski = S.tur;
     S.tur = it.tur.kod;
+    // Aynı tür, başka çeşit kartı (Anahtarlık – yazı <-> Anahtarlık – figür): çeşit değişimi = cesitSec yolu.
+    if (eski === S.tur && it.kart.cesit && it.kart.cesit !== seciliCesit()) cesitSec(it.kart.cesit);
     if (eski !== S.tur) {
       // Önizleme/sepet paneli eski türe aitse sıfırlanır (eski önizleme yeni türün sepetine giremez).
       if (S.adim === "S2" || S.adim === "S3") onizlemeSifirla();
       var nt = seciliTurBul();
-      S.olcu = nt && nt.olculer && nt.olculer[0] ? nt.olculer[0].mm : null;
+      S.olcu = acilisOlcusu(nt);
       S.parametre = {};
       S.renkler = [];
-      S.cesit = null;
+      S.elleRenkler = null;
+      S.onizRenk = null;
+      S.cesit = it.kart.cesit || null;
       S.secim = varsayilanSecim(S.tur);
       cizCesit();
       // K3a: ②/③ formu (cizForm) henüz çizilmediyse S.alanOlcu/S.alanForm/... null olur; doldur* çağrısı
@@ -1378,6 +1447,9 @@
         doldurS1Dosya();
         cizUyum();
       }
+    } else if (eskiAlt !== S.altTur && S.alanOlcu) {
+      // Aynı tür, başka model kartı (İnsan <-> Pet <-> Model): sürgü modelin ölçülerine yeniden süzülür (22:3x).
+      doldurS1Olcu();
     }
     if (!S.alanOlcu) cizForm();
     durustlukGuncelle();
@@ -1387,28 +1459,15 @@
     pencereGit(2);
   }
 
-  /* ② başı: kartın foto şartı (sayfa metni ret cümlesi) + insan kartında büste yönlendirme (tek satır). */
+  /* ② başı: kartın foto şartı (sayfa metni ret cümlesi). Büst kapsam dışı: yönlendirme YOK. */
   function kartRetGuncelle(it) {
     var r = S.alanKartRet;
     if (!r) return;
     while (r.firstChild) r.removeChild(r.firstChild);
     if (S.ornekNotP) S.ornekNotP.textContent = it && it.kanit === "render" ? it.tur.ornek_notu || "" : "";
+    if (S.ornekNotP) S.ornekNotP.hidden = !S.ornekNotP.textContent;
     if (!it) return;
     r.appendChild(el("p", "foto-uretim-kart-ret", it.kart.ret));
-    if (it.kart.alt === "insan" && kartListede("bust")) {
-      var y = el("p", "foto-uretim-yonlendir");
-      var b = el("button", null, BUST_YONLENDIRME);
-      b.type = "button"; b.id = "foto-bust-yonlendir";
-      b.addEventListener("click", function () {
-        pencereGit(1);
-        var d = S.galeriKutu ? S.galeriKutu.childNodes : [];
-        for (var i = 0; i < d.length; i++) {
-          if (d[i].getAttribute("data-kart") === "bust" && typeof d[i].focus === "function") d[i].focus();
-        }
-      });
-      y.appendChild(b);
-      r.appendChild(y);
-    }
   }
 
   /* Tür seçimini URL hash (#tur=<kart>) ve sessionStorage'a yazar (13:5x; yenilemede korunur). */
@@ -1444,12 +1503,14 @@
       if (m) { try { kod = decodeURIComponent(m[1]); } catch (e) { kod = null; } }
     }
     if (!kod || !S.galeriListe) return;
+    if (Object.prototype.hasOwnProperty.call(ESKI_KART, kod)) kod = ESKI_KART[kod];
     for (var i = 0; i < S.galeriListe.length; i++) {
       var it = S.galeriListe[i];
       if (it.kart.kod === kod || it.tur.kod === kod) {
         S.kartKod = it.kart.kod;
         S.altTur = it.kart.alt;
         S.tur = it.tur.kod;
+        if (it.kart.cesit) S.cesit = it.kart.cesit;
         return;
       }
     }
@@ -1520,7 +1581,9 @@
     var durust = el("div", "foto-uretim-durustluk");
     S.durustP = el("p", null, "");
     S.ornekNotP = el("p", null, "");
-    ek(durust, S.durustP, S.ornekNotP);
+    S.durustCesitP = el("p", "foto-uretim-durustluk-cesit", "");
+    S.durustCesitP.hidden = true;
+    ek(durust, S.durustP, S.ornekNotP, S.durustCesitP);
     p2.appendChild(durust);
     cizYukleKutu(p2);
     S.alanDosya = el("div", "foto-uretim-form-grup");
@@ -1571,7 +1634,9 @@
     while (kap.firstChild) kap.removeChild(kap.firstChild);
     var k = cesitliTur() ? F.cesitler[S.tur] : null, liste = [];
     for (var i = 0; k && i < k.secenekler.length; i++) if (k.secenekler[i].acik === true) liste.push(k.secenekler[i]);
-    kap.hidden = liste.length < 2;
+    // Çeşidi kart sabitler (anahtarlık iki AYRI kart): ② çeşit düğmesi çizilmez.
+    var kart = S.kartKod ? kartListede(S.kartKod) : null;
+    kap.hidden = liste.length < 2 || !!(kart && kart.kart.cesit);
     if (kap.hidden) return;
     var secili = seciliCesit();
     var sira = el("div", "foto-uretim-cesit-dugmeler");
@@ -1602,12 +1667,15 @@
     if (!cesitliTur() || !F.cesitAcik(S.tur, kod) || kod === seciliCesit()) return;
     S.cesit = kod;
     cizCesit();
+    durustlukGuncelle();
     if (S.alanOlcu) {
       doldurS1Olcu();
       doldurS1Form();
       doldurS1Dosya();
       cizUyum();
     }
+    // ④ "Örnek" çeşide göre (Okan 10 Eki): çeşit değişince yeniden çizilir (eski çeşidin örneği kalmaz).
+    doldurS1OnizlemeSonra();
     guncelleS1Buton();
   }
 
@@ -1715,6 +1783,7 @@
     ssIsSil();
     S.is = null;
     S.gorsel = null;
+    S.render = null;
     S.gecerlilik = null;
     S.fiyatKurus = null;
     S.b2Onay = false;
@@ -1722,14 +1791,36 @@
     adimKoy("S1");
   }
 
-  // Çeşidin ölçü tavanı (figür: olcu_en_cok 50 mm) varsa sürgü yalnız tavana kadar ölçüleri sunar (sunucu AYNI tavan).
+  // Çeşidin ölçü tavanı (figür: olcu_en_cok 72 mm, kulak dahil) varsa sürgü yalnız tavana kadar ölçüleri sunar (sunucu AYNI tavan).
+  // MODEL BAŞINA ÖLÇÜ (BaBa 22:3x): türde `olcu_modelleri` varsa (figür) sürgü yalnız seçili kartın alt türünün ölçüleri
+  // (F.modelOlcuGecerli; sunucu önizleme + sipariş AYNI fonksiyonla reddeder — insan 41..105, pet 60..136, model 60..300).
   function cesitOlculeri(nt) {
     var ck = cesitKaydi();
-    if (!nt || !nt.olculer || !ck || !(ck.olcu_en_cok > 0)) return nt;
+    var cesitli = !!ck && Object.prototype.hasOwnProperty.call(ck, "olcu_en_cok");
+    var tk = nt && F.turBul ? F.turBul(nt.kod) : null, modelli = !!tk && !!tk.olcu_modelleri && !!F.modelOlcuGecerli;
+    if (!nt || !nt.olculer || (!cesitli && !modelli)) return nt;
     var k = {};
     for (var a in nt) if (Object.prototype.hasOwnProperty.call(nt, a)) k[a] = nt[a];
-    k.olculer = nt.olculer.filter(function (o) { return o.mm <= ck.olcu_en_cok; });
+    k.olculer = nt.olculer.filter(function (o) {
+      return (!cesitli || (ck.olcu_en_cok > 0 && o.mm <= ck.olcu_en_cok && !(o.mm < ck.olcu_en_az))) &&
+        (!modelli || F.modelOlcuGecerli(nt.kod, S.altTur || "", o.mm));
+    });
     return k;
+  }
+  // SÜRGÜ AÇILIŞI (Okan 10 Eki 15:2x "60'tan başlasın"): F.olcuBaslangic sürgünün (çeşit tavanıyla süzülmüş)
+  // listesindeyse o; değilse listenin ilki (alan yoksa olcuBaslangic = en_az -> bugünkü davranış AYNEN).
+  function acilisOlcusu(nt) {
+    if (!nt || !nt.olculer || !nt.olculer.length) return null;
+    var b = F.olcuBaslangic(nt.kod);
+    for (var i = 0; i < nt.olculer.length; i++) { if (nt.olculer[i].mm === b) return b; }
+    return nt.olculer[0].mm;
+  }
+  // ÖLÇÜ RETTİ (Okan 10 Eki "önizleme yapılamıyor"): sunucu ölçüyü reddederse (gecersiz-olcu / olcu-aralik-disi)
+  // genel "hazırlanamıyor" yerine ölçü cümlesi — aralık seçili tür + çeşidin sürgüsünden (sunucuyla aynı küme).
+  function olcuRetMetni() {
+    var nt = cesitOlculeri(seciliTurBul()), o = nt && nt.olculer ? nt.olculer : [];
+    return o.length ? "Seçtiğin ölçü bu ürün için sunulmuyor; ölçüyü " + o[0].mm + "–" + o[o.length - 1].mm +
+      " mm arasında seçip tekrar dene." : "Seçtiğin ölçü bu ürün için sunulmuyor; ölçüyü değiştirip tekrar dene.";
   }
   function seciliTurBul() {
     if (!S.acikVeri || !S.acikVeri.turler) return null;
@@ -1739,11 +1830,17 @@
     return null;
   }
 
-  /* Üst dürüstlük kutusu seçili türün manifest metnini basar (tür yoksa ilk türünkini). */
+  /* Üst dürüstlük kutusu seçili türün manifest metnini basar (tür yoksa ilk türünkini). Seçili çeşidin `durustluk`u
+     varsa (Anahtarlık – figür: stilize-yorum cümlesi, ArTisT 874b2a85) altında ikinci paragraf; yoksa paragraf gizli. */
   function durustlukGuncelle() {
     if (!S.durustP || !F) return;
     var t = (S.tur && F.turBul(S.tur)) || (F.turler && F.turler[0]) || null;
     S.durustP.textContent = t && t.durustluk ? t.durustluk : "";
+    if (S.durustCesitP) {
+      var ck = S.tur ? cesitKaydi() : null;
+      S.durustCesitP.textContent = ck && ck.durustluk ? ck.durustluk : "";
+      S.durustCesitP.hidden = !S.durustCesitP.textContent;
+    }
   }
 
   function doldurS1Olcu() {
@@ -1776,8 +1873,11 @@
    */
   function olcuSurgusu(nt, id, girdi, degisti) {
     var kap = el("div", "foto-uretim-form-grup");
-    var sira = 0;
+    var sira = -1, acilis = acilisOlcusu(nt);
     for (var x = 0; x < nt.olculer.length; x++) { if (nt.olculer[x].mm === S.olcu) sira = x; }
+    // Seçili ölçü bu sürgüde yoksa (ör. çeşit değişti, tavan küçüldü) sürgü AÇILIŞ ölçüsüne döner.
+    for (x = 0; sira < 0 && x < nt.olculer.length; x++) { if (nt.olculer[x].mm === acilis) sira = x; }
+    if (sira < 0) sira = 0;
     S.olcu = nt.olculer[sira].mm;
     var surgu = el("input", "foto-uretim-surgu");
     surgu.type = "range"; surgu.id = id; surgu.name = id;
@@ -1843,10 +1943,9 @@
     say();
     kap.appendChild(ta);
     kap.appendChild(sayac);
-    // Okan 10 Eki 01:3x: büstte not İSTEĞE BAĞLI (ArTisT cümlesi, icerik/foto-ozel-uretim-sayfa-metni.md);
-    // diğer türlerde zorunluluk cümlesi AYNEN.
-    kap.appendChild(el("p", "foto-uretim-ayrinti", notIstegeBagli(S.tur) ?
-      "İsteğe bağlı: kısa bir not ekleyebilirsin." : "Üretim notu zorunlu; boşsa önizleme oluşturulamaz."));
+    // Okan 10 Eki 12:5x "not yazma zorunluluğunu kaldır": not HER türde İSTEĞE BAĞLI (ArTisT cümlesi,
+    // icerik/foto-ozel-uretim-sayfa-metni.md; önce yalnız büstteydi).
+    kap.appendChild(el("p", "foto-uretim-ayrinti", "İsteğe bağlı: kısa bir not ekleyebilirsin."));
     S.alanDosya.appendChild(kap);
     notAlaniGoster();
   }
@@ -1881,6 +1980,11 @@
     S.alanUretimNotu.hidden = !S.dosya;
   }
 
+  // Figür kartının alt türü (insan | pet | model) önizleme isteğine: sağlayıcı istemi SUNUCUDA alt türden kurulur.
+  function altTurGovdeyeKoy(govde) {
+    if (S.tur === "figur" && S.altTur) govde.alt_tur = S.altTur;
+  }
+
   function notGovdeyeKoy(govde) {
     var n = (S.uretimNotu || "").trim();
     if (S.dosya && n) govde.not = n;
@@ -1891,7 +1995,7 @@
     S.alanOnay.appendChild(el("label", "foto-uretim-form-etiket", "Onaylar"));
     // "Nasıl olsun?" notu: 2D açıldığında da geçerli kalan cümle (onay sürümüne bağlı metin DEĞİŞMEZ).
     S.alanOnay.appendChild(el("p", "foto-uretim-ayrinti",
-      "Not yazarsanız notunuz görsel üretimine iletilir; nota iletişim bilgisi yazmayın."));
+      "Not yazarsan notun görsel üretimine iletilir; nota iletişim bilgisi yazma."));
 
     var det = el("details", "foto-uretim-aydinlatma");
     det.appendChild(el("summary", null, "Aydınlatma metni"));
@@ -1925,10 +2029,9 @@
   // diğerleri yazılmaz. Cümleler ArTisT sayfa metni bölümünden ("## "Önizleme oluştur" kapalıyken sebep
   // cümlesi") AYNEN — söz değişmez; sabit gün ifadeleri (BAŞLANGIÇ/BTÜ) YASAK (kayan 24 saat; ilk hak
   // boşalınca yenilenir; program kapalıyken beklemek bir şey değiştirmez). BaBa 05:02 hükmü 2.
-  // Sıra: foto · yazı (anahtarlık yazı çeşidi) · not (büstte atla) · onay · doğrulama · hak · program.
-  // Not satırı ekranda foto ve yazının ARDINDAN gelir; "büstte atla" notIstegeBagli ile aynen.
+  // Sıra: foto · yazı (anahtarlık yazı çeşidi) · onay · doğrulama · hak · program.
+  // Okan 10 Eki 12:5x "not yazma zorunluluğunu kaldır": "Nasıl olsun?" notu HİÇBİR türde düğmeyi kapatmaz.
   var S1_SEBEP = {
-    not: "Önce \"Nasıl olsun?\" kısmına kısa bir not yaz.",
     foto: "Önce fotoğrafını yükle.",
     yazi: "Önce anahtarlığa yazılacak yazıyı gir.",
     onay: "Aydınlatma metnini okuyup onay kutusunu işaretle.",
@@ -1936,9 +2039,6 @@
     hak: "Önizleme hakkın doldu; ilk hakkın 24 saat içinde yeniden açılır.",
     program: "Fotoğraftan sipariş şu an kapalı."
   };
-  // Okan 10 Eki 01:3x "büstte not zorunlu olmasın": bu türlerde boş not düğmeyi KAPATMAZ, sebep listesinde "not" YOK.
-  var NOT_ISTEGE_BAGLI_TURLER = ["bust"];
-  function notIstegeBagli(kod) { return NOT_ISTEGE_BAGLI_TURLER.indexOf(kod) >= 0; }
   function s1Sebep() {
     var sira = [
       [fotoGerekir() && !S.dosya, S1_SEBEP.foto],
@@ -1949,8 +2049,6 @@
        F.girdiYeterli(S.tur, { foto: !!S.dosya, parametreler: parametreGovde(),
          cesit: seciliCesit() }) !== "",
        S1_SEBEP.yazi],
-      // Not alanı yalnız fotoğraflı girdide çizilir (cizUretimNotu); yazılı anahtarlıkta not istenmez (TUR-C2b).
-      [!notIstegeBagli(S.tur) && fotoGerekir() && !((S.uretimNotu || "").trim()), S1_SEBEP.not],
       [!S.aydinlatmaOnay, S1_SEBEP.onay],
       [!S.captchaToken1, S1_SEBEP.dogrulama],
       [S.kalanHak === 0, S1_SEBEP.hak],
@@ -1972,8 +2070,8 @@
     // kuyruğu); fotoğraf yalnız türün girdisinde varsa istenir.
     // K2b: uyum kontrolü geçmeden önizleme düğmesi AÇILMAZ ("uygun_degil" ise).
     var uyumOK = uyumKontrol(S.tur, S.uretimNotu) === "uygun";
-    // Madde 1 (Okan 8 Eki 14:1x): "Nasıl olsun?" üretim notu ZORUNLU; boşken "Önizleme oluştur" KAPALI.
-    // ① not · fotoğraf · onay · doğrulama · günlük hak · program — s1Sebep TEK kaynak (cümle ile kapı aynı).
+    // Okan 10 Eki 12:5x: "Nasıl olsun?" notu İSTEĞE BAĞLI (8 Eki 14:1x zorunluluğu kalktı); boş not düğmeyi kapatmaz.
+    // ① fotoğraf · yazı · onay · doğrulama · günlük hak · program — s1Sebep TEK kaynak (cümle ile kapı aynı).
     var sebep = s1Sebep();
     var tam = uyumOK && !sebep && !!S.tur && !!S.olcu && (!lit || !!null) &&
       formDogrula().ok;
@@ -1984,7 +2082,9 @@
     }
     // "Son 24 saatte kalan önizleme hakkın: N/3." — N yalnız sunucu yanıtından; bilinmiyorsa sınır
     // cümlesi (sayı uydurulmaz; "Bugün" YASAK — kayan 24 saat, takvim günü değil; ArTisT).
+    // Önizleme ortamı (sunucu /foto/acik ziyaretci_siniri:false): hak kapısı KAPALI -> hak satırı GİZLİ.
     if (S.alanNotu) {
+      S.alanNotu.hidden = !!S.acikVeri && S.acikVeri.ziyaretci_siniri === false;
       S.alanNotu.textContent = typeof S.kalanHak === "number" ?
         "Son 24 saatte kalan önizleme hakkın: " + S.kalanHak + "/" + F.sinir_ziyaretci_24s + "." :
         "Son 24 saatte en çok " + F.sinir_ziyaretci_24s + " önizleme hakkın var.";
@@ -2043,6 +2143,121 @@
     S.alan.appendChild(btn);
   }
 
+  /* ④ 4 RENK SİMÜLASYONU (Okan 11 Eki): ④ görselinin seçilen palete BÖLGE tabanlı sadeleştirilmiş kopyası
+     (F.dortRenkSimule; tarayıcıda, kredi 0). Kaynak sunucuda AYNEN. Görsel aynı kökenden gelir (canvas okunabilir);
+     tarayıcı desteklemezse ya da okuma hatasında kaynak gösterilir ve `geriDus` çağrılır (cümle bunu söyler). */
+  function simuleGoster(img, url, renkler, geriDus) {
+    var kaynak = function () { img.src = url; if (geriDus) geriDus(); };
+    if (typeof Image !== "function") { kaynak(); return; }
+    var k = new Image();
+    k.onload = function () {
+      if (onizlemePaletiTuret(k)) renkler = simulasyonRenkleri();
+      try {
+        var c = document.createElement("canvas");
+        c.width = k.naturalWidth || k.width; c.height = k.naturalHeight || k.height;
+        var ctx = c.getContext("2d");
+        ctx.drawImage(k, 0, 0);
+        var d = ctx.getImageData(0, 0, c.width, c.height);
+        if (!F.dortRenkSimule(d.data, c.width, c.height, renkler)) throw new Error("simulasyon");
+        ctx.putImageData(d, 0, 0);
+        img.src = c.toDataURL("image/png");
+      } catch (e) { kaynak(); }
+    };
+    k.onerror = kaynak;
+    k.src = url;
+  }
+  function simulasyonRenkleri() { return renkliMi() ? paletRenkleri(S.tur) : [anaRenk()]; }
+  /* ④ PALET KAYNAĞI = SAĞLAYICININ TEMİZ GÖRSELİ (KraL-FotoPalet 11 Eki): ③'teki palet müşterinin ham fotoğrafından
+     (arka plan, ışık, gölge dahil) çıkar; ④'te arka planı kaldırılmış önizleme görseli elde — Renkli'de, müşteri
+     elle seçmediyse ve bu iş için henüz türetilmediyse palet BİR KEZ ondan türetilir, düzenleyicide GÖSTERİLİR
+     (sessiz değil: müşteri sepete eklemeden önce görür ve değiştirebilir) ve oturum kaydına "onizleme" diye yazılır.
+     Renk adedi/renkler fiyata girmez. Okunamazsa (tuval) ③ paleti kalır. -> palet değişti mi */
+  function onizlemePaletiTuret(k) {
+    if (!renkliMi() || (S.elleRenkler && S.elleRenkler.length) || !S.is || (S.onizRenk && S.onizRenk.is === S.is)) return false;
+    var r = [];
+    try {
+      var n = F.FOTO_RENK_KENAR || 64, t = document.createElement("canvas");
+      t.width = n; t.height = n;
+      var x = t.getContext("2d");
+      x.drawImage(k, 0, 0, n, n);
+      r = F.fotoRenkleri(x.getImageData(0, 0, n, n).data, 4, n, n);
+    } catch (e) { r = []; }
+    S.onizRenk = { is: S.is, renkler: r };
+    if (!r.length) return false;
+    S.renkler = paletRenkleri(S.tur);
+    ssIsKaydet();
+    paletDuzenleyiciGuncelle();
+    return true;
+  }
+  /* ④ RENKLER — MÜŞTERİ ELLE SEÇER (BaBa 11 Eki 20:1x (b)): otomatik palet gösterilir, her yuva filament listesinden
+     (F.PLA_RENKLERI) değiştirilir; yuva sayısı = türün renk tavanı, ilk yuva dolu, diğerleri "Yok" olabilir. Seçilen
+     renk başka yuvadaysa iki yuva yer değiştirir (palet tekrarsız; sunucu da tekrarı RED eder). Değişiklik anında
+     yeniden simüle edilir; seçilen palet siparişe giden `renkler`dir (oturum kaydı "elle"). Fiyat DEĞİŞMEZ: Renkli
+     +%15 sabit, renk adedi ve renklerin kendisi fiyata girmez. Seçiciler yerinde güncellenir (odak kaybolmaz). */
+  var PALET_NOTU = "Renkler otomatik seçildi; istersen her birini değiştirebilirsin — görünüm hemen güncellenir, fiyat değişmez.";
+  function paletDuzenleyici(img, geriDus) {
+    var g = el("div", "foto-uretim-form-grup foto-uretim-palet");
+    var fs_ = el("fieldset", "foto-uretim-palet-secim");
+    fs_.appendChild(el("legend", "foto-uretim-form-etiket", "Renkler"));
+    var satir = el("div");
+    satir.style.display = "flex"; satir.style.flexWrap = "wrap"; satir.style.gap = "8px 14px";
+    S.paletSec = []; S.paletKutu = []; S.paletImg = img; S.paletGeriDus = geriDus;
+    for (var i = 0; i < paletTavani(S.tur); i++) {
+      (function (yuva) {
+        var lbl = el("label", "foto-uretim-form-secenek-inline");
+        lbl.style.display = "inline-flex"; lbl.style.alignItems = "center"; lbl.style.gap = "6px";
+        var kutu = el("span", "foto-uretim-palet-kutu");
+        kutu.setAttribute("aria-hidden", "true");
+        kutu.style.display = "inline-block"; kutu.style.width = "16px"; kutu.style.height = "16px";
+        kutu.style.borderRadius = "3px"; kutu.style.border = "1px solid #c5cbd3";
+        var sec = el("select");
+        sec.setAttribute("data-palet-yuva", String(yuva));
+        sec.setAttribute("aria-label", (yuva + 1) + ". renk");
+        var adlar = (yuva ? [""] : []).concat(F.PLA_RENKLERI);
+        for (var j = 0; j < adlar.length; j++) {
+          var o = el("option", null, adlar[j] || "Yok");
+          o.value = adlar[j];
+          sec.appendChild(o);
+        }
+        sec.addEventListener("change", function (e) { paletDegis(yuva, e.target.value); });
+        ek(lbl, kutu, sec);
+        satir.appendChild(lbl);
+        S.paletSec.push(sec); S.paletKutu.push(kutu);
+      })(i);
+    }
+    fs_.appendChild(satir);
+    g.appendChild(fs_);
+    g.appendChild(el("p", "foto-uretim-ayrinti", PALET_NOTU));
+    paletDuzenleyiciGuncelle();
+    return g;
+  }
+  function paletDuzenleyiciGuncelle() {
+    var p = paletRenkleri(S.tur);
+    for (var i = 0; S.paletSec && i < S.paletSec.length; i++) {
+      S.paletSec[i].value = p[i] || "";
+      S.paletKutu[i].style.background = p[i] ? F.RENK_HEX[p[i]] : "transparent";
+    }
+  }
+  function paletDegis(yuva, deger) {
+    if ((deger && F.PLA_RENKLERI.indexOf(deger) < 0) || (!deger && yuva === 0)) { paletDuzenleyiciGuncelle(); return; }
+    var p = paletRenkleri(S.tur), y = [];
+    for (var i = 0; i < paletTavani(S.tur); i++) y.push(p[i] || "");
+    var j = deger ? y.indexOf(deger) : -1;
+    if (j >= 0 && j !== yuva) y[j] = y[yuva];
+    y[yuva] = deger;
+    S.elleRenkler = y.filter(function (a) { return !!a; });
+    S.renkler = paletRenkleri(S.tur);
+    ssIsKaydet();
+    paletDuzenleyiciGuncelle();
+    if (S.paletImg) simuleGoster(S.paletImg, S.gorsel, simulasyonRenkleri(), S.paletGeriDus);
+  }
+
+  /* ④ render kolu (sunucu renderKolu ile AYNI): figür türü (insan · pet · model) + anahtarlık–figür çeşidi. */
+  function figurKoluMu() { return S.tur === "figur" || (cesitliTur() && seciliCesit() === "figur"); }
+  function figurGorunumNotu() {
+    return S.render ? F.FIGUR_RENDER_NOTU : (renkliMi() ? F.FIGUR_SIMULASYON_RENKLI : F.FIGUR_SIMULASYON_TEK);
+  }
+
   /* ============== S3 ============== */
   function cizS3() {
     if (!S.alan) return;
@@ -2050,7 +2265,9 @@
     S.captchaToken1 = "";
     while (S.alan.firstChild) S.alan.removeChild(S.alan.firstChild);
 
-    S.alan.appendChild(el("p", "foto-uretim-ayrinti", false ? "" :
+    var figurKol = figurKoluMu();
+    // Figür türünde üst cümle YOK: ④ görselinin altındaki görünüm notu tek dürüstlük cümlesidir (çelişki olmasın).
+    if (!(figurKol && S.tur === "figur")) S.alan.appendChild(el("p", "foto-uretim-ayrinti", false ? "" :
       !!(F && F.kolu && F.kolu(S.tur) === "deterministik") ? ((litofanKaydi() || {}).durustluk || "") :
       "Önizleme — ürün bunun seçtiğin renk sayısında olur; tam kopyası değildir."));
     if (false && S.secim) {
@@ -2061,12 +2278,31 @@
       S.alan.appendChild(el("p", "foto-uretim-ayrinti", "Seçimin: " + secMetin.join(" · ")));
     }
 
-    if (S.gorsel) {
+    if (S.gorsel || (figurKol && S.render)) {
       var img = el("img", "foto-uretim-onizleme-img");
-      img.src = S.gorsel; img.alt = "Önizleme";
+      img.alt = figurKol ? (S.render ? "Basılacak figürün görüntüsü" : "Figürün yaklaşık görünümü") : "Önizleme";
       img.width = 300; img.height = 300;
       img.loading = "lazy"; img.decoding = "async";
-      S.alan.appendChild(img);
+      if (figurKol) {
+        // ④ FİGÜR KOLU (Okan 11 Eki): render varsa basılacak dosyanın çizimi AYNEN; yoksa sağlayıcı görselinin 4 renk
+        // simülasyonu — hangisinin gösterildiği her durumda görselin altında söylenir (simülasyon çalışamazsa kaynak
+        // görsel + "renkler basılacak figürü göstermez").
+        var not = el("p", "foto-uretim-ayrinti foto-uretim-gorunum-notu", figurGorunumNotu());
+        var geriDus = function () { not.textContent = F.FIGUR_ORNEK_NOTU; };
+        if (S.render) img.src = S.render;
+        else simuleGoster(img, S.gorsel, simulasyonRenkleri(), geriDus);
+        S.alan.appendChild(img);
+        S.alan.appendChild(not);
+        // Renkli + simülasyon (render yok): müşteri paleti burada görür ve değiştirir.
+        if (!S.render && renkliMi()) S.alan.appendChild(paletDuzenleyici(img, geriDus));
+      } else {
+        // Deterministik kolun görseli üretecin kendi çizimi (üretilen renklerle); diğer kollarda (plaket) 4 renk simülasyonu.
+        var detKol = !!(F.kolu && F.kolu(S.tur) === "deterministik");
+        if (detKol) img.src = S.gorsel;
+        else simuleGoster(img, S.gorsel, simulasyonRenkleri());
+        S.alan.appendChild(img);
+        if (!detKol && renkliMi()) S.alan.appendChild(paletDuzenleyici(img, null));
+      }
     }
 
     var nt = seciliTurBul();
@@ -2083,7 +2319,6 @@
 
     /* ozet */
     // Birim fiyat TEK formülden (sunucunun ödemede kullandığı AYNI F.fiyatKurus), renkli + malzeme çarpanıyla.
-    var rs = renkSayisi(nt);
     var fiyat = nt ? (F.olcuTuretilmis(nt.kod) ? (S.fiyatKurus != null ? F.secimliKurus(S.fiyatKurus, fiyatSecimi()) : null)
       : F.fiyatKurus(nt.kod, S.olcu, fiyatSecimi())) : null;
     if (fiyat != null) {
@@ -2122,7 +2357,8 @@
     var sipBtn = el("button", "foto-uretim-buton-birincil", "Sepete ekle");
     sipBtn.type = "button";
     sipBtn.id = "foto-sip-btn";
-    sipBtn.addEventListener("click", function () { sepeteEkle(nt, fiyat, rs); });
+    // Renk sayısı TIK anında (④ paleti değişmiş olabilir); fiyat palete bağlı değil, çizimdeki aynen.
+    sipBtn.addEventListener("click", function () { var rs = renkSayisi(nt); sepeteEkle(nt, fiyat, rs); });
     // Aydınlatma onayı + B2 sorumluluk satırı olmadan sipariş düğmesi açılmaz (K2: B2 tik kapısı);
     // türetilmiş eksende bu önizlemenin ölçülmüş fiyatı yoksa da açılmaz (fiyatsız sipariş yok).
     // K2b-fin: formül TEK fonksiyona toplandı (cizS3 + guncelleSipButonu aynı yerden okur; mutant testi
@@ -2146,6 +2382,7 @@
       S.aydinlatmaOnay = false;
       S.b2Onay = false;
       S.gorsel = null;
+      S.render = null;
       S.gecerlilik = null;
       S.fiyatKurus = null;
       S.adet = 1;
@@ -2156,6 +2393,8 @@
       S.parametre = {};
       S.secim = null;
       S.renkler = [];
+      S.elleRenkler = null;
+      S.onizRenk = null;
       S.uretimNotu = "";
       S.uyumSonuc = null;
       turSecimiKayitTemizle();
@@ -2270,10 +2509,20 @@
         S.is = kayit.is;
         // 13:5x: tür seçimi artık kullanıcı TIKINDAN (kart); otomatik ilk-açık KALMAZ.
         S.tur = kayit.tur || S.tur || null;
-        if (S.tur && (!S.kartKod || !kartListede(S.kartKod) || kartListede(S.kartKod).tur.kod !== S.tur)) {
+        // Kart = tür + (varsa) çeşit + alt tür; eski `hayvan_model` kaydı `pet` sayılır (geriye uyum). Oturum deposu
+        // yalnız türü (`figur`) taşıyınca ilk figür kartı seçilmiş olabilir: kaydın alt türü/çeşidi kartla çelişirse
+        // kart kayıttan yeniden seçilir.
+        var kAlt = typeof kayit.alt_tur === "string" ? (ESKI_KART[kayit.alt_tur] || kayit.alt_tur) : null;
+        var kMevcut = S.kartKod ? kartListede(S.kartKod) : null;
+        if (S.tur && (!kMevcut || kMevcut.tur.kod !== S.tur || (kAlt && kMevcut.kart.alt && kMevcut.kart.alt !== kAlt) ||
+            (typeof kayit.cesit === "string" && kMevcut.kart.cesit && kMevcut.kart.cesit !== kayit.cesit))) {
           S.kartKod = null; S.altTur = null;
           for (var ki = 0; ki < S.galeriListe.length; ki++) {
-            if (S.galeriListe[ki].tur.kod === S.tur) { S.kartKod = S.galeriListe[ki].kart.kod; S.altTur = S.galeriListe[ki].kart.alt; break; }
+            var gk = S.galeriListe[ki].kart;
+            if (S.galeriListe[ki].tur.kod !== S.tur) continue;
+            if (gk.cesit && typeof kayit.cesit === "string" && gk.cesit !== kayit.cesit) continue;
+            if (gk.alt && kAlt && gk.alt !== kAlt) continue;
+            S.kartKod = gk.kod; S.altTur = gk.alt; break;
           }
           kartVurgula();
         }
@@ -2286,6 +2535,14 @@
         // Renkli önizleme yeniden yüklemede fotoğrafsız döner: fotoğraftan çıkmış renkler kayıttan gelir.
         if (kayit.renk_secim === RENKLI && Array.isArray(kayit.renkler)) {
           S.fotoRenkleri = kayit.renkler.filter(function (x) { return F.PLA_RENKLERI.indexOf(x) >= 0; }).slice(0, 4);
+          // Kayıttaki palet müşterinin ④'te gördüğü/seçtiği paletse ("elle", "onizleme" ya da alanı olmayan eski kayıt)
+          // ONAYLIDIR: bu iş için ④ yeniden türetmez (yenileme renkleri sessizce değiştirmez). Yalnız "foto" kaydında
+          // (④ henüz görülmedi) ④ bir kez sağlayıcı görselinden türetir.
+          if (kayit.renk_kaynak !== "foto") S.onizRenk = { is: kayit.is, renkler: S.fotoRenkleri.slice() };
+          // PARA: kayıttaki renkler "dosyasız" (null) fotoğrafa aittir — form çizimindeki fotoRenkCikar(null) bunları
+          // SIFIRLAMAZ (sıfırlasaydı Renkli seçimi Beyaz'a döner, +%15 sessizce düşerdi). Yeni fotoğraf seçilince
+          // renkler o fotoğraftan yeniden çıkarılır.
+          S.fotoRenkDosya = null;
         }
         // Onay yalnız AYNI metin sürümüne verildiyse geri gelir (eski sürüm onayı sayılmaz).
         S.aydinlatmaOnay = kayit.onay === F.onay_surum;
@@ -2312,6 +2569,7 @@
         if (a === "hazir") {
           S.is = isNo;
           S.gorsel = veri.gorsel || S.gorsel;
+          S.render = typeof veri.render === "string" && veri.render ? veri.render : null;
           if (typeof veri.olcu_mm === "number") S.olcu = veri.olcu_mm;
           // Türetilmiş eksen: fiyat SUNUCUNUN (önizlemede ölçülen ölçüden); bölüm kendisi hesaplamaz.
           S.fiyatKurus = typeof veri.fiyat_kurus === "number" ? veri.fiyat_kurus : null;
@@ -2429,6 +2687,7 @@
         turnstile_token: jeton
       };
       govde.gorsel = dataUrl;
+      altTurGovdeyeKoy(govde);
       notGovdeyeKoy(govde);
       if (Object.keys(formSemasi()).length) govde.parametreler = parametreGovde();
       jsonPost(ONIZLEME_URL, govde, function (ok, kod, veri) {
@@ -2510,6 +2769,7 @@
         sc.cesit = seciliCesit();
         govde.secim = sc;
       }
+      altTurGovdeyeKoy(govde);
       notGovdeyeKoy(govde);
       jsonPost(ONIZLEME_URL, govde, function (ok, kod, veri) {
         turnsSifirla(S.alanCap1);
@@ -2529,6 +2789,10 @@
         }
         if (kod === 403) { adimKoy("S1", "Doğrulama tamamlanamadı, kutucuğu yeniden işaretleyip dene.", true); return; }
         if (kod === 400 && veri && veri.hata === "onay-surumu-eski") { adimKoy("S1", "Metin güncellendi, sayfayı yenile.", true); return; }
+        if (kod === 400 && veri && (veri.hata === "gecersiz-olcu" || veri.hata === "olcu-aralik-disi")) {
+          adimKoy("S1", olcuRetMetni(), true);
+          return;
+        }
         if (kod === 400 && veri && NOT_HATA[veri.hata]) { turnsSifirla(S.alanCap1); adimKoy("S1", NOT_HATA[veri.hata], true); return; }
         if (kod === 503 && veri && veri.hata === "kapali") { adimKoy("S1", "Fotoğraftan sipariş şu an kapalı.", true); return; }
         adimKoy("S1", "Şu an önizleme hazırlanamıyor, biraz sonra yeniden dene.", true);

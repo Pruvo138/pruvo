@@ -1,8 +1,26 @@
 {
+ "jeneratorler/foto/bust_kaide.py": {
+  "BUST_KAIDE_SEMA": {
+   "olcu_mm": {
+    "max": 300.0,
+    "min": 60.0,
+    "tip": "float",
+    "varsayilan": 150.0
+   },
+   "renk_modu": {
+    "secenekler": [
+     "tek",
+     "iki"
+    ],
+    "tip": "enum",
+    "varsayilan": "tek"
+   }
+  }
+ },
  "jeneratorler/foto/figur_kulak.py": {
   "FIGUR_KULAK_SEMA": {
    "figur_uzun_kenar_mm": {
-    "max": 50.0,
+    "max": 291.6,
     "min": 0.0,
     "tip": "float"
    },
@@ -15,16 +33,24 @@
     "varsayilan": "tepe"
    },
    "kulak_dahil_uzun_kenar_mm": {
-    "max": 60.0,
+    "max": 300.0,
     "min": 0.0,
     "tip": "float"
+   },
+   "renk_modu": {
+    "secenekler": [
+     "tek",
+     "palet"
+    ],
+    "tip": "enum",
+    "varsayilan": "tek"
    }
   }
  },
  "jeneratorler/foto/isimlik_uret.py": {
   "ANAHTARLIK_SEMA": {
    "genislik_mm": {
-    "max": 80.0,
+    "max": 300.0,
     "min": 30.0,
     "tip": "float"
    },
