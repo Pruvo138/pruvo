@@ -23,7 +23,7 @@
  *                    tur fiyatsiz. (Eski F9 "ek renk +100 TL" Okan 9 Eki emriyle KALKTI.)
  * MUTANTLAR (veri dosyasinin BELLEKTEKI kopyasi / foto.js'in GECICI kopyasi; agaca yazim YOK):
  *   FM1 formul ×100 · FM2 en_az yerine en_cok · FM3 adim izgarasi silindi · FM4 anahtar fail-open ·
- *   FM6 taban kalkti (F1/F3/F6) · FM7 tabansiz tur fail-open (F7) · FM9 Renkli carpani dustu · FM10 PETG carpani
+ *   FM6 taban kalkti (F1,F3,F6,F9; anahtarlik 30..55 tabani gorur) · FM7 tabansiz tur fail-open (F7) · FM9 Renkli carpani dustu · FM10 PETG carpani
  *   dustu · FM11 ASA secilebilir · FM12 renk adedi yeniden ucretlenir (F9)
  *   -> hedef grup KIRMIZI; FM0 (yalniz yorum) -> hicbiri. Olcu EKSENI (X/Y'ye bakan olcum) mutanti
  *   shop/test/foto-uretim.mjs OZ-M1'de (sentetik 3MF orada).
@@ -57,11 +57,14 @@ function veriYukle(kaynak) {
   return k.PRUVO_FOTO;
 }
 
-/** Formul senaryolari: V = veri nesnesi. Donus {F1, F2, F3, sayi, tablo}. */
-function formulSenaryolar(V) {
+/** Formul senaryolari: V = veri nesnesi, kaynak = V'nin kaynak metni (F6 kontrol kolu kopyasi). Donus {F1, F2, F3, sayi, tablo}. */
+function formulSenaryolar(V, kaynak) {
   const s = { F1: true, F2: true, F3: true, F6: true, sayi: 0, gecen: 0, tablo: [], tabanli: [], enDusuk: [] };
   for (const t of V.turler) {
-    const a = t.olcu_mm || {};
+    // Beklenen aralik KAYITTAN, VERI'den BAGIMSIZ: model basina olculu figurde (22:3x) kayit `olcu_mm` aralik TASIMAZ ->
+    // zarf burada ham `olcu_modelleri`nden (en kucuk en_az .. en buyuk en_cok) hesaplanir.
+    const a = t.olcu_modelleri ? Object.values(t.olcu_modelleri).reduce((z, m) => ({ en_az: Math.min(z.en_az, m.en_az),
+      en_cok: Math.max(z.en_cok, m.en_cok) }), { en_az: Infinity, en_cok: -Infinity }) : (t.olcu_mm || {});
     const sec = V.olcuSecenekleri(t.kod);
     const orta = sec.length ? sec[Math.floor((sec.length - 1) / 2)] : null;
     const satir = { kod: t.kod, olculer: [] };
@@ -92,9 +95,21 @@ function formulSenaryolar(V) {
     if (a.en_az * 1000 < TABAN_KURUS) { s.tabanli.push(t.kod); }
   }
   if (s.sayi === 0 || s.enDusuk.length === 0) { s.F1 = false; s.F6 = false; }
-  // Kontrol kolu: tabanin GERCEKTEN bastigi tur yoksa F6 hicbir seyi olcmuyor demektir.
-  if (s.tabanli.length === 0) { s.F6 = false; }
+  // Kontrol kolu: tabanin GERCEKTEN bastigi tur yoksa F6 hicbir seyi olcmuyor demektir. Okan 10 Eki ~13:4x
+  // (anahtarlik 60, plaket 60) sonrasi gercek veride HER turun alt siniri >= 60 (60 mm × 10 TL = taban): taban
+  // hicbir durakta basmayabilir -> kol KOPYADA olculur (plaket alt siniri 10'a cekilir; 10/50 mm = 600 TL, 70 mm = 700 TL).
+  s.tabanKopya = s.tabanli.length === 0 ? tabanKopyadaBasar(kaynak) : null;
+  if (s.tabanli.length === 0 && s.tabanKopya !== true) { s.F6 = false; }
   return s;
+}
+
+/** F6 kontrol kolu (kopya): plaketin alt siniri 10'a cekilince 10/50 mm = 600 TL (taban basar), 70 mm = 700 TL. */
+function tabanKopyadaBasar(kaynak) {
+  const re = /(kod: "plaket",[\s\S]*?olcu_mm: \{ en_az: )\d+(, en_cok: \d+ \})/;
+  if (typeof kaynak !== "string" || !re.test(kaynak)) { return false; }
+  const K = veriYukle(kaynak.replace(re, (m, a, b) => a + "10" + b));
+  return K.fiyatKurus("plaket", 10) === TABAN_KURUS && K.fiyatKurus("plaket", 50) === TABAN_KURUS &&
+    K.fiyatKurus("plaket", 70) === 70000;
 }
 
 /** F7: tur kaydindan taban_tl silinince o tur fiyatsiz (null), digerleri etkilenmez. */
@@ -107,15 +122,21 @@ function tabansizSenaryo(kaynak) {
 }
 
 // F8 (Okan 8 Eki 14:0x "slider 10 mm'den baslasin ama min fiyat 600 TL kalsin"): KraL'in elle tuttugu
-// (kopru-disi) sabit eksenli turlerde surgu alt siniri 10 mm ve 10 mm = 600 TL.
+// (kopru-disi) sabit eksenli turlerde surgu alt siniri 10 mm ve 10 mm = 600 TL. GUNCEL (Okan 10 Eki): figur ve plaket 60.
 // K3a (8 Eki 2026): 15 tür silindi; hiçbir tür türetilmiş eksen DEĞİL -> "türetilmiş 59/61 mm" kolu YOK.
 // K3d: elle tür kümesi MANIFESTTEN türetilir (sabit liste yazılmaz): köprü kaydı (kopru-manifest-uret.py)
 // `olcu_ekseni` taşır; taşımayan tür KraL'in elle tuttuğu türdür. Küme boşsa ya da plaket yoksa F8 KIRMIZI.
+// Okan 10 Eki 12:4x: "slider figürlerde 60mm den başlasın" -> figürün alt sınırı 60 (60 mm = 600 TL);
+// Okan 10 Eki ~13:4x: "plaket de 60 mm olsun" -> elle türlerin TAMAMI 60.
+// BaBa 10 Eki 22:3x: figür ölçüsü MODEL BAŞINA (insan 41–105 · pet 60–136 · model 60–300) -> figür zarfının alt sınırı
+// insan tabanı 41 (min_guvenli_mm 40,7 yukarı; 41 mm = 600 TL taban); sürgü açılışı 60 AYNEN (olcu_mm.baslangic).
+const SURGU_ALT_ISTISNA = { figur: 41, plaket: 60 };
+const surguAlt = (k) => SURGU_ALT_ISTISNA[k] || 10;
 const elleSurgu = (V) => V.turler.filter((t) => !("olcu_ekseni" in t)).map((t) => t.kod);
 function surguSenaryo(V) {
   const elle = elleSurgu(V);
-  const alt = elle.filter((k) => { const a = V.olcuAraligi(k); return a && a.en_az === 10 && V.olcuSecenekleri(k)[0] === 10; });
-  const on = elle.filter((k) => V.fiyatKurus(k, 10) === TABAN_KURUS);
+  const alt = elle.filter((k) => { const a = V.olcuAraligi(k), m = surguAlt(k); return a && a.en_az === m && V.olcuSecenekleri(k)[0] === m; });
+  const on = elle.filter((k) => V.fiyatKurus(k, surguAlt(k)) === TABAN_KURUS);
   return { F8: elle.includes("plaket") && alt.length === elle.length && on.length === elle.length, elle, alt, on, tu: null, sinir: true };
 }
 
@@ -125,7 +146,7 @@ function surguSenaryo(V) {
 // VERI'den OKUNMAZ. Eski F9 (ek renk +100 TL) bu emirle KALKTI.
 const SPEC_ORNEKLERI = [
   [100, {}, 100000], [100, { malzeme: "PETG" }, 130000], [100, { renkli: true }, 115000],
-  [100, { renkli: true, malzeme: "PETG" }, 149500], [40, {}, 60000], [40, { renkli: true, malzeme: "PETG" }, 89700],
+  [100, { renkli: true, malzeme: "PETG" }, 149500], [60, {}, 60000], [60, { renkli: true, malzeme: "PETG" }, 89700],
 ];
 const MALZEME_KARTLARI = [["PLA", "~55-60°C", "Ev içi"], ["PETG", "~70-75°C", "Dış mekân / genel amaçlı"]];
 // K3d: palet türleri MANIFESTTEN (`renk_secimi: "palet"` ham alanı); VERI.renkPaleti fonksiyonu buna uymalı.
@@ -165,7 +186,7 @@ function renkSenaryo(V, kaynak) {
 
 console.log("F1-F3) TEK FORMUL — fiyat_kurus = max(600 TL, en uzun boyut (mm) × 10 TL), kategori farki YOK");
 const VERI = veriYukle(VERI_KAYNAK);
-const fs1 = formulSenaryolar(VERI);
+const fs1 = formulSenaryolar(VERI, VERI_KAYNAK);
 const kategori = VERI.turler.length;
 for (const t of fs1.tablo) {
   console.log("     " + t.kod.padEnd(8) + " " + t.olculer.map((o) => (o.metin || (o.mm + " mm → ?")) + (o.dogru ? "" : " ✗")).join(" · "));
@@ -175,13 +196,13 @@ ol("F2 aralik disi / adim disi / kesirli olcu -> fiyat YOK (null)", fs1.F2, "");
 ol("F3 baslangic fiyati (₺N'dan itibaren) = en_az formulu, sürgü ilk duragi en_az", fs1.F3, "");
 console.log("F6-F7) TABAN 600 TL — her tur, her surgu duragi");
 ol("F6 taban: " + fs1.enDusuk.filter((k) => k >= TABAN_KURUS).length + "/" + kategori + " tur en dusuk fiyat >= 600 TL (" +
-   fs1.tabanli.length + " turde taban basiyor: " + fs1.tabanli.join(",") + ")", fs1.F6 && fs1.enDusuk.length === kategori, "");
+   fs1.tabanli.length + " turde taban basiyor: " + fs1.tabanli.join(",") + (fs1.tabanKopya === null ? "" : " · kopyada plaket 10 mm: " + fs1.tabanKopya) + ")", fs1.F6 && fs1.enDusuk.length === kategori, "");
 ol("F7 taban_tl'siz tur -> fiyat null (sunulmaz), diger turler etkilenmez", tabansizSenaryo(VERI_KAYNAK), "");
 {
   const sg = surguSenaryo(VERI);
   const kopruAlt = VERI.turler.filter((t) => !elleSurgu(VERI).includes(t.kod) && t.olcu_ekseni === "sabit")
     .map((t) => t.kod + ":" + t.olcu_mm.en_az);
-  ol("F8 surgu alt siniri 10 mm: " + sg.alt.length + "/" + sg.elle.length + " elle tur (" + sg.elle.join(",") + ") · 10 mm = 600 TL " + sg.on.length + "/" +
+  ol("F8 surgu alt siniri (figur zarfi 41 · plaket 60): " + sg.alt.length + "/" + sg.elle.length + " elle tur (" + sg.elle.join(",") + ") · alt sinir = 600 TL " + sg.on.length + "/" +
      sg.elle.length + " · turetilmis " + sg.tu + " 59 mm = 600 TL, 61 mm = 610 TL", sg.F8, JSON.stringify(sg));
   console.log("     bilgi: kopru (TeKiN kaydi) sabit turlerin alt siniri: " + kopruAlt.join(" "));
 }
@@ -253,14 +274,17 @@ const VERI_MUTANTLAR = [
    "return true;", ["F2"]],
   // K3a: FM5 (TURETILMIS DE IZGARAYA BAGLI) SİLİNDİ. Kalan 4 türün TAMAMI foto, hiçbiri türetilmiş değil.
   // VERI.olcuTuretilmis(kod) her zaman false → mutant no-op olurdu. null/no-op mutant YASAK.
-  // Okan 8 Eki tabani: taban kalkinca 60 mm alti turler 600 TL'nin altina iner -> F1/F3/F6 KIRMIZI.
+  // Okan 8 Eki tabani: taban kalkinca 60 mm alti olculer 600 TL'nin altina iner. Okan 10 Eki 15:2x anahtarlik 30–300
+  // (acilis 60) sonrasi gercek veride 60 mm alti durak YENIDEN VAR (anahtarlik 30..55) -> F1/F3/F9 tabani GORUR +
+  // F6 kopya kontrol kolu (plaket 10 mm) KIRMIZI.
+  // F8: figur zarfinin alt siniri 41 mm (22:3x) tabansiz 410 TL olur -> 600 TL alt sinir kolu da KIRMIZI.
   ["FM6 TABAN KALKTI", "return VERI.secimliKurus(Math.max(mm * f, taban), secim);", "return VERI.secimliKurus(mm * f, secim);",
    ["F1", "F3", "F6", "F8", "F9"]],
   // Tabansiz tur fail-open (taban yoksa 0 sayilir) -> F7 KIRMIZI.
-  // Okan 14:0x: surgu alti 60'a geri cekilirse F8 KIRMIZI.
+  // Okan 10 Eki ~13:4x: plaket alt siniri 60; 10'a geri cekilirse F8 KIRMIZI.
   // Capa plaketin kendi yorum satirini tasir: ayni olcu_mm satiri dinamik-min ile ses turunde de gecer (tek capa sarti).
-  ["FM8 PLAKET SURGU ALTI 60", "        // Okan 6 Eki 2026: \"min 60 max 300\".\n        olcu_mm: { en_az: 10, en_cok: 300 },",
-   "        // Okan 6 Eki 2026: \"min 60 max 300\".\n        olcu_mm: { en_az: 60, en_cok: 300 },", ["F8", "F9"]],
+  ["FM8 PLAKET SURGU ALTI 10'A GERI", "        // Okan 6 Eki 2026: \"min 60 max 300\"; Okan 10 Eki ~13:4x: \"plaket de 60 mm olsun\" (en_cok 300 aynen).\n        olcu_mm: { en_az: 60, en_cok: 300 },",
+   "        // Okan 6 Eki 2026: \"min 60 max 300\"; Okan 10 Eki ~13:4x: \"plaket de 60 mm olsun\" (en_cok 300 aynen).\n        olcu_mm: { en_az: 10, en_cok: 300 },", ["F8"]],
   ["FM7 TABANSIZ TUR FAIL-OPEN", "if (!f || taban === null || tavan === null || !VERI.olcuGecerli(kod, mm)) { return null; }",
    "if (!f || tavan === null || !VERI.olcuGecerli(kod, mm)) { return null; }", ["F7"]],
   // Okan 9 Eki: Renkli carpani (%15) duserse F9 KIRMIZI.
@@ -278,7 +302,7 @@ const VERI_MUTANTLAR = [
 for (const [ad, capa, yerine, olmeli] of VERI_MUTANTLAR) {
   if (VERI_KAYNAK.split(capa).length !== 2) { ol(ad + " capa bulundu (tek)", false, capa); continue; }
   const mutant = VERI_KAYNAK.replace(capa, yerine);
-  const s = formulSenaryolar(veriYukle(mutant));
+  const s = formulSenaryolar(veriYukle(mutant), mutant);
   s.F7 = tabansizSenaryo(mutant);
   s.F8 = surguSenaryo(veriYukle(mutant)).F8;
   s.F9 = renkSenaryo(veriYukle(mutant), mutant).F9;

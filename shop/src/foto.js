@@ -51,7 +51,7 @@
 import "../../foto-uretim-veri.js";
 // "../src/" bilerek: mutant bataryalari foto.js'i shop/<gecici>/ altina TEK dosya kopyalar; bu yol
 // hem shop/src/ hem kopya dizininden ayni modulu bulur.
-import { turnstileHostKabul } from "../src/onizleme.js";
+import { turnstileHostKabul, onizlemeMi } from "../src/onizleme.js";
 
 const VERI = globalThis.PRUVO_FOTO;
 if (!VERI) { throw new Error("foto-uretim-veri.js yuklenemedi — tur/ornek tek kaynagi yok"); }
@@ -67,7 +67,7 @@ if (!VERI) { throw new Error("foto-uretim-veri.js yuklenemedi — tur/ornek tek 
  */
 export const TUR_ORTAM = { plaket: "URETIM_TUR_PLAKET", figur: "URETIM_TUR_FIGUR" };
 /** Build adiminda olcu sinirlari (mm; plaketin en uzun boyutu) — manifest kaydi yoksa yedek aralik. */
-export const OLCU_MM_EN_AZ = 10; // Okan 8 Eki 14:0x: "slider 10 mm.den baslasin" (manifest plaket olcu_mm ile AYNI; fiyat tabani 600 TL)
+export const OLCU_MM_EN_AZ = 60; // Okan 10 Eki ~13:4x: "plaket de 60 mm olsun" (manifest plaket olcu_mm ile AYNI; 60 mm = fiyat tabani 600 TL)
 export const OLCU_MM_EN_COK = 300; // Okan 6 Eki ust sinir 300 mm (saglayici sinir 400)
 /**
  * PLAKET GEOMETRISI (herkese AYNI; ayak bu taban kalinligina gore yuvali uretilir — TeKiN).
@@ -125,6 +125,12 @@ function saglayiciIsi(is) { return saglayiciTuru(yolTuru(is)); }
 function uretecOnizlemeIsi(is) { return !figurKolu(is) && !!is && uretecOnizlemeTuru(is.tur); }
 /** Is deterministik kolda mi (figur kolu HARIC). */
 function deterministikIs(is) { return !figurKolu(is) && !!is && deterministikTur(is.tur); }
+/**
+ * ④ RENDER KOLU (Okan 11 Eki "bu 4 renkli bir figur degil"): figur (insan · pet · model) + anahtarlik-figur.
+ * Bu islerde ④ gorseli = uretim 3MF'inin render'i (yerel koşucu R2 `foto-onizleme/<is>-render.webp`); yoksa
+ * istemci saglayici gorselini durust cumleyle gosterir. Plaket ve deterministik kol DEGISMEZ.
+ */
+export function renderKolu(is) { return !!is && (figurKolu(is) || (is.tur === "figur" && !is.cesit)); }
 /** Isin hazirligi: turun ortak sartlari + figur kolunda saglayici yol turunun sartlari. */
 function isHazir(env, is) {
   if (!turHazir(env, is.tur).hazir) { return false; }
@@ -134,6 +140,18 @@ function isHazir(env, is) {
 async function isCesidi(env, isNo) {
   const r = await env.KATALOG.prepare("SELECT cesit FROM foto_isler WHERE is_no = ?").bind(isNo).first();
   return r && typeof r.cesit === "string" ? r.cesit : "";
+}
+/**
+ * Is satirinin figur ALT TURU (D1 foto_isler.alt_tur; siparis kapisi modeli bundan cozer). Satir/sutun yok ya da okuma
+ * herhangi bir hatayla dusuyorsa "" -> figur modeli cozulmez -> KAPALI (fail-closed; goc oncesi semada da 500 YOK).
+ */
+async function isAltTuru(env, isNo) {
+  try {
+    const r = await env.KATALOG.prepare("SELECT alt_tur FROM foto_isler WHERE is_no = ?").bind(isNo).first();
+    return r && typeof r.alt_tur === "string" ? r.alt_tur : "";
+  } catch (e) {
+    return "";
+  }
 }
 /** Tur basina olcu araligi (kayittan); plaket kaydi OLCU_MM_EN_AZ/EN_COK ile AYNI. */
 function olcuAraligi(kod) {
@@ -216,6 +234,64 @@ export function uretimNotuDogrula(x) {
   if (Array.from(d).length > URETIM_NOTU_EN_COK) { return { ok: false, hata: "not-uzun" }; }
   if (NOT_EPOSTA.test(d) || NOT_TELEFON.test(d)) { return { ok: false, hata: "not-kisisel-veri" }; }
   return { ok: true, deger: d };
+}
+
+/**
+ * FIGUR ALT TURU -> saglayici istemi (TEK yer; Okan 10 Eki 6 model: insan/pet ayakta duran figur, model figur).
+ * Istemci yalniz alt tur KODUNU yollar (`alt_tur`); istem metni burada kurulur. Bos not -> istem yalniz foto +
+ * alt tur (not saglayiciya GITMEZ). Eski `hayvan_model` kaydi `pet` sayilir (geriye uyum, cokmez).
+ */
+export const FIGUR_ALT_ISTEM = Object.freeze({
+  insan: "Ayakta duran, tam boy (baştan ayağa), tek kişi, kaideli figür.",
+  pet: "Ayakta duran, tam boy, tek hayvan, kaideli figür.",
+  model: "Fotoğraftaki nesnenin, aracın ya da modelin kaideli figürü.",
+});
+const ESKI_ALT_TUR = Object.freeze({ hayvan_model: "pet" });
+/** `alt_tur` alani: yok -> "" (alt tursuz istek; istem yok) · kapali kume disi / metin degil -> null (RED). */
+export function figurAltTurCoz(x) {
+  if (x === undefined || x === null || x === "") { return ""; }
+  if (typeof x !== "string") { return null; }
+  const a = Object.prototype.hasOwnProperty.call(ESKI_ALT_TUR, x) ? ESKI_ALT_TUR[x] : x;
+  return Object.prototype.hasOwnProperty.call(FIGUR_ALT_ISTEM, a) ? a : null;
+}
+/** Saglayici istemi: yalniz figur TURU (cesitsiz) + bilinen alt tur; digerlerinde "" (govdeye alan YAZILMAZ). */
+export function figurIstemi(tur, cesit, altTur) {
+  const a = tur === "figur" && !cesit ? figurAltTurCoz(altTur) : "";
+  return a ? FIGUR_ALT_ISTEM[a] : "";
+}
+
+/**
+ * 6 MODEL (Okan 10 Eki: "canlida YALNIZ gecen model"): acilis anahtari MODEL duzeyinde. D1 `foto_acik.tur` model
+ * kodunu tasir; modelli turun (anahtarlik, figur) ESKI tur satiri ('anahtarlik' / 'figur') tek basina HICBIR modeli
+ * acmaz (fail-closed). Modelsiz tur (bust, yapboz, litofan, ...) tur koduyla acilir (bugunku gibi); plaket: model
+ * kodu = tur kodu. Kod/sira/ad istemci KARTLAR ile AYNI (foto-uretim.js). Goc: tools/d1-goc/2026-10-10-foto-model-acik.sql
+ */
+export const MODELLER = Object.freeze([
+  Object.freeze({ kod: "anahtarlik_yazi", tur: "anahtarlik", cesit: "yazi", alt: "", ad: "Anahtarlık – yazı" }),
+  Object.freeze({ kod: "insan", tur: "figur", cesit: "", alt: "insan", ad: "İnsan figürü (ayakta)" }),
+  Object.freeze({ kod: "pet", tur: "figur", cesit: "", alt: "pet", ad: "Pet figürü (ayakta)" }),
+  Object.freeze({ kod: "plaket", tur: "plaket", cesit: "", alt: "", ad: "Kabartma plaket" }),
+  Object.freeze({ kod: "anahtarlik_figur", tur: "anahtarlik", cesit: "figur", alt: "", ad: "Anahtarlık – figür" }),
+  Object.freeze({ kod: "model", tur: "figur", cesit: "", alt: "model", ad: "Model figür" }),
+]);
+/** Modelli tur: modeli tur kodundan FARKLI kodla acilan tur (anahtarlik, figur). */
+export function modelliTur(tur) { return MODELLER.some((m) => m.tur === tur && m.kod !== tur); }
+/**
+ * Istegin / isin MODEL KODU: tur + cesit ('' / undefined = turun varsayilan cesidi) + figur alt turu (figurAltTurCoz;
+ * eski hayvan_model -> pet). Modelsiz tur -> tur kodu. Cozulemeyen (alt tursuz figur, kume disi) -> "" = KAPALI.
+ */
+export function modelKodu(tur, cesit, altTur) {
+  if (typeof tur !== "string") { return ""; }
+  if (!modelliTur(tur)) { return tur; }
+  const c = cesit ? cesit : (VERI.cesitCoz(tur, undefined) || "");
+  const a = tur === "figur" && !cesit ? (figurAltTurCoz(altTur) || "") : "";
+  const m = MODELLER.find((x) => x.tur === tur && x.cesit === c && x.alt === a);
+  return m ? m.kod : "";
+}
+/** Model acik mi: model kodu cozulur VE acilis anahtarinda (acikAnahtari kumesi) VAR. */
+export function modelAcik(acik, tur, cesit, altTur) {
+  const k = modelKodu(tur, cesit, altTur);
+  return !!k && acik instanceof Set && acik.has(k);
 }
 
 /** Bir siparis kalemi en cok kac adet (ayni dosyadan coklu baski). */
@@ -376,7 +452,8 @@ export function ornekYapilandirma(env) {
  * ACILIS ANAHTARI (Okan 7 Eki 15:4x: fiyat tablosu KALKTI). Eskiden bir turun ACIK olmasi = fiyat
  * tablosunda satiri var demekti (11:2x kapatmasi satirlar silinerek yapildi); o anahtar burada ACIK
  * yazilir: D1 `foto_acik` (tur, acik). VARSAYILAN KAPALI — satir yok, acik != 1, tablo yok ya da
- * okuma HERHANGI bir hatayla dusuyorsa o tur KAPALI (fail-closed). Donus: acik tur kodlari (Set).
+ * okuma HERHANGI bir hatayla dusuyorsa o tur KAPALI (fail-closed). Donus: acik kodlar (Set; model kodu ya da
+ * modelsiz tur kodu — MODELLER).
  */
 export async function acikAnahtari(env) {
   try {
@@ -394,7 +471,8 @@ export async function acikAnahtari(env) {
 export function acikTurler(acik) {
   const kume = acik instanceof Set ? acik : new Set();
   return VERI.turler
-    .filter((t) => kume.has(t.kod))
+    // Modelli tur: modellerinden en az biri acik (tur satiri tek basina ACMAZ); modelsiz tur: kendi kodu.
+    .filter((t) => (modelliTur(t.kod) ? MODELLER.some((m) => m.tur === t.kod && kume.has(m.kod)) : kume.has(t.kod)))
     .filter((t) => turSunuluyor(t.kod))
     .filter((t) => VERI.ornekSayisi(t.kod) > 0)
     .map((t) => ({
@@ -892,23 +970,41 @@ export async function havuzHukmu(env, simdi, telegram) {
 
 // ---------------------------------------------------------------- uc: /foto/acik
 
+// BaBa 10 Eki 12:5x: onizleme ortaminda (ONIZLEME=1) ziyaretci 24 sa / N hak kapisi KAPALI — uc cagri yeri
+// (onizleme · uretec onizleme · litofan) bu tek fonksiyondan okur. Canlida AYNEN. Kalan masraf kapilari
+// (KREDI_TAVAN · Turnstile · GUNLUK_ONIZLEME_TAVANI) onizlemede de DURUR.
+function ziyaretciSiniriVar(env) {
+  return !onizlemeMi(env);
+}
+/** Yanita giren kalan hak: onizleme ortaminda alan YOK (istemci sayi uydurmaz, "0/N" basip dugmeyi kilitlemez). */
+function kalanHak(env, sayi) {
+  return ziyaretciSiniriVar(env) ? { kalan: Math.max(0, VERI.sinir_ziyaretci_24s - sayi.kisi - 1) } : {};
+}
+
 async function acikUcu(env, simdi, telegram) {
   const y = yapilandirma(env);
   const sinir = VERI.sinir_ziyaretci_24s;
-  const taban = { onay_surum: VERI.onay_surum, sinir: sinir, gecerlilik_saat: VERI.gecerlilik_saat };
+  // ziyaretci_siniri false = onizleme ortami (24 sa / N hak kapisi KAPALI; istemci hak satirini gostermez).
+  const taban = { onay_surum: VERI.onay_surum, sinir: sinir, gecerlilik_saat: VERI.gecerlilik_saat,
+                  ziyaretci_siniri: ziyaretciSiniriVar(env) };
   // Saglayici kolu hazir degilse yalniz hazir deterministik turler acik kalabilir.
   if (!y.hazir && !DETERMINISTIK_TURLER.some((k) => turHazir(env, k).hazir)) {
-    return fjson({ acik: false, turler: [], ...taban }, 200);
+    return fjson({ acik: false, turler: [], modeller: [], ...taban }, 200);
   }
-  let turler = acikTurler(await acikAnahtari(env)).filter((t) => turHazir(env, t.kod).hazir);
-  if (!turler.length) { return fjson({ acik: false, turler: [], ...taban }, 200); }
+  const acik = await acikAnahtari(env);
+  let turler = acikTurler(acik).filter((t) => turHazir(env, t.kod).hazir);
+  if (!turler.length) { return fjson({ acik: false, turler: [], modeller: [], ...taban }, 200); }
   // Havuz (kredi) yalniz saglayici kolunu kapatir; deterministik kol kredi harcamaz.
   if (turler.some((t) => saglayiciTuru(t.kod))) {
     const havuz = await havuzHukmu(env, simdi, telegram);
     if (!havuz.acik) { turler = turler.filter((t) => !saglayiciTuru(t.kod)); }
   }
-  if (!turler.length) { return fjson({ acik: false, turler: [], ...taban }, 200); }
-  return fjson({ acik: true, turler, ...taban }, 200);
+  if (!turler.length) { return fjson({ acik: false, turler: [], modeller: [], ...taban }, 200); }
+  // MODELLER: acik model kodlari (kartin KENDI kodu; istemci kart cizimini bundan yapar). Turu sunulmayan
+  // (hazir degil / havuz esikte) model dusulur; cesit modeli statik cesit bayragiyla VE'lenir.
+  const modeller = MODELLER.filter((m) => acik.has(m.kod) && turler.some((t) => t.kod === m.tur) &&
+    (!m.cesit || !VERI.cesitler[m.tur] || VERI.cesitAcik(m.tur, m.cesit))).map((m) => m.kod);
+  return fjson({ acik: true, turler, modeller, ...taban }, 200);
 }
 
 // ---------------------------------------------------------------- uc: /foto/onizleme
@@ -1012,6 +1108,15 @@ async function onizlemeUcu(request, env, simdi, telegram) {
   }
   // FIGUR CESIDI (kapidan gectiyse = acik:true): uretec yonlendirmesi ATLANIR, is saglayici koluna gider.
   const cesit = g && typeof g === "object" && figurKolu({ cesit: VERI.cesitCoz(g.tur, g.cesit) }) ? "figur" : "";
+  // MODEL KAPISI (6 model): modelli turde istek model koduna cozulur; kodu ACIK degilse 400 — saglayici 0,
+  // kuyruk 0, kredi 0 (uretec ve saglayici kolunun ikisinden de ONCE).
+  if (g && typeof g === "object" && modelliTur(g.tur)) {
+    const at = g.tur === "figur" && !cesit ? figurAltTurCoz(g.alt_tur) : "";
+    if (at === null) { return fjson({ hata: "gecersiz-alt-tur" }, 400); }
+    if (!modelAcik(await acikAnahtari(env), g.tur, VERI.cesitCoz(g.tur, g.cesit), at)) {
+      return fjson({ hata: "model-kapali" }, 400);
+    }
+  }
   // URETEC KOLU: tarayici onizleyicisi olmayan D/R turu saglayiciya GITMEZ, koşucu kuyruguna girer.
   if (!cesit && g && typeof g === "object" && uretecOnizlemeTuru(g.tur)) { return uretecOnizlemeUcu(request, env, simdi, g); }
   if (!y.hazir) { return fjson({ hata: "kapali" }, 503); }
@@ -1025,9 +1130,14 @@ async function onizlemeUcu(request, env, simdi, telegram) {
   if (gh) { return fjson({ hata: gh }, 400); }
   const nt = uretimNotuDogrula(g.not);
   if (!nt.ok) { return fjson({ hata: nt.hata }, 400); }
+  // FIGUR ALT TURU (insan | pet | model; eski hayvan_model -> pet): kapali kume disi -> 400, saglayici 0.
+  const altTur = tur.kod === "figur" && !cesit ? figurAltTurCoz(g.alt_tur) : "";
+  if (altTur === null) { return fjson({ hata: "gecersiz-alt-tur" }, 400); }
   const olcu = Number.isInteger(g.olcu_mm) ? g.olcu_mm : null;
   if (!tur.olculer.some((o) => o.mm === olcu)) { return fjson({ hata: "gecersiz-olcu" }, 400); }
   if (!cesitOlcuUygun(tur.kod, cesit, olcu)) { return fjson({ hata: "gecersiz-olcu" }, 400); }
+  // MODEL BASINA OLCU (BaBa 22:3x): figur alt turunun KENDI araligi (VERI.olcu_modelleri; insan tavani 105 ...).
+  if (!VERI.modelOlcuGecerli(tur.kod, altTur, olcu)) { return fjson({ hata: "gecersiz-olcu" }, 400); }
   // ONAY: tek aydinlatma kutusu + musterinin gordugu metin GUNCEL surum.
   const oh = aydinlatmaOnayHatasi(g);
   if (oh) { return fjson({ hata: oh }, 400); }
@@ -1039,7 +1149,7 @@ async function onizlemeUcu(request, env, simdi, telegram) {
   const makine = await makineIstegi(request, env);
   const ziyaretci = makine ? MAKINE_ZIYARETCI : await ziyaretciOzeti(env, ip);
   const sayi = await onizlemeSayisi(env, ziyaretci, simdi);
-  if (!makine && sayi.kisi >= VERI.sinir_ziyaretci_24s) {
+  if (!makine && ziyaretciSiniriVar(env) && sayi.kisi >= VERI.sinir_ziyaretci_24s) {
     return fjson({ hata: "onizleme-siniri", sinir: VERI.sinir_ziyaretci_24s }, 429);
   }
   if (sayi.genel >= GUNLUK_ONIZLEME_TAVANI) { return fjson({ hata: "kapali" }, 503); }
@@ -1051,9 +1161,9 @@ async function onizlemeUcu(request, env, simdi, telegram) {
 
   const isNo = yeniIsNo();
   const hata = await onizlemeGonder(env, isNo, tur.kod, olcu, ziyaretci, gorsel.uri, simdi, telegram, nt.deger,
-    VERI.onay_surum, cesit);
+    VERI.onay_surum, cesit, altTur);
   if (hata) { return hata; }
-  return fjson({ is: isNo, kalan: Math.max(0, VERI.sinir_ziyaretci_24s - sayi.kisi - 1) }, 200);
+  return fjson({ is: isNo, ...kalanHak(env, sayi) }, 200);
 }
 
 /** Onay kaydi: surum doluysa {tarih: onay ani (ISO), surum}; bos surum (ornek kolu) -> iki alan da bos. */
@@ -1061,9 +1171,11 @@ function onayKaydi(onaySurum, simdi) {
   return onaySurum ? { tarih: simdiIso(simdi), surum: onaySurum } : { tarih: "", surum: "" };
 }
 
-/** Cesidin olcu tavani (figur: olcu_en_cok 50 mm); cesitsiz/tavansiz -> uygun. */
+/** Cesidin olcu araligi (figur: kopruden TURER — foto_kolu.olcu_en_az 30 .. olcu_en_cok 291, kulak dahil);
+ *  cesitsiz/sinirsiz -> uygun. */
 function cesitOlcuUygun(tur, cesit, olcu) {
   const ck = cesit ? VERI.cesitKaydi(tur, cesit) : null;
+  if (ck && Number.isInteger(ck.olcu_en_az) && !(Number.isInteger(olcu) && olcu >= ck.olcu_en_az)) { return false; }
   return !ck || !Number.isInteger(ck.olcu_en_cok) || (Number.isInteger(olcu) && olcu <= ck.olcu_en_cok);
 }
 
@@ -1071,14 +1183,17 @@ function cesitOlcuUygun(tur, cesit, olcu) {
  * Is satirini yazar + saglayiciya onizleme gorevini gonderir (musteri ve ornek kolu ORTAK).
  * Basarida null; hatada musteriye/panele donulecek yanit.
  */
-async function onizlemeGonder(env, isNo, tur, olcu, ziyaretci, uri, simdi, telegram, uretimNotu, onaySurum, cesit) {
+async function onizlemeGonder(env, isNo, tur, olcu, ziyaretci, uri, simdi, telegram, uretimNotu, onaySurum, cesit, altTur) {
   // Is satiri SAGLAYICIDAN ONCE yazilir: reddedilen deneme de ziyaretci sinirindan duser
   // (sinir "basarili onizleme" degil "deneme" sayar -> kaba kuvvetle kredi yakilamaz).
   // Uretim notu (dogrulanmis) yalniz doluysa sutuna yazilir: bos notta goc oncesi sema da calisir.
   // Aydinlatma onayi (damga + surum) musteri kolunda her satira; ornek (panel) kolu muaf -> bos.
   const onay = onayKaydi(onaySurum, simdi);
   // CESIT (TUR-C2a): yalniz figur kolunda sutuna yazilir (plaket satiri AYNEN; '' = turun kolu).
-  const ekS = cesit ? ", cesit" : "", ekY = cesit ? ", ?" : "", ekB = cesit ? [cesit] : [];
+  // ALT TUR (6 model): figur alt turu sutuna yazilir — siparis kapisi modeli (insan|pet|model) BUNDAN cozer.
+  const ekA = (cesit ? ["cesit"] : []).concat(altTur ? ["alt_tur"] : []);
+  const ekS = ekA.map((a) => ", " + a).join(""), ekY = ekA.map(() => ", ?").join("");
+  const ekB = (cesit ? [cesit] : []).concat(altTur ? [altTur] : []);
   if (uretimNotu) {
     await env.KATALOG.prepare(
       "INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, uretim_notu, onay_tarih, onay_surum" + ekS + ")" +
@@ -1099,12 +1214,16 @@ async function onizlemeGonder(env, isNo, tur, olcu, ziyaretci, uri, simdi, teleg
     }), { httpMetadata: { contentType: "application/json" } });
   }
 
-  const c = await saglayici(env, "POST", turYolu(env, yolTuru({ tur, cesit })) + "/v1/prototype", {
+  const prototip = {
     image_url: uri,
     name: "pruvo-" + isNo.slice(0, 12),
     // Arka plan kaldirilir: kabartma urun de arka plani atar; onizleme urune benzesin.
     remove_background: true,
-  });
+  };
+  // Figur alt turu istemi (FIGUR_ALT_ISTEM, tek yer); alt tursuz istekte alan YOK (bugunku govde aynen).
+  const istem = figurIstemi(tur, cesit, altTur);
+  if (istem) { prototip.prompt = istem; }
+  const c = await saglayici(env, "POST", turYolu(env, yolTuru({ tur, cesit })) + "/v1/prototype", prototip);
   const gorev = gorevKimligi(c.govde);
   if (c.kod < 200 || c.kod >= 300 || !gorev) {
     const sebep = c.kod === 400 ? "gorsel-uygun-degil" : (c.kod === 402 ? "kredi" : "saglayici");
@@ -1193,7 +1312,7 @@ async function uretecOnizlemeUcu(request, env, simdi, g) {
   const ziyaretci = makine ? MAKINE_ZIYARETCI : await ziyaretciOzeti(env, ip);
   const sayi = await onizlemeSayisi(env, ziyaretci, simdi);
   const sinir = VERI.sinir_ziyaretci_24s;
-  if (!makine && sayi.kisi >= sinir) { return fjson({ hata: "onizleme-siniri", sinir }, 429); }
+  if (!makine && ziyaretciSiniriVar(env) && sayi.kisi >= sinir) { return fjson({ hata: "onizleme-siniri", sinir }, 429); }
   if (sayi.genel >= GUNLUK_ONIZLEME_TAVANI) { return fjson({ hata: "kapali" }, 503); }
   const bot = await botDogrula(request, env, g.turnstile_token);
   if (!bot) { return fjson({ hata: "bot-dogrulama" }, 403); }
@@ -1221,7 +1340,7 @@ async function uretecOnizlemeUcu(request, env, simdi, g) {
       " VALUES (?, ?, ?, ?, ?, 'uretec-onizleme', 0, '', ?, ?, ?)"
     ).bind(isNo, tur.kod, olcu, ziyaretci, simdiIso(simdi), onay.tarih, onay.surum, cesit).run();
   }
-  return fjson({ is: isNo, kalan: Math.max(0, VERI.sinir_ziyaretci_24s - sayi.kisi - 1),
+  return fjson({ is: isNo, ...kalanHak(env, sayi),
                  yoklama: URETEC_YOKLAMA }, 200);
 }
 
@@ -1316,7 +1435,7 @@ async function litofanUcu(request, env, simdi) {
   const ziyaretci = makine ? MAKINE_ZIYARETCI : await ziyaretciOzeti(env, ip);
   const sayi = await onizlemeSayisi(env, ziyaretci, simdi);
   // Plaketle AYNI sayac (foto_isler): litofan haritasi da ziyaretcinin gunluk hakkindan duser.
-  if (!makine && VERI.sinir_ziyaretci_24s <= sayi.kisi) {
+  if (!makine && ziyaretciSiniriVar(env) && VERI.sinir_ziyaretci_24s <= sayi.kisi) {
     return fjson({ hata: "onizleme-siniri", sinir: VERI.sinir_ziyaretci_24s }, 429);
   }
   if (sayi.genel >= GUNLUK_ONIZLEME_TAVANI) { return fjson({ hata: "kapali" }, 503); }
@@ -1330,13 +1449,21 @@ async function litofanUcu(request, env, simdi) {
     "INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, hazir_tarih, kredi, onay_tarih, onay_surum)" +
     " VALUES (?, ?, ?, ?, ?, 'hazir', ?, 0, ?, ?)"
   ).bind(isNo, tur.kod, olcu, ziyaretci, simdiIso(simdi), simdiIso(simdi), onay.tarih, onay.surum).run();
-  return fjson({ is: isNo, kalan: Math.max(0, VERI.sinir_ziyaretci_24s - sayi.kisi - 1),
+  return fjson({ is: isNo, ...kalanHak(env, sayi),
                  gecerlilik_bitis: new Date(simdi + VERI.gecerlilik_saat * 3600 * 1000).toISOString() }, 200);
 }
 
 // ---------------------------------------------------------------- uc: /foto/durum + /foto/gorsel
 
 function onizlemeAnahtari(isNo) { return "foto-onizleme/" + isNo + ".png"; }
+/** ④ render'i (tools/foto-uretec-kosucu.py onizleme_render_anahtari ile AYNI). */
+function onizlemeRenderAnahtari(isNo) { return "foto-onizleme/" + isNo + "-render.webp"; }
+
+/** Render kolunda hazir isin render'i R2'de var mi (okuma hatasi = yok; uydurulmus adres YOK). */
+async function renderVar(env, is) {
+  if (!is || is.asama !== "hazir" || !renderKolu(is) || !env.OZEL_DOSYA) { return false; }
+  try { return !!(await env.OZEL_DOSYA.head(onizlemeRenderAnahtari(is.is_no))); } catch (e) { return false; }
+}
 
 async function isGetir(env, isNo) {
   return env.KATALOG.prepare(
@@ -1352,10 +1479,12 @@ async function isGetirYoksaNull(env, isNo) {
   }
 }
 
-function durumYaniti(is) {
+function durumYaniti(is, render) {
   if (is.asama === "hazir") {
     return fjson({ asama: "hazir", tur: is.tur, olcu_mm: is.olcu_mm,
                    gorsel: "/api/shop/foto/gorsel?is=" + is.is_no,
+                   // ④: render varsa istemci ONU gosterir (palete indirgeme YOK); yoksa alan YOK.
+                   ...(render ? { render: "/api/shop/foto/gorsel?is=" + is.is_no + "&gorunum=render" } : {}),
                    gecerlilik_bitis: new Date(Date.parse(is.hazir_tarih) +
                      VERI.gecerlilik_saat * 3600 * 1000).toISOString() }, 200);
   }
@@ -1380,7 +1509,7 @@ async function durumUcu(env, url, simdi) {
   // Ornek isi (panel) musteri ucunda YOK sayilir: varligi da sizmaz.
   if (ornekMi(is)) { return fjson({ hata: "bulunamadi" }, 404); }
   if (uretecOnizlemeIsi(is)) { return uretecDurumYaniti(env, is, simdi); }
-  return onizlemeIlerle(env, is, simdi, yapilandirma(env).hazir, durumYaniti);
+  return onizlemeIlerle(env, is, simdi, yapilandirma(env).hazir, async (x) => durumYaniti(x, await renderVar(env, x)));
 }
 
 /**
@@ -1448,6 +1577,10 @@ async function gorselUcu(env, url) {
   // Ornek isinin gorseli musteri ucundan SUNULMAZ (panel ucu: /yonet/foto/ornek-gorsel).
   if (ornekMi(is)) { return fjson({ hata: "bulunamadi" }, 404); }
   // Uretec onizlemesi koşucunun R2 dizininde (onizleme.png); digerleri foto-onizleme/<is>.png.
+  // ④ render'i yalniz render kolunda (figur); baska iste `gorunum=render` YOK sayilir.
+  if (url.searchParams.get("gorunum") === "render") {
+    return renderKolu(is) ? onizlemeGorseli(env, isNo, onizlemeRenderAnahtari(isNo)) : fjson({ hata: "bulunamadi" }, 404);
+  }
   return onizlemeGorseli(env, isNo, uretecOnizlemeIsi(is) ? uretecOnizlemeAnahtari(isNo, "onizleme.png") : "");
 }
 
@@ -1551,14 +1684,16 @@ export function fotoKalemCoz(k) {
  * AKTIF bolgelerde FARKLI renk sayisi <= tavan (renk_kosul'u saglanmayan bolge uretilmez -> sayilmaz, BaBa 8 Eki 15:5x).
  * Renkli yalniz fotografli turde (VERI.renkliSecilebilir). Renk ADEDI fiyata GIRMEZ. Kural bozuksa null (400, fail-closed).
  */
-function renkSayimi(turKod, k, sc, p) {
-  const tavan = VERI.renkTavani(turKod);
-  if (tavan === null) { return null; }
+function renkSayimi(turKod, k, sc, p, cesit) {
   const renkli = k.renkli === true;
-  if (renkli && !VERI.renkliSecilebilir(turKod)) { return null; }
+  // CESIT PALETI (figur anahtarlik renk_modu palet): Renkli'de renkler kalemden, tavan cesidin (4); tek renkte bugunku yol.
+  const cesitPalet = renkli && cesit !== undefined && VERI.cesitPaleti(turKod, cesit);
+  const tavan = cesitPalet ? VERI.cesitRenkTavani(turKod, cesit) : VERI.renkTavani(turKod);
+  if (tavan === null) { return null; }
+  if (renkli && !VERI.renkliSecilebilir(turKod, cesit)) { return null; }
   const izinli = renkli ? VERI.PLA_RENKLERI : VERI.ANA_RENKLER;
   let renkler;
-  if (VERI.renkPaleti(turKod)) {
+  if (VERI.renkPaleti(turKod) || cesitPalet) {
     const r = Array.isArray(k.renkler) ? k.renkler : [];
     if (!r.length || new Set(r).size !== r.length || !r.every((x) => izinli.includes(x))) { return null; }
     renkler = r.slice();
@@ -1637,13 +1772,22 @@ export async function fotoKalemFiyatla(env, k, simdi) {
   }
   // Turun kendi kolu hazir olmali (deterministik tur saglayici anahtari istemez).
   if (turSunuluyor(is.tur) && !isHazir(env, is)) { return { hata: { hata: "foto-kapali" }, kod: 400 }; }
-  const tur = acikTurler(await acikAnahtari(env)).find((t) => t.kod === is.tur);
+  const acik = await acikAnahtari(env);
+  const tur = acikTurler(acik).find((t) => t.kod === is.tur);
   if (!tur) { return { hata: { hata: "foto-kapali" }, kod: 400 }; }
+  // MODEL KAPISI (6 model): onizlemeden sonra kapanan model sepete/odemeye BAGLANAMAZ (sessiz satis yok).
+  const isAlt = is.tur === "figur" && !is.cesit ? await isAltTuru(env, is.is_no) : "";
+  if (!modelAcik(acik, is.tur, is.cesit || "", isAlt)) {
+    return { hata: { hata: "model-kapali", mesaj: "Fotoğraftan üretim şu an alınamıyor." }, kod: 400 };
+  }
   // TURETILMIS eksen: olcu = onizleme isinin KAYITLI (koşucunun olctugu) olcusu; istemcinin olcu_mm'si OKUNMAZ.
   const mm = VERI.olcuTuretilmis(tur.kod) ? is.olcu_mm : k.olcu_mm;
   const fk = VERI.fiyatKurus(tur.kod, mm);
   const olcu = fk > 0 ? { mm, fiyat_kurus: fk } : null;
   if (!olcu) { return { hata: { hata: "gecersiz-olcu" }, kod: 400 }; }
+  // MODEL BASINA OLCU (BaBa 22:3x): siparis olcusu isin figur alt turunun araliginda (insan 41..105, pet 60..136, model
+  // 60..300); tavan ustu 400 (fiyat formulu zarfa acik, modelin kumesi BURADA istenir). Modelsiz tur: olcuGecerli AYNEN.
+  if (!VERI.modelOlcuGecerli(tur.kod, isAlt, mm)) { return { hata: { hata: "gecersiz-olcu" }, kod: 400 }; }
   // DINAMIK MIN (BaBa 14:3x): icerige bagli turde (ses/braille/koordinat) alt sinir onizlemede kopru min-hesapla ile
   // olculur (olcu.json min_mm); altindaki olcu URETILEMEZ -> 400. Olcum yoksa (eski onizleme) fail-closed.
   if (VERI.turBul(tur.kod).olcu_min_dinamik === true) {
@@ -1656,7 +1800,8 @@ export async function fotoKalemFiyatla(env, k, simdi) {
   }
   if (deterministikIs(is)) { return deterministikSatir(env, tur, olcu, k, is); }
   // Renkler kalemden (palet); birim = TEK formul, renkli + malzeme carpaniyla (istemci tutari OKUNMAZ).
-  const rs = renkSayimi(tur.kod, k, null);
+  // Figur kolunda cesit (D1 foto_isler.cesit) renk kuralina girer: Renkli yalniz palet cesidinde (VERI.cesitPaleti).
+  const rs = renkSayimi(tur.kod, k, null, undefined, figurKolu(is) ? is.cesit : undefined);
   if (!rs) { return RENK_HATASI; }
   const malz = kalemMalzemesi(tur.kod, k);
   if (!malz) { return MALZEME_HATASI; }
@@ -1686,6 +1831,9 @@ export async function fotoKalemFiyatla(env, k, simdi) {
       olcu_kaynagi: olcuKaynagi(tur.kod),
       foto_renkler: rs.renkler,
       foto_renkli: rs.renkli,
+      // RENK MODU (BaBa 16:0x 2a): figur kolunda koşucuya giden `renk_modu` (palet = saglayici 3MF boyasi korunur);
+      // yalniz figur kolunda yazilir, alan yoksa koşucu `tek` sayar (geriye uyum).
+      ...(figurKolu(is) ? { foto_renk_modu: VERI.renkModu(tur.kod, is.cesit, rs.renkli) } : {}),
       // URETIMDE UNUTULMASIN: plaket basina ayak (ayri parca, ayni plakada basilir).
       foto_ayak: AYAK_PLAKET_BASI,
     },
@@ -2092,7 +2240,8 @@ async function uretimAdimi(env, u, simdi, telegram) {
     const glb = await dosyaIndir(glbAdres);
     if (!ucmf || !glb) { return gecici(env, u, simdi, telegram); }
     // OLCU KAPISI (onarimli + onarimsiz HER yol buradan gecer): olcu tutmazsa R2'ye YAZILMAZ.
-    const olc = await ucmfOlcekle(ucmf.tampon, u.olcu_mm);
+    // Hedef VERI.olcekHedefMm (figur cesidi: surgu kulak DAHIL; ciplak hedef = olcu, kulak sirtta buyutmez).
+    const olc = await ucmfOlcekle(ucmf.tampon, VERI.olcekHedefMm(u.olcu_mm));
     const ozet = analizOlcekli(u.analiz, olc);
     if (!olc.tampon) { return elleDusur(env, u, "olcu-tutmadi", ozet, simdi, telegram); }
     // ONARIM KAPISI (8 Eki 2026, BaBa hukmu): saglayici 3MF'i ASLA model.3mf olmaz. Ham dosya
@@ -2143,6 +2292,8 @@ async function onizlemeTemizle(env, simdi) {
   let silinen = 0;
   for (const s of (r.results || [])) {
     await env.OZEL_DOSYA.delete(onizlemeAnahtari(s.is_no));
+    // ④ render'i fotograftan turer: onizlemeyle AYNI saklama (3 gun).
+    if (renderKolu(s)) { await env.OZEL_DOSYA.delete(onizlemeRenderAnahtari(s.is_no)); }
     // Figur kolunun girdi.json'u da uretec dizinindedir.
     if (uretecOnizlemeIsi(s) || figurKolu(s)) {
       for (const ad of URETEC_DIZIN_ADLARI) { await env.OZEL_DOSYA.delete(uretecOnizlemeAnahtari(s.is_no, ad)); }
@@ -2468,6 +2619,12 @@ export async function panelFotoOzet(env, simdi) {
                                    olcu_en_az: olcuAraligi(t.kod).en_az, olcu_en_cok: olcuAraligi(t.kod).en_cok,
                                    olcu_adim: VERI.olcuAdimi(t.kod),
                                    fiyat_en_az_kurus: VERI.fiyatKurus(t.kod, olcuAraligi(t.kod).en_az) })),
+                  // Panel "Satisa acik" tablosu: modelli tur MODEL satirlariyla, modelsiz tur kendi satiriyla.
+                  acilis_satirlari: VERI.turler.filter((t) => turSunuluyor(t.kod))
+                    .flatMap((t) => (modelliTur(t.kod) ? MODELLER.filter((m) => m.tur === t.kod) : [t])
+                      .map((x) => ({ kod: x.kod, ad: x.ad, tur: t.kod,
+                                     olcu_en_az: olcuAraligi(t.kod).en_az, olcu_en_cok: olcuAraligi(t.kod).en_cok,
+                                     fiyat_en_az_kurus: VERI.fiyatKurus(t.kod, olcuAraligi(t.kod).en_az) }))),
                   olcu_en_az: OLCU_MM_EN_AZ, olcu_en_cok: OLCU_MM_EN_COK,
                   ayak_plaket_basi: AYAK_PLAKET_BASI,
                   elle: [], sema: true };
@@ -2510,7 +2667,8 @@ export async function panelFotoOzet(env, simdi) {
 export async function panelFotoAcik(request, env, simdi) {
   let g;
   try { g = await request.json(); } catch (e) { return fjson({ hata: "gecersiz-json" }, 400); }
-  const tur = g && turSunuluyor(g.tur) ? g.tur : null;
+  // Model kodu (6 model) ya da modelsiz tur kodu; modelli turun ESKI tur kodu ('anahtarlik'/'figur') RED.
+  const tur = g && (MODELLER.some((m) => m.kod === g.tur) || (turSunuluyor(g.tur) && !modelliTur(g.tur))) ? g.tur : null;
   if (!tur) { return fjson({ hata: "gecersiz-tur" }, 400); }
   if (typeof g.acik !== "boolean") { return fjson({ hata: "gecersiz-acik" }, 400); }
   if (g.acik) {
@@ -2545,8 +2703,9 @@ async function ornekIsGetir(env, isNo) {
 }
 
 /**
- * POST /yonet/foto/ornek-onizleme {gorsel, olcu_mm, tur?} — musteri ucuyla AYNI saglayici
+ * POST /yonet/foto/ornek-onizleme {gorsel, olcu_mm, tur?, alt_tur?} — musteri ucuyla AYNI saglayici
  * cagrisi + `foto_isler` satiri; ziyaretci siniri / bot / onay / gercek-ornek kapisi ATLANIR.
+ * `alt_tur` musteri ucuyla AYNI cozucu (figurAltTurCoz): yalniz figur turu (cesitsiz); gecersiz -> 400.
  * Anahtar/taban/tur yolu yoksa 503 (saglayiciya istek 0); havuz esigi AYNEN uygulanir.
  */
 export async function panelOrnekOnizleme(request, env, simdi, telegram) {
@@ -2570,6 +2729,10 @@ export async function panelOrnekOnizleme(request, env, simdi, telegram) {
   if (!olcu || !(VERI.fiyatKurus(tur, olcu) > 0) || !cesitOlcuUygun(tur, cesit, olcu)) {
     return fjson({ hata: "gecersiz-olcu" }, 400);
   }
+  const altTur = tur === "figur" && !cesit ? figurAltTurCoz(g.alt_tur) : "";
+  if (altTur === null) { return fjson({ hata: "gecersiz-alt-tur" }, 400); }
+  // Alt turlu figur ornegi satilan modelin olcusunde (BaBa 22:3x; alt tursuz ornek istemsiz, zarf AYNEN).
+  if (altTur && !VERI.modelOlcuGecerli(tur, altTur, olcu)) { return fjson({ hata: "gecersiz-olcu" }, 400); }
   const gorsel = gorselCoz(g.gorsel);
   if (!gorsel) { return fjson({ hata: "gorsel-gecersiz" }, 400); }
   const havuz = await havuzHukmu(env, simdi, telegram);
@@ -2577,7 +2740,8 @@ export async function panelOrnekOnizleme(request, env, simdi, telegram) {
     return fjson({ hata: "havuz-esikte", bakiye: havuz.bakiye, gereken: havuz.gereken }, 503);
   }
   const isNo = yeniIsNo();
-  const hata = await onizlemeGonder(env, isNo, tur, olcu, ORNEK_ZIYARETCI, gorsel.uri, simdi, telegram, "", "", cesit);
+  const hata = await onizlemeGonder(env, isNo, tur, olcu, ORNEK_ZIYARETCI, gorsel.uri, simdi, telegram, "", "", cesit,
+    altTur);
   if (hata) { return hata; }
   return fjson({ is: isNo }, 200);
 }
