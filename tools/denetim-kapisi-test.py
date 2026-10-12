@@ -654,6 +654,37 @@ check("MUT-ILGISIZ capasi tuttu (%d degisiklik)" % len(_ILGISIZ), not _ilgisiz_c
 check("MUT-ILGISIZ: fiyat kurali DISI degisiklik %d probun HICBIRINDE hukmu degistirmedi"
       % len(_PROBE_KUMESI), not _ilgisiz_bozdu)
 
+# --- TIER-A "figur" kolu: Oyun/Hobi oyuncak figur maket DEGIL (12 Eki) -----------------
+# Okan yasagi OLCEKLI MAKET/MODEL'dir; eklemli oyuncak figur yasak degil. Muafiyet YALNIZ
+# Oyun/Hobi + YALNIZ figur kolu: olcek/maket terimi Oyun/Hobi'de de auto_sil uretir.
+_FIG_VAKA = [
+    ("FIG-1 Oyun/Hobi eklemli dinozor figuru -> auto_sil YOK",
+     urun("fig-dino", "Eklemli dinozor figürü", kategori="Oyun/Hobi", marka=[]), False),
+    ("FIG-2 Oyun/Hobi 1:35 olcekli asker figuru -> auto_sil VAR",
+     urun("fig-asker", "1:35 ölçekli asker figürü", kategori="Oyun/Hobi", marka=[]), True),
+    ("FIG-3 Otomobil figur -> auto_sil VAR (eski davranis)",
+     urun("fig-oto", "Torpido figür tutucu", kategori="Otomobil"), True),
+]
+for _ad, _u, _bek in _FIG_VAKA:
+    _h = dk.kapi_maket_auto(_u)
+    print("%s: kapi_maket_auto=%r" % (_ad, _h))
+    check(_ad, (_h is not None) is _bek)
+_FIG_MUT = [
+    ("FIG-M1 kategori sarti kaldirildi (her kategoride figur muaf)", "if True:", "FIG-3"),
+    ("FIG-M2 Oyun/Hobi figur muafiyeti kaldirildi", "if False:", "FIG-1"),
+]
+_FIG_CAPA = ('    if tr_lower(str(urun.get("kategori") or "")).strip() in MAKET_FIGUR_MUAF_KATEGORI:\n'
+             '        return None                                   # oyuncak figur: maket DEGIL')
+for _ad, _kosul, _hedef in _FIG_MUT:
+    _mut = _mutant_yukle(_FIG_CAPA, "    %s\n        return None" % _kosul)
+    check(_ad + ": capa TEK kez tuttu (OLCULEMEDI yok)", _mut is not None)
+    if _mut is None:
+        continue
+    _kirmizi = [a for a, u, b in _FIG_VAKA if (_mut.kapi_maket_auto(u) is not None) is not b]
+    print("%s: KIRMIZI vakalar=%s" % (_ad, _kirmizi))
+    check(_ad + ": %s KIRMIZI (mutant yakalandi)" % _hedef,
+          any(a.startswith(_hedef + " ") for a in _kirmizi))
+
 # --- canli dosya DEGISMEDI (mutant dalda BIRAKILMADI) ---------------------------------
 _SHA_SONRA = _sha256(_DK_YOL)
 check("MUT-DISK: denetim-kapisi.py sha256 ONCE == SONRA (diske mutant YAZILMADI)",

@@ -18,7 +18,8 @@ KAPILAR (her biri ayri, tek tek test edilebilir fonksiyon):
      ile kisaltmaya cevrilip printables-api.satilabilir() ile denetlenir. Her iki yol FAIL-CLOSED.
   2. MAKET / LOGO (OLCUM ile iki katman — kanit muhendis raporunda):
      - TIER-A auto_sil: olcekli-model/maket ARAÇ (maket/olcekli/diorama/minyatur/figur/
-       "model araç"/"1/N olcek") — YASAK sinif, yanlis-pozitif dusuk.
+       "model araç"/"1/N olcek") — YASAK sinif, yanlis-pozitif dusuk. "figur" tek basina
+       Oyun/Hobi kategorisinde auto_sil URETMEZ (oyuncak figur maket degil); diger terimler orada da.
      - TIER-B/C ESKALASYON (silme YOK): baslikta logo/amblem/plaket/rozet/koleksiyon
        ("logoyu cikar -> urun kalir mi" YARGISI mimara); + marka + kabartma/rolyef/
        detayli form (logo imasi ama 'logo' kelimesi yok). Islevsel parca logoyu
@@ -159,9 +160,17 @@ _OLCU_RE = re.compile(_OLCU_PREFIX + r"[^\n]*?\d[\d\s.,×xX*+-]*mm\b", re.UNICOD
 #   gercek olcekli-model (Suzuki model araç ailesi) — yanlis-pozitif dusuk -> auto_sil.
 _MAKET_RE = re.compile(
     r"\bmaket\w*|\bölçekli\b|\bolcekli\b|\bdiorama\w*|\bminyatür\w*|\bminyatur\w*"
-    r"|\bfigür\w*|\bfigur\w*|\bgösterim modeli\b|\bgosterim modeli\b"
+    r"|\bgösterim modeli\b|\bgosterim modeli\b"
     r"|\bmodel (araç|araba|arac|gövde|govde|kiti|seti|kit)\b"
     r"|1\s*[/:]\s*\d+\s*(ölçek|olcek)", re.UNICODE)
+# "figür" ayri kol: Okan yasagi OLCEKLI MAKET/MODEL'dir, oyuncak figur (eklemli dinozor,
+#   ejder) YASAK DEGIL. 12 Eki: Oyun/Hobi'de "figür" sozcugu tek basina auto_sil uretiyordu
+#   (TREND×Oyuncak d1, 4 aday). Bu kol YALNIZ Oyun/Hobi kategorisinde susar; diger
+#   kategorilerde eski davranis. Oyun/Hobi'de de _MAKET_RE (maket/olcekli/diorama/1:N/
+#   model araç) AYNEN tetikler -> "1:24 ölçekli figür" hala yakalanir. Kategori kapiya
+#   urun dict'iyle gelir (kapi_maket_auto(urun)), metinden tahmin EDILMEZ.
+_FIGUR_RE = re.compile(r"\bfigür\w*|\bfigur\w*", re.UNICODE)
+MAKET_FIGUR_MUAF_KATEGORI = {"oyun/hobi"}
 #
 # TIER-B eskalasyon = LOGO/amblem/plaket/rozet/koleksiyon. OLCUM: baslik+aciklamada
 #   102 urune degiyor ama 68'i SADECE aciklamada gecen ISLEVSEL parca ("Honda jant
@@ -1157,7 +1166,13 @@ def ucretli_atif_kolu_bas(r):
 def kapi_maket_auto(urun):
     """TIER-A: olcekli-model/maket ARAÇ (YASAK) anahtar kelimesi baslik+aciklamada
     varsa eslesen ifadeyi dondur (auto_sil), yoksa None."""
-    m = _MAKET_RE.search(_metin(urun))
+    metin = _metin(urun)
+    m = _MAKET_RE.search(metin)
+    if m:
+        return m.group(0)
+    if tr_lower(str(urun.get("kategori") or "")).strip() in MAKET_FIGUR_MUAF_KATEGORI:
+        return None                                   # oyuncak figur: maket DEGIL
+    m = _FIGUR_RE.search(metin)
     return m.group(0) if m else None
 
 
