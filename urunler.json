@@ -1,5 +1,56 @@
 [
   {
+    "id": "masaustu-kalemlik-telefon-standi-s",
+    "kategori": "Ofis",
+    "marka": [],
+    "baslik": "Masaüstü Kalemlik ve Telefon Standı (2 Kalem Ø10 mm, Telefon Kalınlığı 10 mm)",
+    "aciklama": "Telefonu masada dik tutan yuva ile kalemleri ayakta tutan gözleri tek gövdede birleştiren, düz tabanlı masaüstü düzenleyici. Telefon öndeki yuvaya oturur ve geriye eğimli sırtlığa yaslanır; arkadaki blokta kalemler dik durur. Tek parçadır.\n- Telefon yuvası iç genişliği 76 mm; kılıf dahil 10 mm kalınlığa kadar telefonlar için\n- Sırtlık yataydan 70° eğimli, yan duvarlar 20 mm yüksekliğinde\n- Yuvanın ortasında şarj kablosu için 8 mm genişliğinde kanal\n- 2 kalem gözü; göz iç çapı 10 mm, derinliği 60 mm\n- Aynı modelin 3 kalemli (12 mm telefon) ve 4 kalemli (16 mm telefon) boyları da vardır\nYaklaşık dış ölçüler: 88 × 51 × 62 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/masaustu-kalemlik-telefon-standi-s-1.jpg",
+      "https://media.pruvo3d.com/urunler/masaustu-kalemlik-telefon-standi-s-2.jpg",
+      "https://media.pruvo3d.com/urunler/masaustu-kalemlik-telefon-standi-s-3.jpg"
+    ],
+    "tavsiyeFilament": [
+      "PLA",
+      "PETG"
+    ]
+  },
+  {
+    "id": "masaustu-kalemlik-telefon-standi-m",
+    "kategori": "Ofis",
+    "marka": [],
+    "baslik": "Masaüstü Kalemlik ve Telefon Standı (3 Kalem Ø11 mm, Telefon Kalınlığı 12 mm)",
+    "aciklama": "Telefonu masada dik tutan yuva ile kalemleri ayakta tutan gözleri tek gövdede birleştiren, düz tabanlı masaüstü düzenleyici. Telefon öndeki yuvaya oturur ve geriye eğimli sırtlığa yaslanır; arkadaki blokta kalemler dik durur. Tek parçadır.\n- Telefon yuvası iç genişliği 84 mm; kılıf dahil 12 mm kalınlığa kadar telefonlar için\n- Sırtlık yataydan 70° eğimli, yan duvarlar 20 mm yüksekliğinde\n- Yuvanın ortasında şarj kablosu için 8 mm genişliğinde kanal\n- 3 kalem gözü; göz iç çapı 11 mm, derinliği 60 mm\n- Aynı modelin 2 kalemli (10 mm telefon) ve 4 kalemli (16 mm telefon) boyları da vardır\nYaklaşık dış ölçüler: 96 × 54 × 62 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/masaustu-kalemlik-telefon-standi-m-1.jpg",
+      "https://media.pruvo3d.com/urunler/masaustu-kalemlik-telefon-standi-m-2.jpg",
+      "https://media.pruvo3d.com/urunler/masaustu-kalemlik-telefon-standi-m-3.jpg"
+    ],
+    "tavsiyeFilament": [
+      "PLA",
+      "PETG"
+    ]
+  },
+  {
+    "id": "masaustu-kalemlik-telefon-standi-l",
+    "kategori": "Ofis",
+    "marka": [],
+    "baslik": "Masaüstü Kalemlik ve Telefon Standı (4 Kalem Ø12 mm, Telefon Kalınlığı 16 mm)",
+    "aciklama": "Telefonu masada dik tutan yuva ile kalemleri ayakta tutan gözleri tek gövdede birleştiren, düz tabanlı masaüstü düzenleyici. Telefon öndeki yuvaya oturur ve geriye eğimli sırtlığa yaslanır; arkadaki blokta kalemler dik durur. Tek parçadır.\n- Telefon yuvası iç genişliği 96 mm; kılıf dahil 16 mm kalınlığa kadar telefonlar için\n- Sırtlık yataydan 70° eğimli, yan duvarlar 20 mm yüksekliğinde\n- Yuvanın ortasında şarj kablosu için 8 mm genişliğinde kanal\n- 4 kalem gözü; göz iç çapı 12 mm, derinliği 60 mm\n- Aynı modelin 2 kalemli (10 mm telefon) ve 3 kalemli (12 mm telefon) boyları da vardır\nYaklaşık dış ölçüler: 108 × 59 × 62 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/masaustu-kalemlik-telefon-standi-l-1.jpg",
+      "https://media.pruvo3d.com/urunler/masaustu-kalemlik-telefon-standi-l-2.jpg",
+      "https://media.pruvo3d.com/urunler/masaustu-kalemlik-telefon-standi-l-3.jpg"
+    ],
+    "tavsiyeFilament": [
+      "PLA",
+      "PETG"
+    ]
+  },
+  {
     "id": "otomobil-koltuk-basligina-asilan-telefon-tutucusu-arka-koltuk-pr177718",
     "kategori": "Otomobil",
     "marka": [],
