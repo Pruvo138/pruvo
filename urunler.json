@@ -1,5 +1,96 @@
 [
   {
+    "id": "ofis-tasinabilir-monitor-standi-iki-egimli-ayak-pr411730",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Taşınabilir Monitör Standı (60° ve 45° Eğimli İki Ayak)",
+    "aciklama": "Taşınabilir ekranlar için, ekranı masada eğimli tutan üçgen biçimli iki ayak. Ayaklardan biri ekranı yaklaşık 60°, diğeri 45° eğimle taşır. Düz masada ekranı göz hizasına yaklaştırır. Fotoğraflarda siyah ayak çifti boş hâlde ve ekranı taşırken yandan görülür.\nYaklaşık dış ölçüler: 149 × 130 × 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr411730-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr411730-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr411730-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "APuckNut",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ofis-ahsap-tahtali-monitor-yukselticisi-ayak-seti-bes-olcu-pr976440",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Ahşap Tahtalı Monitör Yükselticisi için Ayak Seti (5 Ölçü)",
+    "aciklama": "Bir ahşap tahtanın altına takılarak monitör yükselticisi (masa üstü raf) oluşturan U biçimli ayaklar. Beş ayrı ölçüde hazırlanmıştır: 150 × 80, 200 × 80, 200 × 120, 250 × 80 ve 250 × 120 mm (dosya adlarındaki ölçüler). Monitörün altında klavye ve belge için yer açar, tahta üstünde lamba, kalemlik ya da küçük cihazlar durabilir. Ahşap tahta ürüne dahil değildir; ayaklar kendi tahtanıza göre seçilir. Fotoğraflarda siyah ayaklar ahşap tahta ve monitörle görülür.\nYaklaşık dış ölçüler: en büyük ayak 250 × 125 × 50 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr976440-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr976440-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr976440-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr976440-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "svenlaaange",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "elektronik-masa-kenarina-kelepceli-studyo-hoparlor-standi-pr127342",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Masa Kenarına Kelepçeli Stüdyo Hoparlörü Standı (Boru Gövdeli)",
+    "aciklama": "Stüdyo monitörü tipi hoparlörü masa kenarında, göz hizasına yakın yükseklikte tutan kelepçeli stand. Dört parçadan oluşur: masa kenarına kelepçelenen gövde, sıkma vidası, boru ve hoparlörün oturduğu kare taban plakası. Boru uzunluğu yaklaşık 21 cm'dir; hoparlör masadan yükselir, masa üstünde yer kaplamaz. Parçaların iki farklı ölçü sürümü vardır. Görsellerde mavi gövde ve turuncu vida ve boru çizimleri ile masa altından kelepçe fotoğrafı yer alır.\nYaklaşık dış ölçüler: taban plakası 200 × 160 × 21 mm; boru 208 × 30 × 30 mm; kelepçe 74 × 70 × 46 mm; vida 60 × 39 × 18 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr127342-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr127342-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr127342-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr127342-4.jpg"
+    ]
+  },
+  {
+    "id": "ofis-monitor-yukselticisi-ayaklari-18-mm-ahsap-tahta-icin-pr394961",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Monitör Yükselticisi Ayakları (18 × 200 mm Ahşap Tahta İçin)",
+    "aciklama": "18 mm kalınlığında, 200 mm genişliğinde bir ahşap tahtanın iki ucuna geçirilen, siyah U biçimli iki ayak. Tahtayla birlikte monitörün altına konan sade bir yükseltici raf oluşturur; altından klavye ve kablolar rahatça geçer. Ahşap tahta ürüne dahil değildir. Parçanın 18 ve 20 mm yükseklikli iki sürümü vardır. Fotoğraflarda ayaklar ahşap tahtayla ve üzerinde monitörle görülür.\nYaklaşık dış ölçüler: 209 × 85 × 20 mm (tek ayak).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr394961-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr394961-2.jpg"
+    ]
+  },
+  {
+    "id": "ofis-vesa-yuvali-monitor-standi-iki-parcali-pr256503",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "VESA Yuvalı Monitör Standı (İki Parçalı, Sabit Ayaklı)",
+    "aciklama": "Arka yüzünde VESA yuvası bulunan monitörleri masada eğimli ve sabit tutan iki parçalı stand. Üst tutucu monitörün arkasındaki VESA yuvasına vidalanır, alt ayak parçası masaya oturur ve üst tutucuyu taşır; alt ayak masaya vidalanabilecek delikler de içerir. Fotoğraflarda açık mavi stand küçük bir monitörün arkasında, masa üzerinde görülür.\nYaklaşık dış ölçüler: alt ayak 240 × 165 × 80 mm; üst tutucu 126 × 126 × 40 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr256503-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr256503-2.jpg"
+    ]
+  },
+  {
+    "id": "ofis-dikey-dizustu-bilgisayar-ve-tasinabilir-monitor-standi-pr1006972",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Dikey Dizüstü Bilgisayar ve Taşınabilir Monitör Standı (2 Braket)",
+    "aciklama": "Dizüstü bilgisayarı dikey konumda tutan ve yanında taşınabilir bir monitör için ikinci bir yuva bulunduran küçük braket. İki yuvadan kalın olanı bilgisayar, ince olanı taşınabilir monitör içindir; böylece masada az yer kaplayan çift ekranlı bir düzen kurulur. Standı kurmak için iki braket kullanılır; iki braket aynı parçadır. Fotoğraflarda turkuaz braketler bilgisayarı ve monitörü yandan tutarken görülür.\nYaklaşık dış ölçüler: 129 × 72 × 15 mm (tek braket).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1006972-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1006972-2.jpg"
+    ]
+  },
+  {
     "id": "mutfak-kapakli-seyahat-catal-kasik-bicak-kutusu-pr872395",
     "kategori": "Ev",
     "marka": [],
