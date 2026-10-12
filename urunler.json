@@ -1,5 +1,157 @@
 [
   {
+    "id": "ofis-telefon-standi-sade-genis-yuvali-pr171789",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Sade Telefon Standı (Geniş Yuvalı, Eğimli Gövde)",
+    "aciklama": "Geniş tabanlı, eğimli gövdeli ve tek parça sade masaüstü telefon standı. Alt kenardaki yuva telefonu kaymadan tutar; gövdedeki oval boşluk şarj kablosunu rahat geçirir ve malzemeyi azaltır. Montaj gerektirmez. Görseller standın iki farklı açıdan çizimini gösterir.\nYaklaşık dış ölçüler: 113 × 91 × 70 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr171789-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr171789-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Roiku",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ofis-ucak-koltugu-telefon-tutucusu-ayarlanabilir-pr195041",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Uçak Koltuğu Telefon Tutucusu (Açısı ve Kavraması Ayarlanabilir)",
+    "aciklama": "Uçak koltuğunun katlanır masasına geçen, telefonu göz hizasında tutan taşınabilir tutucu. Ayarlanabilir açısı ve kavrama kolu farklı boyutlardaki telefonlara uyar; önündeki koltuk yatık olduğunda da kullanılır. Tek bir M3 cıvata ve somunla ayar topuzu bağlanır. Fotoğrafta turuncu tutucu koltuk masasına takılı, çizimlerde parçalar görülür.\nYaklaşık dış ölçüler: 81 × 55 × 34 mm (ana gövde); üst tutucu 77 × 30 × 24 mm, bağlantı parçası 30 × 23 × 21 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr195041-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr195041-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr195041-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "SquidgyPlastic",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "otomobil-cd-yuvasina-oturan-telefon-tutucusu-iki-parcali-pr52511",
+    "kategori": "Otomobil",
+    "marka": [],
+    "uyum": [],
+    "baslik": "CD Yuvasına Oturan Telefon Tutucusu (İki Parçalı: Taşıyıcı ve Taban)",
+    "aciklama": "Araç içi radyonun CD yuvasına yerleşerek telefonu torpido üstünde yatay tutan iki parçalı tutucu. CD çalar kullanılmadan yuvaya oturur (yuva tutucu takılıyken CD için kullanılamaz). Yeni telefona geçildiğinde yalnızca telefonu saran taban parçası değiştirilir. İç genişliği büyük ekranlı telefonlara uygundur. Fotoğrafta siyah tutucu torpido üstünde görülür, çizimlerde iki parça mavidir.\nYaklaşık dış ölçüler: taşıyıcı parça 180 × 62 × 47 mm; taban parçası 109 × 61 × 40 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr52511-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr52511-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr52511-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Mebillica",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "otomobil-disli-ayarli-havalandirma-telefon-tutucusu-pr322690",
+    "kategori": "Otomobil",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Dişli Ayarlı Havalandırma Telefon Tutucusu (62–102 mm Genişlik)",
+    "aciklama": "Dişli mekanizmayla iki yandan eş zamanlı kavrayan, araç havalandırma ızgarasına takılan telefon tutucusu. Yaklaşık 62 ile 102 mm arasındaki telefon genişliklerinde sıkma konumunu korur. Kapak dört M3×8 vidayla kapatılır; ayırıcı plaka ve havalandırma klipsleri sıkı geçmeli tasarlanmıştır. Görsellerde tutucu ve parçaları çizim hâlinde görülür.\nYaklaşık dış ölçüler: 112 × 106 × 61 mm (tüm parçalar bir arada).",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr322690-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr322690-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr322690-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Duane",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "bisiklet-gidon-telefon-tutucusu-sade-vidali-pr104012",
+    "kategori": "Bisiklet",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Bisiklet Gidon Telefon Tutucusu (Vidalı Sıkma, 3 Taban Genişliği)",
+    "aciklama": "Gidona kelepçe ile bağlanan, vidalı sıkma mekanizmalı sade telefon tutucusu. Normal, dar ve geniş olmak üzere üç taban seçeneği vardır; dişli kolu çevrilerek telefon iki yandan kavranır. Montajda M3 cıvata ve somunlar kullanılır; telefonun kaymaması için kauçuk pedler önerilir. Tasarım bisiklet trainer üzerinde denenmiştir, sokak kullanımı için sağlamlık test edilmemiştir. Fotoğraflarda yeşil tutucu gidonda, çizimlerde parçalar görülür.\nYaklaşık dış ölçüler: 107 × 50 × 6 mm (taban plakası); tüm parçalar bir arada 107 × 68 × 54 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr104012-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr104012-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr104012-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Filip",
+      "tur": "GPL"
+    }
+  },
+  {
+    "id": "otomobil-havalandirma-telefon-tutucusu-dislili-kol-kuresel-klips-pr606567",
+    "kategori": "Otomobil",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Havalandırma Telefon Tutucusu (Dişli Kollu, Küresel Klipsli, 19 Parça)",
+    "aciklama": "Araç havalandırmasına küresel klips ile takılan, iki yan kolu dişli çubuklarla çalışan telefon tutucusu. Taban plakası, sağ ve sol kol, iki dişli çubuk, sıkma cıvataları, kauçuk halkalı cıvatalar ve klips parçalarından oluşur; 71 mm üstü ve 68 mm üstü telefon genişlikleri için iki taban ve kol seti vardır. Yan kolların yüzeyi tırtıllıdır. Fotoğrafta tutucu elde, çizimlerde taban ve klips görülür.\nYaklaşık dış ölçüler: taban plakası 93 × 44 × 4 mm; yan kol 102 × 33 × 21 mm; klips 68 × 41 × 20 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr606567-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr606567-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr606567-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr606567-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Elitail",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ofis-kedi-seklinde-telefon-standi-gerinen-kedi-pr1529489",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kedi Şekilli Telefon Standı (Gerinen Kedi)",
+    "aciklama": "Gerinen bir kediyi canlandıran, tek parça sevimli telefon standı. Kedinin gövdesindeki yuva telefonu eğimli tutar. Fotoğraflarda kedi tek başına ve üzerinde telefonla görülür.\nYaklaşık dış ölçüler: 120 × 110 × 58 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1529489-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1529489-2.jpg"
+    ]
+  },
+  {
+    "id": "ev-yatak-kenarina-asilan-telefon-tutucusu-petek-desenli-pr1607386",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Yatak Kenarına Asılan Telefon Tutucusu (Petek Desenli, 10 Hazır Ölçü)",
+    "aciklama": "Yatak çerçevesine kancayla asılan, telefonu dik tutan petek delikli cep. Gece komodin gerektirmeden telefon elin altında durur; üstteki yarım daire kesik telefonu karanlıkta kolayca kavramayı sağlar. Tek parçadır, montaj gerektirmez. Telefon iç genişliği 75, 81 ve 85 mm; kanca derinliği ince 18, standart 26 ve kalın 34 mm olmak üzere dokuz hazır sürüm ve 73 mm iç genişlikli bir varsayılan sürüm bulunur. Fotoğraflarda altın ve beyaz örnekler ahşap yatak çerçevesinde görülür.\nYaklaşık dış ölçüler: 120 × 79 × 51 mm (varsayılan sürüm).",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1607386-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1607386-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "mystastian",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ev-duvara-vidalanan-telefon-tutucusu-sarj-delikli-pr500940",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Duvara Vidalanan Telefon Tutucusu (Şarj Kablosu Delikli)",
+    "aciklama": "Duvara ya da yatak başlığına vidalanan, telefonu dik tutan sade raf. Alt tarafındaki delik, telefon yuvadayken şarj kablosunun bağlanmasına izin verir. Her boyuttaki telefona uyacak genişlikte hazırlanmıştır; yuva 30 mm ve 40 mm derinlik seçenekleriyle gelir. Fotoğraflarda beyaz raf duvarda, telefonla ve telefonsuz görülür.\nYaklaşık dış ölçüler: 140 × 74 × 30 mm (40 mm derinlikli sürüm 140 × 74 × 40 mm).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr500940-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr500940-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr500940-3.jpg"
+    ]
+  },
+  {
     "id": "ev-duvar-kupe-askisi-yirmi-dort-cift-kapasiteli-pr84458",
     "kategori": "Ev",
     "marka": [],
