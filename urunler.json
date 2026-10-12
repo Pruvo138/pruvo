@@ -1,5 +1,141 @@
 [
   {
+    "id": "ev-cekmece-duzenleme-kutulari-acik-u-ve-kapali-o-pr541492",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Çekmece Düzenleme Kutuları (Açık U ve Kapalı O Modeli)",
+    "aciklama": "Çekmece içinde küçük eşyaları ayırmak için basit düzenleme kutuları. Dört yanı kapalı (O) ve bir yanı açık (U) modeller bulunur; U modelin bağlantılı sürümü yan yana eklenerek uzun çekmeceler için uzatılabilir. Fotoğraflarda beyaz kutular çalışma yüzeyinde ve düzenleme yapılmış çekmecede görülür.\nYaklaşık dış ölçüler: 100 × 100 × 50 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr541492-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr541492-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr541492-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Tokolozi",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "tamirat-ust-uste-dizilebilen-kucuk-parca-cekmece-tepsisi-pr370591",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Üst Üste Dizilebilen Küçük Parça Çekmece Tepsisi (Kapak Seçenekli)",
+    "aciklama": "Alet kutusu çekmecelerinde vida, somun ve küçük elektronik parçaları bölmelerde saklayan tepsi. Alt ve üst kenardaki pah iki tepsinin üst üste oturmasını kolaylaştırır; iki tepsi ve kapak çoğu çekmeceye sığar. 1×2×3, dört gözlü ve altı gözlü bölme düzenleri ile sıralama bölmeli kapak seçeneği bulunur. Fotoğraflarda mavi, kırmızı ve sarı tepsiler görülür.\nYaklaşık dış ölçüler: 165 × 114 × 27,5 mm (tek tepsi).",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr370591-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr370591-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr370591-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "aceofspace",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tamirat-cekmece-bolme-ayiricilari-2-3-4-gozlu-pr1609120",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Çekmece Bölme Ayırıcıları (2, 3 ve 4 Gözlü + Etiket Parçası)",
+    "aciklama": "Küçük parça dolaplarının yaklaşık 140 × 50 × 35 mm ölçülü çekmecelerini alt bölmelere ayıran 2, 3 ve 4 gözlü ayırıcılar. Her ayırıcıda etiket yuvası bulunur; etiket parçasına 9 × 32 mm'lik bir etiket yapıştırılır. Fotoğraflarda ayırıcılar çekmece içinde vida ve cıvata gruplarıyla görülür.\nYaklaşık dış ölçüler: 139 × 48 × 32 mm (4 gözlü ayırıcı).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1609120-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1609120-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1609120-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Eric Navarrete",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ev-cekmeceli-organizer-kutu-uc-boy-pr85319",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Çekmeceli Organizer Kutu (3 Boy, Yapıştırıcısız Geçmeli)",
+    "aciklama": "Küçük bir çekmecesi bulunan, üç boyda (A, B, C) hazırlanmış organizer kutu. Kutu dört parçadan oluşur: gövde, çekmece gövdesi ve iki ön panel. Parçalar sıkı geçmeli kilitlerle birleşir; ön paneller çoğunlukla yapıştırıcı olmadan yerinde durur. Çekmece iki yuvarlak rayda kayar. Fotoğraflarda yeşil kutu çekmece açık ve kapalı hâlde görülür.\nYaklaşık dış ölçüler: 144 × 101 × 86 mm (A boyu gövde).",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr85319-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr85319-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr85319-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr85319-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Metikumi",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "tamirat-ust-uste-dizilebilen-elektronik-komponent-cekmece-unitesi-pr1255117",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Elektronik Komponent Çekmece Ünitesi (Üst Üste Dizilebilir, IC Yuvalı)",
+    "aciklama": "Küçük elektronik komponentler ve DIP entegre devreler için üst üste dizilebilen çekmece ünitesi. Genel çekmecelerde komponentler serbest alanda, IC çekmecelerinde DIP entegreler özel yuvalarda durur; ünite dikeyde çoğaltılarak istenen çekmece sayısına ulaşılır. Fotoğraflarda siyah gövde ve beyaz çekmeceler görülür.\nYaklaşık dış ölçüler: 92 × 78 × 55 mm (tek modül).",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1255117-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1255117-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1255117-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1255117-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Aitor C.",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tamirat-alet-cekmecesi-tornavida-rafi-yuvali-pr1612428",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Alet Çekmecesi Tornavida Rafı (Yuvalı Düzenleyici)",
+    "aciklama": "Alet çekmecesinde tornavidaları yan yana ve düzenli tutan yuvalı raf. Set, uzun yuvalı gövde ve küçük ayak parçasından oluşur. Fotoğraflarda kırmızı raf tek başına ve tornavidalarla birlikte görülür.\nYaklaşık dış ölçüler: 174,5 × 30 × 15 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1612428-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1612428-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1612428-3.jpg"
+    ]
+  },
+  {
+    "id": "tamirat-laboratuvar-cekmece-duzenleyici-sise-ve-cimbiz-yuvali-pr1710111",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Laboratuvar Çekmece Düzenleyici (Şişe ve Cımbız Yuvalı, Tabansız)",
+    "aciklama": "Alçak çekmeceler için hazırlanmış, tabansız çekmece düzenleyici. Tabansız yapı sayesinde 20 mL'lik sintilasyon şişeleri düzenleyicinin içinde durur ve çekmece yine kapanır; yan tarafta cımbız ve ince kutular için uzun yuvalar bulunur. Fotoğraflarda beyaz düzenleyici ahşap yüzeyde görülür.\nYaklaşık dış ölçüler: 210 × 150 × 60 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1710111-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1710111-2.jpg"
+    ]
+  },
+  {
+    "id": "ev-ust-uste-dizilebilen-genis-moduler-cekmeceli-organizer-pr1002486",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Üst Üste Dizilebilen Geniş Modüler Çekmeceli Organizer (Tek ve Çift Yükseklik)",
+    "aciklama": "Üst üste dizilebilen geniş modüler organizer sistemi: tek ve çift yükseklikli gövdeler, petek desenli seçenekler ve gövdelerin içinde kayan çekmeceler. Çekmeceler 1, 2, 4, 8 ve 16 bölmeli seçeneklerle gelir ve serbestçe kayar. Fotoğraflarda siyah gövde ve yeşil çekmeceler masa üstünde görülür.\nYaklaşık dış ölçüler: 263 × 130 × 40,5 mm (tek yükseklik gövde).",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1002486-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1002486-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JM3D",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "ev-cekmeceli-makyaj-duzenleyici-pr869047",
     "kategori": "Ev",
     "marka": [],
