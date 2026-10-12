@@ -1,5 +1,66 @@
 [
   {
+    "id": "ev-cekmeceli-makyaj-duzenleyici-pr869047",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Çekmeceli Makyaj Düzenleyici (Gözlü Bölmeler + Küçük Çekmeceler)",
+    "aciklama": "Çok gözlü bölmeleri ve küçük çekmeceleri olan masa üstü makyaj düzenleyici. Fırça, ruj, kalem ve küçük kozmetik ürünleri gözlerde dik durur; ince ve küçük parçalar çekmecelerde saklanır. Gövde, ara panel ve üst panel ayrı parçalardan oluşur; paneller yapıştırılarak birleştirilir. Fotoğraflarda beyaz gövde ve çıkarılmış çekmece görülür.\nYaklaşık dış ölçüler: 240 × 125 × 90 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr869047-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr869047-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr869047-3.jpg"
+    ]
+  },
+  {
+    "id": "tamirat-birlestirilebilir-kucuk-parca-kaplari-45-mm-pr212959",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Birleştirilebilir Küçük Parça Kapları (45 mm Izgara)",
+    "aciklama": "Vida, somun ve cıvata gibi küçük parçaları çekmecede düzenlemek için hazırlanmış birleştirilebilir kaplar. En küçük kap 45 × 45 mm'dir; diğerleri bunun katlarıdır: 2×1, 2×2 ve 3×1. Kaplar ayrı bir bağlantı parçasıyla birbirine tutturulur, böylece çekmecenin ölçüsüne göre ızgara düzeni kurulur. Fotoğraflarda kaplar vida ve somunlarla dolu çekmece içinde görülür.\nYaklaşık dış ölçüler: 90 × 90 × 36 mm (2×2 kap).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr212959-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr212959-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr212959-3.jpg"
+    ]
+  },
+  {
+    "id": "tamirat-alet-cekmecesi-anahtar-duzenleyici-pr1266487",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Alet Çekmecesi Anahtar Düzenleyici (Boy Sıralı, Mıknatıs Yuvalı Seçenekli)",
+    "aciklama": "Alet çantası ve çekmecesinde yan yana dizilen anahtarları boy sırasına göre tutan düzenleyici. Üç sürümü vardır: standart model, 6 × 3 mm mıknatıs yuvalı model ve daha hafif sürüm. Her anahtarın kendi girişi bulunur; çekmece açıldığında istenen boy hemen seçilir.\nYaklaşık dış ölçüler: 248 × 116 × 30 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1266487-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1266487-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1266487-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1266487-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "The Carnager",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ofis-cekmeceli-masa-duzenleyici-kisa-uzun-cekmece-pr556235",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Çekmeceli Masa Düzenleyici (Kısa ve Uzun Çekmece)",
+    "aciklama": "Üst bölümünde farklı boyutlarda gözleri, alt kısmında iki çekmecesi bulunan küçük masa düzenleyici. Kalem, ataç, not kağıdı ve küçük masa eşyaları gözlerde durur. Kısa çekmece sağdaki göze, uzun çekmece soldaki göze takılır; böylece sağ arka göz en derin hâlinde kalır. Gövde ve iki çekmece ayrı parçalardır.\nYaklaşık dış ölçüler: 160 × 100 × 100 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr556235-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr556235-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr556235-3.jpg"
+    ]
+  },
+  {
     "id": "tamirat-tencere-kapagi-tutamagi-m6-somun-yuvali-pr380045",
     "kategori": "Tamirat",
     "marka": [],
