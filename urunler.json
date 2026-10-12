@@ -1,5 +1,71 @@
 [
   {
+    "id": "ofis-ayarlanabilir-kompakt-tablet-standi-sikma-kollu-pr460062",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Ayarlanabilir Kompakt Tablet Standı (Sıkma Kollu)",
+    "aciklama": "Açısı ayarlanabilen, kompakt ve sağlam tablet standı. Sekiz parçadan oluşur: iki sıkma kolu, iki traverse ile sabit ve çıkarılabilir kol çiftleri; sıkma kolları istenen açıyı sabitler. Petek desenli traversler gövdeyi hafifletir ve şık bir görünüm verir. Birleştirme için gerekirse yapıştırıcı kullanılır. Fotoğraflarda gri stand tek başına ve parçalar halinde görülür.\nYaklaşık dış ölçüler: 130 × 54 × 20 mm (en büyük parça: çıkarılabilir kol).",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr460062-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr460062-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr460062-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr460062-4.jpg"
+    ]
+  },
+  {
+    "id": "ofis-ince-kavisli-tablet-standi-pr5702",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "İnce Kavisli Tablet Standı",
+    "aciklama": "Tabletin arkasına yaslanan kavisli ayağı ve ince yapısıyla sade, şık bir tablet standı. Tek parçadır; ek parça ya da montaj gerekmez. Hafiftir ve çantada yer kaplamaz. Fotoğraflarda gri stand tabletin arkasında görülür.\nYaklaşık dış ölçüler: 156 × 122 × 96 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr5702-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr5702-2.jpg"
+    ]
+  },
+  {
+    "id": "ofis-disk-bicimli-telefon-ve-tablet-standi-dort-acili-pr177778",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Disk Biçimli Telefon ve Tablet Standı (4 Sabit Açılı)",
+    "aciklama": "Yuvarlak disk biçimli, telefon ve tabletler için sade stand. Dört sabit duruş açısı sunar: 50°, 60°, 70° ve 80°; ortadaki parmak oluğu yukarı kaydırma hareketlerini kolaylaştırır. Farklı kalınlık ve boydaki cihazlarla kullanılabilir, ağırlık merkezi standın alanı içinde kalır. Tek parçadır. Fotoğraflarda turuncu stand telefonla ve tabletle görülür.\nYaklaşık dış ölçüler: 120 × 120 × 15 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr177778-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr177778-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr177778-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr177778-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Markus",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ofis-ayarlanabilir-telefon-ve-tablet-standi-kalinliga-gore-pr392396",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Ayarlanabilir Telefon ve Tablet Standı (Cihaz Kalınlığına Göre)",
+    "aciklama": "Cihazın kalınlığına göre seçilen ölçüde hazırlanan, ayarlanabilir telefon ve tablet standı. Model adındaki sayı cihazın en çok kaç mm kalınlıkta olabileceğini gösterir (10–15 mm); standı cihazdan 1 mm kalın seçmek en iyisidir. Çerçeve yapısı hafiftir ve eğim birkaç kademede ayarlanır. Fotoğraflarda beyaz stand tek başına ve telefonla görülür.\nYaklaşık dış ölçüler: 100–130 × 70–91 × 23–32 mm (telefon sürümleri); 105–137 × 100–130 × 23–32 mm (tablet sürümleri).",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr392396-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr392396-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr392396-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr392396-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Johannes Dörig (özgün tasarım: danielstuber)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "ofis-telefon-ve-tablet-standi-sarj-kablosu-gecisli-pr79483",
     "kategori": "Ofis",
     "marka": [],
