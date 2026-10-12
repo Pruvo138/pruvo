@@ -1,0 +1,66 @@
+name: Urun kuyrugu birlestirici
+
+# ══════════════════════════════════════════════════════════════════════════════
+# NEDEN VAR (12 Eki 2026, BaBa "YAYIN ACLIGI" hukmu): urun push'lari 4-5 dk arayla
+# main'e iniyordu; deploy.yml (`concurrency: pages`) her yeni push'ta bekleyen kosumu
+# iptal etti (son 7 kosumun 6'si cancelled) ve d1-sync DELETE'i ucta hic kosamadi.
+# Urun verisi artik `urun-kuyruk` dalina gider; bu is akisi saatte 1 kez, Pages
+# kosumu YOKKEN onu main'e alir -> urunden dogan Pages <= 1/saat. Kod push'lari
+# (KraL/TeKiN/ArTisT) dogrudan main'e gitmeye devam eder.
+#
+# Karar+icra TEK yerde: tools/urun-kuyruk-birlestir.py (BEKLE/BOS/BIRLESTI/RED/
+# CAKISMA/YARIS). Kuyruk yalniz urun-veri yollarini (urunler.json,
+# arsiv/urunler-arsiv.json) tasiyabilir; baska yol -> RED, main degismez.
+# Kabul bataryasi: tools/urun-kuyruk-test.py (nobet.yml serit-b).
+#
+# 🔴 TETIK — CRON TEK KOL DEGIL (OLCULDU 12 Eki, `gh run list --event schedule`):
+# saatlik `26 * * * *` (yayin-erisim-alarmi) 30 kosumda gunde ~4-5 atesledi, en
+# uzun bosluk 9,5 sa (06:10 -> 15:44). Yalniz cron'la kuyruk saatlerce bekler.
+# Bu yuzden UC kol:
+#   push urun-kuyruk  — MaCiT kuyruga itince hemen bakar (Pages kosuyorsa BEKLE).
+#   workflow_run      — Pages kosumu BITINCE birikeni alir (BEKLE'nin kapanisi).
+#                       Zincir kendi kendini sinirlar: birlestirici yalniz Pages
+#                       YOKKEN iter, Pages ~27-62 dk surer (son 10 success) ->
+#                       urunden dogan Pages fiilen ~1/saat ve HIC ust uste binmez.
+#   schedule :20      — kalp atisi (BaBa hukmu); ceyrek-saat sinirinda DEGIL.
+# GITHUB_TOKEN ile yapilan kuyruk senkron push'u `push` tetigini CALISTIRMAZ ->
+# kendi kendini tetikleme dongusu YOK.
+on:
+  push:
+    branches: [urun-kuyruk]
+  workflow_run:
+    workflows: ["Build & deploy to GitHub Pages"]
+    types: [completed]
+  schedule:
+    - cron: "20 * * * *"
+  workflow_dispatch:
+
+# contents: write — kuyrugu main'e (ve main'i kuyruga) ITER. actions: write —
+# GITHUB_TOKEN push'u `push` tetiklerini CALISTIRMAZ (GitHub ozyineleme korumasi),
+# bu yuzden arac push-tetikli is akislarini (deploy.yml, odeme-bayatlik-push.yml;
+# liste YAML'dan turer) workflow_dispatch ile KENDISI atesler. Emsal:
+# panel-uygulayici.yml (ayni izin cifti, 43 bot push'u main'de).
+permissions:
+  contents: write
+  actions: write
+
+# Tek grup, kesme YOK: iki birlestirici ayni anda main'e yarismaz.
+concurrency:
+  group: urun-kuyruk
+  cancel-in-progress: false
+
+jobs:
+  birlestir:
+    runs-on: ubuntu-latest
+    steps:
+      # fetch-depth 0: ata/merge karari tam tarih ister (sig klon merge-base bulamaz).
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      # RED/CAKISMA/YARIS/DISPATCH-HATA rc!=0 -> job KIRMIZI (gorunur); BEKLE/BOS rc0.
+      # Sonuc satiri $GITHUB_STEP_SUMMARY'ye arac tarafindan yazilir.
+      - name: "Urun kuyrugu -> main (Pages yokken; yalniz urun-veri yollari)"
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tools/urun-kuyruk-birlestir.py
