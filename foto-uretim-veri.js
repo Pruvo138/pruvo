@@ -688,14 +688,20 @@
       varsayilan: "yazi",
       secenekler: [
         { kod: "yazi", ad: "Yazı ile", aciklama: "Kısa bir isim ya da yazı, kabartma harflerle.", acik: true },
-        { kod: "figur", ad: "Figür olarak", aciklama: "Yüklediğin fotoğraftan küçük bir figür; halka deliği başın arkasına gömülü yarım halkada.",
+        { kod: "figur", ad: "Figür olarak", aciklama: "Yüklediğin fotoğraftan küçük bir figür; anahtarlık halkası başın arkasında, gömülü yarım halka olarak.",
           acik: true, girdi: ["foto-1"], olcu_en_az: kolSiniri("anahtarlik", "olcu_en_az"),
           olcu_en_cok: kolSiniri("anahtarlik", "olcu_en_cok"), saglayici_tur: "figur", uretec: "figur_kulak",
           // ② dürüstlük cümlesi (ArTisT 874b2a85 pazarlama metni ② "Anahtarlık – figür" AYNEN; figür/plaket'in TEK
           // stilize-yorum cümlesi). Bölüm türün `durustluk`unun altına çeşidinkini basar; yazı çeşidinde alan YOK.
           durustluk: "Önizleme fotoğrafının stilize bir yorumudur; basılmış anahtarlık en çok 4 renkli, sadeleştirilmiş bir hâlidir ve tam kopyası değildir (küçük ayrıntılar sadeleşir).",
-          // ③ renk cümlesi (ArTisT 10 Eki 15:52 AYNEN); Renkli yalnız köprü kolu `renk_modu` palet sunarken çizilir.
-          alan_aciklamalari: { renk: "Siyah, Beyaz ya da Gri seçersen anahtarlık tek renk olur; Renkli seçersen renkler fotoğrafından otomatik seçilir (en çok 4 renk)." } }
+          // ③ renk + ölçü cümleleri (ArTisT 17. okuma, KraL 12 Eki): Renkli yalnız köprü kolu `renk_modu` palet sunarken
+          // çizilir. Ölçü çeşide ÖZEL: tür düzeyindeki "kulakçık dahil" cümlesi yazı çeşidi içindir (kulakçık DURUR); figür
+          // çeşidinde halka gömülü olduğundan "halka dahil" ayrı cümle (tür cümlesinin YERİNE basılır, foto-uretim.js
+          // alanAciklamasi çeşit alanına öncelik verir).
+          alan_aciklamalari: {
+            renk: "Siyah, Beyaz ya da Gri seçersen anahtarlık tek renk olur; Renkli seçersen renkler fotoğrafından otomatik seçilir (en çok 4 renk).",
+            olcu: "Anahtarlığın, başın arkasındaki halka dahil en uzun boyutudur; fiyat bu ölçüye göre canlı hesaplanır."
+          } }
       ]
     }
   };

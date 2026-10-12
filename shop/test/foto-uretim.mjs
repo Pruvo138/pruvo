@@ -5404,6 +5404,9 @@ const C2_FIGUR = "Önizleme fotoğrafının stilize bir yorumudur; basılmış f
 const C2_PLAKET = "Önizleme fotoğrafının stilize bir yorumudur; basılmış plaket en çok 4 renkli, kabartmalı ve sadeleştirilmiş bir hâlidir, tam kopyası değildir (küçük yazı ve ince ayrıntılar sadeleşir).";
 const C2_ESKI = "Önizleme ve üretim dosyasının görüntüsüdür;";
 const C2_OLCU = "Anahtarlığın kulakçık dahil en uzun boyutudur; fiyat bu ölçüye göre canlı hesaplanır.";
+// 17. okuma (ArTisT, KraL 12 Eki): figür çeşidinde halka gömülü olduğundan ölçü cümlesi ÇEŞİDE ÖZEL ("halka dahil");
+// tür düzeyindeki "kulakçık dahil" cümlesi yalnız yazı çeşidi içindir (kulakçık orada durur).
+const C2_OLCU_FIGUR = "Anahtarlığın, başın arkasındaki halka dahil en uzun boyutudur; fiyat bu ölçüye göre canlı hesaplanır.";
 // VM4 beklenen ① kart listesi — 6 MODEL (Okan 10 Eki, sıra + kod): [data-kart, görsel dosyası | null, "Örnek yakında"].
 // Kart başına yalnız KENDİ örneği (11 Eki: TeKiN 3 render'ı; alt-duyarlı kartOrnegi): 6/6 kartta görsel,
 // "Örnek yakında" 0. Büst/yapboz /acik'te olsa da kart 0.
@@ -5424,13 +5427,16 @@ async function c2Senaryo(ekranKaynak, veriKaynak) {
   const tek = (x, c) => JSON.stringify(x.cumle) === JSON.stringify([c]) && x.eski === false;
   s.VM1 = tek(iz.insan, C2_FIGUR) && tek(iz.hayvan, C2_FIGUR);
   s.VM2 = tek(iz.plaket, C2_PLAKET);
-  // VM3: anahtarlık ③ Ölçü cümlesi yazı (varsayılan) ve figür çeşidinde TAM 1×.
+  // VM3: anahtarlık ③ Ölçü cümlesi yazı çeşidinde 1× (tür: "kulakçık dahil"), figür çeşidinde YENİ 1× (çeşit:
+  // "halka dahil"); yazı çeşidi cümlesi figürde 0× olmalı (foto-uretim.js alanAciklamasi çeşit alanına öncelik verir).
   const an = await kartla("anahtarlik");
-  const say = () => [...an.e.bolum.agac()].filter((n) => n.tagName === "P" && n.textContent === C2_OLCU).length;
-  iz.olcuYazi = say();
+  const sayC2 = () => [...an.e.bolum.agac()].filter((n) => n.tagName === "P" && n.textContent === C2_OLCU).length;
+  const sayC2F = () => [...an.e.bolum.agac()].filter((n) => n.tagName === "P" && n.textContent === C2_OLCU_FIGUR).length;
+  iz.olcuYazi = sayC2();
   const fb = cesitKartTikla(an.e.bolum, "figur");
-  iz.olcuFigur = fb ? say() : -1;
-  s.VM3 = iz.olcuYazi === 1 && iz.olcuFigur === 1;
+  iz.olcuFigur = fb ? sayC2() : -1;
+  iz.olcuFigurYeni = fb ? sayC2F() : -1;
+  s.VM3 = iz.olcuYazi === 1 && iz.olcuFigur === 0 && iz.olcuFigurYeni === 1;
   // VM4: ① kart sayısı/görselleri C2 öncesiyle AYNI (render kartları kaybolmaz).
   const V = veriYukle(veriKaynak);
   const e = await ekranKos(ekranKaynak, V, acikGercek(V, kod6));
@@ -5449,8 +5455,8 @@ console.log("C2) ② TEK dürüstlük cümlesi (figür + plaket) + anahtarlık �
   ol("VM1 iki figür kartı (insan + hayvan) ② dürüstlük cümlesi TEK (ArTisT), eski ikinci cümle 0", s.VM1,
      JSON.stringify([s.iz.insan, s.iz.hayvan]));
   ol("VM2 plaket ② dürüstlük cümlesi TEK (ArTisT), eski ikinci cümle 0", s.VM2, JSON.stringify(s.iz.plaket));
-  ol("VM3 anahtarlık ③ 'Ölçü: kulakçık dahil' cümlesi yazı + figür çeşidinde 1×", s.VM3,
-     JSON.stringify([s.iz.olcuYazi, s.iz.olcuFigur]));
+  ol("VM3 anahtarlık ③ yazı çeşidinde 'kulakçık dahil' 1×; figür çeşidinde 'halka dahil' 1× (yazı cümlesi 0×)", s.VM3,
+     JSON.stringify([s.iz.olcuYazi, s.iz.olcuFigur, s.iz.olcuFigurYeni]));
   ol("VM4 ① 6 kart + görselleri (6/6 kendi render'ı, 'Örnek yakında' 0, büst/yapboz 0)", s.VM4,
      s.iz.kartlar);
   const C2_MUT = [
