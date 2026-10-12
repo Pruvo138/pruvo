@@ -565,23 +565,76 @@ def ata_mi_git(ata_sha, torun_sha):
     return None
 
 
-def _ana_dalda_ardil(run, d, ata_mi):
+_ICERIK_ONBELLEK = {}
+
+
+def icerik_main_de_mi_git(run_sha, main_sha):
+    """`run_sha` commit'inin KENDİ değişiklikleri `main_sha`'da BİREBİR var mı? (K435, 12 Eki)
+
+    `ata_mi_git` yalnız MERGE (ata) yolunu görür. Dal main'e SQUASH / PARÇA PARÇA /
+    cherry-pick ile girince (12 Eki: `kral/k80-zaman-12eki` @`f67920c6` → main "parça 1/4..4/4")
+    kırmızının SHA'sı main atası DEĞİLDİR → kırmızı gün sonuna dek `CANLI` kalır (K435'in
+    "commit-tree merge boşluğu"). Burada ATA yerine İÇERİK sorulur: dalın merge-base'e göre
+    değiştirdiği HER dosya `main_sha`'da dal ucuyla BİREBİR aynı mı? (`git diff --name-only`
+    iki çağrı, pathspec listesi YOK → dosya sayısından bağımsız.)
+
+    True  = dalın tüm kendi değişiklikleri `main_sha`'da var (kod main'e girdi).
+    False = en az bir dosya farklı (kısmi iniş / sonradan değişmiş / hiç girmemiş).
+    None  = ölçülemedi (sha yerelde yok · git yok · zaman aşımı) — çağıran None'ı
+            "içerik var" saymaz, kırmızı CANLI görünür kalır.
+    Bilerek DAR: DEVAM.md gibi defter dosyası için istisna YOK — dal onu değiştirdiyse ve main
+    sonra değiştirdiyse False döner (CANLI kalır; görünür yön). Sonuç (REPO, sha, sha) başına
+    önbelleklenir: ardıl taraması her kırmızı × her main koşumu için çağırır.
+    """
+    anahtar = (str(REPO), run_sha, main_sha)
+    if anahtar in _ICERIK_ONBELLEK:
+        return _ICERIK_ONBELLEK[anahtar]
+
+    def _git(*arg):
+        return subprocess.run(["git", "-C", str(REPO)] + list(arg),
+                              capture_output=True, text=True, timeout=30)
+    try:
+        mb = _git("merge-base", run_sha, main_sha)
+        if mb.returncode != 0 or not mb.stdout.strip():
+            sonuc = None
+        else:
+            kendi = _git("diff", "--name-only", "--no-renames", "-z", mb.stdout.strip(), run_sha)
+            fark = _git("diff", "--name-only", "--no-renames", "-z", run_sha, main_sha)
+            if kendi.returncode != 0 or fark.returncode != 0:
+                sonuc = None
+            else:
+                kendi_k = {x for x in kendi.stdout.split("\0") if x}
+                fark_k = {x for x in fark.stdout.split("\0") if x}
+                sonuc = not (kendi_k & fark_k)
+    except Exception:
+        sonuc = None
+    _ICERIK_ONBELLEK[anahtar] = sonuc
+    return sonuc
+
+
+def _ana_dalda_ardil(run, d, ata_mi, icerik_mi=None):
     """DAL kırmızısı `run`ın, ana daldaki `d` koşumu ardılı sayılabilir mi? (K435)
 
     Dal main'e MERGE edilip silinince o dalda ardıl hiç doğmaz; kırmızıyı kapatan
     şey main'deki aynı iş akışının koşumudur. Yalnız kırmızının commit'i `d`'nin
     commit'inin ATASIYSA (kod `d`'ye girdi) sayılır; `ata_mi` yoksa / ölçemezse /
     False dönerse SAYILMAZ (kırmızı CANLI kalır — görünür yön).
+
+    K435 (12 Eki): ATA değilse `icerik_mi(run_sha, d_sha)` da sorulur — dal SQUASH / parça /
+    cherry-pick ile girdiyse kırmızının SHA'sı ata olmaz ama İÇERİĞİ `d`'de BİREBİR durur.
+    `icerik_mi` verilmezse davranış BİREBİR eski.
     """
-    if ata_mi is None or d.get("headBranch") != ANA_DAL:
+    if (ata_mi is None and icerik_mi is None) or d.get("headBranch") != ANA_DAL:
         return False
     a, b = run.get("headSha"), d.get("headSha")
     if not a or not b:
         return False
-    return ata_mi(a, b) is True
+    if ata_mi is not None and ata_mi(a, b) is True:
+        return True
+    return icerik_mi is not None and icerik_mi(a, b) is True
 
 
-def ardil_hukum(data, run, ata_mi=None, suruyor=False):
+def ardil_hukum(data, run, ata_mi=None, suruyor=False, icerik_mi=None):
     """`run` ile AYNI iş akışı + dalda, ondan SONRA açılmış EN YENİ hükümlü koşum.
 
     Yoksa None. Bir kırmızının kapanıp kapanmadığı kırmızının kendisinden değil,
@@ -596,6 +649,10 @@ def ardil_hukum(data, run, ata_mi=None, suruyor=False):
     `cancelled` kırmızı "CANLI: ardıl hüküm YOK" bastı ve Tamirci onu tamir edilecek iş
     sandı (9 Eki · 10 Eki · 11 Eki: 3 gün, 3/3 sahte). Sayı DEĞİŞMEZ (görünür yön),
     yalnız satır "ardıl SÜRÜYOR, hükmü bekle" der. Varsayılan (False) davranış BİREBİR eski.
+
+    K435 (12 Eki 2026, KraL-Tamirci-12Eki): `icerik_mi` verilirse SHA'sı main atası OLMAYAN
+    ama İÇERİĞİ main koşumunda BİREBİR duran dal kırmızısı da (squash / parça / cherry-pick
+    inişi) o main koşumunu ardıl sayar — bkz. `icerik_main_de_mi_git`.
     """
     t0 = _run_zamani(run)
     if t0 is None:
@@ -604,10 +661,11 @@ def ardil_hukum(data, run, ata_mi=None, suruyor=False):
     for d in data:
         if d.get("name") != run.get("name"):
             continue
-        if d.get("headBranch") != run.get("headBranch") and not _ana_dalda_ardil(run, d, ata_mi):
-            continue
         t = _run_zamani(d)
         if t is None or t <= t0:
+            continue
+        if (d.get("headBranch") != run.get("headBranch")
+                and not _ana_dalda_ardil(run, d, ata_mi, icerik_mi)):
             continue
         tamam = (d.get("status") or "").lower() == "completed"
         if tamam == suruyor:
@@ -619,7 +677,7 @@ def ardil_hukum(data, run, ata_mi=None, suruyor=False):
     return en_yeni
 
 
-def kirmizi_siniflandir(data, bugun, ata_mi=None):
+def kirmizi_siniflandir(data, bugun, ata_mi=None, icerik_mi=None):
     """Bugünün koşumlarını kovalara ayırır (saf fonksiyon — gh/ağ YOK, testlenir).
 
     `ata_mi(ata_sha, torun_sha)` (isteğe bağlı, K435): dal kırmızısı main'e katılıp
@@ -669,11 +727,16 @@ def kirmizi_siniflandir(data, bugun, ata_mi=None):
         elif conc in KIRMIZI_KUME:
             sha = (run.get("headSha") or "?")[:8]
             rid = run.get("databaseId", "?")
-            ardil = ardil_hukum(data, run, ata_mi)
+            ardil = ardil_hukum(data, run, ata_mi, icerik_mi=icerik_mi)
             if ardil is not None and (ardil.get("conclusion") or "").lower() == "success":
                 kapanan_n += 1
                 if ardil.get("headBranch") != run.get("headBranch"):
-                    seviye = "KAPANDI: dal main'e katıldı, main ardılı `{}` success (run {})".format(
+                    # ata mı, yoksa yalnız İÇERİK mi (squash/parça/cherry-pick)? Etiket ayırır:
+                    ata = (ata_mi is not None
+                           and ata_mi(run.get("headSha"), ardil.get("headSha")) is True)
+                    seviye = "KAPANDI: {}, main ardılı `{}` success (run {})".format(
+                        "dal main'e katıldı" if ata else
+                        "dal İÇERİĞİ main'e girdi (SHA ata değil: squash/parça/cherry-pick)",
                         (ardil.get("headSha") or "?")[:8], ardil.get("databaseId", "?"))
                 else:
                     seviye = "KAPANDI: ardılı `{}` success (run {})".format(
@@ -688,7 +751,7 @@ def kirmizi_siniflandir(data, bugun, ata_mi=None):
                 # K435 (11 Eki): hükümlü ardıl YOK ama aday kümede KOŞAN ardıl VAR -> sayı
                 # aynı (CANLI), satır "hükmü bekle" der. Yalnız `ardil is None` kolunda:
                 # hükümlü failure ardıl varken satır DEĞİŞMEZ (görünür yön korunur).
-                bekleyen = (ardil_hukum(data, run, ata_mi, suruyor=True)
+                bekleyen = (ardil_hukum(data, run, ata_mi, suruyor=True, icerik_mi=icerik_mi)
                             if ardil is None else None)
                 if bekleyen is not None:
                     seviye += (" · ARDIL SÜRÜYOR: run {} {} @`{}` — hükmü bekle, "
@@ -796,7 +859,8 @@ def bugunun_kirmizilari() -> tuple[str, str, int | None, str]:
         import json
         data = json.loads(r.stdout or "[]")
         bugun = dt.datetime.now(dt.timezone.utc).date()
-        kirmizi, hukumsuz, canli_n, kapanan_n = kirmizi_siniflandir(data, bugun, ata_mi_git)
+        kirmizi, hukumsuz, canli_n, kapanan_n = kirmizi_siniflandir(
+            data, bugun, ata_mi_git, icerik_main_de_mi_git)
         devreden = _devreden_blogu(data, bugun)
         if kirmizi:
             suruyor_n = len([x for x in kirmizi if "ARDIL SÜRÜYOR" in x])
