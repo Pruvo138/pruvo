@@ -640,5 +640,122 @@
         "https://media.pruvo3d.com/urunler/cgt6825745-4.jpg"
       ]
     }
+  },
+  {
+    "silinme_ts": "2026-10-12T19:44:29Z",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null,
+    "kayit": {
+      "id": "pr1699767-knucklehead-1938-model",
+      "kategori": "Motosiklet",
+      "marka": [
+        "Harley-Davidson",
+        "Knucklehead"
+      ],
+      "baslik": "Harley-Davidson Knucklehead (1938) Motosiklet Modeli",
+      "aciklama": "1938 model Harley-Davidson Knucklehead'in dekoratif modeli.\nYaklaşık dış ölçüler: 165 × 91 × 72 mm.",
+      "fiyat": "280 TL",
+      "gorseller": [
+        "https://media.pruvo3d.com/urunler/pr1699767-1.jpg",
+        "https://media.pruvo3d.com/urunler/pr1699767-2.jpg"
+      ]
+    }
+  },
+  {
+    "silinme_ts": "2026-10-12T19:44:33Z",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null,
+    "kayit": {
+      "id": "pr1699357-kz900-1977-model",
+      "kategori": "Motosiklet",
+      "marka": [
+        "Kawasaki",
+        "KZ900"
+      ],
+      "baslik": "Kawasaki KZ900 (1977) Motosiklet Modeli",
+      "aciklama": "1977 model Kawasaki KZ900'ün dekoratif modeli.\nYaklaşık dış ölçüler: 140 × 88 × 78 mm.",
+      "fiyat": "260 TL",
+      "gorseller": [
+        "https://media.pruvo3d.com/urunler/pr1699357-1.jpg"
+      ]
+    }
+  },
+  {
+    "silinme_ts": "2026-10-12T19:44:37Z",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null,
+    "kayit": {
+      "id": "th1759195-999-2003-model",
+      "kategori": "Motosiklet",
+      "marka": [
+        "Ducati",
+        "999"
+      ],
+      "baslik": "Ducati 999 (2003) Motosiklet Modeli",
+      "aciklama": "2003 model Ducati 999'un detaylı dekoratif modeli.\nYaklaşık dış ölçüler: 216 × 117 × 73 mm.",
+      "fiyat": "320 TL",
+      "gorseller": [
+        "https://media.pruvo3d.com/urunler/th1759195-999-2003-model-1.jpg",
+        "https://media.pruvo3d.com/urunler/th1759195-999-2003-model-2.jpg",
+        "https://media.pruvo3d.com/urunler/th1759195-999-2003-model-3.jpg",
+        "https://media.pruvo3d.com/urunler/th1759195-999-2003-model-4.jpg"
+      ],
+      "lisans": {
+        "tasarimci": "Jace1969",
+        "tur": "CC BY 4.0"
+      }
+    }
+  },
+  {
+    "silinme_ts": "2026-10-12T19:44:40Z",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null,
+    "kayit": {
+      "id": "th6877290-panigalev4-model",
+      "kategori": "Motosiklet",
+      "marka": [
+        "Ducati",
+        "Panigale V4"
+      ],
+      "baslik": "Ducati Panigale V4 Modeli",
+      "aciklama": "Ducati Panigale V4'ün detaylı dekoratif modeli.\nYaklaşık dış ölçüler: 288 × 168 × 63 mm.",
+      "fiyat": "400 TL",
+      "gorseller": [
+        "https://media.pruvo3d.com/urunler/th6877290-panigalev4-model-1.jpg",
+        "https://media.pruvo3d.com/urunler/th6877290-panigalev4-model-2.jpg",
+        "https://media.pruvo3d.com/urunler/th6877290-panigalev4-model-3.jpg",
+        "https://media.pruvo3d.com/urunler/th6877290-panigalev4-model-4.jpg"
+      ],
+      "lisans": {
+        "tasarimci": "tmanning47",
+        "tur": "CC BY-SA 4.0"
+      }
+    }
+  },
+  {
+    "silinme_ts": "2026-10-12T19:44:42Z",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null,
+    "kayit": {
+      "id": "1992-honda-cbr900rr-fireblade-g-vde-seti",
+      "kategori": "Motosiklet",
+      "marka": [
+        "Honda",
+        "CBR900RR"
+      ],
+      "baslik": "1992 Honda CBR900RR Fireblade gövde seti",
+      "aciklama": "1992 Honda CBR900RR Fireblade için özel üretilen gövde seti. Modelin dış formunu tamamlayan parçaları temiz ve bütünlüklü bir görünüm sunar.\n- Motosikletin üst kaporta görünümünü sağlar.\n- Özel siparişle, uyumlu ölçüde hazırlanır.\n- Montajda mevcut bağlantı noktaları esas alınır.\n- Görseldeki set, modelin genel formunu gösterir.\nYaklaşık dış ölçüler: 2 × 1 × 1 mm.",
+      "fiyat": "400 TL",
+      "gorseller": [
+        "https://media.pruvo3d.com/urunler/1992-honda-cbr900rr-fireblade-g-vde-seti-1.jpg"
+      ],
+      "altkategori": "Grenaj ve Kaporta",
+      "uyum": [
+        {
+          "marka": "Honda",
+          "model": "CBR900RR"
+        }
+      ]
+    }
   }
 ]
