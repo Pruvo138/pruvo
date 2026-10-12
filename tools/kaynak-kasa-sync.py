@@ -11,6 +11,9 @@ import os
 import subprocess
 import sys
 import tempfile
+if os.path.dirname(os.path.abspath(__file__)) not in sys.path:  # kardes yardimci (K440)
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from wrangler_ortam import wrangler_ortami  # noqa: E402 — wrangler disk logu kapali
 
 
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -54,7 +57,7 @@ def yerel_oku():
 
 
 def komut(args):
-    p = subprocess.run(["npx", "--yes", "wrangler@4"] + args, cwd=KOK,
+    p = subprocess.run(["npx", "--yes", "wrangler@4"] + args, cwd=KOK, env=wrangler_ortami(),
                        capture_output=True, text=True)
     if p.returncode != 0:
         raise RuntimeError("wrangler rc=%d" % p.returncode)

@@ -52,6 +52,9 @@ import sys
 import tarfile
 import tempfile
 import time
+if os.path.dirname(os.path.abspath(__file__)) not in sys.path:  # kardes yardimci (K440)
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from wrangler_ortam import wrangler_ortami  # noqa: E402 — wrangler disk logu kapali
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ESLEM_YOL = os.path.join(REPO, "onizleme", "derleyici", "eslem-ozel.json")
@@ -281,7 +284,7 @@ def _r2_get(anahtar, hedef):
     (yayilma gecikmesi taklidi -> nobetci agsiz olculebilir)."""
     proc = subprocess.run(
         ["npx", "wrangler", "r2", "object", "get", BUCKET + "/" + anahtar,
-         "--file", hedef, "--remote"], cwd=REPO, capture_output=True)
+         "--file", hedef, "--remote"], cwd=REPO, capture_output=True, env=wrangler_ortami())
     return proc.returncode
 
 
@@ -340,7 +343,7 @@ def yukle_ve_dogrula(anahtar, arsiv, tmp):
     sha) -> aralikli yeniden deneme eklendi (bkz. GERI_OKUMA_ARALIKLARI)."""
     komut = ["npx", "wrangler", "r2", "object", "put",
              BUCKET + "/" + anahtar, "--file", arsiv, "--remote"]
-    proc = subprocess.run(komut, cwd=REPO, capture_output=True)
+    proc = subprocess.run(komut, cwd=REPO, capture_output=True, env=wrangler_ortami())
     if proc.returncode != 0:
         sys.stderr.write(proc.stdout.decode("utf-8", "replace"))
         sys.stderr.write(proc.stderr.decode("utf-8", "replace"))

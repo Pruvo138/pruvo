@@ -169,6 +169,9 @@ ROOT = os.path.dirname(TOOLS)
 SHOP = os.path.join(ROOT, "shop")
 WRANGLER_TOML = os.path.join(SHOP, "wrangler.toml")
 from git_ortami import git_ortami, sentetik_git  # noqa: E402
+if os.path.dirname(os.path.abspath(__file__)) not in sys.path:  # kardes yardimci (K440)
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from wrangler_ortam import wrangler_ortami  # noqa: E402 — wrangler disk logu kapali
 
 # 🔴 ESIK — gerekcesi dosya basinda OLCUMLE beyan edildi (8/8 saglikli deploy < 120 dk;
 # olay penceresi 795 dk). Iki yonu de kabul testinde nobet altinda (D2/D3).
@@ -346,7 +349,7 @@ def wrangler_json(alt_komut, cfg=WRANGLER_TOML):
     yerelde `wrangler login` OAuth'u. d1-sync.py ile AYNI istemci/surum sabiti (`@4`)."""
     komut = ["npx", "--yes", "wrangler@4", alt_komut, "list", "-c", cfg, "--json"]
     try:
-        r = subprocess.run(komut, capture_output=True, text=True, timeout=300)
+        r = subprocess.run(komut, capture_output=True, text=True, timeout=300, env=wrangler_ortami())
     except (OSError, subprocess.SubprocessError) as e:
         raise Olculemedi("wrangler %s calistirilamadi: %s" % (alt_komut, e))
     if r.returncode != 0:

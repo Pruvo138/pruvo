@@ -76,6 +76,9 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+if os.path.dirname(os.path.abspath(__file__)) not in sys.path:  # kardes yardimci (K440)
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from wrangler_ortam import wrangler_ortami  # noqa: E402 — wrangler disk logu kapali
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
@@ -245,7 +248,7 @@ def r2_cek(hedef_dizin, anahtar):
     arsiv = os.path.join(hedef_dizin, "paket.tar.gz")
     komut = ["npx", "wrangler", "r2", "object", "get",
              BUCKET + "/" + anahtar, "--file", arsiv, "--remote"]
-    proc = subprocess.run(komut, cwd=ROOT, capture_output=True)
+    proc = subprocess.run(komut, cwd=ROOT, capture_output=True, env=wrangler_ortami())
     if proc.returncode != 0 or not os.path.exists(arsiv):
         sys.stderr.write(proc.stderr.decode("utf-8", "replace"))
         sys.exit("R2'den cekilemedi: r2://%s/%s (wrangler oturumu acik mi?)"

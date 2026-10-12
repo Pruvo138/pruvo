@@ -35,6 +35,9 @@ import tempfile
 import time
 import zlib
 from datetime import datetime, timezone
+if os.path.dirname(os.path.abspath(__file__)) not in sys.path:  # kardes yardimci (K440)
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from wrangler_ortam import wrangler_ortami  # noqa: E402 — wrangler disk logu kapali
 
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 KOSUCU = os.path.join(KOK, "tools", "foto-uretec-kosucu.py")
@@ -103,7 +106,7 @@ def kos(komut, env=None, cwd=KOK, zaman=URETEC_SURE_SN):
         komut = [sys.executable, sahte] + list(komut)
     try:
         p = subprocess.run(komut, capture_output=True, text=True, timeout=zaman, cwd=cwd,
-                           env=dict(os.environ, **(env or {})))
+                           env=wrangler_ortami(dict(os.environ, **(env or {}))))
     except subprocess.TimeoutExpired:
         return 124, "", "sure-asimi"
     except OSError as e:

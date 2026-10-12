@@ -65,7 +65,8 @@ async function hazirBekle(url, saniye) {
 }
 
 function surec(komut, argv, secenek) {
-  const c = spawn(komut, argv, Object.assign({ detached: true, stdio: ["ignore", "pipe", "pipe"] }, secenek));
+  const c = spawn(komut, argv, Object.assign({ detached: true, stdio: ["ignore", "pipe", "pipe"],
+    env: { ...process.env, WRANGLER_WRITE_LOGS: "false" } }, secenek));
   c.stderr.on("data", (d) => { if (process.env.KABUL_GURULTU) process.stderr.write(d); });
   c.stdout.on("data", (d) => { if (process.env.KABUL_GURULTU) process.stdout.write(d); });
   cocuklar.push(c);

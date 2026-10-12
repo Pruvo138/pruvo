@@ -176,6 +176,7 @@ def mutant(ad):
         os.makedirs(os.path.join(d, "tools"))
         os.makedirs(os.path.join(d, "shop"))
         shutil.copyfile(os.path.join(KOK, "tools", "foto-uretec-kosucu.py"), os.path.join(d, "tools", "foto-uretec-kosucu.py"))
+        shutil.copyfile(os.path.join(KOK, "tools", "wrangler_ortam.py"), os.path.join(d, "tools", "wrangler_ortam.py"))
         shutil.copyfile(os.path.join(KOK, "shop", "wrangler.onizleme.toml"), os.path.join(d, "shop", "wrangler.onizleme.toml"))
         yol = os.path.join(d, "tools", "foto-yeniden-asama.py")
         with open(yol, "w", encoding="utf-8") as f:

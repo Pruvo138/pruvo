@@ -87,6 +87,9 @@ import re
 import subprocess
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
+if os.path.dirname(os.path.abspath(__file__)) not in sys.path:  # kardes yardimci (K440)
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from wrangler_ortam import wrangler_ortami  # noqa: E402 — wrangler disk logu kapali
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BUCKET = "pruvo-ozel"
@@ -277,7 +280,7 @@ def yukle_wrangler(yerel, anahtar):
     token gerekmez)."""
     komut = ["npx", "wrangler", "r2", "object", "put", BUCKET + "/" + anahtar,
              "--file", yerel, "--remote"]
-    p = subprocess.run(komut, cwd=REPO, capture_output=True, text=True)
+    p = subprocess.run(komut, cwd=REPO, capture_output=True, text=True, env=wrangler_ortami())
     if p.returncode != 0:
         sys.stderr.write((p.stdout or "") + (p.stderr or ""))
         return False

@@ -976,7 +976,7 @@ def _wrangler_govde(komut, gecici_cacheler):
         if p.returncode != 0 and "EPERM" in ham and "_cacache" in ham:
             gecici = tempfile.mkdtemp(prefix="pruvo-npm-")
             gecici_cacheler.append(gecici)
-            ort = dict(os.environ, npm_config_cache=gecici)
+            ort = dict(os.environ, npm_config_cache=gecici, **WRANGLER_LOG_KAPALI)
             p, _sure = _wrangler_alt_surec(komut, ort=ort)
             ham = (p.stdout or "") + (p.stderr or "")
 

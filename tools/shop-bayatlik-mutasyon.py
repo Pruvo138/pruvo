@@ -178,6 +178,9 @@ def ayna_kur(hedef):
     os.makedirs(os.path.join(hedef, "tools"), exist_ok=True)
     shutil.copy2(os.path.join(TOOLS, "git_ortami.py"),
                  os.path.join(hedef, "tools", "git_ortami.py"))
+    # kapinin wrangler ortami yardimcisi (K440)
+    shutil.copy2(os.path.join(TOOLS, "wrangler_ortam.py"),
+                 os.path.join(hedef, "tools", "wrangler_ortam.py"))
     sentetik_git(hedef, "init", "-q", "-b", "main", check=True,
                   kimlik_ad="m", kimlik_eposta="m@m")
     sentetik_git(hedef, "add", "-A", check=True,

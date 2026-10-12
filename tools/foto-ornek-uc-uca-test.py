@@ -70,7 +70,7 @@ SEMA = os.path.join(KOK, "tools", "d1-sema.sql")
 # okur; test ortaminda `_red_metni_onizleme()` acabilsin diye KOPYA'ya eklenir.
 KOPYA_DOSYALAR = ["foto-uretim-veri.js", "shop/wrangler.toml", "shop/wrangler.onizleme.toml",
                   "shop/src/foto.js", "tools/foto-onizleme.py", "tools/saglayici-ornek.py",
-                  "tools/d1-goc/2026-10-10-foto-kredi-dilim.sql"]
+                  "tools/d1-goc/2026-10-10-foto-kredi-dilim.sql", "tools/wrangler_ortam.py"]
 
 SAHTE_WRANGLER = r'''
 import json, os, shutil, sqlite3, sys

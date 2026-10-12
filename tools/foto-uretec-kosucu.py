@@ -76,6 +76,9 @@ import sys
 import tempfile
 import time
 from datetime import datetime, timezone
+if os.path.dirname(os.path.abspath(__file__)) not in sys.path:  # kardes yardimci (K440)
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from wrangler_ortam import wrangler_ortami  # noqa: E402 — wrangler disk logu kapali
 
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SHOP = os.path.join(KOK, "shop")
@@ -237,7 +240,7 @@ def wrangler_komutu():
 def wr(argumanlar, zaman=180):
     try:
         return subprocess.run(wrangler_komutu() + argumanlar, cwd=SHOP, capture_output=True, text=True,
-                              timeout=zaman)
+                              timeout=zaman, env=wrangler_ortami())
     except (OSError, subprocess.TimeoutExpired):
         raise Erisilemedi("wrangler")
 
