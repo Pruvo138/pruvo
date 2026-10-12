@@ -57,6 +57,8 @@ parametre -> rc 2 (uretec KOSMAZ). Cikti: `uretec.3mf`->`model.3mf`, `ozet.json`
 renk_sayisi 3MF'teki extruder sayisi OLCULUR), onizleme >= 1024 px tam sayi kat buyutulur. Uretec
 rc 2 -> RET cumlesi RET_KALIPLARI ile koda cevrilir -> `uretec-red:<kod>` (musteri metni manifestte
 `URETEC_RED_METIN`; bilinmeyen -> genel metin).
+URETIM SATIRI `hazir`a gecerken (uretec kolu + onarim kuyrugu) foto_uretim.renk_sayisi = uretilen model.3mf'in
+OLCULEN extruder sayisi (uc_mf_extruder_sayisi; 0 = olculemedi) — giristeki siparis/ornek tavani ezilir.
 """
 import argparse
 import fcntl
@@ -90,7 +92,8 @@ ORNEK_SIPARIS_ONEK = "ORNEK-"
 DENEME_TAVANI = 3
 TOLERANS = {"D": 0.01, "R": 0.03}
 ONIZLEME_MIN_PX = 1024
-URETEC_SURE_SN = 300
+# Test ortami kisa tavan verebilir (FOTO_KOSUCU_URETEC_SURE_SN); uretimde 300 sn AYNEN.
+URETEC_SURE_SN = int(os.environ.get("FOTO_KOSUCU_URETEC_SURE_SN") or 300)
 IS_SINIRI = 20
 LOG_TAVAN_BAYT = 5 * 1024 * 1024
 CIKTI_DOSYALARI = ["model.3mf", "olcu.json", "onizleme.png"]
@@ -112,6 +115,17 @@ DOSYA_ADI_KALIBI = re.compile(r"^[a-z_]{1,24}\.(png|jpg|jpeg|svg|wav|3mf|stl)$")
 # Kopru yoksa is KUYRUKTA kalir (fail-closed: hazir yazilmaz). ④ bunu pruvo `uc_mf_olc` ile AYRICA olcer.
 KOPRU_BETIK = "jeneratorler/foto/uc_mf_onar.py"
 ONARIM_SURE_SN = 600
+# FIGUR ZINCIRI (BaBa 10 Eki 22:3x; insan · pet · model = foto_uretim.tur 'figur', cesitsiz): onarim gecince
+# TeKiN `figur_duzelt.py --girdi --cikti` (kaide + kabuk birlestirme; olcek DEGISTIRMEZ) -> koşucu OLCEKLER (siparis
+# olcusu = teslim edilen parcanin KAIDE DAHIL en uzun boyutu, 3 eksen; kaide eklendikten SONRA) -> `figur_denge.py
+# --girdi` olcer: DENGE=OK -> 'hazir' · DENGE=RED -> 'elle' uretec-red:denge-<sebep> (musteri metni mevcut genel
+# cumle, VERI.uretecRedMetni) · duzelt rc != 0 (rc 2 + sebep denge_* HARIC: geometri yazildi, kalan kapi olcek
+# meselesi -> olcekli denge karar verir) / denge rc 1 / olcek tutmadi -> ariza. Betik yoksa Erisilemedi (kuyrukta).
+# Anahtarlik-figur (figur_kos) ve plaket (onarilmis model AYNEN) zinciri DEGISMEZ.
+FIGUR_ZINCIR_TURLERI = ("figur",)
+FIGUR_DUZELT_BETIK = "jeneratorler/foto/figur_duzelt.py"
+FIGUR_DENGE_BETIK = "jeneratorler/foto/figur_denge.py"
+FIGUR_OLCEK_TOLERANS = 0.01
 
 # KOMUT ESLEMESI — TEK YER: manifest `uretec` kimligi -> CLI. bicim "sozlesme" = §1 dogal cagri
 # (`<komut> --girdi girdi.json --cikti <dizin>`); "litofan" = litofan_uret.py'nin kendi CLI'i
@@ -146,7 +160,7 @@ NODE_OKU = (
     "const vm=require('vm'),fs=require('fs');const k={};"
     "vm.runInNewContext(fs.readFileSync(process.argv[1],'utf8'),k,{filename:'foto-uretim-veri.js'});"
     "process.stdout.write(JSON.stringify({turler:k.PRUVO_FOTO.turler,renk_hex:k.PRUVO_FOTO.RENK_HEX,"
-    "plaka_mm:k.PRUVO_FOTO.PLAKA_MM}));"
+    "plaka_mm:k.PRUVO_FOTO.PLAKA_MM,cesitler:k.PRUVO_FOTO.cesitler}));"
 )
 _MANIFEST = {}
 
@@ -175,6 +189,12 @@ def _manifest_ham():
 
 def manifest_oku():
     return {t.get("kod"): t for t in _manifest_ham().get("turler") or [] if isinstance(t, dict)}
+
+
+def cesit_kaydi(tur, kod):
+    """Manifest `cesitler` (VERI.cesitKaydi ile AYNI): turun `kod` cesidi; yoksa {}."""
+    k = (_manifest_ham().get("cesitler") or {}).get(tur) or {}
+    return next((c for c in k.get("secenekler") or [] if isinstance(c, dict) and c.get("kod") == kod), {})
 
 
 def renk_tablosu():
@@ -273,12 +293,15 @@ def isleri_cek(manifest):
         isler.append({"kuyruk": "onizleme", "is_no": r.get("is_no"), "tur": r.get("tur"),
                       "olcu_mm": r.get("olcu_mm"), "deneme": int(m.group(1)) if m else 0,
                       "gorulen": int(r.get("son_kontrol") or 0)})
-    sat, _ = d1("SELECT siparis_no, kalem, is_no, tur, olcu_mm, deneme, guncel FROM foto_uretim"
-                " WHERE asama = 'onarim-bekliyor' ORDER BY tarih LIMIT " + str(IS_SINIRI))
+    # Onarim kuyrugu siparis kalemini de okur (figur kolu `foto_renk_modu`: Renkli -> palet; RENK=PALET B).
+    sat, _ = d1("SELECT u.siparis_no, u.kalem, u.is_no, u.tur, u.olcu_mm, u.deneme, u.guncel, s.urunler"
+                " FROM foto_uretim u LEFT JOIN siparisler s ON s.siparis_no = u.siparis_no"
+                " WHERE u.asama = 'onarim-bekliyor' ORDER BY u.tarih LIMIT " + str(IS_SINIRI))
     for r in sat:
         isler.append({"kuyruk": "onarim", "siparis_no": r.get("siparis_no"), "kalem": r.get("kalem"),
                       "is_no": r.get("is_no"), "tur": r.get("tur"), "olcu_mm": r.get("olcu_mm"),
-                      "deneme": int(r.get("deneme") or 0), "gorulen": r.get("guncel") or ""})
+                      "deneme": int(r.get("deneme") or 0), "gorulen": r.get("guncel") or "",
+                      "urunler": r.get("urunler") or ""})
     for i in isler:
         t = manifest.get(i["tur"]) or {}
         i["motor"] = t.get("motor", "")
@@ -334,16 +357,21 @@ def yeni_jeton(i):
     return max(int(time.time() * 1000), int(i["gorulen"]) + 1)
 
 
-def sonuc_sql(i, jeton, karar, sebep="", olcu=None):
+def sonuc_sql(i, jeton, karar, sebep="", olcu=None, renk=None):
     """karar: hazir | elle | ariza. Son yazim jetona bagli (CAS). `olcu` (yalniz onizleme + hazir):
     TURETILMIS eksenli turde onizlemede OLCULEN uzun kenar (tam mm) satirin olcu_mm'sine yazilir —
-    sunucu fiyati ORADAN hesaplar (shop/src/foto.js uretecDurumYaniti / fotoKalemFiyatla)."""
+    sunucu fiyati ORADAN hesaplar (shop/src/foto.js uretecDurumYaniti / fotoKalemFiyatla).
+    `renk` (yalniz uretim satiri + hazir): uretilen model.3mf'in OLCULEN extruder sayisi (uc_mf_extruder_sayisi;
+    0 = olculemedi) foto_uretim.renk_sayisi'na yazilir — satira girisinde yazilan siparis/ornek tavani (ORNEK:
+    renkTavani) uretilen dosyayi anlatmaz (10 Eki: tek renk 3MF, satir 2)."""
     tablo, kosul = nerede(i)
     kosul += " AND " + jeton_kosulu(i, jeton)
     simdi = simdi_iso()
     if satirli(i):
         if karar == "hazir":
             st = "asama = 'hazir', sebep = '', deneme = 0, guncel = %s" % sql_metin(simdi)
+            if renk is not None:
+                st += ", renk_sayisi = %d" % int(renk)
         elif karar == "elle":
             st = "asama = 'elle', sebep = %s, deneme = 0, guncel = %s" % (sql_metin(sebep), sql_metin(simdi))
         else:
@@ -382,6 +410,17 @@ def siparis_kalemi(urunler, kalem):
     except (ValueError, TypeError):
         k = None
     return k if isinstance(k, dict) else None
+
+
+RENK_MODU_SECENEK = ("tek", "palet")
+
+
+def foto_renk_modu(i):
+    """Figur kolunun uretim renk modu: siparis kaleminin `foto_renk_modu` (shop/src/foto.js; Renkli -> palet).
+    Satir/kalem/alan yok, kalem baska ise ait ya da deger gecersiz -> "tek" (bugunku tek renk yolu AYNEN)."""
+    k = siparis_kalemi(i.get("urunler"), i.get("kalem"))
+    m = k.get("foto_renk_modu") if k and k.get("foto_is") == i.get("is_no") else None
+    return m if m in RENK_MODU_SECENEK else "tek"
 
 
 def siparis_girdisi(i, t):
@@ -913,8 +952,9 @@ KONUM_SECENEK = ("tepe", "sirt")
 def esle_anahtarlik_foto(g, dizin, rh):
     """anahtarlik FOTO kolu (TeKiN kopru kaydi `anahtarlik-foto`, figur_kulak; ② "Figur olarak"): girdi saglayicinin
     FIGUR turu ciktisi (`dosyalar.figur`, 3MF ya da STL), kulakcik konumu `figur_kulak_konum` (tepe|sirt; yoksa
-    tepe). Renk bolgesi YOK (tek govde). Figur uzun kenari >50 mm ise uretec rc 2 -> `anahtarlik-boyut`
-    (RET_KALIPLARI)."""
+    tepe). Renk bolgesi YOK (tek govde). Figur uzun kenari >72 mm ise uretec rc 2 -> `anahtarlik-boyut`
+    (RET_KALIPLARI). Zarf `renk_modu` palet -> `--renk-modu palet` (3MF ucgen boyasi korunur); tek/yok -> bayrak
+    YOK (komut bugunkuyle bayt-ayni)."""
     ad = (g.get("dosyalar") or {}).get("figur")
     if not isinstance(ad, str) or not DOSYA_ADI_KALIBI.match(ad) or not ad.endswith((".3mf", ".stl")) or \
             not os.path.isfile(os.path.join(dizin, ad)):
@@ -923,7 +963,13 @@ def esle_anahtarlik_foto(g, dizin, rh):
     konum = (g.get("parametreler") or {}).get("figur_kulak_konum", g.get("konum") or KONUM_VARSAYILAN)
     if konum not in KONUM_SECENEK:
         raise KopruRed("parametre")
-    return {"figur": os.path.join(dizin, ad), "konum": konum}, []
+    u = {"figur": os.path.join(dizin, ad), "konum": konum}
+    rm = g.get("renk_modu", "tek")
+    if rm not in RENK_MODU_SECENEK:
+        raise KopruRed("parametre")
+    if rm == "palet":
+        u["renk_modu"] = "palet"
+    return u, []
 
 
 def kopru_cagri(uretec):
@@ -970,13 +1016,18 @@ ESLEMELER = {"isimlik": esle_isimlik, "qr": esle_qr, "logo": esle_logo, "muhur":
 
 # Uretec RET cumlesi -> red kodu (ilk eslesen; manifest URETEC_RED_METIN anahtari). Yok -> "genel".
 RET_KALIPLARI = [
-    # figur_kulak (anahtarlik foto kolu): figur >50 mm / kulak sigmadi -> TEK musteri cumlesi (Okan/BaBa birebir).
+    # figur_kulak (anahtarlik foto kolu): figur >72 mm / kulak sigmadi -> TEK musteri cumlesi (Okan/BaBa birebir).
     (r"figur uzun kenar|kulak dahil uzun kenar|kulak yerlesmez", "anahtarlik-boyut"),
     (r"kontrast", "kontrast"),
     (r"parca kisa kenari|satir\*sutun|parca tabladan", "parca"),
     (r"metin cok uzun|modul boyutu", "qr-uzun"),
     (r"fontta bulunmayan|denetim/gorunmez|surrogate", "karakter"),
-    (r"yazi|satir|harf", "metin-sigmadi"),
+    # isimlik_uret anahtarlik kolu (genislik_mm) ince cizgi RET'i (TeKiN 93a2e1e: duz yazi 30 mm "Ayşe" 0,561 mm < 0,8;
+    # duz yazi ~40 mm ister, el yazisi 30 mm'de gecer) -> kendi cumlesi (genisligi buyut / el yazisi); "metni kisalt"
+    # yakalayan genel yazi reddinden ONCE. Plaka kolu ("plakayi buyut") metin-sigmadi'da kalir.
+    (r"ince cizgi.*genislik_mm", "yazi-ince"),
+    # (Okan 10 Eki "onizleme yapilamiyor": 30 mm "Ayşe" -> eskiden ince-cizgi "gorsel dene" cumlesi).
+    (r"yazi|satir|harf|metni kisalt", "metin-sigmadi"),
     (r"ince cizgi|ink kisa kenari", "ince-cizgi"),
     (r"koprusuz|yuzen ada", "kopru"),
     (r"oran", "oran"),
@@ -1110,22 +1161,65 @@ def tekin_kos(g, t, girdi_dizin, cikti, py, jen):
     return (0 if d.returncode == 0 else 1), (d.stderr.strip().splitlines() or [""])[-1][:200]
 
 
+def boya_durumlari(s):
+    """paint_color (BambuStudio/PrusaSlicer TriangleSelector) -> yaprak durumlari kumesi; bozuk dizge -> None.
+    Onaltilik basamaklar TERS okunur; alt 2 bit bolunen kenar sayisi (0 = yaprak, aksi kenar+1 cocuk), yaprakta ust
+    2 bit durum (3 -> sonraki basamak + 3, 15'ler birikir). Bos dizge = boyasiz ({0})."""
+    try:
+        b = [int(c, 16) for c in reversed(s)]
+    except ValueError:
+        return None
+    k, bekleyen, durumlar = 0, 1, set()
+    while bekleyen:
+        if k >= len(b):
+            return {0} if not b else None
+        kod, k, bekleyen = b[k], k + 1, bekleyen - 1
+        if kod & 3:
+            bekleyen += (kod & 3) + 1
+            continue
+        d = kod >> 2
+        if d == 3:
+            while k < len(b) and b[k] == 15:
+                d, k = d + 15, k + 1
+            if k >= len(b):
+                return None
+            d, k = d + b[k], k + 1
+        durumlar.add(d)
+    return durumlar if k == len(b) else None
+
+
 def uc_mf_extruder_sayisi(yol):
-    """3MF'teki FARKLI extruder sayisi (Metadata/model_settings.config) — OLCULUR; yoksa 0."""
+    """3MF'teki FARKLI extruder sayisi — OLCULUR; yoksa 0. Govde extruder'lari (Metadata/model_settings.config) +
+    UCGEN BOYASI (RENK=PALET B: figur_kulak --renk-modu palet TEK govde yazar, renk ucgen basina `paint_color`'da;
+    durum d>=1 -> extruder d, boyasiz ucgen/durum 0 -> govdenin extruder'i). Boya yoksa bugunku sayim AYNEN;
+    bozuk boya dizgesi -> 0 (olculemedi)."""
     import zipfile
     try:
         with zipfile.ZipFile(yol) as z:
             s = z.read("Metadata/model_settings.config").decode("utf-8")
+            modeller = [z.read(n).decode("utf-8") for n in z.namelist() if n.endswith(".model")]
     except (OSError, KeyError, zipfile.BadZipFile, UnicodeDecodeError):
         return 0
-    return len(set(re.findall(r'key="extruder"\s+value="(\d+)"', s)))
+    govde = set(re.findall(r'key="extruder"\s+value="(\d+)"', s))
+    boya, boyasiz = set(), False
+    for m in modeller:
+        for u in re.findall(r"<triangle\b[^>]*>", m):
+            p = re.search(r'\bpaint_color="([^"]*)"', u)
+            d = boya_durumlari(p.group(1)) if p else {0}
+            if d is None:
+                return 0
+            boya |= {str(x) for x in d if x >= 1}
+            boyasiz = boyasiz or 0 in d
+    if not boya:
+        return len(govde)
+    return len(boya | (govde if boyasiz else set()))
 
 
-def uc_mf_uzun_kenar(yol, oz):
+def uc_mf_uzun_kenar(yol, oz, eksen=2):
     """Uzun kenar 3MF GEOMETRISINDEN olculur (ozetteki nominal degil; 7 Eki mimar karari 3): dunya
-    koordinatinda (component + build donusumu) x/y kutusunun buyuk kenari. Parcalar tablada raf
-    duzenindeyse (yapboz) ozet.parcalar[].tasima_mm cikarilarak BIRLESIK urun olculur. Geometri
-    okunamazsa None (dogrulama uzun-kenar-tolerans ile duser)."""
+    koordinatinda (component + build donusumu) x/y kutusunun buyuk kenari (eksen=3: x/y/z — figur kulak
+    dahil en uzun boyut). Parcalar tablada raf duzenindeyse (yapboz) ozet.parcalar[].tasima_mm cikarilarak
+    BIRLESIK urun olculur. Geometri okunamazsa None (dogrulama uzun-kenar-tolerans ile duser)."""
     import zipfile
     try:
         with zipfile.ZipFile(yol) as z:
@@ -1161,17 +1255,17 @@ def uc_mf_uzun_kenar(yol, oz):
         return [donustur(p, t) for p in out]
 
     tasima = {p.get("ad"): p.get("tasima_mm") for p in (oz.get("parcalar") or []) if isinstance(p, dict)}
-    mn, mx = [float("inf")] * 2, [float("-inf")] * 2
+    mn, mx = [float("inf")] * eksen, [float("-inf")] * eksen
     for b in re.finditer(r'<item\b[^>]*?objectid="(\d+)"(?:[^>]*?transform="([^"]*)")?', xml):
         ps = noktalar(b.group(1), b.group(2))
         tas = tasima.get(nesne.get(b.group(1), ("",))[0]) or [0.0, 0.0, 0.0]
         for p in ps:
-            for i in (0, 1):
+            for i in range(eksen):
                 mn[i] = min(mn[i], p[i] - tas[i])
                 mx[i] = max(mx[i], p[i] - tas[i])
     if mn[0] == float("inf"):
         return None
-    return max(mx[0] - mn[0], mx[1] - mn[1])
+    return max(mx[i] - mn[i] for i in range(eksen))
 
 
 def donustur_tekin(ham, cikti, girdi_yolu, kopru_yolu):
@@ -1484,31 +1578,237 @@ def figur_duzlestir(model, stl):
     return None
 
 
-# K2 (TUR-C2d): once tepe; uretec YALNIZ `kulak yerlesmez (tepe)` ile reddederse AYNI iste bir kez sirt. Baska ret
-# sinifinda (>50 mm, cok bilesen, ...) dusus YOK.
+# K2 (TUR-C2d): once tepe; uretec `kulak yerlesmez (tepe)` ya da (BaBa 16:0x 2b, ONERI c) tepe konumunda
+# `kulak dahil uzun kenar ... (konum=tepe` (291,6–300 dik figur: sirtta kulak uzun kenari buyutmez) ile reddederse
+# AYNI iste bir kez sirt; musteriye konum/ret YOK. Baska ret sinifinda (XY uzun kenar, cok bilesen, ...) dusus YOK.
 FIGUR_KONUM_SIRASI = ("tepe", "sirt")
-TEPE_RED = re.compile(r"kulak yerlesmez \(tepe\)")
+TEPE_RED = re.compile(r"kulak yerlesmez \(tepe\)|kulak dahil uzun kenar [0-9.]+ mm > [0-9.]+ mm \(konum=tepe\b")
+# FIGUR OLCU KURALI (B2, KraL 10 Eki; BaBa 14:0x "kulak dahil en uzun boyut", kopru 2950833): anahtarlik figur
+# cesidinde surgu = kulakcik DAHIL en uzun boyut (3 eksen). Sunucu ciplak figuru siparis olcusune olcekler
+# (foto-uretim-veri.js VERI.olcekHedefMm — kuralin TEK yeri); kulak sirtta ya da XY-uzun figurde uzun kenari
+# BUYUTMEZ, tepede ancak sigarsa. Bu yuzden tepe ciktisinin kulak dahil uzun kenari olcu*(1+tolerans)'i asarsa
+# AYNI iste sirt (K2 dususu bu duruma da genisler; musteriye konum secimi YOK). Son kabul: figur_olcu_kabul.
+FIGUR_OLCU_TOLERANS = 0.03  # shop/src/foto.js OLCU_TOLERANS ile AYNI (saglayici olcegi bu toleransla gecer)
+
+
+def figur_kulak_dahil_mm(cd):
+    """Figur ureteci ciktisinin kulak dahil en uzun boyutu (model.3mf GEOMETRISINDEN, 3 eksen); okunamazsa None."""
+    return uc_mf_uzun_kenar(os.path.join(cd, "model.3mf"), {}, eksen=3)
+
+
+def figur_tepe_sigar(i, cd):
+    """Tepe ciktisinin kulak dahil uzun kenari siparis olcusu (+tolerans) icinde mi (sigmazsa koşucu sirt dener)."""
+    L = figur_kulak_dahil_mm(cd)
+    return L is not None and L <= i["olcu_mm"] * (1 + FIGUR_OLCU_TOLERANS) + 1e-9
+
+
+def figur_olcu_kabul(i, cd):
+    """URETIM OLCUM KABULU (figur cesidi): siparis olcusu cesit araliginda (en_az..olcu_en_cok) VE kulak dahil
+    uzun kenar = olcu (± FIGUR_OLCU_TOLERANS). Donus "" = gecer; aksi RED metni (cagiran 'elle' uretec-red:
+    olcu-tutmadi; sessiz teslim YOK)."""
+    L = figur_kulak_dahil_mm(cd)
+    olcu = i["olcu_mm"]
+    ck = cesit_kaydi(i["tur"], "figur")
+    en_az = max(((manifest_oku().get(i["tur"]) or {}).get("olcu_mm") or {}).get("en_az", 1), ck.get("olcu_en_az") or 0)
+    en_cok = ck.get("olcu_en_cok", 0)
+    if L is None or not (isinstance(olcu, int) and en_az <= olcu <= en_cok) or \
+            abs(L - olcu) > olcu * FIGUR_OLCU_TOLERANS + 1e-9:
+        return "RED olcu-tutmadi: kulak dahil %s mm, siparis %s mm (aralik %s..%s)" % (
+            "?" if L is None else "%.2f" % L, olcu, en_az, en_cok)
+    return ""
 
 
 def figur_kos(i, t, uretec, model, gecici):
     """Onarilmis figur -> duz STL (figur_duzlestir) -> cesidin ureteci (figur_kulak): zarf dosyalar.figur=figur.stl,
-    zarf `konum` (FIGUR_KONUM_SIRASI; tepe reddi -> sirt). Donus (rc, ozet, uretilen model.3mf yolu, konum)."""
+    zarf `konum` (FIGUR_KONUM_SIRASI; tepe reddi ya da tepe olcuye sigmadi -> sirt), sonra figur_olcu_kabul.
+    PALET (siparis Renkli, foto_renk_modu): STL ucgen boyasini SILER -> onarilmis 3MF AYNEN figur.3mf + zarf
+    renk_modu palet (uretec --renk-modu palet). Donus (rc, ozet, uretilen model.3mf yolu, konum)."""
     gd = os.path.join(gecici, "figur-girdi")
     os.makedirs(gd)
-    hata = figur_duzlestir(model, os.path.join(gd, "figur.stl"))
+    palet = foto_renk_modu(i) == "palet"
+    figur = "figur.3mf" if palet else "figur.stl"
+    if palet:
+        shutil.copyfile(model, os.path.join(gd, figur))
+        hata = ""
+    else:
+        hata = figur_duzlestir(model, os.path.join(gd, "figur.stl"))
     if hata:
         return 2, "RED genel: " + hata, os.path.join(gecici, "figur-yok", "model.3mf"), ""
     i["uretec"] = uretec
     for konum in FIGUR_KONUM_SIRASI:
         cd = os.path.join(gecici, "figur-cikti-" + konum)
+        zarf = {"sozlesme": 1, "kategori": i["tur"], "siparis_no": i["siparis_no"], "kalem": i["kalem"],
+                "olcu_mm": i["olcu_mm"], "dosyalar": {"figur": figur}, "parametreler": {}, "konum": konum}
+        if palet:
+            zarf["renk_modu"] = "palet"
         with open(os.path.join(gd, "girdi.json"), "w", encoding="utf-8") as f:
-            json.dump({"sozlesme": 1, "kategori": i["tur"], "siparis_no": i["siparis_no"], "kalem": i["kalem"],
-                       "olcu_mm": i["olcu_mm"], "dosyalar": {"figur": "figur.stl"}, "parametreler": {},
-                       "konum": konum}, f)
+            json.dump(zarf, f)
         rc, ozet = uretec_kos(i, gd, cd, t)
-        if not (rc == 2 and TEPE_RED.search(ozet)):
+        if rc == 0 and konum != FIGUR_KONUM_SIRASI[-1] and not figur_tepe_sigar(i, cd):
+            continue
+        # TEPE SURE ASIMI (10 Eki prova ORNEK-05255ed06bc3: tepe kulak aramasi URETEC_SURE_SN'yi asti -> rc 1
+        # 'sure-asimi' -> ariza; ayni girdiyle sirt rc 0, kulak dahil 60,0 mm) tepeye ozgu ret sayilir -> sirt.
+        # Sirt de asarsa (son konum) ariza AYNEN; baska rc 1 (cokme) sirta DUSMEZ.
+        tepe_suresi = rc == 1 and ozet == "sure-asimi" and konum != FIGUR_KONUM_SIRASI[-1]
+        if not (rc == 2 and TEPE_RED.search(ozet)) and not tepe_suresi:
             break
+    if rc == 0:
+        red = figur_olcu_kabul(i, cd)
+        if red:
+            rc, ozet = 2, red
     return rc, ozet, os.path.join(cd, "model.3mf"), konum
+
+
+UC_MF_VERTEX = re.compile(r'(<vertex\b[^>]*?\bx=")([-0-9.eE+]+)("[^>]*?\by=")([-0-9.eE+]+)("[^>]*?\bz=")([-0-9.eE+]+)(")')
+UC_MF_DONUSUM = re.compile(r'(<(?:item|component)\b[^>]*?\btransform=")([^"]*)(")')
+
+
+def _uc_mf_modeller(yol):
+    """3MF -> (zip ogeleri [(ZipInfo, bayt)], {ad: model xml}). Okunamazsa ValueError."""
+    import zipfile
+    try:
+        with zipfile.ZipFile(yol) as z:
+            ogeler = [(zi, z.read(zi.filename)) for zi in z.infolist()]
+        return ogeler, {zi.filename: b.decode("utf-8") for zi, b in ogeler if zi.filename.endswith(".model")}
+    except (OSError, KeyError, zipfile.BadZipFile, UnicodeDecodeError) as e:
+        raise ValueError("3mf okunamadi: %s" % e)
+
+
+def uc_mf_dunya_uzun(modeller):
+    """Production 3MF (kok build -> `<component p:path=...>` alt dosya) dahil DUNYA koordinatinda en uzun boyut
+    (x/y/z, kaide dahil). Butun koseler donusturulur (kutu ustu tahmin yok). Geometri yoksa None."""
+    nesne = {}
+    for ad, xml in modeller.items():
+        for m in re.finditer(r'<object\b([^>]*)>(.*?)</object>', xml, re.S):
+            oid = re.search(r'\bid="(\d+)"', m.group(1))
+            if not oid:
+                continue
+            vs = [(float(v[1]), float(v[3]), float(v[5])) for v in UC_MF_VERTEX.findall(m.group(2))]
+            komp = []
+            for k in re.finditer(r'<component\b([^>]*)/?>', m.group(2)):
+                a = k.group(1)
+                cid = re.search(r'\bobjectid="(\d+)"', a)
+                yol = re.search(r'\bp:path="/?([^"]*)"', a)
+                t = re.search(r'\btransform="([^"]*)"', a)
+                if cid:
+                    komp.append(((yol.group(1) if yol else ad), cid.group(1), t.group(1) if t else ""))
+            nesne[(ad, oid.group(1))] = (vs, komp)
+
+    def donustur(ps, t):
+        if not t:
+            return ps
+        a = [float(x) for x in t.split()]
+        return [(p[0] * a[0] + p[1] * a[3] + p[2] * a[6] + a[9], p[0] * a[1] + p[1] * a[4] + p[2] * a[7] + a[10],
+                 p[0] * a[2] + p[1] * a[5] + p[2] * a[8] + a[11]) for p in ps]
+
+    def noktalar(anahtar, derinlik=0):
+        if anahtar not in nesne or derinlik > 8:
+            return []
+        vs, komp = nesne[anahtar]
+        out = list(vs)
+        for kad, cid, ct in komp:
+            out += donustur(noktalar((kad, cid), derinlik + 1), ct)
+        return out
+
+    mn, mx = [float("inf")] * 3, [float("-inf")] * 3
+    for ad, xml in modeller.items():
+        for b in re.finditer(r'<item\b([^>]*)/?>', xml):
+            cid = re.search(r'\bobjectid="(\d+)"', b.group(1))
+            t = re.search(r'\btransform="([^"]*)"', b.group(1))
+            for p in donustur(noktalar((ad, cid.group(1) if cid else "")), t.group(1) if t else ""):
+                for e in range(3):
+                    mn[e] = min(mn[e], p[e])
+                    mx[e] = max(mx[e], p[e])
+    if mn[0] == float("inf"):
+        return None
+    return max(mx[e] - mn[e] for e in range(3))
+
+
+def _sayi_yaz(x):
+    s = ("%.4f" % x).rstrip("0").rstrip(".")
+    return "0" if s in ("", "-0") else s
+
+
+def uc_mf_olcekle(kaynak, hedef, olcu_mm):
+    """3MF'i (Production dahil) en uzun DUNYA boyutu olcu_mm olacak sekilde orijin etrafinda DUZGUN olcekler: her
+    `<vertex>` x/y/z * s, her `<item>`/`<component>` donusumunun OTELEME ogeleri (10-12) * s (dogrusal kisim
+    ayni) -> dunya = s * eski dunya. Diger zip ogeleri (boya, Metadata) AYNEN, sira ve sikistirma korunur.
+    Donus: olcek SONRASI yeniden olculen uzun kenar (mm); okunamaz/geometrisiz -> None."""
+    import zipfile
+    try:
+        ogeler, modeller = _uc_mf_modeller(kaynak)
+    except ValueError:
+        return None
+    L = uc_mf_dunya_uzun(modeller)
+    if not L or L <= 0:
+        return None
+    s = float(olcu_mm) / L
+
+    def vertex(m):
+        return "".join((m.group(1), _sayi_yaz(float(m.group(2)) * s), m.group(3), _sayi_yaz(float(m.group(4)) * s),
+                        m.group(5), _sayi_yaz(float(m.group(6)) * s), m.group(7)))
+
+    def donusum(m):
+        a = m.group(2).split()
+        if len(a) == 12:
+            a = a[:9] + [_sayi_yaz(float(x) * s) for x in a[9:]]
+        return m.group(1) + " ".join(a) + m.group(3)
+
+    with zipfile.ZipFile(hedef, "w") as z:
+        for zi, b in ogeler:
+            if zi.filename in modeller:
+                b = UC_MF_DONUSUM.sub(donusum, UC_MF_VERTEX.sub(vertex, modeller[zi.filename])).encode("utf-8")
+            z.writestr(zi, b)
+    try:
+        return uc_mf_dunya_uzun(_uc_mf_modeller(hedef)[1])
+    except ValueError:
+        return None
+
+
+def figur_zinciri_turu(i):
+    return i.get("tur") in FIGUR_ZINCIR_TURLERI
+
+
+def _jen_kos(betik, arg):
+    """Uretec deposundaki betigi kosar -> (rc, stdout son satiri). Betik yoksa Erisilemedi (is KUYRUKTA)."""
+    py, kopru = kopru_bul()
+    yol = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(kopru))), betik)
+    if not os.path.isfile(yol):
+        raise Erisilemedi(os.path.basename(betik).replace(".py", "").replace("_", "-") + "-yok")
+    try:
+        p = subprocess.run([py, yol] + arg, capture_output=True, text=True, timeout=ONARIM_SURE_SN, env=SALT_OKUMA_ENV)
+    except subprocess.TimeoutExpired:
+        return 1, "sure-asimi"
+    except OSError as e:
+        return 1, "baslatilamadi " + str(e)[:120]
+    return p.returncode, ((p.stdout or "").strip().splitlines() or [""])[-1][:300]
+
+
+def figur_zinciri(i, model, gecici):
+    """FIGUR ZINCIRI (insan · pet · model): onarilmis model -> figur_duzelt -> olcek (kaide dahil = siparis olcusu)
+    -> figur_denge. Donus (karar hazir|elle|ariza, sebep, ozet, teslim edilecek model yolu | None)."""
+    dz = os.path.join(gecici, "figur-duzelt")
+    rc, dsatir = _jen_kos(FIGUR_DUZELT_BETIK, ["--girdi", model, "--cikti", dz])
+    duz = os.path.join(dz, "duzelt.3mf")
+    m = re.search(r"\bsebep=(\S+)", dsatir)
+    dsebep = m.group(1) if m else ""
+    ozet = "duzelt rc=%d [%s]" % (rc, dsatir)
+    if not (rc == 0 or (rc == 2 and dsebep.startswith("denge_"))) or not os.path.isfile(duz):
+        return "ariza", "figur-duzelt", ozet, None
+    olcekli = os.path.join(gecici, "figur-olcekli.3mf")
+    olcu = i["olcu_mm"]
+    L = uc_mf_olcekle(duz, olcekli, olcu) if isinstance(olcu, int) and olcu > 0 else None
+    ozet += " olcek=%s/%s" % ("?" if L is None else "%.2f" % L, olcu)
+    if L is None or abs(L - olcu) > olcu * FIGUR_OLCEK_TOLERANS + 1e-9:
+        return "ariza", "figur-olcek", ozet, None
+    rc, satir = _jen_kos(FIGUR_DENGE_BETIK, ["--girdi", olcekli])
+    ozet += " denge rc=%d [%s]" % (rc, satir)
+    if rc == 0 and satir.startswith("DENGE=OK "):
+        return "hazir", "", ozet, olcekli
+    m = re.match(r"^DENGE=RED sebep=([a-z_]{1,30}) ", satir)
+    if rc == 2 and m:
+        return "elle", "uretec-red:denge-" + m.group(1).replace("_", "-"), ozet, None
+    return "ariza", "figur-denge", ozet, None
 
 
 def kanit_yaz(i, cd):
@@ -1526,6 +1826,174 @@ def kanit_yaz(i, cd):
         pass
 
 
+# ④ ONIZLEME = URETIM 3MF'INin RENDER'I (Okan 11 Eki "bu 4 renkli bir figur degil"): figur kolunda (insan · pet ·
+# model + anahtarlik-figur) teslim edilecek model.3mf hazir olunca TeKiN `tools/foto_kart_render.py hepsi` (Blender
+# Cycles, kredi 0) renk BOLGELERINI kare webp'e cizer -> R2 `foto-onizleme/<is>-render.webp`; sunucu /foto/durum'da
+# varsa `render` adresini verir, istemci onu palete indirgemeden gosterir. Render basarisizligi isin kararini
+# DEGISTIRMEZ (log `RENDER=YOK sebep=`); render yoksa ④ durust cumleyle saglayici gorselini gosterir (sessiz dusus YOK).
+RENDER_BETIK = "tools/foto_kart_render.py"
+RENDER_SURE_SN = int(os.environ.get("FOTO_KOSUCU_RENDER_SURE_SN") or 900)
+RENDER_ORNEK = 64  # Cycles ornek sayisi (arac varsayilani 128; ④ 300 px kutuda fark gorunmez, sure yariya iner)
+RENDER_ARKA = (244, 245, 247)  # duz arka plan (aracin `--emsal` satir profili; site kart zemini)
+
+
+def onizleme_render_anahtari(is_no):
+    return "foto-onizleme/%s-render.webp" % is_no  # shop/src/foto.js onizlemeRenderAnahtari ile AYNI
+
+
+def render_paleti(i):
+    """Siparis kaleminin odenen renkleri (`foto_renkler`, renk ADLARI; tek renkte 1 ad). Kalem yok / ait degil /
+    tabloda olmayan ad -> [] (render 3MF bolge renklerini filament tablosunun en yakin rengine esler)."""
+    k = siparis_kalemi(i.get("urunler"), i.get("kalem"))
+    r = k.get("foto_renkler") if k and k.get("foto_is") == i.get("is_no") else None
+    tablo = renk_tablosu()
+    return list(r) if isinstance(r, list) and r and all(isinstance(x, str) and x in tablo for x in r) else []
+
+
+def _hex_rgb(h):
+    h = str(h).lstrip("#")
+    return tuple(int(h[j:j + 2], 16) for j in (0, 2, 4)) if re.match(r"^[0-9a-fA-F]{6}", h) else None
+
+
+def palet_esle(hexler, adlar, tablo):
+    """3MF bolge renkleri (hex) -> `adlar` icinden en yakin filament hex'i (istemci VERI.fotoRenkleri ile AYNI mesafe
+    2·dr² + 4·dg² + 3·db²). adlar bos -> tablonun tum renkleri. Cozulemeyen hex AYNEN kalir."""
+    aday = [(a, _hex_rgb(tablo[a])) for a in (adlar or sorted(tablo)) if a in tablo and _hex_rgb(tablo[a])]
+    out = []
+    for h in hexler:
+        c = _hex_rgb(h)
+        if not c or not aday:
+            out.append(h)
+            continue
+        a = min(aday, key=lambda x: 2 * (c[0] - x[1][0]) ** 2 + 4 * (c[1] - x[1][1]) ** 2 + 3 * (c[2] - x[1][2]) ** 2)
+        out.append("#%02X%02X%02X" % a[1])
+    return out
+
+
+def uc_mf_palet_yaz(kaynak, hedef, adlar):
+    """3MF kopyasi: Metadata/project_settings.config `filament_colour` -> palet_esle. Donus esenen hex listesi;
+    ayar dosyasi/alan yok -> None (kopya AYNEN yazilir, arac 3MF'in kendi rengini cizer)."""
+    import zipfile
+    with zipfile.ZipFile(kaynak) as z, zipfile.ZipFile(hedef, "w", zipfile.ZIP_DEFLATED) as w:
+        yeni = None
+        for ad in z.namelist():
+            veri = z.read(ad)
+            if ad == "Metadata/project_settings.config":
+                try:
+                    d = json.loads(veri.decode("utf-8"))
+                except ValueError:
+                    d = None
+                if isinstance(d, dict) and isinstance(d.get("filament_colour"), list):
+                    yeni = palet_esle(d["filament_colour"], adlar, renk_tablosu())
+                    d["filament_colour"] = yeni
+                    veri = json.dumps(d, ensure_ascii=False).encode("utf-8")
+            w.writestr(ad, veri)
+    return yeni
+
+
+def duz_png(yol, rgb, kenar=16):
+    """stdlib PNG (duz renk) — render aracinin `--emsal` arka plan profili icin."""
+    import zlib
+
+    def parca(tip, veri):
+        return struct.pack(">I", len(veri)) + tip + veri + struct.pack(">I", zlib.crc32(tip + veri) & 0xffffffff)
+    satir = b"\x00" + bytes(rgb) * kenar
+    with open(yol, "wb") as f:
+        f.write(b"\x89PNG\r\n\x1a\n" + parca(b"IHDR", struct.pack(">IIBBBBB", kenar, kenar, 8, 2, 0, 0, 0)) +
+                parca(b"IDAT", zlib.compress(satir * kenar)) + parca(b"IEND", b""))
+
+
+def render_betigi():
+    jen = os.environ.get("FOTO_KOSUCU_JENERATOR") or os.path.expanduser("~/dev/pruvo-jenerator")
+    b = os.path.join(jen, RENDER_BETIK)
+    return b if os.path.isfile(b) else ""
+
+
+def render_uret(model, onizleme_png, adlar, gecici):
+    """model.3mf (+ saglayici onizleme png'si: aracin kadraj kolu ister) -> (webp yolu | None, sebep, sure_sn)."""
+    py = os.environ.get("FOTO_KOSUCU_PYTHON") or sys.executable
+    betik = render_betigi()
+    if not betik:
+        return None, "render-araci-yok", 0
+    if not os.path.isfile(onizleme_png):
+        return None, "onizleme-yok", 0
+    d = os.path.join(gecici, "render")
+    os.makedirs(d, exist_ok=True)
+    paletli = os.path.join(d, "paletli.3mf")
+    uc_mf_palet_yaz(model, paletli, adlar)
+    emsal = os.path.join(d, "arka.png")
+    duz_png(emsal, RENDER_ARKA)
+    is_yol = os.path.join(d, "is.json")
+    with open(is_yol, "w", encoding="utf-8") as f:
+        json.dump([{"kod": "onz", "3mf": paletli, "onizleme": onizleme_png, "az_ofset": 0}], f)
+    out = os.path.join(d, "out")
+    bas = time.time()
+    try:
+        p = subprocess.run([py, betik, "hepsi", "--is", is_yol, "--out", out, "--emsal", emsal,
+                            "--samples", str(RENDER_ORNEK)], capture_output=True, text=True,
+                           timeout=RENDER_SURE_SN, env=SALT_OKUMA_ENV)
+    except subprocess.TimeoutExpired:
+        return None, "sure-asimi", int(time.time() - bas)
+    except OSError:
+        return None, "baslatilamadi", int(time.time() - bas)
+    sure = int(time.time() - bas)
+    webp = os.path.join(out, "onz-1-render.webp")
+    if p.returncode != 0 or not os.path.isfile(webp) or os.path.getsize(webp) == 0:
+        return None, "render-rc-%d" % p.returncode, sure
+    return webp, "", sure
+
+
+def onizleme_render_koy(i, model, gecici, yaz):
+    """Teslim edilecek model.3mf -> ④ render'i R2'ye. Karar DEGISMEZ; donus True/False (log satiri her durumda)."""
+    if not render_betigi():
+        yaz("RENDER=YOK %s sebep=render-araci-yok sure_sn=0" % is_adi(i))
+        return False
+    on = os.path.join(gecici, "render-onizleme.png")
+    try:
+        if not r2_al("foto-onizleme/%s.png" % i["is_no"], on):
+            on = ""
+        webp, sebep, sure = render_uret(model, on, render_paleti(i), gecici)
+        if webp:
+            r2_koy(onizleme_render_anahtari(i["is_no"]), webp, "image/webp")
+    except Erisilemedi:
+        webp, sebep, sure = None, "r2", 0
+    if not webp:
+        yaz("RENDER=YOK %s sebep=%s sure_sn=%d" % (is_adi(i), sebep, sure))
+        return False
+    yaz("RENDER=OK %s anahtar=%s bayt=%d sure_sn=%d" % (is_adi(i), onizleme_render_anahtari(i["is_no"]),
+                                                        os.path.getsize(webp), sure))
+    return True
+
+
+def render_cli(is_no, model, onizleme_png, renkler, uygula, yaz, kaydet=""):
+    """`--render`: hazir bir uretim 3MF'inden ④ render'i (0 kredi uc-uca / elle yenileme). KURU: yalniz uretir;
+    `--kaydet` webp'in yerel kopyasi (gozle bakmak icin)."""
+    if not IS_KALIBI.match(is_no or "") or not os.path.isfile(model):
+        return "HAL=RED sebep=girdi rc=2", 2
+    tablo = renk_tablosu()
+    adlar = [x for x in (renkler or "").split(",") if x]
+    if any(a not in tablo for a in adlar):
+        return "HAL=RED sebep=renk rc=2", 2
+    gecici = tempfile.mkdtemp(prefix="foto-render-")
+    try:
+        webp, sebep, sure = render_uret(model, onizleme_png, adlar, gecici)
+        if not webp:
+            return "HAL=RENDER-YOK sebep=%s sure_sn=%d rc=1" % (sebep, sure), 1
+        if kaydet:
+            shutil.copyfile(webp, kaydet)
+        if uygula:
+            try:
+                r2_koy(onizleme_render_anahtari(is_no), webp, "image/webp")
+            except Erisilemedi as e:
+                return "HAL=OLCULEMEDI sebep=%s rc=4" % e, 4
+            return "HAL=RENDER-OK anahtar=%s bayt=%d sure_sn=%d rc=0" % (
+                onizleme_render_anahtari(is_no), os.path.getsize(webp), sure), 0
+        yaz("KURU: R2 PUT %s/%s (bayt=%d)" % (R2_KOVA, onizleme_render_anahtari(is_no), os.path.getsize(webp)))
+        return "HAL=RENDER-KURU sure_sn=%d rc=0" % sure, 0
+    finally:
+        shutil.rmtree(gecici, ignore_errors=True)
+
+
 def onarim_isle(i, jeton, yaz, t=None):
     """'onarim-bekliyor' satiri: R2 model.ham.3mf -> kopru -> olcum -> model.3mf + 'hazir' (ya da 'elle').
     Figur cesidi (onizleme girdi.json `uretec`): onarilmis model cesidin ureteciyle (figur_kulak) islenir."""
@@ -1537,8 +2005,14 @@ def onarim_isle(i, jeton, yaz, t=None):
             karar, sebep, ozet = "elle", "onarim-ham-yok", ""
         else:
             karar, sebep, ozet = onarim_kapisi(ham, cikti)
-        fu = onarim_figur_ureteci(i, t or {}, gecici) if karar == "hazir" else None
-        if fu == "":
+        zincir = karar == "hazir" and figur_zinciri_turu(i)
+        fu = onarim_figur_ureteci(i, t or {}, gecici) if karar == "hazir" and not zincir else None
+        if zincir:
+            karar, sebep, zozet, zcikti = figur_zinciri(i, cikti, gecici)
+            ozet = (ozet + " " if ozet else "") + zozet
+            if zcikti:
+                cikti = zcikti
+        elif fu == "":
             karar, sebep = "elle", "uretec-uyusmaz"
         elif fu:
             rc, fozet, cikti, konum = figur_kos(i, t or {}, fu, cikti, gecici)
@@ -1548,17 +2022,24 @@ def onarim_isle(i, jeton, yaz, t=None):
                 karar, sebep = "elle", red_sebebi(fozet)
             elif rc != 0:
                 karar, sebep = "ariza", "uretec-ariza"
+            # renk = uretilen model.3mf'in OLCULEN extruder sayisi (palet siparisinde renk korunumu kaniti).
             ozet = (ozet + " " if ozet else "") + "uretec=" + fu + (" konum=" + konum if konum else "") + \
-                ("" if rc == 0 else " rc=%s %s" % (rc, fozet))
+                (" renk_modu=%s renk=%d" % (foto_renk_modu(i), uc_mf_extruder_sayisi(cikti)) if rc == 0 else
+                 " rc=%s %s" % (rc, fozet))
         if karar == "ariza" and i["deneme"] + 1 >= DENEME_TAVANI:
             karar = "elle"
+        renk = None
         if karar == "hazir":
             r2_koy(d + "model.3mf", cikti, "model/3mf")
-        _, n = d1(sonuc_sql(i, jeton, karar, sebep))
+            renk = uc_mf_extruder_sayisi(cikti)
+        _, n = d1(sonuc_sql(i, jeton, karar, sebep, renk=renk))
         if n != 1:
             yaz("CAS %s son yazim tutmadi (jeton degismis)" % is_adi(i))
             return "cas"
-        yaz("%s %s%s %s" % (karar.upper(), is_adi(i), (" sebep=" + sebep) if sebep else "", ozet))
+        yaz("%s %s%s %s%s" % (karar.upper(), is_adi(i), (" sebep=" + sebep) if sebep else "", ozet,
+                              " renk_sayisi=%d" % renk if renk is not None else ""))
+        if karar == "hazir" and (zincir or fu):
+            onizleme_render_koy(i, cikti, gecici, yaz)
         return {"hazir": "uretildi", "elle": "red", "ariza": "ariza"}[karar]
     except Erisilemedi:
         try:
@@ -1601,7 +2082,7 @@ def is_isle(i, manifest, yaz):
         girdi_dizin = os.path.join(gecici, "girdi")
         os.makedirs(girdi_dizin)
         cikti = os.path.join(gecici, "cikti")
-        olcu_yaz = None
+        olcu_yaz = renk = None
         sebep = girdi_hazirla(i, t, girdi_dizin) if t.get("motor") in TOLERANS else "kol-uygun-degil"
         if sebep:
             rc, ozet = 2, "RED " + sebep
@@ -1618,6 +2099,8 @@ def is_isle(i, manifest, yaz):
                 for ad in CIKTI_DOSYALARI:
                     r2_koy(a[ad], os.path.join(cikti, ad), tur[ad])
                 karar = "hazir"
+                if satirli(i):
+                    renk = uc_mf_extruder_sayisi(os.path.join(cikti, "model.3mf"))
                 if turetilmis(t) and i["kuyruk"] != "siparis":
                     with open(os.path.join(cikti, "olcu.json"), encoding="utf-8") as f:
                         olcu_yaz = olculen_mm(json.load(f).get("uzun_kenar_mm"))
@@ -1629,7 +2112,8 @@ def is_isle(i, manifest, yaz):
         else:
             karar = "elle" if i["deneme"] + 1 >= DENEME_TAVANI else "ariza"
             sebep = "uretec-ariza"
-        _, n = d1(sonuc_sql(i, jeton, karar, sebep, olcu_yaz if karar == "hazir" else None))
+        _, n = d1(sonuc_sql(i, jeton, karar, sebep, olcu_yaz if karar == "hazir" else None,
+                            renk if karar == "hazir" else None))
         if n != 1:
             yaz("CAS %s son yazim tutmadi (jeton degismis)" % is_adi(i))
             return "cas"
@@ -1734,12 +2218,22 @@ def main(argv=None):
                     help="olcum araci: onarim figur kolu ozet.json + onizleme.png kopyasi <dizin>/<siparis_no>/")
     ap.add_argument("--donustur-litofan", nargs=3, metavar=("HAM", "CIKTI", "GIRDI"), help=argparse.SUPPRESS)
     ap.add_argument("--donustur-tekin", nargs=4, metavar=("HAM", "CIKTI", "GIRDI", "KOPRU"), help=argparse.SUPPRESS)
+    ap.add_argument("--render", metavar="IS_NO",
+                    help="hazir uretim 3MF'inden ④ render'i (--3mf, --onizleme, ops. --renkler); --uygula R2'ye yazar")
+    ap.add_argument("--3mf", dest="uc_mf", default="")
+    ap.add_argument("--onizleme", default="")
+    ap.add_argument("--renkler", default="", help="virgullu renk ADLARI (bos: filament tablosu)")
+    ap.add_argument("--kaydet", default="", help="--render webp'inin yerel kopyasi")
     a = ap.parse_args(argv)
     if a.donustur_litofan:
         return donustur_litofan(*a.donustur_litofan)
     if a.donustur_tekin:
         return donustur_tekin(*a.donustur_tekin)
     hedef_kur(a.hedef)
+    if a.render:
+        satir, rc = render_cli(a.render, a.uc_mf, a.onizleme, a.renkler, a.uygula, print, a.kaydet)
+        print(satir)
+        return rc
     global KANIT_DIZIN
     KANIT_DIZIN = a.kanit_dizin
     tampon = io.StringIO()

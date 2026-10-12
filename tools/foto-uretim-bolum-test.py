@@ -26,7 +26,7 @@ SÖZLEŞMESİNİ ölçer:
                 DOM'da: shop/test/foto-uretim.mjs S bölümü; bu dosya sözleşmeyi tutar)
   Y10 RENDER  : (Okan 7 Eki: plaket gerçek baskı beklemeden açılır) türe göre `ornek_kanit_izni`
                 (plaket baski+render · litofan baski+render — Okan 7 Eki G1) + izin kontrolü veri dosyasında; render
-                dalında "önizleme/render" etiketi + abartı cümlesi AYNEN, "gerçek fotoğraf" 0
+                dalında "Örnek görsel (bilgisayar çizimi)" etiketi + abartı cümlesi AYNEN, "gerçek fotoğraf" 0
                 (DAVRANIŞ: shop/test/foto-uretim.mjs RO/ES bölümü)
 
 ÖNCE-KIRMIZI: aynı kontrol fonksiyonları dosyanın sonunda BELLEKTEKİ mutant metinlere
@@ -48,8 +48,9 @@ OKU = lambda rel: open(os.path.join(KOK, rel), encoding="utf-8").read()
 
 OTURUM_ANAHTARI = "pruvo_foto_siparis"
 DURUSTLUK = "önizlemenin 4 renkli yorumu"
-RENDER_CUMLE = ("Önizleme ve üretim dosyasının görüntüsüdür; basılmış ürün bu yorumun kabartmalı hâlidir, "
-                "tam kopyası değildir.")
+# C2 (10 Eki, BaBa 14:0x): plaket ② TEK cümle = `durustluk` (ArTisT stilize-yorum cümlesi AYNEN); `ornek_notu` "".
+RENDER_CUMLE = ("Önizleme fotoğrafının stilize bir yorumudur; basılmış plaket en çok 4 renkli, kabartmalı ve "
+                "sadeleştirilmiş bir hâlidir, tam kopyası değildir (küçük yazı ve ince ayrıntılar sadeleşir).")
 # K3a (8 Eki 2026): 15 tür silindi (litofan dahil). 4 kalan türün tamamı foto, litofan yok; LITOFAN_CUMLE
 # eski plaket metninin eşitiydi — yeni evrende bu test artık anlamsız, mutant + kontrol SİLİNDİ.
 
@@ -185,11 +186,17 @@ def kontroller(index, bolum, veri, build):
     if "anahtarl" in yorumsuz(disari).lower():  # yorum ekrana çıkmaz (Okan alıntısı yorumda)
         eski.append("anahtarl(KARTLAR disi)")
     s.append(("Y8 magnet ekranda + tur listesinde 0; anahtarlik bolumde yalniz sayfa metni tablolari (KARTLAR + PENCERELER)", not eski, ",".join(eski)))
-    satirlar = re.findall(r'\{ kod: "([a-z_]+)", tur: "([a-z]+)", alt: (null|"[a-z_]+"), ad: "([^"]+)"', kb.group(1)) if kb else []
-    beklenen = [("insan", "figur", '"insan"', "İnsan figürü"), ("hayvan_model", "figur", '"hayvan_model"', "Hayvan ve model figürü"),
-                ("plaket", "plaket", "null", "Kabartma Plaket"), ("bust", "bust", "null", "Büst"),
-                ("anahtarlik", "anahtarlik", "null", "Anahtarlık"), ("yapboz", "yapboz", "null", "Yapboz")]
-    s.append(("Y14 KARTLAR 6 satir: kod · tur · alt · ad (sayfa metni tablosu birebir; iki figur karti tur figur)",
+    # 6 MODEL (Okan 10 Eki ~16:3x): Okan'ın sırası + adları; anahtarlık iki AYRI kart (çeşidi kart sabitler);
+    # figür alt türleri insan · pet · model; büst/yapboz satırı YOK.
+    satirlar = re.findall(r'\{ kod: "([a-z_]+)", tur: "([a-z]+)", alt: (null|"[a-z_]+"),(?: cesit: "([a-z]+)",)? ad: "([^"]+)"',
+                          kb.group(1)) if kb else []
+    beklenen = [("anahtarlik_yazi", "anahtarlik", "null", "yazi", "Anahtarlık – yazı"),
+                ("insan", "figur", '"insan"', "", "İnsan figürü (ayakta)"),
+                ("pet", "figur", '"pet"', "", "Pet figürü (ayakta)"),
+                ("plaket", "plaket", "null", "", "Kabartma plaket"),
+                ("anahtarlik_figur", "anahtarlik", "null", "figur", "Anahtarlık – figür"),
+                ("model", "figur", '"model"', "", "Model figür")]
+    s.append(("Y14 KARTLAR 6 satir (6 MODEL): kod · tur · alt · cesit · ad (Okan sirasi/adlari birebir; bust/yapboz 0)",
               satirlar == beklenen, str(satirlar)))
     # Y9 13:5x (Okan 13:5x: tek tur dali kaldirildi — tur secimi GALERIDEN, 24 kucuk resim izgarasi).
     # Ayri radyo grubu yok; tiklanan kart = secim (function galeriSec).
@@ -206,15 +213,18 @@ def kontroller(index, bolum, veri, build):
     s.append(("Y10 sayac izin disi kaniti saymaz (izin kontrolu veri dosyasinda)",
               re.search(r"if \(!k \|\| izin\.indexOf\(k\) < 0\) \{ return false; \}", veri) is not None, ""))
     # Y10 RENDER ORNEGI — 50cb58fe sonrasi: `if (it.kanit === "render") { ... } else {` ESKI dali YOK.
-    # Render kartta "önizleme/render" etiketi, lightbox'ta tur kaydinin ornek_notu'su basiliyor;
+    # Render kartta "Örnek görsel (bilgisayar çizimi)" etiketi, lightbox'ta tur kaydinin ornek_notu'su basiliyor;
     # "gerçek fotoğraf" ifadesi (yasakli, hukuk kapisi 13:4x) yorum/string ikisinde de 0.
     bolum_cleaned = yorumsuz(bolum)
     notlar = dict(re.findall(r'kod:\s*"([a-z]+)",.*?ornek_notu:\s*"([^"]*)"', veri, re.S))
-    s.append(("Y10 render kartinda 'önizleme/render' etiketi VAR (galeri)",
-              '"önizleme/render"' in bolum_cleaned, ""))
+    durustluklar = dict(re.findall(r'kod:\s*"([a-z]+)",.*?durustluk:\s*"([^"]*)"', veri, re.S))
+    s.append(("Y10 render kartinda 'Örnek görsel (bilgisayar çizimi)' etiketi VAR (galeri)",
+              '"Örnek görsel (bilgisayar çizimi)"' in bolum_cleaned, ""))
     s.append(("Y10 lightbox ornek_notu tur kaydindan (it.tur.ornek_notu) · bolumde sabit 'kabartmalı' cumlesi 0",
               "it.tur.ornek_notu" in bolum_cleaned and "kabartmalı" not in bolum, ""))
-    s.append(("Y10 plaket ornek_notu = karar cumlesi AYNEN", notlar.get("plaket") == RENDER_CUMLE, str(notlar.get("plaket"))))
+    s.append(("Y10 plaket ② TEK cumle: durustluk = karar cumlesi AYNEN, ornek_notu ''",
+              durustluklar.get("plaket") == RENDER_CUMLE and notlar.get("plaket") == "",
+              str([durustluklar.get("plaket"), notlar.get("plaket")])))
     # K3a: Y11 litofan ornek_notu kontrolu SİLİNDİ (litofan artık yok; Y10 plaket kontrolü yeterli).
     s.append(("Y10 'gerçek fotoğraf' metni 0 (yorum haric, kodda yok)",
               "gerçek fotoğraf" not in bolum_cleaned, ""))
@@ -301,7 +311,7 @@ def main():
         # nobetcideki "ornek 0" iddiasi geri gelir ve KIRMIZI yanar. M6b = kayit silinir · M6c = magnet
         # tur listesine girer.
         ("M6 anahtarlik ornegi kaldirildi (ornek sarti geri gelir)",
-         (index, bolum, re.sub(r'\s*\{\s*tur:\s*"anahtarlik",\s*kanit:\s*"render",\s*olcu_mm:\s*45,.*?\}\n', "\n", veri, count=1, flags=re.S), build), True),
+         (index, bolum, re.sub(r'\s*\{\s*tur:\s*"anahtarlik",\s*(?://[^\n]*\n\s*)?(?:cesit:\s*"yazi",\s*)?kanit:\s*"render",\s*olcu_mm:\s*45,.*?\}\n', "\n", veri, count=1, flags=re.S), build), True),
         ("M6b anahtarlik tur kaydi silindi",
          (index, bolum, veri.replace('kod: "anahtarlik",', 'kod: "anahtarlikYOK",', 1), build), True),
         ("M6c magnet tur listesine eklendi",
@@ -310,20 +320,20 @@ def main():
          (index, re.sub(r"\bgaleriSec\b", "galeriSecYOK", bolum), veri, build), True),
         ("M8 izin kontrolu silindi",
          (index, bolum, veri.replace("if (!k || izin.indexOf(k) < 0) { return false; }", "if (!k) { return false; }", 1), build), True),
-        ("M9 abarti cumlesi degisti", (index, bolum, veri.replace("kabartmalı hâlidir, tam kopyası değildir.", "kabartmalı hâlidir.", 1), build), True),
+        ("M9 abarti cumlesi degisti", (index, bolum, veri.replace("kabartmalı ve sadeleştirilmiş bir hâlidir, tam kopyası değildir", "kabartmalı bir hâlidir", 1), build), True),
         # K3a (8 Eki 2026): M12/M11 litofan referansliydi, litofan silindi — mutant + kontrol SİLİNDİ
         # (null/no-op mutant YASAK; çapa artık veri dosyasında yok).
         ("M13 bolum sabit cumleye dondu",
          (index, bolum.replace("it.tur.ornek_notu", '"' + RENDER_CUMLE + '"', 1), veri, build), True),
         ("M10 render etiketi 'gerçek fotoğraf' oldu",
-         (index, bolum.replace('"önizleme/render"', '"gerçek fotoğraf"'), veri, build), True),
+         (index, bolum.replace('"Örnek görsel (bilgisayar çizimi)"', '"gerçek fotoğraf"'), veri, build), True),
         ("K0 kontrol: yorum eklendi", (index.replace("</body>", "<!-- k0 -->\n</body>", 1), bolum, veri, build), False),
         ("M15 gosterge kuralindan list-style: none kaldirildi",
          (index, bolum.replace(".foto-uretim-gosterge{list-style:none;", ".foto-uretim-gosterge{", 1), veri, build), True),
         ("M22 insan karti figur yerine plaket secer",
          (index, bolum.replace('{ kod: "insan", tur: "figur"', '{ kod: "insan", tur: "plaket"', 1), veri, build), True),
         ("M23 anahtarlik KARTLAR disinda ekrana yazildi",
-         (index, bolum.replace('var BUST_YONLENDIRME = ', 'var ANAHTARLIK_NOTU = "Anahtarlık";\n  var BUST_YONLENDIRME = ', 1), veri, build), True),
+         (index, bolum.replace('var ESKI_KART = ', 'var ANAHTARLIK_NOTU = "Anahtarlık";\n  var ESKI_KART = ', 1), veri, build), True),
         # Y15 mutantlari: cizim kolu <-> FORM_TIPLERI esitlik kapisi (anahtarlik-metin-ui).
         ("M24 metin cizim dali silindi (sema.tip === 'metin' kolu YOK)",
          (index, bolum.replace('sema.tip === "metin"', 'sema.tip === "metinYOK"', 1), veri, build), True),
