@@ -1683,6 +1683,8 @@ export function fotoKalemCoz(k) {
  * fotograftan (istemci VERI.fotoRenkleri) — palet turunde 1..tavan, VERI.PLA_RENKLERI'nde, tekrarsiz; bolge turunde
  * AKTIF bolgelerde FARKLI renk sayisi <= tavan (renk_kosul'u saglanmayan bolge uretilmez -> sayilmaz, BaBa 8 Eki 15:5x).
  * Renkli yalniz fotografli turde (VERI.renkliSecilebilir). Renk ADEDI fiyata GIRMEZ. Kural bozuksa null (400, fail-closed).
+ * IKI RENK (anahtarlik-yazi, Okan 12 Eki): turun VERI.bolgeRenkSecimi kaydi cesitte gecerliyse ana renkte kayittaki
+ * HER bolge ANA_RENKLER'de ve VERI.bolgeRenkHukmu "" (uretec kontrast esigi) olmali -> n=2 serbest; aksi null.
  */
 function renkSayimi(turKod, k, sc, p, cesit) {
   const renkli = k.renkli === true;
@@ -1692,16 +1694,20 @@ function renkSayimi(turKod, k, sc, p, cesit) {
   if (tavan === null) { return null; }
   if (renkli && !VERI.renkliSecilebilir(turKod, cesit)) { return null; }
   const izinli = renkli ? VERI.PLA_RENKLERI : VERI.ANA_RENKLER;
-  let renkler;
+  let renkler, aktif = null;
   if (VERI.renkPaleti(turKod) || cesitPalet) {
     const r = Array.isArray(k.renkler) ? k.renkler : [];
     if (!r.length || new Set(r).size !== r.length || !r.every((x) => izinli.includes(x))) { return null; }
     renkler = r.slice();
   } else {
-    renkler = [...new Set(Object.values(VERI.aktifBolgeRenkleri(turKod, (sc && sc.renk) || {}, p)))];
+    aktif = VERI.aktifBolgeRenkleri(turKod, (sc && sc.renk) || {}, p);
+    renkler = [...new Set(Object.values(aktif))];
     if (!renkler.every((x) => izinli.includes(x))) { return null; }
   }
   const n = Math.max(1, renkler.length);
+  if (!renkli && aktif && VERI.bolgeRenkSecimi(turKod, cesit)) {
+    return VERI.bolgeRenkHukmu(turKod, aktif, cesit) === "" && n <= tavan ? { n, renkler, renkli } : null;
+  }
   if (!renkli && n !== 1) { return null; }
   return n <= tavan ? { n, renkler, renkli } : null;
 }
