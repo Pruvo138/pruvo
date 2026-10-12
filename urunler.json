@@ -1,5 +1,68 @@
 [
   {
+    "id": "tamirat-tencere-kapagi-tutamagi-m6-somun-yuvali-pr380045",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Tencere Kapağı Tutamağı (Mantar Biçimli, M6 Somun Yuvalı, 65 mm)",
+    "aciklama": "Kırılan ya da kaybolan tencere ve tava kapağı tutamağının yerine takılan, mantar biçimli yedek tutamak. Geniş ve yuvarlatılmış üst yüzeyi elle rahat kavranır; alt kısmında M6 somun yuvası bulunur, böylece kapağın içinden geçen vida ve somunla sağlam biçimde sabitlenir (vida ve somun ürüne dahil değildir). Ölçüler 28 cm çaplı bir kapak için hazırlanmıştır; kapak deliğiniz ve somun ölçünüz farklıysa kendi ölçünüzle karşılaştırın. Görsellerde tutamağın üç boyutlu görünümü, kesiti ve alt yüzü elde tutulurken görülür.\nYaklaşık dış ölçüler: 65 × 65 × 41 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr380045-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr380045-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr380045-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr380045-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DFonseca",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tamirat-dusakabin-kapi-yedek-tutamagi-pr282734",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Duşakabin Kapı Yedek Tutamağı (Konik Gövdeli, 41 mm)",
+    "aciklama": "Duşakabin kapısındaki kırık ya da kaybolmuş tutamağın yerine takılan sade, konik gövdeli yedek düğme. Kapı üzerindeki krom taban parçasının dişli miline sıkıca oturacak biçimde tasarlanmıştır; düz yüzeyi kolayca silinir. Mil ölçünüz ya da diş adımınız farklıysa uyum için kendi ölçünüzü kontrol edin. Fotoğraflarda siyah tutamak kabinin kapısına takılı ve elde tutulurken görülür.\nYaklaşık dış ölçüler: 41 × 41 × 29 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr282734-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr282734-2.jpg"
+    ]
+  },
+  {
+    "id": "tamirat-cop-konteyneri-yedek-tutamak-dugmesi-pr382921",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Çöp Konteyneri Yedek Tutamak Düğmesi (19 mm İç Çap, 30 mm Dış Çap)",
+    "aciklama": "Çöp konteynerinin ya da tekerlekli çöp kutusunun kaybolan tutamak ucunun yerine takılan yuvarlak yedek düğme. İç çapı 19 mm, dış çapı 30 mm'dir; kutunun kolunu ya da mil ucunu sıkıca kavrar. Farklı kutu modellerinde mil çapı değişebildiği için kendi kutunuzdaki mil ölçüsünü kontrol edin. Fotoğraflarda koyu renkli düğme karlı havada çöp kutusunun koluna takılı görülür.\nYaklaşık dış ölçüler: 30 × 30 × 29 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr382921-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr382921-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Hovdis",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "tamirat-6-mm-kare-milli-salter-yedek-dugmesi-pr294894",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "6 mm Kare Milli Şalter Yedek Düğmesi (Döner Kollu, Vida Sabitlemeli)",
+    "aciklama": "Kırık şalter koluyla boğuşanlar için hazırlanmış, 6 mm kare milli şalterleri döndüren yedek düğme. Kare mil yuvası düğmenin tabanındadır; yan taraftaki vida deliğinden orijinal vida ile mile sabitlenir (vida ürüne dahil değildir). Uzun, tutması kolay kolu sayesinde pense ya da başka bir alete gerek kalmadan elle çevrilir. Mutfak makinesi, pano ve benzeri döner şalterlerde kullanılır; mil ölçünüz kare 6 mm değilse uygun değildir. Fotoğraflarda siyah düğme masa üstünde, elde ve bir döner şalter üzerine takılı görülür.\nYaklaşık dış ölçüler: 36 × 28 × 18 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr294894-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr294894-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr294894-3.jpg"
+    ]
+  },
+  {
     "id": "ofis-plakali-ayakli-monitor-standi-18-27-inc-pr1142415",
     "kategori": "Ofis",
     "marka": [],
