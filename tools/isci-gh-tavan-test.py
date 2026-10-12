@@ -13,7 +13,9 @@ evlerde `gh` 403. Sinif: dis API yoklamasi tavansiz.
     kosumda; asimda `HAL=GH-TAVAN` log satiri + `KUTU_SATIRI: GH-TAVAN`.
   * SPEC-YOKLAMA-KAPISI: spec `gh run watch` / `sleep`+`gh` / dongu+`gh`
     istiyorsa `HAL=SPEC-YOKLAMA-RED rc=2`, kosum BASLAMAZ. Satirda
-    KULLANMA|YASAK|ÇAĞIRMA geciyorsa RED yok.
+    KULLANMA|YASAK|ÇAĞIRMA|AÇMA|AÇILMAZ geciyorsa RED yok. WATCH yalniz
+    KOMUT bicimi (argumanli), sleep argumanli, tek satir dongu `do`/`done`
+    sozdizimi ister (gh-tavan-2: 465 dosya taramasinda 3 yanlis-pozitif).
 
 VAKALAR (her biri izole CRON_KOKU + sahte claude + sahte gh; GERCEK gh YOK):
   V1 20 cagri -> 20'si sahte gh'ye ulasir, HAL=GH-TAVAN yok, GH_CAGRI=20
@@ -23,9 +25,14 @@ VAKALAR (her biri izole CRON_KOKU + sahte claude + sahte gh; GERCEK gh YOK):
   V5 PRUVO_ISCI_GH_TAVANI=abc -> rc 2, claude CAGRILMADI
   V6 m3 + claude motorlari: shim bloklari sokulmus kopyaya gore argv/ortam
      AYNI (fark yalniz PATH basindaki shim dizini)
+  V7 argumansiz anlati (`gh run watch` dongusu ... tuketti) -> RED YOK
+  V8 "`gh run watch --exit-status` AÇMA" yasak cumlesi -> RED YOK
+  V9 duzyazida `gh run list` + "for .. in" kelimesi, `do` yok -> RED YOK
+  V10 tek satir sonsuz dongu + gh run view + sleep 30 -> RED rc 2
 MUTANTLAR (izole kopya; mutant OLMELI = ilgili vaka KIRMIZI yanmali):
   M1 shim'in tavan kontrolu kaldirilir -> V2 KIRMIZI
   M2 spec kapisinin `gh run watch` kalibi kaldirilir -> V3 KIRMIZI
+  M3 WATCH'in arguman sarti kaldirilir -> V7 KIRMIZI
 
 IZOLASYON: gercek isci.log / karantina / tur-cikti / anahtar dosyalarina
 DOKUNULMAZ — izole kokte yalniz `*.py`, `*.zsh` ve `isci-baglam` SEMBOLIK
@@ -35,7 +42,7 @@ jeton/anahtar alt surece GECMEZ). Gecici agac is sonunda silinir.
 
 KOSUM:  python3 tools/isci-gh-tavan-test.py
 CIKTI:  VAKA=<ad> ... SONUC=GECTI|KALDI · MUTANT=<ad> ... SONUC=OLDU|YASADI
-        son satir: GH-TAVAN VAKA=<g>/6 MUTANT=<o>/2 (rc 0 yalniz 6/6 + 2/2)
+        son satir: GH-TAVAN VAKA=<g>/10 MUTANT=<o>/3 (rc 0 yalniz 10/10 + 3/3)
 CI'da canli hat yoktur -> ONKOSUL_YOK + rc 3 (isci-*-test ailesinin kanonu).
 """
 import json
@@ -56,6 +63,15 @@ SHIM_BLOKLARI = (("# === GH-TAVAN-SHIM BAS", "# === GH-TAVAN-SHIM SON ===\n"),
 SHIM_TEMIZLE_SATIRI = re.compile(r"^.*# GH-TAVAN-SHIM\n", re.M)
 M1_CAPA = ("if n > TAVAN:", "if False:")
 M2_CAPA = ("        if WATCH.search(s):\n            red(no)\n", "        pass\n")
+M3_CAPA = ('WATCH = re.compile(r"\\bgh\\s+run\\s+watch\\s+(?:[0-9$<]|--)")',
+           'WATCH = re.compile(r"\\bgh\\s+run\\s+watch\\b")')
+V3_SPEC = "# spec\n\n`gh run watch 123`\n"
+V7_SPEC = ("# spec\n\nBir m3 kabul iscisinin `gh run watch` dongusu (150 tur) "
+           "filonun jetonunu tuketti.\n")
+V8_SPEC = "# spec\n\nBeklerken arka plan `gh run watch --exit-status` AÇMA.\n"
+V9_SPEC = ("# spec\n\nYayin nobeti: for run in kuyruk tek sorgu yeter, "
+           "`gh run list --json name,status` ile bak.\n")
+V10_SPEC = "# spec\n\nwhile true; do gh run view 123; sleep 30; done\n"
 
 SAHTE_CLAUDE = r'''#!%(py)s
 # Sahte motor: GERCEK API CAGRISI YAPMAZ. argv/ortami kaydeder, istenen sayida
@@ -329,7 +345,7 @@ def main():
         sonuc = [
             ("V1", v1(kos("v1", gh_sayi=20))),
             ("V2", v2(kos("v2", gh_sayi=21))),
-            ("V3", v3(kos("v3", spec_metni="# spec\n\n`gh run watch 123`\n"))),
+            ("V3", v3(kos("v3", spec_metni=V3_SPEC))),
             ("V4", v4(kos("v4", spec_metni="# spec\n\n`gh run watch` KULLANMA\n"))),
             ("V5", v5(kos("v5", ek_ortam={"PRUVO_ISCI_GH_TAVANI": "abc"}))),
         ]
@@ -349,6 +365,12 @@ def main():
                 _yaz(isci_yol, govde, 0o755)
                 v6_hata += ["%s: %s" % (motor, h) for h in v6_karsilastir(r1, r2)]
         sonuc.append(("V6", v6_hata))
+        sonuc += [
+            ("V7", v4(kos("v7", spec_metni=V7_SPEC))),
+            ("V8", v4(kos("v8", spec_metni=V8_SPEC))),
+            ("V9", v4(kos("v9", spec_metni=V9_SPEC))),
+            ("V10", v3(kos("v10", spec_metni=V10_SPEC))),
+        ]
         for ad, hata in sonuc:
             _yaz_sonuc("VAKA", ad, hata)
             vaka_gecti += not hata
@@ -356,7 +378,8 @@ def main():
         # Mutantlar: ayri izole kok, canli govde DEGISMEZ.
         for ad, capa, senaryo, olcut in (
                 ("M1", M1_CAPA, dict(gh_sayi=21), v2),
-                ("M2", M2_CAPA, dict(spec_metni="# spec\n\n`gh run watch 123`\n"), v3)):
+                ("M2", M2_CAPA, dict(spec_metni=V3_SPEC), v3),
+                ("M3", M3_CAPA, dict(spec_metni=V7_SPEC), v4)):
             m_govde = _mutant(govde, capa)
             m_tmp = os.path.join(tmp, "mutant-" + ad)
             m_kok = _izole_kok_kur(m_tmp, m_govde) if m_govde else None
@@ -370,8 +393,8 @@ def main():
             mutant_oldu += bool(hata)
     finally:
         _guvenli_sil(tmp)
-    print("GH-TAVAN VAKA=%d/6 MUTANT=%d/2" % (vaka_gecti, mutant_oldu))
-    return 0 if vaka_gecti == 6 and mutant_oldu == 2 else 1
+    print("GH-TAVAN VAKA=%d/10 MUTANT=%d/3" % (vaka_gecti, mutant_oldu))
+    return 0 if vaka_gecti == 10 and mutant_oldu == 3 else 1
 
 
 if __name__ == "__main__":
