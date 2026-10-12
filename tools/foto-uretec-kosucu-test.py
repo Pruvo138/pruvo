@@ -1931,8 +1931,8 @@ G2_SATIR = {
                  "anahtarlik_kulak_konum": "secim", "kontur_tasma_mm": "sayi"},
         "ornek_render": 1,  # 9 Eki: TeKiN ornegi (anahtarlik-kart-9eki) — K3c'de 0 idi
         # 11 Eki: anahtarlik–figur cesidinin KENDI render'i (TeKiN; onizleme ayri dosya) — yazi orneginin ARDINDA.
-        "ornek_ek": [("https://media.pruvo3d.com/foto/ornek/anahtarlik-figur-1-render.webp",
-                      "https://media.pruvo3d.com/foto/ornek/anahtarlik-figur-onizleme.webp")],
+        "ornek_ek": [("https://media.pruvo3d.com/foto/ornek/anahtarlik-figur-hilal-2-render.webp",
+                      "https://media.pruvo3d.com/foto/ornek/anahtarlik-figur-hilal-onizleme.webp")],
         # 9 Eki (anahtarlik-foto-kolu): dürüstlük cümlesi ②'de 2× basılıyordu -> render notu AYRI cümle.
         "notu": "Üretim dosyasının görüntüsüdür; yazı, renk ve kulak konumu seçimine göre üretilir.",
         "durust": "Metal halka ve zincir dahil değildir; zincir ya da halka takılan kulakçıklı plastik gövde "

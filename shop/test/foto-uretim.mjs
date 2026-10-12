@@ -1807,7 +1807,7 @@ async function ahSenaryo(V, kaynak) {
     s.VO5 = ck.olcu_en_cok === fk.olcu_en_cok && ck.olcu_en_cok === KULAK_TAVAN;
     // VO6: ④ "Örnek" çeşide göre — yazı çeşidinde yazı örneği 1, figür çeşidinde (11 Eki render kaydı) figür örneği 1.
     s.VO6 = JSON.stringify(iz.ist.ornekYazi) === '["https://media.pruvo3d.com/foto/ornek/anahtarlik-1-render.webp"]' &&
-      JSON.stringify(iz.ist.ornekFigur) === '["https://media.pruvo3d.com/foto/ornek/anahtarlik-figur-1-render.webp"]';
+      JSON.stringify(iz.ist.ornekFigur) === '["https://media.pruvo3d.com/foto/ornek/anahtarlik-figur-hilal-2-render.webp"]';
     // VO7 (renk = palet dilimi, BaBa 16:0x 2a): Renkli çeşit başına (yazı: fotoğrafsız -> YOK · figür: köprü kolu
     // renk_modu tek|palet -> VAR · figür türü: var) + figür anahtarlık ③ cümlesi Renkli'yi ANAR.
     iz.renkli = { yazi: V.renkliSecilebilir("anahtarlik", "yazi"), figur: V.renkliSecilebilir("anahtarlik", "figur"),
@@ -5412,7 +5412,7 @@ const C2_OLCU_FIGUR = "Anahtarlığın, başın arkasındaki halka dahil en uzun
 // "Örnek yakında" 0. Büst/yapboz /acik'te olsa da kart 0.
 const C2_KARTLAR = JSON.stringify([["anahtarlik_yazi", "anahtarlik-1-render.webp", false], ["insan", "insan-1-render.webp", false],
   ["pet", "figur-1-render.webp", false], ["plaket", "plaket-1-render.webp", false],
-  ["anahtarlik_figur", "anahtarlik-figur-1-render.webp", false], ["model", "model-1-render.webp", false]]);
+  ["anahtarlik_figur", "anahtarlik-figur-hilal-2-render.webp", false], ["model", "model-1-render.webp", false]]);
 async function c2Senaryo(ekranKaynak, veriKaynak) {
   const s = {}, iz = {};
   const kod6 = ["plaket", "figur", "yapboz", "bust", "anahtarlik"];
@@ -5485,7 +5485,7 @@ console.log("C2) ② TEK dürüstlük cümlesi (figür + plaket) + anahtarlık �
 // ArTisT 13. okuma BULGU 2: insan · model · anahtarlık–figür kartları boş kutu. TeKiN 3 render'ı (R2, sha kutuda) kartlara
 // bağlandı; kartOrnegi ALT türü ayırır (insan kartına kedi düşmez). Beklenen dosya adları BAĞIMSIZ yazılır.
 const FK_BEKLENEN = { anahtarlik_yazi: "anahtarlik-1-render.webp", insan: "insan-1-render.webp", pet: "figur-1-render.webp",
-  model: "model-1-render.webp", anahtarlik_figur: "anahtarlik-figur-1-render.webp" };
+  model: "model-1-render.webp", anahtarlik_figur: "anahtarlik-figur-hilal-2-render.webp" };
 async function fkSenaryo(ekranKaynak, veriKaynak) {
   const s = {}, iz = {};
   const V = veriYukle(veriKaynak);
@@ -5528,7 +5528,7 @@ console.log("FK) FOTO KART GÖRSELLERİ — alt-duyarlı örnek eşleştirme (in
   ol("FK_INSAN insan kartı -> insan-1-render (kedi DEĞİL), yer tutucu 0", s.FK_INSAN, JSON.stringify(s.iz.kart.insan));
   ol("FK_PET pet kartı -> kedi örneği figur-1-render", s.FK_PET, JSON.stringify(s.iz.kart.pet));
   ol("FK_MODEL model kartı -> model-1-render", s.FK_MODEL, JSON.stringify(s.iz.kart.model));
-  ol("FK_AN_FIGUR anahtarlık–figür kartı -> anahtarlik-figur-1-render", s.FK_AN_FIGUR, JSON.stringify(s.iz.kart.anahtarlik_figur));
+  ol("FK_AN_FIGUR anahtarlık–figür kartı -> anahtarlik-figur-hilal-2-render", s.FK_AN_FIGUR, JSON.stringify(s.iz.kart.anahtarlik_figur));
   ol("FK_AN_YAZI anahtarlık–yazı kartı -> mevcut yazı örneği anahtarlik-1-render", s.FK_AN_YAZI, JSON.stringify(s.iz.kart.anahtarlik_yazi));
   ol("FK_FAIL ornekGecerli alt: robot/''/null/toString/modelsiz tür -> SAYILMAZ; alan yok + insan -> sayılır", s.FK_FAIL, JSON.stringify(s.iz.fail));
   ol("FK_SAYI sunucu tür sayımı figur 3 · anahtarlik 2 · plaket 1; alt alanları silinse figur yine 3", s.FK_SAYI, JSON.stringify(s.iz.sayi));

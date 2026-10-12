@@ -582,10 +582,10 @@
         tur: "anahtarlik",
         cesit: "figur",
         kanit: "render",
-        // 60 mm (3MF bbox, kulakçık dahil). Tek renk dosya -> notta renk iddiası YOK. Girdi SENTETİK çizim.
+        // 60 mm (3MF bbox, halka dahil). Tek renk dosya -> notta renk iddiası YOK. Girdi SENTETİK çizim (TeKiN ed7c152, figur_kulak 1.1 hilal).
         olcu_mm: 60,
-        onizleme: "https://media.pruvo3d.com/foto/ornek/anahtarlik-figur-onizleme.webp",
-        render: "https://media.pruvo3d.com/foto/ornek/anahtarlik-figur-1-render.webp",
+        onizleme: "https://media.pruvo3d.com/foto/ornek/anahtarlik-figur-hilal-onizleme.webp",
+        render: "https://media.pruvo3d.com/foto/ornek/anahtarlik-figur-hilal-2-render.webp",
         not: "60 mm, başın arkasına gömülü yarım halkalı figür anahtarlık"
       }
     ],
