@@ -357,10 +357,10 @@ def main():
         else:
             isci_yol = os.path.join(kok, "isci.sh")
             for motor in ("minimax-m3", "claude"):
-                r1 = kos("v6-%s-shimli" % motor, motor=motor, etiket="kabul-gh-tavan-v6",
+                r1 = kos("v6-%s-shimli" % motor, motor=motor, etiket="guvenlik-gh-tavan-v6",
                          spec_adi="v6")
                 _yaz(isci_yol, shimsiz, 0o755)
-                r2 = kos("v6-%s-shimsiz" % motor, motor=motor, etiket="kabul-gh-tavan-v6",
+                r2 = kos("v6-%s-shimsiz" % motor, motor=motor, etiket="guvenlik-gh-tavan-v6",
                          spec_adi="v6")
                 _yaz(isci_yol, govde, 0o755)
                 v6_hata += ["%s: %s" % (motor, h) for h in v6_karsilastir(r1, r2)]

@@ -3074,6 +3074,21 @@ IZIN_LISTESI = {
         "jeton alt surece GECMEZ. MUAFIYETIN OLUM SARTI: `~/.claude/cron` "
         "depoya/CI'ya tasinirsa bu satir SILINIR."
     ),
+    # 12 EKI 2026 — MOTOR KAPISI (BaBa 20:5x hukmu, guvenlik)
+    "tools/isci-motor-kapisi-test.py": (
+        "OLCTUGU GOVDE CI KOSUCUSUNDA YOK: `~/.claude/cron/isci.sh`'in MOTOR-"
+        "KAPISI kolunu (Claude ailesi motor yalniz `MOTOR_KAPISI_BEYAZ_LISTE` "
+        "onekli etiketle ya da son 24 sa icinde ayni etiketle dusen m3 kosumu "
+        "varsa GECER; aksi HAL=MOTOR-RED rc=1, motor CAGRILMAZ) olcer; o hat "
+        "Okan'in MAKINESINDEDIR, depoya girmez, CI klonunda dizin dahi yoktur. "
+        "CI'ya baglansaydi ya SAHTE YESIL ya da tum yayini durduran yanlis-pozitif "
+        "kirmizi olurdu (isci-gh-tavan-test emsali). Betik bu hali KENDISI olcer: "
+        "hat yoksa `ONKOSUL_YOK` + `VAKA=OLCULEMEDI`, rc=3. HUKMU ELLE OKUNUR: "
+        "yerelde `python3 tools/isci-motor-kapisi-test.py` -> `MOTOR-KAPISI "
+        "VAKA=7/7 MUTANT=2/2`; gercek motor YOK (sahte ikili fiksturu). "
+        "MUAFIYETIN OLUM SARTI: `~/.claude/cron` depoya/CI'ya tasinirsa bu satir "
+        "SILINIR."
+    ),
     # ═══════════════════════════════════════════════════════════════════════
     # CLAUDE.md ZORUNLU KAPI KURTARMASI — CI'DA KOSTURULAMAYAN 2 KALEM
     # (cip KraL-SupurmeKurtarma-30Agu; Okan 30 Agu hukmu)
