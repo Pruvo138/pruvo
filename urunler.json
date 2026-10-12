@@ -1,5 +1,198 @@
 [
   {
+    "id": "elektronik-16-microsd-6-sd-kart-saklama-kutusu-pr469140",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "SD ve microSD Kart Saklama Kutusu (16 microSD + 6 SD Kart Kapasiteli)",
+    "aciklama": "Hafıza kartlarını düzenli tutmak için hazırlanan, 16 microSD kart ile 6 SD kartı birlikte taşıyan kutu. Kapaklı gövdede kartlar yan yana dik yuvalara oturur, çantada ve çekmecede birbirine karışmaz. Fotoğraflarda kutu farklı renklerde, elde ve masada görülür.\nYaklaşık dış ölçüler: 91 × 53 × 44 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr469140-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr469140-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr469140-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr469140-4.jpg"
+    ]
+  },
+  {
+    "id": "elektronik-vidali-kapakli-yuvarlak-sd-kart-kutusu-9-kart-pr66773",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Vidalı Kapaklı Yuvarlak SD Kart Kutusu (9 SD Kart Kapasiteli)",
+    "aciklama": "9 adet SD kartı yan yana, sıralı yuvalarda dik tutan, vidalı kapaklı yuvarlak saklama kutusu. Alt gövde kartları taşır, üst kapak vidalanarak kapanır; seyahatte kartların ezilmesini ve kaybolmasını önler. Tırtıklı dış yüzey elde sıkı kavrama sağlar. Fotoğraflarda mor kutu açık ve kapalı hâlde görülür.\nAlt parça Ø 60 × 21 mm, üst parça Ø 60 × 26 mm'dir.\nYaklaşık dış ölçüler: Ø 60 × 47 mm (kapalı).",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr66773-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr66773-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr66773-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr66773-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "hackerbijay",
+      "tur": "BSD"
+    }
+  },
+  {
+    "id": "elektronik-yelpaze-acilir-sd-microsd-kart-tutucu-pr29138",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Yelpaze Açılır SD ve microSD Kart Tutucu (M3 Cıvatalı, Kilit Klipsli)",
+    "aciklama": "Yelpaze gibi açılan, SD ve microSD kartları ayrı plakalarda taşıyan küçük kart tutucu. Plakalar tek bir M3 cıvata ile gövdede döner; somun gövdenin içine gömülüdür. Seyahatte kapalı kalması için gövdeye geçen bir kilit klipsi vardır. M3 cıvata ürüne dahil değildir. Fotoğraflarda renkli plakalar açık ve kapalı hâlde görülür.\nGövde 46 × 37 × 20 mm, kart plakaları 51 × 35 × 2,5 mm, klips 26 × 10 × 8 mm'dir.\nYaklaşık dış ölçüler: 46 × 37 × 20 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr29138-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr29138-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr29138-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "The Printing Pilot",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "elektronik-sim-kart-saklama-plakasi-9-nano-4-normal-pr84451",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "SIM Kart Saklama Plakası (9 Nano + 4 Normal SIM ve SIM Çıkarma Aleti Yuvalı)",
+    "aciklama": "Seyahatlerde yerel SIM kartlarını güvenle saklamak için kredi kartı boyutunda, biraz daha kalın plaka. Dokuz nano SIM, dört normal boy SIM ve telefonun SIM tepsisini açan iğne için yuvalar içerir; cüzdanın kart gözüne sığar. Fotoğraflarda plaka cüzdanda ve masada görülür.\nYaklaşık dış ölçüler: 85,6 × 54 × 1,5 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr84451-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr84451-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr84451-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "neoyarus",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ev-mandalli-kablo-kelepcesi-kablo-toplama-pr947807",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Mandallı Kablo Kelepçesi (Kablo ve Uzatma Kordonu Toplayıcı, Dört Parçalı)",
+    "aciklama": "Uzatma kordonlarını ve kabloları toplayıp bağlayan mandallı kelepçe. Dört parçadan oluşur: arka gövde, kapak, mandal kolu ve mandal. Atölye, garaj ve ofiste kablo yığınını derli toplu tutmak için kullanılır. 1 adet M3 × 8 mm ve 2 adet M2 × 12 mm cıvata gerekir; cıvatalar ürüne dahil değildir. Fotoğraflarda kelepçeler ve sarılı kablolar görülür.\nArka gövde 77 × 64 × 13 mm, mandal kolu 64 × 59 × 13 mm, mandal 52 × 20 × 9 mm, kapak 53 × 26 × 4 mm'dir.\nYaklaşık dış ölçüler: 77 × 64 × 13 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr947807-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr947807-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr947807-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr947807-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jason955",
+      "tur": "BSD"
+    }
+  },
+  {
+    "id": "ofis-mentesesli-kartvizit-kutusu-sunum-standi-pr368964",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Menteşeli Kartvizit Kutusu ve Sunum Standı (Kapalıyken Kilitlenir, Açılınca Stand Olur)",
+    "aciklama": "Kartvizitleri çantada ve cebinde koruyan, fuar ve masada ise açılıp ön yüzü görünür stand hâline gelen menteşeli kutu. Menteşe mekanizması tek parça olarak çalışır, ek montaj gerektirmez; kapalıyken yarılar birbirine kilitlenir. Yarıları ayırıp üst yarıyı arkaya katladığınızda kartvizit dik durur. Görsellerde kutu açık ve kapalı hâlde, örnek kartla görülür.\nYaklaşık dış ölçüler: 93 × 69 × 14 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr368964-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr368964-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Y Ibrahim",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "elektronik-parametrik-sirali-sd-kart-tutucu-pr53281",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Sıralı Yuvalı SD Kart Tutucu (Yuvarlatılmış Köşeli, Masaüstü)",
+    "aciklama": "SD kartları basamaklı sıralı yuvalarda dik tutan, köşeleri yuvarlatılmış masaüstü kart tutucu. Hem standart hem taşıma amaçlı sürümü bulunur. Fotoğraflarda mavi ve sarı gövde görüntüleri yer alır.\nYaklaşık dış ölçüler: 60 × 34 × 34 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr53281-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr53281-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Bike Cyclist (özgün tasarım: PAmes)",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "elektronik-disket-bicimli-microsd-kart-saklama-kutusu-pr61588",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Disket Biçimli microSD Kart Saklama Kutusu (3,5 İnç Disket Görünümlü, İki Parçalı)",
+    "aciklama": "Eski 3,5 inç disketi hatırlatan, içine microSD kartları yerleştirilen iki parçalı saklama kutusu. Alt ve üst yarı birbirine kapanır; nostaljik görünümü sayesinde masada ve hediye olarak dikkat çeker. Farklı renklerde yapılabilir. Fotoğraflarda kırmızı, beyaz, siyah ve yeşil kutular görülür.\nHer iki yarı 92 × 89 mm, kapalı kalınlık yaklaşık 9 mm'dir.\nYaklaşık dış ölçüler: 92 × 89 × 9 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr61588-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr61588-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr61588-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Dehapro",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ofis-yatay-kimlik-karti-tutucu-cr80-pr561151",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Yatay Kimlik Kartı Tutucu (CR80 86 × 54 mm Boyutlu Kartlar İçin)",
+    "aciklama": "Kimlik, üyelik ve geçiş kartlarını yatay tutan, CR80 (86 × 54 mm) boyutlu kartlara uygun sert kart tutucu. İnce yapısı kartı ezmeden korur. Fotoğraflarda tutucu dizüstü bilgisayar üzerinde görülür.\nYaklaşık dış ölçüler: 96 × 58 × 3 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr561151-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr561151-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jarza (özgün tasarım: Chrismettal)",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "elektronik-masaustu-usb-ve-sd-kart-tutucu-egimli-pr143063",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Masaüstü USB ve SD Kart Tutucu (6 USB, 5 SD, 7 microSD Yuvalı, Eğimli)",
+    "aciklama": "Ekranın altına rahatça yerleşen, hafif eğimli ve küçük boyutlu masaüstü tutucu. 6 USB bellek, 5 SD kart ve 7 microSD kartı yuvalarında dik tutar; eğim sayesinde tüm parçalara kolay erişirsiniz. Fotoğrafta tutucu ahşap masada USB bellek ve kartlarla görülür.\nYaklaşık dış ölçüler: 83 × 54 × 35 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr143063-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr143063-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "notepad7",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ofis-fotograf-makinesi-bicimli-kartvizitlik-pr369075",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Fotoğraf Makinesi Biçimli Kartvizitlik (Yaklaşık 15 Kartvizit Taşır)",
+    "aciklama": "Profesyonel fotoğraf makinesi biçiminde, fotoğrafçılar ve görsel işler yapanlar için hazırlanmış kartvizitlik. Yaklaşık 15 adet standart kartviziti sapın ve objektifin arasındaki rafta tutar; flaş yuvası ile objektif arasına birkaç kart daha dikey sığar. Fotoğraflarda siyah makine kartvizitlerle görülür.\nYaklaşık dış ölçüler: 85 × 79 × 65 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr369075-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr369075-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr369075-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "RedBaron",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "elektronik-masa-kenari-kulaklik-askisi-sd-kart-yuvali-pr86",
     "kategori": "Elektronik",
     "marka": [],
