@@ -496,6 +496,16 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/nobet-olcum-test.py
 
+      # ISCI-SEMAFOR (13 Eki 2026, BaBa 01:2x YEREL YUK hukmu): isci.sh'in
+      # makine-geneli eszamanlilik kapisi (<=3 isci, 1 dk yuk >12 bekler, 90 dk
+      # tavan -> HAL=KUYRUK-TAVAN). HERMETIK: gecici slot koku / isci.log / HOME;
+      # sahte isci = sleep, sahte yuk = dosya. 5 vaka + 2 mutant (SINIR 3->99,
+      # yuk kolu yok). Kurulu kopya esitligi (f) CI'da ATLANDI (kopya yerelde).
+      # SERIT B: kirmizisi yayini DURDURMAZ (makine kapisi, musteri yuzeyi degil).
+      - name: "Isci semaforu — kabul testi (5 vaka + 2 mutant, hermetik)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/isci-semafor-test.py
+
       # RECETE KAPISI — MIMAR-ICRA-KAPISI'NIN RECETE KONTROLCUSU (18 Agu 2026, K168).
       # Arac, tools/ dizinindeki HER .py icindeki "python3 ..." komutlarini mimar-icra-kapisi
       # uzerinden kuru kosuma yollar; REDDEDILEN sayisi > 0 ise rc=1. SERIT B kapsaminda — kirmizisi
