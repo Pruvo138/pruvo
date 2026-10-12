@@ -12,6 +12,8 @@ VAKALAR
      + gecici dizin kalmadi
   V4 HTTP 404 -> R2=404, D1 KOSMAZ (acilmaz), rc 1
   V5 D1 rc 1 -> D1=rc1:..., rc 1
+  V8 gecici kok adinda "d1"/"r2" (kopru-grup-test-d1r2-): V5 yine D1=rc1 — sahte uretec hata eslesmesi
+     argv alt dizgesine degil betik ADINA bagli (12 Eki: rastgele mkdtemp son eki "d1" tasiyinca serit-a3 yandi)
   V6 yer tutucu: dosya (yapboz `gorsel`) -> gecerli PNG; anahtarlik -> anahtarlik kaydi + isimlik_uret.py
      (kayit URETEC adiyla bulunur, tur adi != uretec adi); kopru kaydi olmayan tur (bust, plaket) ->
      uretec-ya-da-kayit-yok (fail-closed)
@@ -19,7 +21,8 @@ EVREN (sayfa-3adim K3d): manifest foto-uretim-veri.js TEK KAYNAK; kopru kayitlar
   Silinen tur grup vakalari yapboz/anahtarlik'a cevrildi; ses'e bagli V7 (dizi yer tutucusu) + MG1 SILINDI
   (kalan kopru kaydinda `dizi` yer tutucusu yok, tasinamaz).
 MUTANTLAR (KIRMIZI yakmali): MD1 D1 adi canliya · MD2 d1 komutu canli adla kurulur (koruma) ·
-  MR2 R2 200 denetimi silindi · MTMP gecici dizin silme kaldirildi
+  MR2 R2 200 denetimi silindi · MTMP gecici dizin silme kaldirildi ·
+  MSAHTE sahte uretec eslesmesi alt dizgeye (`hata in s`) doner -> V8 KIRMIZI
 Cikti son satiri: VAKA_KIRMIZI=<n> SURVIVOR=<n>   (rc 0 yalniz ikisi de 0)
 """
 import importlib.util
@@ -39,9 +42,11 @@ a = sys.argv[1:]
 with open(os.environ["SAHTE_LOG"], "a") as f:
     f.write(json.dumps(a) + "\n")
 hata = os.environ.get("SAHTE_HATA", "")
-s = " ".join(a)
-if "_uret.py" in s and "--cikti" in a:
-    if hata and hata in s:
+adlar = [os.path.basename(x) for x in a]
+# Eslesme betik ADINA (basename) baglidir; argv birlesiminde alt dizge ARANMAZ — gecici dizin yolunun
+# rastgele son eki ("d1", "r2" ...) aksi halde sahte uretec reddini tetikler (12 Eki, serit-a3 flaky).
+if any(x.endswith("_uret.py") for x in adlar) and "--cikti" in a:
+    if hata and hata in adlar:
         sys.stderr.write("RET: sahte uretec reddi\n"); sys.exit(2)
     c = a[a.index("--cikti") + 1]
     os.makedirs(c, exist_ok=True)
@@ -56,7 +61,7 @@ elif "d1" in a and "execute" in a:
         sys.stderr.write("d1 sahte hata\n"); sys.exit(1)
 elif a and a[0] == "curl":
     sys.stdout.write(os.environ.get("SAHTE_HTTP", "200"))
-elif "foto-ornek-uc-uca.py" in s:
+elif "foto-ornek-uc-uca.py" in adlar:
     kod = a[a.index("--tur") + 1]
     print("TUR %s => HAZIR" % kod)
     for e in "①②③④⑤⑥":
@@ -84,15 +89,15 @@ def vaka(ad, gecti, ac=""):
 
 
 class Ortam:
-    def __init__(self):
-        self.kok = tempfile.mkdtemp(prefix="kopru-grup-test-")
+    def __init__(self, onek="kopru-grup-test-", sahte=SAHTE):
+        self.kok = tempfile.mkdtemp(prefix=onek)
         self.tmp = os.path.join(self.kok, "tmp")
         self.jen = os.path.join(self.kok, "jen")
         os.makedirs(self.tmp)
         os.makedirs(self.jen)
         self.sahte = os.path.join(self.kok, "sahte.py")
         with open(self.sahte, "w") as f:
-            f.write(SAHTE)
+            f.write(sahte)
         self.kayit = os.path.join(self.kok, "kayit.json")
         with open(self.kayit, "w") as f:
             json.dump(KAYIT, f, ensure_ascii=False)
@@ -176,6 +181,17 @@ def vakalar(o, kaynak, sus=False):
     return r
 
 
+def d1r2_koku_vakasi(kaynak, sahte=SAHTE):
+    """V8: gecici kok adinda "d1"/"r2" gecer; V5 (SAHTE_HATA=d1) yine D1=rc1 vermeli."""
+    o = Ortam(onek="kopru-grup-test-d1r2-", sahte=sahte)
+    try:
+        rc, out, _ = o.kos(kaynak, ["--tur", "yapboz"], SAHTE_HATA="d1")
+        ks = satir(out, "KOSU ")
+        return bool(rc == 1 and ks[:1] and "RENDER=ok R2=200 D1=rc1:" in ks[0]), "rc=%d %s" % (rc, ks)
+    finally:
+        o.sil()
+
+
 def yer_tutucu_vakasi(o):
     env = {"KOPRU_KAYIT": o.kayit, "FOTO_KOSUCU_JENERATOR": o.jen}
     os.environ.update(env)
@@ -250,6 +266,8 @@ def main():
     try:
         print("VAKALAR")
         vakalar(o, kaynak)
+        g, ac = d1r2_koku_vakasi(kaynak)
+        vaka("V8 gecici kok adinda d1/r2 -> V5 yine D1=rc1 (uretec eslesmesi betik adina bagli)", g, ac)
         yer_tutucu_vakasi(o)
         g, ac = pb_vakasi(o, kaynak)
         vaka("V7 anahtarlik-foto render komutu parametre_bayraklari (--konum tepe) + --girdi figur 3MF", g, ac)
@@ -272,6 +290,11 @@ def main():
         eski, yeni = "            uretec += [pb[ad], str(u[ad])]\n", "            pass\n"
         g = kaynak.count(eski) == 1 and not pb_vakasi(o, kaynak.replace(eski, yeni))[0]
         print(("✅ %s KIRMIZI (V7)" % "MPB parametre_bayraklari okunmaz") if g else "❌ MPB SURVIVOR")
+        sv += 0 if g else 1
+        # MSAHTE: sahte uretec eslesmesi eski alt dizge bicimine donerse V8 KIRMIZI olmali.
+        eski, yeni = "    if hata and hata in adlar:\n", '    if hata and hata in " ".join(a):\n'
+        g = SAHTE.count(eski) == 1 and not d1r2_koku_vakasi(kaynak, SAHTE.replace(eski, yeni))[0]
+        print(("✅ %s KIRMIZI (V8)" % "MSAHTE uretec eslesmesi alt dizge (hata in s)") if g else "❌ MSAHTE SURVIVOR")
         sv += 0 if g else 1
     finally:
         o.sil()
