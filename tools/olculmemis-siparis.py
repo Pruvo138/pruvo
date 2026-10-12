@@ -90,6 +90,9 @@ import re
 import subprocess
 import sys
 from datetime import datetime, timedelta, timezone
+if os.path.dirname(os.path.abspath(__file__)) not in sys.path:  # kardes yardimci (K440)
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from wrangler_ortam import wrangler_ortami  # noqa: E402 — wrangler disk logu kapali
 
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SHOP = os.path.join(KOK, "shop")
@@ -206,7 +209,7 @@ def wrangler_dene(sql):
     sql = salt_okunur_dogrula(sql)
     komut = ["npx", "--yes", "wrangler@4", "d1", "execute", DB_AD,
              "--remote", "--json", "--command", sql]
-    p = subprocess.run(komut, cwd=SHOP, capture_output=True, text=True)
+    p = subprocess.run(komut, cwd=SHOP, capture_output=True, text=True, env=wrangler_ortami())
     ham = (p.stdout or "") + (p.stderr or "")
 
     if "code: 10000" in ham or "Authentication error" in ham:

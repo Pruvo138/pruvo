@@ -27,6 +27,9 @@ import shutil
 import subprocess
 import sys
 import time
+if os.path.dirname(os.path.abspath(__file__)) not in sys.path:  # kardes yardimci (K440)
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from wrangler_ortam import wrangler_ortami  # noqa: E402 — wrangler disk logu kapali
 
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SHOP = os.path.join(KOK, "shop")
@@ -134,7 +137,7 @@ def yukle():
         ortam = dict(os.environ, CLOUDFLARE_ACCOUNT_ID=HESAP)
         komut = ["npx", "--no-install", "wrangler", "versions", "upload", "-c", TOML,
                  "--preview-alias", ALIAS, "--message", "foto onizleme (canli degil)"]
-        return subprocess.run(komut, cwd=SHOP, env=ortam).returncode
+        return subprocess.run(komut, cwd=SHOP, env=wrangler_ortami(ortam)).returncode
     finally:
         if fk is not None:
             try:

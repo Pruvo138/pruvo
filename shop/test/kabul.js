@@ -159,7 +159,7 @@ async function istekJson(yontem, url, govdeObj) {
 function wranglerD1(sql) {
   // Yerel D1'e SQL — wrangler.toml'daki binding uzerinden (cwd=shop). JSON cikti parse edilir.
   const p = spawnSync("npx", ["--yes", "wrangler@4", "d1", "execute", "pruvo-katalog",
-    "--local", "--json", "--command", sql], { cwd: SHOP, encoding: "utf8" });
+    "--local", "--json", "--command", sql], { cwd: SHOP, encoding: "utf8", env: { ...process.env, WRANGLER_WRITE_LOGS: "false" } });
   const ham = (p.stdout || "") + (p.stderr || "");
   const i = (p.stdout || "").indexOf("[");
   if (p.status !== 0 || i === -1) {
@@ -324,7 +324,7 @@ function d1Kur() {
   fs.rmSync(path.join(SHOP, ".wrangler"), { recursive: true, force: true });
   const semaYol = path.join(KOK, "tools", "d1-sema.sql");
   const p = spawnSync("npx", ["--yes", "wrangler@4", "d1", "execute", "pruvo-katalog",
-    "--local", "--file", semaYol], { cwd: SHOP, encoding: "utf8" });
+    "--local", "--file", semaYol], { cwd: SHOP, encoding: "utf8", env: { ...process.env, WRANGLER_WRITE_LOGS: "false" } });
   if (p.status !== 0) {
     throw new Error("sema kurulamadi:\n" + ((p.stdout || "") + (p.stderr || "")).slice(-1500));
   }
@@ -392,7 +392,7 @@ function r2Kur() {
     fs.writeFileSync(dosya, icerik);
     const p = spawnSync("npx", ["--yes", "wrangler@4", "r2", "object", "put",
       "pruvo-ozel/" + anahtar, "--file", dosya, "--local"],
-      { cwd: SHOP, encoding: "utf8" });
+      { cwd: SHOP, encoding: "utf8", env: { ...process.env, WRANGLER_WRITE_LOGS: "false" } });
     if (p.status !== 0) {
       fs.unlinkSync(dosya);
       throw new Error("yerel R2 fixture kurulamadi (" + anahtar + "):\n" +
@@ -454,7 +454,7 @@ async function workerBaslat(ekstraVar) {
   const guvenliVar = olcumKapisiUygula(ekstraVar || {});
   const args = ["--yes", "wrangler@4", "dev", "--local", "--port", String(WORKER_PORT)];
   for (const [k, v] of Object.entries(guvenliVar)) { args.push("--var", k + ":" + v); }
-  workerSurec = spawn("npx", args, { cwd: SHOP, stdio: ["ignore", "pipe", "pipe"] });
+  workerSurec = spawn("npx", args, { cwd: SHOP, stdio: ["ignore", "pipe", "pipe"], env: { ...process.env, WRANGLER_WRITE_LOGS: "false" } });
   workerSurec.stdout.on("data", (c) => { workerLog += c; });
   workerSurec.stderr.on("data", (c) => { workerLog += c; });
   // Saglik yoklamasi: bilinmeyen uc -> 404 JSON. Worker AYAKTA ama secenekler.js import'u
@@ -878,7 +878,7 @@ async function test9ParametrikAltyapi(secenekler) {
   let dryOk = null;
   if (bundleDeneme) {
     const dry = spawnSync("npx", ["--yes", "wrangler@4", "deploy", "--dry-run",
-      "--outdir", path.join(SHOP, ".wrangler", "dry")], { cwd: SHOP, encoding: "utf8" });
+      "--outdir", path.join(SHOP, ".wrangler", "dry")], { cwd: SHOP, encoding: "utf8", env: { ...process.env, WRANGLER_WRITE_LOGS: "false" } });
     dryOk = dry.status === 0;
     if (!dryOk) {
       hatalar.push("wrangler dry-run BASARISIZ: " + ((dry.stderr || "") + (dry.stdout || "")).slice(-400));

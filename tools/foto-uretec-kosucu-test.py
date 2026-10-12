@@ -1909,6 +1909,7 @@ def mutant_kos(ad):
         shutil.copyfile(os.path.join(KOK, "foto-uretim-veri.js"), os.path.join(d, "foto-uretim-veri.js"))
         shutil.copyfile(os.path.join(KOK, "shop", "wrangler.onizleme.toml"), os.path.join(d, "shop", "wrangler.onizleme.toml"))
         os.makedirs(os.path.join(d, "jenerator", "kopru"))
+        shutil.copyfile(os.path.join(KOK, "tools", "wrangler_ortam.py"), os.path.join(d, "tools", "wrangler_ortam.py"))
         shutil.copyfile(os.path.join(KOK, "jenerator", "kopru", "kopru_kayitlari.json"),
                         os.path.join(d, "jenerator", "kopru", "kopru_kayitlari.json"))
         yol = os.path.join(d, "tools", "foto-uretec-kosucu.py")

@@ -67,6 +67,9 @@ import urllib.request
 import zipfile
 import zlib
 from datetime import datetime, timezone
+if os.path.dirname(os.path.abspath(__file__)) not in sys.path:  # kardes yardimci (K440)
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from wrangler_ortam import wrangler_ortami  # noqa: E402 — wrangler disk logu kapali
 
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SHOP = os.path.join(KOK, "shop")
@@ -287,7 +290,7 @@ class Bulut:
     def wr(self, arg, zaman=180):
         try:
             return subprocess.run(self.komut + arg, cwd=SHOP, capture_output=True, text=True, timeout=zaman,
-                                  env=self.env)
+                                  env=wrangler_ortami(self.env))
         except (OSError, subprocess.TimeoutExpired) as e:
             raise Ayar("wrangler: %s" % e)
 

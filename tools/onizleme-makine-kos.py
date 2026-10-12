@@ -31,6 +31,9 @@ import shlex
 import subprocess
 import sys
 import time
+if os.path.dirname(os.path.abspath(__file__)) not in sys.path:  # kardes yardimci (K440)
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from wrangler_ortam import wrangler_ortami  # noqa: E402 — wrangler disk logu kapali
 
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SHOP = os.path.join(KOK, "shop")
@@ -132,7 +135,7 @@ def main(argv=None):
     anahtar = secrets.token_hex(24)
     env = dict(os.environ, CLOUDFLARE_ACCOUNT_ID=HESAP)
     p = subprocess.run(wrangler() + ["versions", "secret", "put", AD, "-c", TOML], input=anahtar + "\n",
-                       capture_output=True, text=True, cwd=SHOP, env=env, timeout=300)
+                       capture_output=True, text=True, cwd=SHOP, env=wrangler_ortami(env), timeout=300)
     if p.returncode != 0:
         print("MAKINE_KOS HATA secret-put %s" % (p.stderr or p.stdout).strip()[-200:].replace(anahtar, "***"))
         return 2

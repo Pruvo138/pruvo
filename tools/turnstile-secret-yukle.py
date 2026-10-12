@@ -28,6 +28,9 @@ import subprocess
 import sys
 import urllib.error
 import urllib.request
+if os.path.dirname(os.path.abspath(__file__)) not in sys.path:  # kardes yardimci (K440)
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from wrangler_ortam import wrangler_ortami  # noqa: E402 — wrangler disk logu kapali
 
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SHOP = os.path.join(KOK, "shop")
@@ -137,7 +140,7 @@ def main():
 
     # 🔴 Secret YALNIZ stdin'den gider: argv'ye/dosyaya/ortam degiskenine KONMAZ.
     surec = subprocess.run(["npx", "wrangler", "secret", "put", SECRET_ADI],
-                           cwd=SHOP, input=(secret + "\n").encode("utf-8"))
+                           cwd=SHOP, input=(secret + "\n").encode("utf-8"), env=wrangler_ortami())
     print("WRANGLER_RC=" + str(surec.returncode))
     cikis(surec.returncode, "HAL=" + ("UYGULANDI" if surec.returncode == 0 else "WRANGLER_HATA"))
 

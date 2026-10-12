@@ -2564,6 +2564,19 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/wrangler-log-nobetcisi-test.py
 
+      # WRANGLER LOG KAPISI (12 Eki 2026, K440) — nobetci birikimi BUDAR; bu kapi kaynagi
+      # kapatir: wrangler'i alt surec olarak cagiran HER yer (AST/JS taramasiyla TURETILIR,
+      # elle liste yok) `WRANGLER_WRITE_LOGS=false` vermeli (`tools/wrangler_ortam.py`).
+      # Batarya: 10 vaka (gecici dizin) + gercek depo (LOG_ACIK=0) + 4 mutant (izole kopya).
+      # Yayin dogrulugu kapisi DEGIL -> `serit-b`.
+      - name: "Wrangler log kapisi kabul bataryasi (turetilmis evren + mutant)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/wrangler-log-kapisi-test.py
+
+      - name: "Wrangler log kapisi (gercek depo: her wrangler alt sureci log kapali, LOG_ACIK=0)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/wrangler-log-kapisi.py
+
       # SERIT B UCU KAPISI (10 Eki 2026, BaBa 10:1x) — dal SERIT B kosumu headSha `9d2aa8e8`
       # iken dal ucu `aec9b6e2` idi; "yesil SERIT B" merge'e yetiyor sanildi. Kapinin
       # kendisi merge ANINDA elle kosulur (skill merge-kapisi §5); burada yalniz HERMETIK

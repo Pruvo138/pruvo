@@ -150,7 +150,7 @@ function dbAdi() {
 function d1Sorgu(sql) {
   const p = cp.spawnSync("npx", ["--yes", "wrangler@4", "d1", "execute", dbAdi(),
     "--remote", "--json", "--command", sql],
-    { encoding: "utf8", timeout: 300000, cwd: KOK });
+    { encoding: "utf8", timeout: 300000, cwd: KOK, env: { ...process.env, WRANGLER_WRITE_LOGS: "false" } });
   const ham = (p.stdout || "") + (p.stderr || "");
   if (p.status !== 0) {
     throw new EksenHatasi("wrangler SIFIR-DISI (rc=" + p.status + "): " + ham.slice(-400));
