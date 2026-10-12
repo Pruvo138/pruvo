@@ -1,5 +1,282 @@
 [
   {
+    "id": "mutfak-x-seklinde-kasik-tutucu-pr512981",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "X Şeklinde Mutfak Kaşığı Tutucu (Tezgâh ve Ocak Yanı İçin)",
+    "aciklama": "Yemek yaparken ahşap kaşık, spatula ve benzeri gereçleri tezgâha değdirmeden dinlendiren, çok basit yapılı X biçimli tutucu. X'in bir kolu diğerinden daha geniştir; geniş kol büyük, alçak kol daha küçük gereçler için kullanılır. Gereci kolların üzerine yatırarak bırakırsınız. Fotoğraflarda tutucu tek başına ve ahşap kaşıkla ocak yanında görülür.\nTutucu 74 × 63 × 60 mm'dir.\nYaklaşık dış ölçüler: 74 × 63 × 60 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr512981-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr512981-2.jpg"
+    ]
+  },
+  {
+    "id": "mutfak-moduler-baharat-kavanozu-rafi-2x4-pr711819",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Modüler Baharat Kavanozu Rafı (8 Gözlü 2×4 Modül)",
+    "aciklama": "Küçük baharat kavanozlarını düzenli ve elinizin altında tutmak için modüler raf. Her modül 46 × 46 × 90 mm ölçüsünde, kare ya da yuvarlak tabanlı sekiz kavanoz alır. Kavanozun yerleştirilmesini kolaylaştırmak için her göz hafifçe geriye eğimlidir. Modülleri yan yana ya da üst üste dizerek raf boyunu ihtiyacınıza göre büyütebilirsiniz. Fotoğraflarda modüller tek başına, üst üste ve dolap içinde kullanımda görülür.\nModül 213 × 107 × 81 mm'dir.\nYaklaşık dış ölçüler: 213 × 107 × 81 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr711819-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr711819-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr711819-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "pakkun48",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mutfak-cekmeceye-yatan-baharat-rafi-2-3-5-gozlu-pr344546",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Çekmeceye Yatan Baharat Rafı (2, 3 ve 5 Gözlü Seçenekler)",
+    "aciklama": "Baharat kavanozlarını çekmecede yan yatırarak saklayan, düz ve alçak raf. Yarım silindir biçimli yuvalar kavanozları yerinde tutar; çekmece açıldığında hepsi birden görünür. Raflar 2, 3 ve 5 gözlü olarak hazırdır; farklı çekmece genişliklerine göre yan yana kullanılabilir. Fotoğraflarda üç gözlü ve iki gözlü beyaz raflar görülür.\nİki gözlü raf 104 × 70 × 24 mm, üç gözlü raf 154 × 70 × 24 mm, beş gözlü raf 255 × 70 × 24 mm'dir.\nYaklaşık dış ölçüler: 255 × 70 × 24 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr344546-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr344546-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Branden",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mutfak-dokuz-gozlu-baharat-standi-pr162736",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Dokuz Gözlü Baharat Standı (İki Parçalı, Birbirine Geçen Yapı)",
+    "aciklama": "Dokuz baharat kavanozunu yatay yatırarak tezgâhta ya da raf üzerinde saklayan, kare biçimli stand. Kavanozlar yuvarlak deliklere yatay yerleştirilir ve içerikleri önden görünür. Stand aynı parçanın iki adedinin birbirine geçirilmesiyle kurulur, gerekirse yapıştırıcı kullanılabilir. Fotoğraflarda kavanozlarla dolu stand ve model görünümü yer alır.\nStand 170 × 170 × 75 mm'dir.\nYaklaşık dış ölçüler: 170 × 170 × 75 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr162736-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr162736-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Kenty94",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mutfak-genisleyebilir-cekmece-ici-baharat-rafi-pr505693",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Genişleyebilir Çekmece İçi Baharat Rafı (204, 232 ve 255 mm Genişlik Seçenekleri)",
+    "aciklama": "Mutfak çekmecesinde baharat kavanozlarını yan yatırıp sıralı saklayan, kavanoz boyutuna göre ayarlanabilir raf. Yuvalar yarım silindir biçimindedir ve kavanozlar yatık durur. Birden fazla raf, bağlantı parçası çevrilerek birbirine tutturulabilir ve çekmece boyuna göre uzatılabilir. Üç hazır genişlik bulunur: 204, 232 ve 255 mm. Fotoğraflarda beyaz raf tek başına ve bağlantı parçalarıyla görülür.\n255 mm'lik raf 255 × 122 × 47 mm, 232 mm'lik raf 232 × 152 × 54 mm'dir.\nYaklaşık dış ölçüler: 255 × 122 × 47 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr505693-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr505693-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr505693-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr505693-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Arne Kristian Mo",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mutfak-ahsap-citali-baharat-rafi-braketi-pr411918",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Ahşap Çıtalı Baharat Rafı ve Raf Braketi (Hazır Sert Ahşap Çıta İçin)",
+    "aciklama": "Hırdavatçıdan ya da yapı marketten alacağınız hazır sert ahşap çıtaları (6,35 × 63,5 mm kesitli, farklı boylarda) takarak baharat rafı ya da küçük raf yapmanızı sağlayan basit braket. Braketlerin açıklığı bu kesitli çıtaya göre ölçülmüştür; çıtaları istediğiniz boyda keserek rafın uzunluğunu kendiniz belirlersiniz. Ahşap çıta pakete dahil değildir. Fotoğraflarda braketler iki ucunda ahşap çıtaları taşır, ayrıca model görünümleri yer alır.\nBraket 140 × 127 × 20 mm'dir.\nYaklaşık dış ölçüler: 140 × 127 × 20 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr411918-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr411918-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr411918-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr411918-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "codysechelski",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mutfak-kompakt-cekmeceli-baharat-rafi-24-kavanoz-pr891245",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kompakt Çekmeceli Baharat Rafı (6 Çekmece, 24 Kavanoz Kapasiteli)",
+    "aciklama": "Dolap içinde en az yeri kaplayacak şekilde tasarlanmış, altı çekmeceli baharat rafı. Her çekmeceye dört kavanoz sığar; toplam 24 kavanoz alır. Sette taban, üst plaka, çekmeceler ve sütunlar bulunur. Çekmeceler öne çekilerek kavanozlara arkadan ulaşmayı kolaylaştırır. Görsellerde çekmeceli raf ve parçaları model görünümüyle yer alır.\nÇekmece 242 × 54 × 40 mm, taban ve üst plaka 200 × 192 × 26 mm, sütun 110 × 8 × 8 mm'dir.\nYaklaşık dış ölçüler: 242 × 54 × 40 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr891245-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr891245-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr891245-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Quim Garrigós",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mutfak-donen-baharat-rafi-pr24469",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Döner Baharat Rafı (Dönen Üst Raf ve Milli Taban)",
+    "aciklama": "Baharat şişelerini düzenli saklayıp döndürerek istediğinize hızla ulaşmanızı sağlayan döner raf. Alt parçadaki mil, üst rafı taşır ve rafın serbestçe dönmesine izin verir; üst raf iki parçadan oluşur. Görsellerde dönen rafın ve parçalarının model görünümü yer alır.\nTaban 318 × 203 × 203 mm, üst raf 311 × 208 × 104 mm'dir.\nYaklaşık dış ölçüler: 318 × 203 × 203 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr24469-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr24469-2.jpg"
+    ]
+  },
+  {
+    "id": "mutfak-kapi-ustu-asilir-baharat-rafi-sistemi-pr626717",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kapı Üstüne Asılan Baharat Rafı Sistemi (Bağlantılı, Genişletilebilir)",
+    "aciklama": "Dolap ya da oda kapısının üst kenarına asılan, bağlantı parçalarıyla uzatılabilen baharat ve küçük malzeme rafı. Sette askı kancası, kısa, orta ve uzun boy bağlantı parçaları, bölmeli ve bölmesiz tek raf ile çift raf bulunur. Rafı ne kadar uzun yaparsanız o kadar dengeli durur; çift raflar daha kararlıdır. Ağır eşyalar için uygun değildir. Fotoğraflarda mavi raflar sarı bağlantı ve kancalarla kapıya asılı, ayrıca parçalar tek tek görülür.\nÇift raf 240 × 139 × 70 mm, tek raf 240 × 70 × 61 mm, askı kancası 162 × 52 × 24 mm'dir.\nYaklaşık dış ölçüler: 240 × 139 × 70 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr626717-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr626717-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr626717-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr626717-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Triple G Workshop",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mutfak-citali-baharat-rafi-braketi-seti-pr289725",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Çıtalı Baharat Rafı Braket Seti (Sol, Sağ ve Orta Braket, Dolap Kapısı İçin)",
+    "aciklama": "Dolap kapısının iç yüzüne bantla yapıştırılan, iki braket arasına 6,35 mm (1/4 inç) çapında ahşap çıtalar takılarak kurulan baharat rafı. Braketin arka yüzündeki oyuk, çift taraflı bandın kapıya düz oturmasını sağlar; bant dar braketlere uyması için boyuna ikiye kesilir. Sol, sağ ve orta braket seçenekleri ile tam genişlik sürümleri bulunur. Ahşap çıta ve çift taraflı bant pakete dahil değildir. Fotoğraflarda iki raf kapı üzerinde baharat kavanozlarını taşır, ayrıca braketlerin model görünümleri yer alır.\nBraket 85 × 57 × 10 mm'dir.\nYaklaşık dış ölçüler: 85 × 57 × 10 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr289725-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr289725-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr289725-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "LittleDangerous",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mutfak-kam-kilitli-poset-klipsi-pr27216",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kam Kilitli Poşet Ağzı Kapatma Klipsi (Tek Parça, Hareketli)",
+    "aciklama": "Cips, çerez, makarna ve benzeri paketlerin ağzını sıkıca kapatan, kam kilitli klips. Üç bölüm menteşelerle birbirine bağlı gelir; ek parça ya da montaj gerektirmez. Özel kam profili sayesinde kolu çevirdiğinizde dişler paketi sıkıştırır ve klips yerinde kilitlenir. Açıkken yaklaşık 30 derece açılır, kapalıyken dişler arasında 1 mm boşluk kalır. Fotoğraflarda klips çim üzerinde, elde ve muz sapı üzerinde, ayrıca model görünümüyle yer alır.\nKlips açık konumda 118 × 41 × 17 mm'dir.\nYaklaşık dış ölçüler: 118 × 41 × 17 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr27216-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr27216-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr27216-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr27216-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Andrei",
+      "tur": "GPL 3.0"
+    }
+  },
+  {
+    "id": "mutfak-mentesli-poset-klips-seti-pr83628",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Menteşeli Poşet Klips Seti (5, 10, 12, 14 ve 16 cm Boy Seçenekleri)",
+    "aciklama": "Paket ağzını boydan boya kavrayan, menteşesi tek parça içinde hareketli gelen uzun poşet klipsleri. Kıskaç kolları kırılgan bir yay yerine sağlam bir menteşe üzerinde döner; kapatmak için parçaları bükmeniz gerekmez. Beş farklı boy (5, 10, 12, 14 ve 16 cm) ile bu boyların daha sıkı kavrayan sürümleri bulunur; kedi maması, tahıl ve çerez paketleri için uygundur. Fotoğraflarda turuncu klipsler boş halde ve paket ağzında görülür.\nAçık konumda 5 cm'lik klips 81 × 18 × 10 mm, 16 cm'lik klips 191 × 31 × 10 mm'dir.\nYaklaşık dış ölçüler: 191 × 31 × 10 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr83628-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr83628-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr83628-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "neoyarus",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mutfak-kayar-poset-kapatma-citasi-pr237081",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kayar Poşet Kapatma Çıtası (Üç Boy: 12, 18 ve 23 cm)",
+    "aciklama": "Poşet ağzını boydan boya sıkıştırarak kapatan, kayarak takılan çıta tipi klips. Tek parçadır ve hareketli parçası yoktur; çıtayı ağız boyunca kaydırarak paketi kapatırsınız. Üç boy bulunur: yaklaşık 11 cm'ye kadar küçük paketler için kısa boy, orta boy ve 22 cm'ye kadar geniş paketler için uzun boy. Fotoğraflarda beyaz, siyah ve gri çıtalar tek başına ve paket ağzında görülür.\nKısa çıta 130 × 10 × 9 mm, orta çıta 190 × 10 × 9 mm, uzun çıta 240 × 10 × 9 mm'dir.\nYaklaşık dış ölçüler: 240 × 10 × 9 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr237081-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr237081-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr237081-3.jpg"
+    ]
+  },
+  {
+    "id": "mutfak-tek-parca-poset-klipsi-pr1369748",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Tek Parça Poşet Ağzı Kapatma Klipsi",
+    "aciklama": "Paket ve poşet ağızlarını kolayca kapatmak için basit, tek parçalı kıskaç klips. Kolu sıktığınızda paketin ağzını kavrar, bırakınca sabit tutar. Fotoğraflarda pembe, mavi, sarı ve siyah klipsler ahşap masa üzerinde görülür.\nKlips 131 × 33 × 17 mm'dir.\nYaklaşık dış ölçüler: 131 × 33 × 17 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1369748-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1369748-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1369748-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Ginge007",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mutfak-kayar-baharat-sepeti-ve-ray-seti-pr184844",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kayar Baharat Sepeti ve Ray Seti (125 mm Genişlikli, Delikli)",
+    "aciklama": "Dolap ya da raf içindeki baharat kavanozları, şişeler ve küçük kutuları çekerek ulaşılır hale getiren kayar sepet sistemi. Delikli sepet, tabana oturan raylar üzerinde kayar; sette sepet, taban ve ray parçaları bulunur. Sepet genişliği 125 mm, toplam uzunluk yaklaşık 280 mm olup geniş raf derinliği olan dolaplara uygundur. Görsellerde sepet, taban ve ray parçaları model görünümüyle yer alır.\nSepet 280 × 125 × 50 mm, taban 286 × 107 × 14 mm, ray 277 × 112 × 14 mm'dir; birleşik set 286 × 125 × 70 mm'dir.\nYaklaşık dış ölçüler: 286 × 125 × 70 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr184844-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr184844-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr184844-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr184844-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JB3Designs",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mutfak-cekmeceli-parametrik-baharat-rafi-pr44067",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Çekmeceli Parametrik Baharat Rafı (3×2 Modül, İki Katlı)",
+    "aciklama": "Dolap içindeki baharat kavanozları ya da küçük malzemeler için raylı çekmeceli, iki katlı raf sistemi. Yapı basit ve hafiftir, üst sıradaki çekmeceleri taşıyacak kadar sağlamdır. Çekmeceler raylar üzerinde kayar ve uç durağı sayesinde yerinden çıkmaz. Sette ön ve arka açık ya da kapalı iskelet plakaları, çekmece ve T ile L kirişleri bulunur. Görsellerde kırmızı çekmeceli raf ve parça görünümleri yer alır.\nÇekmece 273 × 50 × 47 mm, iskelet plakası 248 × 161 × 15 mm, T kirişi 243 × 18 × 10 mm'dir.\nYaklaşık dış ölçüler: 273 × 50 × 47 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr44067-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr44067-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr44067-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Reven",
+      "tur": "GPL 2.0"
+    }
+  },
+  {
     "id": "ev-uclu-priz-duvar-tavan-tutucu-iki-parcali-braket-pr124580",
     "kategori": "Ev",
     "marka": [],
