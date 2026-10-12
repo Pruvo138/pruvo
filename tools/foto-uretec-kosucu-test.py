@@ -1244,6 +1244,22 @@ def vakalar(kosucu):
                 [x["argv"][:2] for x in fg] == [["--konum", "tepe"], ["--konum", "sirt"]]), \
             "%s %s fg=%s" % (son, u, [x["argv"][:2] for x in fg])
 
+    # T69 (12 Eki, BaBa 01:4x): figur_kulak 1.1 tabla ankraji reddi. Sahte figur stderr SON satiri
+    # `RET: ankraj-red: F_tepe 12.3 N < 30 N` rc 2 -> 'elle' uretec-red:ankraj, model YAZILMAZ; konum yalniz tepe
+    # (figur_kulak red sinifi konum-donusu tetiklemez). Manifestte TEK musteri cumlesi (ANKRAJ_CUMLE).
+    def t69(o):
+        jen = figur_ortami(o)
+        rc, son, c = o.kos("--uygula", FOTO_KOSUCU_JENERATOR=jen, FAKE_KOPRU="aynen",
+                           FAKE_FIGUR_RET_TEPE="ankraj-red: F_tepe 12.3 N < 30 N")
+        u = o.uretim()
+        fg = figur_cagrilari(o)
+        with open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(kosucu))), "foto-uretim-veri.js"),
+                  encoding="utf-8") as f:
+            metin = re.findall(r'"ankraj": "([^"]*)"', f.read())
+        return (u["asama"] == "elle" and u["sebep"] == "uretec-red:ankraj" and o.model() is None and
+                [x["argv"][:2] for x in fg] == [["--konum", "tepe"]] and metin == [ANKRAJ_CUMLE]), \
+            "%s %s fg=%s metin=%s" % (son, u, [x["argv"][:2] for x in fg], metin)
+
     # K1: duzlestirmede birden cok govde -> 'elle' uretec-red:genel (sessiz birlestirme YOK), uretec CAGRILMAZ.
     def t66(o):
         jen = figur_ortami(o, govde=2)
@@ -1429,6 +1445,7 @@ def vakalar(kosucu):
     vaka("RN4", rn4)
     vaka("T67", t67)
     vaka("T68", t68)
+    vaka("T69", t69)
     for ad, fn in (("T1", t1), ("T2", t2), ("T3", t3), ("T4", t4), ("T5", t5), ("T6", t6), ("T7", t7),
                    ("T8", t8), ("T9", t9), ("T10", t10), ("T11", t11), ("T12", t12), ("T12b", t12b)):
         vaka(ad, fn)
@@ -1451,6 +1468,9 @@ YAZI_INCE_CUMLE = ("Bu yazı bu genişlikte çok ince kalıyor; genişliği büy
                    "için en az 40 mm) ya da El yazısı yazı tipini seç.")
 ANAHTARLIK_BOYUT_CUMLE = ("Bu fotoğraftan anahtarlık boyutunda bir parça çıkmadı; daha sade bir fotoğraf ya da "
                           "kısa bir yazı deneyin.")
+# 12 Eki (figur_kulak 1.1 tabla ankraji reddi; TeKiN 281fb3e; BaBa 01:4x). "3D baskı"/"tabla" yok (musteri metni kurali).
+ANKRAJ_CUMLE = ("Bu fotoğraftan çıkan figür bu ölçüde sağlam bir anahtarlık olarak üretilemiyor; ölçüyü büyüt ya "
+                "da daha sade bir fotoğraf dene.")
 
 
 def _kup_stl(yol, kenar):
@@ -1565,6 +1585,17 @@ def foto_kolu_vakalari(kosucu, s):
             return (kod == kod2 == kod3 == "anahtarlik-boyut" and metin == [ANAHTARLIK_BOYUT_CUMLE],
                     "kod=%s kod2=%s kod3=%s metin=%s" % (kod, kod2, kod3, metin))
 
+        # T42A (12 Eki, BaBa 01:4x): figur_kulak 1.1 tabla ankraji reddi `RET: ankraj-red: <neden>` -> "ankraj" kodu +
+        # manifestte TEK musteri cumlesi (ANKRAJ_CUMLE). Runner kalipsizsa -> "genel"e duser; metin degismisse -> uyusmaz.
+        def t42a():
+            kod = m.ret_kodu("RET: ankraj-red: F_tepe 12.3 N < 30 N")
+            kod2 = m.ret_kodu("RED tabla ankraj yetersiz")
+            with open(os.path.join(kok, "foto-uretim-veri.js"), encoding="utf-8") as f:
+                veri = f.read()
+            metin = _re.findall(r'"ankraj": "([^"]*)"', veri)
+            return (kod == "ankraj" and kod2 == "ankraj" and metin == [ANKRAJ_CUMLE],
+                    "kod=%s kod2=%s metin=%s" % (kod, kod2, metin))
+
         def t44():
             jen = t44_jenerator()
             g = cli.get("figur_kulak") or {}
@@ -1672,8 +1703,8 @@ def foto_kolu_vakalari(kosucu, s):
                 return "atla" in v, v.get("atla") or v.get("hata")
             elle = [a for a in sorted(v) if v[a]["rc"] != 0 or v[a].get("kabul")]
             return not elle, "elle=%s kos=%s" % (elle, {ad: v["kos/" + ad]["konum"] for ad, *_ in VB3_SENARYO})
-        for ad, fn in (("T40", t40), ("T41", t41), ("T42", t42), ("T43", t43), ("T44", t44), ("VB3", vb3),
-                       ("VB4", vb4)):
+        for ad, fn in (("T40", t40), ("T41", t41), ("T42", t42), ("T42A", t42a), ("T43", t43), ("T44", t44),
+                       ("VB3", vb3), ("VB4", vb4)):
             dene(ad, fn)
     finally:
         shutil.rmtree(d, ignore_errors=True)
@@ -1715,6 +1746,13 @@ MUTANTLAR = {
     "M-YI-KALIP": ('    (r"ince cizgi.*genislik_mm", "yazi-ince"),\n', "", {"T14Y"}),
     "M-YI-METIN": ('      "yazi-ince": "Bu yazı bu genişlikte çok ince kalıyor;', '      "yazi-yok": "Bu yazı bu genişlikte çok ince kalıyor;',
                    {"T14Y"}, "foto-uretim-veri.js"),
+    # ANKRAJ (12 Eki, BaBa 01:4x): kalip kalkarsa RET "RET: ankraj-red: ..." -> "genel"e duser (T42A + T69 KIRMIZI);
+    # musteri cumlesi degisirse/dugunurse manifest BAGIMSIZ sabite uymaz (T42A + T69 KIRMIZI). T42 etkilenmez
+    # (anahtarlik-boyut kalibi AYNI satirda degil, sonraki satirda).
+    "M-ANKRAJ-KALIP": ('    (r"ankraj-red|tabla ankraj", "ankraj"),\n', "", {"T42A", "T69"}),
+    "M-ANKRAJ-METIN": ('      "ankraj": "Bu fotoğraftan çıkan figür bu ölçüde sağlam bir anahtarlık olarak üretilemiyor;',
+                       '      "ankraj-yok": "Bu fotoğraftan çıkan figür bu ölçüde sağlam bir anahtarlık olarak üretilemiyor;',
+                       {"T42A", "T69"}, "foto-uretim-veri.js"),
     "M12": ('"renk_sayisi": uc_mf_extruder_sayisi(os.path.join(cikti, "model.3mf")),',
             '"renk_sayisi": len(bolgeler),', {"T17"}),
     "M13": ('        if any(k not in form for k in (girdi.get("parametreler") or {})):\n            raise KopruRed("parametre")\n',
@@ -1791,7 +1829,7 @@ MUTANTLAR = {
     "M-RN-KURU": ("        if uygula:\n            try:\n", "        if True:\n            try:\n",
                   {"RN4"}),
     "M65": ("        if not (rc == 2 and TEPE_RED.search(ozet)) and not tepe_suresi:\n",
-            "        if not rc == 2 and not tepe_suresi:\n", {"T61"}),
+            "        if not rc == 2 and not tepe_suresi:\n", {"T61", "T69"}),
     # B2: tepe olcuye sigmadiginda sirt dususu kapali -> tepe kulak dahil > olcu -> kabul reddi ('elle').
     "M-B2-SIRT": ("        if rc == 0 and konum != FIGUR_KONUM_SIRASI[-1] and not figur_tepe_sigar(i, cd):\n            continue\n",
                   "", {"T67", "T68"}),  # gercek uretecte tepe artik sigmazlik uretmez (281fb3e); dusus sahte uretecle olculur
@@ -1799,7 +1837,7 @@ MUTANTLAR = {
     "M-B2-KABUL": ("        if red:\n            rc, ozet = 2, red\n", "        if False:\n            rc, ozet = 2, red\n",
                    {"T68"}),
     "M60": ('    if not isinstance(g, dict) or "uretec" not in g:\n', "    if True:\n",
-            {"T60", "T61", "T62", "T63", "T64", "T65", "T66", "T67", "T68", "T64K", "T65K", "RB1", "RB5", "RB2", "RB3", "RB4", "TS1", "TS2"}),
+            {"T60", "T61", "T62", "T63", "T64", "T65", "T66", "T67", "T68", "T69", "T64K", "T65K", "RB1", "RB5", "RB2", "RB3", "RB4", "TS1", "TS2"}),
     # TUR-C2a: girdi.json zorunlu sayilirsa eski is (dosya yok) 'elle'ye duser (T27 = V7; RN3 ayni plaket kolu).
     "M61": ('    if not r2_al(ONIZLEME_DIZIN % i["is_no"] + "girdi.json", oy):\n        return None\n',
             '    if not r2_al(ONIZLEME_DIZIN % i["is_no"] + "girdi.json", oy):\n        return ""\n', {"T27", "RN3"}),
@@ -1815,10 +1853,10 @@ MUTANTLAR = {
     "M44": ('    if any(b not in pb for b in (g.get("renkler") or {})):\n        raise KopruRed("renk")\n', "", {"T36"}),
     # ANAHTARLIK FOTO KOLU: foto dali / parametre_bayraklari / >50 mm cumlesi / yazi kolu ayrimi.
     "M45": ('    if (g or {}).get("kol") == "foto":\n        return ESLEMELER.get(g.get("esle"))\n', "",
-            {"T40", "T60", "T61", "T63", "T64", "T65", "T67", "T68", "VB3", "VB4", "T64K", "T65K",
+            {"T40", "T60", "T61", "T63", "T64", "T65", "T67", "T68", "T69", "VB3", "VB4", "T64K", "T65K",
              "RB1", "RB5", "RB2", "RB3", "RB4", "TS1", "TS2"}),
     "M46": ("        komut += [pb[ad], str(u[ad])]\n", "        pass\n",
-            {"T41", "T60", "T61", "T64", "T65", "T67", "T68", "VB3", "T64K", "T65K", "RB1", "RB5", "RB2", "RB3", "RB4", "TS1", "TS2"}),
+            {"T41", "T60", "T61", "T64", "T65", "T67", "T68", "T69", "VB3", "T64K", "T65K", "RB1", "RB5", "RB2", "RB3", "RB4", "TS1", "TS2"}),
     # M46: --konum duserse uretec varsayilan tepe kosar -> VB3 sirt hucresinde ozet konum tutmaz; tepe sigdigindan VB4 (elle) yesil.
     "M47": ('    (r"figur uzun kenar|kulak dahil uzun kenar|kulak yerlesmez", "anahtarlik-boyut"),\n',
             "", {"T42", "T44", "T61", "T65", "T65K"}),
@@ -1827,11 +1865,11 @@ MUTANTLAR = {
     # oldugu icin M51 tum onarim figur vakalarini dusurur (olculen kumeler).
     "M50": ('KONUM_VARSAYILAN = "tepe"\n', 'KONUM_VARSAYILAN = "sirt"\n', {"T40", "T41"}),
     "M51": ('not ad.endswith((".3mf", ".stl"))', 'not ad.endswith(".3mf")',
-            {"T40", "T44", "T60", "T61", "T63", "T64", "T65", "T67", "T68", "VB3", "VB4", "T64K", "T65K",
+            {"T40", "T44", "T60", "T61", "T63", "T64", "T65", "T67", "T68", "T69", "VB3", "VB4", "T64K", "T65K",
              "RB2", "RB3", "RB4", "TS1", "TS2"}),
     "M52": ('    "figur_kulak": {"bicim": "tekin-ortak", "betik": "jeneratorler/foto/figur_kulak.py",',
             '    "plaket_kulak": {"bicim": "tekin-ortak", "betik": "jeneratorler/foto/plaket_kulak.py",',
-            {"T40", "T41", "T44", "T60", "T61", "T63", "T64", "T65", "T67", "T68", "VB3", "VB4", "T64K", "T65K",
+            {"T40", "T41", "T44", "T60", "T61", "T63", "T64", "T65", "T67", "T68", "T69", "VB3", "VB4", "T64K", "T65K",
              "RB1", "RB5", "RB2", "RB3", "RB4", "TS1", "TS2"}),
     "M48": ('"anahtarlik-boyut": "Bu fotoğraftan anahtarlık boyutunda bir parça çıkmadı;',
             '"anahtarlik-boyut": "Bu fotoğraftan parça çıkmadı;', {"T42", "T44"}, "foto-uretim-veri.js"),
