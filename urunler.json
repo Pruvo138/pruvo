@@ -1,5 +1,158 @@
 [
   {
+    "id": "ofis-kredi-karti-boyutunda-ultra-ince-telefon-standi-pr683312",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kredi Kartı Boyutunda Ultra İnce Katlanır Telefon Standı (Cüzdana Sığar)",
+    "aciklama": "Cüzdanın kart gözüne sığan, kredi kartı boyutunda ve yaklaşık 1 mm incelikte katlanır telefon standı. Menteşeli yapısı tek bütün hâlinde gelir; vida ya da ek montaj gerekmez. Açılınca telefonu yatay konumda dik tutar; uçakta, kafede ya da bekleme salonunda video izlemek için pratiktir. Dikey kullanım için yeterince yüksek değildir. Fotoğraflarda stand telefonla birlikte ve katlanmış hâlde görülür.\nYaklaşık dış ölçüler: 84,5 × 53 × 1,2 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr683312-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr683312-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr683312-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "GiskardReventlov",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ofis-evrensel-telefon-standi-28-surumlu-kilifli-kilifsiz-pr560322",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Evrensel Telefon Standı (28 Sürüm: Kılıflı ve Kılıfsız Telefona Uygun)",
+    "aciklama": "Kılıflı ya da kılıfsız telefonlar için hazırlanmış, 28 sürümlü evrensel masaüstü telefon standı ailesi. Sürümlerin yarısı kılıflı telefonlara (telefon kalınlığı en fazla 21 mm), diğer yarısı kılıfsız telefonlara (en fazla 9,8 mm) uygundur. Farklı form ve genişlikteki sürümlerle telefon dik ve dengeli durur. Görsellerde sürümlerin yan yana dizilimi ve telefonu taşıyan stand çizimleri yer alır.\nYaklaşık dış ölçüler: 104 × 71 × 54 mm (en geniş sürüm).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr560322-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr560322-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr560322-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr560322-4.jpg"
+    ]
+  },
+  {
+    "id": "ofis-anahtarlik-karabinali-katlanir-telefon-standi-pr749005",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Anahtarlık Karabinalı Katlanır Telefon Standı (11 Kalınlık Ölçüsü)",
+    "aciklama": "Anahtarlık halkasına karabinasıyla takılan taşınabilir telefon standı. İhtiyaç anında menteşeli kısım açılır ve telefon yatay konumda üzerine yaslanır; iş bitince anahtarlıkla birlikte cebe girer. Telefon ve kılıf kalınlığına göre 8 mm'den 13 mm'ye kadar 0,5 mm aralıklı 11 ölçü seçeneği bulunur; doğru ölçüyü seçmek için telefon ve kılıf kalınlığınızı ölçmeniz gerekir. Karabina kancası kararlılık için uzatılmıştır. Fotoğraflarda stand telefonla, renkli sürümleriyle ve anahtarlığa takılı hâlde görülür.\nYaklaşık dış ölçüler: 70 × 20 × 4 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr749005-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr749005-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr749005-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Infill 3D",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ofis-sade-masaustu-telefon-standi-egimli-yuvali-pr270893",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Sade Masaüstü Telefon Standı (Eğimli Yuvalı)",
+    "aciklama": "Tek parça gövdeli, sade bir masaüstü telefon standı. Açılı yuvası telefonu eğimli konumda tutar, tabanı masada sağlam durur. Çizimlerde mavi gövde iki farklı açıdan görülür.\nYaklaşık dış ölçüler: 98 × 93 × 50 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr270893-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr270893-2.jpg"
+    ]
+  },
+  {
+    "id": "ofis-katlanir-telefon-standi-tek-parca-mentese-pr772227",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Katlanır Telefon Standı (Tek Parça, Menteşeli Düz Şerit)",
+    "aciklama": "Menteşeleri gövdesiyle bir arada gelen, düz şerit hâlinde katlanan telefon standı. Açılıp katlanarak kullanılır; montaj gerektirmez. Telefonu masada eğimli konumda taşır. Fotoğraflarda bakır renkli stand telefonla ve ahşap yüzeyde, ayrıca siyah çizimi görülür.\nYaklaşık dış ölçüler: 172 × 36 × 12 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr772227-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr772227-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr772227-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr772227-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Figura3D",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ofis-kare-delikli-telefon-standi-tek-parca-pr25812",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kare Delikli Telefon Standı (Tek Parça, Sade Tasarım)",
+    "aciklama": "Yan yüzeyi kare delik desenli, tek parça gövdeli sade telefon standı. Telefon eğimli bir yüzeye yaslanarak durur. Fotoğrafta telefon, şarj kablosu bağlıyken standın üzerinde görülür; kırmızı çizimde delik deseni net seçilir.\nYaklaşık dış ölçüler: 80 × 73 × 50 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr25812-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr25812-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Impresor3d",
+      "tur": "GPL"
+    }
+  },
+  {
+    "id": "ofis-pasif-hoparlorlu-telefon-standi-uc-konili-ses-yonlendirici-pr193741",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Pasif Hoparlörlü Telefon Standı (Alt Hoparlörlü Telefonlar İçin Üç Konili Ses Yönlendirici)",
+    "aciklama": "Telefonun alt kenarındaki hoparlörden çıkan sesi üç koni aracılığıyla öne yönlendiren pasif telefon standı. Elektrik ya da pil gerektirmez; telefon dik konumda yuvaya yerleşir, alt hoparlör konilere bakar ve ses daha net ve yüksek duyulur. Telefon yuvası 78 × 12 mm'dir; telefonunuzun genişlik ve kalınlığına göre ölçüyü kontrol etmek gerekir. Üst kısımdaki küçük oluk telefonu yatay konumda dengede tutar; bu durumda ses yönlendirme olmaz. Fotoğraflarda stand telefon yerine yerleştirilmiş bir poşetle, ayrıca üç konili yapısı yakın görülür.\nYaklaşık dış ölçüler: 125 × 68 × 43 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr193741-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr193741-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "gexgecko",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ofis-katlanir-seyahat-telefon-standi-radius-edge-12-surum-pr692937",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Katlanır Seyahat Telefon Standı (Radius ve Edge, 12 Sürüm)",
+    "aciklama": "Çantaya ya da cebe sığan, hafif ve katlanır seyahat telefon standı. Radius (A–F) ve Edge (G–L) olmak üzere iki ailede 12 sürüm bulunur; kılıflı telefonlara da uygundur. Kurulu stand yaklaşık 130 mm yüksekliğinde, 65–70 mm genişliğinde ve 90 mm derinliğindedir; şarj kablosu için 4,9 mm'lik delik bırakılmıştır. Edge sürümleri daha dengelidir; parça kalınlığı 4,8 mm'dir. Fotoğraflarda mavi stand telefonla, çizimlerde ise sürümler yan yana görülür.\nYaklaşık dış ölçüler: 150 × 65 × 5 mm (düz parça).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr692937-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr692937-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr692937-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr692937-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "REDZC",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ofis-ayarlanabilir-telefon-ve-tablet-standi-uc-parcali-pr700730",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Ayarlanabilir Telefon ve Tablet Standı (Taban, Dayama Plakası ve Ayar Parçalı)",
+    "aciklama": "Telefon ve tabletler için eğimi ayarlanabilen, çok parçalı stand. Taban, dayama plakası ve küçük ayar parçasından oluşur; taban iki uzunlukta (yaklaşık 108 ve 165 mm) bulunur. Fotoğraflarda stand telefonla ahşap bir yüzeyde, çizimde ise parçalarıyla birlikte görülür.\nYaklaşık dış ölçüler: 108 × 100 × 14 mm (taban parçası).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr700730-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr700730-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Robour",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "bahce-sallayarak-calisan-sifon-baslatici-12-mm-hortum-pr833171",
     "kategori": "Bahçe",
     "marka": [],
