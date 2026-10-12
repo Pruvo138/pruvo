@@ -1439,9 +1439,14 @@ def vakalar(kosucu):
 # ANAHTARLIK FOTO KOLU (anahtarlik-foto; 10 Eki figur_kulak, TeKiN kopru kaydi): hermetik — esleme / komut / red kodu /
 # yazi kolu ayrimi kosucu fonksiyonlarindan, kopru kaydi agactaki SABIT kopyadan. T44 (V7) GERCEK figur_kulak.py'yi
 # 75 mm kup STL ile kosar (kopru 2950833 ciplak tavan 72; uretec deposu ya da trimesh yoksa OLCULEMEDI -> KIRMIZI
-# sayilir, yesil denmez). VB3/VB4 (B2) GERCEK figur_kulak.py'yi koşucunun figur_kos'u uzerinden sentetik kapsul
-# figurlerle kosar (0 kredi, yerel): 60 z-uzun -> tepe sigmaz -> sirt · 72 XY-uzun -> tepe · 72 z-uzun -> sirt;
-# kulak dahil uzun kenar = olcu ± tol ve sonuc 'elle' DEGIL.
+# sayilir, yesil denmez). VB3/VB4 (B2) GERCEK figur_kulak.py'yi sentetik kapsul figurlerle kosar (0 kredi, yerel).
+# VB3 = {60-z, 72-xy, 72-z} x {tepe, sirt} MATRISI (BaBa 12 Eki 02:4x: `--konum tepe|sirt` iki deger KALIR):
+# figur_kos konumu KENDI secer (tepe sigarsa sirt hic kosmaz), o yuzden her hucre koşucunun uretec_kos'u ile
+# zarfta konum SABIT kosar + figur_olcu_kabul. Hucre: rc 0 · kulak dahil uzun kenar = olcu ± tol · halka merkezi
+# (ozet.json kulak.merkez_mm, cikti cercevesi) govdenin Y ortasinin ARKASINDA (+Y; govde = model.3mf kose
+# noktalarindan halka cevresi haric) · ozet konum = istenen. Hukum `KONUM=arka`. Eski "60-z tepe sigmaz -> sirt"
+# beklentisi KALKTI: figur_kulak 1.1 (281fb3e) halkayi kafanin arkasina TAM GOMULU yarim hilal koyar, tepede de
+# uzun kenari buyutmez. VB4 = koşucu sonucu 'elle' DEGIL: 6 hucre + figur_kos'un kendi secimi (3 senaryo).
 YAZI_INCE_CUMLE = ("Bu yazı bu genişlikte çok ince kalıyor; genişliği büyüt (kalın düz harflerde kısa bir isim "
                    "için en az 40 mm) ya da El yazısı yazı tipini seç.")
 ANAHTARLIK_BOYUT_CUMLE = ("Bu fotoğraftan anahtarlık boyutunda bir parça çıkmadı; daha sade bir fotoğraf ya da "
@@ -1497,8 +1502,9 @@ def _kapsul_3mf(yol, r, L, eksen="z", n=24, m=8):
                    '</model>')
 
 
-# VB3 senaryolari (B2): (ad, yaricap, boy, eksen, siparis olcusu, beklenen konum).
-VB3_SENARYO = (("60-z", 10, 60, "z", 60, "sirt"), ("72-xy", 10, 72, "x", 72, "tepe"), ("72-z", 10, 72, "z", 72, "sirt"))
+# VB3 senaryolari (B2): (ad, yaricap, boy, eksen, siparis olcusu) x VB3_KONUM (figur_kulak --konum enum'u).
+VB3_SENARYO = (("60-z", 10, 60, "z", 60), ("72-xy", 10, 72, "x", 72), ("72-z", 10, 72, "z", 72))
+VB3_KONUM = ("tepe", "sirt")
 
 
 def foto_kolu_vakalari(kosucu, s):
@@ -1584,8 +1590,41 @@ def foto_kolu_vakalari(kosucu, s):
                     "fn=%s" % getattr(fn, "__name__", fn))
         vb3_iz = {}
 
+        def vb3_hucre(g, gd, olcu, ad, konum):
+            """Tek hucre: zarf konum SABIT -> koşucunun uretec_kos'u (gercek figur_kulak) -> figur_olcu_kabul + arka olcumu."""
+            i = {"tur": "anahtarlik", "siparis_no": "VB3-%s-%s" % (ad, konum), "kalem": 0, "olcu_mm": olcu,
+                 "uretec": "figur_kulak"}
+            zarf = {"sozlesme": 1, "kategori": "anahtarlik", "siparis_no": i["siparis_no"], "kalem": 0, "olcu_mm": olcu,
+                    "dosyalar": {"figur": "figur.stl"}, "parametreler": {}, "konum": konum}
+            with open(os.path.join(gd, "girdi.json"), "w", encoding="utf-8") as f:
+                json.dump(zarf, f)
+            cd = os.path.join(g, "cikti-" + konum)
+            rc, oz = m.uretec_kos(i, gd, cd, t)
+            h = {"rc": rc, "ozet": oz[:120]}
+            if rc != 0:
+                return h
+            h["kabul"] = m.figur_olcu_kabul(i, cd)
+            L = m.figur_kulak_dahil_mm(cd)
+            h["L"] = None if L is None else round(L, 3)
+            with open(cd + ".ham/ozet.json", encoding="utf-8") as f:
+                k = json.load(f).get("kulak") or {}
+            h["konum"], h["yerlesim"] = k.get("konum"), k.get("yerlesim")
+            mz = k.get("merkez_mm")
+            # govde = model.3mf kose noktalari, halka cevresi (merkezden dis yaricap + yarim kalinlik + 1 mm) HARIC
+            yari = float(k.get("dis_cap_mm") or 0) / 2 + float(k.get("kalinlik_mm") or 0) / 2 + 1.0
+            _, modeller = m._uc_mf_modeller(os.path.join(cd, "model.3mf"))
+            ys = [float(v[3]) for x in modeller.values() for v in m.UC_MF_VERTEX.findall(x)
+                  if mz is None or math.dist((float(v[1]), float(v[3]), float(v[5])), mz) > yari]
+            if mz is None or not ys:
+                h["arka_mm"] = None
+                return h
+            orta = (min(ys) + max(ys)) / 2
+            h["merkez_y"], h["govde_y"] = mz[1], [round(min(ys), 3), round(max(ys), 3)]
+            h["arka_mm"] = round(mz[1] - orta, 3)
+            return h
+
         def vb3_kos():
-            """GERCEK figur_kulak.py, koşucunun figur_kos'u ile (tepe -> sirt dususu + figur_olcu_kabul)."""
+            """GERCEK figur_kulak.py: 3 senaryo x 2 konum matrisi (hucre basina konum sabit) + figur_kos kendi secimi."""
             if vb3_iz:
                 return vb3_iz
             jen = t44_jenerator()
@@ -1595,31 +1634,44 @@ def foto_kolu_vakalari(kosucu, s):
             if not os.path.isfile(os.path.join(jen, (cli.get("figur_kulak") or {}).get("betik") or "-")):
                 vb3_iz["hata"] = "OLCULEMEDI uretec-deposu-yok %s" % jen
                 return vb3_iz
-            for ad, yr, boy, eks, olcu, _ in VB3_SENARYO:
+            for ad, yr, boy, eks, olcu in VB3_SENARYO:
                 g = tempfile.mkdtemp(prefix="vb3-", dir=d)
                 _kapsul_3mf(os.path.join(g, "onarilmis.3mf"), yr, boy, eks)
-                i = {"tur": "anahtarlik", "siparis_no": "VB3-" + ad, "kalem": 0, "olcu_mm": olcu}
-                rc, oz, model, konum = m.figur_kos(i, t, "figur_kulak", os.path.join(g, "onarilmis.3mf"), g)
-                L = m.figur_kulak_dahil_mm(os.path.dirname(model)) if rc == 0 else None
-                vb3_iz[ad] = {"rc": rc, "konum": konum, "L": None if L is None else round(L, 3), "olcu": olcu,
-                           "sebep": "" if rc == 0 else m.red_sebebi(oz), "ozet": oz[:120]}
+                gd = os.path.join(g, "matris-girdi")
+                os.makedirs(gd)
+                hata = m.figur_duzlestir(os.path.join(g, "onarilmis.3mf"), os.path.join(gd, "figur.stl"))
+                for konum in VB3_KONUM:
+                    vb3_iz["%s/%s" % (ad, konum)] = ({"rc": 2, "ozet": "duzlestir: %s" % hata} if hata else
+                                                     vb3_hucre(g, gd, olcu, ad, konum))
+                i = {"tur": "anahtarlik", "siparis_no": "VB4-" + ad, "kalem": 0, "olcu_mm": olcu}
+                rc, oz, _, konum = m.figur_kos(i, t, "figur_kulak", os.path.join(g, "onarilmis.3mf"),
+                                               os.path.join(g, "kos"))
+                vb3_iz["kos/" + ad] = {"rc": rc, "konum": konum, "ozet": oz[:120]}
             return vb3_iz
+
+        def vb3_hucre_gecer(h, olcu, konum):
+            return (h["rc"] == 0 and h.get("kabul") == "" and h.get("L") is not None and
+                    abs(h["L"] - olcu) <= olcu * m.FIGUR_OLCU_TOLERANS and h.get("konum") == konum and
+                    h.get("arka_mm") is not None and h["arka_mm"] > 0)
 
         def vb3():
             v = vb3_kos()
             if "atla" in v or "hata" in v:
                 return "atla" in v, v.get("atla") or v.get("hata")
-            ok = all(v[ad]["rc"] == 0 and v[ad]["konum"] == bek and v[ad]["L"] is not None and
-                     abs(v[ad]["L"] - olcu) <= olcu * m.FIGUR_OLCU_TOLERANS for ad, _, _, _, olcu, bek in VB3_SENARYO)
-            return ok, json.dumps({ad: v[ad] for ad, *_ in VB3_SENARYO}, sort_keys=True)
+            hucre = {"%s/%s" % (ad, kn): (olcu, kn) for ad, _, _, _, olcu in VB3_SENARYO for kn in VB3_KONUM}
+            kotu = sorted(a for a, (olcu, kn) in hucre.items() if not vb3_hucre_gecer(v[a], olcu, kn))
+            return (len(hucre) == 6 and not kotu,
+                    "KONUM=%s HUCRE=%d kotu=%s %s" % ("arka" if not kotu else "?", len(hucre), kotu,
+                                                      json.dumps({a: v[a] for a in hucre}, sort_keys=True)))
 
         def vb4():
-            # VB4: ayni uc durumda koşucu sonucu 'elle' DEGIL (rc 0 -> onarim_isle 'hazir'; rc 2 = 'elle').
+            # VB4: ayni durumda koşucu sonucu 'elle' DEGIL (rc 0 -> onarim_isle 'hazir'; rc 2 = 'elle'): 6 matris hucresi
+            # (olcu kabulu dahil) + figur_kos'un kendi konum secimi.
             v = vb3_kos()
             if "atla" in v or "hata" in v:
                 return "atla" in v, v.get("atla") or v.get("hata")
-            elle = [ad for ad, *_ in VB3_SENARYO if v[ad]["rc"] != 0]
-            return not elle, "elle=%s" % elle
+            elle = [a for a in sorted(v) if v[a]["rc"] != 0 or v[a].get("kabul")]
+            return not elle, "elle=%s kos=%s" % (elle, {ad: v["kos/" + ad]["konum"] for ad, *_ in VB3_SENARYO})
         for ad, fn in (("T40", t40), ("T41", t41), ("T42", t42), ("T43", t43), ("T44", t44), ("VB3", vb3),
                        ("VB4", vb4)):
             dene(ad, fn)
@@ -1703,9 +1755,9 @@ MUTANTLAR = {
     # >50 mm reddinde de sirt denenir (T61).
     "M63": ('    hata = figur_duzlestir(model, os.path.join(gd, "figur.stl"))\n',
             '    hata = shutil.copyfile(model, os.path.join(gd, "figur.stl")) and None\n',
-            {"T60", "T66", "VB3", "VB4", "RB2", "RB3", "RB4"}),
+            {"T60", "T66", "VB4", "RB2", "RB3", "RB4"}),  # VB3 matrisi duzlestirmeyi kendi cagirir; figur_kos yolu = VB4
     "M64": ('FIGUR_KONUM_SIRASI = ("tepe", "sirt")\n', 'FIGUR_KONUM_SIRASI = ("tepe",)\n',
-            {"T64", "T65", "T67", "T68", "VB3", "VB4", "T64K", "T65K", "TS1", "TS2"}),
+            {"T64", "T65", "T67", "T68", "T64K", "T65K", "TS1", "TS2"}),  # gomulu hilal (281fb3e): tepe her VB3 senaryosunda sigar
     # B: tepe sure asiminda sirt dususu kalkarsa is ariza kalir (TS1 KIRMIZI).
     "M-B-SURE": ('        tepe_suresi = rc == 1 and ozet == "sure-asimi" and konum != FIGUR_KONUM_SIRASI[-1]\n',
                  '        tepe_suresi = False\n', {"TS1", "TS2"}),
@@ -1742,7 +1794,7 @@ MUTANTLAR = {
             "        if not rc == 2 and not tepe_suresi:\n", {"T61"}),
     # B2: tepe olcuye sigmadiginda sirt dususu kapali -> tepe kulak dahil > olcu -> kabul reddi ('elle').
     "M-B2-SIRT": ("        if rc == 0 and konum != FIGUR_KONUM_SIRASI[-1] and not figur_tepe_sigar(i, cd):\n            continue\n",
-                  "", {"T67", "T68", "VB3", "VB4"}),
+                  "", {"T67", "T68"}),  # gercek uretecte tepe artik sigmazlik uretmez (281fb3e); dusus sahte uretecle olculur
     # B2: uretim olcum kabulu kapali -> olcuyu tutmayan model sessizce teslim (T68).
     "M-B2-KABUL": ("        if red:\n            rc, ozet = 2, red\n", "        if False:\n            rc, ozet = 2, red\n",
                    {"T68"}),
@@ -1766,7 +1818,8 @@ MUTANTLAR = {
             {"T40", "T60", "T61", "T63", "T64", "T65", "T67", "T68", "VB3", "VB4", "T64K", "T65K",
              "RB1", "RB5", "RB2", "RB3", "RB4", "TS1", "TS2"}),
     "M46": ("        komut += [pb[ad], str(u[ad])]\n", "        pass\n",
-            {"T41", "T60", "T61", "T64", "T65", "T67", "T68", "VB3", "VB4", "T64K", "T65K", "RB1", "RB5", "RB2", "RB3", "RB4", "TS1", "TS2"}),
+            {"T41", "T60", "T61", "T64", "T65", "T67", "T68", "VB3", "T64K", "T65K", "RB1", "RB5", "RB2", "RB3", "RB4", "TS1", "TS2"}),
+    # M46: --konum duserse uretec varsayilan tepe kosar -> VB3 sirt hucresinde ozet konum tutmaz; tepe sigdigindan VB4 (elle) yesil.
     "M47": ('    (r"figur uzun kenar|kulak dahil uzun kenar|kulak yerlesmez", "anahtarlik-boyut"),\n',
             "", {"T42", "T44", "T61", "T65", "T65K"}),
     # 10 Eki figur_kulak: varsayilan konum tepe; STL girdisi de kabul; eski plaket eslemesi geri gelirse KIRMIZI.
