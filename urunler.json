@@ -1,5 +1,119 @@
 [
   {
+    "id": "dekor-sade-hac-kolye-ucu-pr546668",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Sade Haç Kolye Ucu (Düz Yüzeyli, Zincir İçin Delikli)",
+    "aciklama": "Sade ve düz yüzeyli, zincire geçirilebilen haç biçimli kolye ucu. Üst ucundaki delikten ince zincir ya da ip geçirilir. Fotoğraflarda kolye ucu zincirle boyna takılı ve masa üzerinde görülür. Zincir ürüne dahil değildir.\nYaklaşık dış ölçüler: 51 × 38 × 6 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr546668-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr546668-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr546668-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Pillowheadzz",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "dekor-gecmeli-zincir-halkali-bileklik-pr1180752",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Geçmeli Zincir Halkalı Bileklik (Halkaları Kendiniz Birleştirirsiniz)",
+    "aciklama": "Tek tip halkaların birbirine geçirilmesiyle kurulan, saat kordonu görünümlü zincir bileklik. Halka başına yaklaşık 15 mm hesaplanır; çoğu bilek için 11 halka uygundur, halka sayısı bilek ölçüsüne göre artırılıp azaltılır. Kadın ve çocuklar için 13 mm'lik daha küçük halka da vardır. Halkalar döngü hâline getirilince bileklik sıkılaşır ve kendini tutar. Fotoğraflarda siyah, gri ve beyaz bileklikler stand üzerinde ve bilekte görülür.\nYaklaşık dış ölçüler: 24 × 24 × 8 mm (tek halka); küçük halka 22 × 18 × 8 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1180752-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1180752-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1180752-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1180752-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "BaGooN",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "dekor-esnek-genisleyen-bileklik-pr157279",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Esnek Genişleyen Bileklik (Dayanıklı, İçi Boş Versiyonlu)",
+    "aciklama": "Esnek yapısı sayesinde ele rahatça geçen, sonra bileğe oturan sade ve dayanıklı bileklik. Yalnızca esnek malzemeyle çıkar. Ayrıca içi boş bir versiyonu da bulunur; boşluğa simli dolgu eklenerek farklı bir görünüm elde edilir. Fotoğrafta mavi bileklik masa üzerinde, ikinci karede bilgisayar çizimi görülür.\nYaklaşık dış ölçüler: 60 × 60 × 6 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr157279-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr157279-2.jpg"
+    ],
+    "tavsiyeFilament": [
+      "TPU"
+    ],
+    "lisans": {
+      "tasarimci": "Core3D.tech",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dekor-kalp-halkali-zincir-bileklik-uc-boy-pr56287",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kalp Halkalı Zincir Bileklik (Üç Boy, Basit Kilitli)",
+    "aciklama": "Kalp biçimli halkaların birbirine geçtiği, basit kilit sistemli zincir bileklik. Üç boyu vardır: 170 mm (11 kalp), 200 mm (13 kalp) ve 230 mm (15 kalp). İki boy iç içe takılarak daha dolgun bir görünüm elde edilir, birkaç bileklik birbirine tutturulup kolye yapılabilir. Fotoğraflarda kırmızı, lila ve altın tonlu zincirler elde, bilekte ve boyunda görülür.\nYaklaşık dış ölçüler: 21 × 21 × 5 mm (tek halka).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr56287-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr56287-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr56287-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr56287-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "M4NU",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dekor-kafatasi-halkali-zincir-bileklik-pr81246",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kafatası Halkalı Zincir Bileklik (Dokuz, On ve On Bir Halkalı)",
+    "aciklama": "Kafatası biçimli halkaların birbirine geçtiği, hareketli zincir bileklik ve kolye. Dokuz, on ve on bir halkalı üç boyu ve daha büyük kilitli bir versiyonu vardır. Cadılar Bayramı ve gotik tarzı kombinleri tamamlar. Fotoğraflarda beyaz zincir elde ve bilekte, renkli zincirler yan yana görülür.\nYaklaşık dış ölçüler: 26 × 26 × 4 mm (tek kafatası halkası).",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr81246-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr81246-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr81246-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr81246-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "M4NU",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dekor-dalgali-yuzeyli-esnek-bileklik-uc-desen-pr44234",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Dalgalı Yüzeyli Esnek Bileklik (Dalga, Damla ve Tane Desenli)",
+    "aciklama": "Dalgalı yüzeyiyle ışığı yansıtan, esneyerek bileğe oturan geniş bileklik. Üç deseni vardır: dalga, damla ve tane dokulu. Ölçeklendirerek bilek ölçüsüne uyarlanır: %100'de yaklaşık 60 mm, %115'te 70 mm, %130'da 80 mm iç çaplıdır. Fotoğraflarda altın sarısı, siyah ve beyaz bileklikler elde ve bilekte görülür.\nYaklaşık dış ölçüler: 73 × 73 × 23 mm (%100 ölçek).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr44234-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr44234-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr44234-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr44234-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Cisco3D",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "dekor-kozalak-kupe-gercekci-dokulu-pr203507",
     "kategori": "Dekorasyon",
     "marka": [],
