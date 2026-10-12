@@ -1,5 +1,73 @@
 [
   {
+    "id": "masaustu-kablo-duzenleyici-3-yuvali",
+    "kategori": "Ofis",
+    "marka": [],
+    "baslik": "Masaüstü Kablo Düzenleyici (3 Yuvalı)",
+    "aciklama": "Masa kenarına, monitör arkasına ya da duvara yapıştırılan, düz tabanlı kablo düzenleyici. Üstteki üç açık klips yuvası kabloları yan yana ve ayrı ayrı tutar; kablo yuvanın ağzından bastırılarak takılır, aynı yoldan çıkarılır. Üç yuva boyu vardır.\n- Ø4 mm yuva: USB ve şarj kabloları gibi ince kablolar için; ağız genişliği 3,2 mm\n- Ø6 mm yuva: HDMI ve kalın şarj kabloları gibi orta kalınlıktaki kablolar için; ağız genişliği 4,8 mm\n- Ø10 mm yuva: güç ve ağ kabloları gibi kalın kablolar için; ağız genişliği 8 mm\n- Ağız genişliği kablo çapından dardır, kablo yuvada kendiliğinden kalır\n- 3 yuva; klips boyu 12 mm, halka et kalınlığı 2 mm, taban kalınlığı 2 mm\n- Düz taban çift taraflı bantla sabitlenir (bant dahil değildir)\nYaklaşık dış ölçüler: 33 × 12 × 6,7 mm (Ø4 mm), 39 × 12 × 8,3 mm (Ø6 mm), 51 × 12 × 11,5 mm (Ø10 mm).",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/masaustu-kablo-duzenleyici-3-yuvali-6-mm-1.jpg",
+      "https://media.pruvo3d.com/urunler/masaustu-kablo-duzenleyici-3-yuvali-4-mm-2.jpg",
+      "https://media.pruvo3d.com/urunler/masaustu-kablo-duzenleyici-3-yuvali-10-mm-3.jpg",
+      "https://media.pruvo3d.com/urunler/masaustu-kablo-duzenleyici-3-yuvali-4-mm-1.jpg",
+      "https://media.pruvo3d.com/urunler/masaustu-kablo-duzenleyici-3-yuvali-10-mm-2.jpg",
+      "https://media.pruvo3d.com/urunler/masaustu-kablo-duzenleyici-3-yuvali-6-mm-3.jpg"
+    ],
+    "tavsiyeFilament": [
+      "PLA",
+      "PETG"
+    ],
+    "boy_secenekleri": [
+      {
+        "etiket": "Ø4mm",
+        "fark_tl": 0
+      },
+      {
+        "etiket": "Ø6mm",
+        "fark_tl": 0
+      },
+      {
+        "etiket": "Ø10mm",
+        "fark_tl": 0
+      }
+    ]
+  },
+  {
+    "id": "masaustu-kalemlik-telefon-standi",
+    "kategori": "Ofis",
+    "marka": [],
+    "baslik": "Masaüstü Kalemlik ve Telefon Standı",
+    "aciklama": "Telefonu masada dik tutan yuva ile kalemleri ayakta tutan gözleri tek gövdede birleştiren, düz tabanlı masaüstü düzenleyici. Telefon öndeki yuvaya oturur ve geriye eğimli sırtlığa yaslanır; arkadaki blokta kalemler dik durur. Tek parçadır. Üç boyu vardır.\n- S: 2 kalem gözü (iç çap 10 mm); telefon yuvası iç genişliği 76 mm, kılıf dahil 10 mm kalınlığa kadar\n- M: 3 kalem gözü (iç çap 11 mm); telefon yuvası iç genişliği 84 mm, kılıf dahil 12 mm kalınlığa kadar\n- L: 4 kalem gözü (iç çap 12 mm); telefon yuvası iç genişliği 96 mm, kılıf dahil 16 mm kalınlığa kadar\n- Sırtlık yataydan 70° eğimli, yan duvarlar 20 mm yüksekliğinde\n- Yuvanın ortasında şarj kablosu için 8 mm genişliğinde kanal\n- Kalem gözü derinliği 60 mm\nYaklaşık dış ölçüler: 88 × 51 × 62 mm (S), 96 × 54 × 62 mm (M), 108 × 59 × 62 mm (L).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/masaustu-kalemlik-telefon-standi-m-1.jpg",
+      "https://media.pruvo3d.com/urunler/masaustu-kalemlik-telefon-standi-s-2.jpg",
+      "https://media.pruvo3d.com/urunler/masaustu-kalemlik-telefon-standi-l-3.jpg",
+      "https://media.pruvo3d.com/urunler/masaustu-kalemlik-telefon-standi-s-1.jpg",
+      "https://media.pruvo3d.com/urunler/masaustu-kalemlik-telefon-standi-l-2.jpg",
+      "https://media.pruvo3d.com/urunler/masaustu-kalemlik-telefon-standi-m-3.jpg"
+    ],
+    "tavsiyeFilament": [
+      "PLA",
+      "PETG"
+    ],
+    "boy_secenekleri": [
+      {
+        "etiket": "S",
+        "fark_tl": 0
+      },
+      {
+        "etiket": "M",
+        "fark_tl": 50
+      },
+      {
+        "etiket": "L",
+        "fark_tl": 100
+      }
+    ]
+  },
+  {
     "id": "ev-petek-altigen-cekmece-duzenleyici-sarj-usb-ve-corap-setleri-pr1771033",
     "kategori": "Ev",
     "marka": [],
@@ -2322,57 +2390,6 @@
     }
   },
   {
-    "id": "masaustu-kalemlik-telefon-standi-s",
-    "kategori": "Ofis",
-    "marka": [],
-    "baslik": "Masaüstü Kalemlik ve Telefon Standı (2 Kalem Ø10 mm, Telefon Kalınlığı 10 mm)",
-    "aciklama": "Telefonu masada dik tutan yuva ile kalemleri ayakta tutan gözleri tek gövdede birleştiren, düz tabanlı masaüstü düzenleyici. Telefon öndeki yuvaya oturur ve geriye eğimli sırtlığa yaslanır; arkadaki blokta kalemler dik durur. Tek parçadır.\n- Telefon yuvası iç genişliği 76 mm; kılıf dahil 10 mm kalınlığa kadar telefonlar için\n- Sırtlık yataydan 70° eğimli, yan duvarlar 20 mm yüksekliğinde\n- Yuvanın ortasında şarj kablosu için 8 mm genişliğinde kanal\n- 2 kalem gözü; göz iç çapı 10 mm, derinliği 60 mm\n- Aynı modelin 3 kalemli (12 mm telefon) ve 4 kalemli (16 mm telefon) boyları da vardır\nYaklaşık dış ölçüler: 88 × 51 × 62 mm.",
-    "fiyat": "300 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/masaustu-kalemlik-telefon-standi-s-1.jpg",
-      "https://media.pruvo3d.com/urunler/masaustu-kalemlik-telefon-standi-s-2.jpg",
-      "https://media.pruvo3d.com/urunler/masaustu-kalemlik-telefon-standi-s-3.jpg"
-    ],
-    "tavsiyeFilament": [
-      "PLA",
-      "PETG"
-    ]
-  },
-  {
-    "id": "masaustu-kalemlik-telefon-standi-m",
-    "kategori": "Ofis",
-    "marka": [],
-    "baslik": "Masaüstü Kalemlik ve Telefon Standı (3 Kalem Ø11 mm, Telefon Kalınlığı 12 mm)",
-    "aciklama": "Telefonu masada dik tutan yuva ile kalemleri ayakta tutan gözleri tek gövdede birleştiren, düz tabanlı masaüstü düzenleyici. Telefon öndeki yuvaya oturur ve geriye eğimli sırtlığa yaslanır; arkadaki blokta kalemler dik durur. Tek parçadır.\n- Telefon yuvası iç genişliği 84 mm; kılıf dahil 12 mm kalınlığa kadar telefonlar için\n- Sırtlık yataydan 70° eğimli, yan duvarlar 20 mm yüksekliğinde\n- Yuvanın ortasında şarj kablosu için 8 mm genişliğinde kanal\n- 3 kalem gözü; göz iç çapı 11 mm, derinliği 60 mm\n- Aynı modelin 2 kalemli (10 mm telefon) ve 4 kalemli (16 mm telefon) boyları da vardır\nYaklaşık dış ölçüler: 96 × 54 × 62 mm.",
-    "fiyat": "350 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/masaustu-kalemlik-telefon-standi-m-1.jpg",
-      "https://media.pruvo3d.com/urunler/masaustu-kalemlik-telefon-standi-m-2.jpg",
-      "https://media.pruvo3d.com/urunler/masaustu-kalemlik-telefon-standi-m-3.jpg"
-    ],
-    "tavsiyeFilament": [
-      "PLA",
-      "PETG"
-    ]
-  },
-  {
-    "id": "masaustu-kalemlik-telefon-standi-l",
-    "kategori": "Ofis",
-    "marka": [],
-    "baslik": "Masaüstü Kalemlik ve Telefon Standı (4 Kalem Ø12 mm, Telefon Kalınlığı 16 mm)",
-    "aciklama": "Telefonu masada dik tutan yuva ile kalemleri ayakta tutan gözleri tek gövdede birleştiren, düz tabanlı masaüstü düzenleyici. Telefon öndeki yuvaya oturur ve geriye eğimli sırtlığa yaslanır; arkadaki blokta kalemler dik durur. Tek parçadır.\n- Telefon yuvası iç genişliği 96 mm; kılıf dahil 16 mm kalınlığa kadar telefonlar için\n- Sırtlık yataydan 70° eğimli, yan duvarlar 20 mm yüksekliğinde\n- Yuvanın ortasında şarj kablosu için 8 mm genişliğinde kanal\n- 4 kalem gözü; göz iç çapı 12 mm, derinliği 60 mm\n- Aynı modelin 2 kalemli (10 mm telefon) ve 3 kalemli (12 mm telefon) boyları da vardır\nYaklaşık dış ölçüler: 108 × 59 × 62 mm.",
-    "fiyat": "400 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/masaustu-kalemlik-telefon-standi-l-1.jpg",
-      "https://media.pruvo3d.com/urunler/masaustu-kalemlik-telefon-standi-l-2.jpg",
-      "https://media.pruvo3d.com/urunler/masaustu-kalemlik-telefon-standi-l-3.jpg"
-    ],
-    "tavsiyeFilament": [
-      "PLA",
-      "PETG"
-    ]
-  },
-  {
     "id": "otomobil-koltuk-basligina-asilan-telefon-tutucusu-arka-koltuk-pr177718",
     "kategori": "Otomobil",
     "marka": [],
@@ -3470,57 +3487,6 @@
       "tasarimci": "ncsandor",
       "tur": "CC BY 4.0"
     }
-  },
-  {
-    "id": "masaustu-kablo-duzenleyici-3-yuvali-4-mm",
-    "kategori": "Ofis",
-    "marka": [],
-    "baslik": "Masaüstü Kablo Düzenleyici (3 Yuvalı, 4 mm Kablo İçin)",
-    "aciklama": "Masa kenarına, monitör arkasına ya da duvara yapıştırılan, düz tabanlı kablo düzenleyici. Üstteki üç açık klips yuvası kabloları yan yana ve ayrı ayrı tutar; kablo yuvanın ağzından bastırılarak takılır, aynı yoldan çıkarılır.\n- Yuva iç çapı 4 mm (USB ve şarj kabloları gibi ince kablolar için)\n- Ağız genişliği 3,2 mm, kablo çapından dardır\n- 3 yuva; klips boyu 12 mm, halka et kalınlığı 2 mm, taban kalınlığı 2 mm\n- Düz taban çift taraflı bantla sabitlenir (bant dahil değildir)\n- Aynı modelin 6 mm ve 10 mm yuvalı boyları da vardır\nYaklaşık dış ölçüler: 33 × 12 × 6,7 mm.",
-    "fiyat": "250 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/masaustu-kablo-duzenleyici-3-yuvali-4-mm-1.jpg",
-      "https://media.pruvo3d.com/urunler/masaustu-kablo-duzenleyici-3-yuvali-4-mm-2.jpg",
-      "https://media.pruvo3d.com/urunler/masaustu-kablo-duzenleyici-3-yuvali-4-mm-3.jpg"
-    ],
-    "tavsiyeFilament": [
-      "PLA",
-      "PETG"
-    ]
-  },
-  {
-    "id": "masaustu-kablo-duzenleyici-3-yuvali-6-mm",
-    "kategori": "Ofis",
-    "marka": [],
-    "baslik": "Masaüstü Kablo Düzenleyici (3 Yuvalı, 6 mm Kablo İçin)",
-    "aciklama": "Masa kenarına, monitör arkasına ya da duvara yapıştırılan, düz tabanlı kablo düzenleyici. Üstteki üç açık klips yuvası kabloları yan yana ve ayrı ayrı tutar; kablo yuvanın ağzından bastırılarak takılır, aynı yoldan çıkarılır.\n- Yuva iç çapı 6 mm (HDMI ve kalın şarj kabloları gibi orta kalınlıktaki kablolar için)\n- Ağız genişliği 4,8 mm, kablo çapından dardır\n- 3 yuva; klips boyu 12 mm, halka et kalınlığı 2 mm, taban kalınlığı 2 mm\n- Düz taban çift taraflı bantla sabitlenir (bant dahil değildir)\n- Aynı modelin 4 mm ve 10 mm yuvalı boyları da vardır\nYaklaşık dış ölçüler: 39 × 12 × 8,3 mm.",
-    "fiyat": "250 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/masaustu-kablo-duzenleyici-3-yuvali-6-mm-1.jpg",
-      "https://media.pruvo3d.com/urunler/masaustu-kablo-duzenleyici-3-yuvali-6-mm-2.jpg",
-      "https://media.pruvo3d.com/urunler/masaustu-kablo-duzenleyici-3-yuvali-6-mm-3.jpg"
-    ],
-    "tavsiyeFilament": [
-      "PLA",
-      "PETG"
-    ]
-  },
-  {
-    "id": "masaustu-kablo-duzenleyici-3-yuvali-10-mm",
-    "kategori": "Ofis",
-    "marka": [],
-    "baslik": "Masaüstü Kablo Düzenleyici (3 Yuvalı, 10 mm Kablo İçin)",
-    "aciklama": "Masa kenarına, monitör arkasına ya da duvara yapıştırılan, düz tabanlı kablo düzenleyici. Üstteki üç açık klips yuvası kabloları yan yana ve ayrı ayrı tutar; kablo yuvanın ağzından bastırılarak takılır, aynı yoldan çıkarılır.\n- Yuva iç çapı 10 mm (güç ve ağ kabloları gibi kalın kablolar için)\n- Ağız genişliği 8 mm, kablo çapından dardır\n- 3 yuva; klips boyu 12 mm, halka et kalınlığı 2 mm, taban kalınlığı 2 mm\n- Düz taban çift taraflı bantla sabitlenir (bant dahil değildir)\n- Aynı modelin 4 mm ve 6 mm yuvalı boyları da vardır\nYaklaşık dış ölçüler: 51 × 12 × 11,5 mm.",
-    "fiyat": "250 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/masaustu-kablo-duzenleyici-3-yuvali-10-mm-1.jpg",
-      "https://media.pruvo3d.com/urunler/masaustu-kablo-duzenleyici-3-yuvali-10-mm-2.jpg",
-      "https://media.pruvo3d.com/urunler/masaustu-kablo-duzenleyici-3-yuvali-10-mm-3.jpg"
-    ],
-    "tavsiyeFilament": [
-      "PLA",
-      "PETG"
-    ]
   },
   {
     "id": "oyun-katlanir-civili-zar-kulesi-zar-kutulu-tepsi-pr74105",
