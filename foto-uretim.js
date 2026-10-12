@@ -539,6 +539,7 @@
       kayit.renk_kaynak = S.elleRenkler && S.elleRenkler.length ? "elle" : (S.onizRenk && S.onizRenk.is === S.is ? "onizleme" : "foto");
     }
     kayit.renk_secim = S.renkSecim;
+    if (S.bolgeRenk) kayit.bolge_renk = S.bolgeRenk;
     kayit.malzeme = S.malzeme;
     if (S.aydinlatmaOnay) kayit.onay = F.onay_surum;
     try { sessionStorage.setItem(SS_IS, JSON.stringify(kayit)); }
@@ -594,7 +595,7 @@
       return !!S.tur && F.girdiYeterli(S.tur, { foto: !!S.dosya, parametreler: parametreGovde(), cesit: cesitliTur() ? seciliCesit() : undefined }) === "" &&
         uyumKontrol(S.tur, S.uretimNotu) === "uygun";
     }
-    if (S.pencere === 3) return !!S.tur && !!S.olcu && formDogrula().ok;
+    if (S.pencere === 3) return !!S.tur && !!S.olcu && formDogrula().ok && bolgeRenkHukmu() === "";
     return false;
   }
   function gezintiGuncelle() {
@@ -697,12 +698,34 @@
   function paletRenkleri(kod) {
     return renkliMi() ? paletKaynagi().slice(0, paletTavani(kod)) : [anaRenk()];
   }
-  // Bölge türünde (deterministik seçim): ana renkte TÜM bölgeler o renk; Renkli'de fotoğraf renkleri sırayla
-  // (tavan kadar). Malzeme her bölgeye aynı (yığılı gövdede karışık malzeme yok).
+  // İKİ RENK (anahtarlık–yazı, Okan 12 Eki): türün F.bolgeRenkSecimi kaydı seçili çeşide uyuyorsa ana renkte her
+  // bölgenin AYRI rengi (S.bolgeRenk; yoksa kaydın varsayılanı), değilse null (tek seçici yolu).
+  function bolgeRenkKaydi(kod) {
+    return kod && !renkliMi() ? F.bolgeRenkSecimi(kod, cesitliTur() && kod === S.tur ? seciliCesit() : undefined) : null;
+  }
+  function bolgeRenkleri(k) {
+    var c = {};
+    for (var i = 0; i < k.bolgeler.length; i++) {
+      var b = k.bolgeler[i], r = S.bolgeRenk && S.bolgeRenk[b];
+      c[b] = F.ANA_RENKLER.indexOf(r) >= 0 ? r : k.varsayilan[b];
+    }
+    return c;
+  }
+  // ③ bölge renk hükmü: kayıt yoksa "" (tek seçici); varsa F.bolgeRenkHukmu ("kontrast" -> ③ uyarısı + ileri pasif).
+  function bolgeRenkHukmu() {
+    var k = bolgeRenkKaydi(S.tur);
+    return k ? F.bolgeRenkHukmu(S.tur, bolgeRenkleri(k), cesitliTur() ? seciliCesit() : undefined) : "";
+  }
+  // Bölge türünde (deterministik seçim): ana renkte TÜM bölgeler o renk (iki renk kaydında her bölge kendi seçimi);
+  // Renkli'de fotoğraf renkleri sırayla (tavan kadar). Malzeme her bölgeye aynı (yığılı gövdede karışık malzeme yok).
   function secimiEsle(t) {
     if (!S.secim) return;
     var bolgeler = t.renk_bolgeleri || [], fr = renkliMi() ? paletRenkleri(t.kod) : [anaRenk()];
-    for (var i = 0; i < bolgeler.length; i++) S.secim[bolgeler[i].kod + "_renk"] = fr[i % fr.length];
+    var bk = bolgeRenkKaydi(t.kod), br = bk ? bolgeRenkleri(bk) : null;
+    for (var i = 0; i < bolgeler.length; i++) {
+      var bkod = bolgeler[i].kod;
+      S.secim[bkod + "_renk"] = br && Object.prototype.hasOwnProperty.call(br, bkod) ? br[bkod] : fr[i % fr.length];
+    }
     for (var m in (t.malzemeler || {})) {
       if (Object.prototype.hasOwnProperty.call(t.malzemeler, m)) S.secim[m + "_malzeme"] = seciliMalzeme();
     }
@@ -734,7 +757,46 @@
     if (ck && ck.alan_aciklamalari && typeof ck.alan_aciklamalari[alan] === "string") m = ck.alan_aciklamalari[alan];
     return typeof m === "string" ? m : "";
   }
+  // İKİ RENK seçici (anahtarlık–yazı): kayıttaki her bölgeye bir fieldset (etiket kayıttan), seçenekler ANA_RENKLER;
+  // ③ yardım cümlesi alan_aciklamalari.renk; çift eşiğin altındaysa `kontrast` metni (F.uretecRedMetni, ④ ile AYNI) burada.
+  function bolgeRenkSecici(nt, k, degisti) {
+    var g = el("div", "foto-uretim-form-grup"), sec = bolgeRenkleri(k);
+    S.bolgeRenk = sec;
+    for (var i = 0; i < k.bolgeler.length; i++) {
+      (function (b) {
+        var fs_ = el("fieldset", "foto-uretim-renk-secim");
+        fs_.setAttribute("data-bolge", b);
+        fs_.appendChild(el("legend", "foto-uretim-form-etiket", (k.etiketler && k.etiketler[b]) || b));
+        for (var j = 0; j < F.ANA_RENKLER.length; j++) {
+          (function (renk) {
+            var lbl = el("label", "foto-uretim-form-secenek-inline");
+            var inp = el("input");
+            inp.type = "radio"; inp.name = "foto-renk-" + b; inp.value = renk;
+            inp.checked = sec[b] === renk;
+            inp.addEventListener("change", function (e) {
+              if (!e.target.checked) return;
+              S.bolgeRenk[b] = renk;
+              degisti();
+            });
+            ek(lbl, inp, " " + renk);
+            fs_.appendChild(lbl);
+          })(F.ANA_RENKLER[j]);
+        }
+        g.appendChild(fs_);
+      })(k.bolgeler[i]);
+    }
+    var renkAcik = alanAciklamasi(nt.kod, "renk");
+    if (renkAcik) g.appendChild(el("p", "foto-uretim-ayrinti", renkAcik));
+    if (F.bolgeRenkHukmu(nt.kod, sec, cesitliTur() ? seciliCesit() : undefined) === "kontrast") {
+      var u = el("p", "foto-uretim-yukle-hata", F.uretecRedMetni("uretec-red:kontrast"));
+      u.id = "foto-renk-kontrast"; u.setAttribute("role", "alert"); u.style.color = "#b3262e";
+      g.appendChild(u);
+    }
+    return g;
+  }
   function renkSecici(nt, degisti) {
+    var bk = bolgeRenkKaydi(nt.kod);
+    if (bk && !renkliSunulur(nt.kod)) return bolgeRenkSecici(nt, bk, degisti);
     var secenek = F.ANA_RENKLER.slice();
     if (renkliSunulur(nt.kod)) secenek.push(RENKLI);
     if (secenek.indexOf(S.renkSecim) < 0) S.renkSecim = F.VARSAYILAN_RENK;
@@ -2074,7 +2136,7 @@
     // ① fotoğraf · yazı · onay · doğrulama · günlük hak · program — s1Sebep TEK kaynak (cümle ile kapı aynı).
     var sebep = s1Sebep();
     var tam = uyumOK && !sebep && !!S.tur && !!S.olcu && (!lit || !!null) &&
-      formDogrula().ok;
+      formDogrula().ok && bolgeRenkHukmu() === "";
     btn.disabled = !tam;
     if (S.alanSebep) {
       S.alanSebep.textContent = tam ? "" : sebep;
@@ -2531,6 +2593,7 @@
         if (typeof kayit.cesit === "string") S.cesit = kayit.cesit;
         if (Array.isArray(kayit.renkler)) S.renkler = kayit.renkler;
         if (typeof kayit.renk_secim === "string") S.renkSecim = kayit.renk_secim;
+        if (kayit.bolge_renk && typeof kayit.bolge_renk === "object") S.bolgeRenk = kayit.bolge_renk;
         if (F.malzemeBul(kayit.malzeme)) S.malzeme = kayit.malzeme;
         // Renkli önizleme yeniden yüklemede fotoğrafsız döner: fotoğraftan çıkmış renkler kayıttan gelir.
         if (kayit.renk_secim === RENKLI && Array.isArray(kayit.renkler)) {
@@ -2751,6 +2814,9 @@
     S.fiyatKurus = null;
     var fd = formDogrula();
     if (!fd.ok) { adimKoy("S1", PARAMETRE_HATA[fd.hata] || "Form alanlarını kontrol et.", true); return; }
+    // İKİ RENK: aynı/yakın çift (③ uyarısı) üretece GİTMEZ — üreteç zaten kontrast RET'i verirdi.
+    var brh = bolgeRenkHukmu();
+    if (brh) { adimKoy("S1", F.uretecRedMetni("uretec-red:" + brh), true); return; }
     // Jeton S2'ye geçmeden alınır: adimKoy("S2") doğrulama kutusunu (ve jetonu) temizler.
     var jeton = S.captchaToken1;
     var gonder = function (dataUrl, svgMetin) {
