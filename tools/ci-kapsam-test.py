@@ -3059,6 +3059,21 @@ IZIN_LISTESI = {
         "MUTANT=8/8` (kredi kolu `VAKA=8/8 MUTANT=3/3`); ag YOK (127.0.0.1 fikstur), gercek anahtar OKUNMAZ. MUAFIYETIN "
         "OLUM SARTI: `~/.claude/cron` depoya/CI'ya tasinirsa bu satir SILINIR."
     ),
+    # 12 EKI 2026 — GH TAVANI + SPEC-YOKLAMA KAPISI (BaBa 15:4x sinif kapisi)
+    "tools/isci-gh-tavan-test.py": (
+        "OLCTUGU GOVDE CI KOSUCUSUNDA YOK: `~/.claude/cron/isci.sh`'in GH-TAVAN-"
+        "SHIM (kosum basina `gh` cagri tavani, varsayilan 20, asimda gercek gh "
+        "CAGRILMAZ + HAL=GH-TAVAN) ve SPEC-YOKLAMA-KAPISI (`gh run watch` / "
+        "sleep+gh / dongu+gh -> HAL=SPEC-YOKLAMA-RED rc=2) kollarini olcer; o hat "
+        "Okan'in MAKINESINDEDIR, depoya girmez, CI klonunda dizin dahi yoktur. "
+        "CI'ya baglansaydi ya SAHTE YESIL ya da tum yayini durduran yanlis-pozitif "
+        "kirmizi olurdu (motor-yok-kapisi-test emsali). Betik bu hali KENDISI "
+        "olcer: hat yoksa `ONKOSUL_YOK` + `VAKA=OLCULEMEDI`, rc=3. HUKMU ELLE "
+        "OKUNUR: yerelde `python3 tools/isci-gh-tavan-test.py` -> `GH-TAVAN "
+        "VAKA=6/6 MUTANT=2/2`; gercek gh YOK (sahte ikili fiksturu), gercek "
+        "jeton alt surece GECMEZ. MUAFIYETIN OLUM SARTI: `~/.claude/cron` "
+        "depoya/CI'ya tasinirsa bu satir SILINIR."
+    ),
     # ═══════════════════════════════════════════════════════════════════════
     # CLAUDE.md ZORUNLU KAPI KURTARMASI — CI'DA KOSTURULAMAYAN 2 KALEM
     # (cip KraL-SupurmeKurtarma-30Agu; Okan 30 Agu hukmu)
