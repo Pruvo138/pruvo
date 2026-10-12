@@ -4392,7 +4392,10 @@ def _main_ast_return1_var():
 # — tam da bu sabitin kapattigi olu-kapsam pay sinifi.
 # 🔴 9 Eki 2026 (sinif-r-k80): 233 -> 236. K80 B1-B3 (yeni ref tabani merge-base, uzak suzgeci,
 # eski-taban mutanti) ayni commit'te sayildi.
-KENDINI_TEST_TABAN = 236
+# 🔴 12 Eki 2026 (k80-satir): 236 -> 240. K80 L1-L4 (degisen govdede tabandan AYNEN gelen
+# satir kosulmaz · metni degisen satir kosar · asilan yeni satir OLCULEMEDI · atlama-kapali
+# mutanti) ayni commit'te sayildi.
+KENDINI_TEST_TABAN = 240
 
 
 KENDINI_TEST_TABAN_TANI = (
@@ -5846,7 +5849,7 @@ def _k80_ebeveyn(commit):
     return satir[1] if len(satir) > 1 else K80_BOS_AGAC
 
 
-def _k80_workflow_metinleri(sha, bos_serbest=False):
+def _k80_workflow_metinleri(sha, bos_serbest=False, kok=ROOT):
     """Committeki workflow bloblarini oku; calisma agacina dusme YOK.
 
     `bos_serbest=True` YALNIZ "bos kume GERCEK bir olcumdur" diyen cagri yerinde
@@ -5854,12 +5857,12 @@ def _k80_workflow_metinleri(sha, bos_serbest=False):
     sha zaten `_k80_git` icinde rc!=0 ile `Olculemedi`ye duser; yani bu bayrak
     "olcemedim"i degil, YALNIZCA "olctum, sifir" halini serbest birakir.
     """
-    adlar = _k80_git(["ls-tree", "-r", "--name-only", sha, ".github/workflows"])
+    adlar = _k80_git(["ls-tree", "-r", "--name-only", sha, ".github/workflows"], kok=kok)
     sonuc = {}
     for yol in adlar.splitlines():
         if not re.search(r"\.ya?ml$", yol):
             continue
-        sonuc[os.path.basename(yol)] = _k80_git(["show", "%s:%s" % (sha, yol)])
+        sonuc[os.path.basename(yol)] = _k80_git(["show", "%s:%s" % (sha, yol)], kok=kok)
     if not sonuc and not bos_serbest:
         raise Olculemedi("%s commitinde workflow YOK" % sha)
     return sonuc
@@ -5873,7 +5876,7 @@ def _k80_tasinan_mi(anahtar, once):
 
 
 def _k80_yeni_komutlar(base, hedef, tespit_acik=True, tasinan_defteri=None,
-                       yorum_ayrimi=True):
+                       yorum_ayrimi=True, taban_satirlari=None, kok=ROOT):
     """GERCEKTEN yeni komutlar. Taşınanlar AYRI defterde raporlanir, push'u bloklamaz.
 
     🔴 NEDEN TASIMA MUAFIYETI VAR (15 Agu 2026, KraL hukmu — olculdu, gevsetme DEGIL):
@@ -5893,13 +5896,19 @@ def _k80_yeni_komutlar(base, hedef, tespit_acik=True, tasinan_defteri=None,
     Kabul edilen sinir (bilerek, yazili): tasinan adim yeni isinde kurulum eksikliginden
     kirilirsa kapi bunu YAKALAMAZ; gercek kosumda kirmizi yanar, mail uretir ve nobet
     onarir — ve tasima yalnizca HIJYEN isine yapildigi icin yayini durdurmaz.
+
+    `taban_satirlari` (dict) verilirse AYNI `once` envanterinden `_k80_taban_satirlari`
+    ile doldurulur — kosturucunun satir atlamasi bu TEK taban okumasina dayanir
+    (ikinci workflow okumasi YOK; gerekce `_k80_commit_agacinda_kos`ta).
     """
     # TABAN tarafinda bos kume MESRUDUR: kok commit (bos agac tabani) ya da workflow
     # dosyasinin hic bulunmadigi erken gecmis. HEDEF tarafi fail-closed KALIR.
-    once = _k80_komut_envreni(_k80_workflow_metinleri(base, bos_serbest=True),
+    once = _k80_komut_envreni(_k80_workflow_metinleri(base, bos_serbest=True, kok=kok),
                               tespit_acik=tespit_acik, yorum_ayrimi=yorum_ayrimi)
-    sonra = _k80_komut_envreni(_k80_workflow_metinleri(hedef), tespit_acik=tespit_acik,
-                               yorum_ayrimi=yorum_ayrimi)
+    sonra = _k80_komut_envreni(_k80_workflow_metinleri(hedef, kok=kok),
+                               tespit_acik=tespit_acik, yorum_ayrimi=yorum_ayrimi)
+    if taban_satirlari is not None:
+        taban_satirlari.update(_k80_taban_satirlari(once))
     gercek = []
     for anahtar in (sonra - once).elements():
         if _k80_tasinan_mi(anahtar, once):
@@ -6022,10 +6031,52 @@ def _k80_satirlar(run, yorum_ayrimi=True):
     return satirlar
 
 
-def _k80_commit_agacinda_kos(hedef, yeni):
-    """Yeni komutlari hedef commitin ayri, gecici worktree'sinde kos; ureten temizler."""
+def _k80_satir_kimligi(argv):
+    """Tek bir argv satirinin kimligi — `_k80_komut_kimligi`nin satir basina urettigi
+    bicimin AYNISI (shlex.quote ile birlestirilmis argv); ikiz bicim YOK."""
+    return " ".join(shlex.quote(jeton) for jeton in argv)
+
+
+def _k80_taban_satirlari(once):
+    """TABAN envanterinden {(dosya, job): {satir kimligi}} — yalniz KOSTURULABILIR govdeler.
+
+    Govdesi `_k80_satirlar` ile argv'ye CEVRILEMEYEN taban adimi (kabuk metakarakteri,
+    harici arac, ham-metin kimligi) kumeye HIC girmez: olcemedigimiz taban satiri
+    "zaten olculmus" sayilmaz, hedefteki karsiligi KOSAR (fail-closed)."""
+    sonuc = {}
+    for dosya, job, komut in once:
+        try:
+            argvler = _k80_satirlar(komut)
+        except Olculemedi:
+            continue
+        sonuc.setdefault((dosya, job), set()).update(_k80_satir_kimligi(a) for a in argvler)
+    return sonuc
+
+
+def _k80_commit_agacinda_kos(hedef, yeni, taban_satirlari=None, kok=ROOT, zaman_asimi=300):
+    """Yeni komutlari hedef commitin ayri, gecici worktree'sinde kos; ureten temizler.
+
+    Doner: (bulgular, kosulan, tasinan_satir).
+
+    🔴 SATIR DUZEYINDE TASINDI (12 Eki 2026, OLCULDU — `e60b4ddd..03154fe0`): serit-a3
+    foto adiminin `run: |` govdesine YALNIZ 1 satir eklendi (1,6 sn'lik bir test). Kimlik
+    GOVDE oldugu icin adim komple YENI sayildi ve 15 argv'nin HEPSI kosturuldu; tabanda
+    zaten kosan iki agir betik (421-503 sn ve 307 sn) 300 sn tavanini asti, push UC KEZ
+    OLCULEMEDI ile durdu. Tutarsizlik: govde HIC degismeseydi o iki betik HIC kosmazdi.
+    `_k80_yeni_komutlar`daki TASINDI doktrini (ayni dosyada metni degismemis komut bir kez
+    olculmus sayilir) burada SATIRA indirildi: yeni govdenin bir argv satiri, AYNI dosya +
+    AYNI job'un TABAN govdelerinde (`taban_satirlari`, `_k80_yeni_komutlar`in okudugu
+    tabanin KENDISI) birebir varsa KOSULMAZ, `tasinan_satir` sayacina yazilir.
+    Kabul edilen sinir (bilerek, yazili): betigin ICERIGI degismis ama cagri satiri
+    ayniysa o satir kosulmaz — govde hic degismediginde bugun zaten gecerli olan
+    davranisin AYNISI (icerik degisimi betigin kendi CI adiminda olculur).
+    FAIL-CLOSED: `taban_satirlari` None/bos ise hicbir satir atlanmaz; govde
+    ayristirilamazsa eski OLCULEMEDI kolu; yeni satir asilirsa zaman asimi OLCULEMEDI.
+    """
     if not yeni:
-        return [], 0
+        return [], 0, 0
+    taban_satirlari = taban_satirlari or {}
+    tasinan_satir = 0
     # Damgali onek + sinyal temizligi: bu kapi pre-push kancasindan kosar ve kullanici
     # Ctrl-C ile push'u kesebilir; `finally` SIGKILL'de hic kosmaz. Damga sayesinde
     # boyle bir artik `tools/gecici-worktree-nobeti.py` tarafindan SIZINTI olarak
@@ -6035,7 +6086,7 @@ def _k80_commit_agacinda_kos(hedef, yeni):
     bulgular = []
     kosulan = 0
     try:
-        r = gecici_worktree.kaydet(ROOT, gecici, "--detach", "--quiet",
+        r = gecici_worktree.kaydet(kok, gecici, "--detach", "--quiet",
                                    commitish=hedef, zaman_asimi=60)
         if r.returncode != 0:
             raise Olculemedi("gecici commit agaci acilamadi: %s" % r.stderr.strip())
@@ -6050,7 +6101,11 @@ def _k80_commit_agacinda_kos(hedef, yeni):
             except Olculemedi as hata:
                 bulgular.append("YENI CI ADIMI OLCULEMEDI: %s -> %s" % (etiket, hata))
                 continue
+            tabandaki = taban_satirlari.get((dosya, job), ())
             for argv in argvler:
+                if _k80_satir_kimligi(argv) in tabandaki:
+                    tasinan_satir += 1
+                    continue
                 # 🔴 IKIZ TANIM KAPATILDI (15 Agu 2026): uzanti kumesi burada AYRI yaziliydi
                 # (`.py`, `.js`) ve `_k80_satirlar`daki kume genisletilince sessizce ayristi —
                 # `.mjs` adim ayristiriciyi GECIP kosturucuda IndexError ile cakildi
@@ -6063,10 +6118,10 @@ def _k80_commit_agacinda_kos(hedef, yeni):
                 kosulan += 1
                 try:
                     sonuc = subprocess.run(argv, cwd=gecici, env=env, capture_output=True,
-                                            text=True, timeout=300)
+                                            text=True, timeout=zaman_asimi)
                 except subprocess.TimeoutExpired:
-                    bulgular.append("YENI CI ADIMI OLCULEMEDI: %s -> 300 s zaman asimi"
-                                    % etiket)
+                    bulgular.append("YENI CI ADIMI OLCULEMEDI: %s -> %d s zaman asimi"
+                                    % (etiket, zaman_asimi))
                     continue
                 if sonuc.returncode != 0:
                     kuyruk = ((sonuc.stdout or "") + "\n" + (sonuc.stderr or "")).strip()[-800:]
@@ -6074,9 +6129,9 @@ def _k80_commit_agacinda_kos(hedef, yeni):
                                     % (etiket, sonuc.returncode, kuyruk))
     finally:
         if eklendi:
-            gecici_worktree.kaldir(ROOT, gecici, zaman_asimi=60)
+            gecici_worktree.kaldir(kok, gecici, zaman_asimi=60)
         shutil.rmtree(gecici, ignore_errors=True)
-    return bulgular, kosulan
+    return bulgular, kosulan, tasinan_satir
 
 
 def _k80_uzakta_erisilebilir(sha):
@@ -6183,6 +6238,70 @@ def _k80_taban_vakalari(mutant=False):
     return hatalar
 
 
+def _k80_satir_vakalari(mutant=False):
+    """L1 tabandaki satirlar (agir B dahil) KOSULMAZ, yalniz yeni C kosar · L2 metni degisen
+    B' KOSAR · L3 asilan yeni satir OLCULEMEDI. mutant=True: satir atlama KAPALI (taban
+    kumesi verilmez) -> agir B kosar, zaman asimina duser -> L1 KIRMIZI olmali.
+    Sentetik depo; GIT_* mirasi sokulur (gerekce `_k80_taban_vakalari`), GERCEK depoya yazmaz."""
+    d = tempfile.mkdtemp(prefix="k80-satir-")
+    hatalar = []
+    eski_git = {k: os.environ.pop(k) for k in list(os.environ) if k.startswith("GIT_")}
+    try:
+        from git_ortami import sentetik_git
+        g = lambda *a: sentetik_git(d, *a, capture_output=True, text=True,  # noqa: E731
+                                    timeout=30, check=True).stdout.strip()
+        g("init", "-q")
+        if os.path.realpath(g("rev-parse", "--absolute-git-dir")) != os.path.realpath(os.path.join(d, ".git")):
+            raise OSError("gecici depo koku gecici dizin DEGIL (GIT_* mirasi?)")
+        os.makedirs(os.path.join(d, "tools"))
+        os.makedirs(os.path.join(d, ".github", "workflows"))
+        for ad, govde in (("a-test.py", "pass\n"), ("c-test.py", "pass\n"),
+                          ("b-test.py", "import sys, time\n"
+                                        "time.sleep(0 if '--hizli' in sys.argv else 999)\n"),
+                          ("c-asili-test.py", "import time\ntime.sleep(999)\n")):
+            with open(os.path.join(d, "tools", ad), "w", encoding="utf-8") as f:
+                f.write(govde)
+
+        def commitle(satirlar):
+            with open(os.path.join(d, ".github", "workflows", "x.yml"), "w", encoding="utf-8") as f:
+                f.write("name: x\non: [push]\njobs:\n  t:\n    runs-on: ubuntu-latest\n"
+                        "    steps:\n      - run: |\n"
+                        + "".join("          %s\n" % x for x in satirlar))
+            g("add", "-A")
+            g("commit", "-q", "-m", "x")
+            return g("rev-parse", "HEAD")
+
+        A, B, C = "python3 tools/a-test.py", "python3 tools/b-test.py", "python3 tools/c-test.py"
+        taban = commitle([A, B])
+        vakalar = (("L1", [A, B, C]), ("L2", [A, B + " --hizli"]),
+                   ("L3", [A, B, "python3 tools/c-asili-test.py"]))
+        for etiket, satirlar in (vakalar[:1] if mutant else vakalar):
+            hedef = commitle(satirlar)
+            ts = {}
+            yeni = _k80_yeni_komutlar(taban, hedef, taban_satirlari=ts, kok=d)
+            h, kosulan, atlanan = _k80_commit_agacinda_kos(
+                hedef, yeni, taban_satirlari=None if mutant else ts, kok=d, zaman_asimi=3)
+            if etiket == "L1" and (h or kosulan != 1 or atlanan != 2):
+                hatalar.append("K80-L1: tabandaki satirlar yeniden KOSULDU (kosulan=%d atlanan=%d "
+                               "bulgu=%r)" % (kosulan, atlanan, [x[-60:] for x in h]))
+            if etiket == "L2" and (h or kosulan != 1 or atlanan != 1):
+                hatalar.append("K80-L2: metni degisen satir KOSULMADI (kosulan=%d atlanan=%d "
+                               "bulgu=%r)" % (kosulan, atlanan, [x[-60:] for x in h]))
+            if etiket == "L3" and (kosulan != 1 or len(h) != 1
+                                   or "OLCULEMEDI" not in h[0] or "zaman asimi" not in h[0]):
+                hatalar.append("K80-L3: asilan yeni satir OLCULEMEDI vermedi (kosulan=%d bulgu=%r)"
+                               % (kosulan, [x[-60:] for x in h]))
+    except (subprocess.SubprocessError, OSError, Olculemedi) as e:
+        hatalar.append("K80-L0: satir vaka deposu OLCULEMEDI (%s)" % e)
+    finally:
+        # `worktree prune` YOK (12 Eki): GIT_* geri yuklendikten sonra kosan bir git
+        # komutu kancada GIT_DIR=GERCEK depoya gider. Gecici worktree `_k80_commit_agacinda_kos`
+        # finally'sinde (GIT_* sokukken) kaldiriliyor; kaydi d/.git icinde, d ile silinir.
+        os.environ.update(eski_git)
+        shutil.rmtree(d, ignore_errors=True)
+    return hatalar
+
+
 def _k80_araliklar(args):
     if args.base or args.hedef:
         if not (args.base and args.hedef):
@@ -6254,6 +6373,7 @@ def yeni_ci_adimi_kontrol(args, tespit_acik=True, yorum_ayrimi=True):
         return [], 0, 0
     bulgular, yeni_sayisi, kosulan = [], 0, 0
     tasinan = []                      # (dosya, job, komut) — GORUNUR kalir, bloklamaz
+    tasinan_satir = 0                 # yeni govdede tabandan AYNEN gelen, kosulmayan satir
     for base, hedef, yalniz_yerel in _k80_araliklar(args):
         if subprocess.run(["git", "-C", ROOT, "merge-base", "--is-ancestor", base, hedef],
                           capture_output=True, timeout=30).returncode != 0:
@@ -6268,9 +6388,11 @@ def yeni_ci_adimi_kontrol(args, tespit_acik=True, yorum_ayrimi=True):
             if not hedef_wf:
                 continue
             ebeveyn = _k80_ebeveyn(commit)
+            taban_satirlari = {}
             yeni = _k80_yeni_komutlar(ebeveyn, commit, tespit_acik=tespit_acik,
                                       tasinan_defteri=tasinan,
-                                      yorum_ayrimi=yorum_ayrimi)
+                                      yorum_ayrimi=yorum_ayrimi,
+                                      taban_satirlari=taban_satirlari)
             # ZINCIR DISI (hijyen) ise eklenen yeni adim: RAPORLANIR, BLOKLAMAZ.
             bloklayici_harita = _k80_bloklayici_isler(hedef_wf)
             zincir_disi = [a for a in yeni
@@ -6282,14 +6404,18 @@ def yeni_ci_adimi_kontrol(args, tespit_acik=True, yorum_ayrimi=True):
                       % (len(zincir_disi),
                          " · ".join("%s::%s" % (j, k[:60]) for _d, j, k in zincir_disi[:3])))
             yeni_sayisi += len(yeni)
-            h, k = _k80_commit_agacinda_kos(commit, yeni)
+            h, k, t = _k80_commit_agacinda_kos(commit, yeni, taban_satirlari=taban_satirlari)
             bulgular.extend("commit %s: %s" % (commit[:12], x) for x in h)
             kosulan += k
+            tasinan_satir += t
     # 🔴 TASIMA SESSIZ KALMAZ: muafiyet KAYITTIR, gorunmezlik degil ([[beyan-edilmis-survivor]]).
     if tasinan:
         print("K80 TASINDI=%d (ayni dosyada zaten var olan komut baska ise tasindi; "
               "yeniden kosturulmadi) ornek: %s"
               % (len(tasinan), " · ".join("%s::%s" % (j, k[:60]) for _d, j, k in tasinan[:3])))
+    if tasinan_satir:
+        print("K80 TASINAN_SATIR=%d (yeni govdede ayni dosya+job tabaninda AYNEN var olan "
+              "satir; yeniden kosturulmadi)" % tasinan_satir)
     return bulgular, yeni_sayisi, kosulan
 
 
@@ -6456,7 +6582,13 @@ def _k80_kendini_test(tespit_acik=True):
     hatalar.extend(_k80_taban_vakalari())
     if not any(h.startswith("K80-B1") for h in _k80_taban_vakalari(mutant=True)):
         hatalar.append("K80-B3: mutant taban=yerel^ (uzak suzgeci yok) B1'i KIRMIZI yakmadi")
-    return hatalar, 20   # +5: S4a-S4e (KOK COMMIT tabani, 10 Eyl 2026) · +3: B1-B3 (9 Eki 2026)
+    # L1-L4 (12 Eki 2026, k80-satir): degisen govdenin DEGISMEYEN satirlari yeniden kosmaz.
+    # Gercek komut icrasi (+2 zaman asimi) yalniz tespit kolu acikken; T1-T3 deseni.
+    if tespit_acik:
+        hatalar.extend(_k80_satir_vakalari())
+        if not any(h.startswith("K80-L1") for h in _k80_satir_vakalari(mutant=True)):
+            hatalar.append("K80-L4: mutant satir atlama KAPALI L1'i KIRMIZI yakmadi")
+    return hatalar, 24   # +5: S4a-S4e (10 Eyl) · +3: B1-B3 (9 Eki) · +4: L1-L4 (12 Eki)
 
 
 def _k80_mutasyon_kontrol():

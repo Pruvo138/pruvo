@@ -152,7 +152,8 @@ def _ithal(kok):
 
 
 def olc(hijyen_a, serit_a, hijyen_b, serit_b, yorum_ayrimi=True):
-    """Iki commit uret, K80 hukmunu KOSTUR. -> (zincir_disi, bloklayici_yeni, kosulan)."""
+    """Iki commit uret, K80 hukmunu KOSTUR.
+    -> (zincir_disi, bloklayici_yeni, kosulan, bulgular, tasinan_satir)."""
     kok = tempfile.mkdtemp(prefix="pruvo-k286-")
     try:
         _kur(kok)
@@ -172,11 +173,13 @@ def olc(hijyen_a, serit_a, hijyen_b, serit_b, yorum_ayrimi=True):
         with contextlib.redirect_stdout(tampon):
             bulgular, yeni, kosulan = mod.yeni_ci_adimi_kontrol(
                 args, yorum_ayrimi=yorum_ayrimi)
-        zincir_disi = 0
+        zincir_disi = tasinan_satir = 0
         for satir in tampon.getvalue().splitlines():
             if satir.startswith("K80 ZINCIR_DISI="):
                 zincir_disi = int(satir.split("=", 1)[1].split(" ", 1)[0])
-        return zincir_disi, yeni, kosulan, bulgular
+            if satir.startswith("K80 TASINAN_SATIR="):
+                tasinan_satir = int(satir.split("=", 1)[1].split(" ", 1)[0])
+        return zincir_disi, yeni, kosulan, bulgular, tasinan_satir
     finally:
         shutil.rmtree(kok, ignore_errors=True)
 
@@ -289,26 +292,29 @@ def main():
     print("-" * 74)
 
     # ── V2 ONCE: TABAN. Pozitif kontrol dusmusse V1'in yesili ANLAMSIZDIR. ──────
-    zd_p, blok_p, kosulan_p, _ = olc(HIJYEN_A, SERIT_A, HIJYEN_YENI, SERIT_YENI)
+    zd_p, blok_p, kosulan_p, _, tasinan_p = olc(HIJYEN_A, SERIT_A, HIJYEN_YENI, SERIT_YENI)
     vaka += 1
-    # 🔴 KOSULAN=2 BEKLENIR, 1 DEGIL — sayinin ne SAYDIGI onemli. Kapinin "yeni adim"
-    # birimi TEK BIR `run` GOVDESIDIR; kosturucu ise o govdenin HER kosulabilir SATIRINI
-    # ayri ayri kosar. `serit` adiminin govdesi V2'de iki satirdir (`serit-test.py` +
-    # yeni eklenen `serit-eklenen.py`), dolayisiyla BIR yeni adim IKI kosum uretir.
-    # Bu sayiyi 1'e cekmek kosturucunun gercek davranisini gizlerdi.
+    # 🔴 KOSULAN=1 + TASINAN_SATIR=1 BEKLENIR — sayinin ne SAYDIGI onemli. Kapinin "yeni
+    # adim" birimi TEK BIR `run` GOVDESIDIR; kosturucu o govdenin kosulabilir SATIRLARINI
+    # ayri ayri ele alir. `serit` govdesi V2'de iki satirdir (`serit-test.py` + yeni
+    # `serit-eklenen.py`). 12 Eki 2026'dan beri (k80-satir) AYNI dosya+job tabaninda
+    # AYNEN var olan satir yeniden KOSULMAZ, `TASINAN_SATIR`a yazilir: BIR yeni adim =
+    # 1 kosum (yalniz eklenen satir) + 1 tasinan satir. Iki sayi BIRLIKTE olculur ki
+    # "hic kosmadi" ile "tabandakini atladi" ayirt edilsin.
     print("V2 YANLIS-NEGATIF NOBETI (gercekten yeni adim) : "
-          "ZINCIR_DISI=%d BLOKLAYICI_YENI=%d KOSULAN=%d  (beklenen 1/1/2)"
-          % (zd_p, blok_p, kosulan_p))
+          "ZINCIR_DISI=%d BLOKLAYICI_YENI=%d KOSULAN=%d TASINAN_SATIR=%d  (beklenen 1/1/1/1)"
+          % (zd_p, blok_p, kosulan_p, tasinan_p))
     if (zd_p, blok_p) != (1, 1):
         hatalar.append("V2: GERCEKTEN yeni adim YAKALANMADI (zincir_disi=%d "
                        "bloklayici_yeni=%d, beklenen 1/1) -> kapi KORLESTI, "
                        "V1'in yesili anlamsiz" % (zd_p, blok_p))
-    if kosulan_p != 2:
-        hatalar.append("V2: bloklayici yeni adimin govdesi KOSTURULMADI (kosulan=%d, "
-                       "beklenen 2 = govdenin iki kosulabilir satiri)" % kosulan_p)
+    if (kosulan_p, tasinan_p) != (1, 1):
+        hatalar.append("V2: bloklayici yeni adimin govdesi yanlis kosturuldu (kosulan=%d "
+                       "tasinan_satir=%d, beklenen 1/1 = yalniz eklenen satir kosar, "
+                       "tabandaki satir atlanir)" % (kosulan_p, tasinan_p))
 
     # ── V1: REPRODUKSIYON — kusuru URETEN girdi. ───────────────────────────────
-    zd_r, blok_r, kosulan_r, _ = olc(HIJYEN_A, SERIT_A, HIJYEN_B, SERIT_B)
+    zd_r, blok_r, kosulan_r, _, _ = olc(HIJYEN_A, SERIT_A, HIJYEN_B, SERIT_B)
     vaka += 1
     print("V1 REPRODUKSIYON (yalniz YORUM degisti)        : "
           "ZINCIR_DISI=%d BLOKLAYICI_YENI=%d KOSULAN=%d  (beklenen 0/0/0)"
@@ -326,8 +332,8 @@ def main():
     hatalar.extend(v3)
 
     # ── M1: HEDEFLI MUTANT + HEDEF-KOL ATFI ────────────────────────────────────
-    zd_m, blok_m, _, _ = olc(HIJYEN_A, SERIT_A, HIJYEN_B, SERIT_B, yorum_ayrimi=False)
-    zd_my, blok_my, _, _ = olc(HIJYEN_A, SERIT_A, HIJYEN_YENI, SERIT_YENI,
+    zd_m, blok_m, _, _, _ = olc(HIJYEN_A, SERIT_A, HIJYEN_B, SERIT_B, yorum_ayrimi=False)
+    zd_my, blok_my, _, _, _ = olc(HIJYEN_A, SERIT_A, HIJYEN_YENI, SERIT_YENI,
                                yorum_ayrimi=False)
     vaka += 2
     print("M1 HEDEFLI MUTANT (yorum_ayrimi=False)          : "
