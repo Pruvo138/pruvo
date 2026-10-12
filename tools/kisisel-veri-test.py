@@ -37,6 +37,7 @@ import json
 import glob
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -1274,22 +1275,118 @@ def pre_push_araliklari(stdin_metni):
     return kapsamlar
 
 
-def _kanca_kurulu_mu():
-    """(kurulu_mu, yol) — pre-push kancasinda GECMIS NOBETI blogu var mi.
-    Yalniz GORUNURLUK icindir; kanca commit EDILEMEDIGI icin bloklayici DEGIL."""
-    p = subprocess.run(["git", "-C", ROOT, "rev-parse", "--path-format=absolute",
-                        "--git-common-dir"], capture_output=True, text=True)
+def _gercek_git(kok, *args):
+    return subprocess.run(["git", "-C", kok] + list(args), capture_output=True, text=True)
+
+
+def _kanca_dizini(kok=ROOT, git=None):
+    """(dizin, kaynak) — git'in pre-push'u GERCEKTEN aradigi dizin.
+
+    🔴 K384 (olculdu, 12 Eki): eski surum yolu `<git-common-dir>/hooks` diye SABIT
+    kuruyordu; bu depoda `core.hooksPath` ayarli oldugundan git o dizini HIC OKUMAZ ->
+    nobetci bayat bir kopyaya bakip yanlis hukum basiyordu. Sira git'inkiyle aynidir:
+    `core.hooksPath` varsa O (goreliyse calisma agaci kokune gore), yoksa
+    `<git-common-dir>/hooks`. kaynak: "hooksPath" | "varsayilan"."""
+    git = git or _gercek_git
+    hp = git(kok, "config", "--type=path", "core.hooksPath")
+    hooks_path = hp.stdout.strip() if hp.returncode == 0 else ""
+    if hooks_path:
+        if not os.path.isabs(hooks_path):
+            t = git(kok, "rev-parse", "--show-toplevel")
+            if t.returncode != 0 or not t.stdout.strip():
+                return None, "hooksPath"
+            hooks_path = os.path.join(t.stdout.strip(), hooks_path)
+        return os.path.normpath(hooks_path), "hooksPath"
+    p = git(kok, "rev-parse", "--path-format=absolute", "--git-common-dir")
     if p.returncode != 0 or not p.stdout.strip():
-        return None, None
-    yol = os.path.join(p.stdout.strip(), "hooks", "pre-push")
+        return None, "varsayilan"
+    return os.path.join(p.stdout.strip(), "hooks"), "varsayilan"
+
+
+def _kanca_kurulu_mu(kok=ROOT, git=None):
+    """(kurulu_mu, yol, kaynak) — git'in OKUDUGU pre-push kancasinda GECMIS NOBETI
+    blogu var mi. Yalniz GORUNURLUK icindir; kanca commit EDILEMEDIGI icin bloklayici
+    DEGIL. kurulu_mu None = olculemedi."""
+    dizin, kaynak = _kanca_dizini(kok, git)
+    if not dizin:
+        return None, None, kaynak
+    yol = os.path.join(dizin, "pre-push")
     if not os.path.isfile(yol):
-        return False, yol
+        return False, yol, kaynak
     try:
         with open(yol, encoding="utf-8", errors="replace") as f:
             metin = f.read()
     except OSError:
-        return False, yol
-    return ("kisisel-veri-test.py" in metin and "--pre-push" in metin), yol
+        return False, yol, kaynak
+    return ("kisisel-veri-test.py" in metin and "--pre-push" in metin), yol, kaynak
+
+
+def _kanca_kurulum_onerisi(yol, kaynak):
+    """Kurulu DEGILSE dogru kurulum yolu. `gecmis-nobeti-hook-kur.py`nin hedefi
+    O ARACIN KENDI `hook_yolu`ndan okunur (arac degistirilmez, ikinci kopya yok):
+    hedef git'in okudugu yolla ayni degilse o arac bu kurulumda ETKISIZDIR."""
+    kurucu = os.path.join(ROOT, "tools", "gecmis-nobeti-hook-kur.py")
+    try:
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("_gecmis_nobeti_hook_kur", kurucu)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        hedef = mod.hook_yolu(ROOT)
+    except Exception as e:  # noqa: BLE001 — oneri metni olcum DEGIL, kirmizi uretmez
+        return "kurucu hedefi okunamadi (%s): %s" % (kurucu, e)
+    if hedef and os.path.normpath(hedef) == os.path.normpath(yol):
+        return "python3 tools/gecmis-nobeti-hook-kur.py"
+    return ("gecmis-nobeti-hook-kur.py %s'e YAZAR ama git (%s) %s'i OKUR -> o arac bu "
+            "kurulumda ETKISIZ; blok kanca KAYNAGINA (tools/kancalar/pre-push) girip "
+            "`python3 tools/kanca-kur.py` ile serilmeli" % (hedef, kaynak, yol))
+
+
+def _k384_fikstur_git(kok, *args):
+    # Sentetik depo: miras GIT_* baglami SILINIR (kanca icinde `git init` gercek depoyu
+    # bare yapar) + global/sistem config KAPALI (makinenin core.hooksPath'i vakaya sizmasin).
+    return sentetik_git(kok, *args, capture_output=True, text=True,
+                        ek_ortam={"GIT_CONFIG_GLOBAL": os.devnull,
+                                  "GIT_CONFIG_NOSYSTEM": "1"})
+
+
+_K384_BLOK = "#!/bin/sh\npython3 \"$kok/tools/kisisel-veri-test.py\" --pre-push\n"
+
+
+def k384_vakalari():
+    """[(ad, gecti_mi, ayrinti)] — sahte git deposunda kanca dizini cozumu.
+    V1 hooksPath ayarli + blok orada -> KURULU · V2 hooksPath ayarli + blok YALNIZ
+    varsayilan dizinde -> KURULU DEGIL · V3 hooksPath yok + blok varsayilanda -> KURULU."""
+    sonuc = []
+    for ad, hooks_path_var, blok_hp, blok_vars, beklenen in (
+            ("K384-V1", True, True, False, True),
+            ("K384-V2", True, False, True, False),
+            ("K384-V3", False, False, True, True)):
+        d = tempfile.mkdtemp(prefix="kisisel-veri-k384-")
+        try:
+            _k384_fikstur_git(d, "init", "-q")
+            hp_dizin = os.path.join(d, "kancalar-hp")
+            vars_dizin = os.path.join(d, ".git", "hooks")
+            os.makedirs(hp_dizin, exist_ok=True)
+            os.makedirs(vars_dizin, exist_ok=True)
+            if hooks_path_var:
+                # GORELI deger: calisma agaci kokune gore cozulmeli (ikinci kol da olculur)
+                _k384_fikstur_git(d, "config", "core.hooksPath", "kancalar-hp")
+            for var, dizin in ((blok_hp, hp_dizin), (blok_vars, vars_dizin)):
+                if var:
+                    with open(os.path.join(dizin, "pre-push"), "w", encoding="utf-8") as f:
+                        f.write(_K384_BLOK)
+            kurulu, yol, kaynak = _kanca_kurulu_mu(d, _k384_fikstur_git)
+            bek_kaynak = "hooksPath" if hooks_path_var else "varsayilan"
+            gecti = kurulu is beklenen and kaynak == bek_kaynak
+            sonuc.append((ad, gecti, "kurulu=%s (beklenen %s) kaynak=%s (beklenen %s)"
+                          % (kurulu, beklenen, kaynak, bek_kaynak)))
+        except (OSError, subprocess.SubprocessError) as e:
+            sonuc.append((ad, False, "fikstur kurulamadi: %s" % e))
+        finally:
+            shutil.rmtree(d, ignore_errors=True)
+            if os.path.exists(d):
+                sonuc.append((ad + "-TEMIZLIK", False, "gecici dizin SILINEMEDI: %s" % d))
+    return sonuc
 
 
 # ==================================================================================
@@ -2207,6 +2304,214 @@ def iletisim_nobeti():
     return hatalar, taban
 
 
+# ==================================================================================
+# IBAN NOBETCISI (K198) — TR-IBAN deseni + `.toml` ekseni
+# ==================================================================================
+# NEDEN VAR (olculdu KraL 12 Eki): `shop/wrangler.toml` izleniyor ve havale IBAN'ini
+# tasiyor (sitede musteriye gosterilen odeme bilgisi = BILEREK public). Nobetcide ne
+# `.toml` ne IBAN deseni geciyordu (atif 0) -> baska bir dosyaya sizan IBAN gorunmezdi.
+# EVREN: izlenen TUM dosyalar, yalniz ikili uzantilar haric; `.toml` atlanan kumede DEGIL.
+# DESEN: TR + 24 hane (bosluklu/bosluksuz) VE ISO 13616 mod-97 = 1. Mod-97'yi tutmayan
+# dizi bir hesap numarasi OLAMAZ (uydurma fikstur degeri) -> SAYILIR, kirmizi degildir.
+# MUAFIYET (yol, anahtar) CIFTIDIR — deger DEGIL; gerekce zorunlu (e-posta ekseniyle ayni
+# bicim). Bir anahtarin BIR dosyada mesru olmasi onu baska dosyada mesru yapmaz.
+# 🔴 Deger hicbir ciktiya BASILMAZ: hata satiri yol + satir + anahtar tasir, IBAN tasimaz.
+_IBAN_ATLA_UZANTILARI = (".png", ".jpg", ".jpeg", ".webp", ".gif", ".ico", ".avif", ".pdf",
+                         ".stl", ".3mf", ".zip", ".gz", ".woff", ".woff2", ".ttf", ".otf")
+_IBAN_RE = re.compile(r"(?<![A-Za-z0-9])TR\d{2}(?: ?\d{4}){5} ?\d{2}(?!\d)")
+_IBAN_ANAHTAR_RE = re.compile(r"([A-Za-z_][A-Za-z0-9_]*)[\"']?\s*[:=]\s*[\"']?\s*$")
+_IBAN_MUAFIYET = {
+    ("shop/wrangler.toml", "HAVALE_IBAN"):
+        "havale odeme bilgisi — sitede musteriye GOSTERILEN deger (BILEREK public, "
+        "WhatsApp numarasi gibi); worker env [vars] tek kaynagi",
+}
+
+
+def _iban_mod97(deger):
+    d = deger.replace(" ", "")
+    r = d[4:] + d[:4]
+    return int("".join(str(int(c, 36)) for c in r)) % 97 == 1
+
+
+def iban_isabetleri(korpus):
+    """{yol: metin} -> [(yol, satir_no, anahtar, gecerli_mi)] (deger DONMEZ)."""
+    isabet = []
+    for yol in sorted(korpus):
+        if yol.lower().endswith(_IBAN_ATLA_UZANTILARI):
+            continue
+        metin = korpus[yol]
+        for m in _IBAN_RE.finditer(metin):
+            bas = metin.rfind("\n", 0, m.start()) + 1
+            a = _IBAN_ANAHTAR_RE.search(metin[bas:m.start()])
+            isabet.append((yol, metin.count("\n", 0, m.start()) + 1,
+                           a.group(1) if a else "", _iban_mod97(m.group(0))))
+    return isabet
+
+
+def iban_kusurlari(korpus):
+    """(hatalar, sayac) — muaf olmayan GECERLI IBAN = kirmizi."""
+    hatalar = []
+    sayac = {"isabet": 0, "muaf": 0, "sahte": 0}
+    for yol, satir, anahtar, gecerli in iban_isabetleri(korpus):
+        sayac["isabet"] += 1
+        if not gecerli:
+            sayac["sahte"] += 1
+        elif (yol, anahtar) in _IBAN_MUAFIYET:
+            sayac["muaf"] += 1
+        else:
+            hatalar.append("IBAN SIZINTISI: %s:%d (anahtar=%s) — gecerli TR-IBAN izlenen "
+                           "dosyada; tek mesru yer _IBAN_MUAFIYET (yol, anahtar) ciftidir. "
+                           "Deger bu ciktiya BASILMADI." % (yol, satir, anahtar or "?"))
+    return hatalar, sayac
+
+
+def _k198_iban(gecerli=True, bosluklu=False):
+    """Fikstur IBAN'i CALISMA ANINDA kurulur (bu dosya kendi taramasinda isabet vermesin).
+    Banka kodu 00000 = var olmayan banka; gecerli=False -> kontrol hanesi 00 (mod-97 tutmaz)."""
+    bban = "0" * 21 + "1"
+    kontrol = 98 - int(bban + "2927" + "00") % 97 if gecerli else 0
+    d = "TR%02d%s" % (kontrol, bban)
+    return " ".join(d[i:i + 4] for i in range(0, len(d), 4)) if bosluklu else d
+
+
+def k198_vakalari():
+    """[(ad, gecti_mi, ayrinti)] — (yol, icerik) -> beklenen kirmizi mi."""
+    g, gb, s = _k198_iban(), _k198_iban(bosluklu=True), _k198_iban(gecerli=False)
+    vakalar = (
+        ("K198-V1", "fikstur/ornek.toml", 'ODEME_IBAN = "%s"\n' % g, True),
+        ("K198-V2", "shop/wrangler.toml", '[vars]\nHAVALE_IBAN = "%s"\n' % g, False),
+        ("K198-V3", "fikstur/belge.md", "Havale: %s\n" % g, True),
+        ("K198-V4", "fikstur/belge2.md", "Hesap %s\n" % gb, True),
+        ("K198-V5", "shop/wrangler.toml", 'BASKA_IBAN = "%s"\n' % g, True),
+        ("K198-V6", "shop/test/ornek.mjs", '  HAVALE_IBAN: "%s",\n' % g, True),
+        ("K198-V7", "shop/test/ornek.mjs", '  HAVALE_IBAN: "%s",\n' % s, False),
+    )
+    sonuc = []
+    for ad, yol, icerik, kirmizi in vakalar:
+        h, _s = iban_kusurlari({yol: icerik})
+        sonuc.append((ad, bool(h) is kirmizi, "%s -> %s (beklenen %s)"
+                      % (yol, "KIRMIZI" if h else "YESIL", "KIRMIZI" if kirmizi else "YESIL")))
+    return sonuc
+
+
+def iban_nobeti():
+    """(hatalar, taban) — izlenen dosyalarin ICERIGINDE TR-IBAN taramasi."""
+    taban = {"dosya": 0, "toml": 0, "isabet": 0, "muaf": 0, "sahte": 0}
+    yollar, hata = _izlenen_dosyalar()
+    if hata:
+        return ["OLCULEMEDI (iban nobeti) — %s" % hata], taban
+    korpus = {}
+    for yol in yollar:
+        if yol.lower().endswith(_IBAN_ATLA_UZANTILARI):
+            continue
+        try:
+            with open(os.path.join(ROOT, yol), "rb") as f:
+                korpus[yol] = f.read().decode("utf-8", "ignore")
+        except OSError:
+            continue
+    hatalar, sayac = iban_kusurlari(korpus)
+    taban.update(sayac)
+    taban["dosya"] = len(korpus)
+    taban["toml"] = len([y for y in korpus if y.lower().endswith(".toml")])
+    # CANLILIK (veri capasi DEGIL): izlenen .toml varsa tarama onu GORMUS olmali.
+    if KAPI_YOLU not in korpus or (any(y.lower().endswith(".toml") for y in yollar)
+                                   and not taban["toml"]):
+        hatalar.append("OLCULEMEDI (CANLILIK, iban nobeti) — tarama kapinin kendi yolunu "
+                       "ya da izlenen .toml dosyalarini GORMEDI (dosya=%d, toml=%d)"
+                       % (taban["dosya"], taban["toml"]))
+    return hatalar, taban
+
+
+# ---------------------------------------------------- K384 + K198 MUTANTLARI (ayri surec)
+# Her mutant kaynagin BIR satirini degistirir, ayri surecte yalniz vaka probunu kosar;
+# probun KIRMIZI yanmasi ve beklenen vakanin BASARISIZ basmasi mutant kanitidir.
+_K_MUTANTLAR = (
+    ("K384", "hooksPath okumasi kaldirilir", 'hp = git(kok, "config"',
+     lambda s: s[:len(s) - len(s.lstrip())]
+     + 'hp = subprocess.CompletedProcess([], 1, "", "")  # MUTANT', "K384-V1 BASARISIZ"),
+    ("K198", ".toml evrenden cikar", "_IBAN_ATLA_UZANTILARI = (",
+     lambda s: s.replace("(", '(".toml", ', 1), "K198-V1 BASARISIZ"),
+    ("K198", "IBAN deseni silinir", "_IBAN_RE = re.compile(",
+     lambda s: '_IBAN_RE = re.compile(r"(?!x)x")  # MUTANT', "K198-V1 BASARISIZ"),
+)
+
+
+def k_vaka_probu():
+    """[(ad, gecti, ayrinti)] — K384 + K198 vakalari (mutant probu da bunu kosar)."""
+    return k384_vakalari() + k198_vakalari()
+
+
+def _k_mutant_kos(capa, donustur, jeton):
+    """(oldu_mu, hatalar) — mutant kaynagi gecici dosyada ayri surecte.
+    Capa SATIR BASIDIR (girinti haric): ayni metin _K_MUTANTLAR'da tirnak icinde de
+    gectiginden ham alt-dizge sayimi tekil olmaz."""
+    kaynak_yolu = os.path.abspath(__file__)
+    with open(kaynak_yolu, encoding="utf-8") as f:
+        satirlar = f.read().split("\n")
+    idx = [i for i, x in enumerate(satirlar) if x.lstrip().startswith(capa)]
+    if len(idx) != 1:
+        return False, ["MUTANT KAYNAKTA YERI YOK/TEKIL DEGIL — %r (%d satir)"
+                       % (capa, len(idx))]
+    eski = satirlar[idx[0]]
+    satirlar[idx[0]] = donustur(eski)
+    if satirlar[idx[0]] == eski:
+        return False, ["MUTANT KAYNAGA GIRMEDI — %r" % capa]
+    mutant = "\n".join(satirlar)
+    yol = None
+    try:
+        fd, yol = tempfile.mkstemp(prefix="kisisel-veri-test-mutant-", suffix=".py",
+                                   dir=os.path.dirname(kaynak_yolu))
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(mutant)
+        s = subprocess.run([sys.executable, yol, "--k-vaka-probu"], cwd=ROOT,
+                           capture_output=True, text=True, encoding="utf-8",
+                           errors="replace")
+    except OSError as e:
+        return False, ["MUTANT AYRI SUREC KOSTURULAMADI — %s" % e]
+    finally:
+        if yol and os.path.exists(yol):
+            os.unlink(yol)
+    ham = (s.stdout or "") + (s.stderr or "")
+    for satir in ham.splitlines():
+        print("MUTANT| " + satir)
+    if s.returncode == 0:
+        return False, ["MUTANT YESIL KALDI (rc=0) — beklenen %r dusmedi" % jeton]
+    if jeton not in ham:
+        return False, ["MUTANT DUSTU (rc=%d) AMA %r GORUNMEDI — rc tek basina kanit degil"
+                       % (s.returncode, jeton)]
+    return True, []
+
+
+def k384_k198_nobeti(mutant_kosumu=True):
+    """(hatalar, ozet) — vakalar + mutantlar + gercek depo IBAN taramasi."""
+    hatalar = []
+    ozet = {}
+    vakalar = k_vaka_probu()
+    for on in ("K384", "K198"):
+        v = [x for x in vakalar if x[0].startswith(on + "-")]
+        ozet[on] = {"vaka": (sum(1 for x in v if x[1]), len(v)), "mutant": [0, 0]}
+        for ad, gecti, ayr in v:
+            if not gecti:
+                hatalar.append("%s BASARISIZ — %s" % (ad, ayr))
+    if mutant_kosumu:
+        for on, aciklama, capa, donustur, jeton in _K_MUTANTLAR:
+            print("MUTANT %s (%s) — ayri surec; 'MUTANT|' satirlari mutantin KENDI "
+                  "ciktisidir, kirmizi YANMASI BEKLENIR" % (on, aciklama))
+            oldu, h = _k_mutant_kos(capa, donustur, jeton)
+            ozet[on]["mutant"][1] += 1
+            if oldu:
+                ozet[on]["mutant"][0] += 1
+            hatalar.extend("%s MUTANT (%s): %s" % (on, aciklama, x) for x in h)
+        kalan = glob.glob(os.path.join(ROOT, "**", "kisisel-veri-test-mutant-*.py"),
+                          recursive=True)
+        if kalan:
+            hatalar.append("MUTANT GECICI DOSYA KALDI — %r" % sorted(kalan))
+    h, taban = iban_nobeti()
+    hatalar.extend(h)
+    ozet["iban"] = taban
+    return hatalar, ozet
+
+
 def normalize(metin):
     metin = metin.lower()
     for c in (" ", "\t", "\n", " ", "-", "(", ")"):
@@ -2347,6 +2652,12 @@ def main():
             sys.exit(1)
         print("YEŞİL — bölünmüş rakam literal mutant probu geçti")
         sys.exit(0)
+    if "--k-vaka-probu" in argv:
+        # MUTANT SURUCUSU icin dar kol: yalniz K384 + K198 vakalari (ayri surec).
+        v = k_vaka_probu()
+        for ad, gecti, ayr in v:
+            print("%s %s — %s" % (ad, "GECTI" if gecti else "BASARISIZ", ayr))
+        sys.exit(0 if all(x[1] for x in v) else 1)
     if "--aralik" in argv:
         i = argv.index("--aralik")
         aralik = argv[i + 1:]
@@ -2411,6 +2722,9 @@ def main():
     #     KANONIK desen kaynagina bagli). Kor nokta gerekcesi icin bolum basligina bak.
     iletisim_hatalari, iletisim_taban = iletisim_nobeti()
 
+    # 4d) K384 kanca yolu vakalari + K198 IBAN nobetcisi (.toml ekseni dahil)
+    k_hatalari, k_ozet = k384_k198_nobeti()
+
     # 5) PARMAKIZI KAYIT ADI NOBETCISI (O7 — adlar JENERIK kalmali)
     pk_hatalari, pk_taranan = parmakizi_ad_nobeti()
 
@@ -2426,7 +2740,7 @@ def main():
             print("  - " + h)
 
     if (hatalar or rapor_hatalari or tedarikci_hatalari or bolunmus_hatalari or pk_hatalari
-            or gecmis_hatalari or iletisim_hatalari):
+            or gecmis_hatalari or iletisim_hatalari or k_hatalari):
         if hatalar:
             _yaz_hatalar("kişisel veri testi", hatalar)
         if rapor_hatalari:
@@ -2439,6 +2753,8 @@ def main():
             _yaz_hatalar("iletişim yüzeyi nöbetçisi (içerik ekseni)", iletisim_hatalari)
         if gecmis_hatalari:
             _yaz_hatalar("geçmiş ekseni fikstürleri", gecmis_hatalari)
+        if k_hatalari:
+            _yaz_hatalar("K384 kanca yolu / K198 IBAN nöbetçisi", k_hatalari)
         sys.exit(1)
     print("YEŞİL — kişisel veri testi geçti (%d sayfa, %d kalıp, "
           "%d sayfada pozitif kontrol)."
@@ -2464,16 +2780,24 @@ def main():
              iletisim_taban["dosya"], iletisim_taban["wa"], iletisim_taban["arama"],
              iletisim_taban["host"], len(_EPOSTA_MUAFIYET),
              len((_cmk()[0].ozet_kaydi_yukle()[0] or {}).get("desenler", ()))))
-    kurulu, kanca_yolu = _kanca_kurulu_mu()
+    for on in ("K384", "K198"):
+        print("YEŞİL — %s VAKA=%d/%d MUTANT=%d/%d"
+              % ((on,) + k_ozet[on]["vaka"] + tuple(k_ozet[on]["mutant"])))
+    t = k_ozet["iban"]
+    print("YEŞİL — IBAN nöbetçisi geçti (%d izlenen dosya, %d .toml tarandı · %d TR-IBAN "
+          "vuruşu: %d gerekçeli muaf (yol, anahtar) + %d mod-97 tutmayan sahte · %d muafiyet "
+          "çifti)." % (t["dosya"], t["toml"], t["isabet"], t["muaf"], t["sahte"],
+                       len(_IBAN_MUAFIYET)))
+    kurulu, kanca_yolu, kanca_kaynak = _kanca_kurulu_mu()
     print("YEŞİL — geçmiş ekseni fikstürleri geçti (%d kırmızı + %d yeşil senaryo + "
           "gerçek-git biçim çapası). Canlı aralık taraması pre-push kancasında: %s"
           % (len(_GECMIS_KIRMIZI), len(_GECMIS_YESIL),
              "KURULU" if kurulu else
-             ("KURULU DEĞİL → python3 tools/gecmis-nobeti-hook-kur.py"
-              if kurulu is False else "ölçülemedi (git yok?)")))
-    if kanca_yolu and not kurulu:
-        print("        (kanca yolu: %s — .git/hooks git'e GİRMEZ, her makinede kurulur)"
-              % kanca_yolu)
+             ("KURULU DEĞİL" if kurulu is False else "ölçülemedi (git yok?)")))
+    print("        (kanca yolu: %s · kaynak: %s — git'in OKUDUĞU yol; kanca git'e GİRMEZ, "
+          "her makinede kurulur)" % (kanca_yolu, kanca_kaynak))
+    if kurulu is False:
+        print("        kurulum: " + _kanca_kurulum_onerisi(kanca_yolu, kanca_kaynak))
     print("YEŞİL — parmakızı kayıt adı nöbetçisi geçti (%d ad tarandı, %d kırmızı + "
           "%d yeşil fikstür)." % (pk_taranan, len(_PK_KIRMIZI), len(_PK_YESIL)))
 
