@@ -1469,8 +1469,8 @@ YAZI_INCE_CUMLE = ("Bu yazı bu genişlikte çok ince kalıyor; genişliği büy
 ANAHTARLIK_BOYUT_CUMLE = ("Bu fotoğraftan anahtarlık boyutunda bir parça çıkmadı; daha sade bir fotoğraf ya da "
                           "kısa bir yazı deneyin.")
 # 12 Eki (figur_kulak 1.1 tabla ankraji reddi; TeKiN 281fb3e; BaBa 01:4x). "3D baskı"/"tabla" yok (musteri metni kurali).
-ANKRAJ_CUMLE = ("Bu fotoğraftan çıkan figür bu ölçüde sağlam bir anahtarlık olarak üretilemiyor; ölçüyü büyüt ya "
-                "da daha sade bir fotoğraf dene.")
+ANKRAJ_CUMLE = ("Bu fotoğraftan çıkan figür bu ölçüde sağlam bir anahtarlık olarak üretilemiyor; daha küçük bir "
+                "ölçü ya da daha sade bir fotoğraf dene.")
 
 
 def _kup_stl(yol, kenar):

@@ -491,8 +491,9 @@
       "kopru": "Görseldeki iç adalar şablona bağlanamadı; daha sade bir silüet dene.",
       // Anahtarlık FOTO kolu (plaket_kulak rc 2: plaket uzun kenarı >50 mm ya da kulak yerleşmedi) — BİREBİR.
       "anahtarlik-boyut": "Bu fotoğraftan anahtarlık boyutunda bir parça çıkmadı; daha sade bir fotoğraf ya da kısa bir yazı deneyin.",
-      // Anahtarlık–figür tabla ankrajı reddi (figur_kulak 1.1) — TASLAK, ArTisT 18. okuma.
-      "ankraj": "Bu fotoğraftan çıkan figür bu ölçüde sağlam bir anahtarlık olarak üretilemiyor; ölçüyü büyüt ya da daha sade bir fotoğraf dene."
+      // Anahtarlık–figür tabla ankrajı reddi (figur_kulak 1.1) — ArTisT 18. okuma revize (11:5x): TeKiN 11:4x ölçümü,
+      // figür BÜYÜDÜKÇE F_TEPE DÜŞER (K2b 60=32,8 · 66=30,7 · 72=29,0 N RED) -> geçiren yön KÜÇÜLTMEK; "ölçüyü büyüt" yanlış yöndü.
+      "ankraj": "Bu fotoğraftan çıkan figür bu ölçüde sağlam bir anahtarlık olarak üretilemiyor; daha küçük bir ölçü ya da daha sade bir fotoğraf dene."
     },
 
     // ÖRNEKLER — boşsa bölüm görünmez. Kaynak: TeKiN'in işleri (kanıtı kayıtta yazılı).
