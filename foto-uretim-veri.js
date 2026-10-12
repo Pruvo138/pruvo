@@ -586,7 +586,7 @@
         olcu_mm: 60,
         onizleme: "https://media.pruvo3d.com/foto/ornek/anahtarlik-figur-onizleme.webp",
         render: "https://media.pruvo3d.com/foto/ornek/anahtarlik-figur-1-render.webp",
-        not: "60 mm, kulakçıklı figür anahtarlık"
+        not: "60 mm, başın arkasına gömülü yarım halkalı figür anahtarlık"
       }
     ],
 
@@ -688,7 +688,7 @@
       varsayilan: "yazi",
       secenekler: [
         { kod: "yazi", ad: "Yazı ile", aciklama: "Kısa bir isim ya da yazı, kabartma harflerle.", acik: true },
-        { kod: "figur", ad: "Figür olarak", aciklama: "Yüklediğin fotoğraftan küçük bir figür, tepesinde kulakçık.",
+        { kod: "figur", ad: "Figür olarak", aciklama: "Yüklediğin fotoğraftan küçük bir figür; halka deliği başın arkasına gömülü yarım halkada.",
           acik: true, girdi: ["foto-1"], olcu_en_az: kolSiniri("anahtarlik", "olcu_en_az"),
           olcu_en_cok: kolSiniri("anahtarlik", "olcu_en_cok"), saglayici_tur: "figur", uretec: "figur_kulak",
           // ② dürüstlük cümlesi (ArTisT 874b2a85 pazarlama metni ② "Anahtarlık – figür" AYNEN; figür/plaket'in TEK

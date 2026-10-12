@@ -5140,7 +5140,7 @@ const C2B_ETIKET = {
   yazi_tipi: { "sans-kalin": "Kalın düz harfler", "script": "El yazısı" },
   hizalama: { "sol": "Sol", "orta": "Orta", "sag": "Sağ" },
   anahtarlik_kulak_konum: { "sol-ust": "Sol üst", "sag-ust": "Sağ üst", "ust-orta": "Üst orta" } };
-const C2B_FIGUR_ETIKET = { tepe: "Tepede", sirt: "Sırtta" };
+const C2B_FIGUR_ETIKET = { tepe: "Başın arkası (üst)", sirt: "Başın arkası (ense)" };
 const C2B_BUST = "https://media.pruvo3d.com/foto/ornek/bust-2-render.webp";
 
 async function c2bIstemci(kaynak, veriYama) {
