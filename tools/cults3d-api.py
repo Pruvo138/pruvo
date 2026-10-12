@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # EMEKLI - Okan 19 Tem: bu platformda arama YAPILMAZ (parity-backfill'den cikarildi).
 # ⛔ ÇAĞIRMA — EMEKLİ (Okan 18 Tem: Cults3D rate-limit/429 yüzünden çıkarıldı)
+# 12 Eki 2026 ölçüm (MaCiT, BaBa 02:5x): TREND×Oyuncak hücresi ADAY 9/100 (lisans RED 91: Private Use 50 + NC-ND 41) → eşik ≥15 sağlanmadı, platform KAPALI.
 """Cults3D (cults3d.com) GraphQL API ortak cekirdegi — MakerWorld makerworld-api.py'nin esdegeri.
 
 Cok-platform vitrin genislemesinin UCUNCU adaptoru (Thingiverse -> Printables -> MakerWorld ->
