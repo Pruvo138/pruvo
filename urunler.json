@@ -1,5 +1,56 @@
 [
   {
+    "id": "masaustu-kablo-duzenleyici-3-yuvali-4-mm",
+    "kategori": "Ofis",
+    "marka": [],
+    "baslik": "Masaüstü Kablo Düzenleyici (3 Yuvalı, 4 mm Kablo İçin)",
+    "aciklama": "Masa kenarına, monitör arkasına ya da duvara yapıştırılan, düz tabanlı kablo düzenleyici. Üstteki üç açık klips yuvası kabloları yan yana ve ayrı ayrı tutar; kablo yuvanın ağzından bastırılarak takılır, aynı yoldan çıkarılır.\n- Yuva iç çapı 4 mm (USB ve şarj kabloları gibi ince kablolar için)\n- Ağız genişliği 3,2 mm, kablo çapından dardır\n- 3 yuva; klips boyu 12 mm, halka et kalınlığı 2 mm, taban kalınlığı 2 mm\n- Düz taban çift taraflı bantla sabitlenir (bant dahil değildir)\n- Aynı modelin 6 mm ve 10 mm yuvalı boyları da vardır\nYaklaşık dış ölçüler: 33 × 12 × 6,7 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/masaustu-kablo-duzenleyici-3-yuvali-4-mm-1.jpg",
+      "https://media.pruvo3d.com/urunler/masaustu-kablo-duzenleyici-3-yuvali-4-mm-2.jpg",
+      "https://media.pruvo3d.com/urunler/masaustu-kablo-duzenleyici-3-yuvali-4-mm-3.jpg"
+    ],
+    "tavsiyeFilament": [
+      "PLA",
+      "PETG"
+    ]
+  },
+  {
+    "id": "masaustu-kablo-duzenleyici-3-yuvali-6-mm",
+    "kategori": "Ofis",
+    "marka": [],
+    "baslik": "Masaüstü Kablo Düzenleyici (3 Yuvalı, 6 mm Kablo İçin)",
+    "aciklama": "Masa kenarına, monitör arkasına ya da duvara yapıştırılan, düz tabanlı kablo düzenleyici. Üstteki üç açık klips yuvası kabloları yan yana ve ayrı ayrı tutar; kablo yuvanın ağzından bastırılarak takılır, aynı yoldan çıkarılır.\n- Yuva iç çapı 6 mm (HDMI ve kalın şarj kabloları gibi orta kalınlıktaki kablolar için)\n- Ağız genişliği 4,8 mm, kablo çapından dardır\n- 3 yuva; klips boyu 12 mm, halka et kalınlığı 2 mm, taban kalınlığı 2 mm\n- Düz taban çift taraflı bantla sabitlenir (bant dahil değildir)\n- Aynı modelin 4 mm ve 10 mm yuvalı boyları da vardır\nYaklaşık dış ölçüler: 39 × 12 × 8,3 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/masaustu-kablo-duzenleyici-3-yuvali-6-mm-1.jpg",
+      "https://media.pruvo3d.com/urunler/masaustu-kablo-duzenleyici-3-yuvali-6-mm-2.jpg",
+      "https://media.pruvo3d.com/urunler/masaustu-kablo-duzenleyici-3-yuvali-6-mm-3.jpg"
+    ],
+    "tavsiyeFilament": [
+      "PLA",
+      "PETG"
+    ]
+  },
+  {
+    "id": "masaustu-kablo-duzenleyici-3-yuvali-10-mm",
+    "kategori": "Ofis",
+    "marka": [],
+    "baslik": "Masaüstü Kablo Düzenleyici (3 Yuvalı, 10 mm Kablo İçin)",
+    "aciklama": "Masa kenarına, monitör arkasına ya da duvara yapıştırılan, düz tabanlı kablo düzenleyici. Üstteki üç açık klips yuvası kabloları yan yana ve ayrı ayrı tutar; kablo yuvanın ağzından bastırılarak takılır, aynı yoldan çıkarılır.\n- Yuva iç çapı 10 mm (güç ve ağ kabloları gibi kalın kablolar için)\n- Ağız genişliği 8 mm, kablo çapından dardır\n- 3 yuva; klips boyu 12 mm, halka et kalınlığı 2 mm, taban kalınlığı 2 mm\n- Düz taban çift taraflı bantla sabitlenir (bant dahil değildir)\n- Aynı modelin 4 mm ve 6 mm yuvalı boyları da vardır\nYaklaşık dış ölçüler: 51 × 12 × 11,5 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/masaustu-kablo-duzenleyici-3-yuvali-10-mm-1.jpg",
+      "https://media.pruvo3d.com/urunler/masaustu-kablo-duzenleyici-3-yuvali-10-mm-2.jpg",
+      "https://media.pruvo3d.com/urunler/masaustu-kablo-duzenleyici-3-yuvali-10-mm-3.jpg"
+    ],
+    "tavsiyeFilament": [
+      "PLA",
+      "PETG"
+    ]
+  },
+  {
     "id": "oyun-katlanir-civili-zar-kulesi-zar-kutulu-tepsi-pr74105",
     "kategori": "Oyun/Hobi",
     "marka": [],
