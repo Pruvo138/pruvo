@@ -1,5 +1,498 @@
 [
   {
+    "id": "bahce-iki-fide-saksisi-tepsisi-alttan-sulama-araligli-pr498427",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "İki Fide Saksılık Tepsi (Ortada Alttan Sulama Aralığı)",
+    "aciklama": "İki küçük fide saksısını (72 × 72 mm tabanlı) taşıyan tepsi. İki saksı arasındaki dar aralık alttan sulamayı kolaylaştırır; pencere önünde fidelerin düzenli sulanması için pratik bir çözümdür. Fotoğraflarda tepsi içinde saksılar ve fideler ile boş hâli görülür.\nYaklaşık dış ölçüler: 180 × 80 × 15 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr498427-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr498427-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ishikawats",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "bahce-dort-gozlu-kendi-kendini-sulayan-fide-kabi-uc-parcali-pr1646304",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Dört Gözlü Kendi Kendini Sulayan Fide Kabı (3 Parçalı Set)",
+    "aciklama": "Dört ayrı yetiştirme kabı, bunları hizada tutan tutucu tabla ve alttan sulama için su haznesi tabanından oluşan 3 parçalı, kompakt tohum başlatıcı. Tohum çimlendirmek, fide hazırlamak ve küçük bitkileri düzenli tutmak için uygundur. Görsellerde dört kaplı set, parçaları ve üstten görünüm yer alır.\nYaklaşık dış ölçüler: 115 × 115 × 43 mm (taban; kap 60 × 52 × 52 mm, tutucu tabla 112 × 112 × 1 mm).",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1646304-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1646304-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1646304-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1646304-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Rafael Naranjo",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "bahce-18-gozlu-menteseli-fide-tepsisi-iki-yarim-govde-pr804022",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "18 Gözlü Menteşeli Fide Tepsisi (İki Yarım Gövde)",
+    "aciklama": "En fazla 18 fide kabı alan, iki yarım gövdeden oluşan geniş tohum başlatma tepsisi. Yarım gövdeler birbirine yapıştırılır ve iki yanda M2 vidalı menteşelerle sabitlenir; fide kapları tek tek takılıp çıkarılır. Fotoğraflarda yeşil tepsinin üstten görünümü yer alır.\nYaklaşık dış ölçüler: 213 × 200 × 63 mm (her yarım gövde; kap 60 × 37 × 37 mm, iki yarım yan yana yaklaşık 422 × 200 mm).",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr804022-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr804022-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Marek / Breakpoint-3D",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "bahce-petek-gozlu-tohum-baslatici-icin-fide-cikarma-araci-pr809878",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Petek Gözlü Tohum Başlatıcı için Fide Çıkarma Aleti",
+    "aciklama": "Küçük petek gözlü, kendi kendini sulayan tohum başlatıcının altıgen gözlerindeki fide topağını kökler zarar görmeden dışarı itmeye yarayan çıkarma aleti. Fideyi saksıya ya da toprağa aktarma zamanı kullanılır. Fotoğraflarda renkli kaplı petek gözlü başlatıcı ve alet görülür.\nYaklaşık dış ölçüler: 77 × 70 × 32 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr809878-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr809878-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr809878-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr809878-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "McTech3D (özgün tohum başlatıcı: dirk144347)",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "bahce-kagit-rulo-fide-kabi-moduler-altigen-zincirlenebilir-pr1202246",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kâğıt Ruloyla Fide Yetiştirme Kabı (Modüler Altıgen, Zincirlenebilir)",
+    "aciklama": "Islatılmış kâğıt şeritle tohum çimlendirmek için altıgen, kafes desenli ve bol havalandırmalı fide kapları. Modüler yapıdadır: bir kabın kama çıkıntısı diğerinin oluğuna kaydırılarak kaplar zincirleme kümeler oluşturur. Kâğıt şeridi ıslatıp tohumları belli aralıklarla dizersiniz. Fotoğraflarda bej altıgen kaplar bitki saksılarının yanında ve tohum şeridiyle görülür.\nYaklaşık dış ölçüler: 60 × 58 × 53 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1202246-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1202246-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1202246-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1202246-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dmilve",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "bahce-kolay-cikarmali-fide-ve-cogaltma-kapsulu-pr1459514",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kolay Çıkarmalı Fide ve Çoğaltma Kapsülü (Kaydırmalı Çıkarma)",
+    "aciklama": "Kök sistemini kontrol etmenizi ve fideyi yeni yerine kolayca aktarmanızı sağlayan çıkarmalı tohum ve çelik başlatma kapsülü. Kaydırmalı bir parça kapsülü açar; kökler kapsüle yapışmadan gelişir ve fide toprağıyla birlikte çıkarılıp yeni saksıya bırakılır. Fotoğraflarda mavi kapsül, çimlenen bitki ve kök topağı görülür.\nYaklaşık dış ölçüler: 91 × 75 × 67 mm (kapsül ve çıkarıcı; kaydırma parçası 70 × 63 × 4 mm).",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1459514-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1459514-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1459514-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Maximalist Workshop",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "bahce-hava-budama-aralikli-fide-bardagi-50-mm-pr1651336",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Hava Budama Aralıklı Fide Bardağı (50 mm, Tüm Yanlarda Açıklıklı)",
+    "aciklama": "Köklerin havayla temas ederek budanmasını sağlayan, yan yüzeylerinde dikey açıklıklar bulunan 50 mm'lik kare fide bardağı. Açıklıklar köklerin sıkışmasını önler ve daha güçlü bir kök sistemi gelişmesine yardımcı olur. Parametrik tohum başlatıcı bardağının her yanı açıklıklı sürümüdür. Fotoğraflarda beyaz bardak masa üzerinde ve elde görülür.\nYaklaşık dış ölçüler: 50 × 50 × 50 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1651336-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1651336-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "404inspiration (özgün tohum başlatıcı: Quint)",
+      "tur": "GPL 3.0"
+    }
+  },
+  {
+    "id": "bahce-tohum-baslatici-su-doldurma-hunisi-pr1167647",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Tohum Başlatıcı Su Doldurma Hunisi (Dökmeden Doldurma)",
+    "aciklama": "Kendi kendini sulayan tohum başlatıcının dar su doldurma deliğine su doldururken taşmayı önleyen basit huni. Deliğe oturur ve suyu sıçratmadan hazneye aktarır. Fotoğraflarda huni başlatıcı tepsisi üzerinde ve tek başına görülür.\nYaklaşık dış ölçüler: 89 × 65 × 58 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1167647-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1167647-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1167647-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Iceman (özgün tohum başlatıcı: Quint)",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "bahce-dortlu-yeniden-kullanilabilir-tohum-baslatici-ayrilabilir-tabanli-pr126821",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Dörtlü Yeniden Kullanılabilir Tohum Başlatıcı (Ayrılabilir Tabanlı)",
+    "aciklama": "Dört gözlü, yeniden kullanılabilir basit tohum başlatıcı. Her gözün tabanı ayrı bir parçadır; fide güçlenince tabanı yukarı doğru iterek fideyi toprağıyla birlikte kolayca çıkarabilirsiniz. Dört adet ayrı taban parçası bulunur. Fotoğraflarda beyaz dörtlü kapta etiketli bir fide ve gözlerin alt kısmı görülür.\nYaklaşık dış ölçüler: 98 × 98 × 51 mm (dörtlü kap; her taban parçası 23 × 23 × 1 mm).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr126821-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr126821-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Yeeve",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "bahce-16li-turba-pelet-tutucu-fide-tablasi-pr64460",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "16'lı Turba Pelet Tutucu (Pencere Önü Fide Tablası)",
+    "aciklama": "On altı adet turba peletini (sıkıştırılmış turba fide diski) yan yana taşıyan, petek yapılı tutucu tabla. Peletler hücrelere yerleşir; tutucu fideleri pencere önünde ya da dış mekânda bir arada tutar ve fideler büyüyünce peletle birlikte kolayca bahçeye ya da saksıya aktarılır. Fotoğraflarda yeşil tutucu tablada peletler ve filizlenen fideler görülür.\nYaklaşık dış ölçüler: 186 × 186 × 35 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr64460-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr64460-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr64460-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "3DPrintM.D.",
+      "tur": "GPL 2.0"
+    }
+  },
+  {
+    "id": "bahce-rockwool-kup-fidelik-4x4-surtunmeli-kapakli-pr423012",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "4×4 Taş Yünü (Rockwool) Küp Fidelik (40 mm Küp, Sürtünmeli Kapaklı)",
+    "aciklama": "1,5 inç (40 mm) taş yünü küplerle tohum çimlendirmek için 16 gözlü basit bir kap ve üzerine oturan kapak. Her göz 40 × 40 mm'dir; kapak sürtünmeyle yerinde durur ve nemli bir ortam sağlar. Fotoğraflarda sarı-yeşil kapta küpler, tohum paketleri ve yarı saydam kapak görülür.\nYaklaşık dış ölçüler: 168 × 168 × 45 mm (kap; kapak 170 × 170 × 44 mm).",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr423012-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr423012-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr423012-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "kingofthezyx",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "bahce-akuaponik-1-inc-tohum-baslatici-su-toplama-borulu-pr345017",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Akuaponik 1 İnç Tohum Başlatıcı (Su Toplama Borulu)",
+    "aciklama": "Akuaponik ve hidroponik sistemlerde, yaklaşık 1 inç (25 mm) delikli yüzer tabla ya da borulara oturan küçük tohum başlatıcı kap. Gövdeden uzanan su toplama borusu suyu hazneden taşır; 2 inçlik borulara 1 inçlik delik açarak da kullanılabilir. Fotoğraflarda küçük beyaz kaplar sistem üzerinde bitkilerle, görselde ise modelin mavi renkli hâli görülür.\nYaklaşık dış ölçüler: 98 × 65 × 65 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr345017-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr345017-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr345017-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr345017-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Ian Hutchison",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "bahce-bardak-kenarina-asilan-mini-fidelik-tohum-ve-celik-pr682160",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Bardak Kenarına Asılan Mini Fidelik (Tohum ve Çelik Köklendirme)",
+    "aciklama": "Su dolu bir bardağın ağzına asılarak tohum çimlendirmek ya da bitki çeliği köklendirmek için küçük halka saksı. Ortadaki delikten kökler suya uzanır; ikinci sürümde bölünebilir yapı ve isim kartı yuvası vardır, daha geniş ağızlı bardaklara da uyar. Fotoğraflarda siyah halka bardağın kenarında bitkiyle görülür.\nYaklaşık dış ölçüler: 60 × 40 × 36 mm (büyük halka; küçük halka 54 × 42 × 36 mm).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr682160-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr682160-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr682160-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr682160-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Carson Design & Prototyping",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "bahce-etiket-alanli-fide-kaplari-10lu-tepsili-pr1569664",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Etiket Alanlı Fide Kapları (10'lu Tepsi ile)",
+    "aciklama": "50 × 50 mm tabanlı fide kapları ve on kabı yan yana taşıyan tepsi. Kapların iki sürümü vardır: ön yüzünde isim yazmak için küçük etiket çıkıntısı olan ve olmayan. Tohum çimlendirmek ve fide yetiştirmek için pencere önünde düzenli bir dizilim sağlar. Fotoğrafta kaplar tepsinin içinde pencere kenarında, görselde ise sarı renkli model görülür.\nYaklaşık dış ölçüler: 254 × 103 × 20 mm (tepsi; kap 50 × 50 × 70 mm, etiketli kap 82 × 50 × 50 mm).",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1569664-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1569664-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Filamentality",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "bahce-kedi-yuzlu-kucuk-saksi-sukulent-pr268413",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kedi Yüzlü Küçük Saksı (Sukulent ve Küçük Bitkiler İçin)",
+    "aciklama": "Yuvarlak gövdeli, kulaklı ve yüz hatları (gözler, burun, ağız) belirgin işlenmiş sevimli bir kedi saksısı. Sukulent ve kaktüs gibi küçük bitkiler için uygundur; masa, raf ya da pencere kenarında dekoratif bir nokta oluşturur. Fotoğrafta siyah gövdeli saksı bir sukulentle, görselde ise modelin mavi renkli hâli görülür.\nYaklaşık dış ölçüler: 71 × 70 × 55 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr268413-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr268413-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "PaperSwords",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "bahce-sarmal-desenli-saksi-drenajli-su-tepsili-pr275318",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Sarmal Desenli Saksı (Yerleşik Drenajlı ve Su Tepsili)",
+    "aciklama": "Yüzeyi sarmal kıvrımlarla örülmüş, içinde yerleşik drenaj ve su tepsisi bulunan şık saksı. Drenaj ve tepsi gövdenin içinde olduğundan saksının görünümü bozulmaz; fazla su tepsiye toplanır. 15, 30 ve 45 derecelik sarmal açılı sürümlerin yanı sıra sarmal bir bardak (fincan) biçimi de vardır. Fotoğraflarda sarı-pembe geçişli, siyah ve beyaz-pembe saksılar sukulent ve yapraklı bitkilerle balkon korkuluğunda görülür.\nYaklaşık dış ölçüler: 116 × 116 × 100 mm (tüm sürümlerde aynı).",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr275318-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr275318-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr275318-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr275318-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Catdad Workshop",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "bahce-su-seviye-gostergeli-kendi-kendini-sulayan-saksi-4-inc-pr39715",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Su Seviye Göstergeli Kendi Kendini Sulayan Saksı (4 İnç, Parametrik)",
+    "aciklama": "Altında havalandırmalı bir su haznesi bulunan, kendi kendini sulayan saksı. Haznedeki şamandıralı gösterge suyun ne kadar kaldığını dışarıdan izlemenizi sağlar. 4 inçlik silindirik gövdede pürüzsüz, oluklu ve girintili yüzey seçenekleri vardır ve parçalar birbiriyle değiştirilebilir. Fotoğraflarda beyaz, sarı ve altın tonlu saksılar bitkilerle, görselde ise gövde ve taban parçaları ayrı ayrı görülür.\nYaklaşık dış ölçüler: 138 × 135 × 135 mm (saksı parçası; taban 135 × 135 × 46 mm).",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr39715-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr39715-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr39715-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr39715-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Justin",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "bahce-balik-bicimli-kucuk-bitki-saksisi-pr226016",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Balık Biçimli Küçük Bitki Saksısı",
+    "aciklama": "Ağzı açık, yüzgeçli ve kuyruklu sevimli bir balık biçiminde küçük saksı. Sukulent gibi küçük bitkiler için uygundur; masa, raf ya da pencere kenarına eğlenceli bir dekor katar. Görsellerde modelin yeşil renkli ve gri renderları yer alır.\nYaklaşık dış ölçüler: 150 × 84 × 72 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr226016-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr226016-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Chirpee",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "bahce-isik-kubbeli-tohum-baslatici-3x3-led-seritli-pr802953",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Işık Kubbeli Tohum Başlatıcı (3×3 Gözlü, LED Şerit Takılabilir)",
+    "aciklama": "3×3 gözlü bir tohum başlatıcı tavası ve üzerine oturan, 1 cm genişliğindeki LED şeritlerin takılabildiği ışık kubbesinden oluşur. Tava dokuz adet 50 mm'lik bardak alır; su doldurma ağzının kapağı ayrı bir parçadır. Işık şeritlerini bir zaman rölesiyle belirli aralıklarla açıp kapatarak fideler için düzenli aydınlatma sağlayabilirsiniz. Kubbenin ayakları ince ve uzundur, taşırken dikkat edin. Fotoğraflarda ışıklı kubbe altında yetişen fideler görülür.\nYaklaşık dış ölçüler: 176 × 155 × 20 mm (tava; kubbe 155 × 155 × 150 mm, bardak 50 × 50 × 50 mm).",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr802953-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr802953-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "s.mensak (özgün tohum başlatıcı: Quint)",
+      "tur": "GPL 3.0"
+    }
+  },
+  {
+    "id": "bahce-yeniden-kullanilabilir-menteseli-tohum-baslatici-sistemi-pr61837",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Yeniden Kullanılabilir Menteşeli Tohum Başlatıcı Sistemi (Tepsili)",
+    "aciklama": "Tek kullanımlık ince plastik fide kaplarının yerine geçen, yanları menteşeli ve açılabilir tohum başlatıcı kaplar. Fide hazır olunca kabın yanları açılır ve kökler zarar görmeden toprağa aktarılır. Kaplar modüler tepsilere oturur; ayrıca bahçede toprakta fide deliği açmaya yarayan bir delik açma parçası da vardır. Fotoğraflarda pencere kenarında dört kaplı tepsi ve bahçede açılmış fideler görülür.\nYaklaşık dış ölçüler: 150 × 103 × 50 mm (tepsi; menteşeli kap plakası 138 × 138 × 4 mm).",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr61837-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr61837-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Sean K.",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "bahce-bitki-etiketi-sapli-uc-boy-pr575475",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Saplı Bahçe Bitki Etiketi (Küçük, Orta ve Büyük Boy)",
+    "aciklama": "Toprağa saplanan saplı bitki etiketleri; küçük, orta ve büyük olmak üzere üç boyda. Bitkinin adını, çeşidini ve bakım notunu yazabileceğiniz düz bir yüzeyi vardır; saksı, tarla ya da sebze sıralarında bitkileri karıştırmamanıza yardımcı olur. Fotoğraflarda gri tonlu üç boy yan yana görülür.\nYaklaşık dış ölçüler: 200 × 50 × 2 mm (büyük boy; orta boy 135 × 50 mm, küçük boy 100 × 50 mm).",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr575475-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr575475-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Janeo",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "bahce-kendi-kendini-sulayan-tohum-baslatici-etiket-alanli-pr63866",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Etiket Alanlı Kendi Kendini Sulayan Tohum Başlatıcı",
+    "aciklama": "Fideyi alttan sulayan, her kabın üzerinde içindekini yazmak için etiket alanı bulunan tohum başlatıcı. Çok gözlü tepsi kapları taşır, tepsinin yanında su doldurma bölmesi vardır. Tek bir kap ve çok gözlü tepsi sürümü bulunur. Görsellerde 12 gözlü tepsi, tek kap ve su tabanı görülür.\nYaklaşık dış ölçüler: 240 × 200 × 80 mm (tepsi; tek kap 75 × 59 × 52 mm).",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr63866-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr63866-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr63866-3.jpg"
+    ]
+  },
+  {
+    "id": "bahce-petek-gozlu-kucuk-kendi-kendini-sulayan-tohum-baslatici-pr124248",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Petek Gözlü Küçük Kendi Kendini Sulayan Tohum Başlatıcı",
+    "aciklama": "Altıgen (petek) gözlü, küçük boyutlu, kendi kendini sulayan tohum başlatıcı. Yedi altıgen göz bir arada durur; alttaki hazne sayesinde fideler alttan sulanır. Pencere önü ve küçük masalar için uygundur; hazır fideleri kaplarıyla birlikte çıkarıp saksıya aktarabilirsiniz. Fotoğraflarda siyah ve beyaz gövdeli başlatıcı toprak ve fidelerle görülür.\nYaklaşık dış ölçüler: 154 × 135 × 92 mm (ana gövde; tek kap 75 × 50 × 43 mm).",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr124248-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr124248-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr124248-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr124248-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dirk144347",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "bahce-tohum-baslatici-dikey-uzatma-ust-uste-istifleme-pr389147",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Tohum Başlatıcı için Dikey Uzatma (Üst Üste İstifleme)",
+    "aciklama": "Kendi kendini sulayan tohum başlatıcı tepsilerini üst üste koyabilmenizi sağlayan basit bir uzatma. Dar pencere kenarlarında daha çok tohum yetiştirmeye olanak verir; üzerine mutfak folyosu sararak küçük bir sera etkisi de elde edebilirsiniz. Daha kısa ikinci parça, tepsiyi pencere çerçevesinin üstüne yükselterek bitkilerin daha çok ışık almasını sağlar. Fotoğraflarda pencere önünde tepsili uzatma, görsellerde uzatma parçaları görülür.\nYaklaşık dış ölçüler: 154 × 154 × 136 mm (uzun parça; kısa parça 154 × 154 × 79 mm).",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr389147-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr389147-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr389147-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr389147-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Petr Mezník (özgün tohum başlatıcı: Quint)",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "bahce-karton-rulo-tohum-baslatici-yaprak-desenli-pr10914",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Karton Rulo Tohum Başlatıcı (Yaprak Desenli Oyuklu Gövde)",
+    "aciklama": "Tuvalet kâğıdı rulosunu fide kabına dönüştüren, yaprak biçimli oyukları olan tohum başlatıcı. Rulo gövdeye takılır, toprak ve tohumla doldurulup sulanır; oyuklar kökler için nem ve hava sağlar. Fide hazır olunca rulo ile birlikte toprağa aktarılır. Fotoğraflarda turuncu gövde dışarıda yetişen bitkiyle, görselde ise modelin mavi renkli hâli görülür.\nYaklaşık dış ölçüler: 103 × 54 × 54 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr10914-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr10914-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr10914-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr10914-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Ericka",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "bahce-oluklu-govdeli-fide-kabi-ayrilabilir-tabanli-3-inc-pr438006",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Oluklu Gövdeli Fide Kabı (Ayrılabilir Tabanlı, 3 İnç)",
+    "aciklama": "Tohumdan bitki yetiştirmek için küçük fide kabı; yan duvar ve ayrı taban olmak üzere iki parçadan oluşur. Duvarın oluklu yapısı kök gelişimine yardım eder, konik gövde ise fideyi aktarma zamanı kolayca çıkarmanızı sağlar. Fotoğraflarda siyah kapta yetişen çimen ve kökleri görülür.\nYaklaşık dış ölçüler: 92 × 92 × 76 mm (duvar parçası; taban 55 × 55 × 3 mm).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr438006-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr438006-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr438006-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "LaForest Labs",
+      "tur": "GPL 3.0"
+    }
+  },
+  {
+    "id": "bahce-cift-agizli-kavanoz-halkasi-mini-sera-fidelik-pr388824",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Çift Ağızlı Kavanoz Halkası ile Mini Sera Fidelik",
+    "aciklama": "İki standart geniş ağızlı kavanozu birleştirerek küçük bir sera (fidelik) oluşturan çift taraflı halka ve ince delikli tohum tutucu kap. Alt kavanoza su, tutucu kaba steril emici malzeme ve tohum konur; iki kavanoz halkayla birbirine geçirilir. Halkanın kenarı elde kolay tutulur. Fotoğraflarda kavanozlar, halka ve tutucu kap görülür.\nYaklaşık dış ölçüler: 81 × 81 × 34 mm (halka; tutucu kap 64 × 64 × 61 mm).",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr388824-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr388824-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr388824-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr388824-4.jpg"
+    ]
+  },
+  {
+    "id": "bahce-hava-budamali-fide-tepsisi-2x2-gozlu-dort-boy-pr841461",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Hava Budamalı Fide Tepsisi (2×2 Gözlü, 32 / 42 / 64 / 85 mm)",
+    "aciklama": "Köklerin havayla temas ettiği noktada budanmasını sağlayan hava budamalı fide gözleri; yan yüzeylerdeki havalandırma aralıkları kökleri sıkışmadan yoğun ve sağlıklı gelişmeye yöneltir. 2×2 gözlü dört boy (32, 42, 64 ve 85 mm'lik gözler) ile 85 mm'lik tekil göz ve 100 mm'lik tekil kare göz seçenekleri vardır. Fotoğraflarda yeşil ve siyah gözler fidelerle ve yanlarında kök topaklarıyla görülür.\nYaklaşık dış ölçüler: 169 × 169 × 100 mm (en büyük 2×2 model; 32 mm'lik model 64 × 64 × 60 mm).",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr841461-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr841461-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr841461-3.jpg"
+    ]
+  },
+  {
     "id": "dekor-sade-hac-kolye-ucu-pr546668",
     "kategori": "Dekorasyon",
     "marka": [],
