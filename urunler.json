@@ -1,5 +1,153 @@
 [
   {
+    "id": "mutfak-kapakli-seyahat-catal-kasik-bicak-kutusu-pr872395",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kapaklı Seyahat Çatal-Kaşık-Bıçak Saklama Kutuları (Mıknatıslı Altlık)",
+    "aciklama": "Piknik, kamp ve seyahatte çatal, kaşık ve bıçağı ayrı ayrı saklamanızı sağlayan kapaklı kutu seti. Her takım için ayrı alt kutu ile kapak bulunur; kapakların üzerinde FORK, SPOON ve KNIFE yazıları vardır, yazısız kapak seçeneği de pakette yer alır. Kutular ortak bir altlığa oturur; altlıkta 6 × 3 mm ölçülerinde mıknatıs cepleri bulunur, mıknatıs kullanmak isteğe bağlıdır ve pakete dahil değildir. Fotoğraflarda kırmızı ve mavi kutular masada ve dolap içinde görülür.\nAltlık 184 × 111 × 26 mm, alt kutu 124 × 103 × 63 mm, kapak 103 × 84 × 63 mm'dir.\nYaklaşık dış ölçüler: 184 × 111 × 26 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr872395-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr872395-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "KeilTheOld",
+      "tur": "GPL 3.0"
+    }
+  },
+  {
+    "id": "mutfak-altigen-uc-katli-gerec-kurutucu-pr51372",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Altıgen Üç Katlı Çatal-Kaşık Düzenleyici ve Kurutucu",
+    "aciklama": "Üç kademeli, altıgen delikli gövdesiyle çatal-kaşık takımını ve temizlik fırçalarını ayrı bölmelerde dik tutan düzenleyici. Altıgen oyuklar suyun süzülmesine ve havada kurumaya yardımcı olur, gövdeyi de hafifletir. Üç ayrı kap farklı yüksekliklerde yan yana durur; tezgâhta ya da lavabo yanında kullanılabilir. Fotoğraflarda kırmızı gövde çatal-kaşıkla dolu halde görülür.\nYaklaşık dış ölçüler: 158 × 139 × 138 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr51372-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr51372-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Travis DeAngelis",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mutfak-oluklu-pisirme-gerec-dinlendirici-tabla-pr166576",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Oluklu Pişirme Gereçleri Dinlendirme Tablası (Kepçe, Bıçak, Maşa)",
+    "aciklama": "Pişirme sırasında kepçe, maşa, bıçak ve spatulayı bırakacağınız düz, oluklu dinlendirme tablası. Yüzeyindeki olukların arasına gereçler yerleşir; sos ve sıvı damlaları tezgâha değil tablaya akar. Tek parçadır, montaj gerektirmez. Fotoğraflarda sarı tabla üzerinde kepçe, bıçak ve maşa ile görülür.\nYaklaşık dış ölçüler: 186 × 150 × 45 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr166576-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr166576-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ochm",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mutfak-miknatisli-gerec-askisi-pr648661",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Mıknatıslı Mutfak Gereci Askısı (Spatula ve Kaşıklar İçin)",
+    "aciklama": "Spatula, kaşık ve hafif mutfak gereçlerini buzdolabı yanı ya da metal yüzeye asmak için mıknatıslı askı. Çubuk biçimli gövdede gereçlerin saplarındaki deliğe geçen kancalar bulunur; gövdeye iki adet mıknatıs takılır (15–16 mm çapında, 3 mm derinliğinde yuvalara yerleşen mıknatıslar pakete dahil değildir). Delik delmeden metal yüzeye tutunur. Fotoğrafta siyah gereçlerle asılı hali görülür.\nYaklaşık dış ölçüler: 114 × 39 × 24 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr648661-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr648661-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "tarq",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mutfak-tako-tutucu-pr94340",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Tako Tutucu (Dik Duran Taco İçin, 2'li)",
+    "aciklama": "Tako, tortilla ve benzeri katlanmış dürümleri tabakta dik tutan, dalgalı yüzeyli tutucu. Doldurduğunuz tako yan yatıp dağılmaz; sos ve iç harç tabakta kalır. İkili yuva yapısıyla iki takoyu birlikte taşır. Fotoğrafta tabakta takolarla birlikte ve tek başına görülür.\nYaklaşık dış ölçüler: 172 × 30 × 20 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr94340-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr94340-2.jpg"
+    ]
+  },
+  {
+    "id": "mutfak-iki-parcali-gerec-kurutucu-sepeti-pr1696682",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "İki Parçalı Mutfak Gereç Kurutucusu (Süzme Ağızlı, Kolay Temizlenir)",
+    "aciklama": "Yıkanmış kaşık, çatal ve spatulayı lavabo yanında dik biçimde kurutan, iç sepetli iki parçalı kurutucu. İç sepet ayrı çıkarıldığı için her iki parçanın içi kolayca temizlenir. Dış kabın süzme ağzı biraz yukarıda durur; kenarı yüksek lavabolara da suyu boşaltır, iç taban ağza doğru eğimlidir ve su birikmez. Yan yüzeydeki delikler hava dolaşımını sağlar. İç sepet gri, dış kap farklı renkte yapılarak iki renkli de kullanılabilir. Fotoğraflarda kaşık ve çatallarla dolu hali görülür.\nİç sepet 148 × 137 × 131 mm, dış kap 178 × 150 × 104 mm'dir.\nYaklaşık dış ölçüler: 178 × 150 × 104 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1696682-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1696682-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DP design",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mutfak-bes-gozlu-altigen-gerec-tutucu-pr593505",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Beş Gözlü Altıgen Mutfak Gereci ve Kalem Tutucu",
+    "aciklama": "Beş altıgen gözlü, kovan petek görünümlü masa üstü tutucu. Kaşık, spatula, çatal ya da kalem gibi uzun nesneler ayrı gözlere yerleşir ve birbirine karışmaz. Yüzeydeki altıgen açıklıklar tutucuyu hafifletir. Tek parçadır. Fotoğraflarda mor renkte yan yana bakışlar ve üstten görünüm yer alır.\nYaklaşık dış ölçüler: 194 × 162 × 125 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr593505-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr593505-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr593505-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr593505-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Martin Ždila",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mutfak-dar-cekmece-gerec-tepsisi-pr235522",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Dar Çekmeceler İçin Kaşık-Çatal-Bıçak Tepsisi (Ayrı Küçük Kaşık Tepsisi)",
+    "aciklama": "Dar mutfak çekmecelerine uyan, bıçak, çatal ve kaşıkları ayrı bölmelerde saklayan tepsi. Ana tepsi bıçaklar, çatallar ve kaşıklar için farklı genişlikte yuvalara ayrılmıştır; yanında çay kaşığı gibi küçük gereçler için ayrı bir tepsi daha bulunur. İki renkli (taban farklı, duvarlar farklı) kullanılabilir. Fotoğraflarda beyaz tepsi içinde çatal-kaşıkla ve çekmeceye yerleşmiş hali görülür.\nAna tepsi 248 × 175 × 60 mm, küçük kaşık tepsisi 175 × 110 × 60 mm'dir.\nYaklaşık dış ölçüler: 248 × 175 × 60 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr235522-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr235522-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr235522-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "MiniSpaceMaker",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mutfak-tek-parca-s-kanca-gerec-asma-pr653677",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Mutfak Gereçleri İçin S Kanca (Metal Askı Çubuğuna, 150 mm)",
+    "aciklama": "Metal askı çubuğundan mutfak gereçlerini (spatula, kaşık, maşa) tek tek asmak için S biçimli kanca. Hazır mutfak askı sistemlerinde çoğu zaman yeterli kanca verilmez; bu kanca eksik kalan yerleri tamamlar ve gereçlerin üst üste asılmasını önler. Yaklaşık 150 mm boyundadır. Fotoğrafta çubukta asılı gereçlerle ve tek başına görülür.\nYaklaşık dış ölçüler: 141 × 70 × 4 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr653677-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr653677-2.jpg"
+    ]
+  },
+  {
     "id": "bahce-olceklenebilir-bahce-yagmurlama-sistemi-pr61834",
     "kategori": "Bahçe",
     "marka": [],
