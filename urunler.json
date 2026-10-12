@@ -1,5 +1,39 @@
 [
   {
+    "id": "masaustu-moduler-kutu",
+    "kategori": "Ofis",
+    "marka": [],
+    "baslik": "Masaüstü Modüler Kutu (Bölmeli, İstiflenebilir)",
+    "aciklama": "Bölmeli ve istiflenebilir masaüstü düzenleyici. Açık üstlü, tek parça gövde; iç ızgarada kalem/aksesuar için bölmeler; üst kenarda aynı kutunun altına oturan kademe ile dikey istiflenebilir. Düz tabanlı, tabla yüzeyine temas eder.\n- S: tek gözlü mini kutu (1×1), 60×40×30 mm\n- M: 2 gözlü orta kutu (2×1), 90×60×40 mm\n- L: 6 gözlü büyük kutu (3×2), 120×80×50 mm\nDuvarlar 2 mm, taban 2 mm; köşeler yuvarlatılmış; kademe payı 0,3 mm\nYaklaşık dış ölçüler: 60 × 40 × 30 mm (S), 90 × 60 × 40 mm (M), 120 × 80 × 50 mm (L).\nTahmini ağırlık (PLA): 18,9 g (S) · 45,7 g (M) · 101,2 g (L).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/masaustu-moduler-kutu-1.jpg",
+      "https://media.pruvo3d.com/urunler/masaustu-moduler-kutu-2.jpg",
+      "https://media.pruvo3d.com/urunler/masaustu-moduler-kutu-3.jpg",
+      "https://media.pruvo3d.com/urunler/masaustu-moduler-kutu-4.jpg",
+      "https://media.pruvo3d.com/urunler/masaustu-moduler-kutu-5.jpg",
+      "https://media.pruvo3d.com/urunler/masaustu-moduler-kutu-6.jpg"
+    ],
+    "tavsiyeFilament": [
+      "PLA",
+      "PETG"
+    ],
+    "boy_secenekleri": [
+      {
+        "etiket": "S",
+        "fark_tl": 0
+      },
+      {
+        "etiket": "M",
+        "fark_tl": 100
+      },
+      {
+        "etiket": "L",
+        "fark_tl": 250
+      }
+    ]
+  },
+  {
     "id": "evcil-yumurta-bicimli-odul-kedi-oyuncagi-pr1129341",
     "kategori": "Ev",
     "marka": [],
