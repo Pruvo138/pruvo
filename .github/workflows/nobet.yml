@@ -2111,6 +2111,16 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/defter-onlem-bacagi-test.py
 
+      # 12 EKI — ROTASYON ARACININ KENDI BATARYASI (konumlu `🔴` jetonu, 3. tekrar
+      # sinif onarimi). `🔴` satir ici VURGU olarak gecince kapanmis blok sonsuza
+      # dek ACIK vetosu aliyordu (12 Eki: 29 blok elle tasindi). `--kendini-test`
+      # V1..V4 + M-V1 (izole kopyada) dahil TUM fikstur/mutantlari kosar; daha once
+      # hicbir is akisinda kosmuyordu. Tamamen offline (tempfile), GERCEK deftere
+      # DOKUNMAZ.
+      - name: "Defter rotasyonu kendini-test (konumlu jeton V1-V4 + mutant, SERIT B)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/defter-rotasyon.py --kendini-test
+
       # K309 (16 Eyl 2026) — MENZIL KAPISI. Defterde SATIRI OLMAYAN kalem id'si
       # sayisini olcer: `acik-kalemler.md` nobetin olcum EVRENIDIR, orada satiri
       # olmayan kalem ne kapanabilir ne olculebilir; bugun kayitlarda yasayan
