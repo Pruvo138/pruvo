@@ -1,5 +1,99 @@
 [
   {
+    "id": "elektronik-gelistirme-karti-kasasi-ince-iki-parcali-uno-boyutu-pr122097",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Geliştirme Kartı Kasası (İnce, İki Parçalı, Uno Boyutu)",
+    "aciklama": "Arduino Uno kartını toza ve darbeye karşı koruyan ince, iki parçalı kasa. Üst kapak kartın USB ve güç girişlerini açıkta bırakır; alt parça ise breadboard ile birlikte kullanılabilecek şekilde tasarlanmıştır. Tek bir M3 vida ve M3 altıgen somunla birleşir, açılması kolaydır. Fotoğraflarda mavi ve mor kasa kartın üzerinde ve çizimle görülür.\nYaklaşık dış ölçüler: 73 × 58 × 20 mm (üst 9 mm, alt 11 mm).",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr122097-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr122097-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr122097-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr122097-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Kazik",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "elektronik-tek-karti-mini-bilgisayar-kasasi-havalandirmali-profile-baglanabilir-pr106295",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Tek Kartlı Mini Bilgisayar Kasası (Havalandırmalı, Profile Bağlanabilir)",
+    "aciklama": "Raspberry Pi Zero, Zero W ve Zero 2 W kartlarını saran, üstü uzun havalandırma yuvalı iki renkli kasa. Gövdeye iki ayrı kapak (çizgili ve düz yuvalı), kartı yerinde tutan bir tutucu ve 40 × 40 mm alüminyum profile bağlamak için küçük bir bağlantı parçası dahildir. Kartın USB, HDMI ve güç girişleri açıktır. Fotoğraflarda kırmızı gövdeli, beyaz kapaklı kasa kartla birlikte görülür.\nYaklaşık dış ölçüler: gövde 73 × 38 × 13 mm; kapak 67 × 32 × 2 mm; tutucu 63 × 28 × 10 mm; profil bağlantısı 42 × 12 × 9 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr106295-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr106295-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr106295-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr106295-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Nikolica",
+      "tur": "GPL 3.0"
+    }
+  },
+  {
+    "id": "elektronik-mini-itx-bilgisayar-kasasi-47-litre-ek-disli-gerektirmeyen-pr143897",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Mini ITX Bilgisayar Kasası (4,7 Litre, Ek Dişli Gerektirmeyen Tasarım)",
+    "aciklama": "İç hacmi yaklaşık 4,7 litre olan, iki ana parçadan oluşan sandviç düzenli Mini ITX bilgisayar kasası. Gövde ve omurga parçası ek dişli ya da metal parça gerektirmeden M3 ve M4 vidalarla birleşir; ekran kartı için ayrı bir taşıyıcı braket vardır. Ayaklı ve ayaksız iki gövde sürümü bulunur. Fotoğraflarda siyah ve turuncu kasa arkadan, yandan ve kapalı halde görülür.\nYaklaşık dış ölçüler: gövde 234 × 199 × 114 mm; omurga 223 × 198 × 109 mm; ekran kartı braketi 43 × 26 × 10 mm.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr143897-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr143897-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr143897-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr143897-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "eCrowne (özgün tasarım: ecor)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "elektronik-tek-kartli-bilgisayar-kasasi-ssd-karti-uyumlu-fan-secenekli-pr619945",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Tek Kartlı Bilgisayar Kasası (SSD Kartı Uyumlu, Fan Seçenekli)",
+    "aciklama": "Raspberry Pi 5 kartı için yan duvarları desenli, üstü fan dairesi biçiminde havalandırmalı kasa. Resmi aktif soğutucuya uyar; M.2 NVMe SSD kartı için delikli üst kapak ve +5 mm daha yüksek gövde sürümü vardır (resmi M.2 HAT+ standart kasaya sığmaz, yüksek gövdeyle denenebilir). Ara çerçeve dört ayrı seçenektir: yanlar açık, orta açık, yan-orta açık ve tam açık; güç düğmesi parçası ve duvara monte etme aparatı da bulunur. Fotoğraflarda kırmızı gövdeli beyaz kapaklı kasa çizim ve fotoğrafla görülür.\nYaklaşık dış ölçüler: gövde 93 × 64 × 27 mm; yüksek gövde 93 × 64 × 32 mm; SSD kapağı 87 × 58 × 6 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr619945-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr619945-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr619945-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Nikolica",
+      "tur": "GPL 3.0"
+    }
+  },
+  {
+    "id": "elektronik-uydu-anteni-direk-montaji-25-ve-38-mm-direk-icin-20-derece-pr883453",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Uydu Anteni Direk Montajı (25 ve 38 mm Direk İçin, 20° Eğimli)",
+    "aciklama": "Starlink Gen 3 uydu anteninin kutusundan çıkan yere yerleştirme ayağı yerine, anteni bir direğe monte etmeyi sağlayan adaptör. Ayak, direk kelepçesi ve iki tutucudan oluşur; anteni yaklaşık 20 derece eğimle tutar. 25 mm ve 38 mm direk için ayrı kelepçe vardır, 32 mm direk için indirgeme manşonu bulunur. 4 adet M6 cıvata ve somun ile direğe sıkmak için bir hortum kelepçesi gerekir (hiçbiri dahil değildir). Fotoğraflarda gri adaptör vidalı olarak ve çatıdaki antenle görülür.\nYaklaşık dış ölçüler: direk kelepçesi (25 mm) 155 × 114 × 94 mm; ayak 180 × 142 × 62 mm; tutucular 38 × 36 × 11 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr883453-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr883453-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr883453-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr883453-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "3DPS",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "ev-eller-serbest-kitap-tutucusu-yemek-kitabi-ve-okuma-icin-pr26056",
     "kategori": "Ev",
     "marka": [],
