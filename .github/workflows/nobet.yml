@@ -2580,6 +2580,14 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/serit-b-dispatch-test.py
 
+      # URUN KUYRUGU BIRLESTIRICI (12 Eki 2026, BaBa "YAYIN ACLIGI") — urun push'lari
+      # `urun-kuyruk` dalinda birikir, .github/workflows/urun-kuyruk.yml Pages YOKKEN
+      # main'e alir. Burada HERMETIK batarya: gecici bare origin + sahte gh/git (AG YOK),
+      # 15 vaka (BEKLE/BOS/ff/merge/CAKISMA/yabanci-yol/yaris/...) + taban + M-BOS/M-YOL.
+      - name: "Urun kuyrugu birlestirici kabul bataryasi (BOS'ta push/dispatch 0, mutant M-BOS/M-YOL)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/urun-kuyruk-test.py
+
       # HAYALI NOBETCI KAPISI (11 Eyl 2026, BaBa ⑤) — "tools/ icindeki bir YORUM bir .py
       # dosyasini NOBETCI diye aniyorsa o dosya VAR OLMALI". Olculen ariza: ca8c3815
       # supurmesiyle silinen serbest-kume-tekkaynak-test.py'yi DORT yer hala nobetci diye

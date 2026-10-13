@@ -56,6 +56,26 @@ run <id> <durum> @<sha> — hükmü bekle" der, başlık `ARDIL_SURUYOR=N` taş�
   M13 MUTANT etiket kapsamı `ardil is None`ten genişler -> V28 KIRMIZI
   M14 MUTANT başlık sayacı 0'a sabitlenir       -> V29 KIRMIZI
 
+K435 (12 Eki 2026, KraL-Tamirci-12Eki) — "commit-tree merge boşluğu": dal main'e SQUASH /
+PARÇA PARÇA / cherry-pick ile girince kırmızının SHA'sı main atası DEĞİL (`ata_mi` False) →
+kırmızı gün sonuna dek CANLI. ÖLÇÜLDÜ: 12 Eki spec'i `CANLI=1` = SERIT B `38188955858`
+@`f67920c6` (`kral/k80-zaman-12eki`, cancelled); içeriği main'e "foto 6 model parça 1/4..4/4"
+olarak girdi (`git merge-base --is-ancestor` rc 1) ama dalın KENDİ 26 dosyası `8834edb0`'da
+BİREBİR aynı. Ardıl artık İÇERİKTEN de okunur (`icerik_mi`, gerçekte `icerik_main_de_mi_git`):
+  V30 ata DEĞİL ∧ içerik VAR ∧ main ardılı success   -> KAPANDI "dal İÇERİĞİ main'e girdi"
+  V31 ata VAR (içerik de VAR/yok)                    -> etiket "dal main'e katıldı" (ata önce)
+  V32 içerik YOK / ölçülemedi / verilmedi            -> CANLI (görünür yön)
+  V33 içerik VAR ama ardıl failure · başka iş akışı · başka dal · kırmızıdan ÖNCE -> CANLI
+  V34 gerçek git: kısmi iniş False · tam iniş True (ata False) · sonradan değişmiş False ·
+      merge-base'in kendisi False · bilinmeyen sha None
+  V35 bugunun_kirmizilari uçtan uca (fake gh+ata False+içerik True) -> CANLI=0 · "İÇERİĞİ"
+  M15 MUTANT içerik sonucu bakılmaz (callable=var)    -> V32 KIRMIZI
+  M16 MUTANT içerik bilinmiyor=var sayılır            -> V32 KIRMIZI
+  M17 MUTANT etiket hep "dal main'e katıldı"          -> V30 KIRMIZI
+  M18 MUTANT git: dosya kesişimi bakılmaz (hep True)  -> V34 KIRMIZI
+  M19 MUTANT git: merge-base hatası=True (None değil) -> V34 KIRMIZI
+  M20 MUTANT bugunun_kirmizilari icerik_mi'yi geçirmez -> V35 KIRMIZI
+
 Koşum: python3 tools/sabah-ardil-kova-test.py   (rc=0 = hepsi beklenen)
 """
 
@@ -86,24 +106,40 @@ MUTANTLAR = {
     "M6": ("                + devreden, 0, kaynak)\n",
            "                , 0, kaynak)  # MUTANT\n", "V15"),
     # 8 Eki — K435: dal kırmızısının ardılı main'de
-    "M7": ("    return ata_mi(a, b) is True\n", "    return True  # MUTANT\n", "V17"),
-    "M8": ("    return ata_mi(a, b) is True\n",
-           "    return ata_mi(a, b) is not False  # MUTANT\n", "V19"),
-    "M9": ('    if ata_mi is None or d.get("headBranch") != ANA_DAL:\n',
-           "    if ata_mi is None:  # MUTANT\n", "V22"),
+    "M7": ("    if ata_mi is not None and ata_mi(a, b) is True:\n        return True\n",
+           "    if ata_mi is not None:  # MUTANT\n        return True\n", "V17"),
+    "M8": ("    if ata_mi is not None and ata_mi(a, b) is True:\n        return True\n",
+           "    if ata_mi is not None and ata_mi(a, b) is not False:  # MUTANT\n        return True\n",
+           "V19"),
+    "M9": ('    if (ata_mi is None and icerik_mi is None) or d.get("headBranch") != ANA_DAL:\n',
+           "    if ata_mi is None and icerik_mi is None:  # MUTANT\n", "V22"),
     "M10": ("    if r.returncode == 1:\n        return False\n    return None\n",
             "    if r.returncode == 1:\n        return False\n    return True  # MUTANT\n", "V23"),
-    "M11": ("kirmizi_siniflandir(data, bugun, ata_mi_git)\n",
+    "M11": ("kirmizi_siniflandir(\n            data, bugun, ata_mi_git, icerik_main_de_mi_git)\n",
             "kirmizi_siniflandir(data, bugun)  # MUTANT\n", "V25"),
     # 11 Eki — K435: ardıl SÜRÜYOR etiketi
     "M12": ("        if tamam == suruyor:\n",
             "        if False:  # MUTANT\n", "V27"),
-    "M13": ("                bekleyen = (ardil_hukum(data, run, ata_mi, suruyor=True)\n"
+    "M13": ("                bekleyen = (ardil_hukum(data, run, ata_mi, suruyor=True, icerik_mi=icerik_mi)\n"
             "                            if ardil is None else None)\n",
-            "                bekleyen = ardil_hukum(data, run, ata_mi, suruyor=True)  # MUTANT\n",
+            "                bekleyen = ardil_hukum(data, run, ata_mi, suruyor=True, icerik_mi=icerik_mi)  # MUTANT\n",
             "V28"),
     "M14": ('            suruyor_n = len([x for x in kirmizi if "ARDIL SÜRÜYOR" in x])\n',
             "            suruyor_n = 0  # MUTANT\n", "V29"),
+    # 12 Eki — K435: SHA ata değil ama İÇERİK main'de (squash / parça / cherry-pick)
+    "M15": ("    return icerik_mi is not None and icerik_mi(a, b) is True\n",
+            "    return icerik_mi is not None  # MUTANT\n", "V32"),
+    "M16": ("    return icerik_mi is not None and icerik_mi(a, b) is True\n",
+            "    return icerik_mi is not None and icerik_mi(a, b) is not False  # MUTANT\n", "V32"),
+    "M17": ('                        "dal main\'e katıldı" if ata else\n',
+            '                        "dal main\'e katıldı" if True else\n', "V30"),
+    "M18": ("                sonuc = not (kendi_k & fark_k)\n",
+            "                sonuc = True  # MUTANT\n", "V34"),
+    "M19": ("        if mb.returncode != 0 or not mb.stdout.strip():\n            sonuc = None\n",
+            "        if mb.returncode != 0 or not mb.stdout.strip():\n            sonuc = True  # MUTANT\n",
+            "V34"),
+    "M20": ("kirmizi_siniflandir(\n            data, bugun, ata_mi_git, icerik_main_de_mi_git)\n",
+            "kirmizi_siniflandir(\n            data, bugun, ata_mi_git)  # MUTANT\n", "V35"),
 }
 
 
@@ -283,7 +319,100 @@ def vakalar(mod, gun=GUN):
     sonuc["V28"] = (c == 2 and bool(s1) and ETIKET not in s1[0]
                     and "CANLI: ardılı `bbbbbbbb` failure" in s1[0]
                     and bool(s2) and "ARDIL SÜRÜYOR: run 3 in_progress" in s2[0], r)
+
+    # --- K435 (12 Eki): SHA ata DEĞİL ama İÇERİK main'de (squash / parça / cherry-pick) -------
+    si = lambda data, ata=None, ic=None: mod.kirmizi_siniflandir(data, gun, ata, ic)
+    ok_main = kk(SB, "02:00:00", "success", "bbbbbbbb", 2)
+    r, _, c, kp = si([ok_main, kirmizi_dal], HAYIR, EVET)
+    sonuc["V30"] = (c == 0 and kp == 1 and "KAPANDI: dal İÇERİĞİ main'e girdi" in r[0]
+                    and "SHA ata değil" in r[0] and "`bbbbbbbb`" in r[0]
+                    and "dal main'e katıldı" not in r[0], r)
+    r1, _, c1, kp1 = si([ok_main, kirmizi_dal], EVET, EVET)
+    r2, _, c2, kp2 = si([ok_main, kirmizi_dal], EVET, HAYIR)
+    r3, _, c3, kp3 = si([ok_main, kirmizi_dal], EVET)
+    sonuc["V31"] = (c1 == c2 == c3 == 0 and kp1 == kp2 == kp3 == 1
+                    and all("KAPANDI: dal main'e katıldı" in x[0] and "İÇERİĞİ" not in x[0]
+                            for x in (r1, r2, r3)), (r1, r2, r3))
+    v32 = {}
+    for ad_, (ata_, ic_) in {"icerik-yok": (HAYIR, HAYIR), "icerik-bilinmez": (HAYIR, BILINMEZ),
+                             "icerik-verilmedi": (HAYIR, None),
+                             "ata-bilinmez-icerik-yok": (BILINMEZ, HAYIR)}.items():
+        rr, _, cc, kpp = si([ok_main, kirmizi_dal], ata_, ic_)
+        v32[ad_] = (cc == 1 and kpp == 0 and "CANLI: ardıl hüküm YOK" in rr[0])
+    sonuc["V32"] = (all(v32.values()), v32)
+    v33 = {}
+    olumsuz33 = {
+        "failure": [kk(SB, "02:00:00", "failure", "bbbbbbbb", 2), kirmizi_dal],
+        "ad": [kk(BD, "02:00:00", "success", "bbbbbbbb", 2), kirmizi_dal],
+        "dal": [kk(SB, "02:00:00", "success", "bbbbbbbb", 2, dal="kral/y"), kirmizi_dal],
+        "zaman": [kk(SB, "00:30:00", "success", "bbbbbbbb", 2), kirmizi_dal],
+    }
+    for ad_, veri_ in olumsuz33.items():
+        rr, _, cc, kpp = si(veri_, HAYIR, EVET)
+        satir_ = [x for x in rr if "run 1 " in x]
+        v33[ad_] = bool(satir_) and "CANLI" in satir_[0] and "KAPANDI" not in satir_[0] and kpp == 0
+    sonuc["V33"] = (all(v33.values()), v33)
+    sonuc["V34"] = v34_git_icerik(mod)
     return sonuc
+
+
+def v34_git_icerik(mod):
+    """Gerçek git, geçici depo: ata DEĞİL ama içerik main'de. base(a,b) -> dal(a,b değişir) ;
+    main: base -> kısmi(yalnız a) -> tam(a+b: dalın 2 dosyası da) -> sonra(a yine değişir).
+    icerik(dal,kısmi)=False · (dal,tam)=True ∧ ata(dal,tam)=False · (dal,sonra)=False ·
+    (dal,base)=False · bilinmeyen sha=None. GIT_* ortamı TEMİZLENİR (V23 ile aynı gerekçe)."""
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from git_ortami import sentetik_git
+    temiz = {a: v for a, v in os.environ.items() if a.startswith("GIT_")}
+    for a in temiz:
+        del os.environ[a]
+    try:
+        with tempfile.TemporaryDirectory() as td:
+            kw = dict(ayarlar=("-c", "commit.gpgsign=false"), capture_output=True, text=True)
+            g = lambda *a: sentetik_git(td, *a, **kw)
+
+            def yaz(ad, metin):
+                with open(os.path.join(td, ad), "w", encoding="utf-8") as f:
+                    f.write(metin)
+
+            def sha():
+                return g("rev-parse", "HEAD").stdout.strip()
+
+            g("init", "-q", "-b", "main")
+            yaz("a.txt", "a0\n")
+            yaz("b.txt", "b0\n")
+            g("add", "-A")
+            g("commit", "-q", "-m", "base")
+            base = sha()
+            g("checkout", "-q", "-b", "dal")
+            yaz("a.txt", "a1\n")
+            yaz("b.txt", "b1\n")
+            g("commit", "-q", "-am", "dal")
+            dal = sha()
+            g("checkout", "-q", "main")
+            yaz("a.txt", "a1\n")
+            g("commit", "-q", "-am", "kismi")
+            kismi = sha()
+            yaz("b.txt", "b1\n")
+            g("commit", "-q", "-am", "tam")
+            tam = sha()
+            yaz("a.txt", "a2\n")
+            g("commit", "-q", "-am", "sonra")
+            sonra = sha()
+            eski = mod.REPO
+            mod.REPO = type(mod.REPO)(td)
+            mod._ICERIK_ONBELLEK.clear()
+            try:
+                r = (mod.icerik_main_de_mi_git(dal, kismi), mod.icerik_main_de_mi_git(dal, tam),
+                     mod.ata_mi_git(dal, tam), mod.icerik_main_de_mi_git(dal, sonra),
+                     mod.icerik_main_de_mi_git(dal, base),
+                     mod.icerik_main_de_mi_git("0" * 40, tam))
+            finally:
+                mod.REPO = eski
+                mod._ICERIK_ONBELLEK.clear()
+    finally:
+        os.environ.update(temiz)
+    return r == (False, True, False, False, False, None) and len(dal) == 40, r
 
 
 def v23_git_ata(mod):
@@ -339,6 +468,34 @@ def v25_ata_uctan_uca(mod):
     ok = (hukum == "OK" and adet == 1 and "**CANLI=0**" in blok and "ARDILI_YESIL=1" in blok
           and "dal main'e katıldı" in blok)
     return ok, (hukum, adet, blok[:200])
+
+
+def v35_icerik_uctan_uca(mod):
+    """bugunun_kirmizilari (fake gh + ata False + içerik True) -> dal kırmızısı main ardılıyla
+    İÇERİKTEN KAPANIR; classifier'a `icerik_main_de_mi_git` GEÇİRİLDİĞİNİN (kablo) ölçüsü."""
+    bugun = dt.datetime.now(dt.timezone.utc).date()
+    import json
+    data = [k(SB, "00:00:02", "success", "bbbbbbbb", 2, gun=bugun),
+            k(SB, "00:00:01", "cancelled", "aaaaaaaa", 1, gun=bugun, dal="kral/x")]
+    with tempfile.TemporaryDirectory() as td:
+        sahte = os.path.join(td, "gh")
+        with open(sahte, "w", encoding="utf-8") as f:
+            f.write("#!%s\nimport sys\nsys.stdout.write(%r)\n" % (sys.executable, json.dumps(data)))
+        os.chmod(sahte, 0o700)
+        eski = (mod.gh_yolu, mod._repo_slug, mod.REPO, mod.ata_mi_git, mod.icerik_main_de_mi_git)
+        mod.gh_yolu = lambda: (sahte, "test")
+        mod._repo_slug = lambda: None
+        mod.REPO = type(mod.REPO)(td)
+        mod.ata_mi_git = lambda a, b: False
+        mod.icerik_main_de_mi_git = lambda a, b: True
+        try:
+            hukum, blok, adet, _ = mod.bugunun_kirmizilari()
+        finally:
+            (mod.gh_yolu, mod._repo_slug, mod.REPO, mod.ata_mi_git,
+             mod.icerik_main_de_mi_git) = eski
+    ok = (hukum == "OK" and adet == 1 and "**CANLI=0**" in blok and "ARDILI_YESIL=1" in blok
+          and "dal İÇERİĞİ main'e girdi" in blok)
+    return ok, (hukum, adet, blok[:260])
 
 
 def _fake_gh_blok(mod, data):
@@ -447,6 +604,9 @@ def main():
     ok, kanit = v29_ardil_suruyor_uctan_uca(mod)
     print("%s V29 %s" % ("YESIL " if ok else "KIRMIZI", "" if ok else kanit))
     kirmizi += 0 if ok else 1
+    ok, kanit = v35_icerik_uctan_uca(mod)
+    print("%s V35 %s" % ("YESIL " if ok else "KIRMIZI", "" if ok else kanit))
+    kirmizi += 0 if ok else 1
 
     with open(KAYNAK, encoding="utf-8") as f:
         govde = f.read()
@@ -465,6 +625,7 @@ def main():
             sonuc["V15"] = v15_devreden_uctan_uca(mm)
             sonuc["V25"] = v25_ata_uctan_uca(mm)
             sonuc["V29"] = v29_ardil_suruyor_uctan_uca(mm)
+            sonuc["V35"] = v35_icerik_uctan_uca(mm)
         hedef_dustu = not sonuc[hedef][0]
         kontrol = sonuc["V2"][0]
         ok = hedef_dustu and kontrol
@@ -473,7 +634,7 @@ def main():
             "YESIL " if ok else "KIRMIZI", mad, hedef, int(hedef_dustu), int(kontrol)))
         kirmizi += 0 if ok else 1
 
-    print("SABAH_ARDIL_KOVA VAKA=29 MUTANT_OLDU=%d/%d KIRMIZI=%d rc=%d" % (
+    print("SABAH_ARDIL_KOVA VAKA=35 MUTANT_OLDU=%d/%d KIRMIZI=%d rc=%d" % (
         oldu, len(MUTANTLAR), kirmizi, 1 if kirmizi else 0))
     return 1 if kirmizi else 0
 

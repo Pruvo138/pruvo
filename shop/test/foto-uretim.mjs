@@ -6363,9 +6363,9 @@ console.log("SIM) ④ 4 RENK SİMÜLASYONU — bölge tabanlı (VERI.dortRenkSim
   ol("SIM-KK kontrast koruma: koyu saç + açık ten (ikisi de en yakın Ahşap) -> farklı renk, ten Ahşap", s.KK, JSON.stringify(s.iz.KK));
   ol("SIM-LT ton önceliği: açık mavi yüzey -> Mavi (Ahşap değil)", s.LT, JSON.stringify(s.iz.LT));
   ol("SIM-S siluet parlaması halkası gövdeye katılır (Beyaz hücre 0)", s.S, JSON.stringify(s.iz.S));
-  ol("SIM-E ④ çizimi F.dortRenkSimule; eski paleteIndirge/paletleGoster YOK; plaket kolu simülasyon",
-     EKRAN_KAYNAK.includes("if (!F.dortRenkSimule(d.data, c.width, c.height, renkler)) throw") &&
-     EKRAN_KAYNAK.includes("else simuleGoster(img, S.gorsel, simulasyonRenkleri());") &&
+  // Okan 12 Eki ("birebir aynı çıktı"): istemci ④'ü yeniden BOYAMAZ; dortRenkSimule yalnız veri tarafında kalır.
+  ol("SIM-E ④ istemcide simülasyon YOK (dortRenkSimule/simuleGoster çağrılmaz); eski paleteIndirge/paletleGoster YOK",
+     !/dortRenkSimule|simuleGoster|toDataURL\("image\/png"\)/.test(EKRAN_KAYNAK) &&
      !/paleteIndirge|paletleGoster/.test(EKRAN_KAYNAK) && !/paleteIndirge/.test(VERI_KAYNAK), "");
   const SIM_BOLGE_CAPA = "    for (k = 0; k < n; k++) { et[k] = B.bol[k] < 0 ? -1 : renk[B.bol[k]]; }\n";
   const SIM_MUT = [
@@ -6522,10 +6522,11 @@ console.log("PR) OTOMATİK PALET — sentetik figür: denim Mavi|Lacivert, koyu 
   }
 }
 
-// ---------------------------------------------------------------- EL: ④ PALET — ÖNİZLEMEDEN TÜRETME + MÜŞTERİ ELLE SEÇER
-// BaBa 11 Eki 20:1x (b): ④'te otomatik palet gösterilir, her yuva filament listesinden değiştirilir -> anında yeniden
-// simülasyon; seçilen palet siparişe giden `renkler` (oturum kaydı + sepet), yenilemede kaybolmaz; Renkli +%15 SABİT,
-// renk değiştirmek/renk adedi fiyatı değiştirmez. Ekran sahte DOM'da GERÇEKTEN koşar; sağlayıcı görseli = prFigur.
+// ---------------------------------------------------------------- EL: ④ PALET — ③'TEKİ PALET SİPARİŞE GİDER, ④ YENİDEN BOYAMAZ
+// Okan 12 Eki ("birebir aynı çıktı"): ④ görseli sağlayıcının görseli AYNEN; ④'te palet türetme/düzenleyici YOK.
+// ③'te seçilen Renkli paleti (fotoğraftan) siparişe giden `renkler`dir (oturum kaydı + sepet), yenilemede kaybolmaz;
+// sepet kalemi sunucunun renk kuralını (renkSayimi: tekrarsız, PLA_RENKLERI, tavan) geçer; Renkli +%15 SABİT.
+// Ekran sahte DOM'da GERÇEKTEN koşar; sağlayıcı görseli = prFigur.
 const EL_IS = "e1" + "a".repeat(30), EL_MM = 100;
 const EL_HAZIR = { asama: "hazir", tur: "figur", olcu_mm: EL_MM, gorsel: "/api/shop/foto/gorsel?is=" + EL_IS,
                    gecerlilik_bitis: "2099-01-01T00:00:00.000Z" };
@@ -6538,12 +6539,9 @@ async function elEkran(kaynak, V, kayit) {
     EL_HAZIR, { turnstileOto: true, paletSahte: true, kaydir: false, sepet, dogalBoy: PR_W,
                 pikselUret: (w, h) => (w === PR_W && h === PR_W ? pFig.slice() : new Uint8ClampedArray(w * h * 4)) });
   const d = () => [...e.bolum.agac()];
-  const sec = () => d().filter((n) => n.tagName === "SELECT" && n.getAttribute("data-palet-yuva") !== null)
-    .sort((a, b) => Number(a.getAttribute("data-palet-yuva")) - Number(b.getAttribute("data-palet-yuva")));
-  const degerler = () => sec().map((n) => n.value);
+  const yuva = () => d().filter((n) => n.tagName === "SELECT" && n.getAttribute("data-palet-yuva") !== null).length;
+  const src = () => (d().find((n) => n.classList.contains("foto-uretim-onizleme-img")) || { src: null }).src;
   const kayitOku = () => { try { return JSON.parse(e.ss.getItem("pruvo_foto_is")); } catch (x) { return null; } };
-  const ozet = () => (d().find((n) => n.classList.contains("foto-uretim-ozet")) || { textContent: "" }).textContent;
-  const degis = (yuva, deger) => { const n = sec()[yuva]; if (n) { n.value = deger; n.tetikle("change"); } };
   const sepeteEkle = () => {
     const b2 = d().find((n) => n.id === "foto-b2-onay");
     if (b2) { b2.checked = true; b2.tetikle("change"); }
@@ -6551,141 +6549,85 @@ async function elEkran(kaynak, V, kayit) {
     if (sip) { sip.tetikle("click"); }
     return sepet[sepet.length - 1] || null;
   };
-  return { sec, degerler, kayitOku, ozet, degis, sepeteEkle, sim };
+  return { yuva, src, kayitOku, sepeteEkle, sim };
 }
+// Sunucu renkSayimi palet kuralı (shop/src/foto.js; aynı VERI): Renkli, dolu, tekrarsız, PLA_RENKLERI içinde, tavan altında.
+const elSunucuKabul = (V, k) => !!k && k.renkli === true && Array.isArray(k.renkler) && k.renkler.length > 0 &&
+  new Set(k.renkler).size === k.renkler.length && k.renkler.every((x) => V.PLA_RENKLERI.includes(x)) &&
+  k.renkler.length <= V.renkTavani("figur") && V.renkliSecilebilir("figur") === true;
 async function elSenaryo(kaynak, V) {
-  const s = {}, iz = {}, turet = V.fotoRenkleri(prFigur("saydam", false), 4, PR_W, PR_W);
+  const s = {}, iz = {}, P3 = ["Beyaz", "Gri"];
   const renkliFormul = V.fiyatKurus("figur", EL_MM, { renkli: true, malzeme: "PLA" });
   const tekFormul = V.fiyatKurus("figur", EL_MM, { renkli: false, malzeme: "PLA" });
-  // EL1: ③ paleti (fotoğraftan, "foto") ④'te sağlayıcı görselinden BİR KEZ türetilir, düzenleyicide görünür, kayda yazılır.
-  const a = await elEkran(kaynak, V, { renkler: ["Beyaz", "Gri"], renk_kaynak: "foto" });
-  const k1 = a.kayitOku(), ozet0 = a.ozet();
-  iz.EL1 = { turet, yuva: a.degerler(), kayit: k1 && [k1.renkler, k1.renk_kaynak], sonSim: a.sim[a.sim.length - 1] };
-  s.EL1 = turet.length >= 3 && a.sec().length === 4 && JSON.stringify(a.degerler()) === JSON.stringify([...turet, "", "", "", ""].slice(0, 4)) &&
-    !!k1 && JSON.stringify(k1.renkler) === JSON.stringify(turet) && k1.renk_kaynak === "onizleme" &&
-    JSON.stringify(a.sim[a.sim.length - 1]) === JSON.stringify(turet);
-  // EL2: 1. yuva -> Kırmızı: simülasyon YENİDEN koşar (yeni palet), kayıt "elle", sepet yeni renkler, fiyat AYNI.
-  const simOnce = a.sim.length;
-  a.degis(0, "Kırmızı");
-  // Simülasyon sayımı sepete eklemeden ÖNCE (Sepete ekle ④'ü yeniden çizer, o da bir simülasyondur).
-  const yeni = ["Kırmızı", ...turet.slice(1)], k2 = a.kayitOku(), ozet1 = a.ozet(), simDegis = a.sim.slice(simOnce), sat = a.sepeteEkle();
-  iz.EL2 = { yuva: a.degerler(), sim: simDegis, kayit: k2 && [k2.renkler, k2.renk_kaynak],
-             satir: sat && [sat.renkler, sat.renk_sayisi, sat.renkli, sat.gosterim_kurus], renkliFormul, ozetAyni: ozet0 === ozet1 };
-  s.EL2 = simDegis.length === 1 && JSON.stringify(simDegis[0]) === JSON.stringify(yeni) &&
-    !!k2 && JSON.stringify(k2.renkler) === JSON.stringify(yeni) && k2.renk_kaynak === "elle" &&
-    !!sat && JSON.stringify(sat.renkler) === JSON.stringify(yeni) && sat.renk_sayisi === yeni.length && sat.renkli === true &&
-    sat.gosterim_kurus === renkliFormul && ozet0 === ozet1 && ozet0 !== "";
-  // EL3: başka yuvadaki rengi seçmek İKİSİNİ YER DEĞİŞTİRİR (palet tekrarsız).
-  a.degis(2, yeni[1]);
-  iz.EL3 = a.degerler();
-  s.EL3 = JSON.stringify(a.degerler().slice(0, 3)) === JSON.stringify([yeni[0], yeni[2], yeni[1]]);
-  // EL4: "Yok" yuvayı boşaltır; 1. yuvada "Yok" seçeneği YOK; tek renkli palet de Renkli fiyatı (sabit +%15).
-  a.degis(2, ""); a.degis(1, "");
-  const sat4 = a.sepeteEkle(), ilkSecenek = a.sec()[0].childNodes.map((o) => o.value);
-  iz.EL4 = { yuva: a.degerler(), satir: sat4 && [sat4.renkler, sat4.gosterim_kurus], ilkYok: ilkSecenek.includes("") };
-  s.EL4 = JSON.stringify(a.degerler()) === JSON.stringify([yeni[0], "", "", ""]) && !ilkSecenek.includes("") &&
-    !!sat4 && JSON.stringify(sat4.renkler) === JSON.stringify([yeni[0]]) && sat4.gosterim_kurus === renkliFormul;
-  // EL5: yenileme — kayıt "elle" -> ④ YENİDEN TÜRETMEZ; düzenleyici + simülasyon + sepet kayıttaki palet.
+  // EL1: ③ paleti ("foto") ④'te TÜRETİLMEZ; ④'te düzenleyici YOK, simülasyon YOK, görsel sağlayıcınınki AYNEN.
+  const a = await elEkran(kaynak, V, { renkler: P3, renk_kaynak: "foto" });
+  const k1 = a.kayitOku();
+  iz.EL1 = { yuva: a.yuva(), sim: a.sim.length, src: a.src(), kayit: k1 && [k1.renkler, k1.renk_kaynak] };
+  s.EL1 = a.yuva() === 0 && a.sim.length === 0 && a.src() === EL_HAZIR.gorsel &&
+    !!k1 && JSON.stringify(k1.renkler) === JSON.stringify(P3) && k1.renk_kaynak === "foto";
+  // EL2: Renkli sepet kalemi ③ paletini taşır (renkler · renk_sayisi · renkli · gosterim_kurus) ve sunucu kuralını geçer.
+  const sat = a.sepeteEkle();
+  iz.EL2 = { satir: sat && [sat.renkler, sat.renk_sayisi, sat.renkli, sat.gosterim_kurus], renkliFormul,
+             sunucu: elSunucuKabul(V, sat), src: a.src(), sim: a.sim.length };
+  s.EL2 = !!sat && JSON.stringify(sat.renkler) === JSON.stringify(P3) && sat.renk_sayisi === P3.length && sat.renkli === true &&
+    sat.gosterim_kurus === renkliFormul && elSunucuKabul(V, sat) && a.src() === EL_HAZIR.gorsel && a.sim.length === 0;
+  // EL5: yenileme — kayıt "elle" -> sepet kayıttaki palet; ④ görseli yine AYNEN.
   const X = ["Kırmızı", "Beyaz", "Lacivert"], b = await elEkran(kaynak, V, { renkler: X, renk_kaynak: "elle" });
   const satb = b.sepeteEkle();
-  iz.EL5 = { yuva: b.degerler(), sonSim: b.sim[b.sim.length - 1], satir: satb && satb.renkler };
-  s.EL5 = JSON.stringify(b.degerler().slice(0, 3)) === JSON.stringify(X) && JSON.stringify(b.sim[b.sim.length - 1]) === JSON.stringify(X) &&
-    !!satb && JSON.stringify(satb.renkler) === JSON.stringify(X);
+  iz.EL5 = { satir: satb && satb.renkler, src: b.src(), sim: b.sim.length };
+  s.EL5 = !!satb && JSON.stringify(satb.renkler) === JSON.stringify(X) && elSunucuKabul(V, satb) &&
+    b.src() === EL_HAZIR.gorsel && b.sim.length === 0;
   // EL6: Renkli = tek renk × 1,15 SABİT (VERI) ve figür ④ özeti ile sepet AYNI formül.
   iz.EL6 = { renkliFormul, tekFormul };
   s.EL6 = renkliFormul === Math.round(tekFormul * 1.15) && renkliFormul > tekFormul;
-  // EL7: alanı olmayan ESKİ kayıt onaylı sayılır -> ④ türetmez (palet kayıttaki).
-  const c = await elEkran(kaynak, V, { renkler: ["Beyaz", "Gri"] });
-  iz.EL7 = c.degerler();
-  s.EL7 = JSON.stringify(c.degerler().slice(0, 2)) === JSON.stringify(["Beyaz", "Gri"]);
+  // EL7: alanı olmayan ESKİ kayıt -> sepet kayıttaki palet.
+  const c = await elEkran(kaynak, V, { renkler: P3 });
+  const satc = c.sepeteEkle();
+  iz.EL7 = satc && satc.renkler;
+  s.EL7 = !!satc && JSON.stringify(satc.renkler) === JSON.stringify(P3) && elSunucuKabul(V, satc);
   Object.defineProperty(s, "iz", { value: iz, enumerable: false });
   return s;
 }
-// Mutant -> beklenen KIRMIZI kümesi (bağımsız sabit; ölçülüp çivilendi).
-const EL_MUT_BEKLENEN = { "M-EL-ELLE": ["EL2", "EL3", "EL4"], "M-EL-TURET": ["EL1", "EL2", "EL3"], "M-EL-ONAYLI": ["EL5", "EL7"],
-  "M-EL-SIM": ["EL2"], "M-EL-KAYIT": ["EL2"], "M-EL-TAKAS": ["EL3"], "M-EL-FIYAT": ["EL6"] };
-console.log("EL) ④ PALET — önizlemeden bir kez türetilir, müşteri elle değiştirir; kayıt + sepet + yenileme; fiyat sabit");
+console.log("EL) ④ PALET — ③ paleti siparişe gider (kayıt + sepet + yenileme, sunucu kuralı); ④ yeniden boyamaz; fiyat sabit");
 {
   const V = veriYukle(VERI_KAYNAK), s = await elSenaryo(EKRAN_KAYNAK, V);
-  ol("EL1 ③ paleti ('foto') ④'te sağlayıcı görselinden türetilir; 4 yuva; kayıt 'onizleme'", s.EL1, JSON.stringify(s.iz.EL1));
-  ol("EL2 elle değiştirme -> simülasyon yeniden, kayıt 'elle', sepet yeni renkler, fiyat/özet AYNI", s.EL2, JSON.stringify(s.iz.EL2));
-  ol("EL3 başka yuvadaki renk seçilince yer değiştirir (tekrarsız)", s.EL3, JSON.stringify(s.iz.EL3));
-  ol("EL4 'Yok' yuvayı boşaltır, 1. yuvada 'Yok' yok; tek renkte de Renkli fiyatı", s.EL4, JSON.stringify(s.iz.EL4));
-  ol("EL5 yenileme: 'elle' kayıt -> yeniden türetme YOK; düzenleyici/simülasyon/sepet kayıttaki palet", s.EL5, JSON.stringify(s.iz.EL5));
+  ol("EL1 ③ paleti ('foto') ④'te türetilmez; ④ düzenleyici 0, simülasyon 0, img.src = sağlayıcı görseli", s.EL1, JSON.stringify(s.iz.EL1));
+  ol("EL2 Renkli sepet kalemi ③ paletini taşır (renkler/renk_sayisi/renkli/gosterim_kurus), sunucu renk kuralı geçer", s.EL2, JSON.stringify(s.iz.EL2));
+  ol("EL5 yenileme: 'elle' kayıt -> sepet kayıttaki palet; ④ görseli AYNEN", s.EL5, JSON.stringify(s.iz.EL5));
   ol("EL6 Renkli = tek renk × 1,15 (renk adedinden bağımsız)", s.EL6, JSON.stringify(s.iz.EL6));
-  ol("EL7 alanı olmayan eski kayıt onaylı -> ④ türetmez", s.EL7, JSON.stringify(s.iz.EL7));
+  ol("EL7 alanı olmayan eski kayıt -> sepet kayıttaki palet", s.EL7, JSON.stringify(s.iz.EL7));
+  const EL_BOYA = "        else img.src = S.gorsel;\n";
   const EL_MUT = [
-    ["M-EL-ELLE elle palet kazanmaz", "E", "    if (S.elleRenkler && S.elleRenkler.length) return S.elleRenkler;\n", "", null],
-    ["M-EL-TURET ④ önizlemeden türetmez", "E", "  function onizlemePaletiTuret(k) {\n", "  function onizlemePaletiTuret(k) {\n    return false;\n", null],
-    ["M-EL-ONAYLI yenilemede kayıt onaylı sayılmaz (yeniden türetir)", "E",
-     "          if (kayit.renk_kaynak !== \"foto\") S.onizRenk = { is: kayit.is, renkler: S.fotoRenkleri.slice() };\n", "", null],
-    ["M-EL-SIM değiştirince yeniden simüle etmez", "E",
-     "    if (S.paletImg) simuleGoster(S.paletImg, S.gorsel, simulasyonRenkleri(), S.paletGeriDus);\n", "", null],
-    ["M-EL-KAYIT değiştirince oturum kaydı yazılmaz", "E",
-     "    S.renkler = paletRenkleri(S.tur);\n    ssIsKaydet();\n    paletDuzenleyiciGuncelle();\n    if (S.paletImg)",
-     "    S.renkler = paletRenkleri(S.tur);\n    paletDuzenleyiciGuncelle();\n    if (S.paletImg)", null],
-    ["M-EL-TAKAS yer değiştirme kalktı (tekrar)", "E", "    if (j >= 0 && j !== yuva) y[j] = y[yuva];\n", "", null],
-    ["M-EL-FIYAT Renkli farkı %30", "V", "  VERI.RENKLI_EK_YUZDE = 15;\n", "  VERI.RENKLI_EK_YUZDE = 30;\n", null],
-    ["M-EL-K0 KONTROL (aynı gövde)", "E", "  function onizlemePaletiTuret(k) {\n", "  function onizlemePaletiTuret(k) {\n", []],
+    // Çağrı yeri ④'ü yeniden tuvale boyar (simuleGoster'in yaptığı: dortRenkSimule + toDataURL) -> EL1/EL2/EL5 KIRMIZI.
+    ["M-EL-BOYAMA ④ figür görseli yeniden boyanır", "E", EL_BOYA,
+     "        else { var tv = document.createElement(\"canvas\"), tx = tv.getContext(\"2d\"), td = tx.getImageData(0, 0, 2, 2);\n" +
+     // dataURL literal: tuval saplamasının toDataURL'i FR_PALETLI'ye bağlı, o sabit bu bloktan SONRA tanımlı (TDZ).
+     "          try { F.dortRenkSimule(td.data, 2, 2, paletRenkleri(S.tur)); } catch (x) {} img.src = \"data:image/png;base64,BOYALI\"; }\n",
+     ["EL1", "EL2", "EL5"]],
+    ["M-EL-FIYAT Renkli farkı %30", "V", "  VERI.RENKLI_EK_YUZDE = 15;\n", "  VERI.RENKLI_EK_YUZDE = 30;\n", ["EL6"]],
+    ["M-EL-K0 KONTROL (aynı gövde)", "E", EL_BOYA, EL_BOYA, []],
   ];
-  for (const [ad, hedef, capa, yerine, olmeli0] of EL_MUT) {
+  for (const [ad, hedef, capa, yerine, olmeli] of EL_MUT) {
     const asil = hedef === "E" ? EKRAN_KAYNAK : VERI_KAYNAK;
     if (asil.split(capa).length - 1 !== 1) { ol(ad + " capa bulundu", false, capa); continue; }
-    const olmeli = olmeli0 || EL_MUT_BEKLENEN[ad.split(" ")[0]];
     const m = hedef === "E" ? await elSenaryo(EKRAN_KAYNAK.replace(capa, yerine), V)
       : await elSenaryo(EKRAN_KAYNAK, veriYukle(VERI_KAYNAK.replace(capa, yerine)));
     const kir = Object.keys(m).filter((x) => m[x] !== true).sort();
     ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli), JSON.stringify(kir) + " " + JSON.stringify(m.iz));
   }
 }
-
-console.log("KC1) kart görseli contain (kare olmayan örnek kesilmez)");
-{
-  // KC1: `.foto-uretim-kart img{...}` kuralının gövdesi (ilk `}`'e kadar) object-fit:contain
-  // içermeli, object-fit:cover İÇERMEMELİ (13. okuma bulgu 1: kare olmayan örnek görsel %34
-  // kesiliyordu). Mutant kanıtı için çevre değişkeniyle dosya yolu geçilebilir.
-  const KC1_KAYNAK = process.env.KC1_FOTO_KAYNAK || path.join(KOK, "foto-uretim.js");
-  const kcFotoMetni = fs.readFileSync(KC1_KAYNAK, "utf8");
-  const kcBasla = kcFotoMetni.indexOf(".foto-uretim-kart img{");
-  const kcBitis = kcBasla >= 0 ? kcFotoMetni.indexOf("}", kcBasla) : -1;
-  ol("KC1 .foto-uretim-kart img{ kuralı BULUNDU", kcBasla >= 0 && kcBitis > kcBasla, "");
-  if (kcBasla >= 0 && kcBitis > kcBasla) {
-    const kcGovde = kcFotoMetni.slice(kcBasla, kcBitis);
-    ol("KC1 kural gövdesinde object-fit:contain VAR", kcGovde.includes("object-fit:contain"), kcGovde);
-    ol("KC1 kural gövdesinde object-fit:cover YOK", !kcGovde.includes("object-fit:cover"), kcGovde);
-  }
-}
-
-console.log("OC1) ④ \"Örnek\" görseli contain (anahtarlık–yazı örneği 800×530 kırpılmaz; KC1 emsali, 14. okuma bulgu 1)");
-{
-  // `.foto-uretim-ornek-gorsel{...}` gövdesi (ilk `}`'e kadar; kural iki dizgi parçasına bölünmüş, birleştirilip
-  // okunur) object-fit:contain içermeli, cover İÇERMEMELİ. M-OC1-COVER: aynı kaynakta contain -> cover -> KIRMIZI.
-  const ocOlc = (metin) => {
-    const duz = metin.replace(/"\s*\+\s*\n\s*"/g, "");
-    const b = duz.indexOf(".foto-uretim-ornek-gorsel{"), e = b >= 0 ? duz.indexOf("}", b) : -1;
-    const g = b >= 0 && e > b ? duz.slice(b, e) : "";
-    return { bulundu: !!g, govde: g, ok: !!g && g.includes("object-fit:contain") && !g.includes("object-fit:cover") };
-  };
-  const oc = ocOlc(EKRAN_KAYNAK);
-  ol("OC1 .foto-uretim-ornek-gorsel{ kuralı BULUNDU", oc.bulundu, "");
-  ol("OC1 Örnek görseli object-fit:contain, cover YOK", oc.ok, oc.govde);
-  const ocCapa = "object-fit:contain;border-radius:6px;background:#eef0f3;}";
-  ol("M-OC1-COVER capa tek", EKRAN_KAYNAK.split(ocCapa).length - 1 === 1, ocCapa);
-  ol("M-OC1-COVER contain -> cover -> KIRMIZI", !ocOlc(EKRAN_KAYNAK.replace(ocCapa, ocCapa.replace("contain", "cover"))).ok, "");
-}
-
-// ---------------------------------------------------------------- FR: ④ FİGÜR = RENDER varsa O, yoksa 4 RENK SİMÜLASYONU
-// Okan 11 Eki ("bu 4 renkli bir figür değil" · 16:0x "4 renk simülasyonu"): figür (insan · pet · model) +
-// anahtarlık–figür ④ görseli: sunucu /durum `render` verdiyse img.src = O adres AYNEN ve simülasyon ÇAĞRILMAZ;
-// vermediyse sağlayıcı görselinin 4 renk simülasyonu (VERI.dortRenkSimule) + simülasyon cümlesi; simülasyon
-// çalışamazsa kaynak görsel + "renkler basılacak figürü göstermez". Plaket: simülasyon, figür notu YOK.
+// ---------------------------------------------------------------- FR: ④ FİGÜR = RENDER varsa O, yoksa SAĞLAYICI GÖRSELİ AYNEN
+// Okan 12 Eki ("birebir aynı çıktı"): figür (insan · pet · model) + anahtarlık–figür ④ görseli:
+// sunucu /durum `render` verdiyse img.src = O adres AYNEN; vermediyse sağlayıcı görseli AYNEN + "renkler basılacak
+// figürü göstermez". Tek renk / Renkli fark etmez; simülasyon (VERI.dortRenkSimule) istemcide ÇAĞRILMAZ, ④'te palet
+// düzenleyici YOK. Plaket: sağlayıcı görseli AYNEN, figür notu YOK.
 const FR_PALETLI = "data:image/png;base64,PALETLI";
 const FR_IS = "f".repeat(32), FR_GORSEL = "/api/shop/foto/gorsel?is=" + FR_IS, FR_RENDER = FR_GORSEL + "&gorunum=render";
 const FR_UST = "Önizleme — ürün bunun seçtiğin renk sayısında olur; tam kopyası değildir.";
 async function frEkran(kaynak, V, kayit, render, simNull) {
   const hazir = { asama: "hazir", tur: kayit.tur, olcu_mm: kayit.olcu, gorsel: FR_GORSEL,
                   gecerlilik_bitis: "2099-01-01T00:00:00.000Z", ...(render ? { render: FR_RENDER } : {}) };
-  // Casus: simülasyon çağrı sayısı (render kolunda 0 olmalı); simNull -> tarayıcıda simülasyon başarısız.
+  // Casus: simülasyon çağrı sayısı (her kolda 0 olmalı); simNull -> tarayıcıda simülasyon başarısız.
   let cagri = 0;
   const Vs = Object.assign({}, V, { dortRenkSimule: (...a) => { cagri++; return simNull ? null : V.dortRenkSimule(...a); } });
   const e = await ekranKos(kaynak, Vs, acikGercek(V, V6_TUM), { is: FR_IS, ...kayit }, hazir, { paletSahte: true });
@@ -6693,6 +6635,7 @@ async function frEkran(kaynak, V, kayit, render, simNull) {
   const img = d.find((n) => n.classList.contains("foto-uretim-onizleme-img"));
   const not = d.find((n) => n.classList.contains("foto-uretim-gorunum-notu"));
   return { src: img ? img.src : null, not: not ? not.textContent : null, cagri,
+           yuva: d.filter((n) => n.tagName === "SELECT" && n.getAttribute("data-palet-yuva") !== null).length,
            ust: d.some((n) => n.tagName === "P" && n.textContent === FR_UST) };
 }
 async function frSenaryo(kaynak, V) {
@@ -6704,22 +6647,22 @@ async function frSenaryo(kaynak, V) {
   iz.afR = await frEkran(kaynak, V, AF, true);
   iz.af = await frEkran(kaynak, V, AF, false);
   iz.plaket = await frEkran(kaynak, V, { tur: "plaket", olcu: 100 }, true);
-  iz.geri = await frEkran(kaynak, V, INSAN, false, true);
-  // Cümle LİTERAL (Okan 11 Eki çipi): VERI boşalsa da ekranda aranır -> veri mutantı FR4/FR7'yi de yakar.
-  const tek = "Önizleme: figürün seçtiğin tek renkle yaklaşık görünümü; basılan figür sadeleştirilmiş hâlidir, " +
-    "tam kopyası değildir.";
+  iz.renkli = await frEkran(kaynak, V, { ...INSAN, renk_secim: "Renkli", malzeme: "PLA", renkler: ["Beyaz", "Gri"], renk_kaynak: "foto" }, false);
+  // Cümle LİTERAL: VERI boşalsa da ekranda aranır.
+  const ornek = "Örnek görünüm — renkler basılacak figürü göstermez.";
   const cumle = (x) => typeof x === "string" && /yaklaşık görünümü/.test(x) && /tam kopyası değildir/.test(x) && !/3D|baskı/i.test(x);
   s.FR0 = cumle(V.FIGUR_SIMULASYON_TEK) && cumle(V.FIGUR_SIMULASYON_RENKLI) &&
     /renkler basılacak figürü göstermez/.test(V.FIGUR_ORNEK_NOTU || "");
   s.FR1 = iz.insanR.src === FR_RENDER && iz.insanR.cagri === 0;     // render varken O; simülasyon ÇAĞRILMAZ
   s.FR2 = iz.insanR.not === V.FIGUR_RENDER_NOTU && !iz.insanR.ust;
-  s.FR3 = iz.insan.src === FR_PALETLI && iz.insan.cagri >= 1;       // render yok: 4 renk simülasyonu
-  s.FR4 = iz.insan.not === tek && !iz.insan.ust;                    // ... ve simülasyon cümlesi (tek renk)
+  s.FR3 = iz.insan.src === FR_GORSEL && iz.insan.cagri === 0;        // render yok: sağlayıcı görseli AYNEN
+  s.FR4 = iz.insan.not === ornek && !iz.insan.ust;                   // ... ve "renkler basılacak figürü göstermez"
   s.FR5 = /en çok 4 renk/.test(V.FIGUR_SIMULASYON_RENKLI || "") && /tek renk/.test(V.FIGUR_SIMULASYON_TEK || "");
   s.FR6 = iz.afR.src === FR_RENDER && iz.afR.not === V.FIGUR_RENDER_NOTU && iz.afR.cagri === 0;
-  s.FR7 = iz.af.src === FR_PALETLI && iz.af.not === tek;
-  s.FR8 = iz.plaket.src === FR_PALETLI && iz.plaket.not === null && iz.plaket.ust;   // plaket: simülasyon, figür notu YOK
-  s.FR9 = iz.geri.src === FR_GORSEL && iz.geri.not === V.FIGUR_ORNEK_NOTU;          // simülasyon olmadı: kaynak + cümle
+  s.FR7 = iz.af.src === FR_GORSEL && iz.af.not === ornek && iz.af.cagri === 0;
+  s.FR8 = iz.plaket.src === FR_GORSEL && iz.plaket.cagri === 0 && iz.plaket.not === null && iz.plaket.ust;   // plaket: AYNEN
+  // Renkli (palet seçili) render yok: görsel yine AYNEN, ④'te palet düzenleyici YOK.
+  s.FR9 = iz.renkli.src === FR_GORSEL && iz.renkli.cagri === 0 && iz.renkli.yuva === 0 && iz.renkli.not === ornek;
   Object.defineProperty(s, "iz", { value: iz, enumerable: false });
   return s;
 }
@@ -6757,34 +6700,40 @@ async function frSunucu(fm) {
   k.kapat();
   return s;
 }
-console.log("FR) ④ FİGÜR — render varsa O (simülasyon çağrılmaz), yoksa 4 renk simülasyonu + cümle; plaket simülasyon");
+console.log("FR) ④ FİGÜR — render varsa O, yoksa sağlayıcı görseli AYNEN + cümle (simülasyon yok); plaket AYNEN");
 {
   const V = veriYukle(VERI_KAYNAK);
   const s = await frSenaryo(EKRAN_KAYNAK, V);
   ol("FR0 VERI simülasyon cümleleri 'yaklaşık görünümü … tam kopyası değildir' + geri düşüş cümlesi", s.FR0, V.FIGUR_SIMULASYON_TEK);
   ol("FR1 insan + render -> img.src = render adresi, simülasyon ÇAĞRILMAZ", s.FR1, JSON.stringify(s.iz.insanR));
   ol("FR2 insan + render -> görünüm notu = FIGUR_RENDER_NOTU, üst 'Önizleme —' cümlesi YOK", s.FR2, JSON.stringify(s.iz.insanR));
-  ol("FR3 insan render YOK -> 4 renk simülasyonu (dortRenkSimule çağrıldı)", s.FR3, JSON.stringify(s.iz.insan));
-  ol("FR4 insan render YOK -> simülasyon cümlesi (tek renk)", s.FR4, JSON.stringify(s.iz.insan));
+  ol("FR3 insan render YOK -> img.src = sağlayıcı görseli AYNEN (simülasyon 0)", s.FR3, JSON.stringify(s.iz.insan));
+  ol("FR4 insan render YOK -> 'renkler basılacak figürü göstermez' cümlesi", s.FR4, JSON.stringify(s.iz.insan));
   ol("FR5 VERI: Renkli \"en çok 4 renk\" · tek \"tek renk\"", s.FR5, V.FIGUR_SIMULASYON_RENKLI + " | " + V.FIGUR_SIMULASYON_TEK);
   ol("FR6 anahtarlık–figür + render -> render + render notu, simülasyon ÇAĞRILMAZ", s.FR6, JSON.stringify(s.iz.afR));
-  ol("FR7 anahtarlık–figür render YOK -> simülasyon + cümle", s.FR7, JSON.stringify(s.iz.af));
-  ol("FR8 plaket -> simülasyon, figür notu YOK, üst cümle VAR", s.FR8, JSON.stringify(s.iz.plaket));
-  ol("FR9 simülasyon çalışamadı -> kaynak görsel + 'renkler basılacak figürü göstermez'", s.FR9, JSON.stringify(s.iz.geri));
+  ol("FR7 anahtarlık–figür render YOK -> sağlayıcı görseli AYNEN + cümle", s.FR7, JSON.stringify(s.iz.af));
+  ol("FR8 plaket -> sağlayıcı görseli AYNEN, figür notu YOK, üst cümle VAR", s.FR8, JSON.stringify(s.iz.plaket));
+  ol("FR9 Renkli render YOK -> görsel AYNEN, ④ palet düzenleyici YOK", s.FR9, JSON.stringify(s.iz.renkli));
   const kir = (m) => (m ? Object.keys(m).filter((x) => m[x] !== true).sort() : null);
-  const C_SRC = "        if (S.render) img.src = S.render;\n        else simuleGoster(";
-  const C_SIM = "        else simuleGoster(img, S.gorsel, simulasyonRenkleri(), geriDus);\n";
+  const C_SRC = "        if (S.render) img.src = S.render;\n        else img.src = S.gorsel;\n";
+  const C_FIG = "        else img.src = S.gorsel;\n";
+  const C_PLK = "        img.src = S.gorsel;\n";
   const C_NOT = "        S.alan.appendChild(not);\n";
-  const C_GERI = "simulasyonRenkleri(), geriDus);\n";
+  const C_GNOT = "    return S.render ? F.FIGUR_RENDER_NOTU : F.FIGUR_ORNEK_NOTU;\n";
+  // simuleGoster'in yaptığı: kaynak görsel tuvale çizilir, dortRenkSimule ile boyanır, dataURL ④'e yazılır.
+  const BOYA = "{ var tv = document.createElement(\"canvas\"), tx = tv.getContext(\"2d\"), td = tx.getImageData(0, 0, 2, 2); " +
+    "F.dortRenkSimule(td.data, 2, 2, [anaRenk()]); img.src = tv.toDataURL(\"image/png\"); }\n";
   const C_VNOT = '  VERI.FIGUR_SIMULASYON_TEK = "Önizleme: figürün seçtiğin tek renkle yaklaşık görünümü; " +\n' +
     '    "basılan figür sadeleştirilmiş hâlidir, tam kopyası değildir.";\n';
   const FR_MUT = [
-    ["M-FR-RENDER-SIM render kolu simülasyona düşer", "E", C_SRC, "        simuleGoster(", ["FR1", "FR6"]],
-    ["M-FR-SIM-YOK render yokken sağlayıcı görseli AYNEN (simülasyon yok)", "E", C_SIM, "        else img.src = S.gorsel;\n",
+    ["M-FR-RENDER-YOK render adresi yok sayılır", "E", C_SRC, "        img.src = S.gorsel;\n", ["FR1", "FR6"]],
+    ["M-FR-FIG-BOYAMA figür çağrı yeri ④'ü yeniden boyar (simülasyon geri)", "E", C_FIG, "        else " + BOYA,
      ["FR3", "FR7", "FR9"]],
+    ["M-FR-PLK-BOYAMA plaket çağrı yeri ④'ü yeniden boyar (simülasyon geri)", "E", C_PLK, "        " + BOYA, ["FR8"]],
     ["M-FR-CUMLE-YOK görünüm notu basılmaz", "E", C_NOT, "", ["FR2", "FR4", "FR6", "FR7", "FR9"]],
-    ["M-FR-GERI-NOT simülasyon başarısızken cümle değişmez", "E", C_GERI, "simulasyonRenkleri());\n", ["FR9"]],
-    ["M-FR-VERI-CUMLE simülasyon cümlesi boş", "V", C_VNOT, '  VERI.FIGUR_SIMULASYON_TEK = "";\n', ["FR0", "FR4", "FR5", "FR7"]],
+    ["M-FR-SIM-CUMLE render yokken simülasyon cümlesi", "E", C_GNOT,
+     "    return S.render ? F.FIGUR_RENDER_NOTU : F.FIGUR_SIMULASYON_TEK;\n", ["FR4", "FR7", "FR9"]],
+    ["M-FR-VERI-CUMLE simülasyon cümlesi boş", "V", C_VNOT, '  VERI.FIGUR_SIMULASYON_TEK = "";\n', ["FR0", "FR5"]],
     ["M-FR-K0 KONTROL (aynı gövde)", "E", C_SRC, C_SRC, []],
   ];
   for (const [ad, hedef, capa, yerine, olmeli] of FR_MUT) {
