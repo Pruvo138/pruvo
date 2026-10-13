@@ -17,6 +17,7 @@ Ortam: PRUVO_SCAD_DIR (varsayilan ~/dev/pruvo-jenerator/jeneratorler),
        PRUVO_OPENSCAD_YASAK=1 -> OpenSCAD CAGRISI YASAK (bkz. asagisi)
 """
 import argparse
+import importlib.util
 import io
 import json
 import os
@@ -201,6 +202,25 @@ def scad_dizini():
     if not os.path.isdir(yol):
         sys.exit("scad dizini yok: %s (PRUVO_SCAD_DIR ayarlayin)" % yol)
     return yol
+
+
+def _eslem_olcum_modulu():
+    """onizleme/test/eslem-olcum.py (musteri sema kapisi hakemi — TEK KAYNAK).
+    Gec yuklenir: o dosya da bu modulu import eder (dongu yok, cagri aninda)."""
+    yol = os.path.join(os.path.dirname(JEN_DIR), "onizleme", "test", "eslem-olcum.py")
+    spec = importlib.util.spec_from_file_location("pruvo_eslem_olcum", yol)
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    return m
+
+
+def musteri_rastgele_setler(sema, rnd, adet):
+    """(setler, elenen) — `adet` rastgele set, her biri GERCEK KONF.dogrula'dan gecer
+    (hakem + eleme dongusu eslem-olcum.py'den; semada `kisitlar` yoksa hakem
+    sorulmaz ve akis ham rastgele_set ile bayt-ayni). Tavan asilirsa (None, n)."""
+    eo = _eslem_olcum_modulu()
+    return eo.musteri_setleri(sema, rnd, None, adet, lambda ss: eo.sema_hakemi(sema, ss),
+                              uretec=lambda: rastgele_set(sema, rnd))
 
 
 def yukle(yol):
@@ -412,8 +432,23 @@ def aile_dogrula(aile, set_sayisi, rnd, openscad, scad_dir):
           % (aile, os.path.realpath(scad_yol), _scad_parmakizi(scad_yol)))
 
     setler = [varsayilan_set(sema)]
-    for _ in range(set_sayisi):
-        setler.append(rastgele_set(sema, rnd))
+    # MUSTERI SEMA KAPISI (2026-10-13, tren 38375690883 saksi set3): rastgele_set
+    # parametre basina min/max'i saglar ama capraz `kisitlar`i GORMEZ. Saksi
+    # semasinda `alt_cap <= ust_cap` + yan egim <= 40 derece kisitlari var; ihlal
+    # eden nokta musteriye SATILAMAZ (istemci dogrula RED + sunucu 400) ve uretecin
+    # ayni assert'i openscad'i kod 1 ile durdurur -> "[ATLA] israrla cokuyor" ->
+    # OLCULEMEDI. Kural eslem-olcum.py ile AYNI: olculen her rastgele nokta GERCEK
+    # KONF.dogrula'nin kabul ettigi noktadir; hakem + eleme dongusu ORADAN alinir.
+    # Kisitsiz semalarda tohum akisi BAYT BAYT ayni kalir (hakem hic sorulmaz).
+    secilen, elenen = musteri_rastgele_setler(sema, rnd, set_sayisi)
+    if elenen:
+        print("  [SEMA] %-8s %d rastgele nokta musteri sema kapisinda (KONF.dogrula "
+              "`kisitlar`) REDDEDILDI, yerine yenisi cekildi" % (aile, elenen))
+    if secilen is None:
+        print("  [OLCULEMEDI] %-8s %d denemede musteri-gecerli set bulunamadi — "
+              "YESIL SAYILMAZ" % (aile, elenen))
+        return "olculemedi"
+    setler.extend(secilen)
     js = js_hacimler(esleme["fonksiyon"], setler)
 
     # taban hacim tutarliligi
@@ -646,6 +681,31 @@ def kendini_test():
     bekle("A7 KABLO: main() cikis kodunu ozet_hukmu()'nden alir",
           "ozet_hukmu(" in main_govde and "CI'da kosulacak" not in main_govde,
           "main govdesinde ozet_hukmu cagrisi YOK ya da eski satir geri geldi")
+
+    # ---- MUSTERI SEMA KAPISI (13 Eki 2026, tren 38375690883 saksi set3) ----------
+    # Ham rastgele_set capraz `kisitlar`i gormez; saksi semasinda tohum 1'in ilk
+    # seti alt_cap 185 > ust_cap 94 -> uretec assert'i -> CI'da "[ATLA] israrla
+    # cokuyor" -> OLCULEMEDI. (node gerekir: hakem GERCEK KONF.dogrula.)
+    saksi_sema = yukle(os.path.join(URUN_DIR, "olcuye-ozel-saksi-vazo.json"))
+    eo = _eslem_olcum_modulu()
+    ham = [rastgele_set(saksi_sema, random.Random(1)) for _ in range(1)]
+    bekle("S0 TABAN: saksi tohum 1 ham ilk set musteri kapisinda RED (vaka canli)",
+          eo.sema_hakemi(saksi_sema, ham) == [0], json.dumps(ham[0])[:90])
+    ss, el = musteri_rastgele_setler(saksi_sema, random.Random(1), 3)
+    bekle("S1 POZITIF: elenen >=1 ve donen 3 setin 3'u de KONF.dogrula'dan gecer",
+          ss is not None and el >= 1 and len(ss) == 3
+          and eo.sema_hakemi(saksi_sema, ss) == [1, 1, 1], "elenen=%s" % el)
+    kisitsiz = dict(saksi_sema)
+    kisitsiz.pop("kisitlar", None)
+    rnd_a, rnd_b = random.Random(1), random.Random(1)
+    ss, el = musteri_rastgele_setler(kisitsiz, rnd_a, 3)
+    bekle("S2 NEGATIF: kisitsiz semada tohum akisi ham rastgele_set ile BAYT-AYNI",
+          el == 0 and ss == [rastgele_set(kisitsiz, rnd_b) for _ in range(3)])
+    govde = inspect.getsource(aile_dogrula)
+    bekle("S3 KABLO: aile_dogrula rastgele noktalari musteri_rastgele_setler'den alir",
+          "musteri_rastgele_setler(" in govde
+          and "setler.append(rastgele_set(" not in govde,
+          "aile_dogrula ham rastgele_set'e geri dondu")
 
     kirmizi = [v for v in vakalar if not v[1]]
     print("OPENSCAD YASAK NOBETCISI — %d/%d YESIL" % (len(vakalar) - len(kirmizi),

@@ -1,0 +1,183 @@
+{
+  "id": "olcuye-ozel-saksi-vazo",
+  "hacimFormulu": "saksi",
+  "parametreler": [
+    {
+      "ad": "ust_cap",
+      "etiket": "Üst dış çap",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 60,
+      "max": 260,
+      "adim": 1,
+      "varsayilan": 140,
+      "aciklama": "Saksının üst kenarındaki dış çap"
+    },
+    {
+      "ad": "alt_cap",
+      "etiket": "Alt dış çap",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 40,
+      "max": 200,
+      "adim": 1,
+      "varsayilan": 100,
+      "aciklama": "Saksının tabanındaki dış çap; üst çaptan büyük olamaz"
+    },
+    {
+      "ad": "yukseklik",
+      "etiket": "Yükseklik",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 50,
+      "max": 300,
+      "adim": 1,
+      "varsayilan": 120,
+      "aciklama": "Tabandan üst kenara dış yükseklik (taban plakası dahil)"
+    },
+    {
+      "ad": "duvar",
+      "etiket": "Duvar kalınlığı",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 1.6,
+      "max": 4,
+      "adim": 0.1,
+      "varsayilan": 2.4,
+      "aciklama": "Saksı ve tabak duvarının kalınlığı"
+    },
+    {
+      "ad": "taban",
+      "etiket": "Taban kalınlığı",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 2,
+      "max": 5,
+      "adim": 0.1,
+      "varsayilan": 3,
+      "aciklama": "Dolu taban plakasının kalınlığı"
+    },
+    {
+      "ad": "drenaj",
+      "etiket": "Drenaj deliği",
+      "tip": "secim",
+      "secenekler": [
+        {
+          "deger": "var",
+          "etiket": "Var"
+        },
+        {
+          "deger": "yok",
+          "etiket": "Yok (su tutar)"
+        }
+      ],
+      "varsayilan": "var",
+      "aciklama": "Tabanın ortasında dikey su tahliye deliği"
+    },
+    {
+      "ad": "drenaj_capi",
+      "etiket": "Drenaj deliği çapı",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 6,
+      "max": 20,
+      "adim": 0.5,
+      "varsayilan": 12,
+      "aciklama": "Drenaj deliğinin çapı; yalnız drenaj deliği seçiliyse açılır"
+    },
+    {
+      "ad": "tabak",
+      "etiket": "Alt tabak",
+      "tip": "secim",
+      "secenekler": [
+        {
+          "deger": "yok",
+          "etiket": "Yok"
+        },
+        {
+          "deger": "var",
+          "etiket": "Var (ayrı parça)"
+        }
+      ],
+      "varsayilan": "yok",
+      "aciklama": "Saksının altına su tutan ayrı tabak; dış çapı alt çaptan 6 mm geniş"
+    },
+    {
+      "ad": "tabak_yuksekligi",
+      "etiket": "Tabak yüksekliği",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 12,
+      "max": 30,
+      "adim": 0.5,
+      "varsayilan": 18,
+      "aciklama": "Alt tabağın dış yüksekliği; yalnız alt tabak seçiliyse kullanılır"
+    }
+  ],
+  "kisitlar": [
+    {
+      "eger": {},
+      "parametre": "ust_cap",
+      "min": {
+        "terimler": {
+          "alt_cap": 1
+        }
+      },
+      "mesaj": "Üst çap alt çaptan küçük olamaz — üst çap en az {min} mm olmalı"
+    },
+    {
+      "eger": {},
+      "parametre": "yukseklik",
+      "min": {
+        "terimler": {
+          "ust_cap": 0.5958767962971049,
+          "alt_cap": -0.5958767962971049
+        }
+      },
+      "mesaj": "Yan eğim 40°'yi aşmasın diye yükseklik en az {min} mm olmalı (ya da çap farkını azaltın)"
+    }
+  ],
+  "onAyarlar": [
+    {
+      "ad": "S",
+      "etiket": "S — Ø100 × 90 mm",
+      "degerler": {
+        "ust_cap": 100,
+        "alt_cap": 70,
+        "yukseklik": 90,
+        "duvar": 2.4,
+        "taban": 3,
+        "drenaj": "var",
+        "drenaj_capi": 12
+      }
+    },
+    {
+      "ad": "M",
+      "etiket": "M — Ø140 × 120 mm",
+      "degerler": {
+        "ust_cap": 140,
+        "alt_cap": 100,
+        "yukseklik": 120,
+        "duvar": 2.4,
+        "taban": 3,
+        "drenaj": "var",
+        "drenaj_capi": 12
+      }
+    },
+    {
+      "ad": "L",
+      "etiket": "L — Ø180 × 160 mm",
+      "degerler": {
+        "ust_cap": 180,
+        "alt_cap": 130,
+        "yukseklik": 160,
+        "duvar": 2.4,
+        "taban": 3,
+        "drenaj": "var",
+        "drenaj_capi": 12
+      }
+    }
+  ],
+  "tabanHacimMm3": 137645.99185179538,
+  "tabanFiyatTL": 800
+}

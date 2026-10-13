@@ -1720,6 +1720,251 @@
      "referansMm3": 287742.0
     }
    ]
+  },
+  "saksi": {
+   "fonksiyon": "saksi",
+   "urunId": "olcuye-ozel-saksi-vazo",
+   "motor": "pruvo",
+   "setler": [
+    {
+     "parametreler": {
+      "ust_cap": 140,
+      "alt_cap": 100,
+      "yukseklik": 120,
+      "duvar": 2.4,
+      "taban": 3,
+      "drenaj": "var",
+      "drenaj_capi": 12,
+      "tabak": "yok",
+      "tabak_yuksekligi": 18
+     },
+     "referansMm3": 137548.4668129544
+    },
+    {
+     "parametreler": {
+      "ust_cap": 100,
+      "alt_cap": 70,
+      "yukseklik": 90,
+      "duvar": 2.4,
+      "taban": 3,
+      "drenaj": "var",
+      "drenaj_capi": 12,
+      "tabak": "yok",
+      "tabak_yuksekligi": 18
+     },
+     "referansMm3": 70993.614668732
+    },
+    {
+     "parametreler": {
+      "ust_cap": 180,
+      "alt_cap": 130,
+      "yukseklik": 160,
+      "duvar": 2.4,
+      "taban": 3,
+      "drenaj": "var",
+      "drenaj_capi": 12,
+      "tabak": "yok",
+      "tabak_yuksekligi": 18
+     },
+     "referansMm3": 237230.9980229556
+    },
+    {
+     "parametreler": {
+      "ust_cap": 60,
+      "alt_cap": 60,
+      "yukseklik": 50,
+      "duvar": 1.6,
+      "taban": 2,
+      "drenaj": "var",
+      "drenaj_capi": 6,
+      "tabak": "yok",
+      "tabak_yuksekligi": 12
+     },
+     "referansMm3": 19674.805445888847
+    },
+    {
+     "parametreler": {
+      "ust_cap": 260,
+      "alt_cap": 40,
+      "yukseklik": 132,
+      "duvar": 4,
+      "taban": 5,
+      "drenaj": "var",
+      "drenaj_capi": 20,
+      "tabak": "var",
+      "tabak_yuksekligi": 30
+     },
+     "referansMm3": 335394.7932873278
+    },
+    {
+     "parametreler": {
+      "ust_cap": 260,
+      "alt_cap": 200,
+      "yukseklik": 300,
+      "duvar": 4,
+      "taban": 5,
+      "drenaj": "yok",
+      "drenaj_capi": 20,
+      "tabak": "yok",
+      "tabak_yuksekligi": 30
+     },
+     "referansMm3": 1045968.7006511587
+    },
+    {
+     "parametreler": {
+      "ust_cap": 60,
+      "alt_cap": 40,
+      "yukseklik": 50,
+      "duvar": 1.6,
+      "taban": 2,
+      "drenaj": "yok",
+      "drenaj_capi": 6,
+      "tabak": "var",
+      "tabak_yuksekligi": 12
+     },
+     "referansMm3": 15645.851694450956
+    },
+    {
+     "parametreler": {
+      "ust_cap": 233.0,
+      "alt_cap": 179.0,
+      "yukseklik": 72.0,
+      "duvar": 3.4,
+      "taban": 3.3,
+      "drenaj": "var",
+      "drenaj_capi": 6.0,
+      "tabak": "yok",
+      "tabak_yuksekligi": 18.5
+     },
+     "referansMm3": 259008.46738708342
+    },
+    {
+     "parametreler": {
+      "ust_cap": 131.0,
+      "alt_cap": 79.0,
+      "yukseklik": 105.0,
+      "duvar": 4.0,
+      "taban": 3.0,
+      "drenaj": "yok",
+      "drenaj_capi": 7.0,
+      "tabak": "var",
+      "tabak_yuksekligi": 15.0
+     },
+     "referansMm3": 155855.39534291418
+    },
+    {
+     "parametreler": {
+      "ust_cap": 151.0,
+      "alt_cap": 128.0,
+      "yukseklik": 204.0,
+      "duvar": 2.4,
+      "taban": 4.5,
+      "drenaj": "var",
+      "drenaj_capi": 17.5,
+      "tabak": "yok",
+      "tabak_yuksekligi": 29.0
+     },
+     "referansMm3": 273883.38310065406
+    },
+    {
+     "parametreler": {
+      "ust_cap": 239.0,
+      "alt_cap": 58.0,
+      "yukseklik": 205.0,
+      "duvar": 3.6,
+      "taban": 2.5,
+      "drenaj": "var",
+      "drenaj_capi": 8.5,
+      "tabak": "var",
+      "tabak_yuksekligi": 24.0
+     },
+     "referansMm3": 380099.9614450319
+    },
+    {
+     "parametreler": {
+      "ust_cap": 162.0,
+      "alt_cap": 108.0,
+      "yukseklik": 66.0,
+      "duvar": 2.2,
+      "taban": 4.9,
+      "drenaj": "yok",
+      "drenaj_capi": 9.0,
+      "tabak": "var",
+      "tabak_yuksekligi": 24.5
+     },
+     "referansMm3": 127062.92663320096
+    },
+    {
+     "parametreler": {
+      "ust_cap": 224.0,
+      "alt_cap": 157.0,
+      "yukseklik": 86.0,
+      "duvar": 2.4,
+      "taban": 2.4,
+      "drenaj": "var",
+      "drenaj_capi": 17.5,
+      "tabak": "var",
+      "tabak_yuksekligi": 25.5
+     },
+     "referansMm3": 186965.97092948994
+    },
+    {
+     "parametreler": {
+      "ust_cap": 209.0,
+      "alt_cap": 142.0,
+      "yukseklik": 142.0,
+      "duvar": 2.3,
+      "taban": 2.4,
+      "drenaj": "yok",
+      "drenaj_capi": 7.0,
+      "tabak": "yok",
+      "tabak_yuksekligi": 15.5
+     },
+     "referansMm3": 233302.8694953549
+    },
+    {
+     "parametreler": {
+      "ust_cap": 195.0,
+      "alt_cap": 104.0,
+      "yukseklik": 298.0,
+      "duvar": 3.3,
+      "taban": 4.7,
+      "drenaj": "var",
+      "drenaj_capi": 16.5,
+      "tabak": "yok",
+      "tabak_yuksekligi": 29.0
+     },
+     "referansMm3": 528222.9862834121
+    },
+    {
+     "parametreler": {
+      "ust_cap": 252.0,
+      "alt_cap": 108.0,
+      "yukseklik": 246.0,
+      "duvar": 3.6,
+      "taban": 3.0,
+      "drenaj": "var",
+      "drenaj_capi": 10.5,
+      "tabak": "var",
+      "tabak_yuksekligi": 17.0
+     },
+     "referansMm3": 564543.7263302765
+    },
+    {
+     "parametreler": {
+      "ust_cap": 176.0,
+      "alt_cap": 40.0,
+      "yukseklik": 294.0,
+      "duvar": 3.9,
+      "taban": 4.8,
+      "drenaj": "yok",
+      "drenaj_capi": 14.0,
+      "tabak": "yok",
+      "tabak_yuksekligi": 28.0
+     },
+     "referansMm3": 418345.7518549152
+    }
+   ]
   }
  }
 }
