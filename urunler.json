@@ -1,5 +1,125 @@
 [
   {
+    "id": "tamirat-surgulu-kapi-cekme-kolu-ciftlik-tipi-190-mm-pr129660",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Sürgülü Kapı Çekme Kolu (Çiftlik / Ahır Tipi, 190 mm)",
+    "aciklama": "Büyük sürgülü kapıları açıp kapatmak için hazırlanmış, iki montaj ayaklı çekme kolu. Küçük bir çiftlikte geniş sürgülü kapının tutuşunu kolaylaştırmak için tasarlanmıştır; kalın gövdesi avuca oturur. Ayaklardaki deliklerden vidayla sabitlenir (vida ürüne dahil değildir); kapınızdaki yüzeyin düz ve vida tutacak kalınlıkta olması gerekir. Fotoğraflarda kol ahşap kapı kanadına takılı ve elle çekilirken görülür.\nYaklaşık dış ölçüler: 190 × 60 × 50 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr129660-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr129660-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr129660-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DrLennartS",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tamirat-balkon-kapisi-yedek-kolu-duz-plakali-71-mm-pr262599",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Balkon Kapısı Yedek Kolu (Düz Plakalı, 71 mm)",
+    "aciklama": "Kırılan balkon kapısı kolunun yerine takılan, düz plakalı sade yedek kol. Plaka üzerinde iki montaj deliği bulunur. Kendi kolunuzun vida aralığı ve plaka ölçüsü farklıysa uygun değildir, satın almadan önce kontrol edin (vidalar ürüne dahil değildir). Fotoğrafta kol kapı kasasına takılı, diğer görsellerde üç boyutlu görünümü yer alır.\nYaklaşık dış ölçüler: 71 × 60 × 19 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr262599-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr262599-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr262599-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "RafalosPL",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tamirat-cep-kapisi-kolu-34-2-mm-kapi-kalinligi-sikistirma-pr662836",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Cep Kapısı Kolu (34,2 mm Kapı Kalınlığına Uygun, Sıkıştırma Takozlu)",
+    "aciklama": "Cep kapısının kenarına geçerek kapıyı açıp kapamayı kolaylaştıran kol; kapalı konumda kapıyı yuvasına sıkıştıran bir takozu da vardır, böylece kapı tıkırdamaz. 34,2 mm kalınlığındaki kapı için hazırlanmıştır ve 39 mm'lik yuvaya kapanır; farklı kalınlıktaki kapılara uygun değildir, satın almadan önce kapı kalınlığınızı ölçün. Vidayla ya da çift taraflı bantla sabitlenir (vida ve bant ürüne dahil değildir). Fotoğraflarda kol ahşap kapının kenarına takılı görülür.\nYaklaşık dış ölçüler: 100 × 71 × 55 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr662836-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr662836-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr662836-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "gexgecko",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tamirat-kare-milli-kapi-kolu-8-x-8-mm-mile-uygun-85-mm-pr191401",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kare Milli Kapı Kolu (8 × 8 mm Mile Uygun, 85 mm)",
+    "aciklama": "8 × 8 mm kare mile geçen sade kapı kolu. Mil deliği 8,5 × 8,5 mm'dir, kolun uzunluğu 85 mm'dir. Kendi kapınızdaki mil ölçüsü farklıysa uygun değildir, satın almadan önce kontrol edin. Görsellerde kolun üç boyutlu görünümü yer alır.\nYaklaşık dış ölçüler: 101 × 45 × 16 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr191401-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr191401-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Otomar",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tamirat-kure-bicimli-kapi-kolu-8-x-8-mm-kare-mile-m4-vidali-pr604050",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Küre Biçimli Kapı Kolu (8 × 8 mm Kare Mile, M4 Vidalı)",
+    "aciklama": "8 × 8 mm kare mille çalışan kapı kollarına takılan küre biçimli tutamak; M4 dişli vida ile mile sabitlenir (vida ürüne dahil değildir). Mil ölçünüz ve vida dişiniz farklıysa uygun değildir, satın almadan önce kontrol edin. Fotoğrafta küre kol ahşap kapıda görülür; diğer görsellerde üç boyutlu görünüm ve kare mil yuvası yer alır.\nYaklaşık dış ölçüler: 73 × 52 × 51,2 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr604050-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr604050-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr604050-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Simin_03",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tamirat-mobilya-ayagi-kapagi-40-mm-kare-10-mm-yukseltmeli-pr247576",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Mobilya Ayağı Kapağı (40 mm Kare Ayak, 10 mm Yükseltmeli)",
+    "aciklama": "Kenarları keskin kare mobilya ayaklarının zemini çizmesini önleyen ayak kapağı. 40 mm kare ayağa takılır; 4 mm derinliğindeki yuvada ayağın çevresinde 1 mm boşluk bırakılmıştır ve kapak mobilyayı aynı zamanda 10 mm yükseltir. Ayağınız 40 mm kare değilse uygun değildir. Fotoğrafta kapak ahşap ayağın altında, diğer görselde kesit görünümüyle yer alır.\nYaklaşık dış ölçüler: 48 × 48 × 14 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr247576-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr247576-2.jpg"
+    ]
+  },
+  {
+    "id": "tamirat-sandalye-bar-taburesi-ayak-tapasi-31-mm-ic-cap-pr556930",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Sandalye / Bar Taburesi Ayak Tapası (31 mm İç Çaplı Boru İçin)",
+    "aciklama": "Yüksek mutfak adası taburelerinin kırılan ayak tapalarının yerine takılan yedek tapa. Ayak borusunun iç çapı 31 mm (yaklaşık 1,22 inç) olan sandalye ve tabureler için uygundur; sıkı geçer, çekiçle hafifçe çakılarak yerine oturtulur. Boru çapınız farklıysa uygun değildir, satın almadan önce ölçün. Fotoğraflarda tapa taburenin ayağında ve tek başına görülür.\nYaklaşık dış ölçüler: 35,3 × 35,3 × 13,7 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr556930-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr556930-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr556930-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "olendorf",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "tamirat-balkon-kapisi-kolu-guclendirmeli-vida-kapakli-pr113428",
     "kategori": "Tamirat",
     "marka": [],
