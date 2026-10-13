@@ -496,6 +496,29 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/nobet-olcum-test.py
 
+      # ISCI-SEMAFOR (13 Eki 2026, BaBa 01:2x YEREL YUK hukmu): isci.sh'in
+      # makine-geneli eszamanlilik kapisi (<=3 isci, 1 dk yuk >12 bekler, 90 dk
+      # tavan -> HAL=KUYRUK-TAVAN). HERMETIK: gecici slot koku / isci.log / HOME;
+      # sahte isci = sleep, sahte yuk = dosya. 5 vaka + 2 mutant (SINIR 3->99,
+      # yuk kolu yok). Kurulu kopya esitligi (f) CI'da ATLANDI (kopya yerelde).
+      # SERIT B: kirmizisi yayini DURDURMAZ (makine kapisi, musteri yuzeyi degil).
+      - name: "Isci semaforu — kabul testi (5 vaka + 2 mutant, hermetik)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/isci-semafor-test.py
+
+      # AGIR-IS KAPISI (13 Eki 2026, BaBa 02:4x): agir araclar (Blender/mutant
+      # bataryasi/render) ~/.claude/cron/agir-is.sh ile ayni semafordan 3/3 slotu
+      # ATOMIK alir (yuk >8 bekler, 60 dk tavan). HERMETIK: gecici slot koku /
+      # isci.log / HOME; sahte yuk = dosya. 6 vaka + 2 mutant (--adet 3->1, yuk
+      # esigi yok). (f) isci-semafor-test'i de kosar. Kurulu kopya (h) CI'da ATLANDI.
+      # SERIT B: kirmizisi yayini DURDURMAZ (makine kapisi, musteri yuzeyi degil).
+      # ubuntu-latest'te zsh YOK: adim kurar; test zsh'siz ATLAMAZ, KIRMIZI yanar.
+      - name: "Agir is kapisi — kabul testi (6 vaka + 2 mutant, hermetik)"
+        if: ${{ !cancelled() }}
+        run: |
+          command -v zsh >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq zsh; }
+          python3 tools/agir-is-test.py
+
       # RECETE KAPISI — MIMAR-ICRA-KAPISI'NIN RECETE KONTROLCUSU (18 Agu 2026, K168).
       # Arac, tools/ dizinindeki HER .py icindeki "python3 ..." komutlarini mimar-icra-kapisi
       # uzerinden kuru kosuma yollar; REDDEDILEN sayisi > 0 ise rc=1. SERIT B kapsaminda — kirmizisi
@@ -2579,6 +2602,14 @@ jobs:
       - name: "SERIT B dispatch kapisi kabul bataryasi (bayat taban + eszamanli dal, mutant MA/ME)"
         if: ${{ !cancelled() }}
         run: python3 tools/serit-b-dispatch-test.py
+
+      # URUN KUYRUGU BIRLESTIRICI (12 Eki 2026, BaBa "YAYIN ACLIGI") — urun push'lari
+      # `urun-kuyruk` dalinda birikir, .github/workflows/urun-kuyruk.yml Pages YOKKEN
+      # main'e alir. Burada HERMETIK batarya: gecici bare origin + sahte gh/git (AG YOK),
+      # 15 vaka (BEKLE/BOS/ff/merge/CAKISMA/yabanci-yol/yaris/...) + taban + M-BOS/M-YOL.
+      - name: "Urun kuyrugu birlestirici kabul bataryasi (BOS'ta push/dispatch 0, mutant M-BOS/M-YOL)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/urun-kuyruk-test.py
 
       # HAYALI NOBETCI KAPISI (11 Eyl 2026, BaBa ⑤) — "tools/ icindeki bir YORUM bir .py
       # dosyasini NOBETCI diye aniyorsa o dosya VAR OLMALI". Olculen ariza: ca8c3815
