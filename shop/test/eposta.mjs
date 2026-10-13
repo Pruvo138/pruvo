@@ -14,6 +14,9 @@
  * ONCE-KIRMIZI: eski eposta.js'te (link/img yokken) bu testler KIRMIZI yanar.
  */
 
+import fs from "node:fs";
+import path from "node:path";
+import url from "node:url";
 import { onayEpostasiHtml, kargoEpostasiHtml } from "../src/eposta.js";
 
 const SITE = "https://pruvo3d.com";
@@ -102,6 +105,71 @@ const RESIM_TANIMSIZ = { id: "eski-siparis-parca", baslik: "Eski Sipariş Parça
   ol("6c satici kopyasinda kacisli not VAR",
     satici.includes("&lt;img src=x onerror=alert(1)&gt;") &&
     satici.includes("Teslimden önce arayın"));
+}
+
+// ---- 7) FOTO KALEMI: OKAN (satici) KOPYASI is_no + girdiler + onizleme LINKI; MUSTERI KOPYASI BAYT-AYNI ----
+// (Okan 13 Eki 21:0x) Bilgi foto.js saticiFotoBilgileri'nden gelir; burada o yapinin sablona basilisi olculur.
+const FOTO_KALEM = { id: "ozel-foto-plaket", baslik: "Fotoğrafından özel üretim — Kabartma plaket (100 mm, ayaklı)",
+  gorsel: "", malzeme: "PLA", renk: "Beyaz", adet: 1, tutar_kurus: 100000, foto_is: "5".repeat(32),
+  foto_tur: "plaket", olcu_mm: 100, parametre_detay: "100 mm · tek renk · ayak: 1" };
+const GORSEL_LINKI = "https://pruvo3d.com/api/shop/yonet/foto-dosya?siparis_no=PR-260717-120000-ABC&kalem=0&bicim=onizleme";
+const FOTO_BILGI = [{ kalem: 0, is_no: "5".repeat(32), tur: "plaket", olcu_mm: 100, cesit: "figur", alt_tur: "pet",
+  uretim_notu: "<script>alert(1)</script> & 'kenar' yuvarlak", malzeme: "PLA", renk: "Beyaz", gorsel: GORSEL_LINKI,
+  onay_gerekli: true, onay_yonergesi: "Panel → Siparişler → bu kalemde \"Onayla (3D üret)\" (POST /yonet/foto/siparis-onayla)",
+  ornek_no: "", cift_zincir_notu: "", okunamadi: false }];
+const FOTO_BILGI_CIFT = [{ ...FOTO_BILGI[0], ornek_no: "ORNEK-555555555555",
+  cift_zincir_notu: "bu iş için zaten üretim var: ORNEK-555555555555" }];
+function fotoSenaryolar(onay) {
+  const s = {};
+  const yalin = onay(SIPARIS, [FOTO_KALEM], DOKUM, false, false);
+  const bilgili = onay(SIPARIS, [FOTO_KALEM], DOKUM, false, false, FOTO_BILGI);
+  const ciftli = onay(SIPARIS, [FOTO_KALEM], DOKUM, false, false, FOTO_BILGI_CIFT);
+  // E1 musteri: bilgi verilse de cikti bilgisizle BAYT-AYNI; gorsel/link/is_no/not/onay ucu 0.
+  s.E1 = yalin === bilgili && yalin === ciftli && yalin === onay(SIPARIS, [FOTO_KALEM], DOKUM, false) &&
+    !bilgili.includes("5".repeat(32)) && !bilgili.includes("foto-dosya") && !bilgili.includes("<img") &&
+    !bilgili.includes("siparis-onayla") && !bilgili.includes("kenar") && !bilgili.includes("ORNEK-");
+  const satici = onay(SIPARIS, [FOTO_KALEM], DOKUM, false, true, FOTO_BILGI);
+  // E2 Okan: is_no + tur/olcu/cesit/alt tur + not (KACISLI) + gorsel LINKI (img DEGIL) + onay yonergesi.
+  s.E2 = satici.includes("<code>" + "5".repeat(32) + "</code>") && satici.includes("figur / pet") &&
+    satici.includes("100 mm") && satici.includes("PLA / Beyaz") &&
+    satici.includes("&lt;script&gt;alert(1)&lt;/script&gt; &amp; &#39;kenar&#39; yuvarlak") && !satici.includes("<script>") &&
+    satici.includes("href='" + GORSEL_LINKI.replace(/&/g, "&amp;") + "'") && !satici.includes("<img") &&
+    satici.includes("POST /yonet/foto/siparis-onayla") && satici.includes("okan_onay: true") &&
+    !satici.includes("zaten üretim var");
+  const saticiCift = onay(SIPARIS, [FOTO_KALEM], DOKUM, false, true, FOTO_BILGI_CIFT);
+  s.E3 = saticiCift.includes("⚠️ bu iş için zaten üretim var: ORNEK-555555555555") && satici !== saticiCift;
+  return s;
+}
+{
+  const s = fotoSenaryolar(onayEpostasiHtml);
+  ol("E1 musteri kopyasi foto kaleminde gorsel/link/is_no/not 0 ve bilgiyle BAYT-AYNI", s.E1);
+  ol("E2 Okan kopyasi is_no + cesit/alt tur + olcu + malzeme/renk + not KACISLI + gorsel LINKI + onay yonergesi", s.E2);
+  ol("E3 Okan kopyasi cift zincir notu (bu iş için zaten üretim var: ORNEK-…)", s.E3);
+}
+
+// ---- 8) MUTANT (izole kopya; calisma agacina yazilmaz): Okan blogu musteri kopyasina da basilir -> E1 KIRMIZI ----
+{
+  const BURASI = path.dirname(url.fileURLToPath(import.meta.url));
+  const GECICI = path.join(BURASI, "..", "eposta-test-tmp-" + process.pid);  // ../../secenekler.js cozulsun diye shop/<x>/
+  process.on("exit", () => { fs.rmSync(GECICI, { recursive: true, force: true }); });
+  const ASIL = fs.readFileSync(path.join(BURASI, "..", "src", "eposta.js"), "utf8");
+  const MUTANTLAR = [
+    ["E-M3 OKAN BLOGU MUSTERI KOPYASINA DA BASILIR",
+     "(satici && Array.isArray(fotoBilgi) && fotoBilgi.length ? saticiFotoBlogu(fotoBilgi) : \"\")",
+     "(Array.isArray(fotoBilgi) && fotoBilgi.length ? saticiFotoBlogu(fotoBilgi) : \"\")", ["E1"]],
+    ["E-MK KONTROL", "Musteri kopyasina BASILMAZ (cagiran", "Musteri kopyasina  BASILMAZ (cagiran", []],
+  ];
+  let n = 0;
+  for (const [ad, capa, yerine, olmeli] of MUTANTLAR) {
+    if (ASIL.split(capa).length - 1 !== 1) { ol(ad + " capa bulundu", false, "capa kayip/coklu"); continue; }
+    fs.mkdirSync(GECICI, { recursive: true });
+    const dosya = path.join(GECICI, "eposta-" + (++n) + ".js");
+    fs.writeFileSync(dosya, ASIL.replace(capa, yerine));
+    const m = await import(url.pathToFileURL(dosya).href);
+    const s = fotoSenaryolar(m.onayEpostasiHtml);
+    const kirmizi = Object.keys(s).filter((x) => s[x] !== true).sort();
+    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kirmizi) === JSON.stringify(olmeli), JSON.stringify(kirmizi));
+  }
 }
 
 console.log("\nSONUC: " + gecen + " gecti, " + kalan + " kaldi" + (kalan ? "" : " — HEPSI YESIL ✅"));
