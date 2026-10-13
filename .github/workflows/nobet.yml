@@ -506,6 +506,19 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/isci-semafor-test.py
 
+      # AGIR-IS KAPISI (13 Eki 2026, BaBa 02:4x): agir araclar (Blender/mutant
+      # bataryasi/render) ~/.claude/cron/agir-is.sh ile ayni semafordan 3/3 slotu
+      # ATOMIK alir (yuk >8 bekler, 60 dk tavan). HERMETIK: gecici slot koku /
+      # isci.log / HOME; sahte yuk = dosya. 6 vaka + 2 mutant (--adet 3->1, yuk
+      # esigi yok). (f) isci-semafor-test'i de kosar. Kurulu kopya (h) CI'da ATLANDI.
+      # SERIT B: kirmizisi yayini DURDURMAZ (makine kapisi, musteri yuzeyi degil).
+      # ubuntu-latest'te zsh YOK: adim kurar; test zsh'siz ATLAMAZ, KIRMIZI yanar.
+      - name: "Agir is kapisi — kabul testi (6 vaka + 2 mutant, hermetik)"
+        if: ${{ !cancelled() }}
+        run: |
+          command -v zsh >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq zsh; }
+          python3 tools/agir-is-test.py
+
       # RECETE KAPISI — MIMAR-ICRA-KAPISI'NIN RECETE KONTROLCUSU (18 Agu 2026, K168).
       # Arac, tools/ dizinindeki HER .py icindeki "python3 ..." komutlarini mimar-icra-kapisi
       # uzerinden kuru kosuma yollar; REDDEDILEN sayisi > 0 ise rc=1. SERIT B kapsaminda — kirmizisi

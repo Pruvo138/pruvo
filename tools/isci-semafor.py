@@ -25,6 +25,15 @@ Doluluk isaretcisi `<slot-koku>/<n>` (sahip/tutucu/etiket); `ls <slot-koku>`
 en fazla SINIR ad gosterir. Isaretci kilidi bos bir slotta kaldiysa BAYATTIR
 (`durum` gosterir), bir sonraki alan uzerine yazar.
 
+COKLU SLOT (13 Eki 2026, BaBa 02:4x — agir-is kapisi): `al --adet N` N slotun
+HEPSINI ATOMIK alir ya da HICBIRINI almaz (kismi tutup kilitlenme YOK): kuyruk
+basi slotlari LOCK_NB ile dener, N'e ulasamazsa aldiklarini HEMEN birakip bekler
+(FIFO: arkadaki isciler sira bekler, agir is ac kalmaz). N fd'yi TEK tutucu
+tasir; her slotun isaretcisi ayni tutucuyu gosterir. `--adet 1` (varsayilan)
+davranisi ve log satirlari onceki surumle BAYT-AYNI. `--tur X` log satirlarina
+`tur=X` ekler (agir-is.sh: `tur=agir`). Sarmalayici: ~/.claude/cron/agir-is.sh
+(kaynak tools/agir-is.sh, kabul tools/agir-is-test.py).
+
 RC (al): 0 slot alindi · 64 KUYRUK-TAVAN · 65 sahip beklerken oldu ·
 2 kullanim · 70 ic hata (isci.sh FAIL-OPEN: `SEMAFOR=OLCULEMEDI` satiri).
 
@@ -116,8 +125,12 @@ def kuyruk_listesi(kuyruk):
     return sorted(canlilar, key=lambda a: (int(a.split("-")[0]), a))
 
 
-def kilit_dene(kilit_dizini, sinir):
-    """Bos ilk slotu kilitler: (n, fd) ya da (None, None)."""
+def kilit_dene(kilit_dizini, sinir, adet=1):
+    """Bos ilk `adet` slotu kilitler: ([n..], [fd..]) ya da (None, None).
+
+    Hep-ya-hic: `adet`e ulasilamazsa alinan kilitler kapatilarak birakilir.
+    """
+    alinan, fdler = [], []
     for n in range(1, sinir + 1):
         fd = os.open(os.path.join(kilit_dizini, str(n)), os.O_RDWR | os.O_CREAT, 0o600)
         try:
@@ -125,7 +138,12 @@ def kilit_dene(kilit_dizini, sinir):
         except OSError:
             os.close(fd)
             continue
-        return n, fd
+        alinan.append(n)
+        fdler.append(fd)
+        if len(alinan) == adet:
+            return alinan, fdler
+    for fd in fdler:
+        os.close(fd)
     return None, None
 
 
@@ -159,18 +177,19 @@ def isaretci_oku(yol):
     return alan
 
 
-def tutucu_ol(fd, sahip, isaretci, izle_sn):
-    """Cocuk: kilitli fd'yi tasir, sahip olunce isaretciyi silip cikar."""
+def tutucu_ol(fdler, sahip, isaretciler, izle_sn):
+    """Cocuk: kilitli fd'leri tasir, sahip olunce isaretcileri silip cikar."""
     os.setsid()
     signal.signal(signal.SIGHUP, signal.SIG_IGN)
     benim = os.getpid()
 
     def bitir(*_):
-        if isaretci_oku(isaretci).get("tutucu") == str(benim):
-            try:
-                os.unlink(isaretci)
-            except OSError:
-                pass
+        for isaretci in isaretciler:
+            if isaretci_oku(isaretci).get("tutucu") == str(benim):
+                try:
+                    os.unlink(isaretci)
+                except OSError:
+                    pass
         os._exit(0)
 
     signal.signal(signal.SIGTERM, bitir)
@@ -180,7 +199,7 @@ def tutucu_ol(fd, sahip, isaretci, izle_sn):
     for hedef in (0, 1, 2):
         os.dup2(bos, hedef)
     for acik in range(3, 256):
-        if acik not in (fd,):
+        if acik not in fdler:
             try:
                 os.close(acik)
             except OSError:
@@ -209,7 +228,8 @@ def al(a):
 
     signal.signal(signal.SIGTERM, sinyalle)
     signal.signal(signal.SIGINT, sinyalle)
-    ortak = "motor=%s ev=%s etiket=%s" % (a.motor, a.ev, a.etiket)
+    ortak = ("tur=%s " % a.tur if a.tur else "") + "motor=%s ev=%s etiket=%s" % (
+        a.motor, a.ev, a.etiket)
     bas = time.monotonic()
     sonraki_satir = bas
     while True:
@@ -225,23 +245,27 @@ def al(a):
         elif sira > 1:
             sebep = "sira"
         else:
-            n, fd = kilit_dene(kilit_dizini, a.sinir)
-            if n is not None:
-                isaretci = os.path.join(a.slot_koku, str(n))
+            nler, fdler = kilit_dene(kilit_dizini, a.sinir, a.adet)
+            if nler is not None:
+                isaretciler = [os.path.join(a.slot_koku, str(n)) for n in nler]
                 cocuk = os.fork()
                 if cocuk == 0:
                     try:
-                        tutucu_ol(fd, a.sahip, isaretci, a.izle_sn)
+                        tutucu_ol(fdler, a.sahip, isaretciler, a.izle_sn)
                     finally:
                         os._exit(0)
-                os.close(fd)
+                for fd in fdler:
+                    os.close(fd)
                 bekleme = int(time.monotonic() - bas)
-                with open(isaretci, "w", encoding="utf-8") as f:
-                    f.write("sahip=%d tutucu=%d slot=%d %s t=%s\n"
-                            % (a.sahip, cocuk, n, ortak, damga()))
+                for n, isaretci in zip(nler, isaretciler):
+                    with open(isaretci, "w", encoding="utf-8") as f:
+                        f.write("sahip=%d tutucu=%d slot=%d %s t=%s\n"
+                                % (a.sahip, cocuk, n, ortak, damga()))
                 girdiyi_sil()
-                log_yaz(a.log, "SEMAFOR=ALINDI slot=%d/%d bekleme_sn=%d yuk=%.2f %s pid=%d"
-                        % (n, a.sinir, bekleme, yuk, ortak, a.sahip))
+                log_yaz(a.log, "SEMAFOR=ALINDI slot=%s/%d%s bekleme_sn=%d yuk=%.2f %s pid=%d"
+                        % (",".join(str(n) for n in nler), a.sinir,
+                           " adet=%d" % a.adet if a.adet > 1 else "", bekleme, yuk, ortak,
+                           a.sahip))
                 return 0
             sebep = "slot"
         gecen = time.monotonic() - bas
@@ -329,9 +353,13 @@ def main(argv=None):
             q.add_argument("--satir-sn", type=float, default=SATIR_SN)
             q.add_argument("--aralik-sn", type=float, default=ARALIK_SN)
             q.add_argument("--izle-sn", type=float, default=IZLE_SN)
+            q.add_argument("--adet", type=int, default=1)
+            q.add_argument("--tur", default="")
     a = p.parse_args(argv)
     if a.sinir < 1:
         p.error("--sinir >= 1 olmali")
+    if a.komut == "al" and not 1 <= a.adet <= a.sinir:
+        p.error("--adet 1..--sinir araliginda olmali")
     return {"al": al, "birak": birak, "durum": durum}[a.komut](a)
 
 
