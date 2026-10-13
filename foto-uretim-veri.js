@@ -400,7 +400,7 @@
           anahtarlik_kulak_konum: { deger: "varsayilan" }
         },
         durustluk: "Metal halka ve zincir dahil değildir; zincir ya da halka takılan kulakçıklı plastik gövde (delik Ø 3,5–4 mm).",
-        ornek_notu: "Üretim dosyasının görüntüsüdür; yazı, renk ve kulak konumu seçimine göre üretilir.",
+        ornek_notu: "Üretim dosyasının görüntüsüdür; yazı ve renk seçimine göre üretilir.",
         olcu_ekseni: "sabit",
         foto_kolu: {
           girdi: ["foto-1"],
