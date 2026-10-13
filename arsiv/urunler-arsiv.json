@@ -889,5 +889,26 @@
         "PETG"
       ]
     }
+  },
+  {
+    "silinme_ts": "2026-10-13T08:50:40Z",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null,
+    "kayit": {
+      "id": "olcuye-ozel-saksi-vazo",
+      "kategori": "Jeneratör",
+      "marka": [],
+      "baslik": "Ölçüye Özel Saksı / Vazo (Konik · Drenajlı · Altlık Seçenekli)",
+      "aciklama": "Tam istediğiniz çapta ve yükseklikte saksı ya da vazo üretiyoruz — balkon bitkisinden sofra çiçeğine, mevcut dış saksının içine oturan iç saksıya kadar. Çapı ve yüksekliği siz verirsiniz; saksı tam oturur.\n\nNeyi ayarlıyoruz?\n• Üst çap — 60–260 mm, alt çap — 40–200 mm (yan eğim 40°'yi aşmayacak şekilde konik gövde)\n• Yükseklik — 50–300 mm\n• Duvar kalınlığı — 1,6–4 mm, taban kalınlığı — 2–5 mm\n• Drenaj deliği — var/yok, çap 6–20 mm (su tutan vazo için deliksiz seçilebilir)\n• Alt tabak (altlık) — saksıya uygun ölçüde, ayrı parça olarak; seçmek isteğe bağlı\n• Hazır ölçüler — S (üst Ø100 · alt Ø70 · 90 mm), M (Ø140 · Ø100 · 120 mm), L (Ø180 · Ø130 · 160 mm)\n• Malzeme & renk — sağlam PETG/PLA; farklı renk seçenekleri\n\nKullanım: sukulent ve kaktüs saksıları, orkide iç saksısı, otlar ve baharatlar, masa üstü vazo.\n\nNasıl sipariş edilir?\nÜst çap, alt çap ve yükseklik ölçüsünü, drenaj ve altlık isteyip istemediğinizi seçin ya da hazır ölçülerden birini işaretleyin; ölçüye özel üretip adresinize gönderelim.\n\nNot: dış saksının içine oturacak bir iç saksı istiyorsanız dış saksının iç çapını ve derinliğini bize yazın; uygun payı birlikte hesaplarız.\n\nYaklaşık dış ölçüler (saksı gövdesi): S Ø100 × 90 mm · M Ø140 × 120 mm · L Ø180 × 160 mm.",
+      "fiyat": "",
+      "gorseller": [
+        "https://media.pruvo3d.com/urunler/olcuye-ozel-saksi-vazo-1.jpg",
+        "https://media.pruvo3d.com/urunler/olcuye-ozel-saksi-vazo-2.jpg",
+        "https://media.pruvo3d.com/urunler/olcuye-ozel-saksi-vazo-3.jpg",
+        "https://media.pruvo3d.com/urunler/olcuye-ozel-saksi-vazo-4.jpg",
+        "https://media.pruvo3d.com/urunler/olcuye-ozel-saksi-vazo-5.jpg"
+      ],
+      "parametrik": true
+    }
   }
 ]
