@@ -71,7 +71,14 @@ PARCA_AYIRAC = "#"
 ACIK_AILELER = {
     "olcuye-ozel-baglanti-konektor": "konektor",
     "olcuye-ozel-montaj-braketi": "braket",
+    # GERI KONDU (2026-10-13, KraL-SaksiCI): disli + adaptor 8 Eki foto A dilimi
+    # squash'inda (c8a76d036) buradan DUSMUSTU; o commit'in hukmu "5 FOTO turu
+    # silindi — katalog sari seri AYNEN" idi. Iki urun katalogda ve ONIZLEME_AILELER'de
+    # duruyor, canli v7 imaji ikisini de sunuyordu: v8 paket bu satirlarsiz derlense
+    # onizlemeleri KIRILIRDI. .scad ozetleri v7 parmakiziyla BIREBIR ayni.
+    "ozel-disli-kramayer-uretimi": "disli",
     # Yeni sari aileler 1. dalga (2026-07-17) — bizim ureteclerimiz
+    "olcuye-ozel-hortum-adaptoru": "adaptor",
     "olcuye-ozel-kutu-organizer": "kutu",
     "olcuye-ozel-vidali-kavanoz-tapa": "kavanoz",
     # Olcuye ozel toka (2026-07-26) — bizim uretecimiz (jeneratorler/toka.scad)
@@ -90,6 +97,10 @@ ACIK_AILELER = {
     #   olcuye-ozel-cerceve#yazi  -> Output="caption"          (yalniz kabartma yazi)
     # Taban aile (Output="frame", tek govde) AYNEN durur. Bkz. parca_bloklari().
     "olcuye-ozel-cerceve": "cerceve",
+    # Olcuye ozel saksi/vazo (2026-10-13) — bizim uretecimiz (jeneratorler/saksi_vazo.scad).
+    # Taban aile parca="saksi"; `ek_parcalar` blogu (2-renk DEGIL, ayri basilan ek
+    # parca) olcuye-ozel-saksi-vazo#tabak (parca="tabak", alt tabak) uretir.
+    "olcuye-ozel-saksi-vazo": "saksi",
 }
 
 
@@ -176,11 +187,27 @@ def parca_bloklari(ad, taban_blok):
       * `metin`/`sayisal`/`secim` bloklari DEGISTIRILEMEZ (musteri metni ve olculer
         iki govdede AYRI olamaz — ayrisirsa yazi govdesi baska bir yaziyi basardi).
     `parcalar` yoksa BOS sozluk doner -> uretilen paket eslemi bu degisiklikten
-    ONCEKIYLE BIREBIR AYNI kalir (yanlis-pozitif kapisi)."""
+    ONCEKIYLE BIREBIR AYNI kalir (yanlis-pozitif kapisi).
+
+    IKI SINIF, TEK URETIM YOLU (2026-10-13):
+      * `parcalar`    = 2-RENK bolunmesi: AYNI nesnenin renk govdeleri, yalniz
+                        `Output` farkli (cerceve govde/yazi; ONIZLEME_PARCALAR'da).
+      * `ek_parcalar` = AYRI BASILAN EK PARCA: ayni uretecten, ayni olculerle ama
+                        BASKA bir nesne (saksi#tabak; renk secenegi DEGIL).
+    Ikisi de ayni kurallarla ayni "<urunId>#<parca>" bloguna doner; sinif ayrimi
+    yalniz sozlesme kapisi icindir (tools/iki-govde-kapisi.py). Ayni ad iki sinifta
+    birden gecerse paket uretimi DURUR."""
     with open(os.path.join(REPO, "jenerator", "test", "esleme",
                            ad + ".json"), encoding="utf-8") as f:
         test_eslem = json.load(f)
-    parcalar = test_eslem.get("parcalar") or {}
+    iki_renk = test_eslem.get("parcalar") or {}
+    ek = test_eslem.get("ek_parcalar") or {}
+    cakisan = sorted(set(iki_renk) & set(ek))
+    if cakisan:
+        sys.exit("%s: parca adi hem `parcalar` hem `ek_parcalar`da: %s"
+                 % (ad, ", ".join(cakisan)))
+    parcalar = dict(iki_renk)
+    parcalar.update(ek)
     if not parcalar:
         return {}
     urun_id = test_eslem["urunId"]

@@ -1901,6 +1901,20 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/kutu-arsivle-test.py --mutasyon
 
+      # KUTU BASA EKLEME TEK YOLU (BaBa 13 Eki 2026) — 14:5x'te KraL blogu eşzamanlı
+      # tam-dosya yazımıyla EZILDI; 17:5x'te Pages 38399235384 derinlik adımı 30+ dk
+      # asılı kaldı. Bu iki aksın AYNI anda TEK bir cozumu: `tools/kutu-ekle.py` kutu
+      # yazımının TEK meşru yolu (kutu-arsivle ile ORTAK `.<ad>.lock` plock + atomik
+      # yazım + "## " ile baslayan blog zorunlulugu). Kabul testi 5 vaka: tek ekleme
+      # + eşzamanlı 2 süreç × 20 blok (kayıp 0) + kilit baskasında 60 sn bloke
+      # (kilit serbest kalınca basari) + bicim hatalisi (## yoksa) -> kutu değismez
+      # + MUTANT (flock cikarilir) → eszamanlı 40/40 testi kayip ≥1 KIRMIZI yanar.
+      # NEDEN SERIT B: yine mimar yazisma hijyeni; canli kutuya / gercek HOME'a
+      # YAZMAZ; tamamen offline gecici dizinde ~5 s.
+      - name: "Kutu basa ekleme kabul testi (5 vaka + mutant, SERIT B)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/kutu-ekle-test.py
+
       # KUTU KILIDI KALKTI (BaBa 8 Eki) — KUTU ekseni commit/push'u REDDETMEZ: kapi tavan
       # asiminda rotasyonu KENDISI kosar, kalan hal `KUTU_TEFTIS` RAPORudur. Koruma
       # 48 saatte ya da `Kapatan ... ✔︎ KAPANDI` ile duser; UZUN_BLOK raporu (`--teftis`).

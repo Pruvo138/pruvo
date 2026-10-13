@@ -387,7 +387,10 @@
     "olcuye-ozel-pervane-fan-cark", "olcuye-ozel-izgara-menfez-kapak",
     "olcuye-ozel-hortum-adaptoru", "olcuye-ozel-kutu-organizer",
     "olcuye-ozel-vidali-kavanoz-tapa",
-    "olcuye-ozel-toka", "olcuye-ozel-cerceve"];
+    "olcuye-ozel-toka", "olcuye-ozel-cerceve", "olcuye-ozel-saksi-vazo"];
+  // SAKSI/VAZO (2026-10-13): bizim uretecimiz; paket ACIK_AILELER'e girer. Buton urun
+  // kaydi (urunler.json) yayina girince gorunur; paket + imaj yenilenmeden derleme
+  // ucu bu aileyi tanimaz -> DEPLOY SIRASI: paket+imaj ONCE, urun kaydi SONRA.
   // v1.2 NOTU (2026-07-28): "olcuye-ozel-cerceve" onizlemeye GERI ALINDI. Aile bizim
   // uretecimizdir (cerceve uretim modeli) -> pakete ACIK_AILELER
   // (paket yukleyici) uzerinden girer; onizleme eslemi public
@@ -1040,7 +1043,12 @@
     // Bu satır tek başına yetmez: ölçümün YEŞİL ve TAZE parite kaydı depoda durur ve
     // her koşumda doğrulanır (motor parmakizi / şema kısıt özeti / nokta eşiği / kova).
     // Kayıt bayatlar ya da kaybolursa satış kapısı bu aileyi KIRMIZI yakar.
-    rulman: 1.29
+    rulman: 1.29,
+    // saksi: 2026-10-13. (1) HACİM — üretim motoru render'ına karşı 17 set, en kötü
+    //      sapma %0,07 (çokgen katsayısı) → 0.07. (2) ÜRETİLEBİLİRLİK — rulmanla AYNI
+    //      dört-kova ölçümü (alt tabak seçiliyse tabak gövdesi de render edilir).
+    //      Kayıt rulmandaki gibi her koşumda doğrulanır.
+    saksi: 0.07
     // 🔴 ÇIKARILANLAR — hacim ekseni yeşil ama ŞEMA ARALIĞI üretilemez konfigürasyon
     // veriyor (yukarıdaki "ŞEMA ARALIĞI TARAMASI" bloğu). Şema onarılana kadar KAPALI:
     //   petek  — bölge `mod="kabartma"` tümü, %50,0 üretilemez, ölçüm 2026-08-03
@@ -1174,6 +1182,63 @@
     };
   }
 
+  /* ---- AİLE FİYAT DOĞRUSU + EK PARÇA KADEMESİ (aile-özel) — TEK KAYNAK -------
+     İşletme kararı (13 Eki 2026) — `saksi` (ölçüye özel saksı/vazo):
+       temel = max(zeminTL, sabitTL + (tabanFiyatTL − sabitTL) × hacim / tabanHacim)
+     Taban (M boy, 140/100/120 mm, analitik 137.646 mm³) = 800,00 TL; ZEMİN 400,00 TL
+     (genel kuraldaki "taban = zemin" BU AİLEDE GEÇERLİ DEĞİL: küçük saksı tabandan
+     ucuzdur ama 400 TL altına inmez). `sabitTL` = 180: S/M/L ön-ayar fiyatları
+     ≈500 / 800 / 1.250 TL kararını tutturan katsayı (ölçülen: 500,00 / 800,00 /
+     1.249,29). Saf oran (sabitTL 0) 412,91 / 800,00 / 1.379,77 verirdi — o yüzden
+     DOĞRU, oran değil. Sıra genel kuralla AYNI: temel -> malzeme -> renk -> tavan.
+     EK PARÇA (alt tabak): `secim` parametresi `acikDeger` iken SABİT kademe tutarı
+     eklenir; kademe `olcu` parametresine (alt çap) EN YAKIN boydan seçilir, eşitlikte
+     BÜYÜK kademe. Ek, tavandan SONRA ve malzeme/renk çarpanı DIŞINDA eklenir (çerçeve
+     2-renk ekiyle aynı konum).
+     🔴 FAIL-CLOSED: bu ailelerde ek parça kararı ölçüye bağlıdır → `baglam` (şema +
+     ölçüler) yoksa ya da seçim değeri tanınmıyorsa TUTAR ÜRETİLMEZ. Kuralı olmayan
+     ailelerde ek 0'dır ve bağlam istenmez (bugünkü davranış birebir). */
+  var AILE_FIYAT_KURALI = {
+    saksi: {
+      zeminTL: 400,
+      sabitTL: 180,
+      ekParca: {
+        secim: "tabak", acikDeger: "var", kapaliDeger: "yok", olcu: "alt_cap",
+        kademeler: [
+          { boy: "S", olcu: 70, kurus: 10000 },
+          { boy: "M", olcu: 100, kurus: 15000 },
+          { boy: "L", olcu: 130, kurus: 20000 }
+        ]
+      }
+    }
+  };
+
+  function aileFiyatKurali(aile) {
+    return (typeof aile === "string" &&
+            Object.prototype.hasOwnProperty.call(AILE_FIYAT_KURALI, aile))
+      ? AILE_FIYAT_KURALI[aile] : null;
+  }
+
+  /* Ek parça kademesi — {boy, kurus} | {boy:null, kurus:0} (seçim kapalı) | null
+     (fail-closed: bağlam yok / seçim tanınmıyor / ölçü sayı değil). */
+  function ekParcaKademesi(ek, baglam) {
+    if (!baglam || typeof baglam !== "object") { return null; }
+    var p = baglam.parametreler;
+    if (!p || typeof p !== "object") { return null; }
+    var secim = p[ek.secim];
+    if (secim === ek.kapaliDeger) { return { boy: null, kurus: 0 }; }
+    if (secim !== ek.acikDeger) { return null; }
+    var olcu = (typeof p[ek.olcu] === "number") ? p[ek.olcu]
+      : parseFloat(String(p[ek.olcu]).replace(",", "."));
+    if (!isFinite(olcu)) { return null; }
+    var enIyi = null, enIyiFark = Infinity;
+    for (var i = 0; i < ek.kademeler.length; i++) {
+      var fark = Math.abs(olcu - ek.kademeler[i].olcu);
+      if (fark <= enIyiFark) { enIyi = ek.kademeler[i]; enIyiFark = fark; }
+    }
+    return enIyi ? { boy: enIyi.boy, kurus: enIyi.kurus } : null;
+  }
+
   // ---- parametrik ("ölçüye özel") fiyat ----
   // İşletme kuralı (16 Tem, sarı fiyat paketi) — ÇAPASIZ ailelerde (bugün 18/19):
   //   fiyat = tabanFiyat × max(1, hacim/tabanHacim) × malzemeKatsayı × renkFaktör.
@@ -1197,8 +1262,18 @@
     // ÇAPA KOLU (aile-özel): fiyatın çapasını bir ÖLÇÜ belirler, hacim onu modüle
     // eder. Çapasız ailelerde bugünkü hacim-oranı kuralı AYNEN geçerlidir.
     var capa = capCapasi(aile);
-    var temelKurus, tavanKurus;
-    if (capa) {
+    var kural = aileFiyatKurali(aile);
+    var temelKurus, tavanKurus, ekKurus = 0;
+    if (kural && kural.ekParca) {
+      var kademe = ekParcaKademesi(kural.ekParca, baglam);
+      if (kademe == null) { return null; }            // FAIL-CLOSED (bkz. AILE_FIYAT_KURALI)
+      ekKurus = kademe.kurus;
+    }
+    if (kural) {
+      temelKurus = Math.max(kural.zeminTL * 100,
+        (kural.sabitTL + (tabanFiyatTL - kural.sabitTL) * hacimMm3 / tabanHacimMm3) * 100);
+      tavanKurus = tabanFiyatTL * 100 * tavanCarpani(aile);
+    } else if (capa) {
       var c = capaHesabi(capa, hacimMm3, baglam);
       if (c == null) { return null; }                 // FAIL-CLOSED (bkz. capaHesabi)
       // Taban fiyat ZEMİN olarak KORUNUR — çapa kolunda da altına inilmez.
@@ -1215,7 +1290,8 @@
     // TAVAN (işletme kuralı) — malzeme+renk DAHİL. Çarpanın TEK kaynağı yukarıdaki
     // AILE_TAVAN_CARPANI/TAVAN_CARPANI_VARSAYILAN ikilisi ya da AILE_CAP_CAPASI'dır.
     kurus = Math.min(kurus, tavanKurus);
-    return Math.round(kurus);
+    // EK PARÇA (AILE_FIYAT_KURALI) tavandan SONRA, çarpan dışı; kuralsız ailede 0.
+    return Math.round(kurus) + ekKurus;
   }
 
   /* ÇERÇEVE 2-RENK YAZI EK ÜCRETİ (kuruş) — TEK KAYNAK. Hem ön yüz (jenerator/konfigurator.js)
@@ -1519,6 +1595,9 @@
     tavanCarpani: tavanCarpani,
     AILE_CAP_CAPASI: AILE_CAP_CAPASI,
     capCapasi: capCapasi,
+    AILE_FIYAT_KURALI: AILE_FIYAT_KURALI,
+    aileFiyatKurali: aileFiyatKurali,
+    ekParcaKademesi: ekParcaKademesi,
     HACIM_DOGRULANMIS_AILELER: HACIM_DOGRULANMIS_AILELER,
     hacimDogrulanmisMi: hacimDogrulanmisMi,
     IKI_RENK_EK_KURUS: IKI_RENK_EK_KURUS,
