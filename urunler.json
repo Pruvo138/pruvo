@@ -1,5 +1,189 @@
 [
   {
+    "id": "evcil-kopek-odul-dagitici-donen-silindirli-pr641223",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Köpek Ödül Dağıtıcı (Dönen Silindirli, Elektriksiz)",
+    "aciklama": "Köpeğin ödül mamasına ulaşmak için uğraştığı, elektriksiz ödül dağıtıcı. Geniş yuvarlak tabanlı bir gövde, üzerinde dönen bir silindir ve içinden geçen bir mil olmak üzere üç parçadan oluşur. Ödül mama dahil değildir. Fotoğraflarda mavi silindirli dağıtıcı ve yanındaki köpek görülür.\nYaklaşık dış ölçüler: 236 × 200 × 124 mm (taban gövdesi).",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr641223-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr641223-2.jpg"
+    ]
+  },
+  {
+    "id": "evcil-hamster-merdiveni-kivrimli-cam-kenara-takilan-pr346001",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Hamster Merdiveni (Kıvrımlı Basamaklı, Cam Kenara Takılan)",
+    "aciklama": "Kemirgen terraryumunun kenarına takılan, kıvrımlı ve basamaklı hamster merdiveni. Üst uçtaki oyuk 5 mm kalınlığındaki cam kenara geçer. Fotoğraflarda merdiven cam terraryumun kenarında talaş yatağının üzerinde görülür; son iki kare bilgisayar çizimi ve render'dır.\nYaklaşık dış ölçüler: 125,5 × 106 × 60 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr346001-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr346001-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr346001-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr346001-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "rolfmobil",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "evcil-hamster-evi-uc-odali-iki-girisli-pr255701",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Hamster Evi (Üç Odalı, İki Girişli, Tek Parça)",
+    "aciklama": "Üç odalı ve iki girişli, tek parça hamster evi. Odalardan biri bir duvarla ikiye bölünmüştür. Fotoğraflarda gri ev dışarıdan ve üstten, iç bölmeleriyle görülür.\nYaklaşık dış ölçüler: 200 × 180 × 91,5 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr255701-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr255701-2.jpg"
+    ]
+  },
+  {
+    "id": "evcil-hamster-siginagi-pencereli-kivrimli-govdeli-pr673707",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Hamster Sığınağı (Pencereli, Kıvrımlı Gövdeli, Tek Parça)",
+    "aciklama": "Kıvrımlı gövdeli, pencereli, tek parça hamster sığınağı. Kafesin içine yerleştirilir. İlk karede bilgisayar render'ı, ikinci karede sığınak talaş yatağının içinde fotoğraf olarak görülür.\nYaklaşık dış ölçüler: 183 × 171 × 120 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr673707-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr673707-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Leptónica",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "evcil-hamster-evi-kaktus-bicimli-tek-parca-pr383038",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Hamster Evi (Kaktüs Biçimli, Tek Parça)",
+    "aciklama": "Kaktüs biçimli, alt kenarında kemerli girişi olan, tek parça hamster evi. Yüzeyi dikey oluklu, iki kolu vardır. Fotoğraflarda yeşil ev yakın plan ve karşıdan görülür.\nYaklaşık dış ölçüler: 102 × 92 × 68 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr383038-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr383038-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "NastyNailgun226 (özgün tasarım: cmdesign)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "evcil-kedi-sivi-odul-sikaci-tek-elle-kullanilan-pr929707",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kedi Sıvı Ödül Sıkacağı (Tek Elle Kullanılan, Kaşıklı)",
+    "aciklama": "Tüp biçimli sıvı kedi ödülünü tek elle bir kaşığa sıkan sıkaç. Gövde ve kol olmak üzere iki parçadan oluşur; kaşık gövdedeki yuvaya yerleştirilir. Menteşe deliğine 1,75 mm kalınlığında bir tel ya da çubuk geçirilir; tel, kaşık ve ödül dahil değildir. Bakım sırasında diğer eli boş bırakır. Fotoğraflarda turuncu sıkaç kaşıkla ve elde tutulurken görülür.\nYaklaşık dış ölçüler: 155 × 38 × 19 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr929707-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr929707-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "tickl",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "evcil-hamster-tahterevalli-oluklu-yuzeyli-pr406970",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Hamster Tahterevallisi (Oluklu Yüzeyli, Kemirgen Oyuncağı)",
+    "aciklama": "Kemirgen kafesi için oluklu yüzeyli, orta noktasından dengelenen tahterevalli oyuncağı. Tek parçadır. İlk karede yeşil tahterevalli fotoğrafta, ikinci karede render olarak görülür.\nYaklaşık dış ölçüler: 172 × 60 × 28 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr406970-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr406970-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "rolfmobil",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "evcil-hamster-siginagi-cok-bolmeli-kayar-duvarli-pr615705",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Hamster Sığınağı (Çok Bölmeli, Kayar Duvarlı, Kapaklı)",
+    "aciklama": "Gövde, ayarlanabilir ayırıcı duvarlar ve kapaktan oluşan çok bölmeli hamster sığınağı. Ayırıcılar gövdedeki yuvalara istenen yere takılarak bölme sayısı değiştirilir. Zemini yoktur; kafesin içinde yatak malzemesinin üzerine yerleştirilir. Fotoğraflarda sığınak kafesin içinde, bilgisayar çizimlerinde ayırıcılı gövde ve kapak görülür.\nYaklaşık dış ölçüler: 220 × 166 × 50 mm (gövde); kapak 230 × 176 × 10 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr615705-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr615705-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr615705-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr615705-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "MechProne",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "evcil-kemirgen-kosu-tekerlegi-ucgen-ayakli-pr892443",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Küçük Kemirgen Koşu Tekerleği (Üçgen Ayaklı, Hamster ve Fare İçin)",
+    "aciklama": "Hamster, fare ve benzeri küçük kemirgenler için üçgen ayaklı koşu tekerleği. Tekerlek, mil, iki üçgen ayak ve çapraz çubuklardan oluşur; parçalar birbirine geçerek monte edilir. Fotoğraflarda monte edilmiş tekerlek ve ayrı parçaları görülür.\nYaklaşık dış ölçüler: 106 × 106 × 51 mm (tekerlek).",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr892443-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr892443-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr892443-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr892443-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Labax",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "evcil-kucuk-hayvan-kafesi-yemligi-tele-takilan-pr209398",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Küçük Hayvan Kafesi Yemliği (Tele Takılan, Dışarıdan Doldurulan)",
+    "aciklama": "Kafesin içinde kalan yem kabı ile dışında kalan hazneden oluşan, kafesi açmadan doldurulabilen yemlik. Kap, tel aralığına sıkıştırılarak yerine oturur; haznenin üstündeki delikler bir yatay tele ip ya da kablo bağıyla bağlamak içindir (ip ya da bağ dahil değildir). Yatay teller arası 23,25 mm, dikey teller arası 133 mm olan kafes için tasarlanmıştır. Fotoğrafta yemlik masa üzerinde, diğer karelerde render olarak görülür.\nYaklaşık dış ölçüler: 134 × 117 × 102 mm (hazne); yem kabı 107 × 93 × 25 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr209398-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr209398-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr209398-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Alluvian",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "evcil-hamster-evi-catili-yuvarlak-pencereli-pr561172",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Hamster Evi (Çatılı, Yuvarlak Pencereli, Küçük Boy)",
+    "aciklama": "Küçük boy hamster için çatılı, yuvarlak pencereli ve kemerli girişli ev. Gövde, çatı, giriş ve iki pencere halkası ayrı parçalardır ve yapıştırılarak birleştirilir; yapıştırıcı dahil değildir. Gövdede \"Hamster\" yazısı kabartması bulunur. Fotoğrafta turuncu ev talaş yatağında, diğer karelerde render olarak görülür.\nYaklaşık dış ölçüler: 100 × 100 × 60 mm (gövde).",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr561172-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr561172-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr561172-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr561172-4.jpg"
+    ]
+  },
+  {
     "id": "dekor-dogum-gunu-yazili-sac-tokasi-dort-disli-pr376738",
     "kategori": "Dekorasyon",
     "marka": [],
