@@ -1339,6 +1339,17 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/gramer-artigi-kapisi.py --kendini-test
 
+      # BASLIK DALGA-1 SABLONU (13 Eki 2026, BaBa 09:5x): urun sayfasi <title>/meta
+      # sablonu dalga-1 (12 Eki 00:00 +0300 sonrasi 560 urun) icin yeni; eski 38.8k
+      # urun BAYT-AYNI. SEO yuzeyi + yayin kapilari (build.py; yanlis sinif = canli
+      # yaniltici baslik, sessiz) — sessiz-hata. 8 vaka + 3 mutant (parca kategori
+      # listesi, kelime ortasi kesim, kume kontrolu). V7 dalga-1 kumesinin TAMIGI
+      # icin N/N basar. SERIT B: kirmizisi yayini DURDURMAZ (musteri yuzeyine
+      # degmez; kapinin kendi kabul testi).
+      - name: "Baslik sablonu — kabul + mutant (8 vaka + 3 mutant, dalga-1)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/baslik-sablon-test.py
+
       # YAYIN GECIKME NOBETCISI — KABUL TESTI (1 Agu 2026).
       # NE OLCER: 15 agsiz fikstur (bugunku GERCEK tikanma · aclik · normal yogun gun ·
       # agsiz/yetkisiz/bozuk-sekil) + kablolama nobetleri.
