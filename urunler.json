@@ -1,5 +1,119 @@
 [
   {
+    "id": "evcil-hamster-kulesi-spiral-merdivenli-kemerli-girisli-pr447751",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Hamster Kulesi (Spiral Merdivenli, Kemerli Girişli)",
+    "aciklama": "Hamsterin bir üst kata çıkması ya da yüksekten etrafı izlemesi için kule. Altta kemerli bir giriş, içeride spiral basamaklar ve üstte kare bir açıklık bulunur; kuleyle birlikte ayrı bir bağlantı parçası da gelir. Fotoğraflarda kule farklı açılardan, üst açıklık ve iç basamaklar yakın planda görülür.\nYaklaşık dış ölçüler: 174,4 × 170 × 141,7 mm (kule).",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr447751-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr447751-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr447751-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr447751-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jacek",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "evcil-hamster-kum-banyosu-kapakli-ustten-delikli-kutu-pr215617",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Hamster Kum Banyosu (Kapaklı, Üstten Delikli Kare Kutu)",
+    "aciklama": "Suriye hamsteri gibi küçük hayvanlar için iki parçalı kum banyosu kutusu. Gövde ile kapak birbirine oturur, istenirse ayrılır; üst yüzeyde hayvanın girdiği yuvarlak bir delik bulunur. Kum dahil değildir. Fotoğraflarda beyaz kutunun üstünde ve deliğinden bakan bir hamster görülür.\nYaklaşık dış ölçüler: 150 × 150 × 78 mm (gövde).",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr215617-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr215617-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr215617-3.jpg"
+    ]
+  },
+  {
+    "id": "evcil-hamster-platformu-yukseltilmis-duz-yuzeyli-pr532569",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Hamster Platformu (Yükseltilmiş, Düz Yüzeyli)",
+    "aciklama": "Hamster evini, suluğu ve yem kabını üzerine koymak için yükseltilmiş düz platform. Dikdörtgen kutu biçimlidir. Fotoğraflarda platform tek başına ve kafes içinde talaş yatağının üzerinde görülür.\nYaklaşık dış ölçüler: 150 × 120 × 55 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr532569-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr532569-2.jpg"
+    ]
+  },
+  {
+    "id": "evcil-hamster-tupu-baglanti-halkasi-60-mm-pr814796",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Hamster Tüpü Bağlantı Halkası (60 mm Dış Çaplı Tüpler İçin)",
+    "aciklama": "Hamster kafeslerinde kullanılan 60 mm dış çaplı tüplerin uçlarını birleştiren halka biçimli bağlantı parçası; sıkı oturacak şekilde ölçülüdür, tüp dahil değildir. İlk karede saydam tüp dirseği bağlantı halkasıyla görülür; ikinci kare bilgisayar çizimidir.\nYaklaşık dış ölçüler: 66 × 66 × 12 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr814796-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr814796-2.jpg"
+    ],
+    "tavsiyeFilament": [
+      "TPU"
+    ]
+  },
+  {
+    "id": "evcil-hamster-kafesi-kucuk-cubuklu-kapakli-pr401414",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Küçük Hamster Kafesi (Çubuklu Yan Duvarlı, Kapaklı)",
+    "aciklama": "Ana kafes temizlenirken hamsteri geçici olarak koymak için küçük kafes. Dört yanı dikey çubuklu kare bir gövde ve üstte kulplu ayrı bir kapak levhası bulunur. Fotoğraflar bilgisayar çizimidir.\nYaklaşık dış ölçüler: 153 × 150 × 150 mm (gövde).",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr401414-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr401414-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr401414-3.jpg"
+    ]
+  },
+  {
+    "id": "evcil-hamster-kosu-tekerlegi-210-mm-rulmansiz-ayakli-pr1617985",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Hamster Koşu Tekerleği (210 mm, Rulmansız, Ayaklı)",
+    "aciklama": "210 mm çaplı, 100 mm koşu yüzeyi genişliğinde hamster koşu tekerleği. Rulman ya da ek donanım gerektirmeyen ayrı tekerlek ve ayaklı taban parçalarından oluşur; tekerlekle taban arasındaki boşluğu ayarlamak için iki ayrı vida bulunur. Çalışırken az miktarda ses çıkarabilir. Fotoğraflarda açık renkli ve mavi tekerlek ayaklı tabanında, bir karede kafes içinde görülür.\nYaklaşık dış ölçüler: 210 × 210 × 100 mm (tekerlek).",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1617985-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1617985-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1617985-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1617985-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jakub Lattenberg",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "evcil-hamster-banyosu-iki-parcali-yildiz-delikli-pr161206",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Hamster Banyosu (İki Parçalı, Yıldız Delikli)",
+    "aciklama": "Hamster için iki parçalı banyo: kum konan açık bir kap ile tepesinde yıldız biçimli delik ve yan yüzünde giriş açıklığı olan kapalı bölme; parçalar yapıştırıcısız birbirine oturur. Kum dahil değildir. Fotoğraflarda kutu kafes içinde hamsterle, iki parça masa üzerinde yan yana görülür; diğer kareler bilgisayar çizimidir.\nYaklaşık dış ölçüler: 80 × 80 × 50 mm (en büyük parça).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr161206-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr161206-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr161206-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr161206-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "xX CISSOU Xx",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "evcil-kedi-kumu-kuregi-elekli-tabanli-halka-sapli-pr441731",
     "kategori": "Ev",
     "marka": [],
