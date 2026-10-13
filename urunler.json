@@ -1,5 +1,58 @@
 [
   {
+    "id": "oyun-disli-kaydiricili-cok-yuzlu-fidget-kup-pr1846355",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Dişli Kaydırıcılı Çok Yüzlü Fidget Küp (Dönen Düğmeli, Elde Çevirmeli)",
+    "aciklama": "Yüzlerinde kaydırılan dişli çubuklar, çevrilen düğme ve yan parça bulunan, elde çevirerek ve tıklatarak oyalanmak için tasarlanmış çok yüzlü fidget küp. Gövdenin içindeki dişliler, yan delikten geçirilen ince bir çubukla sabitlenir; dönen parça yerine sıkı oturduğundan takmak için büyük bir pense kullanılması önerilir. Fotoğraflarda turuncu renkte, farklı yüzleri ve kaydırıcıları görünür biçimde gösterilir.\nYaklaşık dış ölçüler: 30 × 30 × 30 mm (küp gövdesi).",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1846355-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1846355-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1846355-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1846355-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DALLE",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "oyun-mini-sonsuz-kup-iki-kucuk-boy-pr228697",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Mini Sonsuz Küp (13,3 ve 11,8 mm Küp Kenarı, Güçlendirilmiş Menteşeli)",
+    "aciklama": "Güçlendirilmiş menteşeli sonsuz küpün küçültülmüş ve hareket payı genişletilmiş sürümü; avuç içine rahatça sığan minik bir fidget küp. İki boy bulunur: 13,3 mm ve 11,8 mm küp kenarı. Küçültmede parçalar arasındaki boşluk artırıldığından menteşelerin sıkışmadan serbest hareket ettiği belirtilir. Fotoğraflarda mavi renkte, boyutu göstermek için bir bozuk parayla birlikte gösterilir.\nYaklaşık dış ölçüler: 55 × 27 × 13 mm (13,3 mm boy, açık hali; 11,8 mm boy yaklaşık 49 × 24 × 12 mm).",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr228697-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr228697-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Shmoee (esinlenilen model: waveman)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-burgulu-fidget-kup-sarmal-ic-parcali-pr1014592",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Burgulu Fidget Küp (Sarmal İç Parçası Gövdeden Geçen, İki Parçalı)",
+    "aciklama": "Burgulu küp gövdenin içinden sarmal biçimli iç parçanın geçtiği, elde çevirerek ve içinden kaydırarak oyalanmaya yarayan fidget küp. İki parçadan oluşur: delikli burgulu gövde ve sarmal iç parça; iki parça farklı renkte olduğunda geçiş hareketi daha net görünür. Fotoğraflarda mor gövde ve pembe sarmal gösterilir.\nYaklaşık dış ölçüler: 50 × 50 × 50 mm (küp gövde; iç sarmal 50 × 41 × 41 mm).",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1014592-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1014592-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "EcoDad",
+      "tur": "GNU LGPL"
+    }
+  },
+  {
     "id": "elektronik-kablosuz-sarj-altligi-egim-standi-telefonu-daha-dik-tutar-pr234817",
     "kategori": "Elektronik",
     "marka": [],
