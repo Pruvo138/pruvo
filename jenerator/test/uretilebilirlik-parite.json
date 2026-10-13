@@ -26,6 +26,32 @@
       "surucu": "jenerator/test/rulman-uretilebilirlik-olcum.py --parite",
       "tarih": "2026-08-04",
       "tehlikeliKova": 0
+    },
+    "saksi": {
+      "cozulmeyen": 0,
+      "ilanEdilenIzgara": 27018240969300,
+      "kontrolMutantlari": {
+        "M1": 864,
+        "M2": 398,
+        "M3": 5401,
+        "M4": 0
+      },
+      "kovalar": {
+        "00": 5401,
+        "01": 0,
+        "10": 0,
+        "11": 10599
+      },
+      "mod": "kayit",
+      "motorDosya": "saksi_vazo.scad",
+      "motorOzet": "feae9c48e0d7edc963e0681b99e7293079827e99dac5b814a47efc3d620b682d",
+      "olculenNokta": 16000,
+      "semaKisitOzeti": "8cbd445683812547cc91f8c186eb3883a996d1ff59fc12811c4d86ea08d928de",
+      "semaKutuOzeti": "3149f5ed3b0a934271c768cee4f1bdfd74ebfb2a88f89c9de24edb9ba869917c",
+      "semaUrunId": "olcuye-ozel-saksi-vazo",
+      "surucu": "jenerator/test/rulman-uretilebilirlik-olcum.py --parite --aile saksi",
+      "tarih": "2026-10-13",
+      "tehlikeliKova": 0
     }
   },
   "surum": 1,
@@ -36,6 +62,13 @@
       "kontrolMutantlari.M2": 187,
       "kontrolMutantlari.M3": 12971,
       "olculenNokta": 48000
+    },
+    "saksi": {
+      "ilanEdilenIzgara": 27018240969300,
+      "kontrolMutantlari.M1": 864,
+      "kontrolMutantlari.M2": 398,
+      "kontrolMutantlari.M3": 5401,
+      "olculenNokta": 16000
     }
   }
 }

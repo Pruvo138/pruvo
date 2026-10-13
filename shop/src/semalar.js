@@ -32,6 +32,7 @@ import s_olcuye_ozel_petek_delikli_panel from "../../jenerator/urunler/olcuye-oz
 import s_olcuye_ozel_profil_beam from "../../jenerator/urunler/olcuye-ozel-profil-beam.json";
 import s_olcuye_ozel_ramp_sim_takoz from "../../jenerator/urunler/olcuye-ozel-ramp-sim-takoz.json";
 import s_olcuye_ozel_rulman from "../../jenerator/urunler/olcuye-ozel-rulman.json";
+import s_olcuye_ozel_saksi_vazo from "../../jenerator/urunler/olcuye-ozel-saksi-vazo.json";
 import s_olcuye_ozel_toka from "../../jenerator/urunler/olcuye-ozel-toka.json";
 import s_olcuye_ozel_triger_kasnagi from "../../jenerator/urunler/olcuye-ozel-triger-kasnagi.json";
 import s_olcuye_ozel_triger_kayisi from "../../jenerator/urunler/olcuye-ozel-triger-kayisi.json";
@@ -57,6 +58,7 @@ const HEPSI = [
   s_olcuye_ozel_profil_beam,
   s_olcuye_ozel_ramp_sim_takoz,
   s_olcuye_ozel_rulman,
+  s_olcuye_ozel_saksi_vazo,
   s_olcuye_ozel_toka,
   s_olcuye_ozel_triger_kasnagi,
   s_olcuye_ozel_triger_kayisi,

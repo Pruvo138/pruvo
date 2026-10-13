@@ -3331,6 +3331,11 @@
    "olculen_en_kotu_sapma_yuzde": 0.1469,
    "tolerans_asan_set": "3/25"
   },
+  "saksi": {
+   "sebep": "motor=pruvo ama kardes evde kalibrasyon KAYNAGI (dogrulama/test/aileler/saksi.js) YOK — aile 13 Eki 2026 eklendi; otorite 1. katman: dondurulmus GERCEK STL (kalibrasyon-referans.json saksi, 17 set). Sayi kaynak sapmasi DEGIL, 1. katmanin STL sapmasidir (analitik formul cokgen yaklasimini bilerek icermez). Elle eklendi: uretec 13 Eki itibariyle rulman set4 (gecersiz hacim) ile OLCULEMEDI cikiyor.",
+   "olculen_en_kotu_sapma_yuzde": 0.07,
+   "tolerans_asan_set": "0/17 (STL, sinir %3)"
+  },
   "rampa": {
    "sebep": "motor=uretim — hacim.js GIZLI uretim motoruna kalibre; kardes evdeki dosya BASKA bir model, referans alinamaz (sahte-kirmizi).",
    "olculen_en_kotu_sapma_yuzde": 24.6753,

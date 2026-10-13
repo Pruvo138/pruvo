@@ -61,14 +61,17 @@ class_name = "OnizlemeDerleyici"
 # `olcuye-ozel-cerceve#govde` + `#yazi` parca aileleri artik imajda VAR (v6 paketi 23 aileydi
 # ve bu iki varyanti TASIMIYORDU). CI run 30507143659; duman testi gercek OpenSCAD ile 44
 # iddia/0 sorun (hacim esdegerlik toleransi 1e-4, yazi ayak izi 2e/2f dahil).
-# GERI DONUS NOKTASI: onceki digest sha256:4c504f47072b7a6c745a2f448ae6b73998a9be35928c99647532552af7065f0d
+# 13 Eki (SAKSI/VAZO): surumlu paket onizleme/paket-v8.tar.gz -> eslem 27 aile = v7'nin 25'i
+# BAYT-AYNI + olcuye-ozel-saksi-vazo + #tabak (ek parca). CI run 38385081115; duman 41 OK.
+# GERI DONUS NOKTASI: onceki digest sha256:29232677aa711d9755c1f738d1b8dc88c6c97bd6e4f0f5e74c7341d3dfae9663
+# (worker surumu e38d6235-c867-45bc-8682-95e1972be8f2). Daha eski: sha256:4c504f47072b7a6c745a2f448ae6b73998a9be35928c99647532552af7065f0d
 # 🔴 `__HESAP_KIMLIGI__` YER TUTUCUDUR ve OYLE KALIR (5 Agu 2026): registry yolundaki hesap
 # kimligi bu PUBLIC depoda DUZ METIN durmaz. Deploy dosyasi komutla uretilir:
 #     CLOUDFLARE_ACCOUNT_ID=<kimlik> python3 tools/onizleme-deploy-hazirla.py
 #     npx wrangler deploy -c onizleme/wrangler.deploy.toml      # uretilen dosya git-DISI
 # Bu dosya DOGRUDAN deploy edilirse wrangler yer tutucuyu cozemez ve YUKSEK SESLE duser
 # (fail-closed; sessizce yanlis imaj cekilmez).
-image = "registry.cloudflare.com/__HESAP_KIMLIGI__/pruvo-onizleme-derleyici@sha256:29232677aa711d9755c1f738d1b8dc88c6c97bd6e4f0f5e74c7341d3dfae9663"
+image = "registry.cloudflare.com/__HESAP_KIMLIGI__/pruvo-onizleme-derleyici@sha256:d4aae6a2aaa2b75edd7803e51640c94b6c200ac29b1199132909c8dbea7650cd"
 max_instances = 2
 # 1/4 vCPU + 1 GiB: OpenSCAD derlemesi CPU isi; en kucuk tip (1/16 vCPU) olcumde
 # yavas kalirsa buradan buyutulur (kapi-1 raporuna bak).
