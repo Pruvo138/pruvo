@@ -1,5 +1,220 @@
 [
   {
+    "id": "ofis-yapiskanli-not-kagidi-tutucu-76-mm-kare-bloklar-icin-pr37518",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Yapışkanlı Not Kâğıdı Tutucu (76 mm Kare Bloklar İçin)",
+    "aciklama": "76 mm kare yapışkanlı not kâğıdı bloğunu masada düzgün tutan, tek parça basit tutucu. Dört kenarı yükseltilmiştir, ön kenarı oyuktur; üstteki kâğıt kolayca çekilir, blok yerinde kalır. Fotoğrafta mor tutucu çok renkli bir not bloğuyla, ikinci karede koyu mavi renkli bilgisayar çizimi olarak görülür.\nYaklaşık dış ölçüler: 82 × 82 × 42 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr37518-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr37518-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "asteven5",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ofis-masa-alti-raf-kitap-ve-album-icin-petek-delikli-pr615110",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Masa Altı Raf (Kitap ve Albüm İçin, Petek Delikli)",
+    "aciklama": "Masa ya da sehpanın tablasının altında kullanılan, fotoğraf albümü, dergi ve ince kitapları yatay tutan açık raf. Arka ve yan yüzeyleri petek (altıgen) biçimli kesiklidir; bu hem gövdeyi hafifletir hem de içi görünür kılar. Köşeleri yuvarlak ya da köşeli, tabanı düz ya da petek delikli olmak üzere dört sürümü bulunur. Fotoğraflarda siyah raflar ahşap tablanın altında albümlerle dolu görülür.\nYaklaşık dış ölçüler: 217 × 183 × 63 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr615110-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr615110-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "TheProjectWheel",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ofis-masa-kenari-kablo-tutucu-18-30-mm-tabla-kalinligi-icin-pr776587",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Masa Kenarı Kablo Tutucu (18–30 mm Tabla Kalınlıkları İçin)",
+    "aciklama": "Masa tablasının kenarına geçip kabloları tablanın altında ya da arkasında toplu tutan J biçimli kanca. Yedi ayrı ölçüsü vardır (18, 20, 22, 24, 26, 28 ve 30 mm tabla kalınlığı için). Üst oluklara sürülen yapışkan macunla yerinde sabitlenebilir. Fotoğraflarda gri kanca masa kenarında kablo demetiyle, turuncu çizim görünümünde ise tabla kenarında tek başına görülür.\nYaklaşık dış ölçüler: 65 × 54 × 15 mm (20 mm'lik sürüm; en büyüğü 75 × 54 × 15 mm).",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr776587-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr776587-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "BastienX8",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ofis-yapiskanli-not-kagidi-tutucu-liste-sablonlu-iki-kalem-yuvali-pr556864",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Yapışkanlı Not Kâğıdı Tutucu (Liste Şablonlu, İki Kalem Yuvalı)",
+    "aciklama": "Standart boy not kâğıdı bloğunu taşıyan tabanı, dikey yuvadan kayan çizgili liste şablonu ve iki kalem yuvası bulunan düzenli not tutucu. Şablon not bloğunun üstünde yatar; işi bitince küçük kulpundan tutulup yukarı kaldırılır ve düzgün satırlı listeler yazılır. Taban altı petek desenli ya da düz iki sürümdedir; alt köşelerde kaymayı önleyen lastik ayak yuvaları vardır. Görsellerde bilgisayar çizimi ve kullanımdaki tutucu yer alır.\nYaklaşık dış ölçüler: taban 116 × 96 × 30 mm; şablon 95 × 91 × 4 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr556864-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr556864-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr556864-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jstiles",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ofis-masa-ustu-raf-ayagi-25-30-cm-derinlikli-tabla-icin-pr1261139",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Masa Üstü Raf Ayağı (25–30 cm Derinlikli Tabla İçin)",
+    "aciklama": "25–30 cm derinliğindeki ahşap tablaya vidalanan, çaprazlı ve sağlam masa üstü raf ayağı; iki adet kullanılır. Vida delikleri sıkışık yerleştiği için tablaya önceden delik açılması önerilir; bunun için ayrıca bir delik şablonu verilir. Vida başı en çok 10 mm olmalıdır. Fotoğraflarda siyah ayaklar tablanın altında ve masa üstündeki raf olarak görülür.\nYaklaşık dış ölçüler: ayak başına 240 × 135 × 30 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1261139-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1261139-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Karl O",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ofis-kare-not-kagidi-tutucu-cizgili-liste-sablonlu-pr908552",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kare Not Kâğıdı Tutucu (Çizgili Liste Şablonlu)",
+    "aciklama": "Kare yapışkanlı not kâğıdı bloğunu tutan açık gövdeli tutucu ve düz satırlı listeler yazmaya yarayan çizgili şablon. Şablon kullanılmadığında tutucunun arka tarafındaki bölmeye yerleşir; yazarken bloğun üstüne konur. Fotoğraflarda beyaz tutucu sarı not bloğuyla farklı açılardan görülür.\nYaklaşık dış ölçüler: tutucu 85 × 81 × 37 mm; şablon 85 × 77 × 2,5 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr908552-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr908552-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr908552-3.jpg"
+    ]
+  },
+  {
+    "id": "ofis-not-kagidi-ve-kalem-tutucu-3x3-inc-blok-kaymaz-ayak-yuvali-pr456348",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Not Kâğıdı ve Kalem Tutucu (3 × 3 İnç Blok, Kaymaz Ayak Yuvalı)",
+    "aciklama": "3 × 3 inç yapışkanlı not bloğunu, bir kalemi ve günlük notu bir arada tutan sade masa düzenleyicisi. Köşedeki 10 mm'lik delik kalemi dik tutar; altta dört köşede 1,5 mm kalınlığında mantar ya da kauçuk parça için yuva bulunur ve tutucu masada kaymaz. Fotoğraflarda siyah tutucu not bloğuyla, tek başına ve mantar parçalı alt yüzüyle görülür.\nYaklaşık dış ölçüler: 95 × 86 × 26 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr456348-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr456348-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr456348-3.jpg"
+    ]
+  },
+  {
+    "id": "ofis-masa-kenari-cok-yuvali-kablo-tutucu-kelepceli-pr1425053",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Masa Kenarı Kablo Tutucu (Çok Yuvalı, Kelepçeli)",
+    "aciklama": "Masa kenarına kenetlenerek şarj ve USB kablolarını sıra sıra tutan çok yuvalı düzenleyici. Gövde farklı tabla kalınlıkları için birçok ölçüde, düz ya da kavisli sürümlerde ve vidalı kelepçe seçenekleriyle gelir; kablo yuvaları ayrı geçme parçalardır. Fotoğraflarda siyah ve beyaz tutucular elde, masa kenarında ve kablolarla görülür.\nYaklaşık dış ölçüler: standart gövde 105 × 70 × 32 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1425053-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1425053-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1425053-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Ahmed  tech",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ofis-yapiskanli-not-kagidi-tutucu-uc-ebatli-76x76-91x91-76x127-pr1455940",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Yapışkanlı Not Kâğıdı Tutucu (76 × 76, 91 × 91 ve 76 × 127 mm)",
+    "aciklama": "Yapışkanlı not kâğıdı bloğunu masada dik tutan, ön kenarı oyuk basit kutu. 76 × 76 mm, 91 × 91 mm ve 76 × 127 mm bloklar için üç ayrı ölçüde gelir. Fotoğraflarda gri tutucu renkli not bloğuyla ve boş olarak görülür.\nYaklaşık dış ölçüler: 82 × 82 × 53 mm (76 × 76 sürümü; en büyüğü 134 × 83 × 53 mm).",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1455940-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1455940-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1455940-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "IVN",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ofis-serbest-duran-masa-rafi-braketleri-supurge-sapi-ve-boru-icin-pr402664",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Serbest Duran Masa Rafı Braketleri (Süpürge Sapı ve Boru İçin)",
+    "aciklama": "Masa üstüne ek raf kurmak için, kendi ayakları üzerinde duran raf braketleri. İki sürümü vardır: biri süpürge sapına, diğeri ¾ inç çelik boruya göre yapılmıştır; ayrıca bir kenet parçası bulunur. Raf tablası olarak hazır levha kullanılır. Fotoğraflarda siyah parçalar tek tek, levhaya takılı olarak ve bir braket yakın planda görülür.\nYaklaşık dış ölçüler: braketler 208 × 30 × 29 mm; kenet parçası 52 × 40 × 37 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr402664-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr402664-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr402664-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Dajosco",
+      "tur": "GPL"
+    }
+  },
+  {
+    "id": "ofis-masa-arkasi-ek-raf-braketleri-28-mm-ahsap-cubuklu-pr353472",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Masa Arkası Ek Raf Braketleri (28 mm Ahşap Çubuklu)",
+    "aciklama": "Masanın arkasına ek raf kurmak için üst ve alt braket takımı. Dikmeler 28 mm (1⅛ inç) çapında ahşap çubuklarla kurulur, arkadaki isteğe bağlı çubuk 19 mm'liktir; raf tablası olarak 13 mm kontrplak ya da benzeri bir levha üst braketin çıkıntılarına oturur. Alt braket simetriktir, üst braket sağ ve sol için aynalanarak kullanılır. Fotoğraflarda koyu yeşil braketler ahşap dikmeyle masa arkasında, üzerinde elektronik kart ve ölçü aletiyle görülür.\nYaklaşık dış ölçüler: üst braket 166 × 58 × 53 mm; alt braket 123 × 64 × 34 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr353472-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr353472-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "k1n3k",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ofis-gridfinity-uyumlu-not-kagidi-tutucu-3-inc-blok-2x2-modul-pr1395402",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Gridfinity Uyumlu Not Kâğıdı Tutucu (3 İnç Blok, 2 × 2 Modül)",
+    "aciklama": "3 inç (76 mm) yapışkanlı not bloğunu tutan, Gridfinity ızgarasına oturan 2 × 2 modüllük tutucu. Bloğun alt kenarı oyuk olduğundan üstteki kâğıt kolay çekilir. Fotoğraflarda beyaz tutucu turuncu not bloğuyla ve boş olarak görülür.\nYaklaşık dış ölçüler: 84 × 84 × 19 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1395402-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1395402-2.jpg"
+    ]
+  },
+  {
+    "id": "ofis-masa-ustu-yukseltici-raf-ayagi-20-cm-tabla-icin-pr1789982",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Masa Üstü Yükseltici Raf Ayağı (20 cm Tabla İçin, Organik Desenli)",
+    "aciklama": "20 cm derinliğindeki ahşap tablaya vidalanan, masa üstü yükseltici raf ayağı; iki adet kullanılır. 15 cm yüksekliğinde boşluk bırakır, altında keçe ya da kauçuk ayak için çukurlar bulunur. Organik biçimli açıklıkları gövdeyi hafifletir. Tablaya 3,5–4 mm havşa başlı vidalarla bağlanır. Fotoğraflarda koyu gri ayaklar meşe tablanın altında, altındaki cihazlarla görülür.\nYaklaşık dış ölçüler: ayak başına 194 × 150 × 40 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1789982-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1789982-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Ando Roots",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "ofis-arka-kablo-bolmeli-dizustu-bilgisayar-standi-pr1316274",
     "kategori": "Ofis",
     "marka": [],
