@@ -1,5 +1,420 @@
 [
   {
+    "id": "bahce-bitki-askisi-cubuk-baslik-seti-dort-cap-pr239655",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Bitki Askısı Çubuk Başlık Seti (Dört Çubuk Çapı)",
+    "aciklama": "Yere saplanmak üzere tasarlanmış metal bitki askısı çubuklarının kısaltılmış yatay ucundaki kesik kenarı kapatan ve dikey ucun kaymasını önleyen koruyucu başlık. Teras ve veranda gibi alanlarda yüksekte ışık ve bitki asmak için bu çubukların kullanılmasını kolaylaştırır. Çubuk çapına göre dört boy bulunur (8, 9, 9,5 ve 12,5 mm); metal askı çubuğu ürüne dahil değildir. Fotoğraflarda koyu başlıklar ahşap korkuluk ve direk üzerinde görülür.\nYaklaşık dış ölçüler: 50 × 30 × 12-16,5 mm (boya göre).",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr239655-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr239655-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr239655-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "MrFlippant",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dekor-perde-rayi-bitki-askisi-kancasi-pr1110460",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Perde Rayı Bitki Askısı Kancası",
+    "aciklama": "Perde rayının kenarına geçirilen küçük kanca; kancaya bağlanan iple pencere önünde saksı veya bitki askısı sarkıtmak için kullanılır. Delik açmadan, pencere üzerindeki rayda bitki sergilemenin sade bir yoludur. Fotoğraflarda beyaz kanca perde rayında jüt iple, pencere önünde sarkan bitkilerle birlikte görülür.\nYaklaşık dış ölçüler: 48 × 26 × 10 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1110460-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1110460-2.jpg"
+    ]
+  },
+  {
+    "id": "dekor-galeri-tablo-kancasi-metal-cubuga-gecmeli-vidali-pr191299",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Galeri Tablo Kancası (Metal Çubuğa Geçmeli, Vidalı)",
+    "aciklama": "Yatay bir metal çubuğa geçerek tablonun arkasındaki askı kablosunu tutan sergi tipi tablo kancası. İki parçadan oluşur: kanca gövdesi ve M12×1,5 dişli, tırtıllı başlıklı tutma vidası. Galeri ve sergi duvarlarında tabloları çubuğa asmak için tasarlanmıştır. Fotoğrafta kırmızı örnek parçalar, çizimlerde mavi kanca gövdesi ve tırtıllı vida görülür.\nYaklaşık dış ölçüler: 43 × 35 × 23 mm (kanca); 18 × 16 × 16 mm (vida).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr191299-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr191299-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr191299-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jorg",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dekor-tavan-bitki-askisi-resim-civili-kubbe-kapakli-pr1020681",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Tavan Bitki Askısı (Resim Çivili, Kubbe Kapaklı)",
+    "aciklama": "Bitki ve hafif eşyaları tavandan sarkıtmak için, sıva ve boyaya zarar veren yapışkanlı veya dübelli askıların yerine kullanılan askı tabanı. Taban en fazla dört küçük resim çivisiyle sabitlenir; çiviler eğimli deliklerden açılı çakılarak ağırlığa karşı sıkı tutar. Montaj direğine ip bağlanır, üzerine kubbe biçimli kapak geçirilir; çivi ve ip ürüne dahil değildir. Fotoğraflarda tavandan sarkan hafif süsler, tavandaki kubbe kapak ve ayrı parçalar, çizimlerde mavi kubbe görülür.\nYaklaşık dış ölçüler: 26 × 26 × 13 mm (kapak); 23 × 15 × 9 mm (taban).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1020681-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1020681-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1020681-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1020681-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Steffanan",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "dekor-hafif-tablo-askisi-tel-civili-pr978588",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Hafif Tablo Askısı (Tel Çivili)",
+    "aciklama": "1,25 inç (yaklaşık 32 mm) tel çivi ile duvara tutturulmak üzere tasarlanmış sade, hafif tablo askısı; tabanına isteğe bağlı olarak çift taraflı yapışkan bant eklenebilir. Küçük çerçeve ve resimler için uygundur; çivi ve bant ürüne dahil değildir. Fotoğrafta turuncu duvarda asılı çerçeve, parçaların koyu zeminde görünümü ve çizim yer alır.\nYaklaşık dış ölçüler: 25 × 14 × 10 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr978588-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr978588-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr978588-3.jpg"
+    ]
+  },
+  {
+    "id": "dekor-yuzer-duvar-rafi-yuvarlak-kenarli-braketli-pr985935",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Yüzen Duvar Rafı (Yuvarlak Kenarlı, Braketli)",
+    "aciklama": "Duvarda yüzüyormuş gibi görünen, hafif ve sade duvar rafı. Raf iki farklı kenar biçimiyle gelir: düz ve yuvarlak kenarlı. Duvara vidalanan ayrı bir braket rafı taşır. Küçük bitki, vazo ve süs eşyaları için uygundur. Fotoğraflarda pembe raf üzerinde vazo ve bitkiyle, mavi braket duvarda ve rafla birlikte görülür.\nYaklaşık dış ölçüler: 170 × 160 × 30 mm (raf); 130 × 115 × 25 mm (braket).",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr985935-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr985935-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr985935-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr985935-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DesignBuildRepeat",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ev-ahsap-raf-icin-ucgen-kose-braketi-vida-delikli-pr840736",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Ahşap Raf İçin Üçgen Köşe Braketi (Vida Delikli)",
+    "aciklama": "İnce kontrplak veya ahşap rafı duvara taşıyan üçgen biçimli braket. Raf kalınlığı için 4,75 mm'lik yuva bırakılmıştır; 3,5 mm vidalar için havşalı montaj delikleri vardır. Arka kısımdaki boşluk kabloların geçmesine izin verir. Banyo gibi alanlardaki raflar için uygundur; fotoğraftaki raf 100 mm derinlikte ve 405 mm genişliktedir, tasarım, raf boyutuna göre ölçüleri ayarlanabilir yapıdadır. Fotoğrafta turuncu braketler prizin yanında duvarda, çizimde ise raf ve braket birlikte görülür.\nYaklaşık dış ölçüler: 112 × 90 × 15 mm (tek braket).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr840736-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr840736-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JLes",
+      "tur": "GPL 2.0"
+    }
+  },
+  {
+    "id": "ev-petek-desenli-duvar-rafi-ve-asma-sepet-pr1166538",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Petek Desenli Duvar Rafı ve Asma Sepet",
+    "aciklama": "Altıgen petek desenli deliklerle hafifletilmiş, duvara asılan iki model: eğimli ön yüzlü raf ve yüksek kenarlı sepet. Mutfak, banyo ve çalışma köşesinde küçük eşyaları görünür ve düzenli tutmak için kullanılır. Fotoğrafta raf ve sepet duvarda alt alta görülür, çizimde iki model birlikte gösterilir.\nYaklaşık dış ölçüler: 160 × 100 × 50 mm (raf); 160 × 90 × 80 mm (sepet).",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1166538-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1166538-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Андрей Гусей",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ev-tel-raf-klipsi-agir-hizmet-braketi-pr506790",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Tel Raf Klipsi (Ağır Hizmet Braketi)",
+    "aciklama": "Tel raf sistemlerinde kırılan ya da kaybolan askı klipsinin yerine geçen sağlam braket. Tel rafı duvara bağlayan parça olarak mutfak ve gardırop raflarında kullanılır; montaj için torx inşaat vidası önerilir. Fotoğraflarda beyaz klipsler tel raf sistemlerinde mutfak ve gardırop içinde görülür.\nYaklaşık dış ölçüler: 59 × 20 × 17 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr506790-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr506790-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr506790-3.jpg"
+    ]
+  },
+  {
+    "id": "dekor-akustik-panel-tablo-askisi-iki-parcali-pr513178",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Akustik Panel Tablo Askısı (İki Parçalı, Duvarı Delmeden)",
+    "aciklama": "Dikey çıtalı akustik panellere tablo ve çerçeve asmak için geliştirilmiş, panele zarar vermeyen askı. İç ve dış olmak üzere iki parça 15 mm'lik M3 cıvata ve M3 somunla birleştirilir; cıvata ve somun ürüne dahil değildir. Tasarım, mıknatıs yuvası veya dişli ek için kolayca değiştirilebilir. Fotoğraflarda mavi askı parçaları ahşap zeminde ve çıtalı panelin aralığında görülür.\nYaklaşık dış ölçüler: 30 × 20 × 14 mm (dış parça).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr513178-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr513178-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr513178-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "rahlff",
+      "tur": "GPL 2.0"
+    }
+  },
+  {
+    "id": "ev-yuvarlak-duvar-rafi-74-mm-yuvarlak-cihazlar-icin-pr540898",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Yuvarlak Duvar Rafı (74 mm Yuvarlak Cihazlar İçin)",
+    "aciklama": "Yaklaşık 70 mm çaplı yuvarlak nesneler için tasarlanmış küçük duvar rafı; çap toleransı için 74 mm'lik yuva bırakılmıştır. Otomatik kedi lazer oyuncağı gibi cihazları evcil hayvanın deviremeyeceği yüksekliğe almak için kullanılır, evcil hayvanı olmayanlar için de her türlü küçük eşyaya uygun yuvarlak bir raftır. Fotoğraflarda raf duvarda oyuncakla, köpek ve bitkiyle birlikte görülür; çizim rafı tek başına gösterir.\nYaklaşık dış ölçüler: 84 × 84 × 39 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr540898-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr540898-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr540898-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ttpmurphy",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dekor-tavan-montajli-cubuk-tutucu-pencere-ustu-bitki-askisi-pr630901",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Tavan Montajlı Çubuk Tutucu (Pencere Üstü Bitki Askısı İçin)",
+    "aciklama": "33 mm (1 5/16 inç) çaplı dolap çubuğunu tavana monte edilen iki braketle tutan, pencere üstünde bitki asmak için kullanılan çubuk tutucu. Çubuk istenen boyda kesilip boyanarak takılır; çubuk ürüne dahil değildir. Tavan montajı için uygundur; duvara montajda braket uzantısı bitki saksısını duvardan uzak tutmak için kısa kalabilir. Fotoğraflarda siyah braket çubuğu tutarken bitkiler makrome askılarla çubuktan sarkıyor.\nYaklaşık dış ölçüler: 109 × 90 × 25 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr630901-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr630901-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Adventure Mike",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ev-kamera-duvar-rafi-kose-montajli-pr514803",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kamera Duvar Rafı (Köşe Montajlı)",
+    "aciklama": "Kamerayı doğrudan duvara sabitlemek yerine üzerine oturtmak için basit bir tabla ve arka plakadan oluşan duvar rafı. Kamerayı duvara yakın, yüksekte ve sabit tutar. Fotoğrafta kamera rafın üzerinde duvar köşesinde görülür, çizimde raf tek başına gösterilir.\nYaklaşık dış ölçüler: 80 × 78 × 75 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr514803-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr514803-2.jpg"
+    ]
+  },
+  {
+    "id": "dekor-kucuk-duvar-rafi-yaslanma-plakali-pr800907",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Küçük Duvar Rafı (Yaslanma Plakalı)",
+    "aciklama": "Küçük bir tabla ve ona dik duran arka plakadan oluşan sade duvar rafı. Çift taraflı bantla veya duvar askılarıyla tutturularak saksı, top, küçük süs eşyası ve kutu gibi hafif nesneler için kullanılır. Çizimlerde kaktüslü saksı ve basketbol topu ile kullanım örnekleri görülür.\nYaklaşık dış ölçüler: 68 × 50 × 50 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr800907-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr800907-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr800907-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr800907-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Fra_Design",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ev-kucuk-kapi-stoperi-oluklu-kama-pr288997",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Küçük Kapı Stoperi (Oluklu Kama Biçimli)",
+    "aciklama": "Kapı ile zemin arasına sıkıştırılarak kapıyı açık tutan küçük kama biçimli stoper. Muşamba ve fayans gibi pürüzsüz zeminler için tasarlanmıştır; üst yüzeydeki sıralı oluklar kaymayı azaltır, büyüklüğü kademeli artan yuvarlak delikler üzerinde yer alır. Konut ve ofis kapılarında rüzgârda çarpmayı önlemek için kullanılır. Fotoğraflarda ürünün farklı açılardan bilgisayar çizimi yer alır.\nYaklaşık dış ölçüler: 82 × 30 × 20 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr288997-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr288997-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr288997-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Akira4king",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ev-sade-kapi-stoperi-kama-pr278510",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Sade Kapı Stoperi (Kama Biçimli)",
+    "aciklama": "Kapı altına sıkıştırılarak kapıyı açık tutan sade kama biçimli stoper. Yüzeyindeki yatay kanallar zeminde tutunmayı artırır. Ev ve ofis kapıları için pratik bir çözümdür. Fotoğraflarda mavi stoper ahşap zeminde iki farklı açıdan görülür.\nYaklaşık dış ölçüler: 64 × 21 × 21 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr278510-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr278510-2.jpg"
+    ]
+  },
+  {
+    "id": "ev-spiral-kapi-stoperi-zemin-oluklu-pr620845",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Spiral Kapı Stoperi (Zemine Oturan Yarım Halka)",
+    "aciklama": "Kapının alt kenarına geçerek onu sağlam biçimde açık tutan, spiral kıvrımlı yarım halka biçimli stoper. Zeminde çok az yer kaplar; üst yüzeyindeki halkalı oluklar tasarıma belirgin bir görünüm verir. Yaklaşık 10 cm çapında ve 4 cm yüksekliğindedir. Fotoğraflarda koyu bordo stoper fayans, halı ve parke zeminde kapı altında görülür; son karede mavi bilgisayar çizimi vardır.\nYaklaşık dış ölçüler: 92 × 84 × 40 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr620845-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr620845-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr620845-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr620845-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "squinn",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dekor-duvar-rafi-seti-dikey-oluklu-dort-model-pr1534643",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Duvar Rafı Seti (Dikey Oluklu, Dört Model)",
+    "aciklama": "Arka plakası dikey oluklu, önünde düz bir tabla ve üçgen takviye parçası bulunan duvar rafı. Yedi hazır ölçüde gelir; çizimdeki dört farklı biçim uzun dikdörtgen, sivri tepeli, köşeleri pahlı ve yarım yuvarlak plakalardır. Duvara vidalarla sabitlenir; saksı, küçük heykel ve dekoratif nesneler için uygundur. Fotoğrafta rafın duvarda bitkilerle kullanımı, çizimde dört modelin renkli karşılaştırması görülür.\nYaklaşık dış ölçüler: 220 × 100 × 96 mm (en büyük raf).",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1534643-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1534643-2.jpg"
+    ]
+  },
+  {
+    "id": "ev-peynir-bicimli-kapi-stoperi-delikli-kama-pr190471",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Peynir Biçimli Kapı Stoperi (Delikli Kama)",
+    "aciklama": "Delikli İsviçre peyniri dilimi şeklinde, kama biçimli eğlenceli kapı stoperi. Kapının altına sıkıştırılarak kapıyı açık tutar; çocuk odası ve mutfak girişi için neşeli bir detaydır. Fotoğrafta parlak sarı örnek karanlık zeminde, çizimde mavi model görülür.\nYaklaşık dış ölçüler: 150 × 50 × 44 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr190471-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr190471-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "terenceang",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "dekor-altigen-duvar-rafi-petek-delikli-pr317607",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Altıgen Duvar Rafı (Petek Delikli Arka Plaka)",
+    "aciklama": "Arka plakası petek desenli deliklerle süslü, önünde küçük bir tabla bulunan altıgen duvar rafı. Birden çok raf yan yana eklenerek duvarda petek düzeni oluşturulabilir; tasarım sağlam yapılıdır. Küçük heykel ve dekoratif objeler için uygundur. Fotoğraflarda mavi raf tek başına ve turuncu, gri, mavi raflar kafatası biçimli kadehlerle birlikte duvarda görülür.\nYaklaşık dış ölçüler: 240 × 208 × 130 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr317607-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr317607-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "David_Dess3D",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ev-esnek-kapi-stoperi-tutma-disli-iki-boy-pr79368",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Esnek Kapı Stoperi (Tutma Dişli, İki Boy)",
+    "aciklama": "Kapının altına girince hafifçe esneyerek daha sıkı tutunan uzun kama biçimli stoper. Yüzeyindeki tutma dişleri ve tümsekler kaymayı azaltır. 80 mm ve 120 mm uzunlukta iki boy seçeneği vardır. Fotoğraflarda sarı örnek ve mavi bilgisayar çizimi görülür.\nYaklaşık dış ölçüler: 138 × 32 × 20 mm (120 mm boy); 92 × 21 × 20 mm (80 mm boy).",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr79368-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr79368-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "gringer",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ev-stop-yazili-kapi-stoperi-harf-bicimli-pr620647",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "STOP Yazılı Kapı Stoperi (Harf Biçimli)",
+    "aciklama": "Birleştirilmiş, eğimli ve kenarları güçlendirilmiş STOP harfleri biçiminde, kapı altına yerleştirilen eğlenceli kapı stoperi. Eğimli yapısı kapıyı açık tutar; dekoratif görünümüyle ev ve ofis girişlerine uyar. Normal sürüm yaklaşık 5-6 mm, ince sürüm yaklaşık 2-3 mm kapı boşluğu için tasarlanmıştır. Fotoğraflarda açık mavi ve koyu mor örnekler ahşap zeminde, kapı altında görülür.\nYaklaşık dış ölçüler: 115 × 42 × 31 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr620647-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr620647-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr620647-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Adam L",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ev-duvara-vidali-kapi-tutucu-kollu-pr230479",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Duvara Vidalı Kapı Tutucu (Kollu, Açık Tutma)",
+    "aciklama": "Kapıyı duvara sabit tutan, çocukların kolayca çıkaramayacağı yapıda duvara vidalı kapı tutucu. Duvar tabanı dişli vidayla birleşir, iki kol seçeneği bulunur. Kapı çarpmasını önleyerek açık konumda tutar. Fotoğraflarda beyaz tutucu duvarda kapı kenarında farklı açılardan görülür.\nYaklaşık dış ölçüler: 132 × 94 × 55 mm (monte hâli).",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr230479-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr230479-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr230479-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Johannes E",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dekor-hava-bitkisi-askisi-uc-kollu-sarkit-pr602436",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Hava Bitkisi (Tillandsia) Askısı (Üç Kollu Sarkıt)",
+    "aciklama": "Sade bir tasarımla tillandsia gibi hava bitkileri için hazırlanmış asma askı. Üç özdeş V biçimli kol iki kapakla birleşir; sıkı geçme yapısı yapıştırıcıya gerek bırakmaz. Üst kapaktaki küçük delikten geçirilen iple tavandan veya askıdan sarkıtılır. Hafif ve modern bir sunum sağlar; tamamlanmış askı yaklaşık 25 cm yüksekliğindedir. Fotoğraflarda sarkan siyah askı bitkiyle, kollar ve bağlantı parçaları ahşap tabla üzerinde görülür; ip ve somun ayrıca temin edilir.\nYaklaşık dış ölçüler: 212 × 149 × 4 mm (kol).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr602436-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr602436-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr602436-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Floern",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ev-sade-cizgili-kapi-stoperi-kama-pr220124",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Sade Çizgili Kapı Stoperi (Kama Biçimli)",
+    "aciklama": "Üst yüzeyi ince çizgili, uzun kama biçimli sade kapı stoperi. Kapının altına sıkıştırılarak kapıyı açık tutar. Her kapı tipinde kullanılabilen basit bir ev aksesuarıdır. Fotoğrafta sarı örnek gri zeminde, çizimde gri model görülür.\nYaklaşık dış ölçüler: 150 × 46 × 29 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr220124-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr220124-2.jpg"
+    ]
+  },
+  {
     "id": "elektronik-cmf-phone-2-pro-icin-altigen-telefon-tutamagi-vida-baglantili-pr1303243",
     "kategori": "Elektronik",
     "marka": [],
