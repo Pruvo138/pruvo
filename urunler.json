@@ -1,5 +1,71 @@
 [
   {
+    "id": "evcil-kemirgen-evi-silindir-govdeli-kapakli-pr18039",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kemirgen Evi (Silindir Gövdeli, Kapaklı, İki Parça)",
+    "aciklama": "Silindir biçimli gövde ve yuvarlak kapaktan oluşan, yan yüzünde giriş deliği bulunan basit kemirgen evi. Fotoğraflarda siyah gövde kapağıyla birlikte ve giriş deliği önden görülür.\nYaklaşık dış ölçüler: 102 × 100 × 100 mm (gövde); kapak 100 × 100 × 15 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr18039-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr18039-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jakub Kočí",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "evcil-hamster-banyo-kabi-basamakli-cuce-hamster-pr1497637",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Hamster Banyo Kabı (Basamaklı, Cüce Hamsterler İçin)",
+    "aciklama": "Önünde basamaklı girişi olan, oval ve açık hamster banyo kabı. İlanda cüce hamsterler için tasarlandığı, normal hamsterlerin de kullanabileceği belirtilmiştir. Tek parçadır. Görseller bilgisayar çizimidir.\nYaklaşık dış ölçüler: 140 × 111 × 25 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1497637-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1497637-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1497637-3.jpg"
+    ]
+  },
+  {
+    "id": "evcil-kopek-ve-kedi-odul-yuvarlama-oyuncagi-kapakli-silindir-pr1468442",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Ödül Yuvarlama Oyuncağı (Kapaklı Silindir, Köpek ve Kedi İçin)",
+    "aciklama": "İçine ödül mama konan, yuvarlanırken yan yüzündeki iki delikten ödülün çıktığı silindir oyuncak. Gövde ve kapak olmak üzere iki parçadır. Ödül mama dahil değildir. Görseller bilgisayar çizimidir.\nYaklaşık dış ölçüler: 102 × 54 × 54 mm (gövde); kapak 54 × 54 × 25 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1468442-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1468442-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "graham van den berg",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "evcil-hamster-su-sisesi-tutucusu-kafese-vidalanan-40-mm-pr364206",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Hamster Su Şişesi Tutucusu (Kafese Vidalanan, 40 mm Şişe İçin)",
+    "aciklama": "40 mm çapındaki su şişesini tutan, hamster yaşam alanının yan yüzüne vidalanan tek parça tutucu. Vida ve şişe dahil değildir. İlan, ölçülerin kendi kafese uyup uymadığının kontrol edilmesini önerir. Görseller bilgisayar çizimidir.\nYaklaşık dış ölçüler: 88 × 70 × 49 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr364206-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr364206-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr364206-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Craig Fox",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "evcil-fare-ve-hamster-evi-dalgali-yuzeyli-pr988236",
     "kategori": "Ev",
     "marka": [],
