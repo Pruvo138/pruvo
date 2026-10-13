@@ -1,5 +1,38 @@
 [
   {
+    "id": "banyo-pompali-sabun-sisesi-strok-sinirlayici-pr1604909",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Pompalı Sabun Şişesi Strok Sınırlayıcı (9 mm Yüksekliğinde)",
+    "aciklama": "Belirli bir pompalı sabunluğa takılan, pompanın aşağı inme mesafesini sınırlayarak her seferde çıkan sabun miktarını azaltan basit ek parça; sabun tasarrufu isteyen aileler için uygundur. 9 mm yüksekliğindedir; yüksekliği azaltarak çıkan miktar artırılabilir. Fotoğrafta yeşil pompa başlığı, görselde gri parça gösterilir.\nYaklaşık dış ölçüler: 17 × 11 × 9 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1604909-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1604909-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Simen",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "banyo-yedek-tuvalet-fircasi-basligi-icin-sade-sap-pr1847805",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Yedek Tuvalet Fırçası Başlığı İçin Sade Sap (İki Parçalı Birleştirme)",
+    "aciklama": "Belirli bir yedek tuvalet fırçası başlığına takılan sade sap; daha iyi bir görünüm için model iki parçaya bölünüp yapıştırılarak birleştirilir (iki parçalı dosya da verilir). Fotoğrafta beyaz fırça ve sap tuvalet köşesinde gösterilir.\nYaklaşık dış ölçüler: 294 × 15 × 15 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1847805-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "StefanPrints",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "banyo-sabun-pompasi-saklama-tikaci-pr353360",
     "kategori": "Ev",
     "marka": [],
