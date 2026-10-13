@@ -1,5 +1,104 @@
 [
   {
+    "id": "oyun-iskelet-kafesli-sonsuz-kup-pahli-kose-secenekli-pr272603",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "İskelet Kafesli Sonsuz Küp (Boşluklu Gövde, Pahlı Köşe Seçenekli)",
+    "aciklama": "Sekiz küp parçasının menteşelerle birbirine bağlandığı, katlandıkça yeni yüzler ortaya çıkaran sonsuz küp. Kenarları boşluklu iskelet gövdesi küpe hafif ve dokulu bir görünüm verir; küp parçaları arasında 0,4 mm hareket payı bırakılmıştır. Köşeleri pahlı ikinci bir sürümü de bulunur. Fotoğraflarda mavi, siyah ve gri renklerde, elde ve masa üzerinde gösterilir; küçültülmüş siyah örnek de görülür.\nYaklaşık dış ölçüler: 81 × 40 × 20 mm (açık hali; tek küp parçası 20 × 20 × 20 mm).",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr272603-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr272603-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr272603-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr272603-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "demek",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-saglam-mentese-sonsuz-kup-bes-boy-pr88525",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Sağlam Menteşeli Sonsuz Küp (Beş Boy, 16 – 36 mm Küp Kenarı)",
+    "aciklama": "Menteşeleri kolay kırılmayacak şekilde güçlendirilmiş, bol hareket payıyla serbest dönen sonsuz küp. Beş boy seçeneği vardır: 16 mm (S), 20 mm (M, en yaygın boy ve ilk denenmesi önerilen), 24 mm (L), 30 mm (XL) ve 36 mm (XXL) küp kenarı. İlk fotoğrafta farklı renk ve boylarda küpler, ikinci görselde mavi küpün açık hali bilgisayar görseli olarak gösterilir.\nYaklaşık dış ölçüler: 83 × 41 × 20 mm (20 mm boy, açık hali).",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr88525-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr88525-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "waveman",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-kirmizi-klipsli-dolgun-sonsuz-kup-pr1677068",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kırmızı Klipsli Dolgun Sonsuz Küp (Köşeleri Yuvarlatılmış, Ayrı Bağlantı Parçalı)",
+    "aciklama": "Sekiz dolgun küp gövdesinin ayrı kırmızı klips parçalarıyla birbirine bağlandığı, köşeleri yuvarlatılmış sonsuz küp. Küplerin yan yüzlerinde klipslerin oturduğu yuvalar bulunur; küpler klipslerle zincir hâlinde birleşip katlanarak yeni yüzler ortaya çıkarır. Görseller bilgisayar görselidir; siyah ve koyu yeşil renkte, klipsler kırmızı olarak gösterilir.\nYaklaşık dış ölçüler: 30 × 30 × 30 mm (tek küp parçası).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1677068-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1677068-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1677068-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1677068-4.jpg"
+    ]
+  },
+  {
+    "id": "oyun-gecmeli-sonsuz-kup-uc-olcu-sert-esnek-baglantili-pr404460",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Geçmeli Sonsuz Küp (Üç Ölçü, Sert ve Esnek Bağlantılı)",
+    "aciklama": "Küp parçalarının sağ ve sol yarıları ile bağlantı parçalarının birbirine geçirilerek birleştirildiği, bağlantıları sağlam ve sarsıntısız döndüğü belirtilen sonsuz küp. Küp kenarı 20, 25 ve 30 mm olmak üzere üç ölçüde bulunur; her ölçü için sert ve esnek iki bağlantı tipi vardır. Fotoğraflarda turuncu, gri ve mavi parçalarla bilardo masası üzerinde, dördüncü görselde bağlantı parçası bilgisayar görseli olarak gösterilir.\nYaklaşık dış ölçüler: 30 × 30 × 30 mm (en büyük boydaki küp parçası).",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr404460-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr404460-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr404460-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr404460-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "squinn",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-sonsuz-isaretli-baglantili-yuvarlak-kenarli-sonsuz-kup-pr876777",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Sonsuz İşaretli Bağlantılı Sonsuz Küp (Yuvarlak Kenarlı, Ayrı Bağlantı Parçalı)",
+    "aciklama": "Yuvarlatılmış kenarlı sekiz küp parçasının, sonsuz işareti biçimindeki ayrı bağlantı parçalarıyla birleştirildiği sonsuz küp. Küpler katlandıkça iç yüzler sürekli yer değiştirir. Parçalar tek tek ve bütün hâlinde sunulur. İlk görselde sarı renkte fotoğraf, diğerlerinde beyaz bilgisayar görselleri (birleşik hali ve parça düzeni) gösterilir.\nYaklaşık dış ölçüler: 20 × 20 × 20 mm (tek küp parçası).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr876777-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr876777-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr876777-3.jpg"
+    ]
+  },
+  {
+    "id": "oyun-kafes-govdeli-bosluklu-sonsuz-kup-klipsli-pr1662261",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kafes Gövdeli Boşluklu Sonsuz Küp (Küçük Klips Bağlantılı)",
+    "aciklama": "Sekiz boşluklu kafes küp gövdesinin küçük klips parçalarıyla birbirine bağlandığı sonsuz küp. İçi görünen kafes yapısı küpe hafif bir görünüm verir; klipsler küplerin yan yüzlerine geçerek katlanıp açılan zinciri oluşturur. Görseller bilgisayar görselidir; siyah ve mavi gövdelerle ve renkli klipslerle gösterilir.\nYaklaşık dış ölçüler: 35 × 35 × 35 mm (tek küp parçası).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1662261-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1662261-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1662261-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1662261-4.jpg"
+    ]
+  },
+  {
     "id": "ofis-yapiskanli-not-kagidi-tutucu-76-mm-kare-bloklar-icin-pr37518",
     "kategori": "Ofis",
     "marka": [],
