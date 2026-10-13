@@ -376,6 +376,14 @@ MUTANTLAR = [
      '        if False:\n            pass',
      ["V13 kanca stdin kipi ATESLER"]),
 
+    # 13 Eki: ortak satir kolu KATI jeton anlamina (konumlu=False) bagli;
+    # konum filtresi oraya sizarsa satir ici `🔴` ile acik kalemi anan
+    # kapanis satiri arsive tasinir (05718fca'nin dusurdugu vaka).
+    ("M9 ortak satir KATI jeton kolu OLDURULDU", "ROT",
+     "    if not _acik_eslesiyor(kalan, konumlu=False):",
+     "    if not _acik_eslesiyor(kalan):",
+     ["V6 KONTROL ortak satir tasinmaz"]),
+
     # KONTROL MUTANTI: davranisa DOKUNMAYAN degisiklik — HICBIR vaka dusmemeli.
     ("M7 KONTROL (davranissiz)", "ROT",
      "def _kanonik_madde_metni(metin):",
