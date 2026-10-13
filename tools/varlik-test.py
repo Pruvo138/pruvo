@@ -1009,7 +1009,7 @@ def _ilan_araligi_beyani(p):
 
 
 def cikarim_kaybi(eski_html, yeni_html, beyan_tablosu=None, eslesen_kovasi=None,
-                  deger_beyani=()):
+                  deger_beyani=(), dalga1_beyani=None):
     """🔴 EKSEN 1'IN IDDIASI (3 Agu'da DARALTILDI, gevsetilmedi):
     "eski sayfadan CIKARILABILEN hicbir sey kaybolmayacak ya da DEGISMEYECEK".
 
@@ -1052,6 +1052,16 @@ def cikarim_kaybi(eski_html, yeni_html, beyan_tablosu=None, eslesen_kovasi=None,
         elif y_yap[yol] != deger and not _esdeger(deger, y_yap[yol]):
             bulgu.append("JSON-LD yapragi DEGISTI: %s: %r -> %r" % (yol, deger, y_yap[yol]))
 
+    # DALGA-1 BASLIK BEYANI (13 Eki): `dalga1_beyani` YALNIZ pid build.DALGA1_IDLER
+    # icindeyken dolu gelir (bkz. dalga1_beyani()). ESKI sayfadaki <title> icerigi ve olculen
+    # meta adlarinin degeri, build.baslik_meta_dalga1 ciktisina (beklenen YENI deger) BIR KEZ
+    # cevrilir; ardindan TAM esitlik YINE aranir -> yeni sayfa fonksiyon ciktisina birebir
+    # esit degilse KIRMIZI. <title> metni gorunur-metin kolunda da gectigi icin cevirme ESKI
+    # sayfanin kendisine yapilir (govde metni DOKUNULMADAN kiyaslanir). Diger meta adlari,
+    # canonical, JSON-LD, govde metni, img, link: muafiyet YOK.
+    if dalga1_beyani is not None:
+        _d1_title, _d1_meta = dalga1_beyani
+        eski_html = _baslik_meta_yaz(eski_html, _d1_title, _d1_meta, adet=0)
     if _TITLE_RE.findall(eski_html) != _TITLE_RE.findall(yeni_html):
         bulgu.append("<title> degisti")
     if sorted(_META_RE.findall(eski_html)) != sorted(_META_RE.findall(yeni_html)):
@@ -1088,6 +1098,180 @@ def cikarim_kaybi(eski_html, yeni_html, beyan_tablosu=None, eslesen_kovasi=None,
             bulgu.append("<a href=%s> sorgu parametresi KAYIP/DEGISTI: eski=%r yeni=%r"
                          % (yol[:50], par, eslesen[:2]))
     return bulgu
+
+
+# --------------------------------------------------------------------- dalga-1 baslik beyani
+# BASLIK DALGA-1 (13 Eki 2026): build.py `DALGA1_IDLER` icindeki urunlerde title + meta
+# description'i `baslik_meta_dalga1` ile KASITLI yeniden yazar; git gecmisindeki ESKI uretici
+# bu sablonu bilmez. Beyan pid'e BAGLI ve DARdir: beklenen YENI deger build fonksiyonundan
+# TURETILIR (elle yazilmaz), "her deger gecer" YOKTUR.
+# Olculen `<meta name=...>` adlari (13 Eki, 4/4 dalga-1 ornek pid): description,
+# twitter:title (ogtitle'dan), twitter:description (desc'ten). og:* `property=` -> kapsam disi.
+DALGA1_META_ADLARI = ("description", "twitter:title", "twitter:description")
+
+
+def dalga1_beyani(urun, uret=None):
+    """pid build.DALGA1_IDLER icindeyse (title_tag, {meta adi: beklenen deger}); degilse None.
+    `uret` yalniz test icindir (varsayilan build.baslik_meta_dalga1)."""
+    urun = urun or {}
+    pid = urun.get("id")
+    if pid not in build.DALGA1_IDLER:
+        return None
+    uclu = (uret or build.baslik_meta_dalga1)(
+        pid, urun.get("baslik") or "", urun.get("kategori") or "", urun.get("aciklama") or "")
+    if uclu is None:
+        return None
+    title_tag, ogtitle, desc160 = uclu
+    # Sablon: title=title_tag · description/twitter:description=esc(desc160) ·
+    # twitter:title=ogtitle (render_product'ta zaten esc'li).
+    return (title_tag, {"description": build.esc(desc160), "twitter:title": ogtitle,
+                        "twitter:description": build.esc(desc160)})
+
+
+def _dalga1_uret_kosulsuz(pid, baslik, kategori, aciklama):
+    """TEST: dalga-1 sablon ciktisini uyelik bekcisi OLMADAN uretir (V3 fiksturu ve M1
+    mutantinin gorunur olmasi icin). build.DALGA1_IDLER gecici genisletilir, geri yuklenir."""
+    _k = build.DALGA1_IDLER
+    build.DALGA1_IDLER = _k | frozenset([pid])
+    try:
+        return build.baslik_meta_dalga1(pid, baslik, kategori, aciklama)
+    finally:
+        build.DALGA1_IDLER = _k
+
+
+def _baslik_meta_yaz(sayfa, title, metalar, adet=1):
+    """<title> icerigini ve verilen `<meta name=...>` degerlerini yazar (adet=0: hepsi)."""
+    s = _TITLE_RE.sub(lambda m: "<title>%s</title>" % title, sayfa, count=adet)
+    for ad, deger in metalar.items():
+        s = re.sub(r'(<meta\s+name="%s"\s+content=")[^"]*(")' % re.escape(ad),
+                   lambda m, d=deger: m.group(1) + d + m.group(2), s, count=adet)
+    return s
+
+
+def _dalga1_vaka_kos(fiks):
+    """Her vaka: (ad, urun, eski, yeni, beklenen, iz) -> {ad: bulgu}. Mutant kopyasi da
+    BU fonksiyonu kendi (mutasyonlu) dalga1_beyani/cikarim_kaybi'siyla kosar."""
+    return dict((ad, cikarim_kaybi(eski, yeni, (),
+                                   dalga1_beyani=dalga1_beyani(urun, uret=_dalga1_uret_kosulsuz)))
+                for ad, urun, eski, yeni, _b, _iz in fiks)
+
+
+def _dalga1_hukum(fiks, sonuc):
+    """Beklenene uymayan vakalarin listesi (bos = hepsi tuttu)."""
+    sapma = []
+    for ad, _u, _e, _y, beklenen, iz in fiks:
+        bulgu = sonuc.get(ad)
+        if beklenen == "YESIL" and bulgu:
+            sapma.append("%s: YESIL beklendi, bulgu=%s" % (ad, bulgu[:3]))
+        elif beklenen == "KIRMIZI" and not any(iz in b for b in (bulgu or [])):
+            sapma.append("%s: KIRMIZI (%s) beklendi, bulgu=%s" % (ad, iz, (bulgu or [])[:3]))
+    return sapma
+
+
+# (kod, aciklama, eski, yeni, oldurmesi beklenen vaka)
+DALGA1_MUTANTLAR = (
+    ("M1", "beyan pid kosulsuz uygulanir (uyelik bekcisi silindi)",
+     "    if pid not in build.DALGA1_IDLER:\n        return None\n    uclu = ",
+     "    uclu = ", "V3"),
+    ("M2", "beyan beklenen deger yerine YENI sayfanin title'ini kabul eder",
+     "        _d1_title, _d1_meta = dalga1_beyani\n",
+     "        _d1_meta = dalga1_beyani[1]\n"
+     "        _d1_title = (_TITLE_RE.findall(yeni_html) or [''])[0]\n", "V2"),
+)
+
+
+def _dalga1_mutant_kos(kaynak, kod, eski, yeni, fiks):
+    """Mutanti IZOLE kopyada (gecici dizin, gercek dosyaya dokunulmaz) kosar -> sonuc|hata."""
+    import importlib.util
+    if kaynak.count(eski) != 1:
+        return None, "%s mutasyon capasi %d kez bulundu (1 olmali)" % (kod, kaynak.count(eski))
+    tmp = tempfile.mkdtemp(prefix="varlik-dalga1-mut-")
+    yol_once = list(sys.path)
+    try:
+        dosya = os.path.join(tmp, "varlik_mutant_%s.py" % kod.lower())
+        with io.open(dosya, "w", encoding="utf-8") as f:
+            f.write(kaynak.replace(eski, yeni, 1))
+        ad = "varlik_mutant_%s" % kod.lower()
+        spec = importlib.util.spec_from_file_location(ad, dosya)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod._dalga1_vaka_kos(fiks), ""
+    except Exception as exc:                                      # noqa: BLE001
+        return None, "%s mutant kosmadi: %s: %s" % (kod, type(exc).__name__, exc)
+    finally:
+        sys.path[:] = yol_once
+        sys.modules.pop("varlik_mutant_%s" % kod.lower(), None)
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+def dalga1_beyan_dogrula(urunler=None, cikti=None):
+    """DALGA-1 BEYAN NOBETI — HER kosumda (deploy.yml bayraksiz kol) calisir.
+    V1 dalga-1 pid, yeni title/meta = fonksiyon ciktisi -> YESIL · V2 1 karakter farkli
+    title -> KIRMIZI · V2b 1 karakter farkli description -> KIRMIZI · V3 dalga-1 DISI pid,
+    title/meta dalga-1 ciktisina degismis -> KIRMIZI · V4 dalga-1 pid canonical -> KIRMIZI.
+    M1/M2 mutantlari izole kopyada OLMELI. Doner: kusur listesi (bos = saglam)."""
+    kusur = []
+    if urunler is None:
+        with io.open(os.path.join(ROOT, "urunler.json"), encoding="utf-8") as f:
+            urunler = json.load(f)
+    d1 = next((p for p in urunler if p.get("id") in build.DALGA1_IDLER), None)
+    d0 = next((p for p in urunler if p.get("id") not in build.DALGA1_IDLER), None)
+    if d1 is None or d0 is None:
+        return ["dalga-1 fikstur urunu bulunamadi (dalga-1=%s · disi=%s, DALGA1_KAYNAK=%s)"
+                % (d1 is not None, d0 is not None, getattr(build, "DALGA1_KAYNAK", "?"))]
+    # V1 YENI = GERCEK uretici ciktisi (render == beyan ciktisi bu vakayla olculur);
+    # ESKI = ayni sayfanin dalga-1 ONCESI sablon degerleri.
+    y1 = iskelet(build.render_product(dict(d1), urunler, None))
+    b1 = build.esc(d1.get("baslik") or "")
+    e1_desc = build.esc(build.meta_desc(dict(d1)))
+    e1 = _baslik_meta_yaz(y1, b1 + " — PRUVO Özel Tasarım Yedek Parça",
+                          {"description": e1_desc, "twitter:title": b1,
+                           "twitter:description": e1_desc})
+    t1 = _TITLE_RE.findall(y1)
+    m_desc = re.search(r'<meta\s+name="description"\s+content="([^"]*)"', y1)
+    if not t1 or not m_desc:
+        return ["V1 fikstur sayfasinda <title>/description yok (%s)" % d1["id"]]
+    y2 = _baslik_meta_yaz(y1, t1[0][:-1] + ("x" if t1[0][-1:] != "x" else "y"), {})
+    d_ = m_desc.group(1)
+    y2b = _baslik_meta_yaz(y1, t1[0], {"description": d_[:-1] + ("x" if d_[-1:] != "x" else "y")})
+    y4 = _CANON_RE.sub(lambda m: '<link rel="canonical" href="%sx">' % m.group(1), y1, count=1)
+    e3 = iskelet(build.render_product(dict(d0), urunler, None))
+    u3 = _dalga1_uret_kosulsuz(d0["id"], d0.get("baslik") or "", d0.get("kategori") or "",
+                               d0.get("aciklama") or "")
+    y3 = _baslik_meta_yaz(e3, u3[0], {"description": build.esc(u3[2]), "twitter:title": u3[1],
+                                      "twitter:description": build.esc(u3[2])})
+    fiks = [
+        ("V1", d1, e1, y1, "YESIL", ""),
+        ("V2", d1, e1, y2, "KIRMIZI", "<title> degisti"),
+        ("V2b", d1, e1, y2b, "KIRMIZI", "<meta name=...> kumesi degisti"),
+        ("V3", d0, e3, y3, "KIRMIZI", "<title> degisti"),
+        ("V4", d1, e1, y4, "KIRMIZI", "canonical degisti"),
+    ]
+    # MUTANT FIILEN UYGULANDI MI: degismeyen fikstur her zaman yesil gecer.
+    for ad, _u, eski, yeni, _b, _iz in fiks:
+        if eski == yeni:
+            kusur.append("%s fiksturu UYGULANMADI (eski == yeni)" % ad)
+    if kusur:
+        return kusur
+    sonuc = _dalga1_vaka_kos(fiks)
+    kusur.extend(_dalga1_hukum(fiks, sonuc))
+    satirlar = ["%s %s" % (ad, "KIRMIZI" if sonuc[ad] else "YESIL") for ad, *_r in fiks]
+    with io.open(os.path.abspath(__file__), encoding="utf-8") as f:
+        kaynak = f.read()
+    for kod, acik, m_eski, m_yeni, hedef in DALGA1_MUTANTLAR:
+        m_sonuc, hata = _dalga1_mutant_kos(kaynak, kod, m_eski, m_yeni, fiks)
+        if m_sonuc is None:
+            kusur.append(hata)
+            continue
+        m_sapma = _dalga1_hukum(fiks, m_sonuc)
+        if not any(s.startswith(hedef + ":") for s in m_sapma):
+            kusur.append("%s (%s) SAG KALDI: %s vakasi mutanti yakalamadi" % (kod, acik, hedef))
+        else:
+            satirlar.append("%s OLDU (%s)" % (kod, hedef))
+    if cikti is not None:
+        cikti.append("dalga-1 beyan nobeti: fikstur=%s/%s · %s"
+                     % (d1["id"], d0["id"], " · ".join(satirlar)))
+    return kusur
 
 
 def js_govdeleri(html):
@@ -1499,6 +1683,12 @@ def kendini_test():
     if kirmizi_vaka < 6 or (len(vakalar) - kirmizi_vaka) < 3:
         print("KIRMIZI: batarya YETERSIZ (oldurucu>=6 ve kontrol>=3 sarti)")
         return 1
+    _d1_satir = []
+    for _d in dalga1_beyan_dogrula(urunler, _d1_satir):
+        print("  HATA %-58s %s" % ("DALGA-1 BASLIK BEYANI", _d))
+        basarisiz.append("dalga-1 beyani [%s]" % _d[:60])
+    for _s in _d1_satir:
+        print("  OK   %s" % _s)
     if basarisiz:
         print("KIRMIZI: %d vaka beklentiyi tutmadi -> %s" % (len(basarisiz), basarisiz))
         return 1
@@ -2715,8 +2905,14 @@ def main():
     if not _km:
         BILGI.append("K/M katalog basi ekleme: K sahte kirmizi 0 · M1 KIRIK hedef KIRMIZI · "
                      "M2 <img src> kaybi KIRMIZI · 3/3 iddia mutantta DUSTU")
+    # DALGA-1 BEYAN NOBETI (13 Eki): pid'e bagli title/meta beyani kendi V/M bataryasiyla.
+    for _d in dalga1_beyan_dogrula(urunler, BILGI):
+        HATALAR.append("0 DALGA-1 BASLIK BEYANI BOZUK: %s" % _d)
     secim = ornek_sec(urunler, hedef)
     idler = [p["id"] for _, p in secim]
+    BILGI.append("dalga-1 baslik beyani: %d/%d ornek pid (title + meta %s)"
+                 % (sum(1 for i in idler if i in build.DALGA1_IDLER), len(idler),
+                    "/".join(DALGA1_META_ADLARI)))
     BILGI.append("ornek: %d urun (%s)" % (len(secim), ", ".join(a for a, _ in secim)))
 
     # varlik dizinini sifirdan uret (bayat dosya olcume karismasin)
@@ -2907,7 +3103,8 @@ def olc(eski, yeni, secim, urunler, ref):
         kayip = cikarim_kaybi(iskelet(eski[pid]), iskelet(yeni[pid]),
                               beyan_tablosu=tablo,
                               deger_beyani=seri_deger + aralik_deger,
-                              eslesen_kovasi=eslesen_beyan)
+                              eslesen_kovasi=eslesen_beyan,
+                              dalga1_beyani=dalga1_beyani(p_urun))
         # BEYANLA GECEN BULGULAR baskiya girer; kapsam disi + beyan edilemez HATA olur.
         gecen, kd, be, yb = cikarim_beyan_degerlendir(kayip, p_urun, beyan_kayitlari)
         # K124 — TURETILMIS SINIF: beyan aranmaz, YENI HALIN SAGLIGI olculur. Saglik
