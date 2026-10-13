@@ -4127,7 +4127,6 @@ def render_product(p, all_products, chip_map=None):
             '<div class="rel-grid">%s</div></section>'
             % (esc(rel_baslik), "".join(cards)))
 
-    title_tag = esc(baslik) + " — PRUVO Özel Tasarım Yedek Parça"
 
     # --- JS'e (opsiyonlar bloğu + fiyat hesabı) aktarılacak ürün verisi
     # fid = KATALOG kimligi (feed g:id ile TEK KAYNAK: feed_id). Piksel content_ids DAIMA bunu
