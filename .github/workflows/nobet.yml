@@ -532,6 +532,17 @@ jobs:
           command -v zsh >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq zsh; }
           python3 tools/agir-is-tavan-test.py
 
+      # ISCI URUN KAPISI (13 Eki 2026, guvenlik-isci-urun-kapisi): m3 iscisi urun
+      # uretmeden `BITIS rc=0 hal=SAGLIKLI` yazdi. Spec `URUN_YOLU=<glob>` verirse
+      # isci.sh BITIS'te glob'da kosumda olusmus bos olmayan dosya yoksa HAL=BOS
+      # rc=1 basar (motor hatasi korunur). HERMETIK: gecici ev/spec, sahte zaman.
+      # 5 vaka + 2 mutant (BOS kolu yok, mtime sarti yok). Kurulu kopya (f) ve
+      # canli isci.sh uctan uca (g) CI'da ATLANDI (hat yerelde).
+      # SERIT B: kirmizisi yayini DURDURMAZ (makine kapisi, musteri yuzeyi degil).
+      - name: "Isci urun kapisi — kabul testi (5 vaka + 2 mutant, hermetik)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/isci-urun-kapisi-test.py
+
       # RECETE KAPISI — MIMAR-ICRA-KAPISI'NIN RECETE KONTROLCUSU (18 Agu 2026, K168).
       # Arac, tools/ dizinindeki HER .py icindeki "python3 ..." komutlarini mimar-icra-kapisi
       # uzerinden kuru kosuma yollar; REDDEDILEN sayisi > 0 ise rc=1. SERIT B kapsaminda — kirmizisi
