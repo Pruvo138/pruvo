@@ -91,8 +91,8 @@ ACIK_AILELER = {
     # Taban aile (Output="frame", tek govde) AYNEN durur. Bkz. parca_bloklari().
     "olcuye-ozel-cerceve": "cerceve",
     # Olcuye ozel saksi/vazo (2026-10-13) — bizim uretecimiz (jeneratorler/saksi_vazo.scad).
-    # Taban aile parca="saksi"; `parcalar` blogu ayri govde olarak
-    # olcuye-ozel-saksi-vazo#tabak (parca="tabak", alt tabak) uretir.
+    # Taban aile parca="saksi"; `ek_parcalar` blogu (2-renk DEGIL, ayri basilan ek
+    # parca) olcuye-ozel-saksi-vazo#tabak (parca="tabak", alt tabak) uretir.
     "olcuye-ozel-saksi-vazo": "saksi",
 }
 
@@ -180,11 +180,27 @@ def parca_bloklari(ad, taban_blok):
       * `metin`/`sayisal`/`secim` bloklari DEGISTIRILEMEZ (musteri metni ve olculer
         iki govdede AYRI olamaz — ayrisirsa yazi govdesi baska bir yaziyi basardi).
     `parcalar` yoksa BOS sozluk doner -> uretilen paket eslemi bu degisiklikten
-    ONCEKIYLE BIREBIR AYNI kalir (yanlis-pozitif kapisi)."""
+    ONCEKIYLE BIREBIR AYNI kalir (yanlis-pozitif kapisi).
+
+    IKI SINIF, TEK URETIM YOLU (2026-10-13):
+      * `parcalar`    = 2-RENK bolunmesi: AYNI nesnenin renk govdeleri, yalniz
+                        `Output` farkli (cerceve govde/yazi; ONIZLEME_PARCALAR'da).
+      * `ek_parcalar` = AYRI BASILAN EK PARCA: ayni uretecten, ayni olculerle ama
+                        BASKA bir nesne (saksi#tabak; renk secenegi DEGIL).
+    Ikisi de ayni kurallarla ayni "<urunId>#<parca>" bloguna doner; sinif ayrimi
+    yalniz sozlesme kapisi icindir (tools/iki-govde-kapisi.py). Ayni ad iki sinifta
+    birden gecerse paket uretimi DURUR."""
     with open(os.path.join(REPO, "jenerator", "test", "esleme",
                            ad + ".json"), encoding="utf-8") as f:
         test_eslem = json.load(f)
-    parcalar = test_eslem.get("parcalar") or {}
+    iki_renk = test_eslem.get("parcalar") or {}
+    ek = test_eslem.get("ek_parcalar") or {}
+    cakisan = sorted(set(iki_renk) & set(ek))
+    if cakisan:
+        sys.exit("%s: parca adi hem `parcalar` hem `ek_parcalar`da: %s"
+                 % (ad, ", ".join(cakisan)))
+    parcalar = dict(iki_renk)
+    parcalar.update(ek)
     if not parcalar:
         return {}
     urun_id = test_eslem["urunId"]

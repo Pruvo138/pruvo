@@ -174,11 +174,18 @@ def sema_hakemi(sema, setler):
     return hukum
 
 
-def musteri_setleri(sema, rnd, kisit, adet, hakem, tavan=MUSTERI_SET_DENEME_TAVANI):
+def musteri_setleri(sema, rnd, kisit, adet, hakem, tavan=MUSTERI_SET_DENEME_TAVANI,
+                    uretec=None):
     """(setler, elenen) — `adet` rastgele set; semada `kisitlar` varsa hakemin
     REDDETTIGI her set yenisiyle degistirilir. Kabul edilen setler eski akisla AYNI
-    kalir. Tavan asilirsa (None, elenen) -> cagiran OLCULEMEDI sayar."""
-    setler = [rastgele_set(sema, rnd, kisit) for _ in range(adet)]
+    kalir. Tavan asilirsa (None, elenen) -> cagiran OLCULEMEDI sayar.
+    `uretec` (2026-10-13): bir set ureten argumansiz cagrilabilir; verilmezse bu
+    dosyanin rastgele_set'i. jenerator/test/dogrula.py (motor=pruvo yolu) KENDI
+    rastgele_set'iyle AYNI eleme kuralini buradan alir — ikinci kopya YAZILMAZ."""
+    if uretec is None:
+        def uretec():
+            return rastgele_set(sema, rnd, kisit)
+    setler = [uretec() for _ in range(adet)]
     if not sema.get("kisitlar") or not setler:
         return setler, 0
     hukum = list(hakem(setler))
@@ -188,7 +195,7 @@ def musteri_setleri(sema, rnd, kisit, adet, hakem, tavan=MUSTERI_SET_DENEME_TAVA
             if elenen >= tavan:
                 return None, elenen
             elenen += 1
-            setler[i] = rastgele_set(sema, rnd, kisit)
+            setler[i] = uretec()
             hukum[i] = hakem([setler[i]])[0]
     return setler, elenen
 
