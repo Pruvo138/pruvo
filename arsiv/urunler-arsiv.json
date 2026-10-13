@@ -910,5 +910,29 @@
       ],
       "parametrik": true
     }
+  },
+  {
+    "silinme_ts": "2026-10-13T10:32:58Z",
+    "yazan": "panel-uygulayici",
+    "kuyruk_id": 51,
+    "kayit": {
+      "id": "oyun-etiketli-satranc-tahtasi-40-mm-kareli-dort-plakali-pr1078478",
+      "kategori": "Oyun/Hobi",
+      "marka": [],
+      "uyum": [],
+      "baslik": "Satranç Tahtası (40 mm Kareli, Satır-Sütun Etiketli, Dört Plakalı, Yapıştırıcısız)",
+      "aciklama": "40 × 40 mm kareli, satır ve sütun etiketli satranç tahtası. Dört taban plakası bağlantı parçalarıyla birleşir; 32 koyu ve 32 açık renkli kare yapıştırıcı gerekmeden yuvalarına oturur. Etiketler kolay hamle takibi sağlar. Taşlar ürüne dahil değildir; fotoğraftaki taşlar örnektir. Fotoğraflarda ahşap zeminde kurulu tahta ve kare parçaları görülür.\nTaban plakası 175 × 175 × 6,6 mm, kare 40 × 40 × 4,6 mm, bağlantı parçası 16 × 6 × 3,4 mm'dir.\nYaklaşık dış ölçüler: 350 × 350 × 7 mm (birleşik tahta).",
+      "fiyat": "650 TL",
+      "gorseller": [
+        "https://media.pruvo3d.com/urunler/pr1078478-1.jpg",
+        "https://media.pruvo3d.com/urunler/pr1078478-2.jpg",
+        "https://media.pruvo3d.com/urunler/pr1078478-3.jpg",
+        "https://media.pruvo3d.com/urunler/pr1078478-4.jpg"
+      ],
+      "lisans": {
+        "tasarimci": "ErwinBrave",
+        "tur": "CC BY 4.0"
+      }
+    }
   }
 ]
