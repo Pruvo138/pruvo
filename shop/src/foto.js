@@ -939,7 +939,8 @@ export async function bakiyeOku(env, simdi, zorla) {
 async function bekleyenUretim(env) {
   try {
     const r = await env.KATALOG.prepare(
-      "SELECT COUNT(*) AS n FROM foto_uretim WHERE asama IN ('build-baslat', 'build')").first();
+      // Onay bekleyen satir da kredi payi ayirir (onaylaninca build-baslat'a gecer; havuz onu sayar).
+      "SELECT COUNT(*) AS n FROM foto_uretim WHERE asama IN ('" + ONAY_BEKLIYOR + "', 'build-baslat', 'build')").first();
     return (r && r.n) || 0;
   } catch (e) {
     if (tabloYok(e)) { return 0; }
@@ -1952,11 +1953,39 @@ export function siparistekiFotoKalemleri(urunlerJson) {
 }
 
 /**
+ * OKAN ONAYI (Okan 13 Eki 21:0x, para: saglayici kredisi): odenen siparisin saglayici kalemi
+ * 'onay-bekliyor' ile girer; cron bu satira saglayici cagrisi YAPMAZ (onayBekleyenNobeti yalniz
+ * sure/hatirlatma bakar). 'build-baslat'a TEK gecis: POST /yonet/foto/siparis-onayla (okan_onay:true).
+ */
+export const ONAY_BEKLIYOR = "onay-bekliyor";
+/** Onaysiz bekleyen satir icin onizleme yasi (sa) esikleri — her esikte TEK Telegram hatirlatmasi.
+ *  Isaret: mevcut `deneme` sutunu (onay-bekliyor'da gecici hata sayaci KULLANILMAZ; 0 / 1 / 2 =
+ *  atilan hatirlatma sayisi; asamaYaz gecisinde 0'a doner). Sema DEGISMEZ. */
+export const ONAY_HATIRLATMA_SAAT = Object.freeze([48, 66]);
+
+/** Ayni is icin ORNEK-onekli (ornek-uret / onayli-uret) uretim satiri varsa numarasi, yoksa "". */
+async function ornekZinciri(env, isNo) {
+  const r = await env.KATALOG.prepare(
+    "SELECT siparis_no FROM foto_uretim WHERE is_no = ? AND siparis_no LIKE '" + ORNEK_SIPARIS_ONEK + "%'" +
+    " ORDER BY tarih LIMIT 1"
+  ).bind(isNo).first();
+  return (r && r.siparis_no) || "";
+}
+
+/** Cift zincir notu (Okan e-postasi + Telegram; otomatik iptal YOK). */
+export function ciftZincirNotu(ornekNo) {
+  return ornekNo ? "bu iş için zaten üretim var: " + ornekNo : "";
+}
+
+/** Onay yonergesi (e-posta + Telegram ayni metin). */
+export const ONAY_YONERGESI = "Panel → Siparişler → bu kalemde \"Onayla (3D üret)\" (POST /yonet/foto/siparis-onayla)";
+
+/**
  * Odenmis siparislerdeki foto kalemlerini uretim kuyruguna alir (INSERT OR IGNORE). Saglayici
- * kolu 'build-baslat' ile, deterministik kol 'uretec-bekliyor' ile girer (zincir onu SECMEZ).
+ * kolu 'onay-bekliyor' ile (Okan onayi; zincir onu SECMEZ), deterministik kol 'uretec-bekliyor' ile girer.
  * `yalnizDeterministik`: saglayici yapilandirmasi eksikken yalniz deterministik kalemler.
  */
-async function odenenleriKuyrugaAl(env, simdi, yalnizDeterministik) {
+async function odenenleriKuyrugaAl(env, simdi, yalnizDeterministik, telegram) {
   const r = await env.KATALOG.prepare(
     "SELECT siparis_no, urunler FROM siparisler WHERE durum IN ('odendi', 'uretimde')" +
     " AND tarih >= ? AND urunler LIKE '%\"foto_is\"%' ORDER BY id DESC LIMIT 50"
@@ -1976,10 +2005,18 @@ async function odenenleriKuyrugaAl(env, simdi, yalnizDeterministik) {
         " VALUES (?, ?, ?, ?, ?, ?, ?, ?," +
         " COALESCE((SELECT onay_tarih FROM foto_isler WHERE is_no = ?), '')," +
         " COALESCE((SELECT onay_surum FROM foto_isler WHERE is_no = ?), ''), ?, ?)"
-      ).bind(s.siparis_no, k.kalem, k.is_no, k.tur, k.olcu_mm, det ? "uretec-bekliyor" : "build-baslat",
+      ).bind(s.siparis_no, k.kalem, k.is_no, k.tur, k.olcu_mm, det ? "uretec-bekliyor" : ONAY_BEKLIYOR,
              simdiIso(simdi), simdiIso(simdi), k.is_no, k.is_no,
              renkler.length, renkler.length ? JSON.stringify(renkler) : "").run();
-      if (y && y.meta && y.meta.changes) { eklenen++; }
+      if (y && y.meta && y.meta.changes) {
+        eklenen++;
+        if (!det && typeof telegram === "function") {
+          const not = ciftZincirNotu(await ornekZinciri(env, k.is_no));
+          await telegram(env, "📸 Fotoğraftan üretim — OKAN ONAYI BEKLİYOR: " + s.siparis_no + " kalem " + k.kalem +
+            " (" + k.tur + ", " + k.olcu_mm + " mm, iş " + k.is_no + "). 3D üretim onaysız BAŞLAMAZ; " + ONAY_YONERGESI +
+            "." + (not ? " ⚠️ " + not + "." : ""));
+        }
+      }
     }
   }
   return eklenen;
@@ -2272,6 +2309,41 @@ async function uretimAdimi(env, u, simdi, telegram) {
  * kosucu (Mac, launchd) calismiyor demektir. Nobet bu yuzden MAC'TE DEGIL Worker cron'unda (deterministik,
  * LLM yok): Okan'a tek bildirim, sonra en erken ONARIM_BAYAT_SAAT sonra tekrar. Donus: bayat satir sayisi.
  */
+/**
+ * ONAY BEKLEYEN satirlar (saglayiciya istek YOK): onizleme hazir degil -> 'elle' (onizleme-yok);
+ * onizleme yasi ONIZLEME_KURULUM_SINIRI_SAAT'i asti -> 'elle' (onizleme-suresi-doldu, Okan'a Telegram);
+ * yas ONAY_HATIRLATMA_SAAT esigini gecti -> esik basina TEK hatirlatma (`deneme` = atilan sayi, CAS).
+ * Donus: bakilan satir sayisi.
+ */
+async function onayBekleyenNobeti(env, simdi, telegram) {
+  const r = await env.KATALOG.prepare(
+    "SELECT u.siparis_no, u.kalem, u.is_no, u.tur, u.olcu_mm, u.asama, u.analiz, u.deneme," +
+    " i.asama AS is_asama, i.gorev AS is_gorev, i.hazir_tarih FROM foto_uretim u" +
+    " LEFT JOIN foto_isler i ON i.is_no = u.is_no WHERE u.asama = ? ORDER BY u.guncel LIMIT 50"
+  ).bind(ONAY_BEKLIYOR).all();
+  const satirlar = r.results || [];
+  for (const u of satirlar) {
+    if (u.is_asama !== "hazir" || !u.is_gorev) { await elleDusur(env, u, "onizleme-yok", "", simdi, telegram); continue; }
+    const yas = (simdi - Date.parse(u.hazir_tarih)) / 3600000;
+    if (!(yas <= ONIZLEME_KURULUM_SINIRI_SAAT)) {
+      await elleDusur(env, u, "onizleme-suresi-doldu", "", simdi, telegram);
+      continue;
+    }
+    const once = u.deneme || 0;
+    const hedef = ONAY_HATIRLATMA_SAAT.filter((s) => yas >= s).length;
+    if (hedef <= once) { continue; }
+    const y = await env.KATALOG.prepare(
+      "UPDATE foto_uretim SET deneme = ? WHERE siparis_no = ? AND kalem = ? AND asama = ? AND deneme = ?"
+    ).bind(hedef, u.siparis_no, u.kalem, ONAY_BEKLIYOR, once).run();
+    if (y && y.meta && y.meta.changes === 1 && typeof telegram === "function") {
+      await telegram(env, "⏰ Fotoğraftan üretim — OKAN ONAYI BEKLİYOR (hatırlatma, önizleme " + Math.floor(yas) +
+        " sa): " + u.siparis_no + " kalem " + u.kalem + " (" + u.tur + ", " + u.olcu_mm + " mm). Önizleme " +
+        ONIZLEME_KURULUM_SINIRI_SAAT + " saatte düşer; " + ONAY_YONERGESI + ".");
+    }
+  }
+  return satirlar.length;
+}
+
 export const ONARIM_BAYAT_SAAT = 6;
 async function onarimBayatNobeti(env, simdi, telegram) {
   const r = await env.KATALOG.prepare(
@@ -2317,7 +2389,7 @@ async function onizlemeTemizle(env, simdi) {
  * Donus olcum ozeti (log + test): {kuyruga, ilerleyen, silinen}.
  */
 export async function fotoUretimTuru(env, simdi, telegram) {
-  const ozet = { kuyruga: 0, ilerleyen: 0, silinen: 0, onarim_bayat: 0, atlandi: "" };
+  const ozet = { kuyruga: 0, ilerleyen: 0, silinen: 0, onarim_bayat: 0, onay_bekleyen: 0, atlandi: "" };
   if (!env || !env.KATALOG || !env.OZEL_DOSYA || !env.URETIM_API_ANAHTAR || !env.URETIM_API_TABAN ||
       !env.URETIM_TUR_ONEK || !saglayiciYoluVar(env)) {
     ozet.atlandi = "yapilandirma";
@@ -2325,7 +2397,7 @@ export async function fotoUretimTuru(env, simdi, telegram) {
     // ozet saglayici kolu icin bugunkuyle ayni kalir).
     if (env && env.KATALOG && env.OZEL_DOSYA) {
       if (DETERMINISTIK_TURLER.length) {
-        try { await odenenleriKuyrugaAl(env, simdi, true); } catch (e) { if (!tabloYok(e)) { throw e; } }
+        try { await odenenleriKuyrugaAl(env, simdi, true, telegram); } catch (e) { if (!tabloYok(e)) { throw e; } }
       }
       // Saklama kurali saglayicidan bagimsizdir (onay metni: en gec 3 gun) — litofan haritasi da silinir.
       try { ozet.silinen = await onizlemeTemizle(env, simdi); } catch (e) { if (!tabloYok(e)) { throw e; } }
@@ -2333,11 +2405,13 @@ export async function fotoUretimTuru(env, simdi, telegram) {
     return ozet;
   }
   try {
-    ozet.kuyruga = await odenenleriKuyrugaAl(env, simdi);
+    ozet.kuyruga = await odenenleriKuyrugaAl(env, simdi, false, telegram);
+    ozet.onay_bekleyen = await onayBekleyenNobeti(env, simdi, telegram);
     const r = await env.KATALOG.prepare(
       "SELECT siparis_no, kalem, is_no, tur, olcu_mm, asama, build_gorev, analiz_gorev, renk_gorev," +
       " analiz, deneme, COALESCE((SELECT i.cesit FROM foto_isler i WHERE i.is_no = foto_uretim.is_no), '') AS cesit," +
-      " renk_sayisi FROM foto_uretim WHERE asama NOT IN ('hazir', 'elle', 'uretec-bekliyor', 'onarim-bekliyor')" +
+      " renk_sayisi FROM foto_uretim WHERE asama NOT IN ('hazir', 'elle', 'uretec-bekliyor', 'onarim-bekliyor', '" +
+      ONAY_BEKLIYOR + "')" +
       " ORDER BY guncel LIMIT ?"
     ).bind(URETIM_TUR_LIMITI).all();
     for (const u of (r.results || [])) {
@@ -2411,6 +2485,8 @@ export function panelFotoKaydi(siparisNo, i, k, harita) {
       ? (det ? { "3mf": taban + "&bicim=3mf" } : { "3mf": taban + "&bicim=3mf", "glb": taban + "&bicim=glb" }) : null,
     // Onizleme kredisi is_no'ya, uretim kredileri siparis_no'ya yazilir; panel ikisini toplar.
     kredi_uretim: harita.get("kredi|" + siparisNo) || 0,
+    // OKAN ONAYI: yalniz onay bekleyen kalemde panel "Onayla (3D üret)" dugmesi bu alanla cizilir.
+    ...(u && u.asama === ONAY_BEKLIYOR ? { onayla: { siparis_no: siparisNo, kalem: i } } : {}),
     ...ek,
   };
 }
@@ -2426,11 +2502,12 @@ export async function panelFotoDosya(env, url) {
   }
   let k;
   if (no.startsWith(ORNEK_SIPARIS_ONEK)) {
-    // ORNEK uretimi siparissizdir: kalem uretim satirindan, yalniz ornek isaretli istan.
+    // ORNEK uretimi siparissizdir: kalem uretim satirindan, yalniz ornek isaretli istan YA DA onayli-uret
+    // satirindan (numara = ORNEK-<KENDI isinin ilk 12'si>; yalniz panel uclari bu numarayla satir acar).
     k = await env.KATALOG.prepare(
       "SELECT u.kalem, u.is_no, u.tur, u.olcu_mm, i.cesit FROM foto_uretim u JOIN foto_isler i ON i.is_no = u.is_no" +
-      " WHERE u.siparis_no = ? AND u.kalem = ? AND i.ziyaretci = ?"
-    ).bind(no, kalem, ORNEK_ZIYARETCI).first();
+      " WHERE u.siparis_no = ? AND u.kalem = ? AND (i.ziyaretci = ? OR substr(u.is_no, 1, 12) = ?)"
+    ).bind(no, kalem, ORNEK_ZIYARETCI, no.slice(ORNEK_SIPARIS_ONEK.length)).first();
   } else {
     const s = await env.KATALOG.prepare(
       "SELECT urunler FROM siparisler WHERE siparis_no = ?").bind(no).first();
@@ -2768,25 +2845,39 @@ export async function panelOrnekGorsel(env, url) {
 }
 
 /**
- * POST /yonet/foto/ornek-uret {is} — 'hazir' ornek isi icin `foto_uretim`e SIPARISSIZ satir
+ * POST /yonet/foto/ornek-uret {is, okan_onay: true} — 'hazir' ornek isi icin `foto_uretim`e SIPARISSIZ satir
  * (siparis_no = ORNEK-<is ilk 12>, kalem 0). Zinciri mevcut cron AYNEN yurutur; kredi defteri
  * cron'da bu numarayla yazilir. Musteri isi bu yoldan uretilemez (404).
  */
 export async function panelOrnekUret(request, env, simdi, telegram) {
-  const y = ornekYapilandirma(env);
-  if (!y.hazir) { return fjson({ hata: "kapali", eksik: y.eksik }, 503); }
   let g;
   try { g = await request.json(); } catch (e) { return fjson({ hata: "gecersiz-istek" }, 400); }
+  // OKAN ONAYI (13 Eki 21:0x): ornek yolu da `okan_onay` TAM boolean true ister; makine anahtariyla
+  // cagrilabilirligi DURUR ama bayraksiz istek 403 + D1/saglayici 0 (bayragi insan verir).
+  if (!g || g.okan_onay !== true) { return fjson({ hata: "okan-onayi-yok", yol: "ornek" }, 403); }
+  const y = ornekYapilandirma(env);
+  if (!y.hazir) { return fjson({ hata: "kapali", eksik: y.eksik }, 503); }
   const is = await ornekIsGetir(env, g && g.is);
   if (!is) { return fjson({ hata: "bulunamadi" }, 404); }
-  if (is.asama !== "hazir" || !is.gorev) { return fjson({ hata: "onizleme-hazir-degil" }, 409); }
+  const a = await siparissizUretimeAl(env, is, simdi, telegram);
+  return a.hata || fjson({ ok: true, siparis_no: a.no, yeni: a.yeni }, 200);
+}
+
+/**
+ * Hazir onizlemeden SIPARISSIZ uretim satiri (siparis_no = ORNEK-<is ilk 12>, kalem 0, 'build-baslat') —
+ * panelOrnekUret ile panelOnayliUret'in ORTAK kapisi: onizleme hazir+gorev (409) · kurulum siniri (409) ·
+ * saglayici isi (400) · havuz (503). Build govdesi cron'da `input_task_id: is.gorev` (AYNI is).
+ * Donus: { hata: Response } | { no, yeni }.
+ */
+async function siparissizUretimeAl(env, is, simdi, telegram) {
+  if (is.asama !== "hazir" || !is.gorev) { return { hata: fjson({ hata: "onizleme-hazir-degil" }, 409) }; }
   if ((simdi - Date.parse(is.hazir_tarih)) / 3600000 > ONIZLEME_KURULUM_SINIRI_SAAT) {
-    return fjson({ hata: "onizleme-suresi-doldu" }, 409);
+    return { hata: fjson({ hata: "onizleme-suresi-doldu" }, 409) };
   }
-  if (!saglayiciIsi(is)) { return fjson({ hata: "gecersiz-tur" }, 400); }
+  if (!saglayiciIsi(is)) { return { hata: fjson({ hata: "gecersiz-tur" }, 400) }; }
   const havuz = await havuzHukmu(env, simdi, telegram);
   if (!havuz.acik) {
-    return fjson({ hata: "havuz-esikte", bakiye: havuz.bakiye, gereken: havuz.gereken }, 503);
+    return { hata: fjson({ hata: "havuz-esikte", bakiye: havuz.bakiye, gereken: havuz.gereken }, 503) };
   }
   const no = ornekSiparisNo(is.is_no);
   const r = await env.KATALOG.prepare(
@@ -2794,7 +2885,105 @@ export async function panelOrnekUret(request, env, simdi, telegram) {
     "INSERT OR IGNORE INTO foto_uretim (siparis_no, kalem, is_no, tur, olcu_mm, asama, tarih, guncel, renk_sayisi)" +
     " VALUES (?, 0, ?, ?, ?, 'build-baslat', ?, ?, ?)"
   ).bind(no, is.is_no, is.tur, is.olcu_mm, simdiIso(simdi), simdiIso(simdi), VERI.renkTavani(is.tur) || 4).run();
-  return fjson({ ok: true, siparis_no: no, yeni: !!(r && r.meta && r.meta.changes === 1) }, 200);
+  return { no, yeni: !!(r && r.meta && r.meta.changes === 1) };
+}
+
+/**
+ * POST /yonet/foto/onayli-uret {is, okan_onay: true} — ORNEK OLMAYAN hazir onizleme isinin 3D zinciri
+ * (Okan karari 13 Eki: sağlayıcı kredisi = para; 3D build yalniz Okan onayiyla). `okan_onay` TAM OLARAK
+ * boolean true degilse 403 ve D1/saglayiciya HICBIR istek gitmez. Gecerse ornek-uret ile AYNI siparissiz
+ * satir: cron zinciri AYNEN yurur, siparisler'e satir ACILMAZ (e-posta/kargo/musteri bildirimi yok).
+ * Onay kaydi: semada sutun yok (sema DEGISMEZ) -> Telegram + log satiri.
+ */
+export async function panelOnayliUret(request, env, simdi, telegram) {
+  let g;
+  try { g = await request.json(); } catch (e) { return fjson({ hata: "gecersiz-istek" }, 400); }
+  if (!g || g.okan_onay !== true) { return fjson({ hata: "okan-onayi-yok" }, 403); }
+  const y = ornekYapilandirma(env);
+  if (!y.hazir) { return fjson({ hata: "kapali", eksik: y.eksik }, 503); }
+  const is = IS_KALIBI.test(g.is || "") ? await isGetirYoksaNull(env, g.is) : null;
+  if (!is) { return fjson({ hata: "bulunamadi" }, 404); }
+  const a = await siparissizUretimeAl(env, is, simdi, telegram);
+  if (a.hata) { return a.hata; }
+  if (a.yeni) {
+    console.log("FOTO_ONAYLI_URET is=" + is.is_no + " siparis_no=" + a.no + " onay=" + simdiIso(simdi));
+    if (typeof telegram === "function") {
+      await telegram(env, "📸 Fotoğraftan üretim — OKAN ONAYLI 3D zincir başlatıldı: " + a.no + " (" + is.tur + ", " +
+        is.olcu_mm + " mm), onay " + simdiIso(simdi));
+    }
+  }
+  return fjson({ ok: true, siparis_no: a.no, yeni: a.yeni }, 200);
+}
+
+/**
+ * POST /yonet/foto/siparis-onayla {siparis_no, kalem, okan_onay: true} — odenen siparisin 'onay-bekliyor'
+ * foto kalemini 'build-baslat'a tasir (Okan 13 Eki 21:0x: 3D build YALNIZ Okan onayiyla). `okan_onay` TAM
+ * boolean true degilse 403 ve D1/saglayiciya HICBIR istek gitmez. Satir yok 404 · asama baska 409 ·
+ * onizleme hazir degil / 70 sa asimi 409. Zincirin geri kalani AYNEN (cron build govdesi
+ * `input_task_id: is.gorev` = onizleme gorevi). MAKINE_UCLARI DISI: yalniz panel anahtari.
+ */
+export async function panelSiparisOnayla(request, env, simdi, telegram) {
+  let g;
+  try { g = await request.json(); } catch (e) { return fjson({ hata: "gecersiz-istek" }, 400); }
+  if (!g || g.okan_onay !== true) { return fjson({ hata: "okan-onayi-yok", yol: "siparis" }, 403); }
+  const no = typeof g.siparis_no === "string" ? g.siparis_no : "";
+  if (!SIPARIS_KALIBI.test(no) || no.startsWith(ORNEK_SIPARIS_ONEK) || !Number.isInteger(g.kalem) || g.kalem < 0) {
+    return fjson({ hata: "gecersiz-istek" }, 400);
+  }
+  const u = await env.KATALOG.prepare(
+    "SELECT u.siparis_no, u.kalem, u.is_no, u.tur, u.olcu_mm, u.asama, u.analiz," +
+    " i.asama AS is_asama, i.gorev AS is_gorev, i.hazir_tarih FROM foto_uretim u" +
+    " LEFT JOIN foto_isler i ON i.is_no = u.is_no WHERE u.siparis_no = ? AND u.kalem = ?"
+  ).bind(no, g.kalem).first();
+  if (!u) { return fjson({ hata: "bulunamadi" }, 404); }
+  if (u.asama !== ONAY_BEKLIYOR) { return fjson({ hata: "onay-beklemiyor", asama: u.asama }, 409); }
+  if (u.is_asama !== "hazir" || !u.is_gorev) { return fjson({ hata: "onizleme-hazir-degil" }, 409); }
+  if (!((simdi - Date.parse(u.hazir_tarih)) / 3600000 <= ONIZLEME_KURULUM_SINIRI_SAAT)) {
+    return fjson({ hata: "onizleme-suresi-doldu" }, 409);
+  }
+  if (!(await asamaYaz(env, u, "build-baslat", {}, simdi))) { return fjson({ hata: "onay-beklemiyor" }, 409); }
+  console.log("FOTO_SIPARIS_ONAY siparis_no=" + no + " kalem=" + u.kalem + " onay=" + simdiIso(simdi));
+  if (typeof telegram === "function") {
+    await telegram(env, "📸 Fotoğraftan üretim — OKAN ONAYLADI " + no + "/" + u.kalem + " (" + u.tur + ", " +
+      u.olcu_mm + " mm): 3D zincir sırada, onay " + simdiIso(simdi));
+  }
+  return fjson({ ok: true, siparis_no: no, kalem: u.kalem, asama: "build-baslat" }, 200);
+}
+
+/**
+ * Okan (satici) e-postasinin foto kalem bilgisi — siparisin foto kalemleri icin D1'den (foto_isler) tur /
+ * cesit / alt tur / "Nasil olsun?" notu + ayni is icin ORNEK zinciri. Gorsel GOMULMEZ: panel ucu LINKI
+ * (/yonet/foto-dosya …&bicim=onizleme; yonetim cerezi arkasinda, anahtar URL'de YOK). Musteri kopyasina
+ * VERILMEZ (eposta.js yalniz satici=true'da basar). D1 okunamazsa kalem yine listelenir (`okunamadi`).
+ */
+export async function saticiFotoBilgileri(env, siparisNo, satirlar) {
+  // Site koku YALNIZ env.SITE_URL (foto.js tek https sabiti kurali); yoksa goreli yol.
+  const site = String((env && env.SITE_URL) || "").replace(/\/$/, "");
+  const cikti = [];
+  for (let i = 0; i < (satirlar || []).length; i++) {
+    const k = satirlar[i];
+    if (!k || typeof k.foto_is !== "string" || !IS_KALIBI.test(k.foto_is)) { continue; }
+    const b = {
+      kalem: i, is_no: k.foto_is, tur: k.foto_tur || "", olcu_mm: k.olcu_mm || 0,
+      cesit: "", alt_tur: "", uretim_notu: "", malzeme: k.malzeme || "", renk: k.renk_ozel || k.renk || "",
+      gorsel: site + "/api/shop/yonet/foto-dosya?siparis_no=" + encodeURIComponent(siparisNo) + "&kalem=" + i +
+        "&bicim=onizleme",
+      onay_gerekli: true, onay_yonergesi: ONAY_YONERGESI, ornek_no: "", cift_zincir_notu: "", okunamadi: false,
+    };
+    try {
+      const is = await env.KATALOG.prepare(
+        "SELECT cesit, alt_tur, uretim_notu FROM foto_isler WHERE is_no = ?").bind(k.foto_is).first();
+      if (is) { b.cesit = is.cesit || ""; b.alt_tur = is.alt_tur || ""; b.uretim_notu = is.uretim_notu || ""; }
+      b.ornek_no = await ornekZinciri(env, k.foto_is);
+      b.cift_zincir_notu = ciftZincirNotu(b.ornek_no);
+    } catch (e) {
+      b.okunamadi = true;
+    }
+    // Deterministik kol (uretec) saglayici kredisi harcamaz -> onay ucuna girmez.
+    b.onay_gerekli = !deterministikIs({ tur: b.tur, cesit: b.cesit });
+    cikti.push(b);
+  }
+  return cikti;
 }
 
 /** GET /yonet/foto/ornekler — "Örnek üretimler": ornek onizlemeleri + uretim asamasi + dosyalar. */

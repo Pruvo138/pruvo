@@ -38,7 +38,7 @@ import { golgeRaporu } from "./konfigur-golge.js";
 import { panelUretimHaritasi, panelFotoKaydi, panelFotoDosya, panelFotoOzet,
          panelFotoAcik, panelOrnekOnizleme, panelOrnekDurum, panelOrnekGorsel,
          panelOrnekUret, panelOrnekListe, panelUretecGirdi, panelUretecYukle,
-         fotoUretimTuru } from "./foto.js";
+         panelOnayliUret, panelSiparisOnayla, fotoUretimTuru } from "./foto.js";
 import { onizlemeMi } from "./onizleme.js";
 import {
   epostaAkisi, onayEpostasiHtml, kargoEpostasiHtml,
@@ -2084,6 +2084,11 @@ export async function yonet(request, env, url, ctx, altYol, telegram) {
   if (altYol === "/foto/ornek-gorsel" && m === "GET") { return panelOrnekGorsel(env, url); }
   if (altYol === "/foto/ornek-uret" && m === "POST") { return panelOrnekUret(request, env, Date.now(), telegram); }
   if (altYol === "/foto/ornekler" && m === "GET") { return panelOrnekListe(env); }
+  // OKAN ONAYLI URETIM (13 Eki, para): ornek OLMAYAN hazir onizlemenin 3D zinciri; `okan_onay: true` yoksa 403.
+  // Makine anahtari bu uca ACILMAZ (MAKINE_UCLARI disi) — yalniz panel anahtari.
+  if (altYol === "/foto/onayli-uret" && m === "POST") { return panelOnayliUret(request, env, Date.now(), telegram); }
+  // SIPARIS KALEMI OKAN ONAYI (13 Eki 21:0x): 'onay-bekliyor' -> 'build-baslat'; MAKINE_UCLARI DISI, okan_onay:true sart.
+  if (altYol === "/foto/siparis-onayla" && m === "POST") { return panelSiparisOnayla(request, env, Date.now(), telegram); }
   // ONIZLEME SURUMU cron'suzdur (versions upload cron tasimaz): uretim zincirini cron'un AYNI fonksiyonuyla
   // TEK TUR ilerletir (tools/foto-ornek-uc-uca.py --kredi-tavani). Canli surumde YOK (404) — orada cron kosar.
   if (altYol === "/foto/uretim-tik" && m === "POST" && onizlemeMi(env)) {
@@ -2308,7 +2313,8 @@ var FOTO_ASAMA={"kuyrukta-degil":"üretim kuyruğunda değil (ödeme doğrulanı
  "build-baslat":"model sırada","build":"model üretiliyor","analiz":"basılabilirlik analizi",
  "onarim":"sızdırmazlık onarımı","doku":"onarılan modele doku",
  "renk":"4 renk ayrımı","hazir":"HAZIR","elle":"ELLE BAKILACAK",
- "uretec-bekliyor":"üreteç bekliyor (girdi indir → 3MF yükle)"};
+ "uretec-bekliyor":"üreteç bekliyor (girdi indir → 3MF yükle)",
+ "onay-bekliyor":"OKAN ONAYI BEKLİYOR (onaysız 3D üretim başlamaz)"};
 function fotoUretecHtml(f){
  var sec=f.secim||{};
  var sm=Object.keys(sec).map(function(a){return a.replace("_"," ")+": "+sec[a];}).join(" · ");
@@ -2341,8 +2347,21 @@ function fotoSatirHtml(f){
   (f.sebep?' — <span class="hata">'+esc(f.sebep)+'</span>':'')+'</div>'+
   (f.analiz?'<div class="kucuk">Analiz: '+esc(f.analiz)+'</div>':'')+
   (f.kol==="deterministik"?fotoUretecHtml(f):'')+
+  (f.onayla?'<div class="kaynak"><button data-onay-no="'+esc(f.onayla.siparis_no)+'" data-onay-kalem="'+
+   esc(f.onayla.kalem)+'" onclick="siparisOnayla(this)">Onayla (3D üret)</button></div>':'')+
   '<div class="kaynak"><a href="'+esc(f.onizleme)+'" target="_blank" rel="noopener">önizleme görseli</a>'+
   ' · üretim kredisi: '+esc(f.kredi_uretim)+'</div>'+d;
+}
+// OKAN ONAYI: tik = Okan'in onayi (saglayici kredisi harcanir); bayrak yalniz bu insan tikiyla gider.
+async function siparisOnayla(b){
+ var no=b.getAttribute("data-onay-no"),kalem=parseInt(b.getAttribute("data-onay-kalem"),10);
+ if(!confirm(no+" kalem "+kalem+": önizlemeyi gördün mü? 3D üretim başlasın mı (kredi harcanır)?")){return;}
+ b.disabled=true;
+ var r=await api("/foto/siparis-onayla",{method:"POST",headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({siparis_no:no,kalem:kalem,okan_onay:true})});
+ b.disabled=false;
+ if(r.kod===200){yukle();return;}
+ alert("Onaylanamadı ("+r.kod+"): "+((r.govde&&r.govde.hata)||"bilinmeyen"));
 }
 function satirHtml(no,k){
  var indir;
@@ -2718,8 +2737,9 @@ async function ornekYokla(){
 }
 async function ornekUret(){
  var durum=document.getElementById("ornekDurum");
+ if(!confirm("Bu önizlemeden 3D üretim başlasın mı (kredi harcanır)?")){return;}
  var r=await api("/foto/ornek-uret",{method:"POST",headers:{"Content-Type":"application/json"},
-  body:JSON.stringify({is:ornekIs})});
+  body:JSON.stringify({is:ornekIs,okan_onay:true})});
  if(r.kod!==200||!r.govde){
   durum.innerHTML='<span class="hata">Üretim başlatılamadı: '+esc((r.govde&&r.govde.hata)||r.kod)+'</span>';return;}
  durum.textContent="Üretim sırada ("+r.govde.siparis_no+"); 5 dakikalık turlarla ilerler, aşağıdaki listeden izle.";

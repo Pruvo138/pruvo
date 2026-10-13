@@ -60,10 +60,22 @@
  *         YOK -> CD_TABANI DEGISMEDI.
  *   33  — 9 Eki 2026 (Okan "2D konsept bunu tamamen sil"): -3 /foto/ornek-konsept,
  *         -konsept-durum, -konsept-gorsel SILINDI (yuzey DARALDI). CD_TABANI DEGISMEDI.
+ *   34  — 13 Eki 2026 (Okan karari, para: 3D build yalniz Okan onayiyla): +1 POST
+ *         /foto/onayli-uret — ornek OLMAYAN hazir onizlemenin siparissiz 3D zinciri; yonetim
+ *         anahtarinin ARKASINDA (anahtarsiz 404), MAKINE_UCLARI DISI (makine anahtari acamaz),
+ *         govdede `okan_onay` TAM boolean true degilse 403 + D1/saglayici 0. Kurallar
+ *         shop/test/foto-uretim.mjs OA (V1..V6) + OA-M1/OA-M2 mutantlarinda olculur. Yeni
+ *         indirme akisi YOK: 3MF/GLB mevcut /foto-dosya ucundan iner -> CD_TABANI DEGISMEDI.
+ *   35  — 13 Eki 2026 (Okan doktrini 21:0x, para: odenen siparisin 3D build'i de yalniz Okan onayiyla): +1 POST
+ *         /foto/siparis-onayla — 'onay-bekliyor' foto kalemini 'build-baslat'a tasir; yonetim anahtarinin
+ *         ARKASINDA (anahtarsiz 404), MAKINE_UCLARI DISI, govdede `okan_onay` TAM boolean true degilse 403 +
+ *         D1/saglayici 0. Kurallar shop/test/foto-uretim.mjs SO (S1..S7) + SO-M1/SO-M2 mutantlarinda olculur.
+ *         Okan e-postasindaki onizleme linki MEVCUT /foto-dosya (bicim=onizleme) ucudur -> yeni indirme akisi YOK,
+ *         CD_TABANI DEGISMEDI.
  */
 
 /** `altYol === "` yonlendirici kolu sayisi — yetki yuzeyi genisledi mi? */
-export const KOL_TABANI = 33;
+export const KOL_TABANI = 35;
 
 /** `Content-Disposition` gecisi — yeni indirme/proxy/zip akisi acildi mi? */
 export const CD_TABANI = 2;

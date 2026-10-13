@@ -49,7 +49,8 @@ import { refKaydet, REF_KALIBI } from "./ref.js";
 // ayrik modulde durur; burada SADECE local binding olarak okunur, RE-EXPORT EDILMEZ.
 import { TERK_ESIK_SAAT, TERK_KAYNAK_DURUM, TERK_SEBEP } from "./terk-sabit.js";
 // Fotograftan ozel uretim (ana sayfa bolumu): onizleme uclari, sepet kalemi, uretim cron'u.
-import { fotoUclari, fotoKalemCoz, fotoKalemFiyatla, fotoUretimTuru, aydinlatmaOnayHatasi } from "./foto.js";
+import { fotoUclari, fotoKalemCoz, fotoKalemFiyatla, fotoUretimTuru, aydinlatmaOnayHatasi,
+         saticiFotoBilgileri } from "./foto.js";
 
 const SECENEK = globalThis.PRUVO_SECENEK;
 if (!SECENEK) { throw new Error("secenekler.js yuklenemedi — fiyat kurali tek kaynagi yok"); }
@@ -1401,20 +1402,26 @@ function siparisMesaji(siparis, det) {
  *  ctx.waitUntil ile: yanit bloklanmaz; anahtar yok/gonderim hatasi Telegram'a duser, siparis
  *  akisini ASLA dusurmez (epostaAkisi try/catch'li). */
 function onayEpostalari(env, ctx, siparis, satirlar, dokum, havale) {
+  // Musteri kopyasi foto bilgisi ALMAZ (bayt-ayni; gorsel/is_no/not 0). Satici (Okan) kopyasi foto kaleminde
+  // is_no + girdiler + onizleme linki + onay yonergesi tasir (Okan 13 Eki 21:0x) — D1 okumasi waitUntil icinde.
   const musteriHtml = onayEpostasiHtml(siparis, satirlar, dokum, havale, false);
-  const saticiHtml = onayEpostasiHtml(siparis, satirlar, dokum, havale, true);
   const olaylar = [];
   if (siparis.musteri_eposta) {
     olaylar.push({ kime: siparis.musteri_eposta, konu: "Sipariş onayı — " + siparis.siparis_no,
                    html: musteriHtml, etiket: "müşteri" });
   }
-  if (env.BILDIRIM_EPOSTA) {
-    olaylar.push({ kime: env.BILDIRIM_EPOSTA, konu: "Yeni sipariş — " + siparis.siparis_no,
-                   html: saticiHtml, etiket: "satıcı" });
-  }
-  if (olaylar.length) {
-    ctx.waitUntil(epostaAkisi(env, telegram, siparis.siparis_no, olaylar));
-  }
+  if (!olaylar.length && !env.BILDIRIM_EPOSTA) { return; }
+  ctx.waitUntil((async () => {
+    if (env.BILDIRIM_EPOSTA) {
+      let fotoBilgi = null;
+      if ((satirlar || []).some((s) => s && s.foto_is)) {
+        try { fotoBilgi = await saticiFotoBilgileri(env, siparis.siparis_no, satirlar); } catch (e) { fotoBilgi = null; }
+      }
+      olaylar.push({ kime: env.BILDIRIM_EPOSTA, konu: "Yeni sipariş — " + siparis.siparis_no,
+                     html: onayEpostasiHtml(siparis, satirlar, dokum, havale, true, fotoBilgi), etiket: "satıcı" });
+    }
+    await epostaAkisi(env, telegram, siparis.siparis_no, olaylar);
+  })());
 }
 
 async function telegram(env, mesaj) {
