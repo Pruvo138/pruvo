@@ -71,7 +71,14 @@ PARCA_AYIRAC = "#"
 ACIK_AILELER = {
     "olcuye-ozel-baglanti-konektor": "konektor",
     "olcuye-ozel-montaj-braketi": "braket",
+    # GERI KONDU (2026-10-13, KraL-SaksiCI): disli + adaptor 8 Eki foto A dilimi
+    # squash'inda (c8a76d036) buradan DUSMUSTU; o commit'in hukmu "5 FOTO turu
+    # silindi — katalog sari seri AYNEN" idi. Iki urun katalogda ve ONIZLEME_AILELER'de
+    # duruyor, canli v7 imaji ikisini de sunuyordu: v8 paket bu satirlarsiz derlense
+    # onizlemeleri KIRILIRDI. .scad ozetleri v7 parmakiziyla BIREBIR ayni.
+    "ozel-disli-kramayer-uretimi": "disli",
     # Yeni sari aileler 1. dalga (2026-07-17) — bizim ureteclerimiz
+    "olcuye-ozel-hortum-adaptoru": "adaptor",
     "olcuye-ozel-kutu-organizer": "kutu",
     "olcuye-ozel-vidali-kavanoz-tapa": "kavanoz",
     # Olcuye ozel toka (2026-07-26) — bizim uretecimiz (jeneratorler/toka.scad)
