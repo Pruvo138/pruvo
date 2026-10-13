@@ -1,5 +1,1439 @@
 [
   {
+    "id": "oyun-rulman-yuvali-kose-parcali-fidget-kup-pr85806",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Rulman Yuvalı Fidget Küp (Köşe Parçalı, Ortadan Dönen)",
+    "aciklama": "Ortadaki milin içine bir adet 608 rulman yerleştirilen, bir yüzünden rulmanın elle döndürülebildiği küp biçimli fidget oyuncağı. Orta milin yarısında rulmanı durduran bir sınırlayıcı, köşelerde ise altıgen mil uçları bulunur. Gövde, alt köşe, üst köşe ve orta mil parçalarından oluşur. Rulman ürüne dahil değildir. İlk iki fotoğrafta pembe renkte, üçüncü görselde köşe parçası bilgisayar görseli olarak gösterilir.\nYaklaşık dış ölçüler: 30 × 30 × 30 mm (küp gövdesi).",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr85806-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr85806-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr85806-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Geekdad_3D",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-zar-desenli-sonsuz-kup-pr192476",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Zar Desenli Sonsuz Küp (Yüzleri Noktalı, Menteşeli)",
+    "aciklama": "Yüzeylerinde zar noktaları bulunan, menteşelerle birbirine bağlı sekiz küpten oluşan sonsuz küp. Küp katlandıkça noktalı yüzler yer değiştirir. Küp yüzlerindeki sınırlı alan nedeniyle noktalar her yüzde tam zar düzeninde değildir. Fotoğraflarda gri-beyaz renkte renkli noktalarla, son görselde mavi bilgisayar görseli olarak gösterilir.\nYaklaşık dış ölçüler: 83 × 41 × 20 mm (açık hali; tek küp parçası 20 mm).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr192476-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr192476-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr192476-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "WillyCi",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-cok-fonksiyonlu-anahtar-cark-kaydiricili-fidget-kup-pr1527725",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Çok Fonksiyonlu Fidget Küp (Anahtar, Çark, Kaydırıcı, Top ve Döner Parçalı)",
+    "aciklama": "Yan yüzlerinde anahtar, döner parça, çark, kaydırıcı ve top gibi farklı oyalanma elemanları bulunan, küp biçimli fidget oyuncağı. Siyah gövdeli bilgisayar görselleriyle gösterilir; yüzlerden birinde delikli yüzey deseni, diğerlerinde düğme ve döner kapaklar görülür.\nYaklaşık dış ölçüler: 60 × 58 × 58 mm (küp gövdesi).",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1527725-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1527725-2.jpg"
+    ]
+  },
+  {
+    "id": "oyun-ic-ice-gecmeli-kucuk-kup-fidget-pr234674",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "İç İçe Geçmeli Küçük Küp Fidget (İçindeki Küpe Tam Oturan, Menteşeli Kutu)",
+    "aciklama": "Küçük bir küpün içinde ona tam oturan ikinci bir küp bulunan, elde çevirip içindekini çıkarıp yerleştirerek oyalanmaya yarayan sessiz fidget küp. Dış kutu menteşeli düz parçaların katlanmasıyla oluşur. Fotoğraflarda beyaz renkte, parçalar ve birleşik hali ahşap zemin üzerinde gösterilir.\nYaklaşık dış ölçüler: 86 × 62 × 3 mm (düz parça seti).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr234674-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr234674-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr234674-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr234674-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Ralf D. Müller",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "oyun-arabesk-desenli-ayni-yone-donen-fidget-kure-pr615009",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Arabesk Desenli Fidget Küre (Altı Yüzü ve Sekiz Köşesi Aynı Yöne Dönen)",
+    "aciklama": "Altı yüzü ve sekiz köşesi birlikte aynı yöne dönen, arabesk esinli desenli fidget küre. Birleştirildiğinde köşelerin arkasındaki gizli dişliler sayesinde tüm yüzler aynı yönde döner; bu alışılmadık hareket küreyi çevirirken şaşırtıcı bir his verir. Parçalar: çekirdek, 6 yüz, 8 köşe, 12 kenar parçası, kenar dişlileri ve kenar pimleri ile 14 standart pim; kenar pimleri yapıştırılarak monte edilir. Fotoğraflarda turuncu, yeşil, mavi ve mor parçalarla altın tonlu desenler gösterilir.\nYaklaşık dış ölçüler: 55 × 55 × 55 mm (çekirdek parça; yüz parçası 55 × 54 × 23 mm).",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr615009-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr615009-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Wozzeck",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tamirat-mentese-uzerine-takilan-kapi-stoperi-sag-sol-surum-pr622340",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Menteşe Üzerine Takılan Kapı Stoperi (Sağ ve Sol Sürüm)",
+    "aciklama": "Kapıyı 90 derecede açık tutan, menteşenin üzerine kayarak oturan kapı stoperi. Kapı açıkken menteşenin iç tarafına geçirilir ve kapının kendiliğinden kapanmasını engeller. Birbirinin ayna görüntüsü olan iki sürümü vardır; kapınızın açılma yönüne uygun olanı seçin. Görsellerde stoper menteşe yuvasında ve tek başına çizimle gösterilir.\nYaklaşık dış ölçüler: 40 × 35,4 × 25,4 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr622340-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr622340-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Steven Quinn",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tamirat-altigen-petek-desenli-cekmece-dugmesi-pr305053",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Altıgen Petek Desenli Çekmece Düğmesi",
+    "aciklama": "Çekmece ve dolap kapaklarına vidayla takılan, yüzünde altıgen panellerden oluşan petek desenli düğme. Arka tarafında vida için küçük bir kılavuz deliği vardır; kullanacağınız vidanın çapına göre deliği genişletmeniz gerekebilir. Fotoğraflarda siyah gövdeli, altın sarısı altıgen yüzeyli düğme koyu renkli bir çekmece üzerinde görülür (vida ürüne dahil değildir).\nYaklaşık dış ölçüler: 37,6 × 35,5 × 27 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr305053-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr305053-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Javier Rizzo",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "tamirat-cekmece-yan-ve-ust-montaj-seritli-tutamak-7-14-cm-pr311882",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Çekmece Şerit Tutamak (7 ve 14 cm, Üst ya da Yan Montaj)",
+    "aciklama": "Çekmece kenarına çift taraflı bantla yapıştırılan, arka dudağı sayesinde çekme kuvvetini taşıyan şerit tutamak. Çekmecenin üst kenarına ya da yan yüzüne takılabilir; 7 ve 14 cm uzunluk, 2, 3 ve 4 cm kalınlık (çekmece yan tahtasına göre) ve sığ ya da derin arka dudak seçenekleri vardır. Tutamak 2 mm kalınlığındadır; çekmece aralığı yeterince geniş olmalıdır. İsterseniz bantın yanında vidayla da sabitleyebilirsiniz (bant ve vida ürüne dahil değildir). Fotoğraflarda mavi tutamak beyaz çekmece üzerinde ve tek başına görülür.\nYaklaşık dış ölçüler (14 cm, 2 cm kalınlık, sığ dudaklı model): 140 × 34,7 × 10 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr311882-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr311882-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "MarkoJ",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tamirat-cekmece-bicimli-komodin-cekmece-dugmesi-pr310316",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Çekmece Biçimli Çekmece Düğmesi (Küçük Komodin Görünümlü)",
+    "aciklama": "Küçük bir komodini andıran, iki çekmeceli görünümlü dekoratif çekmece düğmesi. Çekmece ya da dolap kapağına arkasındaki silindirik çıkıntıdan vidayla bağlanır (vida ürüne dahil değildir). Fotoğraflarda kahverengi düğme beyaz mobilya yüzeyinde görülür.\nYaklaşık dış ölçüler: 26,5 × 26,3 × 24,3 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr310316-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr310316-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "NeatoBrian",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tamirat-kapi-alt-kenarina-vidalanan-kollu-kapi-tutucu-pr1043051",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kapı Alt Kenarına Vidalanan Kollu Kapı Tutucu",
+    "aciklama": "Kapının alt kenarına vidalanan, kol kısmı yere doğru indirilerek kapıyı açık tutan kollu kapı tutucu. Kullanmadığınız zaman kol kapıya yatırılır. Sabitleme için kapı yapısına uygun vidalar gerekir (vida ürüne dahil değildir). Fotoğraflarda beyaz tutucu hem açık hem kapalı konumda kapı üzerinde görülür.\nYaklaşık dış ölçüler: 114,3 × 67 × 49,9 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1043051-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1043051-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JEANLAGUIRA",
+      "tur": "GPL 3.0"
+    }
+  },
+  {
+    "id": "tamirat-kapi-kose-koruyucu-stoper-64-mm-bantli-pr199519",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kapı Köşe Koruyucu Stoper (Bantlı, 64 mm Yüksekliğinde)",
+    "aciklama": "Kapının çıkıntılı bir duvar köşesine ya da sütuna çarpmasını önleyen, çift taraflı bantla köşeye yapışan stoper. Kapıyı ve köşeyi çarpmadan korur. 64 mm yüksekliğinde ve 45 mm çapındadır; köşenin ya da sütunun genişliğine uygunluğunu önceden kontrol edin (bant ürüne dahil değildir). Fotoğraflarda siyah-mavi stoper duvar köşesinde ve kapı yanında görülür.\nYaklaşık dış ölçüler: 64 × 45 × 45 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr199519-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr199519-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr199519-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "3DJourney",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tamirat-dalgali-yuzeyli-kama-kapi-stoperi-pr623665",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Dalgalı Yüzeyli Kama Tipi Kapı Stoperi",
+    "aciklama": "Kapının altına yerleştirilen, yüzeyi kabartmalı kama tipi kapı stoperi. Yüzeyi kabartma desenlidir. Düz zeminde kullanım için uygundur; kapı altı boşluğunuzun yüksekliğini önceden kontrol edin. Fotoğraflarda siyah stoper masa üzerinde ve yakın planda görülür.\nYaklaşık dış ölçüler: 74,3 × 40 × 31,4 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr623665-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr623665-2.jpg"
+    ]
+  },
+  {
+    "id": "tamirat-anahtar-bicimli-kapi-stoperi-pr624394",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Anahtar Biçimli Kapı Stoperi",
+    "aciklama": "Kapının altına yerleştirilen, büyük bir anahtar şeklindeki kama tipi kapı stoperi. Halkalı baş kısmı elle tutmayı kolaylaştırır. Kaymayı azaltmak için tabanına çift taraflı bant ya da lastik ayak eklenebilir (bu parçalar ürüne dahil değildir). Fotoğraflarda beyaz stoper masa üzerinde, sarı olanı zeminde kapı dibinde görülür.\nYaklaşık dış ölçüler: 90 × 40,2 × 20 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr624394-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr624394-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "mantuxas",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tamirat-yarim-ay-cekmece-tutamagi-8-32-vidali-pr305701",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Yarım Ay Çekmece Tutamağı (8-32 Vidalı)",
+    "aciklama": "Standart 8-32 (inç) vida dişli deliklere uyan yarım ay biçimli çekmece tutamağı. Mevcut düğmenin yerine takılarak çekmeceye düz hatlı bir görünüm kazandırır. 8-32 vida ve 8-32 altıgen somun ile sabitlenir (vida ve somun ürüne dahil değildir); delik aralığı ve vida dişi uymuyorsa uygun değildir. Fotoğraflarda siyah tutamaklar açık renkli komodin çekmecelerinde görülür.\nYaklaşık dış ölçüler: 70,2 × 23,4 × 20,3 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr305701-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr305701-2.jpg"
+    ]
+  },
+  {
+    "id": "tamirat-kapi-kolu-tamponu-duvar-koruyucu-46-mm-pr88150",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kapı Kolu Tamponu (Duvar Koruyucu, 46 mm)",
+    "aciklama": "Kapı kolunun duvara çarparak sıvayı ezmesini önleyen koni biçimli duvar tamponu. Ortasındaki delikten duvara vidalanır (vida ürüne dahil değildir); kapı açıldığında kol bu yüzeye değer. Fotoğraflarda siyah tampon kapı kolunun çarpacağı yüzeyde görülür.\nYaklaşık dış ölçüler: 46 × 46 × 20 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr88150-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr88150-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr88150-3.jpg"
+    ]
+  },
+  {
+    "id": "tamirat-mentese-pimiyle-takilan-kapi-stoperi-6-mm-pr574272",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Menteşe Pimiyle Takılan Kapı Stoperi (6 mm Kalınlık)",
+    "aciklama": "Menteşenin üzerine yerleştirilen, kapıyı duvara karşı açık tutan ince kapı stoperi. Menteşe pimi çıkarılır, parça menteşenin üstüne oturtulur ve pim yeniden takılır; ek vida ya da bant gerektirmez. 6 mm kalınlığındadır, menteşe aralığınızın bu kalınlığa uygun olup olmadığını önceden kontrol edin. Fotoğraflarda gri parça menteşe üzerinde kapı kenarında ve masa üzerinde görülür.\nYaklaşık dış ölçüler: 72,1 × 53,1 × 6 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr574272-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr574272-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr574272-3.jpg"
+    ]
+  },
+  {
+    "id": "tamirat-kafes-govdeli-kama-kapi-stoperi-16-cm-pr626010",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kafes Gövdeli Kama Tipi Kapı Stoperi (16 cm)",
+    "aciklama": "Kapının altına yerleştirilen, içi kafes kirişli gövdeye sahip uzun kama tipi kapı stoperi. 16 cm uzunluğu ve 4 cm yüksekliğiyle orta boy kapı altı aralıklarına uygundur; kapı altı boşluğunuzun yüksekliğini önceden kontrol edin. Görsellerde beyaz stoper ahşap zeminde ve içindeki kafes yapıyı gösteren çizimde görülür.\nYaklaşık dış ölçüler: 161,7 × 40,5 × 40 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr626010-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr626010-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "___Sam___",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tamirat-hali-icin-kucuk-kama-kapi-stoperi-55-mm-pr423825",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Halı İçin Küçük Kama Tipi Kapı Stoperi (55 mm)",
+    "aciklama": "Halı ya da kalın zemin döşemesinde kapı altına yerleştirilen küçük kama tipi kapı stoperi. Tabanındaki tırtıllı yüzey halıya tutunmasına yardımcı olur; ucu standart stoperlerden kalındır ve halıya gömülerek çalışır, bu yüzden kapı altı boşluğu çok düşükse uygun değildir. Sert zeminde kullanım için tasarlanmamıştır. Fotoğraflarda kahverengi stoper halı üzerinde ve kapı altında görülür.\nYaklaşık dış ölçüler: 54,8 × 30 × 20 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr423825-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr423825-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr423825-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr423825-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Zeeno",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tamirat-monstera-yapragi-bicimli-cekmece-dugmesi-3-7-mm-vidali-pr1157059",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Monstera Yaprağı Biçimli Çekmece Düğmesi (3,7 mm Vida Delikli)",
+    "aciklama": "Monstera yaprağı silüetinde, düz yüzeyli çekmece ve dolap düğmesi. Arkasındaki 3,7 mm çaplı delik vidayla sabitlemeye uygundur (vida ürüne dahil değildir). Fotoğraflarda yeşil düğme beyaz çekmece yüzeyinde görülür.\nYaklaşık dış ölçüler: 38 × 36,6 × 21,7 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1157059-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1157059-2.jpg"
+    ]
+  },
+  {
+    "id": "tamirat-kapi-kolu-carpma-tamponu-duvara-takilan-pr776439",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kapı Kolu Çarpma Tamponu (Duvara Takılan, Kapı Arkasından Kilitlenmeyi Önleyen)",
+    "aciklama": "Kapı duvara kadar açıldığında kapı kolunu duvardan uzak tutan duvar tamponu. Kolun düğmesinin duvara basarak kapıyı arkadan kilitlemesini önlemeye yöneliktir; kapı kolunuza ve kilit tipinize uygunluğunu önceden kontrol edin. Alçıpan vidası, alçıpan dübeli ya da çift taraflı bantla duvara sabitlenir (vida, dübel ve bant ürüne dahil değildir). Fotoğraflarda beyaz tampon duvarda ve kapı koluna temas ederken görülür.\nYaklaşık dış ölçüler: 32,1 × 32,1 × 18 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr776439-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr776439-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr776439-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "cl@ytr0n",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tamirat-supurgelik-montajli-duvar-kapi-stoperi-3-boy-pr352779",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Süpürgelik Montajlı Duvar Kapı Stoperi (30, 40 ve 60 mm Boy)",
+    "aciklama": "Süpürgeliğe ya da duvara vidayla veya yapıştırıcıyla sabitlenen bir duvar bağlantı parçasına vidalanarak takılan silindirik kapı stoperi. Önce bağlantı parçası süpürgeliğe sabitlenir, ardından stoper onun üzerine geçirilir; kapı bu yuvarlak uca çarparak durur. 30, 40 ve 60 mm olmak üzere üç boyu vardır (vida ve yapıştırıcı ürüne dahil değildir). Fotoğraflarda gri stoper süpürgelik üzerinde ve kapı arkasında görülür.\nYaklaşık dış ölçüler (40 mm boy): 35 × 20 × 20 mm; duvar bağlantı parçası: 20 × 20 × 10 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr352779-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr352779-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr352779-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Peter Main",
+      "tur": "GPL 2.0"
+    }
+  },
+  {
+    "id": "tamirat-figurlu-kama-kapi-stoperi-14-cm-pr70653",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "İnsan Biçimli Kama Tipi Kapı Stoperi (Kapıyı Tutan, 14 cm)",
+    "aciklama": "Kapıyı tutar duruşta, insan biçiminde bir gövdeye sahip kama tipi kapı stoperi. Kapı altına yerleştirilen taban kısmında, zemine tutunmayı artırmak için O-ring yerleştirilebilen boşluklar vardır (O-ring ürüne dahil değildir). Fotoğraflarda turuncu stoper kapı dibinde ve elde görülür.\nYaklaşık dış ölçüler: 145,9 × 93,6 × 76,2 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr70653-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr70653-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "George",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tamirat-ergonomik-kapi-ve-cekmece-dugmesi-m3-burclu-pr1063222",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Ergonomik Kapı ve Çekmece Düğmesi (M3 Dişli Burçlu)",
+    "aciklama": "Elde rahat oturan, yan tarafı parmak çukurlu kapı ve çekmece düğmesi. Düğmenin içine M3 pirinç dişli burç yerleştirilir ve kapıya M3 cıvata ile ara pul kullanılarak arkadan sabitlenir (burç, cıvata ve pul ürüne dahil değildir). Delik yerini doğru işaretlemek için bir delik şablonu da bulunur. Fotoğraflarda beyaz düğmeler cıvata, pul ve burçla birlikte ve kapı üzerinde görülür.\nYaklaşık dış ölçüler: 25 × 25 × 25 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1063222-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1063222-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "niller74",
+      "tur": "GPL 3.0"
+    }
+  },
+  {
+    "id": "tamirat-ince-kama-kapi-stoperi-1-12-mm-yukseklik-7-cm-pr143192",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "İnce Kama Tipi Kapı Stoperi (1–12 mm Yükseklik, 7 cm Uzunluk)",
+    "aciklama": "Kapının altına yerleştirilen, 1 mm'den 12 mm'ye kadar yükselen kompakt kama tipi kapı stoperi. Yaklaşık 7 cm uzunluğundadır ve çoğu kapının altına sığar; kapı altı boşluğunuzun yüksekliğini önceden kontrol edin. Yüzeyinde kabartma yazı bulunur. Görsellerde turuncu stoperler ahşap yüzeyde ve mavi stoper çizimde görülür.\nYaklaşık dış ölçüler: 70 × 30 × 11,8 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr143192-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr143192-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "computer22",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tamirat-konik-cekmece-dugmesi-m4-disli-arka-delikli-pr311745",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Konik Çekmece Düğmesi (M4 Dişli Arka Delikli)",
+    "aciklama": "Eski bir sandık dolabının kaybolan çekmece tutamaklarının yerine tasarlanmış konik gövdeli düğme. Arka yüzündeki dişli deliğe M4 cıvata ile bağlanır (cıvata ürüne dahil değildir). Ön yüzünde kabartmalı çevre deseni vardır. Fotoğraflarda turuncu düğme mavi boyalı dolap üzerinde ve çizimde görülür.\nYaklaşık dış ölçüler: 25 × 22,6 × 22,6 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr311745-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr311745-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr311745-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr311745-4.jpg"
+    ]
+  },
+  {
+    "id": "tamirat-kumas-saklama-kupu-cekmece-dugmesi-m4-pr719253",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kumaş Saklama Küpü Çekmece Düğmesi (M4 Cıvatalı, Pullu)",
+    "aciklama": "Kumaş saklama küplerinin ve kumaş çekmecelerin metal çekme halkasına takılan düğme. Düğme halkanın içinden geçirilir, arkadan pul yerleştirilir ve 6–20 mm uzunluğunda bir M4 cıvata ile sıkılır (cıvata ürüne dahil değildir). Pul iki yönde de takılabilir. Yalnızca metal çekme halkalı kumaş çekmecelerde kullanılır. Fotoğraflarda beyaz düğme kumaş çekmecenin halkasında ve saklama küpü görülür.\nYaklaşık dış ölçüler: düğme 30 × 30 × 29 mm; pul 30 × 30 × 1,5 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr719253-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr719253-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "BigBoyBob",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tamirat-kopek-arka-gorunumlu-kuyruklu-cekmece-dugmesi-pr124459",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Köpek Arka Görünümlü Kuyruklu Çekmece Düğmesi",
+    "aciklama": "Köpeğin arka bacakları ve kuyruğu biçiminde, çekmece ya da dolaba takılan dekoratif düğme. Hasarlı ya da dişi bozulmuş bir düğmenin yerine takılabilir; M5 kare somun ve 20 mm uzunluğunda vida ile sabitlenir (somun ve vida ürüne dahil değildir). Fotoğrafta düğme üzerine kolye zinciri asılmış halde görülür.\nYaklaşık dış ölçüler: 75 × 69,1 × 39,2 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr124459-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr124459-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Paul Chase",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tamirat-susleme-plakali-cekmece-dugmesi-100-mm-pr1128814",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Süsleme Plakalı Çekmece Düğmesi (100 × 37,5 mm Plaka)",
+    "aciklama": "Çerçeveli dikdörtgen plakanın ortasında yer alan yuvarlak düğmeden oluşan, hasarlı ya da kayıp çekmece tutamağının yerine geçen tek parça tutamak. Plaka 100 mm uzunluğunda ve 37,5 mm genişliğindedir, kalınlığı 3 mm'dir. Fotoğrafta beyaz tutamak koyu ahşap çekmece üzerinde, ikinci görselde ise teknik çizimle gösterilir.\nYaklaşık dış ölçüler: 100 × 37,5 × 23,5 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1128814-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1128814-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Dylan",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tamirat-zikzak-kenarli-kare-cekmece-dugmesi-pr176730",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Zikzak Kenarlı Kare Çekmece Düğmesi",
+    "aciklama": "Kenarları zikzaklı, kare başlı çekmece düğmesi. Silindirik gövdesinin ucundaki delik vidayla sabitlemeye uygundur (vida ürüne dahil değildir). Açık ve canlı renklerde daha belirgin görünür. Fotoğraflarda pembe düğme koyu zeminde, bir yüzeyde ve çizimle görülür.\nYaklaşık dış ölçüler: 30 × 30 × 25,8 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr176730-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr176730-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr176730-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Erik C",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tamirat-dalgali-cekmece-dugmesi-m4-montaj-delikli-pr310174",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Dalgalı Çekmece Düğmesi (M4 Montaj Delikli)",
+    "aciklama": "Yüzeyi dalgalı, kademeli çizgilerle şekillendirilmiş, elde rahat oturan çekmece düğmesi. M4 vida için montaj deliği vardır (vida ürüne dahil değildir). Sade ve eski düğmelerin yerine geçebilir. Fotoğraflarda siyah düğme elde ve ahşap yüzeyde yakından görülür.\nYaklaşık dış ölçüler: 42,9 × 42,9 × 23,7 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr310174-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr310174-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr310174-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Robo_Kong",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tamirat-silindirik-cekmece-dugmesi-m4-8-ve-13-mm-pr721862",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Silindirik Çekmece Düğmesi (M4 Vidalı, 8 ve 13 mm Çaplı)",
+    "aciklama": "M4 vidaya sıkıca oturan, kısa silindirik çekmece düğmesi. 12 mm uzunluğa kadar M4 vidalarla uyumludur; iç kanal yaklaşık 10 mm uzunluğundadır (vida ürüne dahil değildir). 8 mm ve 13 mm dış çaplı iki sürümü vardır. Masa altı çekmeceler için tasarlanmıştır. Fotoğraflarda turuncu düğmeler siyah çekmece üzerinde ve yerde görülür.\nYaklaşık dış ölçüler (13 mm çaplı sürüm): 13 × 13 × 12 mm; 8 mm çaplı sürüm: 12 × 8 × 8 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr721862-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr721862-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr721862-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Dschey",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "tamirat-yarim-ay-bombeli-cekmece-tutamagi-4-mm-vidali-pr309220",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Yarım Ay Bombeli Çekmece Tutamağı (4 mm Vida Deliği)",
+    "aciklama": "Kırılan ya da kaybolan bir çekmece tutamağının yerine takılan, yarım ay biçimli bombeli tutamak. Ortasındaki vida deliğinin çapı 4 mm'dir; çoğu 4 mm civarı vida bu deliğe dişini açarak girer (vida ürüne dahil değildir). Fotoğraflarda siyah tutamak ahşap çekmece üzerinde ve elde yandan, önden görülür.\nYaklaşık dış ölçüler: 60 × 26 × 15 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr309220-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr309220-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr309220-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr309220-4.jpg"
+    ]
+  },
+  {
+    "id": "tamirat-kisa-modern-cekmece-dugmesi-m4-pr1050166",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kısa Modern Çekmece Düğmesi (M4 Vida Dişli)",
+    "aciklama": "Çekmeceye çarpmayan, alçak profilli sade çekmece düğmesi. Arkasındaki delik, M4 vidanın diş açarak girmesine uygun ölçüdedir (vida ürüne dahil değildir). Fotoğrafta beyaz düğme açık renkli çekmece üzerinde, ikinci görselde ise çizimle gösterilir.\nYaklaşık dış ölçüler: 27 × 27 × 16,5 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1050166-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1050166-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Mojomojo",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "bahce-saksi-alti-halka-sehpa-hava-dolasimli-200-mm-pr631040",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Saksı Altı Halka Sehpa (Hava Dolaşımlı, 200 mm Çaplı)",
+    "aciklama": "Saksının altına konan, zeminle arasında boşluk bırakan alçak halka biçimli sehpa: saksının altında hava dolaşır. Taban çapı 200 mm'dir; model gerektiğinde büyütülüp küçültülebilir. Fotoğraflarda beyaz halka seramik zeminde ve saksının altında görülür.\nYaklaşık dış ölçüler: çap 200 mm, yükseklik 13 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr631040-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr631040-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr631040-3.jpg"
+    ]
+  },
+  {
+    "id": "bahce-varil-kenarina-gecen-hortum-tutucusu-23-mm-hortum-icin-pr1303618",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Varil Kenarına Geçen Hortum Tutucusu (23 mm Çaplı Bahçe Hortumu İçin)",
+    "aciklama": "Su varilinin kenarına geçip bahçe hortumunu elle tutmadan yerinde tutan sade tutucu: dış çapı 23 mm olan hortum için ölçülüdür; hortumun yaklaşık 30 cm'lik kısmının tutucuya itilmesi önerilir. Fotoğraflarda mavi tutucu ve varil kenarında yeşil hortumla görülür.\nYaklaşık dış ölçüler: 70 × 40 × 20 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1303618-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1303618-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jenikovec",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "bahce-bonsai-saksisi-sehpasi-kase-bicimli-pr744236",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Bonsai Saksısı Sehpası (Kâse Biçimli, Geniş Üst Kenarlı)",
+    "aciklama": "Bonsai saksıları için tasarlanmış, tabanı dar üst kenarı geniş kâse biçimli sade sehpa. Fotoğraflarda koyu mavi sehpa masada boş ve içinde bonsai bitkisiyle görülür.\nYaklaşık dış ölçüler: 232 × 232 × 110 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr744236-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr744236-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr744236-3.jpg"
+    ]
+  },
+  {
+    "id": "bahce-saksi-ayagi-buyuk-cicek-saksilari-icin-uclu-kullanim-pr1136486",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Büyük Çiçek Saksıları İçin Saksı Ayağı (Her Saksıya Üç Adet)",
+    "aciklama": "Büyük çiçek saksılarını zeminden yükselten ayak: terasta saksı altının zeminde leke bırakmaması için saksıyı yerden kaldırır. Her saksı için üç ayak kullanılır. Fotoğraflarda kırmızı ayak saksının altında ve yakın planda, ayrıca mavi çizim olarak görülür.\nYaklaşık dış ölçüler: tek ayak 83 × 64 × 36 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1136486-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1136486-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1136486-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1136486-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jakob Hansen (özgün: jshansen)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "bahce-petek-desenli-saksi-sehpasi-supurge-sapi-bacakli-pr176152",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Petek Desenli Saksı Sehpası (Süpürge Sapı Bacaklı, 22 – 25 mm Çubuk İçin)",
+    "aciklama": "Altıgen petek delikli üst tabla ve bacak ayaklarından oluşan küçük saksı sehpası: bacak olarak çapı 22 ile 25 mm arasındaki süpürge sapı ya da benzeri ahşap çubuklar kullanılır (çubuklar dahil değildir). 22,2 / 23,2 / 24,2 ve 25,2 mm çubuk çapları için ayrı tabla ve ayak ölçüleri bulunur. Fotoğraflarda sehpa üç ayaklı olarak bitkiyle ve üst tablası yakından görülür.\nYaklaşık dış ölçüler: tabla 170 × 149 × 52 mm, ayak 52 × 46 × 43 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr176152-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr176152-2.jpg"
+    ]
+  },
+  {
+    "id": "bahce-buyuk-saksi-ici-yukseltme-sehpasi-petek-desenli-pr451910",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Büyük Saksı İçi Yükseltme Sehpası (Petek Desenli, 5 İnç İç Çaplı)",
+    "aciklama": "Büyük bir saksının içine konup fide ya da küçük saksıyı saksı kenarı seviyesine çıkaran, petek desenli halka biçimli sehpa. İç çapı 5 inç (yaklaşık 127 mm), dış çapı 8 inç (yaklaşık 203 mm); bacaklarının içi boştur. Fotoğraflarda beyaz sehpa ahşap yüzeyde iki açıdan görülür.\nYaklaşık dış ölçüler: 203 × 203 × 102 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr451910-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr451910-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "EBMakes",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "bahce-u-bicimli-hortum-tutucusu-saksiya-yonlendiren-pr220258",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "U Biçimli Hortum Tutucusu (Hortumu Bükmeden Saksıya Yönlendirir)",
+    "aciklama": "Hortumu bükülmeden saksıya yönlendirmek için tasarlanmış, sade U biçimli tutucu. Fotoğrafta beyaz tutucu zeminde, ikinci karede çizim olarak farklı açıdan görülür.\nYaklaşık dış ölçüler: 105 × 95 × 25 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr220258-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr220258-2.jpg"
+    ]
+  },
+  {
+    "id": "bahce-saksi-ayagi-dis-mekan-saksilari-icin-pr903466",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Saksı Ayağı (Altlıksız Dış Mekân Saksıları İçin)",
+    "aciklama": "Altlığı olmayan dış mekân saksılarını zeminden yükselten, içi kafes dokulu ayak: saksının altında boşluk bırakır, böylece altındaki su akıp gider ve zemin lekelenmez. Her saksı için en az üç ayak kullanılır; çapı 250 mm'den (10 inç) büyük saksılarda daha fazlası gerekir. Fotoğraflarda yeşil ayaklar terakota saksının altında ve sıra halinde görülür.\nYaklaşık dış ölçüler: tek ayak 79 × 40 × 40 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr903466-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr903466-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Alec P",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "bahce-duvara-monte-bahce-aleti-askisi-kurek-ve-tirmik-icin-pr1123284",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Duvara Monte Bahçe Aleti Askısı (Kürek ve Tırmık İçin, Büyük ve Küçük Sürüm)",
+    "aciklama": "Kürek, tırmık ve benzeri bahçe aletlerinin sapını yuvasında tutan, duvara vidalanan askı. Büyük sürüm çoğu kürek sapına uyar; daha küçük aletler için küçük sürüm de vardır (vidalar dahil değildir). Fotoğraflarda gri askı duvarda kürek sapını tutarken ve mavi çizim olarak görülür.\nYaklaşık dış ölçüler: 80 × 79 × 75 mm ve 90 × 75 × 74 mm (iki sürüm).",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1123284-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1123284-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1123284-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1123284-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Byer",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "bahce-kok-bolgesine-sulama-kazigi-saksi-bitkileri-icin-pr1756712",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kök Bölgesine Sulama Kazığı (Saksı Bitkileri İçin, 125 mm)",
+    "aciklama": "Saksı toprağına saplanan içi boş sulama kazığı: üstündeki ağızdan su dökülür, kazığın yan deliklerinden toprağa yayılır; böylece sulama bitkinin dibine yöneltilir. Kazık su deposu olarak kullanılmaz, yalnızca toprağa saplanıp doldurulur. Görseller bilgisayar çizimleridir.\nYaklaşık dış ölçüler: 125 × 21 × 21 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1756712-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1756712-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "quibeck",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "bahce-siseye-takilan-sulama-kazigi-28-mm-disli-sise-icin-pr243271",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Şişeye Takılan Sulama Kazığı (28 mm Dişli Şişe Ağzı İçin, Dört Delikli)",
+    "aciklama": "Standart 28 mm dişli içecek şişelerinin ağzına vidalanan, saksı toprağına saplanan sulama kazığı: dört delik şişenin yavaş boşalmasını sağlar. Kazık ve diş iki ayrı parçadır, birleştirilerek kullanılır. Daha küçük delikli ek sürümler ve farklı ölçü seçenekleri de vardır. Fotoğrafta üç siyah kazık masada, ikinci karede mavi çizim görülür.\nYaklaşık dış ölçüler: 110 × 35 × 35 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr243271-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr243271-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jussi",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "bahce-ahsap-cubuklu-bitki-sehpasi-baglanti-parcalari-pr198436",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Ahşap Çubuklu Bitki Sehpası Bağlantı Parçaları (1,5 İnç Çubuk İçin)",
+    "aciklama": "Modern görünümlü, dört ayaklı saksı sehpasını kendin yapmak için bağlantı parçaları: köşe bağlantıları, ortada haç biçimli iki çubuğu tutan merkez parçası ve ayaklar ahşap çubuklara geçer. 1,5 inç (yaklaşık 38 mm) çaplı çubuklara göredir; ahşap çubuklar ve vidalar dahil değildir, orta çubukların haç biçiminde birbirine geçmesi için kesilmesi gerekir. Fotoğraflarda bağlantılar ahşap çubuklarla kurulmuş sehpa ve köşe yakın planları görülür.\nYaklaşık dış ölçüler: köşe bağlantısı 97 × 76 × 42 mm, alt orta parça 58 × 46 × 21 mm, üst orta parça 58 × 58 × 42 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr198436-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr198436-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr198436-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "PPammes",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "bahce-saksi-alti-hava-sehpasi-dokuz-capli-yuvarlak-pr35263",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Saksı Altı Sehpası (Hava Dolaşımlı, 50 – 200 mm Dokuz Çap)",
+    "aciklama": "Saksının altına konan, zeminle arasında boşluk bırakan halka biçimli küçük sehpa: saksı yerden yükselir, altından hava geçer. 50, 60, 75, 80, 100, 125, 150, 175 ve 200 mm çaplı dokuz ayrı ölçüde sunulur. Fotoğraflarda sehpa ahşap yüzeyde ve farklı çaplarının çizimleri görülür.\nYaklaşık dış ölçüler: çap 50 – 200 mm, yükseklik 23 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr35263-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr35263-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr35263-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ZRex",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "bahce-duvara-vidalanan-bahce-hortumu-askisi-iki-parcali-pr32956",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Duvara Vidalanan Bahçe Hortumu Askısı (İki Parçalı ya da Tek Parça)",
+    "aciklama": "Uzun bir bahçe hortumunu duvarda sarılı tutan, yarım daire biçimli geniş hortum askısı. İki parçalı ve tek parça sürümü vardır; standart vidalarla duvara monte edilir (vidalar dahil değildir). Fotoğraflarda mavi askı tuğla duvarda yeşil hortumu taşırken ve yan görünüşlerde izlenir.\nYaklaşık dış ölçüler: tek parça sürüm 201 × 185 × 170 mm; iki parçalı sürümde 180 × 150 × 133 mm ve 185 × 124 × 20 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr32956-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr32956-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr32956-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Paolo",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "bahce-moduler-cicek-saksisi-sehpasi-uzatilabilir-bacakli-pr385397",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Modüler Çiçek Saksısı Sehpası (Uzatılabilir Bacaklı, 6,75 İnç Saksıya Kadar)",
+    "aciklama": "İki parçanın sıkıca geçmesiyle kurulan, sade dört bacaklı saksı sehpası; yükseklik uzatma parçası ve bağlantı adaptörüyle artırılabilir, birden fazla sehpa birleştirilebilir. 6,75 inç (yaklaşık 17 cm) çapa kadar saksıyı taşır. Fotoğraflarda siyah sehpa boş, saksılı ve pembe saksılı olarak görülür.\nYaklaşık dış ölçüler: ana parça 200 × 200 × 19 mm, bağlantı adaptörü 31 × 22 × 18 mm, bacak uzatması 100 × 19 × 15 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr385397-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr385397-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr385397-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "KrazeeKamikazee",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "bahce-vidali-montajli-bahce-aleti-tutucusu-doner-kollu-pr161297",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Vidalı Montajlı Bahçe Aleti Tutucusu (Döner Kollu)",
+    "aciklama": "Uzun saplı bahçe aletlerini bir dikmeye ya da tahta yüzeye asmak için döner kollu tutucu: sabit gövde ahşaba vidalanır, vida başı için çukuru vardır; dönen parça aleti yerinde tutar. Fotoğraflarda tutucu ahşap yüzeyde alet sapını kavrarken ve çizim olarak görülür.\nYaklaşık dış ölçüler: sabit parça 33 × 30 × 13 mm, dönen parça 51 × 37 × 30 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr161297-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr161297-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr161297-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "credmontgo (özgün: Cmontgo)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "bahce-kivrimli-bacakli-saksi-sehpasi-iki-yan-ve-baglanti-parcali-pr391761",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kıvrımlı Bacaklı Saksı Sehpası (İki Yan ve Bağlantı Parçalı)",
+    "aciklama": "Saksıyı zeminden yükselten, kıvrımlı bacaklı sade sehpa. Her yan parçadan iki, bağlantı parçasından bir adet kullanılır; parçalar birbirine geçerek sehpayı oluşturur. Ölçüler parametriktir, farklı saksılara göre ayarlanabilir. Fotoğraflarda beyaz sehpa boş ve beyaz saksıda bitkiyle görülür.\nYaklaşık dış ölçüler: yan parça 202 × 196 × 15 mm, bağlantı parçası 70 × 70 × 7 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr391761-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr391761-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Dan (özgün: Daniel_K)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-disli-kaydiricili-cok-yuzlu-fidget-kup-pr1846355",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Dişli Kaydırıcılı Çok Yüzlü Fidget Küp (Dönen Düğmeli, Elde Çevirmeli)",
+    "aciklama": "Yüzlerinde kaydırılan dişli çubuklar, çevrilen düğme ve yan parça bulunan, elde çevirerek ve tıklatarak oyalanmak için tasarlanmış çok yüzlü fidget küp. Gövdenin içindeki dişliler, yan delikten geçirilen ince bir çubukla sabitlenir; dönen parça yerine sıkı oturduğundan takmak için büyük bir pense kullanılması önerilir. Fotoğraflarda turuncu renkte, farklı yüzleri ve kaydırıcıları görünür biçimde gösterilir.\nYaklaşık dış ölçüler: 30 × 30 × 30 mm (küp gövdesi).",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1846355-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1846355-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1846355-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1846355-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DALLE",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "oyun-mini-sonsuz-kup-iki-kucuk-boy-pr228697",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Mini Sonsuz Küp (13,3 ve 11,8 mm Küp Kenarı, Güçlendirilmiş Menteşeli)",
+    "aciklama": "Güçlendirilmiş menteşeli sonsuz küpün küçültülmüş ve hareket payı genişletilmiş sürümü; avuç içine rahatça sığan minik bir fidget küp. İki boy bulunur: 13,3 mm ve 11,8 mm küp kenarı. Küçültmede parçalar arasındaki boşluk artırıldığından menteşelerin sıkışmadan serbest hareket ettiği belirtilir. Fotoğraflarda mavi renkte, boyutu göstermek için bir bozuk parayla birlikte gösterilir.\nYaklaşık dış ölçüler: 55 × 27 × 13 mm (13,3 mm boy, açık hali; 11,8 mm boy yaklaşık 49 × 24 × 12 mm).",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr228697-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr228697-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Shmoee (esinlenilen model: waveman)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-burgulu-fidget-kup-sarmal-ic-parcali-pr1014592",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Burgulu Fidget Küp (Sarmal İç Parçası Gövdeden Geçen, İki Parçalı)",
+    "aciklama": "Burgulu küp gövdenin içinden sarmal biçimli iç parçanın geçtiği, elde çevirerek ve içinden kaydırarak oyalanmaya yarayan fidget küp. İki parçadan oluşur: delikli burgulu gövde ve sarmal iç parça; iki parça farklı renkte olduğunda geçiş hareketi daha net görünür. Fotoğraflarda mor gövde ve pembe sarmal gösterilir.\nYaklaşık dış ölçüler: 50 × 50 × 50 mm (küp gövde; iç sarmal 50 × 41 × 41 mm).",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1014592-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1014592-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "EcoDad",
+      "tur": "GNU LGPL"
+    }
+  },
+  {
+    "id": "elektronik-kablosuz-sarj-altligi-egim-standi-telefonu-daha-dik-tutar-pr234817",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kablosuz Şarj Altlığı Eğim Standı (Telefonu Daha Dik Tutar)",
+    "aciklama": "Yassı kablosuz şarj altlığının telefonu çok yatık tuttuğu durumlarda, altlığı ve telefonu dikeye yaklaştıran eğim standı. Ön kısımdaki çıkıntılar telefonun aşağı kaymasını engeller; geniş telefonlarda da (Galaxy S8+ boyutu) denge sağlar. Samsung şarj altlığı için hazırlanmıştır. Fotoğraflarda siyah stand telefonla birlikte masada ve çizim olarak görülür.\nYaklaşık dış ölçüler: 94 × 59 × 46 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr234817-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr234817-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Adrian (özgün tasarım: bbzed)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "elektronik-tutma-halkasi-yuvali-ince-telefon-kilifi-belirli-modele-ozel-pr1474940",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Tutma Halkası Yuvalı İnce Telefon Kılıfı (Belirli Modele Özel)",
+    "aciklama": "Fairphone 6 için hazırlanmış ince ve hafif kılıf; arka yüzünde telefon tutma halkasının oturduğu entegre yuva bulunur, ayrı bir halka yuvası parçası da vardır. Düğme ve çıkış kesimleri telefona göre açıktır. Fotoğraflarda pembe kılıf telefonun arkasında ve halkayla görülür.\nYaklaşık dış ölçüler: kılıf 160 × 76 × 13 mm; halka yuvası 20 × 20 × 4 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1474940-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1474940-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "anon137 (özgün tasarımlar: ArchibaldMcSwag, millerdec804)",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "elektronik-arac-havalandirma-telefon-tutucusu-adaptoru-tutma-halkali-pr1292769",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Araç Havalandırma Telefon Tutucusu Adaptörü (Tutma Halkalı Telefonlar İçin)",
+    "aciklama": "Araç havalandırmasına takılan Quad Lock tipi telefon tutucusuna, tutma halkalı telefonu kılıf değiştirmeden takmak için adaptör. Halkanın dış kenarı adaptöre oturur; aynı tutucuyu hem Quad Lock kılıflı hem halkalı telefonlar kullanabilir. Fotoğraflarda beyaz adaptör araçta, tutucuya takılı ve elde görülür.\nYaklaşık dış ölçüler: 54 × 48 × 14 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1292769-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1292769-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1292769-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1292769-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Nottingham82",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ofis-3-gozlu-kulaklik-kutusu-duzenleyici-masa-ustu-pr1871355",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "3 Gözlü Kulaklık Kutusu Düzenleyici (Masa Üstü)",
+    "aciklama": "Üç adet kablosuz kulaklık şarj kutusunu masada dik, düzenli ve erişilebilir tutan raf. Kutular birbirine dayanıp kaymaz; masada kaybolmaz, tek hamlede alınır. Fotoğraflarda siyah raf farklı renkli kulaklık kutularıyla görülür.\nYaklaşık dış ölçüler: 102 × 70 × 30 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1871355-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1871355-2.jpg"
+    ]
+  },
+  {
+    "id": "elektronik-tutma-halkasi-duvar-ve-tavan-tutucusu-petek-panoya-uygun-pr1148726",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Tutma Halkası Duvar ve Tavan Tutucusu (Petek Panoya Uygun Sürümlü)",
+    "aciklama": "Halkalı telefonu duvara, tavana ya da petek desenli panoya asmak için sade tutucu. Tutma halkasının dış kenarı tutucuya tıklayarak oturur; tavanda bile yerinde kalır. İki sürüm vardır: düz yüzeye bantla sabitlenen ve petek panoya geçen. Fotoğraflarda tutucu duvarda, panoda ve elde görülür.\nYaklaşık dış ölçüler: düz sürüm 44 × 29 × 7 mm; petek sürümü 44 × 29 × 16 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1148726-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1148726-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1148726-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1148726-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Elli",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "elektronik-cift-sarj-altligi-standi-telefon-ve-akilli-saat-icin-pr657904",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Çift Şarj Altlığı Standı (Telefon ve Akıllı Saat İçin)",
+    "aciklama": "Telefon ve akıllı saati birlikte şarj eden çift kablosuz şarj altlığını eğimli tutan, üçgen yan görünümlü stand. Altlığa üst parçayla sabitlenir; telefon ve saat altlığın üzerinde yan yana şarj olur. Samsung Wireless Charger Duo altlığı için hazırlanmıştır. İki stand sürümü ve bir üst tutucu parça vardır. Fotoğraflarda mor stand altlıkla, telefon ve saatle yandan görülür.\nYaklaşık dış ölçüler: ilk sürüm 117 × 87 × 81 mm; ikinci sürüm 172 × 117 × 43 mm; üst parça 80 × 25 × 3 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr657904-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr657904-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "MacioMan",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "elektronik-kare-kablosuz-sarj-altligi-standi-kablo-alta-yonlenen-pr188993",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kare Kablosuz Şarj Altlığı Standı (Kablo Alta Yönlenen)",
+    "aciklama": "Kare kablosuz şarj altlığını dik tutan, telefonu alt çıkıntılarla kaymaktan koruyan stand. Altlığın kablosu arkadan alta doğru yönlenir; yatay yerleşim kolları kullanılacaksa arka bölüm kesilmelidir. Ubiolabs şarj altlığı için hazırlanmıştır. Fotoğraflarda beyaz stand altlıkla, ayrıca mavi çizimle görülür.\nYaklaşık dış ölçüler: 143 × 108 × 86 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr188993-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr188993-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr188993-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Eolian (özgün tasarımlar: marlerman, luv3d)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "elektronik-arac-telefon-tutucusuna-tutma-halkasi-adaptoru-pr1423244",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Araç Telefon Tutucusuna Tutma Halkası Adaptörü",
+    "aciklama": "Araçtaki mevcut telefon tutucusuna halkalı telefonu takmak için adaptör. Tutma halkasının dış kenarı adaptörün yuvasına oturur; adaptör tutucunun kıskacına takılır. Yeni tutucu almadan, halkalı telefonla araçta kullanım sağlar. Fotoğraflarda adaptör çizim olarak ve araçta takılı görülür.\nYaklaşık dış ölçüler: 64 × 58 × 20 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1423244-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1423244-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1423244-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1423244-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Big Chief (özgün tasarım: Ohpyx)",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "elektronik-arac-telefon-tutucusu-adaptoru-tutma-halkali-telefonlar-icin-pr681129",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Araç Telefon Tutucusu Adaptörü (Tutma Halkalı Telefonlar İçin)",
+    "aciklama": "Manyetik başlıklı araç telefon tutucusunun başlığı yerine takılan, telefon tutma halkasının dış kenarını içine alan adaptör. Mevcut manyetik başlık sökülür, adaptör yerine vidalanır; halkalı telefon doğrudan tutucuya oturur. Scosche MagicMount araç tutucusu ile uyumludur. Fotoğraflarda yeşil adaptör çizim olarak ve araçta takılı görülür.\nYaklaşık dış ölçüler: 48 × 39 × 34 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr681129-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr681129-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "brandonb (özgün tasarım: adammelancon)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "elektronik-yassi-kablosuz-sarj-altligini-dik-standa-ceviren-aparat-pr323870",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Yassı Kablosuz Şarj Altlığını Dik Standa Çeviren Aparat",
+    "aciklama": "Masaya yatık duran yuvarlak kablosuz şarj altlığını yan yüzeye ya da duvara dik bağlayan taban ve baş parçalı aparat. Altlık baş parçasına oturur, telefon altlığın önünde yüzü size dönük şarj olur. Samsung yassı kablosuz şarj altlığı için hazırlanmıştır; Galaxy S20 FE (kılıflı) ölçüsüne göre çizilmiştir, benzer boyutlu telefonlarda çalışabilir, yapıştırmadan önce denenmesi önerilir. Fotoğraflarda gri aparat altlıkla, yan yüzeye monte halde görülür.\nYaklaşık dış ölçüler: taban 101 × 101 × 76 mm; baş parçası 62 × 59 × 24 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr323870-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr323870-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "AdNad",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "elektronik-kablosuz-sarj-altligi-standi-25-derece-egimli-pr1460281",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kablosuz Şarj Altlığı Standı (25° Eğimli)",
+    "aciklama": "İnce yuvarlak manyetik kablosuz şarj altlığını 25° eğimle tutan, telefonu ekranı size dönük bırakan basit stand. Altlık gövdedeki yuvaya oturur, kablo arkadan çıkar. Baseus Simple Mini3 şarj altlığı için hazırlanmıştır. Fotoğraflarda turuncu stand altlıkla ve telefonla görülür.\nYaklaşık dış ölçüler: 123 × 70 × 50 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1460281-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1460281-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1460281-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1460281-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Nutterflies",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "elektronik-kablosuz-sarj-altligi-standi-ve-duvar-tutucusu-cift-parcali-pr396019",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kablosuz Şarj Altlığı Standı ve Duvar Tutucusu (Çift Parçalı)",
+    "aciklama": "Küçük yuvarlak manyetik kablosuz şarj altlığı için iki ayrı tutucu: masada eğimli duran stand ve duvara çift taraflı bantla sabitlenen petek desenli duvar tutucu (bant dahil değildir). Altlık ön yüzden yuvaya girer, kablo arkadan çıkar. ESR HaloLock Mini şarj altlığı için hazırlanmıştır. Fotoğraflarda bakır renkli stand ve gri duvar tutucu altlık ve telefonla görülür.\nYaklaşık dış ölçüler: masa standı 126 × 91 × 80 mm; duvar tutucu 100 × 100 × 33 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr396019-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr396019-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr396019-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "choovick",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "elektronik-kablosuz-sarj-altligi-standi-genis-altliklar-icin-pr85256",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kablosuz Şarj Altlığı Standı (Geniş Altlıklar İçin)",
+    "aciklama": "Geniş yuvarlak kablosuz şarj altlığını eğimli tutan stand; telefon altlığın önünde şarj olur. Samsung geniş altlığın ölçüsüne göre çizilmiştir. İki sürümü vardır: köşeleri yuvarlatılmış ve düz kenarlı. Fotoğraflarda mavi stand çizim olarak görülür.\nYaklaşık dış ölçüler: düz sürüm 128 × 122 × 119 mm; yuvarlatılmış sürüm 127 × 122 × 117 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr85256-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr85256-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Iguanaman",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "elektronik-telefon-tutma-halkasi-bos-kapak-islenebilir-yuzey-pr1289834",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Telefon Tutma Halkası Boş Kapak (Yedek, Desen İşlenebilir)",
+    "aciklama": "Katlanır telefon tutma halkalarının üst kapağı yerine kullanılan boş yedek kapak. İki boş sürüm bulunur; üzerine kendi desen ya da yazınızı eklemek için sade bir yüzey sağlar. Fotoğraflarda kapaklar çizim olarak görülür.\nYaklaşık dış ölçüler: 40 × 40 × 4,5 mm ve 40 × 40 × 5,5 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1289834-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1289834-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "groog",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "elektronik-kablo-cikis-secenekli-kablosuz-sarj-telefon-standi-pr249677",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kablo Çıkış Seçenekli Kablosuz Şarj Telefon Standı",
+    "aciklama": "Kablosuz şarj altlığını arkasında taşıyan telefon standı; şarj kablosunun sol, sağ ya da arka çıkış noktalarından geçmesine olanak veren yuvaları vardır. Telefon dik biçimde standa oturur ve altlıkta şarj olur. Fotoğraflarda siyah stand şarj altlığıyla, ayrıca üstten çizim olarak görülür.\nYaklaşık dış ölçüler: 95 × 92 × 85 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr249677-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr249677-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Mark (özgün tasarım) ve Bosco Hern (uyarlama)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "elektronik-yuvarlak-kablosuz-sarj-altligi-standi-kilifli-telefonlara-uygun-pr1036802",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Yuvarlak Kablosuz Şarj Altlığı Standı (Kılıflı Telefonlara Uygun)",
+    "aciklama": "Yuvarlak kablosuz şarj altlığını dik tutan, genişliği 77 mm, kalınlığı 13 mm, yüksekliği 150 mm'ye kadar kılıflı telefonları taşıyan stand. Altlık arka yuvaya oturur, kablo gövdenin altındaki kanaldan çıkar. Xiaomi kablosuz şarj altlığı için hazırlanmıştır. Fotoğraflarda gri stand altlıkla ve kablosuyla görülür.\nYaklaşık dış ölçüler: 92 × 84 × 76 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1036802-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1036802-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1036802-3.jpg"
+    ]
+  },
+  {
+    "id": "elektronik-cuzdan-tipi-tutma-halkasi-icin-telefon-askisi-yatay-dikey-pr355964",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Cüzdan Tipi Tutma Halkası İçin Telefon Askısı (Yatay ve Dikey)",
+    "aciklama": "Tutma halkalı kart cüzdanı takılı telefonu askıda ya da yuvada tutan soket. Üç sürümü vardır: dikey, yatay ve CD yuvası braketlerine takılan kırlangıç kuyruklu yatay sürüm. Cüzdan halkası yuvaya kayarak oturur. Fotoğraflarda mavi soketler çizim olarak görülür.\nYaklaşık dış ölçüler: dikey 64 × 62 × 16 mm; yatay 97 × 62 × 16 mm; kırlangıç kuyruklu yatay 97 × 62 × 18 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr355964-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr355964-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr355964-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ARCind (özgün tasarım: alexnettles)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "elektronik-manyetik-sarj-altligi-standi-kulaklik-kutusu-rafli-pr84703",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Manyetik Şarj Altlığı Standı (Kulaklık Kutusu Raflı)",
+    "aciklama": "İnce yapılı yuvarlak manyetik kablosuz şarj altlığını dik tutan, telefonun altlığa manyetik oturmasını kolaylaştıran sade stand. Standın içinden kablo geçer, altlık eğimli durur. Ayrıca kablosuz şarj kutusu olan kulaklığı altlığın önünde tutan küçük bir raf parçası da vardır. Yüzeye sabitlemek için iki ayrı alt sürüm bulunur: yalnız çift taraflı bant yuvalı ve hem vida deliği hem bant yuvalı (bant ve vida dahil değildir). Fotoğraflarda siyah stand şarj altlığıyla ve kulaklık kutusuyla görülür.\nYaklaşık dış ölçüler: şarj standı 117 × 62 × 55 mm; kulaklık rafı 63 × 38 × 30 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr84703-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr84703-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr84703-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr84703-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jarza",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "elektronik-akilli-saat-sarj-istasyonu-moduler-her-kordon-tipine-uygun-pr718640",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Akıllı Saat Şarj İstasyonu (Modüler, Her Kordon Tipine Uygun)",
+    "aciklama": "Sert ya da kapalı kordonlu akıllı saatlerin şarj altlığına düzgün oturmadığı durumlar için tasarlanmış modüler şarj istasyonu. Kafa, direk ve ayak parçalarından oluşur; kısa ya da uzun direk seçilebilir. Orijinal şarj aleti ve üçüncü taraf şarj aletleri için ayrı kafa parçaları bulunur. Galaxy Watch 3, 4, 5 ve 6 saatleri için hazırlanmıştır. Fotoğraflarda mavi istasyon saatle ve parçalarıyla görülür.\nYaklaşık dış ölçüler: kısa direk 60 × 50 × 28 mm; uzun direk 70 × 50 × 28 mm; kafa 59 × 44 × 12 mm; ayak 65 × 50 × 10 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr718640-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr718640-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr718640-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr718640-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Kenneth Weidlich",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "elektronik-esnek-katlanir-telefon-tutma-halkasi-pr1377492",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Esnek Katlanır Telefon Tutma Halkası",
+    "aciklama": "Telefonun arka yüzüne yapıştırılan, açılıp kapanan esnek tutma halkası. Kapalıyken telefona yakın ve ince durur, açıldığında parmakla kavranarak telefonu elde sabit tutar; aynı zamanda telefonu masada eğimli dayamaya yarar. Tek parça gövdesi esnek yapıdadır. Fotoğraflarda kırmızı ve mavi halkalar masada ve parmakla görülür.\nYaklaşık dış ölçüler: 40 × 40 × 24,5 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1377492-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1377492-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1377492-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "clusterfuggles",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "elektronik-katlanir-parmak-tutma-halkasi-tek-parca-hazir-pr387984",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Katlanır Parmak Tutma Halkası (Telefon Arkasına Yapışan, Ultra İnce)",
+    "aciklama": "Telefon kılıfının arkasına yapıştırılan, kullanılmadığında yüzeye yatan ve çok az yer kaplayan katlanır tutma aparatı. Parça kayar mekanizmalı olup hazır çalışır, ayrıca montaj gerekmez; açıldığında iki parmak arasından geçirilerek telefon güvenle tutulur. Fotoğraflarda siyah aparat telefonun arkasında ve elde görülür.\nYaklaşık dış ölçüler: çerçeve 68 × 31 × 4 mm; kayar parça 60 × 28 × 4 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr387984-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr387984-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "archimedes2002",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "elektronik-vida-delikli-tutma-halkasi-duvar-tutucusu-pr138809",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Vida Delikli Tutma Halkası Duvar Tutucusu",
+    "aciklama": "Halkalı telefonu duvara, panoya ya da düz bir yüzeye asmak için tutucu. Tutma halkasının dış kenarı tutucunun içine kayarak oturur. Sağlam sabitleme için #8 vida havşası vardır; tek delikli ve çift delikli iki sürüm bulunur (vida dahil değildir). Fotoğraflarda tutucu duvarda ve tek başına görülür.\nYaklaşık dış ölçüler: 54 × 48 × 13 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr138809-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr138809-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "astroukulele (özgün tasarım: Ohpyx)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "elektronik-kilitli-kilif-sistemi-icin-tutma-halkasi-adaptoru-pr492599",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kilitli Kılıf Sistemi İçin Tutma Halkası Adaptör Plakası",
+    "aciklama": "Telefon tutma halkasını, yuvarlak kilit yuvalı kılıf sistemlerine (RokForm tipi kilit yuvası) takmak için adaptör plaka. Plaka kılıfın kilit yuvasına oturur, tutma halkasının tabanı üzerine yapıştırılır. Kılıf ve halka ürüne dahil değildir. Fotoğraflarda adaptör çizimle ve kılıfın arkasında görülür.\nYaklaşık dış ölçüler: 42 × 42 × 7 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr492599-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr492599-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr492599-3.jpg"
+    ]
+  },
+  {
+    "id": "elektronik-kablosuz-sarj-altligi-standi-100-mm-cap-kablo-yonlendirmeli-pr1058252",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kablosuz Şarj Altlığı Standı (100 mm Çapa Kadar, Kablo Yönlendirmeli)",
+    "aciklama": "Çapı 100 mm'ye kadar olan yuvarlak kablosuz şarj altlıkları için sabit ve dengeli stand. Altlığı eğimli tutar, telefon altlığın önüne yaslanarak şarj olur. Gövdesindeki kablo geçidi masayı derli toplu tutar; sade çizgisiyle masa ve komodin üzerinde yer alır. Fotoğraflarda krem renkli stand şarj altlığıyla birlikte görülür.\nYaklaşık dış ölçüler: 100 × 95 × 80 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1058252-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1058252-2.jpg"
+    ]
+  },
+  {
+    "id": "elektronik-telefon-tutma-halkasi-taban-plakasi-yedek-pr123189",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Telefon Tutma Halkası Taban Plakası (Yedek Parça)",
+    "aciklama": "Katlanır telefon tutma halkalarının tabanında plakayı yerinde tutan küçük pimler kırıldığında yerine kullanılan yedek taban plakası. Halkanın gövdesine tam oturur, çevresindeki çıkıntılarla yerinde kalır. Fotoğraflarda yeşil üst kapaklı halka telefonda ve plaka tek başına görülür.\nYaklaşık dış ölçüler: 40 × 40 × 3,5 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr123189-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr123189-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Marvin",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "elektronik-tutma-halkasi-arac-tutucusu-duz-arka-yuzlu-bantla-pr1010606",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Tutma Halkası Araç Tutucusu (Düz Arka Yüzlü, Bantla Sabitlenir)",
+    "aciklama": "Halkalı telefonu araç içinde ya da herhangi bir düz yüzeyde asılı tutan basit tutucu. Düz arka yüzü çift taraflı bantla yüzeye yapışır (bant dahil değildir); tutma halkasının dış kenarı tutucunun içine kayarak oturur. Fotoğraflarda tutucu araç içinde ve telefonla görülür.\nYaklaşık dış ölçüler: 52 × 52 × 13 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1010606-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1010606-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1010606-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Carl Belcher",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "elektronik-sahanda-yumurta-desenli-tutma-halkasi-susu-pr855352",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Sahanda Yumurta Desenli Tutma Halkası Süsü",
+    "aciklama": "Telefon tutma halkasının üst kapağı olarak kullanılan, sahanda yumurta şeklinde süs parçası. Beyaz çiçek biçimli gövdenin ortasında sarı bombeli bir yumurta sarısı vardır; telefon kılıfına komik ve renkli bir görünüm katar. Fotoğraflarda süs, çiçek desenli kılıfın arkasındaki halkada görülür.\nYaklaşık dış ölçüler: 55 × 52 × 9 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr855352-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr855352-2.jpg"
+    ]
+  },
+  {
+    "id": "elektronik-qi2-manyetik-sarj-altligi-standi-telefonu-dik-tutar-pr1537331",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Qi2 Manyetik Şarj Altlığı Standı (Telefonu Dik Tutar)",
+    "aciklama": "Kompakt Qi2 manyetik şarj altlığını eğimli tutan, telefonu altlığın üzerinde yüzü size dönük bırakan sade stand. Anker Zolo altlığı için hazırlanmıştır; Galaxy S24 Ultra boyutuna kadar büyük telefonlar sığar. Manyetik halkası olmayan telefonlarda manyetik halkalı kılıf gerekir. Fotoğraflarda siyah stand altlıkla ve telefonla, ayrıca çizim olarak görülür.\nYaklaşık dış ölçüler: 95 × 79 × 75 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1537331-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1537331-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1537331-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "SeanTRG",
+      "tur": "GPL 3.0"
+    }
+  },
+  {
+    "id": "elektronik-manyetik-harici-pil-duvar-tutucusu-pr549155",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Manyetik Harici Pil (Powerbank) Duvar Tutucusu",
+    "aciklama": "İnce yapılı manyetik harici pili (powerbank) duvara asılı şekilde şarj etmek için tutucu. İki vida deliğiyle düz bir yüzeye sabitlenir; şarj kablosu alt taraftan çıkar ve ünite düzenli bir duvar panosuna yerleştirilebilir. Anker 622 manyetik harici pil ölçüleriyle uyumludur. Fotoğraflarda sarı tutucu çizim olarak görülür.\nYaklaşık dış ölçüler: 71 × 47 × 17 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr549155-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr549155-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr549155-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Lou makes stuff",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "elektronik-yuvarlak-sarj-altlikli-telefon-standi-kilifli-telefona-uygun-pr179421",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Yuvarlak Şarj Altlıklı Telefon Standı (Kılıflı Telefonlara Uygun)",
+    "aciklama": "Yuvarlak kablosuz şarj altlığını (Huawei CP60 için tasarlandı) arkasında taşıyan, telefonu dik ya da yatık yüzü size dönük tutan stand. Kılıflı iPhone X, XS ve XR gibi benzer boyutlu telefonlar ölçü değiştirmeden oturur. Altlığın dönmüş yerleşimli ikinci bir sürümü de vardır. Fotoğraflarda mavi stand çizimle, beyaz stand telefonla görülür.\nYaklaşık dış ölçüler: ilk sürüm 130 × 128 × 89 mm; ikinci sürüm 138 × 120 × 89 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr179421-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr179421-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr179421-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ADIcrafts (özgün tasarımlar: Adiyahu, GoAftens)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dekor-dogus-sahnesi-litofan-lambasi-govde-ve-kapak-pr1115911",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Doğuş Sahnesi Litofan Lambası (Gövde ve Kapak Dahil)",
+    "aciklama": "Doğuş sahnesini; yıldızı, çobanları ve hayvanlarıyla kabartma kalınlığı farkıyla işleyen, hafif kavisli ve ışık geçiren panel. Panelin arkasına oturan bir ışık gövdesi ve kapağı bulunur; gövdenin arkasında ışık şeridini yerleştirecek alan ile güç girişi için bir delik açılmıştır. Arkadan aydınlatıldığında sahne sıcak sarı tonlarla belirir, ışıksız hâlde beyaz kabartma olarak görünür. Noel sofrası ve raf süsü olarak uygundur. Işık şeridi ve güç kaynağı ürüne dahil değildir. Fotoğraflarda ışıklı ve ışıksız hâli görülür.\nYaklaşık dış ölçüler: 139 × 85 × 31 mm (panel); 142 × 91 × 49 mm (gövde); 142 × 49 × 2,4 mm (kapak).",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1115911-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1115911-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1115911-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1115911-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "CJ",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dekor-noel-litofan-isik-kupu-kapakli-120-mm-pr662130",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Noel Litofan Işık Küpü (Kapaklı, 120 mm)",
+    "aciklama": "Yüzlerinde Noel Baba, geyikli kızak, doğuş sahnesi ve karlı köy gibi Noel temalarını kabartma kalınlığı farkıyla gösteren, ışık geçiren 120 mm'lik küp ve üst kapak. Küpün içine yerleştirilen ışıkla yüzlerdeki sahneler tüm ayrıntılarıyla belirir; ışık kapalıyken beyaz kabartma olarak görünür. Noel sofrası, şömine rafı ve hediye için uygundur. Işık kaynağı ürüne dahil değildir. Fotoğraflarda karanlık ortamda aydınlatılmış küpün farklı yüzleri görülür.\nYaklaşık dış ölçüler: 120 × 120 × 120 mm (küp); 120 × 114 × 5,5 mm (üst kapak).",
+    "fiyat": "800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr662130-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr662130-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr662130-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr662130-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Taylor Herrin",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "ofis-yapiskanli-not-kagidi-tutucu-101-mm-kare-bloklar-icin-sablon-kapakli-pr110578",
     "kategori": "Ofis",
     "marka": [],
