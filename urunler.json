@@ -1,5 +1,189 @@
 [
   {
+    "id": "oyun-dislili-donen-halkali-fidget-gevsek-toleransli-pr153707",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Dişli Çarklı Dönen Halkalı Fidget (Üç Köşeli Gövde, Akıcı Dönüşlü)",
+    "aciklama": "Üç köşeli gövdenin içinde dişli çarkların birbirini döndürdüğü, dış halkası dönen fidget oyuncağı. Dişliler korunup üst ve alt kapaklar daha gevşek toleransla yenilendiğinden halka daha akıcı döner; ortadaki delik parmak oturağı olarak kullanılır. Parçalar: büyük dişli halka, küçük dişliler, üst ve alt kapak. Görsellerde beyaz renkte elde ve parça düzeninde gösterilir.\nYaklaşık dış ölçüler: 80 × 79 × 10 mm (büyük dişli halka).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr153707-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr153707-2.jpg"
+    ]
+  },
+  {
+    "id": "oyun-uc-dislili-cok-cerceveli-vidali-fidget-pr693715",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Üç Dişli Çarklı Çok Çerçeveli Fidget (Vidalı Montaj, Dişli Seti Dahil)",
+    "aciklama": "Üç dişli çarkın birbirini döndürdüğü, çok sayıda çerçeve seçeneği (üç yapraklı, altıgen, dişli çerçeveli ve benzeri) bulunan fidget oyuncağı. Her çerçeve alt ve üst yarıdan oluşur; plastik vidalar çerçeveyle birlikte gelir, dahil edilen anahtarla ya da bir Torx tornavidayla sıkılır (fazla sıkılmamalıdır). Fotoğraflarda altın, yeşil, mor ve kırmızı renklerde gösterilir.\nYaklaşık dış ölçüler: 108 × 63 × 13 mm (en büyük çerçeve; dişli seti 68 × 63 × 10 mm).",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr693715-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr693715-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr693715-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr693715-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Josh Carter",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "oyun-gevsek-siki-gecme-denemeli-uc-kollu-fidget-pr819699",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Gevşek ve Sıkı Geçme Denemeli Üç Kollu Fidget (Çıkarılabilir Pimli)",
+    "aciklama": "Üç kollu gövdeye iki pimin gevşek ve sıkı geçme farkını denemek için tasarlanmış, elde çevrilen sade fidget oyuncağı. Gövde ve iki ayrı pim (dış ve iç) birlikte gelir; düzgün çalışması için birleşim yüzeylerinin hafifçe zımparalanması gerekebilir. Fotoğraflarda beyaz gövde ve pimler gösterilir; son görsel bilgisayar görselidir.\nYaklaşık dış ölçüler: 75 × 75 × 12 mm (gövde; pimler 21 × 21 × 13 mm).",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr819699-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr819699-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr819699-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jürgen Rotner",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-ortadan-veya-kenardan-donen-uc-kollu-fidget-pr498216",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Ortadan veya Kenardan Dönen Üç Kollu Sade Fidget (Geçmeli Merkez Parçalı)",
+    "aciklama": "Ortasından ya da kolların uçlarından tutularak döndürülebilen, üç kollu sade fidget oyuncağı. Merkez parça gövdeye ayrı geçirilir; ayrılmaması için yapıştırıcı önerilir. Yağlayıcıyla ya da yağlayıcısız akıcı döndüğü belirtilir. Fotoğraflarda siyah renkte gösterilir.\nYaklaşık dış ölçüler: 89 × 80 × 8 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr498216-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr498216-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Gerf",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-cicek-bicimli-donen-fidget-yuzuk-19-mm-pr133624",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Çiçek Biçimli Dönen Fidget Yüzük (19 mm, İki Parçalı)",
+    "aciklama": "Parmağa takılan halkaya geçirilen çiçek biçimli döner başlıkla kullanılan fidget yüzük. 19 mm ölçülüdür; iki parça hâlinde gelir: halka ve dönen çiçek başlık. Görsellerde sarı halka ve mavi çiçek başlık gösterilir.\nYaklaşık dış ölçüler: 32 × 32 × 3 mm (çiçek başlık; halka 28 × 23 × 6 mm).",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr133624-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr133624-2.jpg"
+    ]
+  },
+  {
+    "id": "oyun-dikey-rulmanli-uc-kollu-fidget-pr423834",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Dikey Rulmanlı Üç Kollu Fidget (4 Adet 608 Rulman İçin)",
+    "aciklama": "Üç kolun uçlarında dikey yerleştirilmiş rulmanları olan fidget. Dıştaki rulmanlar pimlerle, pimler de ortadaki rulmanla yerinde tutulur; orta rulman ve tutamaklar hızlı yapıştırıcıyla sabitlenir. Dört adet 608 rulman ve yapıştırıcı ürüne dahil değildir. Görsellerde mavi–altın renkli örnek ve parça görselleri gösterilir.\nYaklaşık dış ölçüler: 75 × 69 × 7 mm (gövde; tutamak 30 × 30 × 10 mm, pim 22 × 8 × 8 mm).",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr423834-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr423834-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr423834-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr423834-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Troy",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-dinozor-bicimli-donen-fidget-kapakli-pr548436",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Dinozor Biçimli Dönen Fidget (Rulman Yuvalı, Kapaklı)",
+    "aciklama": "Dinozor biçiminde, ortasında rulman yuvası bulunan ve kapakla kapatılan fidget oyuncağı. Rulman ürüne dahil değildir. Fotoğraflarda gri renkte, düz zeminde gösterilir.\nYaklaşık dış ölçüler: 82 × 57 × 7 mm (gövde; kapak 22 × 22 × 5 mm).",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr548436-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr548436-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr548436-3.jpg"
+    ]
+  },
+  {
+    "id": "oyun-sirali-cubuklu-kinetik-masa-heykeli-montajsiz-pr428795",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Sıralı Çubuklu Kinetik Masa Heykeli (Montajsız, Üç Aralık Sürümlü)",
+    "aciklama": "Sıralı çubukları hareketli birleşimlerle bir bütün olarak gelen kinetik masa heykeli. Montaj ya da yapıştırıcı gerektirmez. Parçalar arası boşluğu 0,4, 0,5 ve 0,6 mm olan üç sürüm vardır; uygun olan seçilir. Fotoğraflarda pembe ve sarı renkte gösterilir.\nYaklaşık dış ölçüler: 170 × 64 × 54 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr428795-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr428795-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr428795-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "yahbluez",
+      "tur": "GPL 3.0"
+    }
+  },
+  {
+    "id": "oyun-katmanli-fidget-koleksiyonu-sekiz-surum-pr1028304",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Katmanlı Fidget Koleksiyonu (Yıldız, Örümcek Ağı, Sünger, Kasırga; 8 Sürüm)",
+    "aciklama": "Dört biçimli katmanlı fidget oyuncağı: yıldız, örümcek ağı, sünger ve kasırga. Her biçim boş ve dolu merkezli iki sürümdür, toplam sekiz model. Elde çevrilerek kullanılır. Fotoğraflarda kırmızı ve beyaz renkte gösterilir.\nYaklaşık dış ölçüler: 78 × 78 × 18 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1028304-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1028304-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1028304-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "PenguinPrototypes",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "oyun-spiral-halkali-jiroskop-fidget-pr1112791",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Spiral Halkalı Jiroskop Fidget (Eksen Etrafında Dönen)",
+    "aciklama": "Spiral yapısı eksen çevresinde akıcı dönen, elde çevirmek için tasarlanmış jiroskop biçimli fidget oyuncağı; hem yetişkinlere hem çocuklara uygundur. Tek parçadır. Fotoğraflarda altın ve gri renkte, elde gösterilir.\nYaklaşık dış ölçüler: 44 × 44 × 12 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1112791-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1112791-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1112791-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Zenith3DProOfficial",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-uc-rulmanli-klasik-uc-kollu-fidget-kedi-baslikli-pr38058",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Üç Rulmanlı Klasik Üç Kollu Fidget (Kedi Başlı Merkez Kapaklı)",
+    "aciklama": "Klasik üç kollu fidget gövdesi ve kedi başı biçimli merkez kapak. Biri ortada, üçü kolların uçlarında olmak üzere dört adet 608 rulman gerekir; rulmanlar sıkı oturur ve ürüne dahil değildir. Görseller bilgisayar görselidir.\nYaklaşık dış ölçüler: 75 × 70 × 8 mm (gövde; kapak 29 × 26 × 6 mm).",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr38058-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr38058-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Geoff (esinlenilen model: GeoffHackett)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "oyun-esnek-bacakli-sekiz-kollu-ahtapot-fidget-pr791581",
     "kategori": "Oyun/Hobi",
     "marka": [],
