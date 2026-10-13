@@ -168,6 +168,14 @@ def hermetik():
     vaka("F7 olcek -> olcu_mm + fiyat adim · izinli_malzeme -> govde",
          h["olcu_mm"] == {"en_az": 60, "en_cok": 250} and h["fiyat_adim_mm"] == 5 and
          h["malzemeler"] == {"govde": ["PLA", "PETG"]})
+    # TPU (Okan 13 Eki): PRUVO eki YALNIZ anahtarlik govdesine; kopru TPU/ASA izinli olsa da baska ture GIRMEZ.
+    ah, _ = u.satir_uret({"kod": "anahtarlik", "uretec": "isimlik_uret", "girdi_tipi": ["metin"], "parametreler": [],
+                          "olcek": {"min_mm": 30, "max_mm": 300, "adim_mm": 5}, "izinli_malzeme": ["PLA", "PETG", "ASA"]})
+    yb, _ = u.satir_uret({"kod": "yapboz", "uretec": "x_uret", "girdi_tipi": ["metin"], "parametreler": [],
+                          "olcek": {"min_mm": 30, "max_mm": 300, "adim_mm": 5}, "izinli_malzeme": ["PLA", "PETG", "TPU"]})
+    vaka("F7b anahtarlik govde PLA·PETG·TPU (PRUVO eki) · baska tur kopruden TPU alsa da govdede TPU YOK",
+         ah["malzemeler"] == {"govde": ["PLA", "PETG", "TPU"]} and yb["malzemeler"] == {"govde": ["PLA", "PETG"]},
+         json.dumps([ah["malzemeler"], yb["malzemeler"]]))
     b = satirlar["bust"]["form"]
     vaka("F8 teklif turu (bust): ana parametre + teklif alani ustune, ayni sozluk",
          b["uzun_kenar_mm"]["etiket"] == "Boyut" and b["uzun_kenar_mm"]["max"] == 200 and

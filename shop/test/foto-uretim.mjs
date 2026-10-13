@@ -2589,7 +2589,7 @@ console.log("RKU) BOLGELI TUR EKRANDA — tek renk secicisi (3 ana renk), bolge 
   };
   const s = await rku(EKRAN_KAYNAK);
   ol("RKU1 bolgeli tur: bolge basina renk secicisi 0 · tek renk secicisi [Siyah,Beyaz,Gri] · form alanlari (taban/baslik) yerinde", s.ILK === true, JSON.stringify(s));
-  const m = await rku(EKRAN_KAYNAK.replace("    var secenek = F.ANA_RENKLER.slice();", "    var secenek = F.PLA_RENKLERI.slice();"));
+  const m = await rku(EKRAN_KAYNAK.replace("    var secenek = (mr || F.ANA_RENKLER).slice();", "    var secenek = (mr || F.PLA_RENKLERI).slice();"));
   ol("RKU-M1 ana renk yerine 9 renk listesi -> RKU KIRMIZI", m.ILK === false, JSON.stringify(m));
 }
 
@@ -4824,7 +4824,7 @@ console.log("K3b) TEK KUTU 4 PENCERE — kartlar · tek pencere · Geri/İleri �
     ["M-FORMKORUMA kart seciciden form-cizilmedi korumasi kalkti", "      if (S.alanOlcu) {\n        doldurS1Olcu();",
      "      {\n        doldurS1Olcu();", regresyon, ["REGRESYON"]],
     // Okan 9 Eki: Renkli fotoğrafsız akışta görünürse RENK KIRMIZI · PETG kartı fiyatı çarpansız okursa MALZEME KIRMIZI.
-    ["M-RENKLI-FOTOSUZ Renkli fotografsiz akista gorunur", "return !!renkliTurde(kod) && !!(S.fotoRenkleri && S.fotoRenkleri.length);",
+    ["M-RENKLI-FOTOSUZ Renkli fotografsiz akista gorunur", "return !!renkliTurde(kod) && !!(S.fotoRenkleri && S.fotoRenkleri.length) && !malzemeRenkListesi(kod);",
      "return true;", ucuncu, ["RENK"]],
     ["M-MALZEME-KART kart fiyati malzemesiz", "var sec = { renkli: renkliMi(), malzeme: kod };", "var sec = { renkli: renkliMi() };", ucuncu, ["MALZEME"]],
     ["K3b-MK KONTROL (yorum)", "  function kartVurgula() {", "  // kontrol\n  function kartVurgula() {", hepsi, []],
@@ -7574,6 +7574,90 @@ console.log("AKR) ANAHTARLIK–YAZI iki renk (Yazı rengi + Taban rengi), ③'te
     ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", tut, JSON.stringify(kir(m)));
   }
   console.log("  AKR MUTANT " + akrMut + "/" + AKR_MUT.length);
+}
+
+// ================================================================ TPU — anahtarlık TPU (+%55, tek renk Beyaz), Okan 13 Eki
+/**
+ * Okan 13 Eki 23:1x "anahtarlıklara tpu da ekle fiyatını ayarla" + 23:2x "yazı anahtarlıkta da tpu olmalı" + BaBa 23:3x
+ * TPU renk listesi ["Beyaz"] (VERİ: anahtarlik.malzeme_renkleri). Sunucu (fotoKalemFiyatla) vakaları, temiz SQLite:
+ *   TA  (a) yazı + figür çeşidi TPU fiyatı = round(taban × 1,55) = VERI.fiyatKurus(.., {malzeme:"TPU"}) (istemci formülü),
+ *           satır malzeme TPU + " · TPU (+%55)"
+ *   TB  (b) TPU + Renkli -> 400 (figür çeşidi palet + yazı çeşidi)
+ *   TC  (c) TPU + Beyaz dışı renk (yazı Siyah/Beyaz, Siyah/Siyah, figür ["Siyah"]) -> 400
+ *   TD  (d) bust / plaket TPU -> 400 gecersiz-malzeme (mesaj "PLA, PETG ya da TPU"); figür türünde VERI.turMalzemeleri TPU'suz
+ *   TE  (e) girdi.json (uretecGirdiJson) malzeme "TPU" (PLA'da "PLA")
+ */
+async function tpuSunucu(fm) {
+  const asilOrnek = VERI.ornekSayisi;
+  VERI.ornekSayisi = () => 1;
+  const k = koprukur(); await k.hazir;
+  const e2 = envKur(k.d1, r2Kur());
+  await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('anahtarlik_yazi', 1, 'x'), ('anahtarlik_figur', 1, 'x'), " +
+    "('bust', 1, 'x'), ('plaket', 1, 'x')").run();
+  let no = 0;
+  const isKur = async (tur, mm, asama, cesit) => {
+    const is = "7b" + (++no).toString(16).padStart(30, "0"), iso = new Date().toISOString();
+    await k.d1.prepare("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, gorev, hazir_tarih, son_kontrol, cesit)" +
+      " VALUES (?, ?, ?, 'z', ?, ?, 'gorev-tpu', ?, 0, ?)").bind(is, tur, mm, iso, asama, iso, cesit).run();
+    return is;
+  };
+  const sonuc = (r) => (r.satir ? r.satir : r.kod + ":" + (r.hata && r.hata.hata));
+  const yazi = async (malz, yaziR, plakaR, ek) => sonuc(await fm.fotoKalemFiyatla(e2, { foto_is: await isKur("anahtarlik", AH_MM, "onizleme-hazir", "yazi"),
+    olcu_mm: AH_MM, adet: 1, renkli: false, malzeme: malz, secim: { plaka_renk: plakaR, yazi_renk: yaziR, govde_malzeme: malz },
+    renk_sayisi: new Set([yaziR, plakaR]).size, ...(ek || {}) }, Date.now()));
+  const figur = async (ek) => sonuc(await fm.fotoKalemFiyatla(e2, { foto_is: await isKur("anahtarlik", AH_MM, "hazir", "figur"),
+    olcu_mm: AH_MM, adet: 1, ...ek }, Date.now()));
+  const s = {}, iz = {};
+  try {
+    const formul = VERI.fiyatKurus("anahtarlik", AH_MM, { renkli: false, malzeme: "TPU" });
+    const ya = await yazi("TPU", "Beyaz", "Beyaz"), fa = await figur({ malzeme: "TPU", renkler: ["Beyaz"] });
+    iz.a = { formul, yazi: ya.birim_kurus || ya, figur: fa.birim_kurus || fa, detay: ya.parametre_detay };
+    s.TA = formul === Math.round(VERI.fiyatKurus("anahtarlik", AH_MM) * 1.55) && formul === 93000 &&
+      ya.birim_kurus === formul && ya.malzeme === "TPU" && / · TPU \(\+%55\)/.test(ya.parametre_detay || "") &&
+      fa.birim_kurus === formul && fa.malzeme === "TPU" && / · TPU \(\+%55\)/.test(fa.parametre_detay || "");
+    iz.b = [await figur({ malzeme: "TPU", renkli: true, renkler: ["Beyaz"] }), await yazi("TPU", "Beyaz", "Beyaz", { renkli: true }),
+      await figur({ malzeme: "PLA", renkli: true, renkler: ["Beyaz"] })];
+    s.TB = iz.b[0] === "400:gecersiz-renk" && iz.b[1] === "400:gecersiz-renk" && !!iz.b[2].birim_kurus;
+    iz.c = [await yazi("TPU", "Siyah", "Beyaz"), await yazi("TPU", "Siyah", "Siyah"), await figur({ malzeme: "TPU", renkler: ["Siyah"] }),
+      await yazi("PLA", "Siyah", "Beyaz")];
+    s.TC = iz.c.slice(0, 3).every((x) => typeof x === "string" && /^400:gecersiz-(renk|secim)$/.test(x)) && !!iz.c[3].birim_kurus;
+    const bust = await isKur("bust", 100, "onizleme-hazir", ""), plaket = await isKur("plaket", 100, "hazir", "");
+    const bRed = await fm.fotoKalemFiyatla(e2, { foto_is: bust, olcu_mm: 100, adet: 1, renkler: ["Beyaz"], malzeme: "TPU", secim: { govde_malzeme: "TPU" } }, Date.now());
+    const pRed = await fm.fotoKalemFiyatla(e2, { foto_is: plaket, olcu_mm: 100, adet: 1, renkler: ["Beyaz"], malzeme: "TPU" }, Date.now());
+    const pOk = await fm.fotoKalemFiyatla(e2, { foto_is: plaket, olcu_mm: 100, adet: 1, renkler: ["Beyaz"], malzeme: "PETG" }, Date.now());
+    iz.d = [sonuc(bRed), sonuc(pRed), bRed.hata && bRed.hata.mesaj, VERI.turMalzemeleri("figur")];
+    s.TD = bRed.kod === 400 && bRed.hata.hata === "gecersiz-malzeme" && pRed.kod === 400 && pRed.hata.hata === "gecersiz-malzeme" &&
+      bRed.hata.mesaj === "Malzeme seçimi geçersiz (PLA, PETG ya da TPU)." && !!pOk.satir &&
+      ["plaket", "figur", "yapboz", "bust"].every((t) => VERI.turMalzemeleri(t).indexOf("TPU") < 0);
+    const gT = fm.uretecGirdiJson("PR-TPU", { kalem: 0, tur: "anahtarlik", olcu_mm: AH_MM, secim: { govde_malzeme: "TPU", plaka_renk: "Beyaz", yazi_renk: "Beyaz" } });
+    const gP = fm.uretecGirdiJson("PR-TPU", { kalem: 0, tur: "anahtarlik", olcu_mm: AH_MM, secim: { govde_malzeme: "PLA", plaka_renk: "Siyah", yazi_renk: "Beyaz" } });
+    iz.e = [gT.malzeme, gP.malzeme, gT.malzemeler];
+    s.TE = gT.malzeme === "TPU" && gP.malzeme === "PLA" && JSON.stringify(gT.malzemeler) === '{"govde":"TPU"}';
+  } finally { VERI.ornekSayisi = asilOrnek; k.kapat(); }
+  return { s, iz };
+}
+console.log("TPU) ANAHTARLIK TPU — +%55 (FILAMENT_FARK), tek renk Beyaz, TPU+Renkli 400, başka türde TPU 400, girdi.json malzeme");
+{
+  const { s, iz } = await tpuSunucu(foto);
+  ol("TPU-a yazı + figür çeşidi TPU 60 mm = round(600 TL × 1,55) = 930 TL = VERI.fiyatKurus(TPU) (istemci=sunucu) · ' · TPU (+%55)'", s.TA === true, JSON.stringify(iz.a));
+  ol("TPU-b TPU + Renkli -> 400 gecersiz-renk (figür palet + yazı); PLA + Renkli figür geçer", s.TB === true, JSON.stringify(iz.b));
+  ol("TPU-c TPU + Siyah (yazı Siyah/Beyaz · Siyah/Siyah · figür Siyah) -> 400; PLA Siyah/Beyaz geçer", s.TC === true, JSON.stringify(iz.c));
+  ol("TPU-d bust / plaket TPU -> 400 gecersiz-malzeme 'PLA, PETG ya da TPU' · figür/yapboz/bust/plaket turMalzemeleri TPU'suz", s.TD === true, JSON.stringify(iz.d));
+  ol("TPU-e girdi.json malzeme TPU (PLA'da PLA) + malzemeler.govde", s.TE === true, JSON.stringify(iz.e));
+  // MUTANTLAR (gecici foto.js kopyasi, canli govde DEGIL): M1 TPU'ya %30 uygulanir · M2 TPU+Renkli gecer -> KIRMIZI.
+  const TPU_MUT = [
+    ["TPU-M1 TPU'ya %30 uygulanir (sunucu)", "  const birim = rs ? VERI.fiyatKurus(tur.kod, olcu.mm, { renkli: rs.renkli, malzeme: malz }) : null;",
+     "  const birim = rs ? VERI.fiyatKurus(tur.kod, olcu.mm, { renkli: rs.renkli, malzeme: malz === \"TPU\" ? \"PETG\" : malz }) : null;", ["TA"]],
+    ["TPU-M2 TPU + Renkli gecer", "  if (mr && (renkli || (Array.isArray(k.renkler)", "  if (mr && (false || (Array.isArray(k.renkler)", ["TB"]],
+    ["TPU-MK KONTROL (yorum)", "/** Satir detayindaki fiyat secimi:", "/**  Satir detayindaki fiyat secimi:", []],
+  ];
+  for (const [ad, capa, yerine, olmeli] of TPU_MUT) {
+    const fm = await mutantModul(capa, yerine);
+    if (!fm) { ol(ad + " capa bulundu", false, "capa kayip/coklu: " + capa); continue; }
+    const m = (await tpuSunucu(fm)).s;
+    const kir = Object.keys(m).filter((x) => m[x] !== true).sort();
+    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", Object.keys(m).length === 5 && JSON.stringify(kir) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(kir));
+  }
 }
 
 console.log(kirmizi ? "\n❌ " + kirmizi + " iddia KIRMIZI" : "\n✅ HEPSI GECTI");

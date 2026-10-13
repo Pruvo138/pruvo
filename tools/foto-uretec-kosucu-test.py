@@ -1963,7 +1963,8 @@ G2_SATIR = {
                  "olcu_mm": {"en_az": 30, "en_cok": 300, "baslangic": 60},
                  "fiyat": {"formul": "mm_x_10tl", "adim_mm": 5, "taban_tl": 600, "renk_tavani": 2},
                  "ornek_kanit_izni": ["render"], "renk_secimi": None, "palet_bolgeleri": None, "olcu_ekseni": "sabit",
-                 "malzemeler": {"govde": ["PLA", "PETG"]}},
+                 # Okan 13 Eki: anahtarlikta TPU (+%55, tek renk) — kopru-manifest-uret PRUVO_EK_MALZEME.
+                 "malzemeler": {"govde": ["PLA", "PETG", "TPU"]}, "malzeme_renkleri": {"TPU": ["Beyaz"]}},
         "renk_bolgeleri": ["plaka", "yazi"],
         "form": {"satirlar": "metin", "yazi_tipi": "secim", "hizalama": "secim", "genislik_mm": "sayi",
                  "anahtarlik_kulak_konum": "secim", "kontur_tasma_mm": "sayi"},
