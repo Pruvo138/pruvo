@@ -489,6 +489,60 @@ def _ciddi_dusus_var(yeni, eski):
     return eski > 0 and yeni < eski * ANI_DUSUS_ESIGI
 
 
+# ---- DUSUS SINIF EKSENI: ONBELLEK KUCULMESI DUSUS SAYILMAZ --------------------
+# 🔴 VAKA (13 Eki 2026, BaBa hukmu): `.stl-r2-manifest.json` Drive kanonigi 2.705.650 B
+# -> canli 158.930 B (%94 kucuk). Dosya R2 yukleme IDEMPOTENS ONBELLEGIDIR (yeniden
+# uretilebilir), veri DEGIL. Koruma her kosumda karantinaya aldi: 220 ARDISIK rc=1
+# `SINIF=bayt-dususu ATLANAN=1 BAYT_FARKI=-2546720`. Surekli kirmizi, gercek bir
+# urun verisi dususunu ayni imzanin altina GOMER -> kirmizi DEGERSIZLESIR.
+#
+# CARE: dusus karari SINIFA bakar. Uc sinif, TEK KAYNAK bu iki sabit:
+#   * DUSUS_OLCULEN_SINIF  — urun verisi globlari: daima eski davranis (karantina).
+#   * DUSUS_ONBELLEK_SINIFI — yeniden uretilebilir onbellek/sayac ADLARI: kuculse de
+#     YEDEKLENIR, `ONBELLEK_KUCULDU=<ad> eski=<B> yeni=<B>` basilir, karantinaya ve
+#     ARDISIK sayaca GIRMEZ.
+#   * BILINMEYEN (ikisinde de yok) — OLCULUR (fail-closed: listede olmayan = veri).
+# Olculen sinif ONCELIKLIDIR: bir ad iki kumeye birden uysa da olculur.
+# ⚠️ UCUCU_MANIFESTLER bu kumeye ALINMADI (kesisim BOS, test olcer): onlarin dususu
+# tuketim tanimiyla olculur; onbellek sayilsalardi tuketilmemis bir izin girdisinin
+# dususu de sessizce gecerdi. SIFIR BAYT kolu da bu eksenin DISINDADIR: dolu bir
+# onbellegin 0 bayta inmesi yarim yazim belirtisidir, eski davranista kalir.
+DUSUS_OLCULEN_SINIF = (
+    "urunler.json", "urunler-arsiv.json", ".urun-kaynaklari.json",
+    "urun-kaynaklari.json", "*/jenerator/urunler/*.json",
+)
+DUSUS_ONBELLEK_SINIFI = frozenset((
+    ".stl-r2-manifest.json", ".stl-eslesmeyen-manifest.json", ".marka-kapsama.json",
+))
+# Gecen onbellek kuculmeleri: (ad, eski, yeni). Kosum sonunda da BASILIR.
+_ONBELLEK_KULLANILDI = []
+
+
+def _dusus_sinifi(kaynak):
+    """'olculen' | 'onbellek' | 'bilinmeyen'. Olculen sinif onceliklidir."""
+    yol = os.path.abspath(kaynak).replace(os.sep, "/")
+    ad = os.path.basename(yol)
+    for desen in DUSUS_OLCULEN_SINIF:
+        if "/" in desen:
+            if fnmatch.fnmatch(yol, desen):
+                return "olculen"
+        elif fnmatch.fnmatch(ad, desen):
+            return "olculen"
+    if ad in DUSUS_ONBELLEK_SINIFI:
+        return "onbellek"
+    return "bilinmeyen"
+
+
+def _onbellek_kuculdu_mu(kaynak, eski, yeni):
+    """Kuculen dosya onbellek sinifinda mi? Evetse sayiyla basar ve kaydeder."""
+    if _dusus_sinifi(kaynak) != "onbellek":
+        return False
+    ad = os.path.basename(kaynak)
+    print("ONBELLEK_KUCULDU=%s eski=%s yeni=%s" % (ad, eski, yeni))
+    _ONBELLEK_KULLANILDI.append((ad, eski, yeni))
+    return True
+
+
 # ---- UCUCU IZIN MANIFESTLERI: TUKETIMLE KUCULME DUSUS SAYILMAZ ---------------
 # 🔴 VAKA (12 Eki 2026, BaBa hukmu): `.urunler-duzelt-izin.json` Drive kanonigi 4742 B
 # (18 id) -> canli 904 B (2 id). 18/18 girdi HEAD'de TUKETILMISTI (post-commit
@@ -679,7 +733,8 @@ def _yedek_korumasi(kaynak, varis, yedek_kayit=_OKU):
     yedek_boyut = os.path.getsize(varis)
     if _ciddi_dusus_var(kaynak_boyut, yedek_boyut):
         if not (_beyan_gecerse(kaynak, varis=varis)
-                or _ucucu_tuketildi_mi(kaynak, varis)):
+                or _ucucu_tuketildi_mi(kaynak, varis)
+                or _onbellek_kuculdu_mu(kaynak, yedek_boyut, kaynak_boyut)):
             raise YedekKorumaHatasi(
                 "YEDEK REDDEDILDI: bayt olcusu ciddi dustu (%d -> %d); kanonik DEGISMEDI"
                 " (%s) — kasitliysa %s icine BEYAN yaz"
@@ -693,7 +748,8 @@ def _yedek_korumasi(kaynak, varis, yedek_kayit=_OKU):
         yedek_kayit = _json_kayit_sayisi(varis)
     if (kaynak_kayit is not None and yedek_kayit is not None and
             _ciddi_dusus_var(kaynak_kayit, yedek_kayit)):
-        if _beyan_gecerse(kaynak, varis=varis) or _ucucu_tuketildi_mi(kaynak, varis):
+        if (_beyan_gecerse(kaynak, varis=varis) or _ucucu_tuketildi_mi(kaynak, varis)
+                or _onbellek_kuculdu_mu(kaynak, yedek_boyut, kaynak_boyut)):
             return
         raise YedekKorumaHatasi(
             "YEDEK REDDEDILDI: kayit olcusu ciddi dustu (%d -> %d); kanonik DEGISMEDI"
@@ -4123,6 +4179,9 @@ def _yedekle(backup, gerekliyse, sirlar, sir_temizle, dahil, haric, kilitsiz=Fal
     for ad, dusen, tuketilen in _UCUCU_KULLANILDI:
         print("UCUCU MANIFEST KUCULDU (tuketimle): %s dusen=%d tuketilen=%d"
               % (ad, dusen, tuketilen))
+    for ad, eski, yeni in _ONBELLEK_KULLANILDI:
+        print("ONBELLEK KUCULDU (sinif=onbellek, karantina YOK): %s eski=%s yeni=%s"
+              % (ad, eski, yeni))
     kod = karantina_hukmu_bas(backup)
     # 🔴 FAIL-CLOSED: yedek ALINDI ama hedefte sir artigi duruyorsa cikis kodu 0 DEGIL.
     # Karantina (1) daha agir hukumdur ve ONU EZMEZ.

@@ -3874,6 +3874,14 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/yedek-ucucu-manifest-test.py
 
+      # YEDEK-ONBELLEK (13 Eki 2026) — `.stl-r2-manifest.json` (yeniden uretilebilir R2
+      # onbellegi) kuculunce koruma 220 ardisik kosumu kirmiziya yakti. Dusus karari SINIFA
+      # bakar: onbellek gecer, urun verisi + bilinmeyen olculur. Hermetik (gecici dizin +
+      # gecici kalp); 4 vaka + 2 mutant — mutant hayatta kalirsa KIRMIZI.
+      - name: "Yedek dusus sinif ekseni: onbellek kuculmesi + mutasyon kabulu"
+        if: ${{ !cancelled() }}
+        run: python3 tools/yedek-onbellek-sinifi-test.py
+
       # K377 (7 Eyl 2026) — hacim-tam-takim'in on-kosulu EMEKLI bir secret'a
       # (ONIZLEME_PAKET_B64, 16 Tem Okan karari) capalanmisti; is aylarca on-kosulda
       # `exit 1` verip HIC kosmadi. Bu test onarilan kollari KAYNAKTAN cikarip IZOLE
