@@ -111,21 +111,6 @@ _HARF_JETON_RE = re.compile(
 )
 _EMOJI_JETONLAR = tuple(j for j in ACIK_ISARETCILER if not any(c.isalpha() for c in j))
 
-# 🔴 12 EKI — KONUMLU EMOJI (3. tekrar, SINIF onarimi; BaBa 12 Eki 14:4x).
-# `🔴` defterde VURGU icin satir icinde de gecer ("🔴 Beklerken ... AÇMA",
-# "**ENGELLER:** 🔴 E1"); alt-dize aranirsa KAPANMIS blok sonsuza dek "ACIK
-# KALEM tasiyor" vetosu alir (12 Eki: 29 blok elle tasindi, `56a24e38`).
-# Bu jetonlar YALNIZ iki konumda ACIK sayilir: madde basi `- 🔴` (girinti
-# serbest) ya da kimlikli kalem `🔴 K###`. Kume (`ACIK_ISARETCILER`) DEGISMEZ;
-# diger emoji jetonlari (🔧 🟠 🟡) alt-dize kalir. Tek giris `_acik_eslesiyor`.
-_KONUMLU_EMOJI_JETONLAR = ("🔴",)
-_KONUMLU_EMOJI_RE = re.compile(
-    r"(?m)^[ \t]*- [ \t]*(?:\*\*)?(?:" + "|".join(
-        re.escape(j) for j in _KONUMLU_EMOJI_JETONLAR) + r")"
-    r"|(?:" + "|".join(re.escape(j) for j in _KONUMLU_EMOJI_JETONLAR)
-    + r")[ \t]*(?:\*\*)?K\d+"
-)
-
 # K181d I2: acik bir madde `K###` kimlik tasimiyorsa KAYIP muamelesi
 # gorur. Sayi 1-4 hane; bosluk ya da kelime siniriyla cevrili.
 # Not: "K181d" gibi harf-ekli takip kodlari da eslenir (rakam parcasi
@@ -600,15 +585,10 @@ def _blok_metni(blok):
 
 
 def _acik_eslesiyor(metin):
-    """ACIK jetonu varsa True (veto). Harf tabanli kelime-sinirli, emoji
-    alt-dize; KONUMLU emoji (`🔴`) yalniz `- 🔴` madde basi / `🔴 K###`."""
+    """ACIK jetonu varsa True (veto). Harf tabanli kelime-sinirli, emoji alt-dize."""
     if _HARF_JETON_RE.search(metin):
         return True
-    if _KONUMLU_EMOJI_RE.search(metin):
-        return True
     for jeton in _EMOJI_JETONLAR:
-        if jeton in _KONUMLU_EMOJI_JETONLAR:  # konum filtresi (12 Eki)
-            continue
         if jeton in metin:
             return True
     return False
@@ -1475,9 +1455,6 @@ def _kendini_test():
                 "- 🔴 **K900** acik kalem, bugun kosuyor\n")
     _Y_GOVDE = ("🔴🔴 ÇÜRÜTME HOL BULDU — anlati vurgusu (emoji, KALEM DEGIL)\n"
                 "🔴 ÜÇ YARIŞ — hicbirinde zorlanmadi\n"
-                # 12 Eki: satir ici `🔴` artik jeton DEGIL; ③/②/① yollarina
-                # girisi KONUMLU gercek kalem satiri tasir.
-                "- 🔧 **K900** hala acik (karsiligi listede)\n"
                 "- ✅ **K901 KAPANDI** (kanit sha 0a1b2c)\n"
                 "- ✅ dal main'de, yayin indi SKIPPED=0\n"
                 "- ✅ ucuncu kapanis satiri\n"
@@ -1562,9 +1539,7 @@ def _kendini_test():
 
     # ---- Y6: EMOJI KUMESI DURUYOR (bosaltilarak "cozulmedi") -------------
     _y6_emoji = all(j in ACIK_ISARETCILER for j in ("🔴", "🔧", "🟠", "🟡"))
-    # 12 Eki: `🔴` KONUMLU jeton — madde basinda eslesir (satir ici vurgu
-    # artik ACIK SAYILMAZ, bkz V1); kume bosaltilmadi kaniti madde konumunda.
-    _y6_calisiyor = _acik_eslesiyor("- 🔴🔴 ÇÜRÜTME HOL BULDU")
+    _y6_calisiyor = _acik_eslesiyor("🔴🔴 ÇÜRÜTME HOL BULDU")
     _y6_harf = _acik_eslesiyor("- BEKLIYOR: Okan penceresi")
     sonuclar.append(("Y6 EMOJI-KUME-DURUYOR",
                      _y6_emoji and _y6_calisiyor and _y6_harf,
@@ -1607,50 +1582,6 @@ def _kendini_test():
                      y9_sebep is not None and "KIMLIKSIZ" in y9_sebep,
                      "sebep=%r (kimliksiz acik kalem VETO etmeli)" % (y9_sebep,)))
 
-    # === 12 EKI — KONUMLU `🔴` JETONU (V1..V4 + M-V1) ======================
-    # Ust blok CANLI (SIRADAKI beyani), hedef sira 1 ASILMIS KAPANIS DEGIL
-    # (SIRADAKI yok) — yani karari ③ degil JETON yuklemi verir.
-    def _v_defter(ek_satir=""):
-        icerik = ("# DEVAM (fikstur)\n\n"
-                  "## 🔴 12 EKI CANLI BLOK — en yeni beyan\n"
-                  "**SIRADAKİ TEK İŞ:** K900 kapisini kur\n"
-                  "- 🔧 **K900** acik kalem\n\n"
-                  "## ✅ 11 EKI KAPANIS — eski blok\n"
-                  "- ✅ dal main'de, yayin indi SKIPPED=0\n"
-                  "- ✅ ikinci kapanis satiri\n"
-                  "- ✅ yayin nobeti kosuldu. 🔴 Beklerken arka plan izleyici AÇMA\n"
-                  "**YAYIN:** run success. 🔴 Beklerken `gh run watch` AÇMA → "
-                  "cron tiki susar\n"
-                  + ek_satir + "\n"
-                  "## ACIK KALEMLER (kapananlarin tam metni arsivde)\n"
-                  "- 🔧 **K900:** acik kalem\n")
-        fd, yol = tempfile.mkstemp(suffix=".md", prefix="v12eki-")
-        with os.fdopen(fd, "wb") as f:
-            f.write(icerik.encode("utf-8"))
-        _Y_TEMIZ.append(yol)
-        return yol
-
-    v_vaka = []
-    v1_yol = _v_defter()
-    v1_sebep, v1_blok, _ = _y_veto(v1_yol)
-    with open(v1_yol, encoding="utf-8") as f:
-        _, _v1_bloklar = _bloklari_ayir(f.read())
-    v1_tasinir = _tasinir_mi(_v1_bloklar[1])
-    v1_kayip = _kayip_kimliksiz_acik_madde(v1_yol)
-    v_vaka.append(("V1 SATIR-ICI-🔴-TASINIR",
-                   v1_sebep is None and v1_blok == 3 and v1_tasinir
-                   and v1_kayip is None,
-                   "sebep=%r blok=%d tasinir=%s kayip=%r (veto YOK, tasinir, "
-                   "KAYIP yok beklenir)" % (v1_sebep, v1_blok, v1_tasinir,
-                                             v1_kayip)))
-    for ad, ek in (("V2 MADDE-BASI-🔴-VETO", "- 🔴 **K999** acik kalem\n"),
-                   ("V3 KIMLIKLI-🔴-VETO", "🔴 K998 açık kalem\n"),
-                   ("V4 🔧-MADDE-VETO", "- 🔧 **K997** acik kalem\n")):
-        sebep, _, _ = _y_veto(_v_defter(ek))
-        v_vaka.append((ad, sebep is not None and "ACIK KALEM" in sebep,
-                       "sebep=%r (ACIK KALEM vetosu beklenir)" % (sebep,)))
-    sonuclar.extend(v_vaka)
-
     # === IZOLE MUTANTLAR — CANLI GOVDEDE DEGIL, KOPYADA ===================
     # Her mutant: (a) capa BIR KEZ gecmeli, (b) kaynak BAYT FARKI != 0 olmali
     # (tutmayan mutant OLU sayilmaz), (c) CANLI arac fikstur uzerinde 0
@@ -1658,7 +1589,7 @@ def _kendini_test():
     with open(os.path.abspath(__file__), encoding="utf-8") as f:
         _ana_govde = f.read()
 
-    def _y_mutant(ad, capa, yerine, fikstur_yol, hedef_vaka, yon="artar"):
+    def _y_mutant(ad, capa, yerine, fikstur_yol, hedef_vaka):
         canli = subprocess.run(
             [sys.executable, os.path.abspath(__file__), fikstur_yol,
              fikstur_yol + ".arsiv", "--kuru"], capture_output=True, text=True)
@@ -1686,22 +1617,15 @@ def _kendini_test():
             shutil.rmtree(dizin, ignore_errors=True)
         _mm = re.search(r"KURU_INDIRILEBILIR=(\d+)", mut.stdout)
         mut_sayi = int(_mm.group(1)) if _mm else -1
-        # yon="artar": mutant veto KALDIRIR (canli 0 -> mutant >0).
-        # yon="azalir": mutant veto EKLER (canli >0 -> mutant 0) — 12 Eki M-V1.
-        if yon == "azalir":
-            oldu = fark != 0 and canli_sayi > 0 and mut_sayi == 0
-            beklenen = "fark!=0, canli>0, mutant=0 beklenir"
-        else:
-            oldu = fark != 0 and canli_sayi == 0 and mut_sayi > 0
-            beklenen = "fark!=0, canli=0, mutant>0 beklenir"
+        oldu = fark != 0 and canli_sayi == 0 and mut_sayi > 0
         # 🔴 SESSIZ MUTANT YOK: her mutant SONUCUYLA basilir, yesilken de.
         print("Y-MUTANT %s: kaynak_fark=%+d bayt canli=%d mutant=%d hedef=%s "
               "-> %s" % (ad, fark, canli_sayi, mut_sayi, hedef_vaka,
                          "OLDU" if oldu else "SURVIVOR"))
         sonuclar.append((ad, oldu,
-                         "kaynak_fark=%+d bayt canli=%d mutant=%d hedef=%s (%s)"
-                         % (fark, canli_sayi, mut_sayi, hedef_vaka, beklenen)))
-        return oldu
+                         "kaynak_fark=%+d bayt canli=%d mutant=%d hedef=%s "
+                         "(fark!=0, canli=0, mutant>0 beklenir)"
+                         % (fark, canli_sayi, mut_sayi, hedef_vaka)))
 
     _y_mutant(
         "M-Y1 ③-NO-OP",
@@ -1718,14 +1642,6 @@ def _kendini_test():
         "    if not _blok_kapanis_basligi_mi(blok):                      # ①\n",
         "    if False:  # M-Y3 mutanti: ① KAPANIS basligi sarti sokuldu\n",
         y7_yol, "Y7 KAPANIS-BASLIGI-SART")
-    m_v1 = _y_mutant(
-        "M-V1 KONUM-FILTRESI-SOKULDU",
-        "        if jeton in _KONUMLU_EMOJI_JETONLAR:  # konum filtresi (12 Eki)\n"
-        "            continue\n",
-        "        pass  # M-V1 mutanti: konum filtresi sokuldu (eski alt-dize)\n",
-        v1_yol, "V1 SATIR-ICI-🔴-TASINIR", yon="azalir")
-    print("JETON-12EKI VAKA=%d/%d MUTANT=%d/1"
-          % (sum(1 for _, g, _ in v_vaka if g), len(v_vaka), 1 if m_v1 else 0))
 
     for _y in _Y_TEMIZ:
         for _p in (_y, _y + ".arsiv"):

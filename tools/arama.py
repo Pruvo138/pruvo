@@ -2533,7 +2533,6 @@ BASLIK_DOGAN_ALLOW = {
     ("Honda", "CR-Z"): "arac/motosiklet model adi",
     ("Honda", "CRF"): "arac/motosiklet AILE adi (CRF serisi)",
     ("Honda", "Dominator"): "arac/motosiklet model adi",
-    ("Honda", "Fireblade"): "arac/motosiklet model adi",
     ("Honda", "Forza"): "arac/motosiklet model adi",
     ("Honda", "GX"): "arac/motosiklet AILE adi (GX motor serisi)",
     ("Honda", "HR-V"): "arac/motosiklet model adi",
@@ -2705,8 +2704,8 @@ BASLIK_DOGAN_ALLOW = {
     ("Yamaha", "Raptor"): "arac/motosiklet model adi (ATV serisi)",
 }
 
-BASLIK_DOGAN_ALLOW_SAYISI = 157
-BASLIK_DOGAN_ALLOW_IMZA = "8b011d4fd0bcacae"  # arama.baslik_dogan_allow_imzasi() ile hesaplandi
+BASLIK_DOGAN_ALLOW_SAYISI = 156
+BASLIK_DOGAN_ALLOW_IMZA = "ef8e271d4c70109a"  # arama.baslik_dogan_allow_imzasi() ile hesaplandi
 
 
 def baslik_dogan_allow_imzasi():

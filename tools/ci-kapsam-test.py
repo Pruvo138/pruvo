@@ -3045,6 +3045,16 @@ IZIN_LISTESI = {
         "BIREBIR gorulur). MUAFIYETIN OLUM SARTI: `~/.claude/cron` bir gun "
         "depoya/CI'ya tasinirsa bu satir SILINIR ve kapi serit-b'ye baglanir."
     ),
+    # 13 EKI 2026 — ISCI URUN KAPISI (guvenlik-isci-urun-kapisi)
+    "tools/isci-urun-kapisi.py": (
+        "KABUL TESTI DEGIL — `~/.claude/cron/isci.sh`'in kurulu kopyasini cagirdigi "
+        "CLI yardimcisi (`basla`/`bitis`: spec `URUN_YOLU=` glob'unda kosumda olusmus "
+        "urun yoksa HAL=BOS rc=1). Argumansiz kosumu rc=2 kullanim metnidir, iddiasi "
+        "yoktur. DOLAYLI KOSULUR: `tools/isci-urun-kapisi-test.py` (nobet.yml serit-b) "
+        "bu dosyanin KENDISINI subprocess ile kosar — V1-V5 + mutant M1 (BOS kolu yok "
+        "-> V1 KIRMIZI) / M2 (mtime sarti yok -> V3 KIRMIZI). Dogrudan cagri satiri "
+        "anlamsiz: girdisi (spec + ev + baslangic zamani) isci.sh kosumudur."
+    ),
     # 10 EKI 2026 — CLAUDE-API MOTORU (tarif-rutin-api §1)
     "tools/claude-api-motor-test.py": (
         "OLCTUGU GOVDE CI KOSUCUSUNDA YOK: `~/.claude/cron/isci.sh` + "
@@ -3058,6 +3068,36 @@ IZIN_LISTESI = {
         "tools/claude-api-motor-test.py` -> `KABUL=GECTI VAKA=17/17 "
         "MUTANT=8/8` (kredi kolu `VAKA=8/8 MUTANT=3/3`); ag YOK (127.0.0.1 fikstur), gercek anahtar OKUNMAZ. MUAFIYETIN "
         "OLUM SARTI: `~/.claude/cron` depoya/CI'ya tasinirsa bu satir SILINIR."
+    ),
+    # 12 EKI 2026 — GH TAVANI + SPEC-YOKLAMA KAPISI (BaBa 15:4x sinif kapisi)
+    "tools/isci-gh-tavan-test.py": (
+        "OLCTUGU GOVDE CI KOSUCUSUNDA YOK: `~/.claude/cron/isci.sh`'in GH-TAVAN-"
+        "SHIM (kosum basina `gh` cagri tavani, varsayilan 20, asimda gercek gh "
+        "CAGRILMAZ + HAL=GH-TAVAN) ve SPEC-YOKLAMA-KAPISI (`gh run watch` / "
+        "sleep+gh / dongu+gh -> HAL=SPEC-YOKLAMA-RED rc=2) kollarini olcer; o hat "
+        "Okan'in MAKINESINDEDIR, depoya girmez, CI klonunda dizin dahi yoktur. "
+        "CI'ya baglansaydi ya SAHTE YESIL ya da tum yayini durduran yanlis-pozitif "
+        "kirmizi olurdu (motor-yok-kapisi-test emsali). Betik bu hali KENDISI "
+        "olcer: hat yoksa `ONKOSUL_YOK` + `VAKA=OLCULEMEDI`, rc=3. HUKMU ELLE "
+        "OKUNUR: yerelde `python3 tools/isci-gh-tavan-test.py` -> `GH-TAVAN "
+        "VAKA=6/6 MUTANT=2/2`; gercek gh YOK (sahte ikili fiksturu), gercek "
+        "jeton alt surece GECMEZ. MUAFIYETIN OLUM SARTI: `~/.claude/cron` "
+        "depoya/CI'ya tasinirsa bu satir SILINIR."
+    ),
+    # 12 EKI 2026 — MOTOR KAPISI (BaBa 20:5x hukmu, guvenlik)
+    "tools/isci-motor-kapisi-test.py": (
+        "OLCTUGU GOVDE CI KOSUCUSUNDA YOK: `~/.claude/cron/isci.sh`'in MOTOR-"
+        "KAPISI kolunu (Claude ailesi motor yalniz `MOTOR_KAPISI_BEYAZ_LISTE` "
+        "onekli etiketle ya da son 24 sa icinde ayni etiketle dusen m3 kosumu "
+        "varsa GECER; aksi HAL=MOTOR-RED rc=1, motor CAGRILMAZ) olcer; o hat "
+        "Okan'in MAKINESINDEDIR, depoya girmez, CI klonunda dizin dahi yoktur. "
+        "CI'ya baglansaydi ya SAHTE YESIL ya da tum yayini durduran yanlis-pozitif "
+        "kirmizi olurdu (isci-gh-tavan-test emsali). Betik bu hali KENDISI olcer: "
+        "hat yoksa `ONKOSUL_YOK` + `VAKA=OLCULEMEDI`, rc=3. HUKMU ELLE OKUNUR: "
+        "yerelde `python3 tools/isci-motor-kapisi-test.py` -> `MOTOR-KAPISI "
+        "VAKA=7/7 MUTANT=2/2`; gercek motor YOK (sahte ikili fiksturu). "
+        "MUAFIYETIN OLUM SARTI: `~/.claude/cron` depoya/CI'ya tasinirsa bu satir "
+        "SILINIR."
     ),
     # ═══════════════════════════════════════════════════════════════════════
     # CLAUDE.md ZORUNLU KAPI KURTARMASI — CI'DA KOSTURULAMAYAN 2 KALEM

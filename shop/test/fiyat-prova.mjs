@@ -212,7 +212,7 @@ const ENV_TABAN = {
   TELEGRAM_API: "https://telegram.test",
   // HAVALE kolu (set 11 fis ekseni): Telegram bildirimi /baslat'ta YALNIZ havale yolunda
   // cikar (kart yolunda bildirim /donus'tadir). Bu iki var olmadan uc 503 doner.
-  HAVALE_IBAN: "TR090006701000000059703630",
+  HAVALE_IBAN: "TR000000000000000000000000",
   HAVALE_UNVAN: "Test Unvan",
 };
 
