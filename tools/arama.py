@@ -2533,7 +2533,6 @@ BASLIK_DOGAN_ALLOW = {
     ("Honda", "CR-Z"): "arac/motosiklet model adi",
     ("Honda", "CRF"): "arac/motosiklet AILE adi (CRF serisi)",
     ("Honda", "Dominator"): "arac/motosiklet model adi",
-    ("Honda", "Fireblade"): "arac/motosiklet model adi",
     ("Honda", "Forza"): "arac/motosiklet model adi",
     ("Honda", "GX"): "arac/motosiklet AILE adi (GX motor serisi)",
     ("Honda", "HR-V"): "arac/motosiklet model adi",
