@@ -8,8 +8,12 @@ iniyordu; deploy.yml (`concurrency: pages`) bekleyen kosumu her yeni push'ta ipt
 (.github/workflows/urun-kuyruk.yml, saatte 1) onu main'e alir -> urunden dogan Pages <=1/saat.
 
 KARAR SIRASI (her sonuc TEK cikti satiri, `KUYRUK=` ile baslar):
-  1. deploy.yml'in bitmemis kosumu var  -> KUYRUK=BEKLE rc0 (git'e HIC dokunulmaz)
-  2. kuyruk dali yok / main'in gerisinde ya da esit -> KUYRUK=BOS rc0 (push/dispatch YOK)
+  0. kuyruk dali yok -> KUYRUK=BOS sebep=dal-yok rc0 (Pages anlamsiz; fetch yok).
+  1. fetch + main/kuYRUK SHA. kuyruk main'in gerisinde/ata -> KUYRUK=BOS sebep=geride rc0.
+  2. deploy.yml'in bitmemis kosumu VAR + kuyruk en eski merge-disiniz commit YASI < ACIK_DK
+     -> KUYRUK=BEKLE rc0 (git'e HIC dokunulmaz). YAS >= ACIK_DK ise BEKLE ATLANIR: bu
+     "aclik" kolu, kuyruk Pages sebebiyle saatlerce beklemis olmasin (13 Eki 2026 olay
+     detay: ~70 dk); aclik=1 bekleme_dk=<n> BIRLESTI/DISPATCH-HATA satirinin SONUNA eklenir.
   3. main kuyrugun atasi -> aday = kuyruk ucu (ff); degilse aday = main + kuyruk merge
      commit'i (ilk ebeveyn main). Cakisma -> abort, KUYRUK=CAKISMA rc1 (main degismez).
   4. kuyrugun main'e getirecegi NET fark ya da tek tek merge-disi commit'leri
@@ -17,8 +21,11 @@ KARAR SIRASI (her sonuc TEK cikti satiri, `KUYRUK=` ile baslar):
   5. aday main'e ff push (force YOK). Non-ff red (yaris) -> taze fetch, TUM karar BIR KEZ
      daha (Pages kontrolu dahil); ikinci red -> KUYRUK=YARIS rc1.
   6. push-tetikli is akislari workflow_dispatch ile atesler (GITHUB_TOKEN push'u `push`
-     tetigini CALISTIRMAZ — emsal tools/panel-uygulayici.py::deploy_tetikle). Liste
-     .github/workflows'tan TURETILIR (dispatch_listesi); dispatch hatasi -> rc1.
+     tetigini CALISTIRMAZ — emsal tools/panel-uygulayici.py::deploy_tetikle; deploy.yml
+     `on.push: branches: [main]` var, ama GITHUB_TOKEN push'u tetiklemez; bu yuzden aclik
+     kolu Pages kosarken de dispatch EDER, `pages` concurrency + cancel-in-progress:false
+     calisan kosumu BITIRIR, bizim dispatches SIRAYA girer). Liste .github/workflows'tan
+     TURETILIR (dispatch_listesi); dispatch hatasi -> rc1.
   7. kuyruk dali adaya ff ile esitlenir (en iyi caba; red -> KUYRUK_SENKRON=ATLANDI, rc
      degismez: kuyruk main'in atasi kalir, sonraki tur BOS ya da yeniden merge eder).
      Main kuyruktan ONCE itilir: kuyruga giden ref main'in degisikliklerini (ornegin
@@ -40,6 +47,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 
 DEPO = os.environ.get("PRUVO_KUYRUK_DEPO") or os.path.dirname(
     os.path.dirname(os.path.abspath(__file__)))
@@ -52,6 +60,11 @@ UZAK = "origin"
 MAIN = "main"
 KUYRUK = "urun-kuyruk"
 PAGES_IS_AKISI = "deploy.yml"
+# KUYRUK ACLIGI esigi (dk). Pages kosarken kuyruktaki en eski merge-disiniz commit bu
+# kadar eski ise BEKLE yerine birleştirici DEVAM eder (13 Eki 2026, olay: kuyruk ucu
+# 06:26'da geldi, Pages 06:26 + 06:57 kosumlarinda iptal yerine surdu, birlestiik 07:35
+# = ~70 dk aclik). PRUVO_KUYRUK_ACLIK_DK ortam degiskeni ile test kapsaminda dusurulebilir.
+ACIK_DK = int(os.environ.get("PRUVO_KUYRUK_ACLIK_DK", "45"))  # MUTANT-CAPA:ESIK
 # Urun verisi yollari — OLCULDU (12 Eki, `git log origin/main --since=2026-09-20
 # --no-merges --grep=^urun --name-only`): 46 urun commit'i yalniz bu iki yolu degistirdi
 # (urunler.json 44 · arsiv/urunler-arsiv.json 2). Gorsel R2'de, git'e girmez; SEO/sitemap
@@ -144,6 +157,29 @@ def ata_mi(a, b):
     return git("merge-base", "--is-ancestor", a, b, kontrol=False).returncode == 0
 
 
+def kuyruk_yasi_dk():
+    """origin/main..origin/urun-kuyruk'un en eski commit committer zamaninin YASI (dk).
+
+    Origin refleri ONCESINDE fetch edilmis olmali (Pages kararindan onceki tek fetch
+    bunu yapar). Hata/bos durumda 0 doner -> BEKLE yolu AYNI (güvenli yönde).
+    `git log --format=%ct ... | tail -1`: log en yeniden en eskiye siralanir, tail -1
+    EN ESKI commitin committer zaman damgasini verir.
+    """
+    try:
+        satir = git("log", "--format=%ct",
+                    "%s/%s..%s/%s" % (UZAK, MAIN, UZAK, KUYRUK),
+                    kontrol=False).stdout.strip()
+    except Dur:
+        return 0
+    if not satir:
+        return 0
+    try:
+        en_eski = int(satir.split()[-1])
+    except ValueError:
+        return 0
+    return max(0, (int(time.time()) - en_eski) // 60)
+
+
 def yabanci_yollar(main_sha, aday, kuyruk_sha):
     """Net fark (main -> aday) VE kuyrugun tek tek merge-disi commit'leri izinli mi.
     Ikinci eksen: ekleyip geri alan commit net farkta gorunmez ama main tarihine girer."""
@@ -155,9 +191,7 @@ def yabanci_yollar(main_sha, aday, kuyruk_sha):
 
 def tur(dispatch):
     """Tek karar+icra turu. Doner: (satir, rc) ya da "YARIS"."""
-    bitmemis = pages_bitmemis()
-    if bitmemis:
-        return "KUYRUK=BEKLE pages=%s" % bitmemis[0].get("databaseId"), 0
+    # Kuyruk yoksa Pages anlamsiz (fetch de anlamsiz) — dogrudan BOS.
     if not git("ls-remote", "--heads", UZAK, KUYRUK).stdout.strip():
         return "KUYRUK=BOS sebep=dal-yok", 0
     git("fetch", "--quiet", UZAK,
@@ -167,6 +201,13 @@ def tur(dispatch):
     kuyruk_sha = git("rev-parse", "%s/%s" % (UZAK, KUYRUK)).stdout.strip()
     if ata_mi(kuyruk_sha, main_sha):
         return "KUYRUK=BOS sebep=geride", 0  # MUTANT-CAPA:BOS
+    aclik_bilgi = ""
+    bitmemis = pages_bitmemis()
+    if bitmemis:  # MUTANT-CAPA:ACIK
+        yas_dk = kuyruk_yasi_dk()
+        if yas_dk < ACIK_DK:
+            return "KUYRUK=BEKLE pages=%s" % bitmemis[0].get("databaseId"), 0
+        aclik_bilgi = " aclik=1 bekleme_dk=%d" % yas_dk
     if ata_mi(main_sha, kuyruk_sha):
         aday, yol = kuyruk_sha, "ff"
     else:
@@ -194,9 +235,10 @@ def tur(dispatch):
         if s.returncode != 0:
             print("KUYRUK_SENKRON=ATLANDI (kuyruk main'in atasi kaldi; sonraki tur birlestirir)")
     if hatali:
-        return ("KUYRUK=DISPATCH-HATA sha=%s is-akisi=%s (main itildi, yayin TETIKLENMEDI)"
-                % (aday[:12], ",".join(hatali))), 1
-    return "KUYRUK=BIRLESTI sha=%s yol=%s dispatch=%s" % (aday[:12], yol, ",".join(dispatch)), 0
+        return ("KUYRUK=DISPATCH-HATA sha=%s is-akisi=%s (main itildi, yayin TETIKLENMEDI)%s"
+                % (aday[:12], ",".join(hatali), aclik_bilgi)), 1
+    return "KUYRUK=BIRLESTI sha=%s yol=%s dispatch=%s%s" % (
+        aday[:12], yol, ",".join(dispatch), aclik_bilgi), 0
 
 
 def calis():
