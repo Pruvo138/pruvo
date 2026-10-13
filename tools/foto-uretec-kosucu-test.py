@@ -2094,7 +2094,8 @@ def manifest_vakalari():
               mod.ret_kodu("RET: ince cizgi (< 0.60 mm) var; ince_cizgi=reddet") == "ince-cizgi" and
               mod.ret_kodu("RET: SVG: desteklenmeyen eleman <text> (metin/filter/gorsel/maske/stil yok)") == "svg" and
               mod.ret_kodu("RET: bilinmeyen alan: x") == "genel")
-    s["V6"] = ("renkler birbirine çok yakın" in m["red_kontrast"] and m["red_bilinmez"] == m["red"][""] and
+    # ArTisT 19. okuma (13 Eki): "Yazı ve taban rengi birbirine çok yakın; yazı okunmaz. Farklı bir renk seç."
+    s["V6"] = ("rengi birbirine çok yakın" in m["red_kontrast"] and m["red_bilinmez"] == m["red"][""] and
                m["red_genel"] == m["red"][""] and not eksik and ret_ok,
                "kontrast=%r eksik=%s ret_kodu=%s" % (m["red_kontrast"][:50], eksik, ret_ok))
     pp = m["p"]
