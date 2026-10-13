@@ -34,6 +34,24 @@ davranisi ve log satirlari onceki surumle BAYT-AYNI. `--tur X` log satirlarina
 `tur=X` ekler (agir-is.sh: `tur=agir`). Sarmalayici: ~/.claude/cron/agir-is.sh
 (kaynak tools/agir-is.sh, kabul tools/agir-is-test.py).
 
+AGIR IS BEKCISI (13 Eki 2026, BaBa 06:5x — 04:25'te asili kalan mutant
+bataryasi 3/3 slotu saatlerce tuttu, filo durdu): YALNIZ `--tur agir` icin
+tutucu ayni zamanda BEKCIDIR. Sahibin (agir-is.sh $$) surec AGACINI
+(`ps -A -o pid,ppid,pgid,pcpu`, sahip + tum torunlar) ORNEK_SN'de bir olcer:
+  * `--is-tavan-dk` (agir-is.sh `--tavan-dk`, 90): slot tutma suresi asilinca
+    `HAL=TAVAN-OLDU`;
+  * `--asili-dk` (agir-is.sh `--asili-dk`, 10): agac toplam CPU'su bu sure
+    boyunca KESINTISIZ < `--asili-cpu` (%5) ise `HAL=ASILI-OLDU`.
+Oldurme: once `<slot-koku>/.oldu/<sahip>` (agir-is.sh rc=124 okur) + log
+satiri, sonra KOMUT GRUBU(lari)na (agacta sahibin grubundan FARKLI pgid'ler —
+agir-is.sh komutu `grup` alt komutuyla yeni oturumda baslatir) + agactaki her
+torun pid'e SIGTERM -> OLUM_BEKLE_SN (30) -> hala canli ise SIGKILL. Sahibin
+kendisi ve onun grubu (isci.sh, cron) HEDEF DEGILDIR. Sonra tutucu cikar ->
+cekirdek flock'u birakir, isaretciler silinir. Sahip KILL ile oldu ve komut
+grubu sahipsiz kaldiysa tutucu ayni oldurmeyi `HAL=SAHIPSIZ-OLDU` ile yapar
+(agir is slotsuz kosamaz). `HAL=BEKLIYOR` satiri `TUTAN=<etiket>:<pid>:<t>`
+(slotlari tutan(lar), virgulle; yoksa `-`) alanini tasir.
+
 RC (al): 0 slot alindi · 64 KUYRUK-TAVAN · 65 sahip beklerken oldu ·
 2 kullanim · 70 ic hata (isci.sh FAIL-OPEN: `SEMAFOR=OLCULEMEDI` satiri).
 
@@ -46,6 +64,7 @@ import argparse
 import fcntl
 import os
 import signal
+import subprocess
 import sys
 import time
 
@@ -60,9 +79,15 @@ RC_TAVAN = 64
 RC_SAHIP_OLDU = 65
 RC_IC_HATA = 70
 
+ORNEK_SN = 10.0        # agir bekci orneklemesi (<=30)
+OLUM_BEKLE_SN = 30.0   # TERM -> KILL arasi
+ASILI_CPU = 5.0        # agac toplam %CPU esigi
+
 # Test kancasi: dosyadaki sayi 1 dk yuku yerine okunur (bekleme sirasinda
 # degistirilebilsin diye deger degil DOSYA). Bos/okunamaz -> gercek yuk.
 YUK_DOSYASI_ENV = "PRUVO_ISCI_SEMAFOR_YUK_DOSYASI"
+# Test kancasi: dosyadaki sayi agir isin agac %CPU toplami yerine okunur.
+CPU_DOSYASI_ENV = "PRUVO_AGIR_CPU_DOSYASI"
 
 
 def damga():
@@ -177,8 +202,131 @@ def isaretci_oku(yol):
     return alan
 
 
-def tutucu_ol(fdler, sahip, isaretciler, izle_sn):
-    """Cocuk: kilitli fd'leri tasir, sahip olunce isaretcileri silip cikar."""
+def tutanlar(slot_koku, kilit_dizini, sinir):
+    """Kilidi DOLU slotlarin sahipleri: `etiket:sahip:t` (tekil, virgulle) ya da `-`."""
+    gorulen = []
+    for n in range(1, sinir + 1):
+        kyol = os.path.join(kilit_dizini, str(n))
+        if not os.path.exists(kyol):
+            continue
+        fd = os.open(kyol, os.O_RDONLY)
+        try:
+            fcntl.flock(fd, fcntl.LOCK_SH | fcntl.LOCK_NB)
+            fcntl.flock(fd, fcntl.LOCK_UN)
+            continue
+        except OSError:
+            pass
+        finally:
+            os.close(fd)
+        alan = isaretci_oku(os.path.join(slot_koku, str(n)))
+        parca = "%s:%s:%s" % (alan.get("etiket", "?"), alan.get("sahip", "?"), alan.get("t", "?"))
+        if parca not in gorulen:
+            gorulen.append(parca)
+    return ",".join(gorulen) or "-"
+
+
+def agac_oku():
+    """`ps` -> {pid: (ppid, pgid, pcpu)}; olculemezse None."""
+    try:
+        r = subprocess.run(["ps", "-A", "-o", "pid=,ppid=,pgid=,pcpu="],
+                           capture_output=True, text=True, timeout=20,
+                           env=dict(os.environ, LC_ALL="C"))
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if r.returncode != 0:
+        return None
+    tablo = {}
+    for satir in r.stdout.splitlines():
+        p = satir.split()
+        if len(p) != 4:
+            continue
+        try:
+            tablo[int(p[0])] = (int(p[1]), int(p[2]), float(p[3].replace(",", ".")))
+        except ValueError:
+            continue
+    return tablo
+
+
+def torunlar(tablo, kok, haric):
+    """kok'un tum torunlari (kok HARIC, `haric` pid'i ve onun alt agaci haric)."""
+    cocuklar = {}
+    for pid, (ppid, _, _) in tablo.items():
+        cocuklar.setdefault(ppid, []).append(pid)
+    sonuc, yigin = [], list(cocuklar.get(kok, []))
+    while yigin:
+        pid = yigin.pop()
+        if pid == haric or pid in sonuc:
+            continue
+        sonuc.append(pid)
+        yigin.extend(cocuklar.get(pid, []))
+    return sonuc
+
+
+def agac_cpu(tablo, sahip, ben):
+    yol = os.environ.get(CPU_DOSYASI_ENV, "")
+    if yol:
+        try:
+            with open(yol, encoding="utf-8") as f:
+                return float(f.read().strip())
+        except (OSError, ValueError):
+            pass
+    if tablo is None or sahip not in tablo:
+        return None   # olculemedi -> asili SAYILMAZ (yanlis oldurme yok)
+    return tablo[sahip][2] + sum(tablo[p][2] for p in torunlar(tablo, sahip, ben))
+
+
+def hedefler(tablo, sahip, ben):
+    """(torun pid'leri, komut gruplari): sahibin grubu ve tutucu HEDEF DEGIL."""
+    if tablo is None or sahip not in tablo:
+        return [], set()
+    sahip_grubu = tablo[sahip][1]
+    pidler = torunlar(tablo, sahip, ben)
+    gruplar = {tablo[p][1] for p in pidler
+               if tablo[p][1] not in (sahip_grubu, os.getpgid(0), 0, 1)}
+    return pidler, gruplar
+
+
+def grup_canli(g):
+    try:
+        os.killpg(g, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    return True
+
+
+def gonder(pidler, gruplar, sahip, sig):
+    for g in gruplar:
+        try:
+            os.killpg(g, sig)
+        except OSError:
+            pass
+    for p in pidler:
+        try:
+            os.kill(p, sig)
+        except OSError:
+            pass
+
+
+def oldur(pidler, gruplar, sahip, bekle_sn):
+    """TERM -> bekle_sn -> KILL. Doner: hangi sinyalle bitti ('TERM'/'KILL')."""
+    gonder(pidler, gruplar, sahip, signal.SIGTERM)
+    son = time.monotonic() + bekle_sn
+    while time.monotonic() < son:
+        if not any(canli(p) for p in pidler) and not any(grup_canli(g) for g in gruplar):
+            return "TERM"
+        time.sleep(0.2)
+    gonder(pidler, gruplar, sahip, signal.SIGKILL)
+    return "KILL"
+
+
+def tutucu_ol(fdler, sahip, isaretciler, izle_sn, bekci=None):
+    """Cocuk: kilitli fd'leri tasir, sahip olunce isaretcileri silip cikar.
+
+    bekci (yalniz tur=agir): dict(tavan_sn, asili_sn, asili_cpu, ornek_sn,
+    olum_bekle_sn, log, ortak, oldu_dosyasi) -> TAVAN/ASILI oldurmesi.
+    """
     os.setsid()
     signal.signal(signal.SIGHUP, signal.SIG_IGN)
     benim = os.getpid()
@@ -204,8 +352,59 @@ def tutucu_ol(fdler, sahip, isaretciler, izle_sn):
                 os.close(acik)
             except OSError:
                 pass
+    if bekci is None:
+        while canli(sahip):
+            time.sleep(izle_sn)
+        bitir()
+    tavan_sn, asili_sn = bekci["tavan_sn"], bekci["asili_sn"]
+    bas = time.monotonic()
+    sonraki_ornek = bas
+    dusuk_bas = None
+    bilinen = set()   # gorulen komut gruplari (sahip KILL ile olurse sahipsiz kalanlar)
+
+    def oldur_ve_cik(hal, pidler, gruplar):
+        signal.signal(signal.SIGTERM, signal.SIG_IGN)   # oldurme yarida kesilmesin
+        signal.signal(signal.SIGINT, signal.SIG_IGN)
+        sure_dk = (time.monotonic() - bas) / 60.0
+        gruplar = set(gruplar) | {g for g in bilinen if grup_canli(g)}   # ps olculemediyse
+        if hal != "SAHIPSIZ-OLDU":
+            try:
+                os.makedirs(os.path.dirname(bekci["oldu_dosyasi"]), mode=0o700, exist_ok=True)
+                with open(bekci["oldu_dosyasi"], "w", encoding="utf-8") as f:
+                    f.write("HAL=%s sure_dk=%.1f\n" % (hal, sure_dk))
+            except OSError:
+                pass
+        log_yaz(bekci["log"], "=== %s HAL=%s %s pid=%d sure_dk=%.1f tavan_dk=%g asili_dk=%g "
+                "grup=%s torun=%d sinyal=TERM ==="
+                % (damga(), hal, bekci["ortak"], sahip, sure_dk, tavan_sn / 60.0,
+                   asili_sn / 60.0, ",".join(str(g) for g in sorted(gruplar)) or "-",
+                   len(pidler)))
+        if oldur(pidler, gruplar, sahip, bekci["olum_bekle_sn"]) == "KILL":
+            log_yaz(bekci["log"], "SEMAFOR=KILL %s pid=%d sebep=TERM-sonrasi-canli bekle_sn=%g"
+                    % (bekci["ortak"], sahip, bekci["olum_bekle_sn"]))
+        bitir()
+
     while canli(sahip):
-        time.sleep(izle_sn)
+        simdi = time.monotonic()
+        if simdi >= sonraki_ornek:
+            sonraki_ornek = simdi + bekci["ornek_sn"]
+            tablo = agac_oku()
+            pidler, gruplar = hedefler(tablo, sahip, benim)
+            bilinen |= gruplar
+            cpu = agac_cpu(tablo, sahip, benim)
+            if cpu is not None and cpu < bekci["asili_cpu"]:
+                if dusuk_bas is None:
+                    dusuk_bas = simdi
+            else:
+                dusuk_bas = None
+            if tavan_sn and simdi - bas >= tavan_sn:
+                oldur_ve_cik("TAVAN-OLDU", pidler, gruplar)
+            if asili_sn and dusuk_bas is not None and simdi - dusuk_bas >= asili_sn:
+                oldur_ve_cik("ASILI-OLDU", pidler, gruplar)
+        time.sleep(min(izle_sn, bekci["ornek_sn"]))
+    kalan = {g for g in bilinen if grup_canli(g)}
+    if kalan:
+        oldur_ve_cik("SAHIPSIZ-OLDU", [], kalan)
     bitir()
 
 
@@ -248,10 +447,18 @@ def al(a):
             nler, fdler = kilit_dene(kilit_dizini, a.sinir, a.adet)
             if nler is not None:
                 isaretciler = [os.path.join(a.slot_koku, str(n)) for n in nler]
+                bekci = None
+                if a.tur == "agir" and (a.is_tavan_dk > 0 or a.asili_dk > 0):
+                    tavan_sn = a.is_tavan_dk * 60
+                    asili_sn = a.asili_dk * 60
+                    bekci = dict(tavan_sn=tavan_sn, asili_sn=asili_sn, asili_cpu=a.asili_cpu,
+                                 ornek_sn=min(a.ornek_sn, 30.0),
+                                 olum_bekle_sn=a.olum_bekle_sn, log=a.log, ortak=ortak,
+                                 oldu_dosyasi=os.path.join(a.slot_koku, ".oldu", str(a.sahip)))
                 cocuk = os.fork()
                 if cocuk == 0:
                     try:
-                        tutucu_ol(fdler, a.sahip, isaretciler, a.izle_sn)
+                        tutucu_ol(fdler, a.sahip, isaretciler, a.izle_sn, bekci)
                     finally:
                         os._exit(0)
                 for fd in fdler:
@@ -282,9 +489,9 @@ def al(a):
             return RC_TAVAN
         if time.monotonic() >= sonraki_satir:
             log_yaz(a.log, "=== %s HAL=BEKLIYOR %s sira=%d bekleme_dk=%d sebep=%s yuk=%.2f "
-                    "dolu=%d/%d pid=%d ==="
+                    "dolu=%d/%d pid=%d TUTAN=%s ==="
                     % (damga(), ortak, sira, int(gecen // 60), sebep, yuk, dolu, a.sinir,
-                       a.sahip))
+                       a.sahip, tutanlar(a.slot_koku, kilit_dizini, a.sinir)))
             sonraki_satir += a.satir_sn
         time.sleep(a.aralik_sn)
 
@@ -334,7 +541,36 @@ def durum(a):
     return 0
 
 
+def grup(argv):
+    """`grup -- <komut..>`: komutu YENI oturum/surec grubunda exec eder (agir-is.sh).
+
+    Bekcinin grup oldurmesi yalniz bu agaci vurur; agir-is.sh ve cagirani
+    (isci.sh, cron) ayri grupta kalir.
+    """
+    if argv and argv[0] == "--":
+        argv = argv[1:]
+    if not argv:
+        sys.stderr.write("KULLANIM: isci-semafor.py grup -- <komut..>\n")
+        return 2
+    try:
+        os.setsid()
+    except OSError:
+        try:
+            os.setpgid(0, 0)
+        except OSError:
+            pass
+    try:
+        os.execvp(argv[0], argv)
+    except OSError as hata:
+        sys.stderr.write("grup: %s: %s\n" % (argv[0], hata.strerror))
+        return 127
+
+
 def main(argv=None):
+    if argv is None:
+        argv = sys.argv[1:]
+    if argv and argv[0] == "grup":
+        return grup(argv[1:])
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     alt = p.add_subparsers(dest="komut", required=True)
     for ad in ("al", "birak", "durum"):
@@ -355,6 +591,12 @@ def main(argv=None):
             q.add_argument("--izle-sn", type=float, default=IZLE_SN)
             q.add_argument("--adet", type=int, default=1)
             q.add_argument("--tur", default="")
+            # agir bekci (yalniz --tur agir; 0 = kapali)
+            q.add_argument("--is-tavan-dk", type=float, default=0.0)
+            q.add_argument("--asili-dk", type=float, default=0.0)
+            q.add_argument("--asili-cpu", type=float, default=ASILI_CPU)
+            q.add_argument("--ornek-sn", type=float, default=ORNEK_SN)
+            q.add_argument("--olum-bekle-sn", type=float, default=OLUM_BEKLE_SN)
     a = p.parse_args(argv)
     if a.sinir < 1:
         p.error("--sinir >= 1 olmali")
