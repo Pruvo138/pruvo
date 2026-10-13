@@ -1,5 +1,213 @@
 [
   {
+    "id": "tamirat-balkon-kapisi-kolu-guclendirmeli-vida-kapakli-pr113428",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Balkon Kapısı Kolu (Güçlendirmeli, Vida Kapaklı, 70 mm)",
+    "aciklama": "Kırılan balkon kapısı kolunun yerine takılan yedek kol. Standart kollardan daha kalındır; iç yüzündeki ek takviye nervürleri zorlanmaya karşı gövdeyi güçlendirir. Vida başlarını gizleyen küçük bir kapak da takımda bulunur. Kapınızın açılış yönüne göre sağ ya da sol gövde kullanılır; kolunuzun delik aralığını ve gövde ölçüsünü kendi kolunuzla karşılaştırın (vidalar ürüne dahil değildir). Fotoğrafta beyaz kol kapıya takılı, diğer görsellerde gövde ve kapak parçaları görülür.\nYaklaşık dış ölçüler: 70 × 50,5 × 14,5 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr113428-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr113428-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr113428-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Pomi",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tamirat-teras-balkon-kapisi-dis-kolu-47-mm-klipsli-pr460491",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Teras / Balkon Kapısı Dış Kolu (47 mm Delik Aralıklı, Klipsli)",
+    "aciklama": "Teras ya da balkon kapısını dışarıdan kapatmak için kullanılan sade dış kol. Montaj delikleri arasındaki mesafe 47 mm'dir; kolun yanında kullanılan ayrı bir klips parçası da takımda bulunur. Kapınızdaki delik aralığı farklıysa uygun değildir, satın almadan önce ölçün (vidalar ürüne dahil değildir). Fotoğraflarda kol pencere ve kapı çerçevesine takılı görülür.\nYaklaşık dış ölçüler: 72 × 43,5 × 15 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr460491-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr460491-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr460491-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jwillew",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tamirat-buzdolabi-kapi-yedek-kolu-kavisli-162-mm-pr102042",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Buzdolabı Kapı Yedek Kolu (Kavisli Tutamaklı, 162 mm)",
+    "aciklama": "Kırılan ya da kopan buzdolabı kapı kolunun yerine takılan kavisli yedek kol. Arka plakasında iki uzun montaj deliği bulunur; iç yarıçapı ve kavis konumu sökülen orijinal kolun ölçülerine göre çıkarılmış, duvarlar bir miktar kalınlaştırılarak dayanım artırılmıştır. Cihazınızın montaj delik aralığını ve kavis ölçüsünü kendi kolunuzla karşılaştırın, farklıysa uygun değildir. Fotoğraflarda gri kol dolaba takılı ve kırık orijinal kolun yanında görülür.\nYaklaşık dış ölçüler: 162 × 81 × 48 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr102042-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr102042-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr102042-3.jpg"
+    ]
+  },
+  {
+    "id": "tamirat-balkon-kapisi-yedek-kolu-4-mm-vida-50-mm-aralik-pr2422",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Balkon Kapısı Yedek Kolu (4 mm Vida, 50 mm Delik Aralıklı, Kapaklı)",
+    "aciklama": "Kırılan balkon kapısı kolunun yerine takılan yedek kol. 4 mm çapındaki vidalar için hazırlanmıştır; vidalar arasındaki mesafe 50 mm'dir. Vida başlarını kapatan ayrı bir kapak parçası da bulunur. Kendi kolunuzun vida çapı ve delik aralığı farklıysa uygun değildir (vidalar ürüne dahil değildir). Fotoğraflarda koyu renkli kol balkon kapısına takılı görülür.\nYaklaşık dış ölçüler: 80 × 70 × 8 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr2422-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr2422-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "plabs.cz",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "tamirat-balkon-kapisi-kolu-kavisli-vida-kapakli-70-mm-pr240963",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Balkon Kapısı Kolu (Kavisli, Vida Kapaklı, 70 mm)",
+    "aciklama": "Balkon kapısı için hazırlanmış kavisli yedek kol; vida başlarını gizleyen küçük bir kapak parçasıyla birlikte gelir. Kapınızdaki vida aralığı farklıysa uygun değildir, kendi kolunuzun ölçüsünü kontrol edin (vidalar ürüne dahil değildir). Fotoğraflarda kol dış kapı kanadına takılı görülür.\nYaklaşık dış ölçüler: 70 × 54 × 20 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr240963-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr240963-2.jpg"
+    ]
+  },
+  {
+    "id": "tamirat-kapi-kolu-sade-kavisli-tutamak-132-mm-pr65778",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kapı Kolu (Sade Kavisli Tutamak, 132 mm)",
+    "aciklama": "Kapıya delik açılıp vidayla sabitlenen sade, kavisli kapı kolu. Gösterişsiz yapısıyla evde ya da atölyede kapı, kapak ve benzeri yerlerde tutamak olarak kullanılır. Vida aralığı kapınıza uymuyorsa uygun değildir, kendi deliklerinizi ölçün (vidalar ürüne dahil değildir). Fotoğraflarda kahverengi kollar çift olarak ve dizi hâlinde görülür.\nYaklaşık dış ölçüler: 132 × 25 × 15 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr65778-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr65778-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr65778-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Badger",
+      "tur": "GPL 2.0"
+    }
+  },
+  {
+    "id": "tamirat-kol-tipi-kapi-kolu-cocuk-emniyeti-arka-plakali-pr74268",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kol Tipi Kapı Kolu Çocuk Emniyeti (Arka Plakalı Takoz)",
+    "aciklama": "Küçük çocuğun kapı kolunu aşağı çekip kapıyı açmasını önleyen emniyet parçası. Kol ile kapı arasına yerleştirilen bir arka plaka ve plakaya geçen L biçimli bir takozdan oluşur; kolu yukarı çekmek mümkün kaldığı için yetişkinlerin geçişi engellenmez. Plakanın L kolu üstten gelen ve alttan gelen olmak üzere iki yönlüdür, kol sökülüp plaka kol ile kapı arasına takılır. Kolunuzun biçimine ve vida aralığına uyup uymadığını kontrol edin. Fotoğraflarda emniyet parçası kol tipi bir kapı koluna takılı ve elde görülür.\nYaklaşık dış ölçüler: 89,5 × 65,5 × 12 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr74268-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr74268-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr74268-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Juliet_Lima_Zulu",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tamirat-klasik-kapi-kolu-yedek-parcasi-m5-vidali-pr599945",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Klasik Kapı Kolu Yedek Parçası (M5 × 7 Vidalı, 110 mm)",
+    "aciklama": "Kırılan kapı kolunun yerine takılan klasik biçimli yedek kol. Orijinal kolun sabitleme vidası ya da M5 × 7 mm vida ile kullanılabilir (vida ürüne dahil değildir). Mil ve delik ölçünüzü kendi kolunuzla karşılaştırın, farklıysa uygun değildir. Fotoğraflarda gümüş renkli orijinal kol ile turuncu yedek kol yan yana görülür.\nYaklaşık dış ölçüler: 109,5 × 50 × 18 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr599945-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr599945-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr599945-3.jpg"
+    ]
+  },
+  {
+    "id": "tamirat-kapi-kolu-yakalayici-kanca-duvara-takilan-egimli-pr892662",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kapı Kolu Yakalayıcı Kanca (Duvara Takılan, Eğimli)",
+    "aciklama": "Kapı kolunu yakalayarak kapıyı bulunduğu konumda tutan, duvara takılan kanca. Eğimli kanca yapısı kapı kolunu kendiliğinden aşağı doğru iter; kol elle aşağı bastırılana kadar kancada kalır. Duvara çift taraflı bantla yapıştırılabilir ya da vidayla sabitlenir; vida delikleri takımdaki küçük kapaklarla kapatılır (bant ve vida ürüne dahil değildir). Fotoğraflarda kanca duvara takılı ve kapı koluna geçmiş görülür.\nYaklaşık dış ölçüler: 100 × 55,6 × 30 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr892662-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr892662-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "3D Druck Felix",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "tamirat-balkon-kapisi-kolu-gomme-tutacakli-130-mm-pr802927",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Balkon Kapısı Kolu (Gömme Tutacaklı, 130 mm)",
+    "aciklama": "Balkon kapısı için sade yedek kol. İçe doğru oyuk tutacağı sayesinde parmaklarla rahat kavranır. Kapınızdaki vida aralığı farklıysa uygun değildir, kendi kolunuzun ölçüsünü kontrol edin (vidalar ürüne dahil değildir). Fotoğraflarda beyaz kol kapı kanadına takılı ve tek başına görülür.\nYaklaşık dış ölçüler: 130 × 30 × 30 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr802927-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr802927-2.jpg"
+    ]
+  },
+  {
+    "id": "tamirat-surgulu-kapi-kolu-130-mm-delik-aralikli-148-mm-pr100464",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Sürgülü Kapı Kolu (130 mm Delik Aralıklı, 148 mm Boy)",
+    "aciklama": "Sürgülü kapılara takılan sade ve sağlam kol. Montaj delikleri arasındaki mesafe 130 mm, toplam uzunluk 148 mm, genişlik 25,8 mm, derinlik 40 mm'dir; iç tutuş boşluğu 102,8 × 30,7 mm'dir. Kalınca tasarlandığı için sert kullanıma dayanır. Vidalar yerindeyken küçük toz kapakları da yerine takılabilir (vidalar ürüne dahil değildir). Fotoğraflarda siyah kol ahşap kapı kanadına takılı görülür.\nYaklaşık dış ölçüler: 148 × 40 × 25,8 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr100464-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr100464-2.jpg"
+    ]
+  },
+  {
+    "id": "tamirat-sineklik-kapisi-kolu-seti-ic-dis-108-x-60-mm-pr200576",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Sineklik Kapısı Kolu Seti (İç ve Dış, 108 × 60 mm)",
+    "aciklama": "Sineklik kapısının iç ve dış yüzüne takılan yedek kol seti. Eski vida deliklerini örtecek kadar geniş tutulmuştur ve kilit mekanizması içermez. İç ve dış kolun vida delikleri hafifçe kaydırılmıştır; böylece daha uzun vidalar kullanılabilir (vidalar ürüne dahil değildir). Kol 108 mm uzunluğunda ve 60 mm genişliğindedir; iç yüzdeki girinti 16,5 mm'dir. Fotoğraflarda kol kapıya takılı, diğer görsellerde iç ve dış parçalar görülür.\nYaklaşık dış ölçüler: 108 × 60 × 20,5 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr200576-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr200576-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr200576-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Mike S",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tamirat-alcak-profilli-balkon-kapisi-kolu-yapistirmali-pr70160",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Alçak Profilli Balkon Kapısı Kolu (Yapıştırmalı, 50 × 25 mm)",
+    "aciklama": "Düz ve alçak profilli balkon kapısı kolu; panjurlar kapatılırken engel olmaz. 50 × 25 mm ölçüsündeki çift taraflı yapıştırma bandıyla kapıya yapıştırılır (bant ürüne dahil değildir). Yüzeyin temiz ve kuru olması gerekir. Fotoğraflarda kol sürgülü balkon kapısına takılı görülür.\nYaklaşık dış ölçüler: 50 × 25 × 18 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr70160-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr70160-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Geklatscht",
+      "tur": "GPL 3.0"
+    }
+  },
+  {
     "id": "olcuye-ozel-saksi-vazo",
     "kategori": "Jeneratör",
     "marka": [],
