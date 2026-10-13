@@ -1,5 +1,90 @@
 [
   {
+    "id": "oyun-rulman-yuvali-kose-parcali-fidget-kup-pr85806",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Rulman Yuvalı Fidget Küp (Köşe Parçalı, Ortadan Dönen)",
+    "aciklama": "Ortadaki milin içine bir adet 608 rulman yerleştirilen, bir yüzünden rulmanın elle döndürülebildiği küp biçimli fidget oyuncağı. Orta milin yarısında rulmanı durduran bir sınırlayıcı, köşelerde ise altıgen mil uçları bulunur. Gövde, alt köşe, üst köşe ve orta mil parçalarından oluşur. Rulman ürüne dahil değildir. İlk iki fotoğrafta pembe renkte, üçüncü görselde köşe parçası bilgisayar görseli olarak gösterilir.\nYaklaşık dış ölçüler: 30 × 30 × 30 mm (küp gövdesi).",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr85806-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr85806-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr85806-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Geekdad_3D",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-zar-desenli-sonsuz-kup-pr192476",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Zar Desenli Sonsuz Küp (Yüzleri Noktalı, Menteşeli)",
+    "aciklama": "Yüzeylerinde zar noktaları bulunan, menteşelerle birbirine bağlı sekiz küpten oluşan sonsuz küp. Küp katlandıkça noktalı yüzler yer değiştirir. Küp yüzlerindeki sınırlı alan nedeniyle noktalar her yüzde tam zar düzeninde değildir. Fotoğraflarda gri-beyaz renkte renkli noktalarla, son görselde mavi bilgisayar görseli olarak gösterilir.\nYaklaşık dış ölçüler: 83 × 41 × 20 mm (açık hali; tek küp parçası 20 mm).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr192476-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr192476-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr192476-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "WillyCi",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-cok-fonksiyonlu-anahtar-cark-kaydiricili-fidget-kup-pr1527725",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Çok Fonksiyonlu Fidget Küp (Anahtar, Çark, Kaydırıcı, Top ve Döner Parçalı)",
+    "aciklama": "Yan yüzlerinde anahtar, döner parça, çark, kaydırıcı ve top gibi farklı oyalanma elemanları bulunan, küp biçimli fidget oyuncağı. Siyah gövdeli bilgisayar görselleriyle gösterilir; yüzlerden birinde delikli yüzey deseni, diğerlerinde düğme ve döner kapaklar görülür.\nYaklaşık dış ölçüler: 60 × 58 × 58 mm (küp gövdesi).",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1527725-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1527725-2.jpg"
+    ]
+  },
+  {
+    "id": "oyun-ic-ice-gecmeli-kucuk-kup-fidget-pr234674",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "İç İçe Geçmeli Küçük Küp Fidget (İçindeki Küpe Tam Oturan, Menteşeli Kutu)",
+    "aciklama": "Küçük bir küpün içinde ona tam oturan ikinci bir küp bulunan, elde çevirip içindekini çıkarıp yerleştirerek oyalanmaya yarayan sessiz fidget küp. Dış kutu menteşeli düz parçaların katlanmasıyla oluşur. Fotoğraflarda beyaz renkte, parçalar ve birleşik hali ahşap zemin üzerinde gösterilir.\nYaklaşık dış ölçüler: 86 × 62 × 3 mm (düz parça seti).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr234674-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr234674-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr234674-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr234674-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Ralf D. Müller",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "oyun-arabesk-desenli-ayni-yone-donen-fidget-kure-pr615009",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Arabesk Desenli Fidget Küre (Altı Yüzü ve Sekiz Köşesi Aynı Yöne Dönen)",
+    "aciklama": "Altı yüzü ve sekiz köşesi birlikte aynı yöne dönen, arabesk esinli desenli fidget küre. Birleştirildiğinde köşelerin arkasındaki gizli dişliler sayesinde tüm yüzler aynı yönde döner; bu alışılmadık hareket küreyi çevirirken şaşırtıcı bir his verir. Parçalar: çekirdek, 6 yüz, 8 köşe, 12 kenar parçası, kenar dişlileri ve kenar pimleri ile 14 standart pim; kenar pimleri yapıştırılarak monte edilir. Fotoğraflarda turuncu, yeşil, mavi ve mor parçalarla altın tonlu desenler gösterilir.\nYaklaşık dış ölçüler: 55 × 55 × 55 mm (çekirdek parça; yüz parçası 55 × 54 × 23 mm).",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr615009-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr615009-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Wozzeck",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "tamirat-mentese-uzerine-takilan-kapi-stoperi-sag-sol-surum-pr622340",
     "kategori": "Tamirat",
     "marka": [],
