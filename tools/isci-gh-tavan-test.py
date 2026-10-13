@@ -257,6 +257,9 @@ def v5(r):
 
 
 OYNAK_ORTAM = {"CLAUDE_PGID_DOSYASI_K417", "CLAUDE_GRUP_DOSYASI", "SAHTE_IZ", "PATH"}
+# Degeri koşum basina degisen (PID) ama VARLIGI iki kolda ayni olmasi gereken anahtarlar:
+# isci-semafor (13 Eki) slot sahibini `PRUVO_ISCI_SEMAFOR_SAHIBI=$$` ile iletir.
+PID_ORTAM = {"PRUVO_ISCI_SEMAFOR_SAHIBI"}
 
 
 def _normal(iz):
@@ -264,7 +267,8 @@ def _normal(iz):
     for i, a in enumerate(argv[:-1]):
         if a == "--session-id":
             argv[i + 1] = "<SID>"
-    ortam = {k: v for k, v in iz["ortam"].items() if k not in OYNAK_ORTAM}
+    ortam = {k: ("<PID>" if k in PID_ORTAM else v)
+             for k, v in iz["ortam"].items() if k not in OYNAK_ORTAM}
     return argv, ortam
 
 
