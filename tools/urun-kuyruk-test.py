@@ -24,6 +24,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from datetime import datetime, timedelta
 
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.dont_write_bytecode = True  # agaca __pycache__ birakma
@@ -172,6 +173,28 @@ def kur_kuyruk_urun(s, metin="[\n\"a\",\n\"b\",\n\"c\"\n]\n"):
     return k
 
 
+def kur_kuyruk_urun_tarihli(s, tarih, metin="[\n\"a\",\n\"b\",\n\"c\"\n]\n"):
+    """Tarihli kuyruk commit'i (author + committer = tarih). sentetik_git GIT_* env'leri
+    SCRUB ettigi icin burada dogrudan GERCEK_GIT + env ile yazilir."""
+    s.yaz("urunler.json", metin)
+    s.g(s.yazar, "add", "-A")
+    env = EK_ORTAM(s.kok)
+    env["GIT_COMMITTER_DATE"] = tarih
+    env["GIT_AUTHOR_DATE"] = tarih
+    p = subprocess.run([GERCEK_GIT, "-C", s.yazar, "commit", "-q", "-m", "urun: tarihli"],
+                       capture_output=True, text=True, env=env)
+    if p.returncode != 0:
+        raise RuntimeError("tarihli commit hatasi: %s" % p.stderr)
+    k = s.g(s.yazar, "rev-parse", "HEAD")
+    s.g(s.yazar, "push", "-q", "origin", "HEAD:urun-kuyruk")
+    return k
+
+
+def tarih_dk_geri(n):
+    """n dakika once, ISO 8601 (TZ yok) — git commit --date icin."""
+    return (datetime.now() - timedelta(minutes=n)).strftime("%Y-%m-%dT%H:%M:%S")
+
+
 def main_ilerlet(s, yol="kod.txt", metin="kod-2\n"):
     s.g(s.yazar, "checkout", "-q", "--detach", s.uzak("main"))
     s.yaz(yol, metin)
@@ -192,8 +215,8 @@ def vakalar():
     def v1_dog(s, rc, satir, b):
         if (rc, satir) != (0, "KUYRUK=BEKLE pages=42"):
             return "rc/satir"
-        if any(c[0] == "git" for c in s.cagrilar()):
-            return "BEKLE'de git cagrisi var"
+        if s.push_sayisi() or s.dispatchler():
+            return "BEKLE iken push=%d dispatch=%d" % (s.push_sayisi(), len(s.dispatchler()))
         if s.uzak("main") != b["main"]:
             return "main degisti"
     v.append(("V1-BEKLE", v1_kur, v1_dog))
@@ -355,6 +378,53 @@ def vakalar():
         kur_kuyruk_urun(s)
         return {"PRUVO_K80_IC_KOSUM": "1"}, True, {}
     v.append(("V14-K80-PROVA", v14_kur, sifir_cagri(0, "KUYRUK=PROVA")))
+
+    def v16_kur(s):
+        k = kur_kuyruk_urun_tarihli(s, tarih_dk_geri(7))
+        return {"SAHTE_GH_RUNS": json.dumps([{"status": "in_progress", "databaseId": 42}]),
+                "PRUVO_KUYRUK_ACLIK_DK": "5"}, True, {"k": k}
+
+    def v16_dog(s, rc, satir, b):
+        if rc != 0 or not satir.startswith("KUYRUK=BIRLESTI sha=%s yol=ff dispatch=deploy.yml" % b["k"][:12]):
+            return "rc/satir: %r" % satir
+        if "aclik=1" not in satir:
+            return "aclik=1 yok: %r" % satir
+        if "bekleme_dk=" not in satir:
+            return "bekleme_dk= yok: %r" % satir
+        if "nobet.yml" in satir:
+            return "beklenmeyen nobet dispatch"
+        if s.uzak("main") != b["k"]:
+            return "main ff olmadi"
+        if not s.dispatchler():
+            return "Pages kosarken aclik kolu dispatch etmedi"
+    v.append(("V16-BIRLESTI-aclik", v16_kur, v16_dog))
+
+    def v17_kur(s):
+        kur_kuyruk_urun_tarihli(s, tarih_dk_geri(3))
+        return {"SAHTE_GH_RUNS": json.dumps([{"status": "in_progress", "databaseId": 99}]),
+                "PRUVO_KUYRUK_ACLIK_DK": "5"}, True, {"main": s.uzak("main")}
+
+    def v17_dog(s, rc, satir, b):
+        if (rc, satir) != (0, "KUYRUK=BEKLE pages=99"):
+            return "rc/satir: %r" % satir
+        if "aclik" in satir:
+            return "beklenmeyen aclik: %r" % satir
+        if s.uzak("main") != b["main"]:
+            return "main degisti"
+        if s.push_sayisi() or s.dispatchler():
+            return "BEKLE iken push=%d dispatch=%d" % (s.push_sayisi(), len(s.dispatchler()))
+    v.append(("V17-BEKLE-aclik-yok", v17_kur, v17_dog))
+
+    def v18_kur(s):
+        k = kur_kuyruk_urun_tarihli(s, tarih_dk_geri(7))
+        return {"PRUVO_KUYRUK_ACLIK_DK": "5"}, True, {"k": k}
+
+    def v18_dog(s, rc, satir, b):
+        if rc != 0 or not satir.startswith("KUYRUK=BIRLESTI sha=%s yol=ff dispatch=deploy.yml" % b["k"][:12]):
+            return "rc/satir: %r" % satir
+        if "aclik=" in satir:
+            return "beklenmeyen aclik alani (Pages kosmuyor): %r" % satir
+    v.append(("V18-BIRLESTI-aclik-yok", v18_kur, v18_dog))
     return v
 
 
@@ -411,6 +481,17 @@ MUTANTLAR = [
       '        pass  # MUTANT BOS'), "V3-BOS-geride"),
     ("M-YOL", "yabanci yol kapisi kapatildi",
      ("    if yabanci:  # MUTANT-CAPA:YOL", "    if False:  # MUTANT YOL"), "V8-yabanci-yol"),
+    ("M-ACIK-KALDIR", "aclik kolu kaldirildi (Pages kosarken yine BEKLE)",
+     ("    if bitmemis:  # MUTANT-CAPA:ACIK\n        yas_dk = kuyruk_yasi_dk()\n"
+      "        if yas_dk < ACIK_DK:\n"
+      "            return \"KUYRUK=BEKLE pages=%s\" % bitmemis[0].get(\"databaseId\"), 0\n"
+      "        aclik_bilgi = \" aclik=1 bekleme_dk=%d\" % yas_dk",
+      "    if bitmemis:\n"
+      "        return \"KUYRUK=BEKLE pages=%s\" % bitmemis[0].get(\"databaseId\"), 0  # MUTANT ACLIK KALDIRILDI"),
+     "V16-BIRLESTI-aclik"),
+    ("M-ESIK-SIFIR", "ACIK_DK=0 (esik sifira cekildi, env override yutulur)",
+     ("ACIK_DK = int(os.environ.get(\"PRUVO_KUYRUK_ACLIK_DK\", \"45\"))  # MUTANT-CAPA:ESIK",
+      "ACIK_DK = 0  # MUTANT ESIK"), "V17-BEKLE-aclik-yok"),
 ]
 
 
