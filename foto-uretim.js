@@ -920,6 +920,18 @@
     var t = litofanKaydi();
     return !!(t && t.form_sunum && Object.prototype.hasOwnProperty.call(t.form_sunum, a));
   }
+  // TEK ÖLÇÜ KONTROLÜ (anahtarlık–yazı, BaBa 13 Eki 11:4x): değeri sürgüden gelen (deger "olcu") formdaki alanın
+  // etiketi `surgu_etiketi` bayrağıyla sürgünün etiketi olur ("Uzun kenar (kulak dahil)"); yoksa "" (figür çeşidi
+  // formsuz; yapboz uzun_kenar_mm bayraksız -> "Ölçü" AYNEN).
+  function olcuSunumEtiketi() {
+    var t = litofanKaydi(), form = formSemasi();
+    for (var a in form) {
+      if (!Object.prototype.hasOwnProperty.call(form, a) || !sunumAlani(a)) continue;
+      var fs = t.form_sunum[a];
+      if (fs.deger === "olcu" && fs.surgu_etiketi === true && form[a] && typeof form[a].etiket === "string") return form[a].etiket;
+    }
+    return "";
+  }
   function aktifParametreler() {
     var form = formSemasi(), g = {}, aktif = {};
     for (var a in form) {
@@ -1908,9 +1920,9 @@
   function doldurS1Olcu() {
     while (S.alanOlcu.firstChild) S.alanOlcu.removeChild(S.alanOlcu.firstChild);
     var nt = cesitOlculeri(seciliTurBul());
-    var tekTur = S.acikVeri.turler.length === 1;
+    var tekTur = S.acikVeri.turler.length === 1, sunumEtiket = olcuSunumEtiketi();
     S.alanOlcu.appendChild(el("label", "foto-uretim-form-etiket",
-      tekTur && nt ? nt.ad + " — ölçü (en uzun boyut)" : "Ölçü"));
+      sunumEtiket || (tekTur && nt ? nt.ad + " — ölçü (en uzun boyut)" : "Ölçü")));
     if (tekTur && nt && nt.aciklama) {
       S.alanOlcu.appendChild(el("p", "foto-uretim-ayrinti", nt.aciklama));
     }
@@ -1944,7 +1956,7 @@
     var surgu = el("input", "foto-uretim-surgu");
     surgu.type = "range"; surgu.id = id; surgu.name = id;
     surgu.min = "0"; surgu.max = String(nt.olculer.length - 1); surgu.step = "1"; surgu.value = String(sira);
-    surgu.setAttribute("aria-label", "Ölçü — en uzun boyut (mm)");
+    surgu.setAttribute("aria-label", (olcuSunumEtiketi() || "Ölçü — en uzun boyut") + " (mm)");
     var yazi = el("p", "foto-uretim-surgu-fiyat", F.fiyatSatiri(nt.kod, S.olcu));
     yazi.setAttribute("aria-live", "polite");
     var sec = function (e) {

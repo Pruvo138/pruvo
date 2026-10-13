@@ -129,6 +129,7 @@
     //                    (alan yoksa/boşsa hiçbir örnek sayılmaz — fail-closed)
     //   form_sunum     : {alan: {deger: "olcu" | "varsayilan"}} — alan ③'te ÇİZİLMEZ, değeri Ölçü sürgüsünden ya da
     //                    form varsayılanından gövdeye girer (köprü `form`u değişmeden sunum; VERI.formSunumDegeri)
+    //                    surgu_etiketi: true (yalnız deger "olcu") = ③ sürgüsünün etiketi bu alanın `etiket`i olur
     //   alan_aciklamalari: {renk, olcu, malzeme} — ③ ortak alanların altındaki tür cümlesi (yoksa genel cümle)
     //   bolge_renk_secimi: {cesit, bolgeler, etiketler, varsayilan, kontrast_esigi} — ana renkte TEK seçici yerine her
     //                    bölgeye AYRI ana renk seçici (anahtarlık–yazı: Yazı rengi + Taban rengi; Okan 12 Eki). Bölge
@@ -387,7 +388,7 @@
           olcu: "Anahtarlığın kulakçık dahil en uzun boyutudur; fiyat bu ölçüye göre canlı hesaplanır.",
           // ③ renk yardım cümlesi (iki seçici; ArTisT 19. okuma bu satırı değiştirir — TEK yer). Figür çeşidinin
           // kendi `renk` cümlesi bunun yerine basılır (alanAciklamasi çeşide öncelik verir).
-          renk: "Yazı ve taban için iki ayrı renk seç; yazının net okunması için iki renk birbirinden belirgin olmalı."
+          renk: "Yazı için bir, taban için bir renk seç; ikisi birbirinden belirgin olmalı ki yazı net okunsun."
         },
         // İKİ RENK (Okan 12 Eki, aynen "anahtarlıkta tek renk seçimi olmaz zaten minimum 2 renk olmalı"): yazı
         // çeşidinde ③'te Yazı rengi + Taban rengi, ikisi de VERI.ANA_RENKLER; varsayılan siyah taban + beyaz yazı.
@@ -400,9 +401,13 @@
           varsayilan: { yazi: "Beyaz", plaka: "Siyah" },
           kontrast_esigi: 3.0
         },
-        // ③'te TEK ölçü kontrolü: "Uzun kenar (kulak dahil)" alanı çizilmez, gövdeye Ölçü sürgüsünün değeri girer.
+        // ③'te TEK ölçü kontrolü (Okan 12 Eki 17:5x "tek"; BaBa 13 Eki 11:4x): ayrı "Uzun kenar" alanı çizilmez, değeri
+        // sürgüden gelir ve sürgünün etiketi bu alanın etiketidir ("Uzun kenar (kulak dahil)"; ayrı "Ölçü" yok).
+        // KULAK SOL ÜST SABİT (Okan 8 Eki 23:0x): "Kulak konumu" seçicisi çizilmez, gövdeye form varsayılanı
+        // ("sol-ust") girer. Köprü `form`u değişmez (kopru-manifest-uret üretir); figür çeşidi formsuz -> etkisiz.
         form_sunum: {
-          genislik_mm: { deger: "olcu" }
+          genislik_mm: { deger: "olcu", surgu_etiketi: true },
+          anahtarlik_kulak_konum: { deger: "varsayilan" }
         },
         durustluk: "Metal halka ve zincir dahil değildir; zincir ya da halka takılan kulakçıklı plastik gövde (delik Ø 3,5–4 mm).",
         ornek_notu: "Üretim dosyasının görüntüsüdür; yazı, renk ve kulak konumu seçimine göre üretilir.",
@@ -497,7 +502,7 @@
     // (kod üretecin RET cümlesinden köprüde çıkarılır); tabloda olmayan kod -> `""` (genel metin).
     URETEC_RED_METIN: {
       "": "Bu girdiyle üretim dosyası hazırlanamadı; girdiyi ya da ölçüyü değiştirip tekrar deneyebilirsin.",
-      "kontrast": "Seçtiğin renkler birbirine çok yakın; daha belirgin iki renk seç.",
+      "kontrast": "Yazı ve taban rengi birbirine çok yakın; yazı okunmaz. Farklı bir renk seç.",
       "metin-sigmadi": "Yazı bu ölçüye sığmadı; yazıyı kısalt ya da ölçüyü büyüt.",
       // Anahtarlık–yazı ince çizgi (üreteç tasarım kapısı 0,8 mm; düz yazı kısa isimde ~40 mm ister, el yazısı 30 mm'de geçer).
       "yazi-ince": "Bu yazı bu genişlikte çok ince kalıyor; genişliği büyüt (kalın düz harflerde kısa bir isim için en az 40 mm) ya da El yazısı yazı tipini seç.",
