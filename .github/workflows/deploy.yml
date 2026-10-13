@@ -973,6 +973,13 @@ jobs:
       - name: Jenerator fiyat/sema kabul testi (varsayilan hacim + PLA taban fiyati)
         run: node jenerator/test/fiyat-test.js
 
+      # SAKSI FIYAT MUTANT BATARYASI (2026-10-13, mimar sarti): fiyat-test.js'in saksi
+      # bolumu kor mu? Zemin kaldirilir / tabak eki 0 / Worker tutari x100 -> her biri
+      # BEKLENEN satiri kirmizi yakmali (isaret sarti), mutantsiz KONTROL yesil kalmali.
+      # Gecici kopyalar os.tmpdir'de, kosum sonunda silinir; canli agaca yazmaz.
+      - name: Saksi fiyat mutant bataryasi (zemin / tabak eki / istemci=sunucu)
+        run: node jenerator/test/saksi-fiyat-mutasyon.js
+
       # KALIBRASYON SENKRON KAPISI (PARA — hacim.js parametrik urunun TAHSILAT
       # tabanidir: hacim x malzeme x taban fiyat). 3 Agu'ya kadar CI-MUAFTI ve
       # OLCULDU ki muafiyet gerekcesinin IKI dayanagi da YANLISTI:

@@ -318,6 +318,44 @@
     return parcalar.join(" · ");
   }
 
+  // ---- HAZIR ÖN-AYAR (sema.onAyarlar — bugün yalnız saksı/vazo S/M/L) ----
+  // Ön-ayar YALNIZ alanları doldurur; fiyat/doğrulama aynı yoldan (dogrula + hacim +
+  // parametrikFiyatKurus) geçer — "S seçildi" diye ayrı bir fiyat/etiket sepete YAZILMAZ,
+  // Worker da ön-ayarı bilmez (müşteri ölçüyü sonradan değiştirirse fiyat ölçüden
+  // çıkar). Ön-ayarda olmayan alanlar (or. alt tabak) müşterinin seçimi olarak KALIR.
+  // Saf: varsayılanlar + mevcut değerler + ön-ayar değerleri; ön-ayar yoksa null.
+  function onAyarDegerleri(sema, ad, mevcut) {
+    var liste = sema && sema.onAyarlar;
+    if (!Array.isArray(liste)) { return null; }
+    for (var i = 0; i < liste.length; i++) {
+      if (liste[i] && liste[i].ad === ad && liste[i].degerler) {
+        var d = varsayilanDegerler(sema), k;
+        if (mevcut) { for (k in mevcut) { if (mevcut.hasOwnProperty(k)) { d[k] = mevcut[k]; } } }
+        for (k in liste[i].degerler) {
+          if (liste[i].degerler.hasOwnProperty(k)) { d[k] = liste[i].degerler[k]; }
+        }
+        return d;
+      }
+    }
+    return null;
+  }
+
+  // Değerler bir ön-ayara birebir uyuyorsa onun adı (düğme vurgusu), yoksa null.
+  function onAyarEslesen(sema, degerler) {
+    var liste = (sema && sema.onAyarlar) || [];
+    for (var i = 0; i < liste.length; i++) {
+      var dd = liste[i].degerler || {}, tutar = true;
+      for (var k in dd) {
+        if (!dd.hasOwnProperty(k)) { continue; }
+        var v = degerler[k];
+        if (typeof dd[k] === "number") { v = parseFloat(String(v).replace(",", ".")); }
+        if (v !== dd[k]) { tutar = false; break; }
+      }
+      if (tutar) { return liste[i].ad; }
+    }
+    return null;
+  }
+
   function hacimMetni(mm3) {
     if (mm3 == null) { return ""; }
     var cm3 = mm3 / 1000;
@@ -462,7 +500,7 @@
       kaySatir.appendChild(kaydirici);
       kok.appendChild(kaySatir);
     }
-    return { girdi: girdi, hataEl: hata, satirEl: satir };
+    return { girdi: girdi, hataEl: hata, satirEl: satir, kaydirici: kaydirici };
   }
 
   function degerler() {
@@ -477,9 +515,46 @@
     return d;
   }
 
+  // Ön-ayar düğme satırı (yalnız sema.onAyarlar varsa). Tık: alanlara yaz + yeniden çiz.
+  function onAyarKur(sema, kok, degisim) {
+    var satir = document.createElement("div");
+    satir.className = "opsiyon-row konf-row konf-onayar";
+    var etiket = document.createElement("label");
+    etiket.textContent = "Hazır boy";
+    satir.appendChild(etiket);
+    durum.onAyarBtn = {};
+    sema.onAyarlar.forEach(function (oa) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "renk-btn";
+      b.textContent = oa.etiket || oa.ad;
+      b.addEventListener("click", function () {
+        var d = onAyarDegerleri(sema, oa.ad, degerler());
+        for (var ad in oa.degerler) {
+          if (!oa.degerler.hasOwnProperty(ad) || !durum.alanlar[ad]) { continue; }
+          var alan = durum.alanlar[ad];
+          alan.girdi.value = d[ad];
+          if (alan.kaydirici) { alan.kaydirici.value = d[ad]; }
+        }
+        degisim();
+      });
+      durum.onAyarBtn[oa.ad] = b;
+      satir.appendChild(b);
+    });
+    kok.appendChild(satir);
+  }
+
   function ciz() {
     var sema = durum.sema, d = degerler();
     var sonuc = dogrula(sema, d);
+    if (durum.onAyarBtn) {
+      var eslesen = onAyarEslesen(sema, d);
+      for (var oa in durum.onAyarBtn) {
+        if (durum.onAyarBtn.hasOwnProperty(oa)) {
+          durum.onAyarBtn[oa].classList.toggle("secili", oa === eslesen);
+        }
+      }
+    }
     for (var ad in durum.alanlar) {
       if (!durum.alanlar.hasOwnProperty(ad)) { continue; }
       var alan = durum.alanlar[ad];
@@ -555,12 +630,17 @@
     fiyatKurus: fiyatKurus,
     detayMetni: detayMetni,
     hacimMetni: hacimMetni,
+    onAyarDegerleri: onAyarDegerleri,
+    onAyarEslesen: onAyarEslesen,
 
     // sayfa API'si
     kur: function (sema, kokEl, degisimCb) {
       durum.sema = sema; durum.alanlar = {}; durum.degisimCb = degisimCb || null;
-      durum.yaziRenkEl = null;
+      durum.yaziRenkEl = null; durum.onAyarBtn = null;
       var degisim = function () { ciz(); if (durum.degisimCb) { durum.degisimCb(); } };
+      if (Array.isArray(sema.onAyarlar) && sema.onAyarlar.length) {
+        onAyarKur(sema, kokEl, degisim);
+      }
       for (var i = 0; i < sema.parametreler.length; i++) {
         durum.alanlar[sema.parametreler[i].ad] = alanKur(sema.parametreler[i], kokEl, degisim);
       }

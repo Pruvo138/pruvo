@@ -90,6 +90,10 @@ ACIK_AILELER = {
     #   olcuye-ozel-cerceve#yazi  -> Output="caption"          (yalniz kabartma yazi)
     # Taban aile (Output="frame", tek govde) AYNEN durur. Bkz. parca_bloklari().
     "olcuye-ozel-cerceve": "cerceve",
+    # Olcuye ozel saksi/vazo (2026-10-13) — bizim uretecimiz (jeneratorler/saksi_vazo.scad).
+    # Taban aile parca="saksi"; `parcalar` blogu ayri govde olarak
+    # olcuye-ozel-saksi-vazo#tabak (parca="tabak", alt tabak) uretir.
+    "olcuye-ozel-saksi-vazo": "saksi",
 }
 
 

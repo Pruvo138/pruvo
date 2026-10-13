@@ -7,10 +7,18 @@ var vm = require("vm");
 var path = require("path");
 
 var KOK = path.join(__dirname, "..", "..");
-var sandbox = { window: {} };
-vm.createContext(sandbox);
-vm.runInContext(fs.readFileSync(path.join(KOK, "secenekler.js"), "utf8"), sandbox);
-var SECENEK = sandbox.window.PRUVO_SECENEK;
+// MUTANT KOLU (jenerator/test/saksi-fiyat-mutasyon.js): secenekler.js ve Worker
+// parametrik.js YOLU ortamdan ezilebilir — mutant kopya canli agaca YAZILMADAN olculur.
+var SECENEK_YOL = process.env.PRUVO_SECENEK_YOL || path.join(KOK, "secenekler.js");
+var PARAMETRIK_YOL = process.env.PRUVO_PARAMETRIK_YOL ||
+  path.join(KOK, "shop", "src", "parametrik.js");
+function secenekYukle() {
+  var sb = { window: {} };
+  vm.createContext(sb);
+  vm.runInContext(fs.readFileSync(SECENEK_YOL, "utf8"), sb);
+  return sb.window.PRUVO_SECENEK;
+}
+var SECENEK = secenekYukle();
 var KONF = require(path.join(KOK, "jenerator", "konfigurator.js"));
 var HACIM = require(path.join(KOK, "jenerator", "hacim.js"));
 
@@ -107,11 +115,16 @@ var TABAN_FIYATLAR = {
   // (varsayilan 100x150/k12/d5.2/chamfer). 3x tavan -> max 600 TL. 2-renk yazi ek ucreti
   // secenekler.js IKI_RENK_EK_KURUS'tan gelir (clamp DISI) ve 2026-07-29'dan beri 0 =
   // TAHSIL EDILMEZ. Drift kilidi: sema sayisi 22 -> 23 lockstep.
-  "olcuye-ozel-cerceve": 200
+  "olcuye-ozel-cerceve": 200,
+  // Olcuye ozel saksi/vazo (2026-10-13 — mimar karari KraL halef-27): taban = M boy
+  // (140/100/120) 800 TL; ZEMIN 400 TL ayri (secenekler.js AILE_FIYAT_KURALI). Aile
+  // bugun KAPALI (hacim allowlist'inde yok: kisitli sema -> parite kaydi bekler).
+  // Drift kilidi: sema sayisi 23 -> 24 lockstep.
+  "olcuye-ozel-saksi-vazo": 800
 };
 var URUN_DIR = path.join(KOK, "jenerator", "urunler");
 var semaDosyalari = fs.readdirSync(URUN_DIR).filter(function (f) { return /\.json$/.test(f); });
-esit("şema sayısı 23", semaDosyalari.length, 23);
+esit("şema sayısı 24", semaDosyalari.length, 24);
 semaDosyalari.forEach(function (dosya) {
   var s = JSON.parse(fs.readFileSync(path.join(URUN_DIR, dosya), "utf8"));
   esit("tabanFiyatTL " + s.id, s.tabanFiyatTL, TABAN_FIYATLAR[s.id]);
@@ -333,12 +346,16 @@ esit("varsayılanda fiyat = taban (PLA/Siyah, doğrulanmış aile)",
    ama ŞEMA ARALIĞI üretilemez kombinasyon veriyor — üretemediğimiz konfigürasyon
    satılabilir görünmez; şema onarılana kadar fail-closed).
    Yapısal kural + kapı: tools/onizleme-vaat-kapisi.py. */
-var KAPALI_AILELER = ["cetvel", "kase", "petek", "vida"];
+// 2026-10-13: `saksi` KAPALI olarak eklendi (hiç açılmadı): şemasında `kisitlar` var
+// (alt≤üst çap, yan eğim ≤40°) → satışa açılması için onizleme-vaat-kapisi A3 YEŞİL+TAZE
+// parite kaydı ister; kayıt üretim paketi (saksi_vazo.scad) yüklenmeden üretilemez.
+// Fiyat kuralı aşağıda "SAKSI" bölümünde AÇILIŞ SİMÜLASYONUYLA ölçülür.
+var KAPALI_AILELER = ["cetvel", "kase", "petek", "saksi", "vida"];
 var ACIK_AILELER = ["adaptor", "braket", "cerceve", "disli", "huni", "izgara",
                     "jeton", "kasnak", "kavanoz", "kayis", "konektor", "kutu",
                     "oring", "pervane", "profil", "rampa", "rulman", "toka", "yay"];
-esit("kapı sayacı: kapalı 4 / açık 19 (2026-08-04 rulman açılışı sonrası)",
-     [KAPALI_AILELER.length, ACIK_AILELER.length], [4, 19]);
+esit("kapı sayacı: kapalı 5 / açık 19 (2026-10-13 saksı KAPALI eklendi)",
+     [KAPALI_AILELER.length, ACIK_AILELER.length], [5, 19]);
 
 // POZİTİF: kapı tutuyor — sapan/ölçülmemiş ailede tutar HİÇ üretilmez (0 TL DEĞİL, null).
 KAPALI_AILELER.forEach(function (aile) {
@@ -456,4 +473,216 @@ esit("kapı kapsamı: her şema ailesi ya açık ya kapalı listede",
 esit("kapı kapsamı: açık liste secenekler.js ile birebir",
      Object.keys(SECENEK.HACIM_DOGRULANMIS_AILELER).sort(), ACIK_AILELER.slice().sort());
 
-process.exit(hata ? 1 : 0);
+/* ==== SAKSI / VAZO (olcuye-ozel-saksi-vazo) — mimar kararı KraL halef-27, 13 Eki 2026 ====
+   Biçim: TEK sarı seri kaydı; S/M/L = konfigüratör HAZIR ÖN-AYARI (şema `onAyarlar`).
+   Fiyat: temel = max(400 TL, 800 TL × hacim / M hacmi) × malzeme × renk, 3× taban tavanı;
+   alt tabak = SABİT kademe eki (+100/+150/+200 TL, alt çapa en yakın boy, eşitlikte büyük).
+   Aile BUGÜN KAPALI (kisitli şema → parite kaydı bekler) — fiyat kuralı "AÇILIŞ
+   SİMÜLASYONU"nda ölçülür: secenekler.js'in TAZE bir kopyasında yalnız allowlist'e
+   `saksi` eklenir; formül/kademe/tavan kodu CANLI dosyanın AYNISIDIR. Mutant sürücüsü:
+   jenerator/test/saksi-fiyat-mutasyon.js (bu dosyayı mutant kopyalarla koşar). */
+var saksiSema = JSON.parse(fs.readFileSync(
+  path.join(URUN_DIR, "olcuye-ozel-saksi-vazo.json"), "utf8"));
+var saksiVd = KONF.varsayilanDegerler(saksiSema);
+function saksiSet(ek) { return Object.assign({}, saksiVd, ek || {}); }
+var saksiOA = {};
+(saksiSema.onAyarlar || []).forEach(function (oa) {
+  saksiOA[oa.ad] = KONF.onAyarDegerleri(saksiSema, oa.ad);
+});
+
+// --- A. HACİM + KALİBRASYON (TeKiN §2 analitik formül) ---
+// GERÇEK STL (OpenSCAD render, saksi_vazo.scad, $fn=96) — jenerator/test/
+// kalibrasyon-referans.json "saksi" (kalibrasyon-referans-uret.py --aile saksi, 13 Eki).
+// Analitik formül çokgen yaklaşımını BİLEREK içermez (fiyat referansı analitiktir):
+// beklenen fark ≈ 1 − (96/2π)·sin(2π/96) = %0,071.
+var SAKSI_KALIB = JSON.parse(fs.readFileSync(
+  path.join(__dirname, "kalibrasyon-referans.json"), "utf8")).aileler.saksi;
+var saksiM = KONF.hacimMm3(saksiSema, saksiVd, HACIM);
+esit("saksı M (140/100/120, Ø12) analitik hacim = 137.645,99 mm³",
+     Math.round(saksiM * 100) / 100, 137645.99);
+esit("saksı tabanHacimMm3 = fn(varsayılan)",
+     Math.abs(saksiM - saksiSema.tabanHacimMm3) < 1e-6, true);
+esit("saksı kalibrasyon fikstürü var + set0 = varsayılan (M)",
+     !!SAKSI_KALIB && JSON.stringify(SAKSI_KALIB.setler[0].parametreler) ===
+       JSON.stringify(saksiVd), true);
+esit("saksı M analitik ↔ gerçek STL ±%0,1 (mimar kalibrasyon şartı)",
+     Math.abs(saksiM - SAKSI_KALIB.setler[0].referansMm3) /
+       SAKSI_KALIB.setler[0].referansMm3 <= 0.001, true);
+esit("saksı TÜM kalibrasyon setleri analitik ↔ STL ±%0,2 (köşeler dahil)",
+     SAKSI_KALIB.setler.filter(function (s) {
+       var h = HACIM.saksi(s.parametreler);
+       return !(Math.abs(h - s.referansMm3) / s.referansMm3 <= 0.002);
+     }).length, 0);
+// Tabak: aynı aile fonksiyonu, parca="tabak" kolu (ürün şemasında `parca` YOK).
+// GERÇEK STL (OpenSCAD, parca="tabak", alt çap 70/100/130, duvar 2,4, taban 3, h 18).
+// Ölçüm 13 Eki 2026 (OpenSCAD 2021.01 render, ağır-iş kapısı; geçici ölçüm betiği silindi).
+var TABAK_STL = [21917.6891, 38163.8265, 58648.0810];
+var tabakJs = [70, 100, 130].map(function (a) {
+  return HACIM.saksi({ parca: "tabak", alt_cap: a, duvar: 2.4, taban: 3,
+                       tabak_yuksekligi: 18 });
+});
+esit("tabak S/M/L analitik ↔ gerçek STL ±%0,1",
+     tabakJs.map(function (h, i) { return Math.abs(h - TABAK_STL[i]) / TABAK_STL[i] <= 0.001; }),
+     [true, true, true]);
+
+// --- B. ŞEMA: ön-ayarlar, sınırlar, kısıtlar ---
+esit("saksı ön-ayar adları S/M/L", Object.keys(saksiOA), ["S", "M", "L"]);
+esit("saksı ön-ayarlar şemaya göre GEÇERLİ",
+     ["S", "M", "L"].map(function (k) { return KONF.dogrula(saksiSema, saksiOA[k]).gecerli; }),
+     [true, true, true]);
+esit("saksı M ön-ayarı = şema varsayılanı (taban hacmi = M)",
+     JSON.stringify(saksiOA.M), JSON.stringify(saksiVd));
+esit("saksı ön-ayar alt tabak seçimini EZMEZ (müşteri seçimi kalır)",
+     KONF.onAyarDegerleri(saksiSema, "L", saksiSet({ tabak: "var" })).tabak, "var");
+esit("saksı ön-ayar eşleşmesi (düğme vurgusu)",
+     [KONF.onAyarEslesen(saksiSema, saksiOA.S), KONF.onAyarEslesen(saksiSema, saksiOA.L),
+      KONF.onAyarEslesen(saksiSema, saksiSet({ yukseklik: 121 }))], ["S", "L", null]);
+esit("bilinmeyen ön-ayar -> null", KONF.onAyarDegerleri(saksiSema, "XL"), null);
+// TeKiN §1 sınırları AYNEN: her sayısal eksen min−adım / max+adım RED, min/max KABUL.
+var SAKSI_SINIR = { ust_cap: [60, 260], alt_cap: [40, 200], yukseklik: [50, 300],
+                    duvar: [1.6, 4], taban: [2, 5], drenaj_capi: [6, 20],
+                    tabak_yuksekligi: [12, 30] };
+esit("saksı şema sınırları TeKiN §1 ile birebir",
+     Object.keys(SAKSI_SINIR).map(function (ad) {
+       var p = saksiSema.parametreler.filter(function (x) { return x.ad === ad; })[0];
+       return [p.min, p.max];
+     }), Object.keys(SAKSI_SINIR).map(function (ad) { return SAKSI_SINIR[ad]; }));
+var sinirDisi = [];
+Object.keys(SAKSI_SINIR).forEach(function (ad) {
+  var p = saksiSema.parametreler.filter(function (x) { return x.ad === ad; })[0];
+  [p.min - p.adim, p.max + p.adim].forEach(function (v) {
+    var s = saksiSet(); s[ad] = Math.round(v * 1000) / 1000;
+    if (ad === "ust_cap" && v > p.max) { s.alt_cap = 40; s.yukseklik = 300; }
+    if (KONF.dogrula(saksiSema, s).gecerli) { sinirDisi.push(ad + "=" + s[ad]); }
+  });
+});
+esit("saksı sınır dışı (min−adım, max+adım) HEPSİ RED", sinirDisi, []);
+esit("saksı secim dışı değer RED (drenaj/tabak)",
+     [KONF.dogrula(saksiSema, saksiSet({ drenaj: 1 })).gecerli,
+      KONF.dogrula(saksiSema, saksiSet({ tabak: "belki" })).gecerli], [false, false]);
+esit("saksı alt çap > üst çap RED, eşit KABUL (düz silindir)",
+     [KONF.dogrula(saksiSema, saksiSet({ ust_cap: 100, alt_cap: 101 })).gecerli,
+      KONF.dogrula(saksiSema, saksiSet({ ust_cap: 100, alt_cap: 100 })).gecerli],
+     [false, true]);
+// Eğim kısıtı katsayısı = 1 / (2·tan 40°) — üretecin assert'iyle AYNI sınır.
+var egimKs = saksiSema.kisitlar.filter(function (k) { return k.parametre === "yukseklik"; })[0];
+esit("saksı eğim katsayısı 1/(2·tan40°)",
+     Math.abs(egimKs.min.terimler.ust_cap - 1 / (2 * Math.tan(40 * Math.PI / 180))) < 1e-12 &&
+     egimKs.min.terimler.alt_cap === -egimKs.min.terimler.ust_cap, true);
+// PARİTE (ızgaranın TAMAMI, eğim ekseni): şema kısıtı ↔ üretecin assert'i
+// `atan((R_ust−R_alt)/yukseklik) <= 40` — çap farkı 0..220 × yükseklik 50..300.
+var egimAyrisma = 0, egimNokta = 0;
+for (var dCap = 0; dCap <= 220; dCap++) {
+  for (var yk = 50; yk <= 300; yk++) {
+    var altC = dCap <= 200 ? 60 : 40;   // ust_cap >= 60 sema alt siniri
+    var se = saksiSet({ alt_cap: altC, ust_cap: altC + dCap, yukseklik: yk });
+    var motor = Math.atan(dCap / 2 / yk) * 180 / Math.PI <= 40;
+    if (KONF.dogrula(saksiSema, se).gecerli !== motor) { egimAyrisma++; }
+    egimNokta++;
+  }
+}
+esit("saksı eğim kısıtı ↔ üretec assert paritesi (55.471 nokta, ayrışma 0)",
+     [egimNokta, egimAyrisma], [55471, 0]);
+esit("saksı eğim sınırı: Δçap 220'de yükseklik 131 RED / 132 KABUL",
+     [KONF.dogrula(saksiSema, saksiSet({ ust_cap: 260, alt_cap: 40, yukseklik: 131 })).gecerli,
+      KONF.dogrula(saksiSema, saksiSet({ ust_cap: 260, alt_cap: 40, yukseklik: 132 })).gecerli],
+     [false, true]);
+// Drenaj assert'i (drenaj_capi/2 < alt_cap/2 − duvar) KUTU İÇİNDE HİÇ BAĞLAMAZ:
+// en kötü köşe Ø20 delik (r 10) ↔ alt 40 / duvar 4 (iç r 16) → kısıt YAZILMADI.
+esit("saksı drenaj assert'i kutu içinde boş (en kötü köşe 10 < 16)",
+     20 / 2 < 40 / 2 - 4, true);
+esit("saksı şemasında tam 2 kısıt (alt≤üst + eğim)", saksiSema.kisitlar.length, 2);
+
+// --- C. GERÇEK DURUM: aile KAPALI (allowlist'te yok) → TUTAR YOK ---
+esit("saksı hacim allowlist'inde DEĞİL (kapalı)",
+     SECENEK.hacimDogrulanmisMi(saksiSema.hacimFormulu), false);
+esit("saksı kapalıyken M fiyatı null (kart kapalı, WhatsApp kanalı)",
+     KONF.fiyatKurus(saksiSema, saksiVd, "PLA", "Siyah", { secenek: SECENEK, hacim: HACIM }),
+     null);
+
+// --- D. AÇILIŞ SİMÜLASYONU: fiyat kuralının kendisi ---
+var SAKSI_ACIK = secenekYukle();
+SAKSI_ACIK.HACIM_DOGRULANMIS_AILELER.saksi = 0;
+function sfy(d, m, r, sec) {
+  return KONF.fiyatKurus(saksiSema, d, m || "PLA", r || "Siyah",
+                         { secenek: sec || SAKSI_ACIK, hacim: HACIM });
+}
+esit("saksı kural kaydı: zemin 400 TL, sabit 180 TL (doğru), taban 800 TL",
+     [SAKSI_ACIK.aileFiyatKurali("saksi").zeminTL, SAKSI_ACIK.aileFiyatKurali("saksi").sabitTL,
+      saksiSema.tabanFiyatTL], [400, 180, 800]);
+// Ön-ayar fiyatları kararı ≈500 / 800 / ≈1.250 TL (mimar hükmü 13 Eki: sabitTL 180).
+// Elle sağlama: 180 + 620 × 71.043,60 / 137.645,99 = 500,00 ·
+// 180 + 620 × 237.399,73 / 137.645,99 = 1.249,32. (Saf oran — sabitTL 0 — 412,91 /
+// 1.379,77 verirdi; mutant M4 o geri dönüşü bu satırda KIRMIZI yakar.)
+esit("saksı ön-ayar fiyatı S/M/L (PLA/Siyah, tabaksız, kuruş)",
+     [sfy(saksiOA.S), sfy(saksiOA.M), sfy(saksiOA.L)], [50000, 80000, 124932]);
+// ZEMİN: en küçük meşru saksı 400,00 TL'nin altına inmez; çarpanlar zemine uygulanır.
+var saksiMin = saksiSet({ ust_cap: 60, alt_cap: 40, yukseklik: 50, duvar: 1.6, taban: 2,
+                          drenaj: "var", drenaj_capi: 6 });
+esit("saksı zemin seti geçerli + oran zeminin ALTINDA (test boş yeşil yanmasın)",
+     [KONF.dogrula(saksiSema, saksiMin).gecerli,
+      180 + 620 * KONF.hacimMm3(saksiSema, saksiMin, HACIM) / saksiSema.tabanHacimMm3 < 400],
+     [true, true]);
+esit("saksı ZEMİN: en küçük saksı = 400,00 TL (PLA) · 520,00 TL (PETG ×1,30)",
+     [sfy(saksiMin), sfy(saksiMin, "PETG")], [40000, 52000]);
+// ALT TABAK: sabit kademe eki, çarpan dışı, tavan sonrası.
+esit("saksı alt tabak eki S/M/L ön-ayarında +100 / +150 / +200 TL",
+     ["S", "M", "L"].map(function (k) {
+       var t = Object.assign({}, saksiOA[k], { tabak: "var" });
+       return sfy(t) - sfy(saksiOA[k]);
+     }), [10000, 15000, 20000]);
+esit("saksı tabak kademesi serbest ölçüde EN YAKIN boy (eşitlikte büyük)",
+     [40, 84, 85, 114, 115, 200].map(function (a) {
+       return SAKSI_ACIK.ekParcaKademesi(SAKSI_ACIK.aileFiyatKurali("saksi").ekParca,
+         { parametreler: { tabak: "var", alt_cap: a } }).boy;
+     }), ["S", "S", "M", "M", "L", "L"]);
+esit("saksı tabak eki malzeme çarpanı DIŞINDA (ASA/Diğer M + tabak = M×1,84 + 150)",
+     sfy(Object.assign({}, saksiOA.M, { tabak: "var" }), "ASA", "Diğer"),
+     Math.round(80000 * 1.6 * 1.15) + 15000);
+// TAVAN: 3× taban (2.400 TL) — en büyük saksı orantıda ~6.083 TL olurdu, KIRPILIR.
+var saksiMax = saksiSet({ ust_cap: 260, alt_cap: 200, yukseklik: 300, duvar: 4, taban: 5,
+                          drenaj: "yok", tabak: "var" });
+esit("saksı TAVAN: en büyük saksı 2.400 TL + tabak 200 TL (eki tavan dışı)",
+     [KONF.dogrula(saksiSema, saksiMax).gecerli, sfy(saksiMax)], [true, 260000]);
+// FAIL-CLOSED: bağlamsız çağrı / tanınmayan tabak değeri tutar ÜRETMEZ.
+esit("saksı bağlamsız çağrı null (ek parça kararı ölçüye bağlı)",
+     SAKSI_ACIK.parametrikFiyatKurus("saksi", 800, saksiSema.tabanHacimMm3, saksiM,
+                                     "PLA", "Siyah"), null);
+esit("saksı tanınmayan tabak değeri null",
+     sfy(saksiSet({ tabak: "belki" })), null);
+esit("saksı kuralı başka aileye SIZMAZ (kutu bağlamsız hâlâ 10800)",
+     SAKSI_ACIK.parametrikFiyatKurus("kutu", 100, 1000, 1080, "PLA", "Siyah"), 10800);
+
+// --- E. İSTEMCİ = SUNUCU (Worker shop/src/parametrik.js, aynı açılış kopyasıyla) ---
+import("file://" + path.resolve(PARAMETRIK_YOL)).then(function (PAR) {
+  var ayrisan = [], sayac = 0;
+  ["S", "M", "L"].forEach(function (k) {
+    ["yok", "var"].forEach(function (tb) {
+      ["PLA", "PETG", "ASA"].forEach(function (m) {
+        ["Siyah", "Diğer"].forEach(function (r) {
+          var d = Object.assign({}, saksiOA[k], { tabak: tb });
+          var istemci = sfy(d, m, r);
+          var sunucu = PAR.parametrikHesapla(
+            { id: saksiSema.id, malzeme: m, renk: r, parametreler: d }, SAKSI_ACIK, saksiSema);
+          sayac++;
+          if (!(istemci > 0) || sunucu.birimKurus !== istemci) {
+            ayrisan.push(k + "/" + tb + "/" + m + "/" + r + ": " + istemci + " ≠ " +
+                         JSON.stringify(sunucu.birimKurus));
+          }
+        });
+      });
+    });
+  });
+  esit("saksı istemci = sunucu (36 kombinasyon, ayrışma 0)", [sayac, ayrisan], [36, []]);
+  var red = PAR.parametrikHesapla({ id: saksiSema.id, malzeme: "PLA", renk: "Siyah",
+    parametreler: saksiSet({ ust_cap: 100, alt_cap: 120 }) }, SAKSI_ACIK, saksiSema);
+  esit("saksı sınır dışı ölçü sunucuda RED (sepet 400)", red.hata, "parametre-araligi");
+  var kapali = PAR.parametrikHesapla({ id: saksiSema.id, malzeme: "PLA", renk: "Siyah",
+    parametreler: saksiVd }, SECENEK, saksiSema);
+  esit("saksı GERÇEK durumda sunucu tutar üretmez (hacim-dogrulanmamis)",
+       kapali.hata, "hacim-dogrulanmamis");
+  process.exit(hata ? 1 : 0);
+}, function (e) {
+  console.log("  [HATA] parametrik.js yüklenemedi: " + e.message);
+  process.exit(1);
+});
