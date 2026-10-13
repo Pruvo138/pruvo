@@ -519,9 +519,10 @@
         tur: "plaket",
         kanit: "render",
         olcu_mm: 120,
-        onizleme: "https://media.pruvo3d.com/foto/ornek/plaket-1-onizleme.webp",
-        render: "https://media.pruvo3d.com/foto/ornek/plaket-1-render.webp",
-        not: "120 mm, 4 renk, ayağıyla"
+        // Okan 13 Eki 20:4x kararı: tür kartı görseli (kaynak pruvo-ozel/foto-uretim/tur-kart-kaynak-13eki/1.webp)
+        onizleme: "https://media.pruvo3d.com/foto/ornek/kart-plaket-1.webp",
+        render: "https://media.pruvo3d.com/foto/ornek/kart-plaket-1.webp",
+        not: "120 mm, ayağıyla"
       },
       
       
@@ -561,9 +562,10 @@
         // kopru-15 (8 Eki 2026): GERÇEK sağlayıcı önizlemesi (tools/saglayici-ornek.py); girdi SENTETİK çizim
         // (oyuncak kedi silueti) — kişi/marka/telifli görsel YOK. Önizleme = aynı render.
         // Alt tür pet (11 Eki): kedi örneği YALNIZ pet kartında; insan/model kartı kendi kaydını gösterir.
+        // Okan 13 Eki 20:4x kararı: tür kartı görseli (kaynak pruvo-ozel/foto-uretim/tur-kart-kaynak-13eki/5.png)
         alt: "pet",
-        onizleme: "https://media.pruvo3d.com/foto/ornek/figur-1-render.webp",
-        render: "https://media.pruvo3d.com/foto/ornek/figur-1-render.webp",
+        onizleme: "https://media.pruvo3d.com/foto/ornek/kart-pet-1.webp",
+        render: "https://media.pruvo3d.com/foto/ornek/kart-pet-1.webp",
         not: "130 mm, kaideli figür"
       },
       {
@@ -573,10 +575,11 @@
         // 105 = insan ürün tavanı (olcu_modelleri.insan.en_cok). Render ölçeksizdir (3MF bbox 130 mm); aynı geometri
         // 105 mm'de 0-kredi C provasında figur_zinciri DENGE=OK (106 RED) -> satılabilen ölçü yazılır, 130 YAZILMAZ.
         // Girdi SENTETİK çizim; gerçek kişi YOK (11 Eki render teslimi).
+        // Okan 13 Eki 20:4x kararı: tür kartı görseli (kaynak pruvo-ozel/foto-uretim/tur-kart-kaynak-13eki/3.jpg)
         olcu_mm: 105,
-        onizleme: "https://media.pruvo3d.com/foto/ornek/insan-onizleme.webp",
-        render: "https://media.pruvo3d.com/foto/ornek/insan-1-render.webp",
-        not: "105 mm, 4 renk, kaideli insan figürü"
+        onizleme: "https://media.pruvo3d.com/foto/ornek/kart-insan-1.webp",
+        render: "https://media.pruvo3d.com/foto/ornek/kart-insan-1.webp",
+        not: "105 mm, kaideli insan figürü"
       },
       {
         tur: "figur",
