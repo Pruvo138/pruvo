@@ -3365,6 +3365,122 @@ console.log("OE) OKAN ONAY E-POSTASI (acilis · 48/66 sa hatirlatma · 70 sa sur
      s.T5, JSON.stringify(ayrinti.T5));
   ol("T6 \"Nasıl olsun?\" notu govdede HTML KACISLI", s.T6, JSON.stringify(ayrinti.T6));
 }
+/**
+ * OB) OKAN BILDIRIM SINIFI (13 Eki — Okan Telegram KULLANMIYOR): EYLEM/GOZ Telegram satirlari ayni metinle Okan'a
+ * (YALNIZ BILDIRIM_EPOSTA) e-posta da gider (eposta.js okanaBildir). Temiz SQLite; sahte Resend.
+ *   B4 kredi havuzu KAPANDI -> "[PRUVO EYLEM]" e-postasi 1; ayni durum 2. tur 0 ek; ayni gun acilip tekrar kapanir
+ *      (salinim) -> Telegram 2. satir VAR, e-posta 0 ek (anahtar tekrari onler)
+ *   B5 elleDusur (onizleme-yok) -> EYLEM e-postasi 1, Telegram satiri AYNEN
+ *   B6 GOZ (panel siparis-onayla "OKAN ONAYLADI") -> "[PRUVO GÖZ]" e-postasi 1
+ *   B7 Resend 500 -> akis bozulmaz (asama 'elle'), dongu yok (olay basina TEK deneme, ek Telegram 0),
+ *      /yonet/foto-ozet `bildirim_son_hata` kaydi; epostaAkisi hatasi da ayni kayda (ikinci e-posta denemesi 0)
+ *   B8 onay-bekliyor olayi hala TEK e-posta (onay e-postasi 1, "[PRUVO" e-postasi 0); 70 sa sure-doldu "[PRUVO" 0
+ *   B9 butun bu e-postalarda musteri adresine 0
+ */
+async function okanBildirimSenaryolar(fm) {
+  const k = koprukur(); await k.hazir;
+  const e2 = envKur(k.d1, r2Kur(), OKAN_EPOSTA_ENV);
+  const em = await import(url.pathToFileURL(path.join(SHOP, "src", "eposta.js")).href);
+  const T0 = Date.parse("2026-10-13T08:00:00.000Z");
+  const iso = (t) => new Date(t).toISOString();
+  const tg = [];
+  const tgFn = async (_e, m) => { tg.push(m); };
+  const ep0 = P.eposta.length;
+  const ep = () => P.eposta.slice(ep0);
+  const okan = (onek, parca) => ep().filter((m) => m.kod < 300 && m.subject.startsWith(onek) && m.subject.includes(parca)).length;
+  const ayar = (a, d, t) => k.d1.prepare("INSERT INTO foto_ayar (anahtar, deger, guncel) VALUES (?, ?, ?)" +
+    " ON CONFLICT(anahtar) DO UPDATE SET deger = excluded.deger, guncel = excluded.guncel").bind(a, String(d), t).run();
+  const s = {}, a = {};
+
+  // B4 — havuz kapandi / ayni durum / ayni gun salinim
+  await ayar("bakiye", 0, T0); await fm.havuzHukmu(e2, T0, tgFn);
+  const b4a = okan("[PRUVO EYLEM]", "kredi havuzu");
+  await fm.havuzHukmu(e2, T0 + 1000, tgFn);
+  const b4b = okan("[PRUVO EYLEM]", "kredi havuzu");
+  await ayar("bakiye", 100000, T0 + 2000); await fm.havuzHukmu(e2, T0 + 2000, tgFn);
+  await ayar("bakiye", 0, T0 + 3000); await fm.havuzHukmu(e2, T0 + 3000, tgFn);
+  const b4c = okan("[PRUVO EYLEM]", "kredi havuzu"), b4tg = tg.filter((m) => m.includes("bölümü KAPANDI")).length;
+  a.B4 = { b4a, b4b, b4c, b4tg };
+  s.B4 = b4a === 1 && b4b === 1 && b4c === 1 && b4tg === 2;
+
+  // B5 — elleDusur (onizleme-yok): onay bekleyen satirin onizlemesi hazir degil
+  const satirEkle = async (no, is) => {
+    await k.d1.prepare("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama) VALUES (?, 'plaket', 100," +
+      " '0123456789abcdef', ?, 'onizleme')").bind(is, iso(Date.now())).run();
+    await k.d1.prepare("INSERT INTO foto_uretim (siparis_no, kalem, is_no, tur, olcu_mm, asama, tarih, guncel)" +
+      " VALUES (?, 0, ?, 'plaket', 100, 'onay-bekliyor', ?, ?)").bind(no, is, iso(Date.now()), iso(Date.now())).run();
+  };
+  await satirEkle("PR-OB-E", "e5".repeat(16));
+  const tg5 = tg.length;
+  await fm.fotoUretimTuru(e2, Date.now(), tgFn);
+  const e5 = await k.d1.prepare("SELECT asama, sebep FROM foto_uretim WHERE siparis_no = 'PR-OB-E'").first();
+  const b5 = okan("[PRUVO EYLEM]", "PR-OB-E/0"), b5tg = tg.slice(tg5).filter((m) => m.includes("ELLE BAKILACAK: PR-OB-E")).length;
+  const m5 = ep().find((m) => m.subject.includes("PR-OB-E/0")) || { html: "", to: [] };
+  a.B5 = { e5, b5, b5tg, konu: m5.subject };
+  s.B5 = !!e5 && e5.asama === "elle" && e5.sebep === "onizleme-yok" && b5 === 1 && b5tg === 1 &&
+    m5.html.includes("ELLE BAKILACAK: PR-OB-E kalem 0") && JSON.stringify(m5.to) === JSON.stringify([OKAN_EPOSTA]);
+
+  // B6 + B8 — odenen foto siparisi -> onay-bekliyor (onay e-postasi TEK) -> panel onayi (GOZ e-postasi 1)
+  const isG = "a6".repeat(16);
+  await k.d1.prepare("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, gorev, hazir_tarih)" +
+    " VALUES (?, 'plaket', 100, '0123456789abcdef', ?, 'hazir', 'gorev-ob', ?)").bind(isG, iso(Date.now()), iso(Date.now())).run();
+  await k.d1.prepare("INSERT INTO siparisler (siparis_no, tarih, durum, tutar_kurus, urunler, musteri_eposta)" +
+    " VALUES ('PR-OB-G', ?, 'odendi', 1, ?, 'musteri@ornek.test')").bind(iso(Date.now()), JSON.stringify([{ id: "ozel-foto-plaket",
+    foto_is: isG, foto_tur: "plaket", olcu_mm: 100, foto_renkler: ["Beyaz"], malzeme: "PLA", renk: "Beyaz" }])).run();
+  await fm.fotoUretimTuru(e2, Date.now(), tgFn); await fm.fotoUretimTuru(e2, Date.now(), tgFn);
+  const b8 = { onay: ep().filter((m) => m.subject.includes("PR-OB-G/0") && m.subject.includes("onayı bekliyor")).length,
+               pruvo: ep().filter((m) => m.subject.startsWith("[PRUVO") && m.subject.includes("PR-OB-G")).length,
+               tg: tg.filter((m) => m.includes("OKAN ONAYI BEKLİYOR: PR-OB-G")).length };
+  const y6 = await fm.panelSiparisOnayla(new Request("https://pruvo3d.com/x", { method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ siparis_no: "PR-OB-G", kalem: 0, okan_onay: true }) }), e2, Date.now(), tgFn);
+  const b6 = okan("[PRUVO GÖZ]", "PR-OB-G/0"), b6tg = tg.filter((m) => m.includes("OKAN ONAYLADI PR-OB-G/0")).length;
+  a.B6 = { kod: y6.status, b6, b6tg }; a.B8 = b8;
+  s.B6 = y6.status === 200 && b6 === 1 && b6tg === 1;
+  s.B8 = b8.onay === 1 && b8.pruvo === 0;
+
+  // B7 — Resend 500: akis bozulmaz, dongu yok, panel kaydi
+  await satirEkle("PR-OB-H", "b7".repeat(16));
+  const h0 = ep().length, tg7 = tg.length;
+  P.epostaKod = 500;
+  let firladi = "";
+  try { await fm.fotoUretimTuru(e2, Date.now(), tgFn); } catch (e) { firladi = String((e && e.message) || e); }
+  finally { P.epostaKod = 200; }
+  const h7 = await k.d1.prepare("SELECT asama, sebep FROM foto_uretim WHERE siparis_no = 'PR-OB-H'").first();
+  const deneme7 = ep().slice(h0).filter((m) => m.subject.includes("PR-OB-H")).length;
+  const tgEk7 = tg.slice(tg7).length;
+  const oz = await istek(e2, "/yonet/foto-ozet", { basliklar: YONET });
+  const bh = oz.v && oz.v.bildirim_son_hata;
+  P.epostaKod = 500;
+  const tgA = [], h1 = ep().length;
+  try { await em.epostaAkisi(e2, async (_e, m) => { tgA.push(m); }, "PR-OB-AKIS",
+    [{ kime: OKAN_EPOSTA, konu: "x", html: "<p>x</p>", etiket: "satici" }]); } catch (e) { firladi += " akis:" + e.message; }
+  finally { P.epostaKod = 200; }
+  const oz2 = await istek(e2, "/yonet/foto-ozet", { basliklar: YONET });
+  const bh2 = oz2.v && oz2.v.bildirim_son_hata;
+  a.B7 = { firladi, h7, deneme7, tgEk7, bh, akisDeneme: ep().slice(h1).length, tgA: tgA.length, bh2 };
+  s.B7 = !firladi && !!h7 && h7.asama === "elle" && deneme7 === 1 && tgEk7 === 1 &&
+    !!bh && /PR-OB-H/.test(bh.kaynak) && /resend-500/.test(bh.hata) &&
+    a.B7.akisDeneme === 1 && tgA.length === 1 && !!bh2 && /PR-OB-AKIS/.test(bh2.kaynak) && /resend-500/.test(bh2.hata);
+
+  // B9 — bu senaryodaki HICBIR e-posta musteri adresine gitmedi
+  const musteri = ep().filter((m) => JSON.stringify(m.to) !== JSON.stringify([OKAN_EPOSTA])).length;
+  a.B9 = { musteri, toplam: ep().length };
+  s.B9 = musteri === 0 && ep().length > 0;
+  k.kapat();
+  return { s, a };
+}
+console.log("OB) OKAN BILDIRIM SINIFI (EYLEM/GOZ Telegram -> Okan e-postasi; tekrar onleme; kanal hatasi panel kaydi)");
+{
+  const { s, a } = await okanBildirimSenaryolar(foto);
+  ol("OB-B4 kredi havuzu KAPANDI -> EYLEM e-postasi 1; ayni durum 2. tur 0 ek; ayni gun salinim 0 ek (Telegram 2)", s.B4, JSON.stringify(a.B4));
+  ol("OB-B5 elleDusur (onizleme-yok) -> EYLEM e-postasi 1 (alici BILDIRIM_EPOSTA), Telegram AYNEN", s.B5, JSON.stringify(a.B5));
+  ol("OB-B6 GOZ (panel siparis-onayla) -> \"[PRUVO GÖZ]\" e-postasi 1", s.B6, JSON.stringify(a.B6));
+  ol("OB-B7 Resend 500 -> akis bozulmaz, olay basina TEK deneme, ek Telegram 0; panel bildirim_son_hata (okanaBildir + epostaAkisi)",
+     s.B7, JSON.stringify(a.B7));
+  ol("OB-B8 onay-bekliyor olayi TEK e-posta (onay e-postasi 1, \"[PRUVO\" 0)", s.B8, JSON.stringify(a.B8));
+  ol("OB-B9 Okan bildirimlerinde musteri adresine e-posta 0", s.B9, JSON.stringify(a.B9));
+}
 const ONAY_EPOSTA_MUTANTLAR = [
   ["OE-M1 ACILIS E-POSTASI CAGRISI KALKTI", "const gitti = await okanEpostasi(env, acAnahtar, acildi, ac, simdi, telegram);",
    "const gitti = false;", ["T1", "T2", "T3", "T5", "T6"]],

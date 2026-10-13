@@ -53,7 +53,8 @@ import "../../foto-uretim-veri.js";
 // hem shop/src/ hem kopya dizininden ayni modulu bulur.
 import { turnstileHostKabul, onizlemeMi } from "../src/onizleme.js";
 // Okan onay bildirimi e-postasi (alici YALNIZ env.BILDIRIM_EPOSTA) — ayni "../src/" kurali.
-import { epostaGonder, onayBildirimiEpostasi } from "../src/eposta.js";
+import { epostaGonder, onayBildirimiEpostasi, okanaBildir, bildirimHatasiYaz,
+         BILDIRIM_HATA_ANAHTARI } from "../src/eposta.js";
 
 const VERI = globalThis.PRUVO_FOTO;
 if (!VERI) { throw new Error("foto-uretim-veri.js yuklenemedi — tur/ornek tek kaynagi yok"); }
@@ -962,10 +963,13 @@ export async function havuzHukmu(env, simdi, telegram) {
   const yeni = acik ? "acik" : "kapali";
   if (!once || once.deger !== yeni) {
     await ayarYaz(env, "havuz_durum", yeni, simdi);
-    if (!acik && typeof telegram === "function") {
-      await telegram(env, "📸 Fotoğraftan üretim bölümü KAPANDI — kredi havuzu eşikte" +
+    if (!acik) {
+      // EYLEM (Okan e-postasi da): esikte salinan havuz ayni gun tekrar kapanirsa e-posta TEKRARLANMAZ (gun anahtari).
+      await okanaBildir(env, telegram, "EYLEM", "Fotoğraftan üretim KAPANDI — kredi havuzu eşikte",
+        "📸 Fotoğraftan üretim bölümü KAPANDI — kredi havuzu eşikte" +
         " (bakiye: " + (bakiye == null ? "okunamadı" : bakiye) + ", gereken: " + gereken + ")." +
-        " Otomatik kredi alımı YOK; ek kredi alınınca bölüm kendiliğinden açılır.");
+        " Otomatik kredi alımı YOK; ek kredi alınınca bölüm kendiliğinden açılır.",
+        "havuz-kapandi:" + simdiIso(simdi).slice(0, 10));
     }
   }
   return { acik, bakiye, gereken };
@@ -1232,8 +1236,11 @@ async function onizlemeGonder(env, isNo, tur, olcu, ziyaretci, uri, simdi, teleg
     const sebep = c.kod === 400 ? "gorsel-uygun-degil" : (c.kod === 402 ? "kredi" : "saglayici");
     await env.KATALOG.prepare(
       "UPDATE foto_isler SET asama = 'basarisiz', hata = ? WHERE is_no = ?").bind(sebep, isNo).run();
-    if (c.kod === 402 && typeof telegram === "function") {
-      await telegram(env, "📸 Fotoğraftan üretim: önizleme kredisi YETMEDİ (sağlayıcı 402). Bölüm kredi gelene dek önizleme üretemez.");
+    if (c.kod === 402) {
+      // Kredi bitince her istek 402 alir: Okan e-postasi gunde TEK (anahtar), Telegram log AYNEN.
+      await okanaBildir(env, telegram, "EYLEM", "Önizleme kredisi YETMEDİ (sağlayıcı 402)",
+        "📸 Fotoğraftan üretim: önizleme kredisi YETMEDİ (sağlayıcı 402). Bölüm kredi gelene dek önizleme üretemez.",
+        "kredi-402:" + simdiIso(simdi).slice(0, 10));
     }
     return fjson({ hata: sebep === "gorsel-uygun-degil" ? "gorsel-uygun-degil" : "gecici-hata" },
                  sebep === "gorsel-uygun-degil" ? 422 : 503);
@@ -2080,9 +2087,16 @@ function analizOlcekli(analiz, olc) {
 
 async function elleDusur(env, u, sebep, ek, simdi, telegram) {
   const tasindi = await asamaYaz(env, u, "elle", { sebep: sebep, analiz: ek || u.analiz || "" }, simdi);
-  if (tasindi && typeof telegram === "function") {
-    await telegram(env, "📸 Fotoğraftan üretim — ELLE BAKILACAK: " + u.siparis_no + " kalem " + u.kalem +
-      " (" + u.tur + ", " + u.olcu_mm + " mm): " + (ELLE_METNI[sebep] || sebep));
+  if (tasindi) {
+    const metin = "📸 Fotoğraftan üretim — ELLE BAKILACAK: " + u.siparis_no + " kalem " + u.kalem +
+      " (" + u.tur + ", " + u.olcu_mm + " mm): " + (ELLE_METNI[sebep] || sebep);
+    if (sebep === "onizleme-suresi-doldu") {
+      // Bu alt sebebin Okan e-postasi sureDolduEpostalari'nda (onay e-postasi) gider: burada yalniz Telegram (cift YOK).
+      if (typeof telegram === "function") { await telegram(env, metin); }
+    } else {
+      await okanaBildir(env, telegram, "EYLEM", "Fotoğraftan üretim ELLE BAKILACAK — " + u.siparis_no + "/" + u.kalem,
+        metin, "elle:" + u.siparis_no + "/" + u.kalem + ":" + sebep);
+    }
   }
   return tasindi;
 }
@@ -2297,9 +2311,11 @@ async function uretimAdimi(env, u, simdi, telegram) {
     await env.OZEL_DOSYA.put(uretimAnahtari(u.siparis_no, u.kalem, "glb"), glb.tampon,
                              { httpMetadata: { contentType: "model/gltf-binary" } });
     const tasindi = await asamaYaz(env, u, "onarim-bekliyor", { analiz: ozet }, simdi);
-    if (tasindi && typeof telegram === "function") {
-      await telegram(env, "📸 Fotoğraftan üretim — 4 renkli dosya üretildi, yerel onarım kapısında: " +
-        u.siparis_no + " kalem " + u.kalem + " (" + u.tur + ", " + u.olcu_mm + " mm).");
+    if (tasindi) {
+      await okanaBildir(env, telegram, "GOZ", "Fotoğraftan üretim onarım kapısında — " + u.siparis_no + "/" + u.kalem,
+        "📸 Fotoğraftan üretim — 4 renkli dosya üretildi, yerel onarım kapısında: " +
+        u.siparis_no + " kalem " + u.kalem + " (" + u.tur + ", " + u.olcu_mm + " mm).",
+        "onarim-bekliyor:" + u.siparis_no + "/" + u.kalem);
     }
     return tasindi;
   }
@@ -2339,6 +2355,7 @@ async function okanEpostasi(env, anahtar, onceki, eposta, simdi, telegram) {
       return true;
     }
     console.error("OKAN_EPOSTA_HATA " + anahtar + " " + r.hata);
+    await bildirimHatasiYaz(env, "onay-eposta " + anahtar.slice(ONAY_EPOSTA_ONEK.length), r.hata);
     if ((!onceki || onceki.deger !== "hata") && typeof telegram === "function") {
       await telegram(env, "⚠️ PRUVO Okan e-postası gönderilemedi — " + anahtar.slice(ONAY_EPOSTA_ONEK.length) + ": " +
         r.hata + " (aşama etkilenmedi; sonraki cron turunda yeniden denenecek). Konu: " + eposta.konu);
@@ -2471,11 +2488,13 @@ async function onarimBayatNobeti(env, simdi, telegram) {
     "SELECT COUNT(*) AS n, MIN(guncel) AS en_eski FROM foto_uretim WHERE asama = 'onarim-bekliyor' AND guncel < ?"
   ).bind(saatOnce(simdi, ONARIM_BAYAT_SAAT)).first();
   const n = (r && r.n) || 0;
-  if (!n || typeof telegram !== "function") { return n; }
+  if (!n) { return n; }
   const son = await ayarOku(env, "onarim_bayat_bildirim");
   if (!son || simdi - son.guncel >= ONARIM_BAYAT_SAAT * 3600000) {
-    await telegram(env, "🔴 Fotoğraftan üretim — yerel onarım kapısı " + ONARIM_BAYAT_SAAT + " saati aştı: " + n +
-      " kalem 'onarim-bekliyor' (en eski " + r.en_eski + "). Mac'teki foto koşucusu çalışmıyor olabilir.");
+    await okanaBildir(env, telegram, "EYLEM", "Yerel onarım kapısı " + ONARIM_BAYAT_SAAT + " saati aştı",
+      "🔴 Fotoğraftan üretim — yerel onarım kapısı " + ONARIM_BAYAT_SAAT + " saati aştı: " + n +
+      " kalem 'onarim-bekliyor' (en eski " + r.en_eski + "). Mac'teki foto koşucusu çalışmıyor olabilir.",
+      "onarim-bayat:" + Math.floor(simdi / (ONARIM_BAYAT_SAAT * 3600000)));
     await ayarYaz(env, "onarim_bayat_bildirim", n, simdi);
   }
   return n;
@@ -2857,6 +2876,9 @@ export async function panelFotoOzet(env, simdi) {
     cikti.elle = (e.results || []).map((x) => ({ ...x, sebep: ELLE_METNI[x.sebep] || x.sebep }));
     const b = await ayarOku(env, "bakiye");
     cikti.bakiye = b ? { kredi: parseInt(b.deger, 10), guncel: b.guncel } : null;
+    // E-posta kanalinin SON hatasi (eposta.js bildirimHatasiYaz; Okan Telegram kullanmiyor -> panel okur).
+    const bh = await ayarOku(env, BILDIRIM_HATA_ANAHTARI);
+    try { cikti.bildirim_son_hata = bh ? JSON.parse(bh.deger) : null; } catch (e) { cikti.bildirim_son_hata = { ham: String(bh.deger).slice(0, 200) }; }
   } catch (e) {
     if (!tabloYok(e)) { throw e; }
     cikti.sema = false;
@@ -3028,10 +3050,9 @@ export async function panelOnayliUret(request, env, simdi, telegram) {
   if (a.hata) { return a.hata; }
   if (a.yeni) {
     console.log("FOTO_ONAYLI_URET is=" + is.is_no + " siparis_no=" + a.no + " onay=" + simdiIso(simdi));
-    if (typeof telegram === "function") {
-      await telegram(env, "📸 Fotoğraftan üretim — OKAN ONAYLI 3D zincir başlatıldı: " + a.no + " (" + is.tur + ", " +
-        is.olcu_mm + " mm), onay " + simdiIso(simdi));
-    }
+    await okanaBildir(env, telegram, "GOZ", "OKAN ONAYLI 3D zincir başlatıldı — " + a.no,
+      "📸 Fotoğraftan üretim — OKAN ONAYLI 3D zincir başlatıldı: " + a.no + " (" + is.tur + ", " +
+      is.olcu_mm + " mm), onay " + simdiIso(simdi), "onayli-uret:" + a.no);
   }
   return fjson({ ok: true, siparis_no: a.no, yeni: a.yeni }, 200);
 }
@@ -3064,10 +3085,9 @@ export async function panelSiparisOnayla(request, env, simdi, telegram) {
   }
   if (!(await asamaYaz(env, u, "build-baslat", {}, simdi))) { return fjson({ hata: "onay-beklemiyor" }, 409); }
   console.log("FOTO_SIPARIS_ONAY siparis_no=" + no + " kalem=" + u.kalem + " onay=" + simdiIso(simdi));
-  if (typeof telegram === "function") {
-    await telegram(env, "📸 Fotoğraftan üretim — OKAN ONAYLADI " + no + "/" + u.kalem + " (" + u.tur + ", " +
-      u.olcu_mm + " mm): 3D zincir sırada, onay " + simdiIso(simdi));
-  }
+  await okanaBildir(env, telegram, "GOZ", "OKAN ONAYLADI — " + no + "/" + u.kalem,
+    "📸 Fotoğraftan üretim — OKAN ONAYLADI " + no + "/" + u.kalem + " (" + u.tur + ", " +
+    u.olcu_mm + " mm): 3D zincir sırada, onay " + simdiIso(simdi), "onaylandi:" + no + "/" + u.kalem);
   return fjson({ ok: true, siparis_no: no, kalem: u.kalem, asama: "build-baslat" }, 200);
 }
 

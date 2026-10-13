@@ -40,7 +40,7 @@ import { yonet, gecmiseEkle } from "./yonet.js";
 // Siparis numarasi ureteci TEK KAYNAK (ortak modulde; 1 Agu 2026'da WhatsApp siparis ucu
 // icin ayrildi, uc 6 Eki 2026'da emekli — modul yine tek kaynak).
 import { yeniSiparisNo } from "./siparis-no.js";
-import { epostaAkisi, onayEpostasiHtml } from "./eposta.js";
+import { epostaAkisi, onayEpostasiHtml, okanaBildir } from "./eposta.js";
 import { olcumGonder, olcumLog } from "./olcum.js";
 import { biletUret, biletDogrula } from "./olcum-bilet.js";
 import { refKaydet, REF_KALIBI } from "./ref.js";
@@ -980,10 +980,13 @@ async function donus(request, env, ctx) {
     await env.KATALOG.prepare(
       "UPDATE siparisler SET durum = 'incele' WHERE token = ? AND durum = 'bekliyor'"
     ).bind(token).run();
-    ctx.waitUntil(telegram(env,
+    // Okan Telegram KULLANMIYOR (13 Eki): EYLEM sinifi -> ayni metin Okan'a e-posta da (okanaBildir).
+    ctx.waitUntil(okanaBildir(env, telegram, "EYLEM", "Ödeme durumu BİLİNMİYOR (iyzico retrieve hatası) — " +
+      siparis.siparis_no,
       "⚠️ PRUVO shop RETRIEVE HATASI — " + siparis.siparis_no +
       "\niyzico cevabi: " + (det ? (det.errorCode || "?") + " " + (det.errorMessage || "") : "yok") +
-      "\nOdeme durumu BILINMIYOR — siparis 'incele' durumunda, elle bak."));
+      "\nOdeme durumu BILINMIYOR — siparis 'incele' durumunda, elle bak.",
+      "retrieve-hatasi:" + siparis.siparis_no));
     return yonlendir(env, "hata", siparis.siparis_no);
   }
 
@@ -1006,12 +1009,13 @@ async function donus(request, env, ctx) {
     await env.KATALOG.prepare(
       "UPDATE siparisler SET durum = 'incele', iyzico_odeme_id = ? WHERE token = ? AND durum <> 'odendi'"
     ).bind(String(det.paymentId || ""), token).run();
-    ctx.waitUntil(telegram(env,
+    ctx.waitUntil(okanaBildir(env, telegram, "EYLEM", "Ödeme TUTARSIZLIĞI — " + siparis.siparis_no,
       "⚠️ PRUVO shop TUTARSIZLIK — " + siparis.siparis_no +
       "\niyzico paidPrice: " + det.paidPrice + " / bizim: " + kurusTL(beklenenTahsilat) +
       " (urun " + kurusTL(siparis.tutar_kurus) + " + kargo " + kurusTL(siparis.kargo_kurus || 0) + ")" +
       "\nconversationId: " + det.conversationId + "\nToken: " + token.slice(0, 12) + "…" +
-      "\nSiparis 'incele' durumunda, elle bak."));
+      "\nSiparis 'incele' durumunda, elle bak.",
+      "tutarsizlik:" + siparis.siparis_no));
     // Musteri iyzico'dan donerken TARAYICIDADIR: ham 409 JSON gostermek yerine siteye
     // yonlendir (retrieve-altyapi-hatasi kolu ile AYNI desen — ikisi de 'incele' durumu).
     return yonlendir(env, "hata", siparis.siparis_no);
@@ -1309,11 +1313,13 @@ export async function terkSupur(env, ctx, simdi) {
         " WHERE siparis_no = ? AND durum = ?"
       ).bind(String((h.det && h.det.paymentId) || ""), s.siparis_no, TERK_KAYNAK_DURUM).run();
       if (gu.meta && gu.meta.changes > 0) { sonuc.incele++; }
-      ctx.waitUntil(telegram(env,
+      // Ayni siparisin callback tutarsizligiyla AYNI anahtar: Okan'a tek e-posta.
+      ctx.waitUntil(okanaBildir(env, telegram, "EYLEM", "Terk süpürmesi TUTARSIZLIK — " + s.siparis_no,
         "⚠️ PRUVO shop TERK SUPURMESI — TUTARSIZLIK: " + s.siparis_no +
         "\niyzico paidPrice: " + (h.det && h.det.paidPrice) +
         " / bizim: " + kurusTL(s.tutar_kurus + (s.kargo_kurus || 0)) +
-        "\nOdeme VAR ama kayitla uyusmuyor — IPTAL EDILMEDI, 'incele' durumunda, elle bak."));
+        "\nOdeme VAR ama kayitla uyusmuyor — IPTAL EDILMEDI, 'incele' durumunda, elle bak.",
+        "tutarsizlik:" + s.siparis_no));
       continue;
     }
 

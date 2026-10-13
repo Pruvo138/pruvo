@@ -1074,6 +1074,70 @@ console.log("\n--- 12) (k) KAPALI KUME + TEK YUKLEM: tek kaynak ---");
     JSON.stringify(IYZ.IYZICO_KESIN_BASARISIZ));
 }
 
+// ================================================================ 13) (b) OKAN E-POSTASI (bildirim sinifi)
+//
+// Okan Telegram KULLANMIYOR (13 Eki 2026): EYLEM sinifi Telegram satirlari (retrieve hatasi, callback
+// tutarsizligi, terk supurmesi tutarsizligi) AYNI metinle Okan'a (YALNIZ BILDIRIM_EPOSTA) e-posta da
+// gider (eposta.js okanaBildir). Telegram satiri AYNEN durur; musteri adresine e-posta 0.
+
+console.log("\n--- 13) (b) OKAN E-POSTASI: EYLEM bildirimleri Telegram + Okan e-postasi ---");
+{
+  const OKAN = "okan-bildirim@ornek.invalid";
+  const EPOSTA_ENV = { RESEND_API_KEY: "uydurma-resend", RESEND_URL: "https://resend-mock.invalid",
+                       BILDIRIM_EPOSTA: OKAN };
+  const epostalar = (o) => o.cagrilar.filter((c) => c.url.indexOf("resend-mock") >= 0).map((c) => c.govde || {});
+  const tgMetin = (o) => o.cagrilar.filter((c) => c.url.indexOf("telegram-mock") >= 0).map((c) => (c.govde || {}).text || "");
+  async function donusEposta(no, det) {
+    const satirlar = [satirYap(no, "bekliyor", 1)];
+    const o = ortamKur(satirlar, () => det);
+    Object.assign(o.env, EPOSTA_ENV);
+    await MODUL.default.fetch(new Request("https://pruvo3d.invalid/api/shop/donus", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token: satirlar[0].token }) }), o.env, o.ctx);
+    await o.bitir();
+    return { satir: satirlar[0], o };
+  }
+  const tekOkan = (e, onek, parca) => e.length === 1 && JSON.stringify(e[0].to) === JSON.stringify([OKAN]) &&
+    String(e[0].subject).startsWith(onek) && String(e[0].html).indexOf(parca) >= 0;
+
+  // B1 — retrieve HATASI (altyapi-hatasi)
+  {
+    const no = "PR-TEST-OB-B1";
+    const { satir, o } = await donusEposta(no, DETAY.altyapiHatasi());
+    const e = epostalar(o);
+    ol("b", "B1 retrieve hatasi -> 'incele' + Okan e-postasi 1 (konu [PRUVO EYLEM], alici BILDIRIM_EPOSTA)",
+      satir.durum === "incele" && tekOkan(e, "[PRUVO EYLEM]", "RETRIEVE HATASI — " + no) &&
+      tgMetin(o).filter((t) => t.indexOf("RETRIEVE HATASI — " + no) >= 0).length === 1,
+      JSON.stringify({ durum: satir.durum, e: e.map((x) => [x.to, x.subject]), tg: tgMetin(o).length }));
+  }
+
+  // B2 — callback TUTARSIZLIK (uyusmazlik)
+  {
+    const no = "PR-TEST-OB-B2";
+    const { satir, o } = await donusEposta(no, DETAY.tutarsiz(no));
+    const e = epostalar(o);
+    ol("b", "B2 callback tutarsizligi -> 'incele' + Okan e-postasi 1 ([PRUVO EYLEM]), Telegram satiri AYNEN",
+      satir.durum === "incele" && tekOkan(e, "[PRUVO EYLEM]", "TUTARSIZLIK — " + no) &&
+      tgMetin(o).filter((t) => t.indexOf("PRUVO shop TUTARSIZLIK — " + no) >= 0).length === 1,
+      JSON.stringify({ durum: satir.durum, e: e.map((x) => [x.to, x.subject]) }));
+  }
+
+  // B3 — terk supurmesi TUTARSIZLIK
+  {
+    const no = "PR-TEST-OB-B3";
+    const satirlar = [satirYap(no, "bekliyor", 30)];
+    const o = ortamKur(satirlar, () => DETAY.tutarsiz(no));
+    Object.assign(o.env, EPOSTA_ENV);
+    const r = await MODUL.terkSupur(o.env, o.ctx, SIMDI);
+    await o.bitir();
+    const e = epostalar(o);
+    ol("b", "B3 terk supurmesi tutarsizligi -> 'incele' + Okan e-postasi 1 ([PRUVO EYLEM]), musteri adresine 0",
+      satirlar[0].durum === "incele" && r.incele === 1 && tekOkan(e, "[PRUVO EYLEM]", "TERK SUPURMESI — TUTARSIZLIK: " + no) &&
+      e.every((x) => JSON.stringify(x.to) !== JSON.stringify([satirlar[0].musteri_eposta])),
+      JSON.stringify({ durum: satirlar[0].durum, r, e: e.map((x) => [x.to, x.subject]) }));
+  }
+}
+
 // ================================================================ SONUC
 
 console.log("\n=== SONUC: " + gecen + " gecti / " + kalan + " kaldi ===");
