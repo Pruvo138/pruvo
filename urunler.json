@@ -1,5 +1,41 @@
 [
   {
+    "id": "evcil-kopek-tasmasi-kisa-tasma-klipsi-pr134980",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kısa Tasma Klipsi (Tasmayı İlmik Halinde Toplayan, 10 mm Kordon İçin)",
+    "aciklama": "Kısa köpek tasmasının fazla boyunu ilmek hâlinde toplayan, iki parçalı klips. Parçalar boncuk gibi birbirine geçer, tasmaya iki noktadan küçük kablo bağıyla bağlanır; kablo bağı dahil değildir. 10 mm (3/8 inç) çaplı kordon tasma için tasarlanmıştır. Fotoğraflarda klips tasmada ve bilgisayar çiziminde görülür.\nYaklaşık dış ölçüler: 26 × 11 × 9,5 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr134980-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr134980-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr134980-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr134980-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Snobound",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "evcil-kedi-mama-dagitici-yercekimli-vidali-paneller-pr1640252",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kedi Mama Dağıtıcı (Yerçekimiyle Çalışan, Vidalı Paneller, Ayarlanabilir)",
+    "aciklama": "Düz panellerden (üst, iki yan, alt ve ön) oluşan, elektriksiz ve yerçekimiyle çalışan kedi mama dağıtıcı. Paneller sekiz M4 cıvatayla birleştirilir; cıvatalar ve mama dahil değildir. Ön panelin konumu ayarlanabilir. Fotoğraflarda parçaların açık çizimi ve siyah renkli kurulu dağıtıcı görülür.\nYaklaşık dış ölçüler: 288 × 252 × 208 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1640252-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1640252-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Tom Smeets",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "evcil-kedi-yatagi-ayakli-kanepe-bicimli-pr1027803",
     "kategori": "Ev",
     "marka": [],
