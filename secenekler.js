@@ -1043,7 +1043,12 @@
     // Bu satır tek başına yetmez: ölçümün YEŞİL ve TAZE parite kaydı depoda durur ve
     // her koşumda doğrulanır (motor parmakizi / şema kısıt özeti / nokta eşiği / kova).
     // Kayıt bayatlar ya da kaybolursa satış kapısı bu aileyi KIRMIZI yakar.
-    rulman: 1.29
+    rulman: 1.29,
+    // saksi: 2026-10-13. (1) HACİM — üretim motoru render'ına karşı 17 set, en kötü
+    //      sapma %0,07 (çokgen katsayısı) → 0.07. (2) ÜRETİLEBİLİRLİK — rulmanla AYNI
+    //      dört-kova ölçümü (alt tabak seçiliyse tabak gövdesi de render edilir).
+    //      Kayıt rulmandaki gibi her koşumda doğrulanır.
+    saksi: 0.07
     // 🔴 ÇIKARILANLAR — hacim ekseni yeşil ama ŞEMA ARALIĞI üretilemez konfigürasyon
     // veriyor (yukarıdaki "ŞEMA ARALIĞI TARAMASI" bloğu). Şema onarılana kadar KAPALI:
     //   petek  — bölge `mod="kabartma"` tümü, %50,0 üretilemez, ölçüm 2026-08-03

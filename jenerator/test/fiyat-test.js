@@ -118,7 +118,7 @@ var TABAN_FIYATLAR = {
   "olcuye-ozel-cerceve": 200,
   // Olcuye ozel saksi/vazo (2026-10-13 — mimar karari KraL halef-27): taban = M boy
   // (140/100/120) 800 TL; ZEMIN 400 TL ayri (secenekler.js AILE_FIYAT_KURALI). Aile
-  // bugun KAPALI (hacim allowlist'inde yok: kisitli sema -> parite kaydi bekler).
+  // 2026-10-13'ten beri hacim allowlist'inde (saksi: 0.07; satis kapisi A3 parite kaydi).
   // Drift kilidi: sema sayisi 23 -> 24 lockstep.
   "olcuye-ozel-saksi-vazo": 800
 };
@@ -346,16 +346,17 @@ esit("varsayılanda fiyat = taban (PLA/Siyah, doğrulanmış aile)",
    ama ŞEMA ARALIĞI üretilemez kombinasyon veriyor — üretemediğimiz konfigürasyon
    satılabilir görünmez; şema onarılana kadar fail-closed).
    Yapısal kural + kapı: tools/onizleme-vaat-kapisi.py. */
-// 2026-10-13: `saksi` KAPALI olarak eklendi (hiç açılmadı): şemasında `kisitlar` var
-// (alt≤üst çap, yan eğim ≤40°) → satışa açılması için onizleme-vaat-kapisi A3 YEŞİL+TAZE
-// parite kaydı ister; kayıt üretim paketi (saksi_vazo.scad) yüklenmeden üretilemez.
-// Fiyat kuralı aşağıda "SAKSI" bölümünde AÇILIŞ SİMÜLASYONUYLA ölçülür.
-var KAPALI_AILELER = ["cetvel", "kase", "petek", "saksi", "vida"];
+// 2026-10-13: `saksi` önce KAPALI eklendi, aynı gün AÇILDI (kapalı 5 → 4, açık 19 → 20):
+// şemasında `kisitlar` var (alt≤üst çap, yan eğim ≤40°) → satış kapısı
+// onizleme-vaat-kapisi A3 YEŞİL+TAZE parite kaydı ister; kayıt rulmanla AYNI sürücüden
+// (rulman-uretilebilirlik-olcum.py --parite --aile saksi) üretildi.
+var KAPALI_AILELER = ["cetvel", "kase", "petek", "vida"];
 var ACIK_AILELER = ["adaptor", "braket", "cerceve", "disli", "huni", "izgara",
                     "jeton", "kasnak", "kavanoz", "kayis", "konektor", "kutu",
-                    "oring", "pervane", "profil", "rampa", "rulman", "toka", "yay"];
-esit("kapı sayacı: kapalı 5 / açık 19 (2026-10-13 saksı KAPALI eklendi)",
-     [KAPALI_AILELER.length, ACIK_AILELER.length], [5, 19]);
+                    "oring", "pervane", "profil", "rampa", "rulman", "saksi", "toka",
+                    "yay"];
+esit("kapı sayacı: kapalı 4 / açık 20 (2026-10-13 saksı AÇILDI)",
+     [KAPALI_AILELER.length, ACIK_AILELER.length], [4, 20]);
 
 // POZİTİF: kapı tutuyor — sapan/ölçülmemiş ailede tutar HİÇ üretilmez (0 TL DEĞİL, null).
 KAPALI_AILELER.forEach(function (aile) {
@@ -379,6 +380,11 @@ ACIK_AILELER.forEach(function (aile) {
     // Çapa ailesi: bağlamsız çağrı tutar ÜRETMEZ (güncellenmemiş çağrı yeri sessiz
     // yanlış fiyat değil, KAPALI KART üretir).
     esit("kapı NEGATİF: " + aile + " çapa ailesi — bağlamsız çağrı null",
+         SECENEK.parametrikFiyatKurus(aile, 100, 1000, 1080, "PLA", "Siyah"), null);
+  } else if ((SECENEK.aileFiyatKurali(aile) || {}).ekParca) {
+    // Ek parçalı aile (saksı tabağı): ek kararı ölçüye bağlı → bağlamsız çağrı null
+    // (FAIL-CLOSED). Bağlamlı fiyat aşağıdaki aile bölümünde ölçülür.
+    esit("kapı NEGATİF: " + aile + " ek parçalı aile — bağlamsız çağrı null",
          SECENEK.parametrikFiyatKurus(aile, 100, 1000, 1080, "PLA", "Siyah"), null);
   } else {
     esit("kapı NEGATİF: " + aile + " fiyatlanmaya devam eder",
@@ -477,7 +483,7 @@ esit("kapı kapsamı: açık liste secenekler.js ile birebir",
    Biçim: TEK sarı seri kaydı; S/M/L = konfigüratör HAZIR ÖN-AYARI (şema `onAyarlar`).
    Fiyat: temel = max(400 TL, 800 TL × hacim / M hacmi) × malzeme × renk, 3× taban tavanı;
    alt tabak = SABİT kademe eki (+100/+150/+200 TL, alt çapa en yakın boy, eşitlikte büyük).
-   Aile BUGÜN KAPALI (kisitli şema → parite kaydı bekler) — fiyat kuralı "AÇILIŞ
+   Aile 2026-10-13'te AÇILDI (eski not: "BUGÜN KAPALI") — fiyat kuralı "AÇILIŞ
    SİMÜLASYONU"nda ölçülür: secenekler.js'in TAZE bir kopyasında yalnız allowlist'e
    `saksi` eklenir; formül/kademe/tavan kodu CANLI dosyanın AYNISIDIR. Mutant sürücüsü:
    jenerator/test/saksi-fiyat-mutasyon.js (bu dosyayı mutant kopyalarla koşar). */
@@ -593,16 +599,16 @@ esit("saksı drenaj assert'i kutu içinde boş (en kötü köşe 10 < 16)",
      20 / 2 < 40 / 2 - 4, true);
 esit("saksı şemasında tam 2 kısıt (alt≤üst + eğim)", saksiSema.kisitlar.length, 2);
 
-// --- C. GERÇEK DURUM: aile KAPALI (allowlist'te yok) → TUTAR YOK ---
-esit("saksı hacim allowlist'inde DEĞİL (kapalı)",
-     SECENEK.hacimDogrulanmisMi(saksiSema.hacimFormulu), false);
-esit("saksı kapalıyken M fiyatı null (kart kapalı, WhatsApp kanalı)",
+// --- C. GERÇEK DURUM: aile AÇIK (allowlist'te, %0,07) → M fiyatı 800,00 TL ---
+esit("saksı hacim allowlist'inde (açık, beyan %0,07)",
+     [SECENEK.hacimDogrulanmisMi(saksiSema.hacimFormulu),
+      SECENEK.HACIM_DOGRULANMIS_AILELER.saksi], [true, 0.07]);
+esit("saksı GERÇEK durumda M fiyatı 800,00 TL (canlı secenekler.js)",
      KONF.fiyatKurus(saksiSema, saksiVd, "PLA", "Siyah", { secenek: SECENEK, hacim: HACIM }),
-     null);
+     80000);
 
-// --- D. AÇILIŞ SİMÜLASYONU: fiyat kuralının kendisi ---
+// --- D. FİYAT KURALI (gerçek dosyanın taze kopyası; mutant bataryası kopyayı değiştirir) ---
 var SAKSI_ACIK = secenekYukle();
-SAKSI_ACIK.HACIM_DOGRULANMIS_AILELER.saksi = 0;
 function sfy(d, m, r, sec) {
   return KONF.fiyatKurus(saksiSema, d, m || "PLA", r || "Siyah",
                          { secenek: sec || SAKSI_ACIK, hacim: HACIM });
@@ -677,10 +683,10 @@ import("file://" + path.resolve(PARAMETRIK_YOL)).then(function (PAR) {
   var red = PAR.parametrikHesapla({ id: saksiSema.id, malzeme: "PLA", renk: "Siyah",
     parametreler: saksiSet({ ust_cap: 100, alt_cap: 120 }) }, SAKSI_ACIK, saksiSema);
   esit("saksı sınır dışı ölçü sunucuda RED (sepet 400)", red.hata, "parametre-araligi");
-  var kapali = PAR.parametrikHesapla({ id: saksiSema.id, malzeme: "PLA", renk: "Siyah",
+  var gercek = PAR.parametrikHesapla({ id: saksiSema.id, malzeme: "PLA", renk: "Siyah",
     parametreler: saksiVd }, SECENEK, saksiSema);
-  esit("saksı GERÇEK durumda sunucu tutar üretmez (hacim-dogrulanmamis)",
-       kapali.hata, "hacim-dogrulanmamis");
+  esit("saksı GERÇEK durumda sunucu M = 800,00 TL (istemciyle aynı)",
+       [gercek.hata || null, gercek.birimKurus], [null, 80000]);
   process.exit(hata ? 1 : 0);
 }, function (e) {
   console.log("  [HATA] parametrik.js yüklenemedi: " + e.message);
