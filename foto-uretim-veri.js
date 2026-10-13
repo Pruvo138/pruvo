@@ -520,8 +520,8 @@
         kanit: "render",
         olcu_mm: 120,
         // Okan 13 Eki 20:4x kararı: tür kartı görseli (kaynak pruvo-ozel/foto-uretim/tur-kart-kaynak-13eki/1.webp)
-        onizleme: "https://media.pruvo3d.com/foto/ornek/kart-plaket-1.webp",
-        render: "https://media.pruvo3d.com/foto/ornek/kart-plaket-1.webp",
+        onizleme: "https://media.pruvo3d.com/foto/ornek/kart-plaket-2.webp",
+        render: "https://media.pruvo3d.com/foto/ornek/kart-plaket-2.webp",
         not: "120 mm, ayağıyla"
       },
       
@@ -577,8 +577,8 @@
         // Girdi SENTETİK çizim; gerçek kişi YOK (11 Eki render teslimi).
         // Okan 13 Eki 20:4x kararı: tür kartı görseli (kaynak pruvo-ozel/foto-uretim/tur-kart-kaynak-13eki/3.jpg)
         olcu_mm: 105,
-        onizleme: "https://media.pruvo3d.com/foto/ornek/kart-insan-1.webp",
-        render: "https://media.pruvo3d.com/foto/ornek/kart-insan-1.webp",
+        onizleme: "https://media.pruvo3d.com/foto/ornek/kart-insan-2.webp",
+        render: "https://media.pruvo3d.com/foto/ornek/kart-insan-2.webp",
         not: "105 mm, kaideli insan figürü"
       },
       {
