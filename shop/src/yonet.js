@@ -38,7 +38,7 @@ import { golgeRaporu } from "./konfigur-golge.js";
 import { panelUretimHaritasi, panelFotoKaydi, panelFotoDosya, panelFotoOzet,
          panelFotoAcik, panelOrnekOnizleme, panelOrnekDurum, panelOrnekGorsel,
          panelOrnekUret, panelOrnekListe, panelUretecGirdi, panelUretecYukle,
-         fotoUretimTuru } from "./foto.js";
+         panelOnayliUret, fotoUretimTuru } from "./foto.js";
 import { onizlemeMi } from "./onizleme.js";
 import {
   epostaAkisi, onayEpostasiHtml, kargoEpostasiHtml,
@@ -2084,6 +2084,9 @@ export async function yonet(request, env, url, ctx, altYol, telegram) {
   if (altYol === "/foto/ornek-gorsel" && m === "GET") { return panelOrnekGorsel(env, url); }
   if (altYol === "/foto/ornek-uret" && m === "POST") { return panelOrnekUret(request, env, Date.now(), telegram); }
   if (altYol === "/foto/ornekler" && m === "GET") { return panelOrnekListe(env); }
+  // OKAN ONAYLI URETIM (13 Eki, para): ornek OLMAYAN hazir onizlemenin 3D zinciri; `okan_onay: true` yoksa 403.
+  // Makine anahtari bu uca ACILMAZ (MAKINE_UCLARI disi) — yalniz panel anahtari.
+  if (altYol === "/foto/onayli-uret" && m === "POST") { return panelOnayliUret(request, env, Date.now(), telegram); }
   // ONIZLEME SURUMU cron'suzdur (versions upload cron tasimaz): uretim zincirini cron'un AYNI fonksiyonuyla
   // TEK TUR ilerletir (tools/foto-ornek-uc-uca.py --kredi-tavani). Canli surumde YOK (404) — orada cron kosar.
   if (altYol === "/foto/uretim-tik" && m === "POST" && onizlemeMi(env)) {
