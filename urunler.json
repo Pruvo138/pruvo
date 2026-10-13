@@ -1,5 +1,76 @@
 [
   {
+    "id": "ev-delikli-kupe-standi-arka-panelli-uc-sira-pr356648",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Küpe Standı (Arka Panelli, Üç Sıralı)",
+    "aciklama": "Dik bir arka panel ve üç yatay çubuktan oluşan çerçeve biçimli küpe standı. İki sürüm bulunur: çubukları yarıklı olan sarkaç küpeler için, delikli olan çivi (saplı) küpeler için uygundur. Görseller bilgisayar çizimidir; mavi stand iki sürümüyle görülür.\nYaklaşık dış ölçüler: 205 × 152 × 107 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr356648-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr356648-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "billyd",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ev-kucuk-kupe-standi-uc-bolmeli-tabanli-pr1167008",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Küçük Küpe Standı (Üç Bölmeli Tabanlı)",
+    "aciklama": "Tepesi dalgalı çerçeve biçimli küpe askısı, ona oturan üç bölmeli sığ taban. Çerçeveden sarkaç küpeler asılır, bölmelere yüzük ve küçük takılar konur. Küçük çekmecelere sığacak boydadır; iki renkli kullanım için çerçeve ve taban ayrı gelir. Fotoğraflarda turkuaz çerçeve ve bal rengi taban koyu zeminde takılarla dolu görülür.\nYaklaşık dış ölçüler: 80 × 70 × 35 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1167008-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1167008-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "tommes",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ev-moduler-altigen-kupe-standi-eklenebilir-altigenli-pr1655746",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Modüler Altıgen Küpe Standı (Eklenebilir Altıgenli)",
+    "aciklama": "Altıgen çerçevelerin tabandaki yuvalara geçirildiği modüler küpe standı. Altıgenlerin üst kenarındaki deliklerden küpe iğneleri geçirilir; küpe sayısı arttıkça yeni altıgen eklenebilir. Fotoğraflarda beyaz stand tepsi ve altıgenlerle, altıgenler ayrıca tek tek görülür.\nYaklaşık dış ölçüler: 134 × 94 × 32 mm (taban parçası).",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1655746-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1655746-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1655746-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1655746-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jason Pan",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ev-klipsli-kupe-standi-cekmece-boyunda-ayni-zamanda-tepsi-pr887841",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Klipsli Küpe Standı (Çekmece Boyunda, Aynı Zamanda Tepsi)",
+    "aciklama": "Dar yapılı, çekmeceye sığacak boyda küpe standı. Duvarlarındaki yarıklara klipsli küpeler takılır; uzun sarkaç küpeler için uygun değildir. Dik durabilen bileklik, broş gibi parçalar için tepsi olarak da kullanılır. Fotoğraflarda kırmızı stand ahşap masada boş ve küpeleriyle, ayrıca yakın planda görülür.\nYaklaşık dış ölçüler: 150 × 84 × 44 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr887841-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr887841-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr887841-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Tarz",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "dekor-yeni-yil-sac-bandi-yil-rakamli-kemerli-pr1075603",
     "kategori": "Dekorasyon",
     "marka": [],
