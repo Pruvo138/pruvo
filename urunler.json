@@ -1,5 +1,300 @@
 [
   {
+    "id": "tamirat-merdiven-tipi-kayis-ayar-tokasi-20-ve-25-mm-pr30496",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Merdiven Tipi Kayış Ayar Tokası (20 ve 25 mm Kayış İçin)",
+    "aciklama": "Kayış boyunu ayarlamak için merdiven tipi (ladderlock) toka. Kayış tokanın yuvalarından dolaştırılarak geçirilir ve gerildiğinde yerinde kalır. 20 mm ve 25 mm genişlikli kayışlar için iki ayrı ölçüde hazırdır. Çanta, bağlama ve ayarlanabilir bantlarda kullanılır. Fotoğraflarda kırmızı tokalar yan yana görülür.\nYaklaşık dış ölçüler: 20 mm modeli 39 × 27 × 9 mm; 25 mm modeli 39 × 32 × 9 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr30496-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr30496-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr30496-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Zenfunk",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "oyun-konsol-kumandasi-kayis-tutucusu-joycon-kayislari-icin-pr1319274",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Konsol Kumandası Kayış Tutucusu (JoyCon Kayışları İçin)",
+    "aciklama": "Switch 2 JoyCon kayışlarını kumandaya takılı değilken bir arada tutan küçük tutucu. Kayışlar iki yönde de takılır; kumandaya takar gibi kayışın kancalı ucu geçirilir ve kayışın diğer ucundan çekilerek ayrılır. Kenarları pahlıdır. Fotoğraflarda turuncu ve turkuaz kenarlı siyah kayışlar tutucuyla birlikte görülür.\nYaklaşık dış ölçüler: 103 × 13 × 9 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1319274-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1319274-2.jpg"
+    ]
+  },
+  {
+    "id": "ev-esnek-baglama-kayisi-tokali-uc-boy-380-420-650-mm-pr1135454",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Esnek Bağlama Kayışı (Tokalı, 380, 420 ve 650 mm)",
+    "aciklama": "Eşyaları ve parçaları sabitlemek için delikli, esnek bağlama kayışı. Kayışın ucundaki 18 mm genişlikli toka, delikli gövdenin istenen deliğine takılarak uzunluğu ayarlar. 380 mm, 420 mm ve 650 mm olmak üzere üç boyda hazırdır. Fotoğraflarda turuncu kayış masa ayağına bağlı ve düz serilmiş halde görülür.\nYaklaşık dış ölçüler: toka 34 × 27 × 16 mm; kayışlar 380, 420 ve 650 mm uzunluğundadır.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1135454-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1135454-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1135454-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1135454-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Hans Hiorth",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "tamirat-kose-sikistirma-kelepcesi-kayisli-gonye-birlesimler-icin-pr656179",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Köşe Sıkıştırma Kelepçesi (Kayışlı, Gönye Birleşimler İçin)",
+    "aciklama": "Gönye birleşimlerini ve dikdörtgen yapıştırma işlerini kayışla sıkıştırmak için köşe parçası. Açıklığı 26 mm olup 1 inç genişliğindeki kayışa uyar; iç köşesi yuvarlatıldığı için sıkıştırılan köşeye zarar vermez, temas yüzeyindeki yuvarlatmalar keskin kenar bırakmaz. Kullanılmadığında köşe parçaları üst üste istiflenir. Kayış delikleri kapalı ya da açık olabilir; açık sürüm kayışa istenen yerden klips gibi takılıp çıkarılır. Yumuşak koruyucu eklenti için raylı seçenekler de vardır. Kayış ürüne dahil değildir. Fotoğraflarda sarı köşeler kontrplak kutuda kayışla birlikte görülür.\nYaklaşık dış ölçüler: köşe parçası 64 × 64 × 30 mm; açık sürüm 74 × 64 × 30 mm; koruyucu eklenti 44 × 31 × 8 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr656179-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr656179-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr656179-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr656179-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "hFlash",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tamirat-sandalet-topuk-kayisi-dugmesi-8-ve-8-4-mm-capli-pr185943",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Sandalet Topuk Kayışı Düğmesi (Perçin Tipi, 8 ve 8,4 mm Çaplı)",
+    "aciklama": "Kopan sandalet topuk kayışı bağlantısının yerine kullanılan perçin tipi düğme. Dişi ve erkek parçası birlikte kullanılır; 8 mm ve 8,4 mm çaplı kayış pimleri için ayrı ölçüleri vardır. Fotoğraflarda siyah düğmeler sandaletin topuk kayışında ve çizim olarak görülür.\nYaklaşık dış ölçüler: dişi parça 15 × 15 × 6 mm; erkek parça 15 × 15 × 12 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr185943-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr185943-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr185943-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr185943-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "caesar_1111",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-konsol-kumandasi-kayisi-joycon-uyumlu-yapistirmali-pr344586",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Konsol Kumandası Kayışı (JoyCon Uyumlu, Yapıştırmalı)",
+    "aciklama": "JoyCon kumandalara takılan yedek kayış parçası; kordon yeri özgün kayışın bulunduğu noktaya taşınmıştır. Kenarlar düz pah yerine yuvarlatılmış, mandal tutucusu daha düzgün çalışacak şekilde kaydırılmıştır. Kumandaya takılırken iki kumandanın tuşları da aşağı bakmalıdır; böylece pimler rayla çakışmaz. Kordon ve yapıştırıcı ürüne dahil değildir. Fotoğraflarda siyah kayışlar beyaz kumandalarda ve tek başına görülür.\nYaklaşık dış ölçüler: 100 × 51 × 12 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr344586-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr344586-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr344586-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "FrostyTheClownMan (özgün tasarım: Po1nt)",
+      "tur": "BSD"
+    }
+  },
+  {
+    "id": "elektronik-kulaklik-sarj-standi-shokz-openrun-petek-desenli-pr1059690",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kulaklık Şarj Standı (Shokz OpenRun İçin, Petek Desenli)",
+    "aciklama": "Shokz OpenRun kulaklığını şarj kablosu bağlı halde dik tutan stand. Kulaklığın şarj ucu standdaki girintiye oturur, kulaklık petek desenli gövdeye asılır. Dolu yüzeyli ve petek delikli iki sürümü vardır; S803BK modeli içindir. Fotoğraflarda mavi stand kulaklıkla ve tek başına görülür.\nYaklaşık dış ölçüler: 142 × 101 × 54 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1059690-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1059690-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1059690-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1059690-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jakub Lattenberg",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "elektronik-usb-c-telefon-sarj-standi-dik-yuvali-pr216802",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "USB-C Telefon Şarj Standı (Dik Yuvalı)",
+    "aciklama": "USB-C şarj kablosunun ucunu yukarı bakacak şekilde tutan telefon şarj standı. Telefon yuvaya yaslanarak dik durur ve şarj olur. USB-C ucu yuvaya sıkı oturur; kabloyu sabitlemek için az miktarda sıcak silikon yapıştırıcı gerekebilir (ürüne dahil değildir). Masada kaymaması için altına kaydırmaz pedler yapıştırılması önerilir. Fotoğraflarda lacivert stand telefonla ve çizim olarak görülür.\nYaklaşık dış ölçüler: 123 × 94 × 81 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr216802-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr216802-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr216802-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JustIPrints (özgün tasarım: Metrohz)",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ofis-katlanir-tablet-standi-ayarlanabilir-aci-menteseli-pr376433",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Katlanır Tablet Standı (Ayarlanabilir Açılı, Menteşeli)",
+    "aciklama": "Tableti masada farklı açılarda tutan, katlanıp düzleşebilen tek parça stand. Menteşeleri parçanın içinde hazır gelir, ayrıca montaj gerekmez. Kullanılmadığında 14 mm kalınlığında düz bir plaka gibi kapanır; çantada ya da çekmecede yer kaplamaz. Görsellerde açık ve kapalı hali görülür.\nYaklaşık dış ölçüler: 155 × 110 × 14 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr376433-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr376433-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "vilerage (özgün tasarım: Gavitka)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ev-sirt-cantasi-aski-tutucusu-fazla-askiyi-sabitleyen-pr913715",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Sırt Çantası Askı Tutucusu (Fazla Askı Ucunu Sabitleyen)",
+    "aciklama": "Sırt çantası askısının uzun kalan ucunu çantanın yüzeyine yakın, sıkı ve güvenli tutan küçük bir tutucu. Askı yeterli boşlukla yerleşir ve kendiliğinden kaymaz; serbest uca çekilince tutucu askıyı bırakır. Kamp ve günlük çantalarda sallanan askı ucunu toplamak için kullanılır. Fotoğraflarda turuncu tutucu siyah çanta askısında görülür.\nYaklaşık dış ölçüler: 29 × 20 × 12 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr913715-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr913715-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr913715-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr913715-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "rumstone",
+      "tur": "GPL 3.0"
+    }
+  },
+  {
+    "id": "tamirat-gergi-kayisi-sarici-matkapla-calisan-pr563020",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Gergi Kayışı (Cırcır Kayış) Sarıcı (Matkapla veya El Kolu ile Çalışan)",
+    "aciklama": "Taşımada kullanılan gergi kayışlarını hızla sarıp toplamak için sarıcı. Uç parçası matkap mandrenine takılır, kayış gergi parçasından geçirilip sarılır; matkap geri çekilince sarılı kayış yerinde kalır. 10 mm ve 13 mm mandrenler için ayrı uç parçaları, düşmeyi önleyen duraklı yeni sürümleri ve matkap yerine kullanılabilen bir el kolu vardır. Fotoğraflarda turuncu kayış sarıcıyla birlikte görülür.\nYaklaşık dış ölçüler: gergi parçası 200 × 80 × 60 mm; el kolu 102 × 97 × 52 mm; uç parçaları 92 × 26 × 26 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr563020-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr563020-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr563020-3.jpg"
+    ]
+  },
+  {
+    "id": "kamera-sirt-cantasi-aski-kamera-tutucusu-gopro-tipi-pr225519",
+    "kategori": "Kamera",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Sırt Çantası Askısı Aksiyon Kamera Tutucusu (GoPro Tipi Bağlantılı)",
+    "aciklama": "Sırt çantasının omuz askısına geçirilen, üzerinde GoPro tipi üç dişli bağlantı bulunan aksiyon kamera tutucusu. Yürüyüş ve gezilerde göğüs hizasından ön görüntü almak için, büyük göğüs bağlantılarının yerine hafif bir seçenek olarak kullanılır. 70 mm ve 85 mm askı genişliklerine göre ayrı modeller vardır. Fotoğraflarda tutucu askıda kamerayla ve tek başına görülür.\nYaklaşık dış ölçüler: 70 mm askı modeli 90 × 66 × 31 mm; 85 mm askı modeli 105 × 80 × 31 mm; ilk model 90 × 60 × 31 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr225519-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr225519-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "shakeNbake08 (özgün tasarımlar: kacymartin, Nicrombious)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ev-canta-aski-toplama-klipsi-uc-genislik-18-24-35-mm-pr151677",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Çanta Askısı Toplama Klipsi (18, 24 ve 35 mm Askı Genişliği)",
+    "aciklama": "Çantadan sarkan askı uçlarını toplayıp düzenli tutan klips seti. 18 mm, 24 mm ve 35 mm genişliğindeki askılar için üç boy vardır. Askı ucu klipsin içinden geçirilir ve sıkıca tutulur. Sırt çantası, spor çanta ve kamera çantası askılarında kullanılır. Fotoğraflarda turuncu klipsler çanta askısında ve boy boy bir arada görülür.\nYaklaşık dış ölçüler: 18 mm modeli 24 × 11 × 10 mm; 24 mm modeli 30 × 13 × 11 mm; 35 mm modeli 43 × 14 × 12 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr151677-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr151677-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr151677-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr151677-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Rene",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tamirat-gergi-kayisi-sarma-makarasi-ve-saklama-kabi-pr1445052",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Gergi Kayışı Sarma Makarası ve Saklama Kabı (Elle veya Matkapla Çevrilen)",
+    "aciklama": "Cırcırlı gergi kayışlarını sarıp düzenli saklamak için petek delikli makara ve kap. Kayış makaraya sarılır, kapağı kapatılınca derli toplu bir silindire dönüşür. Çevirme sapı elle sıkıca kavranır; ayrıca matkap ya da lokma anahtarı ile çevirmeye de uygundur. Fotoğraflarda yeşil ve mavi kaplar turuncu kayışla birlikte görülür.\nYaklaşık dış ölçüler: gövde 99 × 99 × 50 mm; makara 72 × 57 × 57 mm; kapak 96 × 96 × 10 mm; çevirme sapı 47 × 20 × 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1445052-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1445052-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1445052-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1445052-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "S.C_designs",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tamirat-kayis-gergisi-ayar-tokasi-iki-sekilli-pr121221",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kayış Gergisi ve Ayar Tokası (Standart ve Yuvarlatılmış Köşeli)",
+    "aciklama": "Kayış ve bant uzunluğunu ayarlamak için çift yuvalı gergi tokası. Kayış yuvalardan geçirilerek ayarlanır ve sıkılaşınca yerinde tutulur. Standart ve köşeleri yuvarlatılmış 20 mm genişlikli iki şekli vardır. Çanta, kemer ve bağlama kayışlarında kullanılır. Fotoğraflarda kırmızı kayışta turuncu, mavi ve gri tokalar görülür.\nYaklaşık dış ölçüler: standart 34 × 26 × 5 mm; yuvarlatılmış 29 × 22 × 5 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr121221-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr121221-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr121221-3.jpg"
+    ]
+  },
+  {
+    "id": "bahce-bitki-baglama-bandi-esnek-iki-boy-80-ve-130-mm-pr30967",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Bitki Bağlama Bandı (Esnek, İki Boy)",
+    "aciklama": "Fide ve sebze gövdelerini çubuğa ya da ipe bağlamak için delikli esnek bant. Delikli yapısı sayesinde bant istenen uzunlukta bağlanır. Kısa (80 mm) ve uzun (130 mm) olmak üzere iki sürümü vardır. Domates ve benzeri tırmanan bitkilerde kullanılır. Fotoğraflarda turuncu bant bitki gövdesine bağlı görülür.\nYaklaşık dış ölçüler: uzun 130 × 16 mm; kısa 95 × 16 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr30967-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr30967-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr30967-3.jpg"
+    ]
+  },
+  {
+    "id": "ev-cirt-bant-kayis-tokasi-ayarlanabilir-pr543490",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Cırt Bant Kayış Tokası (Ayarlanabilir Kayış İçin)",
+    "aciklama": "Cırt bant ve düz kayış uçlarını birbirine bağlayan, sağlam yapılı kayış tokası. Kayış toka içinden geçirilip sıkılır. Çanta, bagaj kayışı ve ayarlanabilir bantlarda kullanılır. Fotoğraflarda yeşil ve şeffaf renkli tokalar siyah kayışta görülür.\nYaklaşık dış ölçüler: 61 × 51 × 5 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr543490-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr543490-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr543490-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr543490-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "slavik kopanov",
+      "tur": "GPL 2.0"
+    }
+  },
+  {
     "id": "bahce-bitki-destek-halkalari-ahsap-sis-cubuklariyla-uzun-bitki-destegi-pr312477",
     "kategori": "Bahçe",
     "marka": [],
