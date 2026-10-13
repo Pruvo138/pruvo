@@ -1,0 +1,30 @@
+{
+  "urunId": "olcuye-ozel-saksi-vazo",
+  "motor": "pruvo",
+  "scad": "saksi_vazo.scad",
+  "fonksiyon": "saksi",
+  "esleme": {
+    "ust_cap": "ust_cap",
+    "alt_cap": "alt_cap",
+    "yukseklik": "yukseklik",
+    "duvar": "duvar",
+    "taban": "taban",
+    "drenaj": "drenaj",
+    "drenaj_capi": "drenaj_capi",
+    "tabak_yuksekligi": "tabak_yuksekligi"
+  },
+  "deger_esleme": {
+    "drenaj": {
+      "var": 1,
+      "yok": 0
+    }
+  },
+  "sabit": {
+    "parca": "saksi"
+  },
+  "parcalar": {
+    "tabak": {
+      "parca": "tabak"
+    }
+  }
+}
