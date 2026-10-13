@@ -238,6 +238,23 @@ def vaka_c_kilit_baskasinda(kok):
     iddia("c3 blok eklenmis (once kilit aktifken yazamadi, sonra yazdi)",
           "KraLEkl-0099" in yeni, "blok YOK: yeni[:200]=%r" % yeni[:200])
 
+    # c4 — ZAMAN ASIMI GERCEK: tutucu 8 sn tutar, arac --bekle-sn 2 ile cagrilir
+    # -> ~2 sn'de rc=2 (fail-closed) + kutu DEGISMEZ. (Parametre okunmasaydi arac
+    # 8 sn bekleyip rc=0 donerdi -> bu iddia kirmizi.)
+    once_c4 = open(kutu, "rb").read()
+    tutucu2 = subprocess.Popen([sys.executable, tutucu_dosya])
+    time.sleep(0.5)
+    t0 = time.monotonic()
+    rc4, out4, err4 = arac_cagir(
+        [sys.executable, ARAC, "--kutu", kutu, "--dosya", blok_dosya, "--bekle-sn", "2"],
+        timeout=30)
+    sure4 = time.monotonic() - t0
+    tutucu2.wait(timeout=15)
+    iddia("c4 zaman asimi: --bekle-sn 2 -> rc=2 ve <6 sn",
+          rc4 == 2 and sure4 < 6.0, "rc=%d sure=%.2fs err=%r" % (rc4, sure4, err4))
+    iddia("c5 zaman asiminda kutu DEGISMEDI",
+          open(kutu, "rb").read() == once_c4, "kutu degisti")
+
 
 def vaka_d_blok_lok_bicim(kok):
     """(d) '## ' ile baslamayan blok → rc=2, kutu DEGISMEZ."""
@@ -274,8 +291,8 @@ def vaka_e_mutant_izole(kok):
         icerik = f.read().decode("utf-8")
     # flock cagrisini oldur: satir-aciklama + no-op
     icerik_mut = icerik.replace(
-        "fcntl.flock(fd.fileno(), fcntl.LOCK_EX)",
-        "pass  # MUTANT: flock kaldirildi",
+        "fcntl.flock(fd.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)\n            return fd, None",
+        "return fd, None  # MUTANT: flock kaldirildi",
     )
     if icerik_mut == icerik:
         iddia("e0 MUTANT enjekte EDILEMEDI (desen bulunamadi)", False,

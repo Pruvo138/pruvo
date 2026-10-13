@@ -59,12 +59,22 @@ def _kilit_al_blokeli(yol, zaman_asimi_sn=60):
         fd = open(yol, "a+")
     except OSError as e:
         return None, "kilit dosyasi acilamadi: %s -> %s" % (yol, e)
-    try:
-        fcntl.flock(fd.fileno(), fcntl.LOCK_EX)
-    except OSError as e:
-        fd.close()
-        return None, "kilit ALINAMADI (BLOK): %s -> %s" % (yol, e)
-    return fd, None
+    # Zaman asimi GERCEKTEN uygulanir: LOCK_NB ile dener, karsi taraf kilidi
+    # birakmazsa zaman_asimi_sn sonunda rc=2 (eskiden parametre okunmuyordu ->
+    # takilan tutucu araci sonsuza dek bloklardi; KraL halef-28 olctu, 13 Eki).
+    son = time.monotonic() + zaman_asimi_sn
+    while True:
+        try:
+            fcntl.flock(fd.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            return fd, None
+        except BlockingIOError:
+            if time.monotonic() >= son:
+                fd.close()
+                return None, "kilit ALINAMADI (zaman asimi %s sn): %s" % (zaman_asimi_sn, yol)
+            time.sleep(0.1)
+        except OSError as e:
+            fd.close()
+            return None, "kilit ALINAMADI (BLOK): %s -> %s" % (yol, e)
 
 
 def _kilit_birak(fd):
@@ -121,6 +131,8 @@ def main(argv):
     grup = ap.add_mutually_exclusive_group(required=True)
     grup.add_argument("--dosya", help="eklenecek blogun TAM YOLU")
     grup.add_argument("--metin", help="stdin icin - ; dogrudan metin olarak verilirse o")
+    ap.add_argument("--bekle-sn", type=float, default=60.0,
+                    help="kilit icin en cok bekleme (sn); asilirsa rc=2")
     args = ap.parse_args(argv)
 
     kutu_yolu = os.path.abspath(args.kutu)
@@ -144,7 +156,7 @@ def main(argv):
         return RC_KIRMIZI
 
     kilit_yolu = _kilit_yolu(kutu_yolu)
-    fd, khata = _kilit_al_blokeli(kilit_yolu)
+    fd, khata = _kilit_al_blokeli(kilit_yolu, args.bekle_sn)
     if fd is None:
         print("KUTU_EKLE=HATA sebep=%s" % khata, file=sys.stderr)
         return RC_KILIT
