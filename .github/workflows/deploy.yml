@@ -363,6 +363,7 @@ jobs:
       - name: "Serit derinlik olcumu (kalan kirmizi sayisi — yalniz kirmizi kosumda)"
         if: failure()
         continue-on-error: true
+        timeout-minutes: 10
         run: python3 tools/serit-derinlik.py --serit build
 
   # ══════════════════════════════════════════════════════════════════════════════
@@ -1047,6 +1048,7 @@ jobs:
       - name: "Serit derinlik olcumu (kalan kirmizi sayisi — yalniz kirmizi kosumda)"
         if: failure()
         continue-on-error: true
+        timeout-minutes: 10
         run: python3 tools/serit-derinlik.py --serit serit-a2
 
   serit-a3:
@@ -1764,6 +1766,7 @@ jobs:
       - name: "Serit derinlik olcumu (kalan kirmizi sayisi — yalniz kirmizi kosumda)"
         if: failure()
         continue-on-error: true
+        timeout-minutes: 10
         run: python3 tools/serit-derinlik.py --serit serit-a3
 
   serit-a4:
