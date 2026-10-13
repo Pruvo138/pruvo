@@ -1,5 +1,87 @@
 [
   {
+    "id": "banyo-bantla-takilan-kartuslu-tiras-bicagi-baslik-askisi-pr382164",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Çift Taraflı Bantla Takılan Kartuşlu Tıraş Bıçağı Başlık Askısı",
+    "aciklama": "Kartuşlu tıraş bıçağının başlığını yuvasına oturtup asan, çift taraflı bantla düz bir yüzeye yapıştırılan küçük askı. Belirli bir kartuşlu tıraş başlığı modeline göre ölçülmüştür; başka başlıklarda takılmadan önce uyum kontrol edilmelidir. Görselde siyah askı beyaz duvarda boş hâlde gösterilir.\nYaklaşık dış ölçüler: 42 × 18 × 10 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr382164-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Tarman33",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "banyo-kenara-gecirilen-tuvalet-fircasi-askisi-pr36587",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Tuvalet Fırçası Askısı (Kenara Geçirilen Kanca)",
+    "aciklama": "Tuvalet fırçasını sapından asmak için tuvaletin kenarına geçirilerek kullanılan sade kanca. Görselde mavi kanca gösterilir.\nYaklaşık dış ölçüler: 47 × 47 × 10 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr36587-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Tyler Bletsch",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "banyo-duz-plakali-dik-tiras-bicagi-askisi-pr927836",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Düz Plakalı Dik Tıraş Bıçağı Askısı (Başlık Klipsli)",
+    "aciklama": "Uzun ve düz bir plaka üzerinde tıraş bıçağını sapıyla birlikte dik tutan, üst uçtaki iki klipsle bıçak başlığını kavrayan duvar askısı. Fotoğraf ve görselde siyah plaka gösterilir.\nYaklaşık dış ölçüler: 162 × 56 × 15 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr927836-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr927836-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Arthur Gritzky",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "banyo-dus-cubuguna-klipsle-takilan-tiras-bicagi-askisi-pr255951",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Duş Çubuğuna Klipsle Takılan Tıraş Bıçağı Askısı (7,8 mm Çubuk İçin)",
+    "aciklama": "Duş rafındaki yaklaşık 7,8 mm çaplı bir çubuğa klipslenen, tıraş bıçağını sağlam tutan askı; bıçağın raftan düşmesini önlemek için tasarlanmıştır. Görselde mavi askı gösterilir.\nYaklaşık dış ölçüler: 47 × 36 × 21 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr255951-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Gary_BBGames",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "banyo-m12-disli-sap-icin-tuvalet-fircasi-basligi-adaptoru-pr107653",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Tuvalet Fırçası Başlığı İçin M12 Dişli Sap Adaptörü (İki Sürümlü)",
+    "aciklama": "Piyasada bulunan belirli bir yedek tuvalet fırçası başlığını M12 dişli bir sapa takmayı sağlayan adaptör; iki sürümü vardır. Belirli bir yedek başlık modeline göre ölçülmüştür; takılmadan önce diş ve boyut uyumu kontrol edilmelidir. Görsellerde beyaz fırça başlığı ve metal sap adaptörle birlikte gösterilir.\nYaklaşık dış ölçüler: 33 × 16 × 16 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr107653-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr107653-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Sam",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "banyo-dus-kapisi-cam-kenarina-gecen-tiras-bicagi-askisi-pr597803",
     "kategori": "Ev",
     "marka": [],
