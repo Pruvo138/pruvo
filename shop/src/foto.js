@@ -2426,11 +2426,12 @@ export async function panelFotoDosya(env, url) {
   }
   let k;
   if (no.startsWith(ORNEK_SIPARIS_ONEK)) {
-    // ORNEK uretimi siparissizdir: kalem uretim satirindan, yalniz ornek isaretli istan.
+    // ORNEK uretimi siparissizdir: kalem uretim satirindan, yalniz ornek isaretli istan YA DA onayli-uret
+    // satirindan (numara = ORNEK-<KENDI isinin ilk 12'si>; yalniz panel uclari bu numarayla satir acar).
     k = await env.KATALOG.prepare(
       "SELECT u.kalem, u.is_no, u.tur, u.olcu_mm, i.cesit FROM foto_uretim u JOIN foto_isler i ON i.is_no = u.is_no" +
-      " WHERE u.siparis_no = ? AND u.kalem = ? AND i.ziyaretci = ?"
-    ).bind(no, kalem, ORNEK_ZIYARETCI).first();
+      " WHERE u.siparis_no = ? AND u.kalem = ? AND (i.ziyaretci = ? OR substr(u.is_no, 1, 12) = ?)"
+    ).bind(no, kalem, ORNEK_ZIYARETCI, no.slice(ORNEK_SIPARIS_ONEK.length)).first();
   } else {
     const s = await env.KATALOG.prepare(
       "SELECT urunler FROM siparisler WHERE siparis_no = ?").bind(no).first();
@@ -2779,14 +2780,25 @@ export async function panelOrnekUret(request, env, simdi, telegram) {
   try { g = await request.json(); } catch (e) { return fjson({ hata: "gecersiz-istek" }, 400); }
   const is = await ornekIsGetir(env, g && g.is);
   if (!is) { return fjson({ hata: "bulunamadi" }, 404); }
-  if (is.asama !== "hazir" || !is.gorev) { return fjson({ hata: "onizleme-hazir-degil" }, 409); }
+  const a = await siparissizUretimeAl(env, is, simdi, telegram);
+  return a.hata || fjson({ ok: true, siparis_no: a.no, yeni: a.yeni }, 200);
+}
+
+/**
+ * Hazir onizlemeden SIPARISSIZ uretim satiri (siparis_no = ORNEK-<is ilk 12>, kalem 0, 'build-baslat') —
+ * panelOrnekUret ile panelOnayliUret'in ORTAK kapisi: onizleme hazir+gorev (409) · kurulum siniri (409) ·
+ * saglayici isi (400) · havuz (503). Build govdesi cron'da `input_task_id: is.gorev` (AYNI is).
+ * Donus: { hata: Response } | { no, yeni }.
+ */
+async function siparissizUretimeAl(env, is, simdi, telegram) {
+  if (is.asama !== "hazir" || !is.gorev) { return { hata: fjson({ hata: "onizleme-hazir-degil" }, 409) }; }
   if ((simdi - Date.parse(is.hazir_tarih)) / 3600000 > ONIZLEME_KURULUM_SINIRI_SAAT) {
-    return fjson({ hata: "onizleme-suresi-doldu" }, 409);
+    return { hata: fjson({ hata: "onizleme-suresi-doldu" }, 409) };
   }
-  if (!saglayiciIsi(is)) { return fjson({ hata: "gecersiz-tur" }, 400); }
+  if (!saglayiciIsi(is)) { return { hata: fjson({ hata: "gecersiz-tur" }, 400) }; }
   const havuz = await havuzHukmu(env, simdi, telegram);
   if (!havuz.acik) {
-    return fjson({ hata: "havuz-esikte", bakiye: havuz.bakiye, gereken: havuz.gereken }, 503);
+    return { hata: fjson({ hata: "havuz-esikte", bakiye: havuz.bakiye, gereken: havuz.gereken }, 503) };
   }
   const no = ornekSiparisNo(is.is_no);
   const r = await env.KATALOG.prepare(
@@ -2794,7 +2806,34 @@ export async function panelOrnekUret(request, env, simdi, telegram) {
     "INSERT OR IGNORE INTO foto_uretim (siparis_no, kalem, is_no, tur, olcu_mm, asama, tarih, guncel, renk_sayisi)" +
     " VALUES (?, 0, ?, ?, ?, 'build-baslat', ?, ?, ?)"
   ).bind(no, is.is_no, is.tur, is.olcu_mm, simdiIso(simdi), simdiIso(simdi), VERI.renkTavani(is.tur) || 4).run();
-  return fjson({ ok: true, siparis_no: no, yeni: !!(r && r.meta && r.meta.changes === 1) }, 200);
+  return { no, yeni: !!(r && r.meta && r.meta.changes === 1) };
+}
+
+/**
+ * POST /yonet/foto/onayli-uret {is, okan_onay: true} — ORNEK OLMAYAN hazir onizleme isinin 3D zinciri
+ * (Okan karari 13 Eki: sağlayıcı kredisi = para; 3D build yalniz Okan onayiyla). `okan_onay` TAM OLARAK
+ * boolean true degilse 403 ve D1/saglayiciya HICBIR istek gitmez. Gecerse ornek-uret ile AYNI siparissiz
+ * satir: cron zinciri AYNEN yurur, siparisler'e satir ACILMAZ (e-posta/kargo/musteri bildirimi yok).
+ * Onay kaydi: semada sutun yok (sema DEGISMEZ) -> Telegram + log satiri.
+ */
+export async function panelOnayliUret(request, env, simdi, telegram) {
+  let g;
+  try { g = await request.json(); } catch (e) { return fjson({ hata: "gecersiz-istek" }, 400); }
+  if (!g || g.okan_onay !== true) { return fjson({ hata: "okan-onayi-yok" }, 403); }
+  const y = ornekYapilandirma(env);
+  if (!y.hazir) { return fjson({ hata: "kapali", eksik: y.eksik }, 503); }
+  const is = IS_KALIBI.test(g.is || "") ? await isGetirYoksaNull(env, g.is) : null;
+  if (!is) { return fjson({ hata: "bulunamadi" }, 404); }
+  const a = await siparissizUretimeAl(env, is, simdi, telegram);
+  if (a.hata) { return a.hata; }
+  if (a.yeni) {
+    console.log("FOTO_ONAYLI_URET is=" + is.is_no + " siparis_no=" + a.no + " onay=" + simdiIso(simdi));
+    if (typeof telegram === "function") {
+      await telegram(env, "📸 Fotoğraftan üretim — OKAN ONAYLI 3D zincir başlatıldı: " + a.no + " (" + is.tur + ", " +
+        is.olcu_mm + " mm), onay " + simdiIso(simdi));
+    }
+  }
+  return fjson({ ok: true, siparis_no: a.no, yeni: a.yeni }, 200);
 }
 
 /** GET /yonet/foto/ornekler — "Örnek üretimler": ornek onizlemeleri + uretim asamasi + dosyalar. */
