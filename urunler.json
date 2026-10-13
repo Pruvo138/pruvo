@@ -1,5 +1,59 @@
 [
   {
+    "id": "bahce-sisili-damla-sulama-kazigi-uc-boy-pr893500",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Şişeli Damla Sulama Kazığı (0,5, 1–1,5 ve 2 Litrelik Şişeler İçin Üç Boy)",
+    "aciklama": "Plastik içecek şişesini ters çevirip toprağa saplayarak saksıya ve çiçek tarhına damla damla su veren sulama kazığı. Üç boyu vardır: kısa olanı 0,5 litrelik, standart olanı 1 ve 1,5 litrelik, uzun olanı 2 litrelik şişeler içindir. Su akışı vidalı cıvatayla ayarlanır; pamuk filtre koymak için ortada boşluk bırakılmıştır. 1,5 litrelik şişeyle 4 güne kadar sulama sağlar. Şişe ürüne dahil değildir. Fotoğraflarda kazık ters şişeyle ve toplu hâlde görülür.\nKısa 124,5 × 64 × 35 mm, standart 169,5 × 64 × 35 mm, uzun 204,5 × 64 × 35 mm, cıvata 29 × 26 × 24 mm'dir.\nYaklaşık dış ölçüler: 205 × 64 × 35 mm (uzun boy).",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr893500-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr893500-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr893500-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "XYZ.Thought",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ev-icecek-kutusu-kapagi-kayar-kapakli-pr928800",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "İçecek Kutusu Kapağı (Böcek Önleyici, Kayar Kapaklı, 12 Onsluk Kutulara Çıtlayan)",
+    "aciklama": "Açık içecek kutusunun ağzına çıtlayarak oturan, kayar kapağıyla içerken açılıp kapanan kapak; böcek ve toz girişini önler. 12 onsluk (355 ml) teneke kutulara uyar; dar ağızlı kutular için ayrı sürümü, isimli ve yazısız kapak seçenekleri ile deliklerin oturma payını denemek için küçük bir deneme parçası bulunur. Fotoğraflarda renkli kapaklar yan yana ve kapağın kesiti yakından görülür.\nKapak 58,4 × 49,8 × 9,8 mm, kayar kapak 48,8 × 42,3 × 8,5 mm'dir.\nYaklaşık dış ölçüler: 58 × 50 × 10 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr928800-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr928800-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "EcoDad",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "bahce-surgulu-bahce-kapisi-kilidi-alti-boy-pr934602",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Sürgülü Bahçe Kapısı Kilidi (Açık Konumda Sabitlenen, 50–100 mm Altı Boy)",
+    "aciklama": "Bahçe kapısına, ambar kapağına ya da dolap kapısına vidalanan sürgülü kilit. Sürgü kolu kilit açıkken çentiğe oturup açık konumda sabit kalır, böylece kilit her yönde monte edilebilir. Tutamak dişlidir, yapıştırıcı gerektirmez. 50–100 mm arası altı boy seçeneği vardır; altı ve dört vida delikli gövde ile iki vidalı karşılık plakası verilir. Tüm deliklerin kullanılması için 10 vida gerekir; vidalar ürüne dahil değildir. Fotoğraflarda beyaz kilit ahşap kapıda ve parçaları ayrı olarak görülür.\nVarsayılan boyda gövde 65 × 54 × 27 mm, sürgü 80 × 16 × 16 mm, tutamak 36,8 × 20 × 20 mm, karşılık plakası 54 × 27 × 25 mm'dir.\nYaklaşık dış ölçüler: 65 × 54 × 27 mm (gövde).",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr934602-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr934602-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr934602-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr934602-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "moWerk (özgün: Jerry Lee)",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "ofis-masa-alti-kilitli-kablo-klipsi-uc-boy-pr359285",
     "kategori": "Ofis",
     "marka": [],
