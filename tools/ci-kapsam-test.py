@@ -3045,6 +3045,16 @@ IZIN_LISTESI = {
         "BIREBIR gorulur). MUAFIYETIN OLUM SARTI: `~/.claude/cron` bir gun "
         "depoya/CI'ya tasinirsa bu satir SILINIR ve kapi serit-b'ye baglanir."
     ),
+    # 13 EKI 2026 — ISCI URUN KAPISI (guvenlik-isci-urun-kapisi)
+    "tools/isci-urun-kapisi.py": (
+        "KABUL TESTI DEGIL — `~/.claude/cron/isci.sh`'in kurulu kopyasini cagirdigi "
+        "CLI yardimcisi (`basla`/`bitis`: spec `URUN_YOLU=` glob'unda kosumda olusmus "
+        "urun yoksa HAL=BOS rc=1). Argumansiz kosumu rc=2 kullanim metnidir, iddiasi "
+        "yoktur. DOLAYLI KOSULUR: `tools/isci-urun-kapisi-test.py` (nobet.yml serit-b) "
+        "bu dosyanin KENDISINI subprocess ile kosar — V1-V5 + mutant M1 (BOS kolu yok "
+        "-> V1 KIRMIZI) / M2 (mtime sarti yok -> V3 KIRMIZI). Dogrudan cagri satiri "
+        "anlamsiz: girdisi (spec + ev + baslangic zamani) isci.sh kosumudur."
+    ),
     # 10 EKI 2026 — CLAUDE-API MOTORU (tarif-rutin-api §1)
     "tools/claude-api-motor-test.py": (
         "OLCTUGU GOVDE CI KOSUCUSUNDA YOK: `~/.claude/cron/isci.sh` + "
