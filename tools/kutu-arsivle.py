@@ -1986,6 +1986,22 @@ ETIKET_DUSTU_ISARETI = "KORUMA-DUSTU"
 ETIKET_OLUMSUZ_DESENI = re.compile(
     r"KORUMALI\s*(?:\)|,|;|:|-|—|/)?\s*(?:\w+\s+){0,2}?DEGIL", re.UNICODE)
 
+# ── ETIKET KAPANDI = OLCULEN ZAMANLA KORUMA DUSTU (BaBa 13 Eki 13:5x) ───────────────
+# 🔴 HUKUM (BaBa 13 Eki 13:5x): KORUMALI kapanisinin olculmus zamani varsa koruma
+#   DUSMUS sayilir. KORUMALI KAPANDI etiketi + tarih/saat tasirsa blok rotasyona ACILIR.
+#   KORUMALI tek basina (tarihsiz KAPANDI) HALA KORUR (olcum yoksa kapali sayilamaz).
+# 🔴 Eşlesme biçimi: `KORUMALI` + ayrac (`·` U+00B7, `-`, `—` em-dash, `,`,
+#   bosluk) + `KAPANDI` + bosluk + en az bir rakam. Eslesme YALNIZ baslik satirinda
+#   yapilir (govde anmasi veto KALDIRMAZ — K329 konum olcutu ile AYNI).
+# 🔴 TURKCE-GUVENLI: baslik oncelikle `_tr_normalize` ile katlanir; bu sayede
+#   olasi ileride farkli yazimlar (buyuk kucuk harf, Turkce harf) ayni desene
+#   gelir ve kol tek bir yazima baglanmaz.
+# 🔴 NON-GROWTH (KORUMA-DUSTU ve OLUMSUZ ile ayni sinif): daraltma YALNIZ tarihli
+#   KAPANDI ilanina uygulanir. Tarihsiz `KORUMALI · KAPANDI` (rakam yok) HALA veto
+#   uretir — olcumu olmayan kapanis tarihi, "bilmiyorsam birakmam" yonu.
+ETIKET_KAPANDI_DESENI = re.compile(
+    r"KORUMALI[\s·,\-—]+KAPANDI\s+\d", re.UNICODE)
+
 _TR_KATLAMA = {
     "İ": "I", "ı": "I", "i": "I", "I": "I",
     "Ğ": "G", "ğ": "G", "Ş": "S", "ş": "S",
@@ -2008,8 +2024,17 @@ def etiket_olumsuzlandi_mi(baslik):
     return bool(ETIKET_OLUMSUZ_DESENI.search(_tr_normalize(baslik)))
 
 
+def etiket_kapandi_mi(baslik):
+    """BASLIKTA `KORUMALI [sep] KAPANDI [bosluk] <tarih/saat>` ilani var mi?
+
+    Tarihsiz `KORUMALI · KAPANDI` (rakam yok) ilan DEGILDIR — olcumu olmayan
+    kapanis tarihi, kapali sayilamaz. Aracin kabul testi BU FARKI olcer.
+    """
+    return bool(ETIKET_KAPANDI_DESENI.search(_tr_normalize(baslik)))
+
+
 def korumali_etiketli_bloklar(satirlar, baslar):
-    """([(blok_idx, satir_no, baslik_ozeti)], govde_anmasi, dustu, olumsuz) — TEK KAYNAK.
+    """([(blok_idx, satir_no, baslik_ozeti)], govde_anmasi, dustu, olumsuz, kapandi) — TEK KAYNAK.
 
     BASLIGINDA `KORUMALI` gecen bloklar veto uretir. Etiket blogun ICINDE gecip
     BASLIKTA gecmiyorsa veto URETMEZ; sessizce yutulmaz, SAYILIR ve basilir.
@@ -2017,11 +2042,15 @@ def korumali_etiketli_bloklar(satirlar, baslar):
     ACILIR ve `dustu` sayacina yazilir (bkz. ETIKET_DUSTU_ISARETI).
     BASLIKTA `KORUMALI ... DEGIL` OLUMSUZLAMASI varsa etiket HIC KONMAMIS sayilir:
     blok rotasyona ACILIR ve `olumsuz` sayacina yazilir (bkz. ETIKET_OLUMSUZ_DESENI).
+    BASLIKTA `KORUMALI [sep] KAPANDI <tarih/saat>` ILANI varsa olculmus kapanis
+    sayilir: blok rotasyona ACILIR ve `kapandi` sayacina yazilir
+    (bkz. ETIKET_KAPANDI_DESENI · BaBa 13 Eki 13:5x).
     """
     bulgu = []
     govde_anmasi = 0
     dustu = []
     olumsuz = []
+    kapandi = []
     for i, (bas, son) in enumerate(blok_araliklari(satirlar, baslar)):
         baslik = satirlar[bas] if bas < len(satirlar) else ""
         if ETIKET_DUSTU_ISARETI in baslik:
@@ -2036,10 +2065,16 @@ def korumali_etiketli_bloklar(satirlar, baslar):
             if etiket_olumsuzlandi_mi(baslik):
                 olumsuz.append((i, bas + 1, baslik.strip()[:90]))
                 continue
+            # 🟢 (BaBa 13 Eki 13:5x) OLCULEN KAPANIS: KORUMALI [sep] KAPANDI <tarih>
+            # yazili basliklar rotasyona ACILIR. Tarihsiz `KORUMALI KAPANDI` rakamsiz
+            # kaldigi icin bu kapidan GECMEZ (veto KALIR).
+            if etiket_kapandi_mi(baslik):
+                kapandi.append((i, bas + 1, baslik.strip()[:90]))
+                continue
             bulgu.append((i, bas + 1, baslik.strip()[:90]))
         elif KORUMALI_ETIKET in "".join(satirlar[bas:son]):
             govde_anmasi += 1
-    return bulgu, govde_anmasi, dustu, olumsuz
+    return bulgu, govde_anmasi, dustu, olumsuz, kapandi
 
 
 # ── KORUMA OMRU (BaBa 8 Eki 00:5x — kutu kilidi, tikayici sinifi / Okan 11 Eyl) ────────
@@ -2187,6 +2222,7 @@ class Plan(object):
         self.korumali_etiket_govde = 0     # etiket govdede gecti, BASLIKTA degil
         self.korumali_etiket_dustu = []    # baslikta `KORUMA-DUSTU` ILANI var (madde 3a)
         self.korumali_etiket_olumsuz = []  # baslikta `KORUMALI ... DEGIL` olumsuzlamasi
+        self.korumali_etiket_kapandi = []  # baslikta `KORUMALI [sep] KAPANDI <tarih>` ILANI (BaBa 13 Eki)
         self.etiket_kilitledi = 0
         self.kapanan_adlar = set()         # denetim kolunun (D17) okudugu TABAN
         # ARSIV DUZLEMI (K360-B) — K329'dan AYRI KOVA, AYRI SAYI
@@ -2255,7 +2291,8 @@ def planla(kutu_metin, tavan, koru, arsiv_kayitlari=None, simdi=None):
     # 🔴 KORUMALI ETIKETI (BaBa (2)) — BASLIKTA gecen `KORUMALI` blogu TASINMAZ.
     (p.korumali_etiket, p.korumali_etiket_govde,
      p.korumali_etiket_dustu,
-     p.korumali_etiket_olumsuz) = korumali_etiketli_bloklar(satirlar, baslar)
+     p.korumali_etiket_olumsuz,
+     p.korumali_etiket_kapandi) = korumali_etiketli_bloklar(satirlar, baslar)
     etiket_idx = [b for b, _s, _o in p.korumali_etiket]
     p.etiket_kilitledi = len([b for b in etiket_idx if b >= koru])
 
@@ -3373,6 +3410,15 @@ def main(argv=None):
                   "ACIKCA OLUMSUZLUYOR (\"... DEGIL\"), veto URETMEZ, blok ROTASYONA "
                   "ACIK | %s" % (blok_idx + 1, p.blok_toplam, satir_no,
                                  KORUMALI_ETIKET, ozet))
+        # 🟢 (BaBa 13 Eki 13:5x) OLCULEN KAPANISLA DUSEN KORUMA SESSIZ OLAMAZ:
+        # ADIYLA basilir (sessiz daraltma, kapiyi yalanci yapmanin en kisa yoludur).
+        print("ETIKET_KAPANDI=%d desen=`KORUMALI [sep] KAPANDI <tarih>`  [KAPI]"
+              % len(p.korumali_etiket_kapandi))
+        for blok_idx, satir_no, ozet in p.korumali_etiket_kapandi:
+            print("  * ETIKET KAPANDI blok %d/%d (satir %d) -> baslik olculmus kapanis "
+                  "tasiyor (`%s [sep] KAPANDI <tarih>`), veto URETMEZ, blok ROTASYONA "
+                  "ACIK | %s"
+                  % (blok_idx + 1, p.blok_toplam, satir_no, KORUMALI_ETIKET, ozet))
         if p.korumali_etiket_govde:
             print("  · KORUMALI GOVDE ANMASI=%d blok: etiket blogun ICINDE geciyor ama "
                   "BASLIK satirinda DEGIL -> veto URETMEZ (konum olcutu), blok rotasyona "

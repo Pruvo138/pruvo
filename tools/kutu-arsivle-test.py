@@ -4197,6 +4197,145 @@ def v59_agac_kimligi(arac, kok):
     iddia("59s lossless GECTI", "lossless_dogrulama=GECTI" in cikti, cikti[-900:])
 
 
+# ── V60: ETIKET KAPANDI = TARIHLI `KORUMALI · KAPANDI` ROTASYONA ACILIR ─────────────
+# 🔴 HUKUM (BaBa 13 Eki 13:5x): KORUMALI kapanisinin olculmus zamani varsa koruma
+#   DUSTUR. Baslikta `KORUMALI [sep] KAPANDI <tarih/saat>` yaziliyorsa blok
+#   rotasyona ACILIR; `ETIKET_KAPANDI=<n>` sayac ADIYLA basar (`ETIKET_DUSTU`
+#   sayacinin YANI). Tarihsiz `KORUMALI · KAPANDI` (rakam yok) HALA veto uretir.
+# Bu kol `KORUMA-DUSTU` + `KORUMALI ... DEGIL` ile AYNI SINIFTIR — mevcut iki
+# istisna ile birlikte ucuncu. Hicbiri anahtar kurali DEGISTIRMEZ: yalniz
+# basliginda `KORUMALI` YOKSA blogu koruma hic ilgilendirmez.
+K60_TARIHLI = ("## 2026-07-04 ~22:2x — ⚖️🔴 BaBa → KraL + 5 mimar "
+               "(KORUMALI · KAPANDI 13 Eki 15:5x) **③ sentetik fikstur**\n")
+K60_TARIHSIZ = ("## 2026-07-04 ~22:2x — ⚖️🔴 BaBa → KraL + 5 mimar "
+                "(KORUMALI · KAPANDI) **③ tarih YOK, kapanis olculmedi**\n")
+K60_YALIN = ("## 2026-07-04 ~22:2x — ⚖️🔴 BaBa → KraL + 5 mimar "
+             "(KORUMALI) **③ sentetik fikstur, gerileme 0**\n")
+# K60_GOVDE_KAPANDI — baslik `KORUMALI` ile baslar (yoksa veto kolu hic calismaz);
+# govdede `KAPANDI 13 Eki 15:5x` anilir ama govde anmasi kolu tetiklemez
+# (K329 konum olcutu ile AYNI — govde yalniz SAYILIR, veto URETMEZ).
+# Bu vakanin ilan ettigi sey: govdedeki KAPANDI kapanis kolunu acmaz,
+# yani baslikta `KORUMALI` olan blok YINE ROTASYONA GIRMEZ.
+K60_GOVDE_KAPANDI = ("## 2026-07-04 ~22:2x — ⚖️🔴 BaBa → KraL + 5 mimar "
+                    "(KORUMALI)\n"
+                    "\n"
+                    "Bu blok KAPANDI 13 Eki 15:5x — kapanis govdede ANILDI.\n"
+                    "\n")
+K60_GOVDE = ("\n"
+             "Sentetik govde.\n"
+             "\n")
+
+
+def _k60_kutu(baslik, govde=K60_GOVDE, n=12):
+    """Hedef blok EN ALTTA (en ESKI) — rotasyonun ILK ulasacagi yerde."""
+    parcalar = [FM]
+    i = 0
+    while i < n - 1:
+        parcalar.append(blok(i))
+        i += 1
+    parcalar.append(baslik + govde)
+    return "".join(parcalar)
+
+
+def v60_etiket_kapandi(arac, kok):
+    """[60] 🟢 BaBa (13 Eki 13:5x) — TARIHLI `KORUMALI · KAPANDI` ROTASYONA ACILIR.
+
+    DORT vaka — herbiri TEK bir koldan sorumlu:
+      (a) tarihli ilan -> blok TASINIR, `ETIKET_KAPANDI=1` basilir.
+      (b) salt KORUMALI (regresyon 0): KORUMA KORUR — yeni kol mevcut korumayi
+          daraltmadi.
+      (c) tarihsiz `KORUMALI · KAPANDI` (rakam yok): KORUMA KORUR — olcumu
+          olmayan kapanis tarihi, kapali sayilamaz.
+      (d) KAPANDI+date YALNIZ GOVDEde: baslik veto URETMEZ (KORUMALI yok).
+    MUTANT (izole kopyada, canli dosyaya YAZMA): tarihli desenin kapsamini
+      daraltirsak (a) KIRMIZI yanar.
+    """
+    print("\n[60] ETIKET KAPANDI — tarihli `KORUMALI · KAPANDI` rotasyona ACILIR")
+
+    # --- (a) TARIHLI ILAN: rotasyona ACIK -------------------------------------
+    kok_a = os.path.join(kok, "a")
+    os.makedirs(kok_a, exist_ok=True)
+    a = Alan(kok_a, _k60_kutu(K60_TARIHLI), "## eski arsiv blogu\n\ngovde\n")
+    rc, cikti = kos(arac, a.kutu, a.arsiv, a.kilit, tavan=25, koru=3)
+    iddia("60a rc=0", rc == 0, "rc=%d\n%s" % (rc, cikti[-900:]))
+    iddia("60b 🔴 ETIKET_KAPANDI=1 ADIYLA basildi (serbest birakma SESSIZ DEGIL)",
+          "ETIKET_KAPANDI=1 " in cikti, cikti[-1500:])
+    iddia("60c 🔴 KORUMALI_ETIKETLI=0 (yeni kol mevcut vetoyu yedi)",
+          "KORUMALI_ETIKETLI=0 " in cikti, cikti[-1500:])
+    iddia("60d 🔴 blok GERCEKTEN arsive gitti (olculen kapanisla kilit ACILDI)",
+          K60_TARIHLI in oku(a.arsiv) and K60_TARIHLI not in oku(a.kutu),
+          "blok kutuda kilitli kaldi")
+    iddia("60e kapanan etiket blok ADIYLA basildi",
+          "ETIKET KAPANDI blok" in cikti, cikti[-1500:])
+
+    # --- (b) REGRESYON: salt `KORUMALI` -> KORUMA KORUR ----------------------
+    kok_b = os.path.join(kok, "b")
+    os.makedirs(kok_b, exist_ok=True)
+    b = Alan(kok_b, _k60_kutu(K60_YALIN), "## eski arsiv blogu\n\ngovde\n")
+    rc_b, cikti_b = kos(arac, b.kutu, b.arsiv, b.kilit, tavan=25, koru=3)
+    iddia("60f regresyon rc=0", rc_b == 0, "rc=%d\n%s" % (rc_b, cikti_b[-900:]))
+    iddia("60g 🔴 KORUMALI_ETIKETLI=1 (salt KORUMALI YINE veto, gerileme 0)",
+          "KORUMALI_ETIKETLI=1 " in cikti_b, cikti_b[-1500:])
+    iddia("60h ETIKET_KAPANDI=0 (baslikta KAPANDI yok)",
+          "ETIKET_KAPANDI=0 " in cikti_b, cikti_b[-1500:])
+    iddia("60i 🔴 blok arsive GITMEDI", K60_YALIN not in oku(b.arsiv),
+          "blok kacti -> daraltma fazla genis")
+
+    # --- (c) TARIH YOK: KORUMA KORUR ------------------------------------------
+    kok_c = os.path.join(kok, "c")
+    os.makedirs(kok_c, exist_ok=True)
+    c = Alan(kok_c, _k60_kutu(K60_TARIHSIZ), "## eski arsiv blogu\n\ngovde\n")
+    rc_c, cikti_c = kos(arac, c.kutu, c.arsiv, c.kilit, tavan=25, koru=3)
+    iddia("60j tarihsiz rc=0", rc_c == 0, "rc=%d\n%s" % (rc_c, cikti_c[-900:]))
+    iddia("60k 🔴 KORUMALI_ETIKETLI=1 (tarihsiz ilan kapanis DEGIL, veto korur)",
+          "KORUMALI_ETIKETLI=1 " in cikti_c, cikti_c[-1500:])
+    iddia("60l ETIKET_KAPANDI=0 (rakam yok -> desen eslesmedi)",
+          "ETIKET_KAPANDI=0 " in cikti_c, cikti_c[-1500:])
+    iddia("60m 🔴 blok arsive GITMEDI", K60_TARIHSIZ not in oku(c.arsiv),
+          "tarihsiz ilan kapiyi acti -> daraltma fazla genis")
+
+    # --- (d) GOVDE ANMASI: KAPANDI+date YALNIZ GOVDEde, baslik KORUMALI --------
+    # Baslikta `(KORUMALI)` oldugu icin KORUMA KORUR. Govdede `KAPANDI 13 Eki ...`
+    # anilir ama govde yalniz SAYILIR, KAPANIS kolunu ACMAMALI (K329 konum olcutu).
+    kok_d = os.path.join(kok, "d")
+    os.makedirs(kok_d, exist_ok=True)
+    d = Alan(kok_d, _k60_kutu(K60_GOVDE_KAPANDI), "## eski arsiv blogu\n\ngovde\n")
+    rc_d, cikti_d = kos(arac, d.kutu, d.arsiv, d.kilit, tavan=25, koru=3)
+    iddia("60n govde anmasi rc=0", rc_d == 0, "rc=%d\n%s" % (rc_d, cikti_d[-900:]))
+    iddia("60o 🔴 KORUMALI_ETIKETLI=1 (baslik KORUMALI YINE veto — govdedeki "
+          "KAPANDI kapanis kolunu ACMADI)",
+          "KORUMALI_ETIKETLI=1 " in cikti_d, cikti_d[-1500:])
+    iddia("60p 🔴 ETIKET_KAPANDI=0 (KAPANDI yalniz govdede -> desen eslesmedi)",
+          "ETIKET_KAPANDI=0 " in cikti_d, cikti_d[-1500:])
+    iddia("60q 🔴 blok arsive GITMEDI (baslik KORUMALI YINE koruyor)",
+          K60_GOVDE_KAPANDI not in oku(d.arsiv),
+          "govdedeki KAPANDI kilidi acti -> kapanis kolu K329 konum olcutunu DELDI")
+
+    # --- MUTANT [OLDURUCU]: KAPANDI kolu kaldirilirsa (a) KIRMIZI -------------
+    kok_m = os.path.join(kok, "m")
+    os.makedirs(kok_m, exist_ok=True)
+    mut, hata = _k374_mutant(
+        arac, os.path.join(kok_m, "mutant-kutu-arsivle.py"),
+        "            if etiket_kapandi_mi(baslik):\n",
+        "            if False:  # MUTANT: etiket_kapandi_mi kolu kaldirildi\n")
+    if hata:
+        iddia("60r MUTANT capasi TUTMADI (OLCULEMEDI)", False, hata)
+    else:
+        # Mutantla (a) davranisi: KAPANDI kolu kalkar -> tarihli blok KORUMALI
+        # sayilir ve rotasyona GIRMEZ. 60d/60b/60c gerileme bacagi (YESIL kalir)
+        # zaten AYNI mutantin kendisinden gelir ve ONEMLI OLAN (a)'nin KIRMIZI
+        # olmasidir.
+        ma = Alan(kok_m, _k60_kutu(K60_TARIHLI), "## eski arsiv blogu\n\ngovde\n")
+        rc_m, cikti_m = kos(mut, ma.kutu, ma.arsiv, ma.kilit, tavan=25, koru=3)
+        iddia("60r 🔴 MUTANT [OLDURUCU]: KAPANDI kolu kalkinca tarihli blok "
+              "KUTUDA KALDI (60d'yi saglayan sey GERCEKTEN bu kol)",
+              K60_TARIHLI in oku(ma.kutu) and K60_TARIHLI not in oku(ma.arsiv),
+              "rc=%d — mutant HEDEFE ULASMADI, 60b/60d OLU IDDIA olurdu\n%s"
+              % (rc_m, cikti_m[-900:]))
+        iddia("60s MUTANT yalnizca GECICI kopyaya yazildi (gercek arac SHA sabit)",
+              os.path.dirname(os.path.abspath(mut)) == os.path.abspath(kok_m), mut)
+
+
 VAKALAR = (v01_tavan_altinda, v02_dogru_sayida_blok, v03_birebir_satirlar,
            v04_frontmatter_ve_ust_bloklar, v05_blok_bolunmez,
            v06_arsiv_yoksa_frontmatter, v07_kilit, v08_bozuk_frontmatter,
@@ -4222,7 +4361,7 @@ VAKALAR = (v01_tavan_altinda, v02_dogru_sayida_blok, v03_birebir_satirlar,
            v51_kapanis_kuyrugu, v52_adsiz_kilit_acma, v53_arac_ifadesi_ad_degil,
            v54_kimlik_kumesi,
            v55_blok_sha_kolu, v56_beyan_araci_yazar, v57_etiket_dustu,
-           v58_saat_araligi, v59_agac_kimligi)
+           v58_saat_araligi, v59_agac_kimligi, v60_etiket_kapandi)
 
 
 def suite(arac, sessiz=False):
