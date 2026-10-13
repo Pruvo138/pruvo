@@ -132,6 +132,7 @@ import fcntl
 import filecmp
 import fnmatch
 import glob
+import importlib.util
 import json
 import os
 import re
@@ -488,6 +489,168 @@ def _ciddi_dusus_var(yeni, eski):
     return eski > 0 and yeni < eski * ANI_DUSUS_ESIGI
 
 
+# ---- UCUCU IZIN MANIFESTLERI: TUKETIMLE KUCULME DUSUS SAYILMAZ ---------------
+# 🔴 VAKA (12 Eki 2026, BaBa hukmu): `.urunler-duzelt-izin.json` Drive kanonigi 4742 B
+# (18 id) -> canli 904 B (2 id). 18/18 girdi HEAD'de TUKETILMISTI (post-commit
+# `izin-manifest-tuket.py` onlari mesru olarak cikarmisti) ama koruma bunu veri kaybi
+# sandi: taban donuk kaldi, 22 ARDISIK kosum ayni kirmiziyi verdi. Tekil `tek-seferlik`
+# beyani (12 Eyl, 1125 B) AYNI dosyada ikinci kez bayatladi -> beyan bu sinifa UYMAZ;
+# manifest dogasi geregi UCUCUDUR (girdi gelir, commit'le tuketilir, gider).
+#
+# CARE: bu dosyalar icin dusus RED'den ONCE TUKETIM ile olculur. Kanonikte olup canlida
+# OLMAYAN her girdi, `tools/izin-manifest-tuket.py`'nin TUKETIM TANIMINA gore (modulun
+# kendi fonksiyonlari ICE AKTARILIR — tanim KOPYALANMAZ) HEAD'de tuketilmis olmali.
+# Tek girdi tuketilmemis / HEAD okunamiyor / manifest ayristirilamiyor / modul
+# yuklenemiyor / dusen girdi 0 -> False (RED surer, fail-closed). Gecen dusus SESSIZ
+# DEGILDIR: `UCUCU_TUKETILDI dosya=.. dusen=.. tuketilen=..` basilir.
+#
+# KUME = ad -> tuketim turu (izin-manifest-tuket.py'deki uc sabitin ADLARI). Bu dort
+# manifestten `.diriltme-izin.json` KUMEYE ALINMADI: farkli semali ve izin-manifest-tuket'te
+# TUKETIM TANIMI YOK -> uydurma tanim yazilmaz, o dosya eski korumayla kalir.
+# Liste EK_EVLER'den turetilemez (EK_EVLER manifest/manifest-degil ayrimi tasimaz);
+# `tools/yedek-ucucu-manifest-test.py` kumenin EK_EVLER["pruvo"] ile kesisimini ve
+# tuketim modulunun sabitleriyle esitligini olcer.
+UCUCU_MANIFESTLER = {
+    ".urunler-duzelt-izin.json": "duzelt",
+    ".urunler-sil-izin.json": "sil",
+    ".urunler-id-rename-izin.json": "rename",
+}
+_TUKETIM_MODULU = "izin-manifest-tuket.py"
+# Gecen ucucu dususler: (ad, dusen, tuketilen). Kosum sonunda da BASILIR.
+_UCUCU_KULLANILDI = []
+
+
+def _tuketim_modulu():
+    """`izin-manifest-tuket.py` (tire'li ad) -> modul. Yuklenemezse None (fail-closed)."""
+    yol = os.path.join(os.path.dirname(os.path.abspath(__file__)), _TUKETIM_MODULU)
+    try:
+        spec = importlib.util.spec_from_file_location("izin_manifest_tuket_yedek", yol)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+    except Exception:
+        return None
+    return mod
+
+
+def _head_katalogu(kok, tm):
+    """HEAD:urunler.json -> tuketim modulunun `_by_id` bicimi | None.
+    Okuma TEMIZ git ortamiyla yapilir (pre-push kancasi GIT_DIR'i miras birakir)."""
+    try:
+        p = subprocess.run(["git", "-C", kok, "show", "HEAD:urunler.json"],
+                           capture_output=True, timeout=120, env=_ev_git_ortami())
+    except Exception:
+        return None
+    if p.returncode != 0:
+        return None
+    try:
+        liste = json.loads(p.stdout.decode("utf-8"))
+    except ValueError:
+        return None
+    if not isinstance(liste, list):
+        return None
+    return tm._by_id(liste)
+
+
+def _ucucu_dusenler(tur, kanonik, canli, canon):
+    """Kanonikte olup canlida (ayni degerle) OLMAYAN girdiler, tuketim fonksiyonunun
+    girdi bicimiyle. Tip beklenmedikse None."""
+    if tur == "duzelt":
+        if not (isinstance(kanonik, dict) and isinstance(canli, dict)):
+            return None
+        dusen = {}
+        for uid, alanlar in kanonik.items():
+            c = canli.get(uid)
+            if not isinstance(alanlar, dict):
+                if canon(alanlar) != canon(c):
+                    dusen[uid] = alanlar   # tuket_duzelt bunu kalan'da tutar -> RED
+                continue
+            d = {a: v for a, v in alanlar.items()
+                 if not (isinstance(c, dict) and a in c and canon(c[a]) == canon(v))}
+            if d:
+                dusen[uid] = d
+        return dusen
+    if tur == "sil":
+        if not (isinstance(kanonik, list) and isinstance(canli, list)):
+            return None
+        return [u for u in kanonik if u not in canli]
+    if tur == "rename":
+        if not (isinstance(kanonik, dict) and isinstance(canli, dict)):
+            return None
+        return {e: y for e, y in kanonik.items() if e not in canli or canli[e] != y}
+    return None
+
+
+def _ucucu_tuketim_olc(kaynak, varis):
+    """Doner: (gecti, dusen, tuketilen, sebep). Her suphede gecti=False."""
+    tur = UCUCU_MANIFESTLER[os.path.basename(kaynak)]
+    tm = _tuketim_modulu()
+    if tm is None:
+        return (False, 0, 0, "tuketim modulu yuklenemedi")
+    try:
+        with open(varis, "r", encoding="utf-8") as f:
+            kanonik = json.load(f)
+        with open(kaynak, "r", encoding="utf-8") as f:
+            canli = json.load(f)
+    except (OSError, UnicodeError, ValueError):
+        return (False, 0, 0, "manifest ayristirilamadi")
+    dusen = _ucucu_dusenler(tur, kanonik, canli, tm._canon)
+    if dusen is None:
+        return (False, 0, 0, "manifest beklenmeyen tip")
+    if not dusen:
+        return (False, 0, 0, "dusen girdi 0 (kucuklugu tuketim aciklamiyor)")
+    head = _head_katalogu(os.path.dirname(os.path.abspath(kaynak)), tm)
+    if head is None:
+        return (False, len(dusen), 0, "HEAD:urunler.json okunamadi")
+    if tur == "duzelt":
+        sonuc = tm.tuket_duzelt(dusen, head)
+    elif tur == "sil":
+        # wt=None: tanimin KATI kolu — id HEAD'de duruyorsa tuketilmemis (kalan) sayilir.
+        sonuc = tm.tuket_sil(dusen, head, None)
+    else:
+        sonuc = tm.tuket_rename(dusen, head)
+    if sonuc is None:
+        return (False, len(dusen), 0, "tuketim tanimi tipi reddetti")
+    kalan, _n = sonuc
+    tuketilen = len(dusen) - len(kalan)
+    if kalan:
+        return (False, len(dusen), tuketilen,
+                "%d girdi HEAD'de TUKETILMEMIS" % len(kalan))
+    return (True, len(dusen), tuketilen, "")
+
+
+def _ucucu_tuketildi_mi(kaynak, varis):
+    """Ucucu manifestin dususu TAMAMEN tuketimle aciklaniyor mu? (sayiyla basar)"""
+    if os.path.basename(kaynak) not in UCUCU_MANIFESTLER:
+        return False  # KUME-DISI
+    try:
+        gecti, dusen, tuketilen, sebep = _ucucu_tuketim_olc(kaynak, varis)
+    except Exception as e:   # olcum patlarsa koruma ACILMAZ
+        gecti, dusen, tuketilen, sebep = False, 0, 0, "olcum hatasi %s" % type(e).__name__
+    ad = os.path.basename(kaynak)
+    if gecti:
+        print("UCUCU_TUKETILDI dosya=%s dusen=%d tuketilen=%d" % (ad, dusen, tuketilen))
+        _UCUCU_KULLANILDI.append((ad, dusen, tuketilen))
+        return True
+    print("UCUCU_TUKETILMEDI dosya=%s dusen=%d tuketilen=%d sebep=%s"
+          % (ad, dusen, tuketilen, sebep))
+    return False
+
+
+def ucucu_koruma_provasi(kaynak, varis):
+    """KURU kosum: ucucu manifest gercek kosumda karantinaya duser mi? GERCEK kosumla
+    AYNI `_yedek_korumasi` cagrilir; hicbir sey YAZILMAZ (stat + JSON/HEAD okuma)."""
+    ad = os.path.basename(kaynak)
+    if not os.path.isfile(varis):
+        print("    [ucucu-prova] %s -> kanonik YOK (koruma devreye girmez)" % ad)
+        return
+    try:
+        _yedek_korumasi(kaynak, varis)
+    except YedekKorumaHatasi as e:
+        print("    [ucucu-prova] %s -> KARANTINAYA DUSER (%s)" % (ad, e.sinif))
+        return
+    print("    [ucucu-prova] %s -> GECER (karantina YOK)" % ad)
+
+
 def _yedek_korumasi(kaynak, varis, yedek_kayit=_OKU):
     """Sifir/ani dususu olcer; suphede kanonige tek bayt yazmadan once durur.
 
@@ -515,7 +678,8 @@ def _yedek_korumasi(kaynak, varis, yedek_kayit=_OKU):
         return
     yedek_boyut = os.path.getsize(varis)
     if _ciddi_dusus_var(kaynak_boyut, yedek_boyut):
-        if not _beyan_gecerse(kaynak, varis=varis):
+        if not (_beyan_gecerse(kaynak, varis=varis)
+                or _ucucu_tuketildi_mi(kaynak, varis)):
             raise YedekKorumaHatasi(
                 "YEDEK REDDEDILDI: bayt olcusu ciddi dustu (%d -> %d); kanonik DEGISMEDI"
                 " (%s) — kasitliysa %s icine BEYAN yaz"
@@ -529,7 +693,7 @@ def _yedek_korumasi(kaynak, varis, yedek_kayit=_OKU):
         yedek_kayit = _json_kayit_sayisi(varis)
     if (kaynak_kayit is not None and yedek_kayit is not None and
             _ciddi_dusus_var(kaynak_kayit, yedek_kayit)):
-        if _beyan_gecerse(kaynak, varis=varis):
+        if _beyan_gecerse(kaynak, varis=varis) or _ucucu_tuketildi_mi(kaynak, varis):
             return
         raise YedekKorumaHatasi(
             "YEDEK REDDEDILDI: kayit olcusu ciddi dustu (%d -> %d); kanonik DEGISMEDI"
@@ -3616,6 +3780,11 @@ def main():
                     print("    %s   -> SIR NOBETI ELEDI: %s" % (g, sebep))
                 for g in e_disi:
                     print("    %s   -> KAPSAM DISI (gozden gecir)" % g)
+                # Ucucu izin manifestleri: kuru kosum da karantina hukmunu GORUR.
+                for g, hg in e_dahil:
+                    if hedef and g in UCUCU_MANIFESTLER:
+                        ucucu_koruma_provasi(os.path.join(ev, g),
+                                             os.path.join(hedef, _ek_ev_hedefi(ad, hg)))
             for ns, yol in ek_memory_kokleri():
                 n = len(_agac_dosyalari(yol))
                 ek_toplam += n
@@ -3951,6 +4120,9 @@ def _yedekle(backup, gerekliyse, sirlar, sir_temizle, dahil, haric, kilitsiz=Fal
               "GUNCELLENDI)" % len(_BEYAN_KULLANILDI))
         for ad, tur, gerekce in _BEYAN_KULLANILDI:
             print("  BEYANLI: %s [%s] -> %s" % (ad, tur, gerekce))
+    for ad, dusen, tuketilen in _UCUCU_KULLANILDI:
+        print("UCUCU MANIFEST KUCULDU (tuketimle): %s dusen=%d tuketilen=%d"
+              % (ad, dusen, tuketilen))
     kod = karantina_hukmu_bas(backup)
     # 🔴 FAIL-CLOSED: yedek ALINDI ama hedefte sir artigi duruyorsa cikis kodu 0 DEGIL.
     # Karantina (1) daha agir hukumdur ve ONU EZMEZ.

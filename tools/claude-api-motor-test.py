@@ -294,7 +294,7 @@ def kos(tmp, kok, baslik, motor=MOTOR, ek_ortam=None):
     ortam["PRUVO_ISCI_TUR_CIKTI"] = tur
     ortam.pop("SAHTE_SONUC_METNI", None)
     ortam.update(ek_ortam or {})
-    p = subprocess.run([os.path.join(kok, "isci.sh"), motor, ev, spec, "kabul-claude-api"],
+    p = subprocess.run([os.path.join(kok, "isci.sh"), motor, ev, spec, "guvenlik-claude-api"],
                        capture_output=True, text=True, env=ortam, timeout=300)
     kayit = []
     if os.path.exists(yakala):
@@ -467,7 +467,7 @@ def kredi_vaka(ad, tmp, kok):
             siz = sizinti_say(kok, [s["tur"]], s["cikti"])
             return (siz == 0 and len(satir) == 1), "sahte_deger_grep=%d kredi_satiri=%d" % (siz, len(satir))
         ilk = (s["rc"] == 1 and len(satir) == 1 and " rc=1" in satir[0]
-               and " motor=claude-api " in satir[0] and " etiket=kabul-claude-api " in satir[0]
+               and " motor=claude-api " in satir[0] and " etiket=guvenlik-claude-api " in satir[0]
                and isaret and izin == "0o600" and len(kutu) == 1 and len(s["claude"]) == 1
                and s["claude"][0].get("uc_durum") == 400 and "TEKRAR 1/1" not in s["log"])
         tur_hali = [l[len("TUR_HALI="):] for l in s["log"].splitlines() if l.startswith("TUR_HALI=")]
