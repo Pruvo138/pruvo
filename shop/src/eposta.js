@@ -159,7 +159,7 @@ function cerceve(baslikMetin, icerik) {
  * cift zincir notu. Bilgi foto.js saticiFotoBilgileri'nden gelir; tum metin kac() ile kacisli.
  * 🔴 Musteri kopyasina BASILMAZ (cagiran satici=true degilse bos doner).
  */
-function saticiFotoBlogu(fotoBilgi) {
+function saticiFotoBlogu(fotoBilgi, onaySatiri = true) {
   const satir = (ad, deger) => "<tr><td style='padding:2px 12px 2px 0;color:#6b7280'>" + kac(ad) + "</td><td>" +
     deger + "</td></tr>";
   return fotoBilgi.map((b) => {
@@ -183,8 +183,40 @@ function saticiFotoBlogu(fotoBilgi) {
       satir("Önizleme", "<a href='" + kac(b.gorsel) + "' style='color:#12294d'>önizleme görseli (panel girişi gerekir)</a>") +
       "</table>" +
       (b.okunamadi ? "<p style='color:#b91c1c;font-size:13px'>Önizleme kaydı okunamadı — panelden bakın.</p>" : "") +
-      onay + "</div>";
+      (onaySatiri ? onay : "") + "</div>";
   }).join("");
+}
+
+/**
+ * OKAN ONAY BILDIRIMI (Okan Telegram KULLANMIYOR, 13 Eki): foto.js onayBekleyenNobeti'nin uc olayi —
+ * "acildi" (satir onay-bekliyor) · "hatirlatma" (48/66 sa) · "sure-doldu" (70 sa asildi, is 'elle'de).
+ * Alici YALNIZ env.BILDIRIM_EPOSTA (cagiran foto.js); musteri kopyasi YOKTUR. Govde saticiFotoBlogu ile ayni
+ * kalem bilgisi (is_no · tur · olcu · cesit · renk/malzeme · "Nasil olsun?" · onizleme linki) + KALAN SURE.
+ * @param bilgi foto.js saticiFotoBilgileri kalem kaydi (+ siparis_no) · @param kalanSaat 70 sa sinirina kalan
+ * @returns {{konu:string, html:string}}
+ */
+export function onayBildirimiEpostasi(olay, bilgi, kalanSaat, yasSaat, sinirSaat) {
+  const ref = String(bilgi.siparis_no) + "/" + String(bilgi.kalem);
+  const p = (ic) => "<p style='margin:8px 0;font-size:14px'>" + ic + "</p>";
+  let konu, baslik, giris;
+  if (olay === "sure-doldu") {
+    konu = "3D üretim onay süresi doldu: " + ref + " — iş elle kuyruğunda";
+    baslik = "Onay süresi doldu — iş elle kuyruğuna düştü";
+    giris = p("Önizleme " + kac(sinirSaat) + " saat sınırını geçti; kalem onaylanmadığı için <b>elle bakılacak</b> " +
+      "kuyruğuna düştü (panel → Siparişler → Elle bakılacak). Onay ucu artık 409 döner.");
+  } else {
+    const hatirlatma = olay === "hatirlatma";
+    konu = (hatirlatma ? "Hatırlatma (" + Math.floor(yasSaat) + " sa): " : "") + "3D üretim onayı bekliyor: " + ref;
+    baslik = hatirlatma ? "Hatırlatma — 3D üretim onayı bekliyor" : "3D üretim onayı bekliyor";
+    giris = p("Ödenen siparişin fotoğraftan üretim kalemi <b>Okan onayı</b> bekliyor; 3D üretim onaysız BAŞLAMAZ.") +
+      p("<b>Kalan süre:</b> " + kac(Math.max(0, Math.floor(kalanSaat))) + " sa (önizleme " + kac(sinirSaat) +
+        " saatte düşer; süre dolarsa iş elle kuyruğuna geçer).");
+  }
+  const html = "<div style='font-family:Arial,Helvetica,sans-serif;color:#1f2937;max-width:640px;margin:0 auto'>" +
+    "<h2 style='color:#12294d;margin:0 0 4px'>PRUVO</h2>" +
+    "<h3 style='color:#12294d'>" + kac(baslik) + " — " + kac(ref) + "</h3>" + giris +
+    saticiFotoBlogu([bilgi], olay !== "sure-doldu") + "</div>";
+  return { konu, html };
 }
 
 /**

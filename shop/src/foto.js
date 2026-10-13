@@ -52,6 +52,8 @@ import "../../foto-uretim-veri.js";
 // "../src/" bilerek: mutant bataryalari foto.js'i shop/<gecici>/ altina TEK dosya kopyalar; bu yol
 // hem shop/src/ hem kopya dizininden ayni modulu bulur.
 import { turnstileHostKabul, onizlemeMi } from "../src/onizleme.js";
+// Okan onay bildirimi e-postasi (alici YALNIZ env.BILDIRIM_EPOSTA) — ayni "../src/" kurali.
+import { epostaGonder, onayBildirimiEpostasi } from "../src/eposta.js";
 
 const VERI = globalThis.PRUVO_FOTO;
 if (!VERI) { throw new Error("foto-uretim-veri.js yuklenemedi — tur/ornek tek kaynagi yok"); }
@@ -1958,7 +1960,7 @@ export function siparistekiFotoKalemleri(urunlerJson) {
  * sure/hatirlatma bakar). 'build-baslat'a TEK gecis: POST /yonet/foto/siparis-onayla (okan_onay:true).
  */
 export const ONAY_BEKLIYOR = "onay-bekliyor";
-/** Onaysiz bekleyen satir icin onizleme yasi (sa) esikleri — her esikte TEK Telegram hatirlatmasi.
+/** Onaysiz bekleyen satir icin onizleme yasi (sa) esikleri — her esikte TEK Okan e-postasi (+ Telegram log satiri).
  *  Isaret: mevcut `deneme` sutunu (onay-bekliyor'da gecici hata sayaci KULLANILMAZ; 0 / 1 / 2 =
  *  atilan hatirlatma sayisi; asamaYaz gecisinde 0'a doner). Sema DEGISMEZ. */
 export const ONAY_HATIRLATMA_SAAT = Object.freeze([48, 66]);
@@ -2305,15 +2307,82 @@ async function uretimAdimi(env, u, simdi, telegram) {
 }
 
 /**
- * ONARIM NOBETI (8 Eki 2026, BaBa sarti 4): 'onarim-bekliyor' satiri ONARIM_BAYAT_SAAT'ten eskiyse yerel
- * kosucu (Mac, launchd) calismiyor demektir. Nobet bu yuzden MAC'TE DEGIL Worker cron'unda (deterministik,
- * LLM yok): Okan'a tek bildirim, sonra en erken ONARIM_BAYAT_SAAT sonra tekrar. Donus: bayat satir sayisi.
+ * OKAN ONAY E-POSTASI (Okan Telegram KULLANMIYOR, 13 Eki): onay-bekliyor olaylari Okan'a (YALNIZ
+ * env.BILDIRIM_EPOSTA) e-posta ile gider; Telegram satirlari LOG olarak kalir. Olay basina isaret
+ * foto_ayar[ONAY_EPOSTA_ONEK + "<siparis_no>/<kalem>:<olay>"] = 'gonderildi' | 'hata' | 'bekliyor' (sema DEGISMEZ).
+ * Isaret YALNIZ basarili gonderimde 'gonderildi' olur -> basarisiz olay sonraki cron turunda YENIDEN denenir.
  */
+export const ONAY_EPOSTA_ONEK = "onay_eposta:";
+/** 'elle'ye dusen satirin "sure doldu" e-postasi bu kadar saat yeniden denenir (sonsuz tekrar YOK). */
+export const ONAY_EPOSTA_YENIDEN_SAAT = 24;
+
+function onayEpostaAnahtari(u, olay) { return ONAY_EPOSTA_ONEK + u.siparis_no + "/" + u.kalem + ":" + olay; }
+
+/**
+ * Tek Okan e-postasi. `onceki` = foto_ayar kaydi (ya da null). Donus: gonderildi mi (onceden gonderilmisse de true).
+ * Hata ASLA firlatilmaz (asama ilerlemesi e-postaya BAGLI DEGIL): her hata log'a, ILK hata Telegram'a yazilir,
+ * isaret 'hata' olur ve olay sonraki turda yeniden denenir.
+ */
+async function okanEpostasi(env, anahtar, onceki, eposta, simdi, telegram) {
+  if (onceki && onceki.deger === "gonderildi") { return true; }
+  let r;
+  try {
+    r = env.BILDIRIM_EPOSTA ? await epostaGonder(env, env.BILDIRIM_EPOSTA, eposta.konu, eposta.html)
+      : { ok: false, hata: "alici-yok (BILDIRIM_EPOSTA tanimli degil)" };
+  } catch (e) {
+    r = { ok: false, hata: "istisna " + String((e && e.message) || e).slice(0, 120) };
+  }
+  try {
+    if (r.ok) {
+      await ayarYaz(env, anahtar, "gonderildi", simdi);
+      console.log("OKAN_EPOSTA " + anahtar);
+      return true;
+    }
+    console.error("OKAN_EPOSTA_HATA " + anahtar + " " + r.hata);
+    if ((!onceki || onceki.deger !== "hata") && typeof telegram === "function") {
+      await telegram(env, "⚠️ PRUVO Okan e-postası gönderilemedi — " + anahtar.slice(ONAY_EPOSTA_ONEK.length) + ": " +
+        r.hata + " (aşama etkilenmedi; sonraki cron turunda yeniden denenecek). Konu: " + eposta.konu);
+    }
+    await ayarYaz(env, anahtar, "hata", simdi);
+  } catch (e) {
+    console.error("OKAN_EPOSTA_ISARET_HATA " + anahtar + " " + ((e && e.message) || e));
+  }
+  return false;
+}
+
+/** E-posta kalem bilgisi: saticiFotoBilgileri (siparis e-postasiyla AYNI kaynak); siparis okunamazsa satirdan. */
+async function onayEpostaBilgisi(env, u) {
+  let satirlar = [];
+  try {
+    const s = await env.KATALOG.prepare("SELECT urunler FROM siparisler WHERE siparis_no = ?").bind(u.siparis_no).first();
+    satirlar = JSON.parse((s && s.urunler) || "[]") || [];
+  } catch (e) {
+    satirlar = [];
+  }
+  let b = null;
+  try { b = (await saticiFotoBilgileri(env, u.siparis_no, satirlar)).find((x) => x.kalem === u.kalem) || null; } catch (e) { b = null; }
+  if (!b) {
+    b = { kalem: u.kalem, is_no: u.is_no, tur: u.tur, olcu_mm: u.olcu_mm, cesit: "", alt_tur: "", uretim_notu: "",
+          malzeme: "", renk: "", gorsel: panelOnizlemeLinki(env, u.siparis_no, u.kalem), ornek_no: "",
+          cift_zincir_notu: "", okunamadi: true };
+  }
+  return { ...b, siparis_no: u.siparis_no, onay_gerekli: true, onay_yonergesi: ONAY_YONERGESI };
+}
+
+/** Hatirlatma isareti (`deneme` = atilan hatirlatma sayisi) CAS ile once -> hedef. */
+async function hatirlatmaIsaretle(env, u, once, hedef) {
+  const y = await env.KATALOG.prepare(
+    "UPDATE foto_uretim SET deneme = ? WHERE siparis_no = ? AND kalem = ? AND asama = ? AND deneme = ?"
+  ).bind(hedef, u.siparis_no, u.kalem, ONAY_BEKLIYOR, once).run();
+  return !!(y && y.meta && y.meta.changes === 1);
+}
+
 /**
  * ONAY BEKLEYEN satirlar (saglayiciya istek YOK): onizleme hazir degil -> 'elle' (onizleme-yok);
- * onizleme yasi ONIZLEME_KURULUM_SINIRI_SAAT'i asti -> 'elle' (onizleme-suresi-doldu, Okan'a Telegram);
- * yas ONAY_HATIRLATMA_SAAT esigini gecti -> esik basina TEK hatirlatma (`deneme` = atilan sayi, CAS).
- * Donus: bakilan satir sayisi.
+ * onizleme yasi ONIZLEME_KURULUM_SINIRI_SAAT'i asti -> 'elle' (onizleme-suresi-doldu) + Okan'a "sure doldu" e-postasi;
+ * henuz ACILIS e-postasi gitmemisse -> Okan'a acilis e-postasi (kalan sureyi tasir; gecilmis hatirlatma esiklerini
+ * de kapatir); yas ONAY_HATIRLATMA_SAAT esigini gecti -> esik basina TEK hatirlatma e-postasi, `deneme` (atilan sayi,
+ * CAS) YALNIZ basarili gonderimden SONRA artar + Telegram log satiri. Donus: bakilan satir sayisi.
  */
 async function onayBekleyenNobeti(env, simdi, telegram) {
   const r = await env.KATALOG.prepare(
@@ -2326,24 +2395,76 @@ async function onayBekleyenNobeti(env, simdi, telegram) {
     if (u.is_asama !== "hazir" || !u.is_gorev) { await elleDusur(env, u, "onizleme-yok", "", simdi, telegram); continue; }
     const yas = (simdi - Date.parse(u.hazir_tarih)) / 3600000;
     if (!(yas <= ONIZLEME_KURULUM_SINIRI_SAAT)) {
-      await elleDusur(env, u, "onizleme-suresi-doldu", "", simdi, telegram);
+      if (await elleDusur(env, u, "onizleme-suresi-doldu", "", simdi, telegram)) {
+        // E-posta asagidaki sure-doldu turunda (ayni tur + basarisizsa sonraki turlar) gider.
+        try { await ayarYaz(env, onayEpostaAnahtari(u, "sure-doldu"), "bekliyor", simdi); } catch (e) {
+          console.error("OKAN_EPOSTA_ISARET_HATA " + onayEpostaAnahtari(u, "sure-doldu") + " " + ((e && e.message) || e));
+        }
+      }
       continue;
     }
     const once = u.deneme || 0;
     const hedef = ONAY_HATIRLATMA_SAAT.filter((s) => yas >= s).length;
-    if (hedef <= once) { continue; }
-    const y = await env.KATALOG.prepare(
-      "UPDATE foto_uretim SET deneme = ? WHERE siparis_no = ? AND kalem = ? AND asama = ? AND deneme = ?"
-    ).bind(hedef, u.siparis_no, u.kalem, ONAY_BEKLIYOR, once).run();
-    if (y && y.meta && y.meta.changes === 1 && typeof telegram === "function") {
-      await telegram(env, "⏰ Fotoğraftan üretim — OKAN ONAYI BEKLİYOR (hatırlatma, önizleme " + Math.floor(yas) +
-        " sa): " + u.siparis_no + " kalem " + u.kalem + " (" + u.tur + ", " + u.olcu_mm + " mm). Önizleme " +
-        ONIZLEME_KURULUM_SINIRI_SAAT + " saatte düşer; " + ONAY_YONERGESI + ".");
+    const kalan = ONIZLEME_KURULUM_SINIRI_SAAT - yas;
+    try {
+      const acAnahtar = onayEpostaAnahtari(u, "acildi");
+      const acildi = await ayarOku(env, acAnahtar);
+      if (!acildi || acildi.deger !== "gonderildi") {
+        const ac = onayBildirimiEpostasi("acildi", await onayEpostaBilgisi(env, u), kalan, yas, ONIZLEME_KURULUM_SINIRI_SAAT);
+        const gitti = await okanEpostasi(env, acAnahtar, acildi, ac, simdi, telegram);
+        // Acilis e-postasi kalan sureyi tasir: gecilmis esikler onunla kapanir (ayni turda ikinci e-posta YOK).
+        if (gitti && hedef > once) { await hatirlatmaIsaretle(env, u, once, hedef); }
+        continue;
+      }
+      if (hedef <= once) { continue; }
+      const anahtar = onayEpostaAnahtari(u, "hatirlatma-" + ONAY_HATIRLATMA_SAAT[hedef - 1]);
+      const hat = onayBildirimiEpostasi("hatirlatma", await onayEpostaBilgisi(env, u), kalan, yas, ONIZLEME_KURULUM_SINIRI_SAAT);
+      const gitti = await okanEpostasi(env, anahtar, await ayarOku(env, anahtar), hat, simdi, telegram);
+      if (!gitti) { continue; }
+      if (await hatirlatmaIsaretle(env, u, once, hedef) && typeof telegram === "function") {
+        await telegram(env, "⏰ Fotoğraftan üretim — OKAN ONAYI BEKLİYOR (hatırlatma, önizleme " + Math.floor(yas) +
+          " sa): " + u.siparis_no + " kalem " + u.kalem + " (" + u.tur + ", " + u.olcu_mm + " mm). Önizleme " +
+          ONIZLEME_KURULUM_SINIRI_SAAT + " saatte düşer; " + ONAY_YONERGESI + ". (E-posta gönderildi.)");
+      }
+    } catch (e) {
+      console.error("OKAN_EPOSTA_TUR_HATA " + u.siparis_no + "/" + u.kalem + " " + ((e && e.message) || e));
     }
   }
+  await sureDolduEpostalari(env, simdi, telegram);
   return satirlar.length;
 }
 
+/** 'elle'ye (onizleme-suresi-doldu) dusmus, "sure doldu" e-postasi henuz GITMEMIS satirlar: TEK e-posta; basarisizsa
+ *  ONAY_EPOSTA_YENIDEN_SAAT boyunca her tur yeniden. Isaret 'bekliyor' yalniz onay nobetinin dusurdugu satirda yazilir
+ *  (zincirin baska 'elle' yollari e-posta ALMAZ). */
+async function sureDolduEpostalari(env, simdi, telegram) {
+  let liste = [];
+  try {
+    const r = await env.KATALOG.prepare(
+      "SELECT u.siparis_no, u.kalem, u.is_no, u.tur, u.olcu_mm, a.deger FROM foto_uretim u" +
+      " JOIN foto_ayar a ON a.anahtar = ? || u.siparis_no || '/' || u.kalem || ':sure-doldu'" +
+      " WHERE u.asama = 'elle' AND u.sebep = 'onizleme-suresi-doldu' AND a.deger <> 'gonderildi' AND u.guncel >= ?" +
+      " ORDER BY u.guncel LIMIT 50"
+    ).bind(ONAY_EPOSTA_ONEK, saatOnce(simdi, ONAY_EPOSTA_YENIDEN_SAAT)).all();
+    liste = r.results || [];
+  } catch (e) {
+    console.error("OKAN_EPOSTA_TUR_HATA sure-doldu " + ((e && e.message) || e));
+  }
+  for (const u of liste) {
+    try {
+      const e = onayBildirimiEpostasi("sure-doldu", await onayEpostaBilgisi(env, u), 0, 0, ONIZLEME_KURULUM_SINIRI_SAAT);
+      await okanEpostasi(env, onayEpostaAnahtari(u, "sure-doldu"), { deger: u.deger }, e, simdi, telegram);
+    } catch (e) {
+      console.error("OKAN_EPOSTA_TUR_HATA " + u.siparis_no + "/" + u.kalem + " " + ((e && e.message) || e));
+    }
+  }
+}
+
+/**
+ * ONARIM NOBETI (8 Eki 2026, BaBa sarti 4): 'onarim-bekliyor' satiri ONARIM_BAYAT_SAAT'ten eskiyse yerel
+ * kosucu (Mac, launchd) calismiyor demektir. Nobet bu yuzden MAC'TE DEGIL Worker cron'unda (deterministik,
+ * LLM yok): Okan'a tek bildirim, sonra en erken ONARIM_BAYAT_SAAT sonra tekrar. Donus: bayat satir sayisi.
+ */
 export const ONARIM_BAYAT_SAAT = 6;
 async function onarimBayatNobeti(env, simdi, telegram) {
   const r = await env.KATALOG.prepare(
@@ -2957,8 +3078,6 @@ export async function panelSiparisOnayla(request, env, simdi, telegram) {
  * VERILMEZ (eposta.js yalniz satici=true'da basar). D1 okunamazsa kalem yine listelenir (`okunamadi`).
  */
 export async function saticiFotoBilgileri(env, siparisNo, satirlar) {
-  // Site koku YALNIZ env.SITE_URL (foto.js tek https sabiti kurali); yoksa goreli yol.
-  const site = String((env && env.SITE_URL) || "").replace(/\/$/, "");
   const cikti = [];
   for (let i = 0; i < (satirlar || []).length; i++) {
     const k = satirlar[i];
@@ -2966,8 +3085,7 @@ export async function saticiFotoBilgileri(env, siparisNo, satirlar) {
     const b = {
       kalem: i, is_no: k.foto_is, tur: k.foto_tur || "", olcu_mm: k.olcu_mm || 0,
       cesit: "", alt_tur: "", uretim_notu: "", malzeme: k.malzeme || "", renk: k.renk_ozel || k.renk || "",
-      gorsel: site + "/api/shop/yonet/foto-dosya?siparis_no=" + encodeURIComponent(siparisNo) + "&kalem=" + i +
-        "&bicim=onizleme",
+      gorsel: panelOnizlemeLinki(env, siparisNo, i),
       onay_gerekli: true, onay_yonergesi: ONAY_YONERGESI, ornek_no: "", cift_zincir_notu: "", okunamadi: false,
     };
     try {
@@ -2984,6 +3102,14 @@ export async function saticiFotoBilgileri(env, siparisNo, satirlar) {
     cikti.push(b);
   }
   return cikti;
+}
+
+/** Panel onizleme linki (yonetim cerezi arkasinda, anahtar URL'de YOK). Site koku YALNIZ env.SITE_URL (foto.js tek
+ *  https sabiti kurali); yoksa goreli yol. */
+function panelOnizlemeLinki(env, siparisNo, kalem) {
+  const site = String((env && env.SITE_URL) || "").replace(/\/$/, "");
+  return site + "/api/shop/yonet/foto-dosya?siparis_no=" + encodeURIComponent(siparisNo) + "&kalem=" + kalem +
+    "&bicim=onizleme";
 }
 
 /** GET /yonet/foto/ornekler — "Örnek üretimler": ornek onizlemeleri + uretim asamasi + dosyalar. */
