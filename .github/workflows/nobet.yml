@@ -2646,6 +2646,17 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/urun-kuyruk-test.py
 
+      # PARAMETRIK KAYIT SEMASIZ GIREMEZ (K441, 13 Eki 2026, KraL-Tamirci-13Eki). Olculen olay:
+      # 009b7315 saksi-vazo kaydi jenerator/urunler/<id>.json semasi OLMADAN main'e girdi ->
+      # sayfa konfiguratorsuz/fiyatsiz, deploy 40+ dk SKIPPED (kirmizi alakasiz yerden:
+      # varlik-mutasyon G5 `1c BAYAT 'Adet − +'`). Kural TEK KAYNAK tools/parametrik_sema.py;
+      # tuketiciler denetim-kapisi KAPI 12 + urun-kuyruk-birlestir.py (V19-V22 + M-SEMA yukarida).
+      # Burada: birim + denetle()/_urun_ihlalleri() baglantisi + 4 mutant + GERCEK KATALOG
+      # artmama (SERIT B; yayini bloklamaz — gecmis borc deploy'u durdurmaz, YENI borc kirmizi yakar).
+      - name: "Parametrik kayit sema kapisi (KAPI 12: 10 vaka + 4 mutant + gercek katalog artmama)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/parametrik-sema-test.py
+
       # HAYALI NOBETCI KAPISI (11 Eyl 2026, BaBa ⑤) — "tools/ icindeki bir YORUM bir .py
       # dosyasini NOBETCI diye aniyorsa o dosya VAR OLMALI". Olculen ariza: ca8c3815
       # supurmesiyle silinen serbest-kume-tekkaynak-test.py'yi DORT yer hala nobetci diye
