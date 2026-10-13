@@ -129,7 +129,12 @@
     //                    (alan yoksa/boşsa hiçbir örnek sayılmaz — fail-closed)
     //   form_sunum     : {alan: {deger: "olcu" | "varsayilan"}} — alan ③'te ÇİZİLMEZ, değeri Ölçü sürgüsünden ya da
     //                    form varsayılanından gövdeye girer (köprü `form`u değişmeden sunum; VERI.formSunumDegeri)
+    //                    surgu_etiketi: true (yalnız deger "olcu") = ③ sürgüsünün etiketi bu alanın `etiket`i olur
     //   alan_aciklamalari: {renk, olcu, malzeme} — ③ ortak alanların altındaki tür cümlesi (yoksa genel cümle)
+    //   bolge_renk_secimi: {cesit, bolgeler, etiketler, varsayilan, kontrast_esigi} — ana renkte TEK seçici yerine her
+    //                    bölgeye AYRI ana renk seçici (anahtarlık–yazı: Yazı rengi + Taban rengi; Okan 12 Eki). Bölge
+    //                    çifti üreteç metriğiyle eşiğin altındaysa ③'te `kontrast` metni + ileri pasif; sunucu aynı
+    //                    hükümle reddeder (VERI.bolgeRenkHukmu). Alan yoksa ana renkte TÜM bölgeler aynı renk.
     //   durustluk      : bölümün üst dürüstlük kutusu (tür bazlı, ZORUNLU; seçili türün metni basılır)
     //   ornek_notu     : render örneğinin altındaki dürüstlük cümlesi (tür bazlı; mimar kararı 7 Eki,
     //                    AYNEN). Alan YOKSA bölüm o türün render örneğini ÇİZMEZ; yeni tür yazmak ZORUNDA.
@@ -380,7 +385,29 @@
         },
         ornek_kanit_izni: ["render"],
         alan_aciklamalari: {
-          olcu: "Anahtarlığın kulakçık dahil en uzun boyutudur; fiyat bu ölçüye göre canlı hesaplanır."
+          olcu: "Anahtarlığın kulakçık dahil en uzun boyutudur; fiyat bu ölçüye göre canlı hesaplanır.",
+          // ③ renk yardım cümlesi (iki seçici; ArTisT 19. okuma bu satırı değiştirir — TEK yer). Figür çeşidinin
+          // kendi `renk` cümlesi bunun yerine basılır (alanAciklamasi çeşide öncelik verir).
+          renk: "Yazı için bir, taban için bir renk seç; ikisi birbirinden belirgin olmalı ki yazı net okunsun."
+        },
+        // İKİ RENK (Okan 12 Eki, aynen "anahtarlıkta tek renk seçimi olmaz zaten minimum 2 renk olmalı"): yazı
+        // çeşidinde ③'te Yazı rengi + Taban rengi, ikisi de VERI.ANA_RENKLER; varsayılan siyah taban + beyaz yazı.
+        // kontrast_esigi = üreteç KONTRAST_MIN (pruvo-jenerator jeneratorler/foto/isimlik_uret.py: 3.0, plaka/yazi
+        // RET'i); metrik VERI.kontrastOrani (aynı dosyanın bagil_parlaklik/kontrast_orani formülü). Fiyat değişmez.
+        bolge_renk_secimi: {
+          cesit: "yazi",
+          bolgeler: ["yazi", "plaka"],
+          etiketler: { yazi: "Yazı rengi", plaka: "Taban rengi" },
+          varsayilan: { yazi: "Beyaz", plaka: "Siyah" },
+          kontrast_esigi: 3.0
+        },
+        // ③'te TEK ölçü kontrolü (Okan 12 Eki 17:5x "tek"; BaBa 13 Eki 11:4x): ayrı "Uzun kenar" alanı çizilmez, değeri
+        // sürgüden gelir ve sürgünün etiketi bu alanın etiketidir ("Uzun kenar (kulak dahil)"; ayrı "Ölçü" yok).
+        // KULAK SOL ÜST SABİT (Okan 8 Eki 23:0x): "Kulak konumu" seçicisi çizilmez, gövdeye form varsayılanı
+        // ("sol-ust") girer. Köprü `form`u değişmez (kopru-manifest-uret üretir); figür çeşidi formsuz -> etkisiz.
+        form_sunum: {
+          genislik_mm: { deger: "olcu", surgu_etiketi: true },
+          anahtarlik_kulak_konum: { deger: "varsayilan" }
         },
         durustluk: "Metal halka ve zincir dahil değildir; zincir ya da halka takılan kulakçıklı plastik gövde (delik Ø 3,5–4 mm).",
         ornek_notu: "Üretim dosyasının görüntüsüdür; yazı, renk ve kulak konumu seçimine göre üretilir.",
@@ -475,7 +502,7 @@
     // (kod üretecin RET cümlesinden köprüde çıkarılır); tabloda olmayan kod -> `""` (genel metin).
     URETEC_RED_METIN: {
       "": "Bu girdiyle üretim dosyası hazırlanamadı; girdiyi ya da ölçüyü değiştirip tekrar deneyebilirsin.",
-      "kontrast": "Seçtiğin renkler birbirine çok yakın; daha belirgin iki renk seç.",
+      "kontrast": "Yazı ve taban rengi birbirine çok yakın; yazı okunmaz. Farklı bir renk seç.",
       "metin-sigmadi": "Yazı bu ölçüye sığmadı; yazıyı kısalt ya da ölçüyü büyüt.",
       // Anahtarlık–yazı ince çizgi (üreteç tasarım kapısı 0,8 mm; düz yazı kısa isimde ~40 mm ister, el yazısı 30 mm'de geçer).
       "yazi-ince": "Bu yazı bu genişlikte çok ince kalıyor; genişliği büyüt (kalın düz harflerde kısa bir isim için en az 40 mm) ya da El yazısı yazı tipini seç.",
@@ -1024,6 +1051,43 @@
   // · "malzeme seçiminde sadece pla ve petg … petg %30 fiyata eklensin." Ana renkte ürün TEK renk (tüm bölgeler o
   // renk); "Renkli"de renkler fotoğraftan otomatik (VERI.fotoRenkleri), yalnız fotoğraflı akışta sunulur.
   VERI.ANA_RENKLER = ["Siyah", "Beyaz", "Gri"];
+  // RENK KONTRASTI (üreteçle AYNI metrik — pruvo-jenerator jeneratorler/foto/isimlik_uret.py bagil_parlaklik +
+  // kontrast_orani, WCAG bağıl parlaklık): renk ADLARI VERI.RENK_HEX'ten; ad bilinmiyorsa null.
+  function bagilParlaklik(ad) {
+    var h = Object.prototype.hasOwnProperty.call(VERI.RENK_HEX, ad) ? String(VERI.RENK_HEX[ad]) : "";
+    if (!/^#[0-9a-fA-F]{6}$/.test(h)) { return null; }
+    var lin = function (c) { c = c / 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
+    return 0.2126 * lin(parseInt(h.slice(1, 3), 16)) + 0.7152 * lin(parseInt(h.slice(3, 5), 16)) +
+      0.0722 * lin(parseInt(h.slice(5, 7), 16));
+  }
+  VERI.kontrastOrani = function (a, b) {
+    var la = bagilParlaklik(a), lb = bagilParlaklik(b);
+    if (la === null || lb === null) { return null; }
+    return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+  };
+  // Türün bölge renk seçimi kaydı (`bolge_renk_secimi`) — kayıt varsa ve (alan `cesit` diyorsa) çeşit uyuyorsa; yoksa null.
+  VERI.bolgeRenkSecimi = function (kod, cesit) {
+    var t = VERI.turBul(kod), k = t && t.bolge_renk_secimi;
+    if (!k || typeof k !== "object" || !Array.isArray(k.bolgeler)) { return null; }
+    return k.cesit === undefined || VERI.cesitCoz(kod, cesit) === k.cesit ? k : null;
+  };
+  // Bölge renk hükmü (istemci ③ + sunucu renkSayimi ORTAK): renkler {bölge: ad}. "" = geçer · "renk" = kayıttaki bir
+  // bölgenin rengi yok ya da VERI.ANA_RENKLER dışında · "kontrast" = iki bölge üreteç eşiğinin altında (aynı/yakın).
+  VERI.bolgeRenkHukmu = function (kod, renkler, cesit) {
+    var k = VERI.bolgeRenkSecimi(kod, cesit), r = renkler || {}, i, j;
+    if (!k) { return "renk"; }
+    for (i = 0; i < k.bolgeler.length; i++) {
+      if (VERI.ANA_RENKLER.indexOf(r[k.bolgeler[i]]) < 0) { return "renk"; }
+    }
+    for (i = 0; i < k.bolgeler.length; i++) {
+      for (j = i + 1; j < k.bolgeler.length; j++) {
+        var o = VERI.kontrastOrani(r[k.bolgeler[i]], r[k.bolgeler[j]]);
+        if (o === null) { return "renk"; }
+        if (o < k.kontrast_esigi) { return "kontrast"; }
+      }
+    }
+    return "";
+  };
   VERI.VARSAYILAN_RENK = "Beyaz";
   VERI.RENKLI_EK_YUZDE = 15;
   VERI.RENKLI_ETIKET = "Renkli (+%15)";

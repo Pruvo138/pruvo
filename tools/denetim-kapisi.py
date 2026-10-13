@@ -45,6 +45,9 @@ KAPILAR (her biri ayri, tek tek test edilebilir fonksiyon):
      `lisans` bos -> sayilir; NON-GROWTH (ATIF_IHLAL_TABANI asilirsa rc 1; --envanter RAPOR).
      Taninmayan dizge SINIFLANAMADI (muaf DEGIL, kendi tabani). Gizli dosya yoksa (CI)
      OLCULEMEDI, rc'yi etkilemez. Worktree'den: --kaynaklar <ana kopya>/.urun-kaynaklari.json.
+  KAPI 12 (K441) PARAMETRIK SEMA (IHLAL, silme DEGIL): `parametrik:true` yeni/degisen kayit
+     `jenerator/urunler/<id>.json` semasi OLMADAN giremez. Kural TEK KAYNAK
+     tools/parametrik_sema.py (kuyruk birlestirici de ayni fonksiyonu cagirir).
 
 CIKTI: .thing-cache/denetim-kapisi-rapor.json
   {auto_sil:[{id,kapi,gerekce}], dedup:[{baslik,tut,sil:[]}],
@@ -1581,6 +1584,48 @@ def kapi_dedup(yeni, tum, head_ids, kaynaklar, haric):
 
 
 # =============================================================================
+# KAPI 12 (K441, 13 Eki 2026): PARAMETRIK KAYIT SEMASIZ GIREMEZ (fail-closed)
+# -----------------------------------------------------------------------------
+# 🔴 OLCULEN OLAY: `009b7315` parametrik `olcuye-ozel-saksi-vazo` kaydini
+# `jenerator/urunler/<id>.json` semasi OLMADAN kataloga soktu -> sayfa konfiguratorsuz +
+# adetsiz + fiyatsiz render; hicbir kapi "parametrik => sema" demedigi icin kirmizi
+# ALAKASIZ yerden (varlik-mutasyon G5 / `1c BAYAT 'Adet − +'`) geldi ve deploy 40+ dk
+# SKIPPED kaldi. Kural TEK KAYNAKTA: tools/parametrik_sema.py (ikinci kopya YOK; ayni
+# fonksiyonu tools/urun-kuyruk-birlestir.py de cagirir -> kuyruk main'e giremeden RED).
+# NEDEN IHLAL, auto_sil DEGIL: kayit SAGLAM, eksik olan SEMA'dir — care ONARIMDIR (once
+# sema main'e / ayni commit'e, sonra kayit; sema hazir degilse kaydi EKLEME). Urun SILINMEZ.
+# KAPSAM = YENI/DEGISEN kayit (--commit-farki 'onceden var' suzgeci); sema dizini KOD
+# kokunden okunur (build.py::JEN_URUN_DIR ile ayni agac).
+# TEMBEL YUKLEME: modul yalniz PARAMETRIK bir kayit gorulunce yuklenir (KAPI 10 emsali;
+# kapi kendi ekseni disinda yayini durdurmasin). Yukleme dusurse sessiz "ihlal yok" DEMEZ.
+_PS_MODUL = None
+
+
+def _parametrik_sema_modulu():
+    global _PS_MODUL
+    if _PS_MODUL is None:
+        _PS_MODUL = _load_adaptor("parametrik_sema.py", "parametrik_sema_kapi")
+    return _PS_MODUL
+
+
+def kapi_parametrik_sema(urun):
+    """(ihlal_kapi|None, gerekce) — KAPI 12. `parametrik` kayit sema dosyasiz giremez."""
+    if not isinstance(urun, dict) or not urun.get("parametrik"):
+        return None, ""                # parametrik DEGIL — bu kapinin ekseni degil
+    try:
+        mod = _parametrik_sema_modulu()
+        g = mod.semasiz_gerekce(
+            urun, lambda yol: os.path.isfile(os.path.join(_KOD_KOK, *yol.split("/"))))
+    except BaseException as e:                                       # noqa: BLE001
+        return "parametrik-sema", (
+            "OLCULEMEDI: kural kaynagi (tools/parametrik_sema.py) yuklenemedi/dustu: "
+            "%s: %s (fail-closed)" % (type(e).__name__, e))
+    if not g:
+        return None, ""
+    return "parametrik-sema", g
+
+
+# =============================================================================
 # orkestrator
 # =============================================================================
 def denetle(urunler, yeni_ids, head_ids, kaynaklar):
@@ -1605,6 +1650,11 @@ def denetle(urunler, yeni_ids, head_ids, kaynaklar):
             ihlal.append({"id": uid, "kapi": kapi, "gerekce": g})
         # 10 GORSELSIZ KAYIT (ihlal — silme DEGIL, gorsel/beyan ister; bkz kapi_gorselsiz)
         kapi, g = kapi_gorselsiz(u)
+        if kapi:
+            ihlal.append({"id": uid, "kapi": kapi, "gerekce": g})
+        # 12 (K441) PARAMETRIK KAYIT SEMASIZ (ihlal — silme DEGIL; once sema, sonra kayit;
+        # bkz kapi_parametrik_sema)
+        kapi, g = kapi_parametrik_sema(u)
         if kapi:
             ihlal.append({"id": uid, "kapi": kapi, "gerekce": g})
         # 11 (K390) FEED BLOKLAYICI JETON tasima (ihlal — silme DEGIL; gizle veya tabana
@@ -1759,6 +1809,9 @@ def _urun_ihlalleri(u):
     if kapi:
         s.add((kapi, g))
     kapi, g = kapi_gorselsiz(u)
+    if kapi:
+        s.add((kapi, g))
+    kapi, g = kapi_parametrik_sema(u)
     if kapi:
         s.add((kapi, g))
     kapi, g = kapi_feed_bloklayici(u)
@@ -2327,12 +2380,30 @@ def kendini_test():
 
     yaz(n3)
     commit("geri alindi")
+    # K441 (13 Eki 2026): parametrik kayit artik SEMASIZ giremez (KAPI 12). Alt surec KOPYA
+    # tools/ ile kosar (kod koku = bu gecici depo) -> bu vakanin kaydina SEMA dosyasi verilir;
+    # boylece vaka yalniz FIYAT ekseni olarak kalir.
+    os.makedirs(os.path.join(depo, "jenerator", "urunler"), exist_ok=True)
+    with open(os.path.join(depo, "jenerator", "urunler", "s1.json"), "w", encoding="utf-8") as f:
+        f.write("{}\n")
     sari = _kt_urun("s1", kategori="Jeneratör", fiyat="", parametrik=True,
                     baslik="Olcuye Ozel Ara Parca s1")
     yaz(n3 + [sari])
     commit("sari seri (parametrik, fiyat BOS)")
     rc, out = kos()
-    iddia("P4b SARI seri (parametrik/Jeneratör, fiyat BOS) -> rc 0", rc == 0, "rc=%d" % rc)
+    iddia("P4b SARI seri (parametrik/Jeneratör, fiyat BOS) -> rc 0", rc == 0,
+          "rc=%d%s" % (rc, "" if rc == 0 else " :: " + out[-400:].replace("\n", " | ")))
+
+    # P4c (K441): AYNI sari seri ama SEMASI YOK -> KAPI 12 BLOKLAR (rc 1, 'parametrik-sema').
+    yaz(n3)
+    commit("geri alindi")
+    sari_semasiz = _kt_urun("olcuye-ozel-semasiz-fikstur", kategori="Jeneratör", fiyat="",
+                            parametrik=True, baslik="Olcuye Ozel Semasiz fikstur")
+    yaz(n3 + [sari_semasiz])
+    commit("sari seri (parametrik, SEMASIZ)")
+    rc, out = kos()
+    iddia("P4c parametrik kayit SEMASIZ -> rc 1 (KAPI 12 parametrik-sema)",
+          rc == 1 and "parametrik-sema" in out, "rc=%d" % rc)
 
     # --- P5: ONCEDEN VAR OLAN ihlale dokunan TOPLU islem -> rc 0 (metin DEGISMEDI) --
     #     (olculmus vaka: fiyat yuvarlama 12.458 kayda dokunup 417 eski ihlali kapsama sokar)

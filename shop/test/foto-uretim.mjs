@@ -5135,11 +5135,11 @@ console.log("C2a-2) TUR-C2a-2 figurKolu dallanma noktaları (figür kapısı KAP
 // Kart adları + kart başına ret cümlesi (6 MODEL KARTLAR tablosu; beklenen metin BAĞIMSIZ yazılır).
 const C2B_KART = [["anahtarlik_yazi", "Anahtarlık – yazı"], ["anahtarlik_figur", "Anahtarlık – figür"]];
 const C2B_RET = { yazi: "Anahtarlık için kısa bir yazı gerekir.", figur: "Anahtarlık için net bir fotoğraf gerekir." };
-// Pazarlama sayfa metni "Anahtarlık ③ seçenek etiketleri" tablosu (value -> görünen etiket) AYNEN.
+// Pazarlama sayfa metni "Anahtarlık ③ seçenek etiketleri" tablosu (value -> görünen etiket) AYNEN. "Kulak konumu"
+// seçicisi ÇIKTI (Okan 8 Eki 23:0x kulak sol üst SABİT; BaBa 13 Eki 11:4x) -> ③'te görünen 2 seçim alanı, 5 seçenek.
 const C2B_ETIKET = {
   yazi_tipi: { "sans-kalin": "Kalın düz harfler", "script": "El yazısı" },
-  hizalama: { "sol": "Sol", "orta": "Orta", "sag": "Sağ" },
-  anahtarlik_kulak_konum: { "sol-ust": "Sol üst", "sag-ust": "Sağ üst", "ust-orta": "Üst orta" } };
+  hizalama: { "sol": "Sol", "orta": "Orta", "sag": "Sağ" } };
 const C2B_FIGUR_ETIKET = { tepe: "Başın arkası (üst)", sirt: "Başın arkası (ense)" };
 const C2B_BUST = "https://media.pruvo3d.com/foto/ornek/bust-2-render.webp";
 
@@ -5220,7 +5220,7 @@ async function c2bIstemci(kaynak, veriYama) {
     !!f.govde && f.govde.cesit === "figur" && f.govde.gorsel === true && f.govde.parametreler === "yok" && f.govde.olcu <= KULAK_TAVAN_YAMA;
   s.V8 = JSON.stringify(y.ret) === JSON.stringify([C2B_RET.yazi]) && JSON.stringify(f.ret) === JSON.stringify([C2B_RET.figur]);
   s.V9i = f.ileriFotosuz === true;
-  // V11: ③ seçim alanlarında görünen metin tablodaki Türkçe etiket (8), value ham slug AYNEN; ham slug metni 0.
+  // V11: ③ seçim alanlarında görünen metin tablodaki Türkçe etiket (5; kulak seçicisi 0), value ham slug AYNEN; ham slug metni 0.
   // +2: figür kulak konumu `tepe`/`sirt` etiketleri haritada (bölüm kaynağındaki KUBAR_ETIKET_MAP okunur).
   const gorunen = y.secenek.filter((x) => !x[1]);
   const beklenen = Object.keys(C2B_ETIKET).map((a) => ["foto-param-" + a, false, Object.entries(C2B_ETIKET[a])]);
@@ -5232,7 +5232,7 @@ async function c2bIstemci(kaynak, veriYama) {
   const figurEt = harita && harita.kulak_konum ? { tepe: harita.kulak_konum.tepe, sirt: harita.kulak_konum.sirt } : null;
   iz.v11 = { gorunen, hamSlug, figurEt };
   s.V11 = JSON.stringify(gorunen) === JSON.stringify(beklenen) && hamSlug === 0 &&
-    gorunen.reduce((t, x) => t + x[2].length, 0) === 8 && JSON.stringify(figurEt) === JSON.stringify(C2B_FIGUR_ETIKET);
+    gorunen.reduce((t, x) => t + x[2].length, 0) === 5 && JSON.stringify(figurEt) === JSON.stringify(C2B_FIGUR_ETIKET);
   Object.defineProperty(s, "iz", { value: iz, enumerable: false });
   return s;
 }
@@ -5306,7 +5306,7 @@ console.log("C2b) TUR-C2b anahtarlık 2 çeşit AÇILIŞ — istemci düğmeleri
      JSON.stringify([s.iz.f.ileriFotosuz, s.iz.fotosuz, s.iz.fotosuzCagri]));
   ol("V10 kapı AÇIK: secim.cesit=figur ve cesit=figur -> 200 sağlayıcı figür yolu, D1 cesit figur; çelişen çeşit -> 400",
      s.V10, JSON.stringify([s.iz.secimFigur, s.iz.secimCagri, s.iz.ustFigur, s.iz.ustCagri, s.iz.satir, s.iz.celiski]));
-  ol("V11 ③ etiketler: Türkçe 8 (value aynen, ham slug metni 0) + figür tepe/sirt 2", s.V11, JSON.stringify(s.iz.v11));
+  ol("V11 ③ etiketler: Türkçe 5 · kulak seçici 0 (value aynen, ham slug metni 0) + figür tepe/sirt 2", s.V11, JSON.stringify(s.iz.v11));
   ol("V12 büst örnek görseli bust-2 (önizleme + render)", s.V12, JSON.stringify(s.iz.bust));
   const kapaliYama = (V) => { const c = V.cesitKaydi("anahtarlik", "figur"), a = c.acik; c.acik = false; return () => { c.acik = a; }; };
   const C2B_MUT = [
@@ -6766,6 +6766,258 @@ console.log("FR) ④ FİGÜR — render varsa O, yoksa sağlayıcı görseli AYN
     const m = await frSunucu(fm);
     ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir(m)) === JSON.stringify(olmeli), JSON.stringify(kir(m)));
   }
+}
+
+/**
+ * AKR) ANAHTARLIK–YAZI İKİ RENK (Okan 12 Eki, aynen "anahtarlıkta tek renk seçimi olmaz zaten minimum 2 renk olmalı").
+ * ③'te Yazı rengi + Taban rengi (VERI.ANA_RENKLER), varsayılan taban Siyah + yazı Beyaz; çift üreteç kontrast eşiğinin
+ * altındaysa ③'te `kontrast` metni + ileri pasif; sunucu renkSayimi aynı hükümle (VERI.bolgeRenkHukmu) kabul/ret; fiyat
+ * renk adedinden bağımsız. ③'te TEK ölçü kontrolü (`form_sunum.genislik_mm` = Ölçü sürgüsü).
+ *   AKR-VK kontrast metriği = üreteç (pruvo-jenerator jeneratorler/foto/isimlik_uret.py kontrast_orani, KONTRAST_MIN 3.0)
+ *   AKR-V1 6 farklı çift -> ④ önizleme gövdesi {yazi, plaka} doğru + sunucu kabul (6/6)
+ *   AKR-V2 3 aynı çift -> ③ kontrast metni + ileri pasif + istek 0 + sunucu 400 (3/3)
+ *   AKR-V3 varsayılan {yazi: Beyaz, plaka: Siyah} (veri + ③ işaretli seçim)
+ *   AKR-V4 ANA_RENKLER dışı (Kırmızı) -> hüküm "renk" + sunucu 400
+ *   AKR-V5 figür çeşidi + kayıtsız tür -> eski davranış (tek seçici; tüm bölgeler aynı; 2 renk 400)
+ *   AKR-V6 60 mm PLA birim önce = sonra (önce: HEAD 8e14e156 ölçümü 60000 kuruş)
+ *   AKR-V7 formSunumDegeri genislik_mm = olcu · gövdede genislik_mm = olcu_mm
+ *   AKR-DOM ③ anahtarlık–yazı renk seçici 2 + ölçü kontrolü 1 · anahtarlık–figür renk seçici 1
+ * BaBa 13 Eki 11:4x (Okan canlı ekran görüntüsü) + ArTisT 19. okuma:
+ *   AKR-V8 ③ TEK ölçü kontrolünün etiketi "Uzun kenar (kulak dahil)" (ayrı "Ölçü" etiketi 0) · figür çeşidi + yapboz AYNEN
+ *   AKR-V9 "Kulak konumu" seçicisi 0 (DOM'da alan da metin de yok) · ④ gövdede kulak "sol-ust" (sabit, 6/6)
+ *   AKR-V10 metinler BİREBİR (bağımsız yazılmış sabitler): ③ yardım cümlesi · kontrast uyarısı (veri + ③ DOM) ·
+ *           etiketler "Yazı rengi" / "Taban rengi" (veri + ③ legend sırası)
+ *   AKR-V11 beyaz yazı / siyah taban (varsayılan): uyarı 0 + ileri açık + önizleme isteği 1
+ * MUTANT (kopyada): sunucu kontrast hükmü kalkar -> V2 · istemci tek seçiciye döner -> DOM (+ seçime bağlı vakalar) ·
+ *   kontrast metin eşlemesi bozulur -> V2,V10 · kulak seçici geri gelir -> V9 · sürgü etiketi bayrağı kalkar -> V8.
+ */
+// ArTisT 19. okuma (kutu 13 Eki 11:5x) — kaynaktan OKUNMAZ, birebir yazılır.
+const AKR_METIN = {
+  renk: "Yazı için bir, taban için bir renk seç; ikisi birbirinden belirgin olmalı ki yazı net okunsun.",
+  kontrast: "Yazı ve taban rengi birbirine çok yakın; yazı okunmaz. Farklı bir renk seç.",
+  etiket: ["Yazı rengi", "Taban rengi"], olcu: "Uzun kenar (kulak dahil)" };
+// Üreteçle ölçülen 9 çift (python3, isimlik_uret.kontrast_orani; RENK_HEX Siyah #1A1A1A · Beyaz #F2F2F2 · Gri #818184).
+const AKR_URETEC = { "Siyah/Siyah": 1, "Siyah/Beyaz": 15.5466, "Siyah/Gri": 4.481, "Beyaz/Siyah": 15.5466, "Beyaz/Beyaz": 1,
+  "Beyaz/Gri": 3.4695, "Gri/Siyah": 4.481, "Gri/Beyaz": 3.4695, "Gri/Gri": 1 };
+const AKR_ONCE_KURUS = 60000;
+const akrCiftler = () => VERI.ANA_RENKLER.flatMap((y) => VERI.ANA_RENKLER.map((p) => ({ yazi: y, plaka: p })));
+const akrSinif = (n, c) => String(n.className || "").split(" ").indexOf(c) >= 0;
+async function akrEkran(kaynak, V, kart) {
+  const acikA = { acik: true, turler: [{ kod: "anahtarlik", ad: V.turBul("anahtarlik").ad, aciklama: "x", ornek_sayisi: 1,
+    olculer: V.olcuSecenekleri("anahtarlik").map((mm) => ({ mm, fiyat_kurus: V.fiyatKurus("anahtarlik", mm) })) }] };
+  const e = await ekranKos(kaynak, V, acikA, null, null, { kart, gorselSahte: true, turnstileOto: true });
+  const d = () => [...e.bolum.agac()];
+  const id = (x) => d().find((n) => n.id === x) || null;
+  const p3 = () => { const p = id("foto-pencere-3"); return p ? [...p.agac()] : []; };
+  return { e, d, id, p3 };
+}
+// ③ ölçümü: renk seçici (fieldset) sayısı, ölçü kontrolü (sürgü + "Uzun kenar" sayı alanı) sayısı.
+function akrUc(p3) {
+  const surgu = p3.find((n) => n.tagName === "INPUT" && n.id === "foto-olcu") || null;
+  return { renkSecici: p3.filter((n) => n.tagName === "FIELDSET" && akrSinif(n, "foto-uretim-renk-secim")).length,
+    olcuKontrol: p3.filter((n) => n.tagName === "INPUT" && (n.id === "foto-olcu" || n.id === "foto-param-genislik_mm")).length,
+    // ③ ölçü etiketleri: form etiketi olup "ölçü"/"Uzun kenar" geçen metinler (ayrı "Ölçü" etiketi = çift kontrol izi)
+    olcuEtiket: p3.filter((n) => akrSinif(n, "foto-uretim-form-etiket") && n.tagName !== "LEGEND" &&
+      /ölçü|Ölçü|Uzun kenar/.test(n.textContent)).map((n) => n.textContent),
+    surguAria: surgu ? surgu.getAttribute("aria-label") : null,
+    legend: p3.filter((n) => n.tagName === "LEGEND").map((n) => n.textContent),
+    yardim: p3.filter((n) => akrSinif(n, "foto-uretim-ayrinti") && n.textContent === AKR_METIN.renk).length };
+}
+async function akrIstemciCift(kaynak, V, cift) {
+  const { e, d, id, p3 } = await akrEkran(kaynak, V, "anahtarlik_yazi");
+  const r = { istisna: e.istisna + ":" + e.istisnaMetni };
+  const ta = id("foto-param-satirlar");
+  if (ta) { ta.value = "Ayşe"; ta.tetikle("input"); }
+  const ileri = id("foto-ileri");
+  if (ileri) { ileri.tetikle("click"); }
+  Object.assign(r, akrUc(p3()));
+  const isaretli = (b) => (p3().find((n) => n.tagName === "INPUT" && n.name === "foto-renk-" + b && n.checked) || {}).value || null;
+  r.varsayilan = { yazi: isaretli("yazi"), plaka: isaretli("plaka") };
+  for (const b of ["yazi", "plaka"]) {
+    const k = p3().find((n) => n.tagName === "INPUT" && n.name === "foto-renk-" + b && n.value === cift[b]);
+    if (k) { k.checked = true; k.tetikle("change"); }
+  }
+  r.uyari = p3().filter((n) => n.id === "foto-renk-kontrast" && n.textContent === VERI.URETEC_RED_METIN.kontrast).length;
+  r.uyariBirebir = p3().filter((n) => n.id === "foto-renk-kontrast" && n.textContent === AKR_METIN.kontrast).length;
+  // Kulak konumu seçicisi: alan (id) ya da "Kulak konumu" metni bölümün HERHANGİ bir yerinde (② + ③).
+  r.kulakSecici = d().filter((n) => n.id === "foto-param-anahtarlik_kulak_konum" ||
+    (n.textContent === "Kulak konumu" && !(n.children && n.children.length))).length;
+  r.ileriAcik = !!ileri && ileri.disabled === false;
+  if (ileri) { ileri.tetikle("click"); }
+  const on = id("foto-aydinlatma-onay");
+  if (on) { on.checked = true; on.tetikle("change"); }
+  const btn = id("foto-onizle-buton");
+  if (btn) { btn.tetikle("click"); }
+  for (let i = 0; i < 5; i++) { await new Promise((c) => setTimeout(c, 0)); }
+  const ist = e.istekler.filter((x) => /\/foto\/onizleme$/.test(x.u)).map((x) => x.govde);
+  r.istek = ist.length;
+  r.secim = ist.length === 1 && ist[0].secim ? { yazi: ist[0].secim.yazi_renk, plaka: ist[0].secim.plaka_renk } : null;
+  r.genislik = ist.length === 1 && ist[0].parametreler ? ist[0].parametreler.genislik_mm : null;
+  r.kulak = ist.length === 1 && ist[0].parametreler ? ist[0].parametreler.anahtarlik_kulak_konum : null;
+  r.olcu = ist.length === 1 ? ist[0].olcu_mm : null;
+  return r;
+}
+async function akrIstemci(kaynak, veriKaynak) {
+  const V = veriYukle(veriKaynak || VERI_KAYNAK), iz = {};
+  for (const c of akrCiftler()) { iz[c.yazi + "/" + c.plaka] = await akrIstemciCift(kaynak, V, c); }
+  // Başka çeşit: anahtarlık–figür kartı (fotoğraf) -> ③ tek renk seçici (eski yol AYNEN).
+  const f = await akrEkran(kaynak, V, "anahtarlik");
+  cesitKartTikla(f.e.bolum, "figur");
+  const dosya = f.id("foto-dosya");
+  if (dosya) { dosya.files = [{ name: "kedi.jpg", type: "image/jpeg", size: 4096 }]; dosya.tetikle("change"); }
+  const fi = f.id("foto-ileri");
+  if (fi) { fi.tetikle("click"); }
+  iz.figur = Object.assign(akrUc(f.p3()), { radyo: f.p3().filter((n) => n.tagName === "INPUT" && n.name === "foto-renk").length });
+  iz.veri = { metin: V.URETEC_RED_METIN.kontrast,
+    acik: (V.turBul("anahtarlik").alan_aciklamalari || {}).renk, et: V.turBul("anahtarlik").bolge_renk_secimi.etiketler,
+    yapboz: ((V.turBul("yapboz") || {}).form_sunum || {}).uzun_kenar_mm || null };
+  return iz;
+}
+async function akrSunucu(fm) {
+  const k = koprukur(); await k.hazir;
+  const e2 = envKur(k.d1, r2Kur());
+  await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('anahtarlik_yazi', 1, 'x')").run();
+  const iz = {};
+  const asilOrnek = VERI.ornekSayisi;
+  VERI.ornekSayisi = (kod) => (kod === "anahtarlik" ? 1 : asilOrnek(kod));
+  const kayit = VERI.turBul("anahtarlik"), brs = kayit.bolge_renk_secimi;
+  let no = 0;
+  const isKur = async () => {
+    const is = "a8" + (++no).toString(16).padStart(30, "0"), iso = new Date().toISOString();
+    await k.d1.prepare("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, gorev, hazir_tarih, cesit) VALUES (?, 'anahtarlik', 60, 'z', ?, 'onizleme-hazir', 'gorev-akr', ?, 'yazi')")
+      .bind(is, iso, iso).run();
+    return is;
+  };
+  const fiyatla = async (yazi, plaka) => {
+    const n = new Set([yazi, plaka]).size;
+    const r = await fm.fotoKalemFiyatla(e2, { foto_is: await isKur(), olcu_mm: AH_MM, adet: 1, renkli: false, malzeme: "PLA",
+      secim: { plaka_renk: plaka, yazi_renk: yazi, govde_malzeme: "PLA" }, renk_sayisi: n }, Date.now());
+    return r.satir ? r.satir.birim_kurus : (r.kod + ":" + (r.hata && r.hata.hata));
+  };
+  try {
+    iz.cift = {};
+    for (const c of akrCiftler()) { iz.cift[c.yazi + "/" + c.plaka] = await fiyatla(c.yazi, c.plaka); }
+    iz.kirmizi = [await fiyatla("Kırmızı", "Siyah"), await fiyatla("Beyaz", "Kırmızı")];
+    // Kayıtsız tür (bellek yaması: alan silinir) -> eski kural: tüm bölgeler aynı renk kabul, iki renk 400.
+    delete kayit.bolge_renk_secimi;
+    iz.kayitsiz = { tek: await fiyatla("Beyaz", "Beyaz"), iki: await fiyatla("Beyaz", "Siyah") };
+  } finally { VERI.ornekSayisi = asilOrnek; kayit.bolge_renk_secimi = brs; k.kapat(); }
+  return iz;
+}
+console.log("AKR) ANAHTARLIK–YAZI iki renk (Yazı rengi + Taban rengi), ③'te kontrast uyarısı + tek ölçü kontrolü");
+{
+  const farkli = akrCiftler().filter((c) => c.yazi !== c.plaka).map((c) => c.yazi + "/" + c.plaka);
+  const ayni = akrCiftler().filter((c) => c.yazi === c.plaka).map((c) => c.yazi + "/" + c.plaka);
+  // VK: JS metriği üreteç tablosuyla (4 hane) eşit + eşik = üreteç KONTRAST_MIN; üreteç kaynağı makinedeyse sabitleri de.
+  const brs = VERI.turBul("anahtarlik").bolge_renk_secimi;
+  const vkFark = akrCiftler().filter((c) => {
+    const o = VERI.kontrastOrani(c.yazi, c.plaka);
+    return !(typeof o === "number" && Math.abs(o - AKR_URETEC[c.yazi + "/" + c.plaka]) < 5e-5);
+  });
+  const uretecDosya = path.join(process.env.HOME || "/", "dev", "pruvo-jenerator", "jeneratorler", "foto", "isimlik_uret.py");
+  let uretecEsik = null;
+  if (fs.existsSync(uretecDosya)) {
+    const m = /^KONTRAST_MIN = ([0-9.]+)$/m.exec(fs.readFileSync(uretecDosya, "utf8"));
+    uretecEsik = m ? Number(m[1]) : NaN;
+  }
+  console.log("  AKR 9 çift (yazı/taban -> oran): " + akrCiftler().map((c) => c.yazi + "/" + c.plaka + "=" +
+    VERI.kontrastOrani(c.yazi, c.plaka).toFixed(4)).join(" · ") + " · eşik " + brs.kontrast_esigi +
+    " · üreteç kaynağı " + (uretecEsik === null ? "makinede YOK (sabit tablo)" : "KONTRAST_MIN=" + uretecEsik));
+  ol("AKR-VK kontrast metriği = üreteç (9/9 çift, eşik 3.0" + (uretecEsik === null ? "" : " = üreteç " + uretecEsik) + ")",
+     vkFark.length === 0 && brs.kontrast_esigi === 3.0 && (uretecEsik === null || uretecEsik === brs.kontrast_esigi),
+     JSON.stringify([vkFark, uretecEsik]));
+  const akr = async (kaynak, fm, veriKaynak) => {
+    const i = await akrIstemci(kaynak, veriKaynak), v = await akrSunucu(fm), s = {};
+    s.V1 = farkli.every((x) => { const [y, p] = x.split("/"), r = i[x];
+      return r.uyari === 0 && r.ileriAcik && r.istek === 1 && !!r.secim && r.secim.yazi === y && r.secim.plaka === p &&
+        v.cift[x] === AKR_ONCE_KURUS; });
+    s.V2 = ayni.every((x) => i[x].uyari === 1 && !i[x].ileriAcik && i[x].istek === 0 && v.cift[x] === "400:gecersiz-renk") &&
+      ayni.every((x) => VERI.bolgeRenkHukmu("anahtarlik", { yazi: x.split("/")[0], plaka: x.split("/")[1] }) === "kontrast");
+    s.V3 = JSON.stringify(brs.varsayilan) === '{"yazi":"Beyaz","plaka":"Siyah"}' &&
+      akrCiftler().every((c) => { const d = i[c.yazi + "/" + c.plaka].varsayilan; return d.yazi === "Beyaz" && d.plaka === "Siyah"; });
+    s.V4 = v.kirmizi.every((x) => x === "400:gecersiz-renk") &&
+      VERI.bolgeRenkHukmu("anahtarlik", { yazi: "Kırmızı", plaka: "Siyah" }) === "renk";
+    s.V5 = VERI.bolgeRenkSecimi("anahtarlik", "figur") === null && VERI.bolgeRenkSecimi("plaket") === null &&
+      i.figur.renkSecici === 1 && i.figur.radyo >= 3 && v.kayitsiz.tek === AKR_ONCE_KURUS && v.kayitsiz.iki === "400:gecersiz-renk";
+    s.V6 = VERI.fiyatKurus("anahtarlik", AH_MM, { renkli: false, malzeme: "PLA" }) === AKR_ONCE_KURUS &&
+      farkli.every((x) => v.cift[x] === AKR_ONCE_KURUS);
+    s.V7 = VERI.formSunumDegeri("anahtarlik", "genislik_mm", 75) === 75 &&
+      farkli.every((x) => typeof i[x].olcu === "number" && i[x].genislik === i[x].olcu);
+    s.DOM = akrCiftler().every((c) => { const r = i[c.yazi + "/" + c.plaka]; return r.renkSecici === 2 && r.olcuKontrol === 1; }) &&
+      i.figur.renkSecici === 1;
+    const hepsi = akrCiftler().map((c) => i[c.yazi + "/" + c.plaka]);
+    s.V8 = hepsi.every((r) => JSON.stringify(r.olcuEtiket) === JSON.stringify([AKR_METIN.olcu]) && r.olcuKontrol === 1 &&
+      r.surguAria === AKR_METIN.olcu + " (mm)") && i.figur.olcuEtiket.length === 1 && i.figur.olcuEtiket[0] !== AKR_METIN.olcu &&
+      i.figur.surguAria === "Ölçü — en uzun boyut (mm)" && !!i.veri.yapboz && i.veri.yapboz.surgu_etiketi === undefined;
+    s.V9 = hepsi.every((r) => r.kulakSecici === 0) && farkli.every((x) => i[x].kulak === "sol-ust");
+    s.V10 = i.veri.metin === AKR_METIN.kontrast && i.veri.acik === AKR_METIN.renk &&
+      JSON.stringify([i.veri.et.yazi, i.veri.et.plaka]) === JSON.stringify(AKR_METIN.etiket) &&
+      hepsi.every((r) => JSON.stringify(r.legend) === JSON.stringify(AKR_METIN.etiket) && r.yardim === 1) &&
+      ayni.every((x) => i[x].uyariBirebir === 1) && farkli.every((x) => i[x].uyariBirebir === 0);
+    s.V11 = i["Beyaz/Siyah"].uyari === 0 && i["Beyaz/Siyah"].uyariBirebir === 0 && i["Beyaz/Siyah"].ileriAcik &&
+      i["Beyaz/Siyah"].istek === 1;
+    Object.defineProperty(s, "iz", { value: { i, v }, enumerable: false });
+    return s;
+  };
+  const s = await akr(EKRAN_KAYNAK, foto);
+  const { i, v } = s.iz;
+  const say = (l, f) => l.filter(f).length;
+  ol("AKR-V1 6 farklı çift -> ④ gövde {yazi, plaka} doğru + sunucu kabul (" +
+     say(farkli, (x) => i[x].istek === 1 && v.cift[x] === AKR_ONCE_KURUS) + "/6)", s.V1,
+     JSON.stringify(farkli.map((x) => [x, i[x].secim, i[x].uyari, i[x].ileriAcik, v.cift[x], i[x].istisna])));
+  ol("AKR-V2 3 aynı çift -> ③ kontrast metni + ileri pasif + istek 0 + sunucu 400 (" +
+     say(ayni, (x) => i[x].uyari === 1 && !i[x].ileriAcik && v.cift[x] === "400:gecersiz-renk") + "/3)", s.V2,
+     JSON.stringify(ayni.map((x) => [x, i[x].uyari, i[x].ileriAcik, i[x].istek, v.cift[x]])));
+  ol("AKR-V3 varsayılan yazı Beyaz + taban Siyah (veri + ③ işaretli)", s.V3, JSON.stringify(i["Siyah/Siyah"].varsayilan));
+  ol("AKR-V4 ANA_RENKLER dışı (Kırmızı) -> 400 (2/2) + hüküm 'renk'", s.V4, JSON.stringify(v.kirmizi));
+  ol("AKR-V5 figür çeşidi + kayıtsız tür -> eski davranış (③ tek seçici, aynı renk kabul, 2 renk 400)", s.V5,
+     JSON.stringify([i.figur, v.kayitsiz]));
+  ol("AKR-V6 60 mm PLA birim önce " + AKR_ONCE_KURUS + " = sonra " + VERI.fiyatKurus("anahtarlik", AH_MM, { renkli: false, malzeme: "PLA" }) +
+     " kuruş (sunucu 6 çift aynı)", s.V6, JSON.stringify(farkli.map((x) => v.cift[x])));
+  ol("AKR-V7 genislik_mm = olcu (formSunumDegeri + ④ gövde)", s.V7, JSON.stringify(farkli.map((x) => [i[x].genislik, i[x].olcu])));
+  ol("AKR-DOM ③ anahtarlık–yazı renk seçici " + i["Beyaz/Siyah"].renkSecici + " · ölçü kontrolü " + i["Beyaz/Siyah"].olcuKontrol +
+     " · anahtarlık–figür renk seçici " + i.figur.renkSecici, s.DOM,
+     JSON.stringify(akrCiftler().map((c) => { const r = i[c.yazi + "/" + c.plaka]; return [r.renkSecici, r.olcuKontrol]; }).concat([i.figur])));
+  const bs = i["Beyaz/Siyah"];
+  ol("AKR-V8 ③ tek ölçü kontrolü etiketi '" + AKR_METIN.olcu + "' (ölçü etiketleri " + JSON.stringify(bs.olcuEtiket) +
+     ") · figür + yapboz AYNEN", s.V8, JSON.stringify([bs.olcuEtiket, bs.surguAria, i.figur.olcuEtiket, i.figur.surguAria, i.veri.yapboz]));
+  ol("AKR-V9 kulak seçici " + akrCiftler().reduce((t, c) => t + i[c.yazi + "/" + c.plaka].kulakSecici, 0) +
+     " · ④ gövdede kulak sol-ust " + farkli.filter((x) => i[x].kulak === "sol-ust").length + "/6", s.V9,
+     JSON.stringify(farkli.map((x) => [i[x].kulakSecici, i[x].kulak])));
+  ol("AKR-V10 ArTisT metinleri birebir (yardım · kontrast uyarısı · Yazı rengi/Taban rengi)", s.V10,
+     JSON.stringify([i.veri, bs.legend, bs.yardim, ayni.map((x) => i[x].uyariBirebir)]));
+  ol("AKR-V11 Beyaz yazı / Siyah taban: uyarı 0 + ileri açık + önizleme isteği 1", s.V11,
+     JSON.stringify([bs.uyari, bs.uyariBirebir, bs.ileriAcik, bs.istek]));
+  const kir = (m) => Object.keys(m).filter((x) => m[x] !== true).sort();
+  const AKR_MUT = [
+    ["AKR-M1 sunucu kontrast hükmü kalkar (aynı çift kabul)", "sunucu",
+     "return VERI.bolgeRenkHukmu(turKod, aktif, cesit) === \"\" && n <= tavan", "return n <= tavan", ["V2"]],
+    ["AKR-M2 istemci tek seçiciye döner (iki seçici çizilmez)", "ekran",
+     "    if (bk && !renkliSunulur(nt.kod)) return bolgeRenkSecici(nt, bk, degisti);\n", "", ["DOM", "V1", "V2", "V3", "V10"]],
+    ["AKR-M3 kontrast metin eşlemesi bozulur (anahtar kayar -> genel metin)", "veri",
+     "      \"kontrast\": \"Yazı ve taban rengi", "      \"kontrast-x\": \"Yazı ve taban rengi", ["V10", "V2"]],
+    ["AKR-M4 kulak seçici geri gelir (form_sunum kulak satırı kalkar)", "veri",
+     "          anahtarlik_kulak_konum: { deger: \"varsayilan\" }\n", "", ["V9"]],
+    ["AKR-M5 sürgü etiket bayrağı kalkar ('Ölçü' etiketi geri gelir)", "veri",
+     "genislik_mm: { deger: \"olcu\", surgu_etiketi: true }", "genislik_mm: { deger: \"olcu\" }", ["V8"]],
+  ];
+  let akrMut = 0;
+  for (const [ad, hedef, capa, yerine, olmeli] of AKR_MUT) {
+    let m = null;
+    if (hedef === "ekran") {
+      if (EKRAN_KAYNAK.split(capa).length - 1 === 1) { m = await akr(EKRAN_KAYNAK.replace(capa, yerine), foto); }
+    } else if (hedef === "veri") {
+      if (VERI_KAYNAK.split(capa).length - 1 === 1) { m = await akr(EKRAN_KAYNAK, foto, VERI_KAYNAK.replace(capa, yerine)); }
+    } else {
+      const fm = await mutantModul(capa, yerine);
+      if (fm) { m = await akr(EKRAN_KAYNAK, fm); }
+    }
+    if (!m) { ol(ad + " çapa bulundu", false, capa); continue; }
+    const tut = JSON.stringify(kir(m)) === JSON.stringify(olmeli.slice().sort());
+    if (tut) { akrMut++; }
+    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", tut, JSON.stringify(kir(m)));
+  }
+  console.log("  AKR MUTANT " + akrMut + "/" + AKR_MUT.length);
 }
 
 console.log(kirmizi ? "\n❌ " + kirmizi + " iddia KIRMIZI" : "\n✅ HEPSI GECTI");
