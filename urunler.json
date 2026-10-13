@@ -1,5 +1,107 @@
 [
   {
+    "id": "ev-civi-kupe-duzenleyici-pano-yuz-delikli-pr270394",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Çivi Küpe Düzenleyici Pano (100 Delikli, Eğimli Ayaklı)",
+    "aciklama": "Çivi küpeleri çiftler halinde saklayan eğimli düzenleyici pano. 1,5 mm çaplı 100 deliği vardır; 50 çifte kadar küpe iğnelenir. Dik duran eğimli yapısı küpelerin görünür ve düzenli durmasını sağlar. Fotoğraflarda beyaz pano çok sayıda küpeyle önden ve yandan görülür.\nYaklaşık dış ölçüler: 171 × 161 × 68 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr270394-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr270394-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr270394-3.jpg"
+    ]
+  },
+  {
+    "id": "ev-kivrik-uclu-kupe-ve-igne-tutucu-pano-pr348154",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Çivi Küpe ve İğne Tutucu Pano (Kıvrık Rulo Uçlu)",
+    "aciklama": "Eski bir parşömen rulosunu andıran kıvrık uçlu, delikli küpe tutucu pano. Çivi küpeler, iğneler ve kol düğmeleri deliklere takılır. İki sürümü vardır: küpeler için küçük delikli sürüm ve iğne ile kol düğmesi için büyütülmüş delikli sürüm. Fotoğrafta lacivert pano elde, ikinci karede bilgisayar çiziminde görülür.\nYaklaşık dış ölçüler: 130 × 100 × 10 mm (küpe sürümü); 140 × 100 × 22 mm (iğne sürümü).",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr348154-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr348154-2.jpg"
+    ]
+  },
+  {
+    "id": "dekor-kedi-yuzuk-tutucu-yuvarlak-tepsili-pr1189032",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kedi Yüzük Tutucu (Yuvarlak Tepsili, Boynuna Yüzük Geçen)",
+    "aciklama": "Ayakta duran sevimli bir kedi ve çevresindeki yuvarlak tepsiden oluşan yüzük tutucu. Yüzükler kedinin boynuna geçirilir, tepsiye küpe ve ufak takılar bırakılır. Fotoğraflarda siyah model altın yüzükle birkaç açıdan görülür.\nYaklaşık dış ölçüler: 70 × 70 × 44 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1189032-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1189032-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1189032-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1189032-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Fabrício Rocha (özgün tasarım: ffcro3, sidewalk)",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "dekor-kanatli-tavuk-yuzuk-tutucu-iki-surumlu-pr604927",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Tavuk Yüzük Tutucu (Kanatları Havada, İki Sürümlü)",
+    "aciklama": "Kanatlarını havaya kaldırmış, küçük ve tombul bir tavuk. Yüzükler kanatlara geçirilir. İki sürümü vardır: iki kanadı havada olan ve tek kanadı havada olan model. Fotoğraflarda beyaz tavuk pembe zeminde, turuncu ve beyaz tavuklar yan yana ve yüzükle birlikte görülür.\nYaklaşık dış ölçüler: 49 × 44 × 37 mm (iki kanadı havada).",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr604927-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr604927-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr604927-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr604927-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "sylvia_soh",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "dekor-katmanli-cizgi-desenli-sac-tokasi-yuvarlak-pr539912",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Katmanlı Çizgi Desenli Saç Tokası (Yuvarlak, Tarak Dişli)",
+    "aciklama": "İç içe geçen simetrik çizgilerden oluşan, ışınsal desenli yuvarlak saç tokası. Alt kısmındaki ince tarak dişleri saça tutunur; topuz, yarım toka ve düşük at kuyruğu gibi farklı saç modellerinde kullanılabilir. Fotoğraflarda kırmızı toka dalgalı saçta ve topuzda farklı biçimlerde görülür, son karede bilgisayar çizimi vardır.\nYaklaşık dış ölçüler: 113 × 113 × 3 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr539912-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr539912-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr539912-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr539912-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Robert",
+      "tur": "GPL 3.0"
+    }
+  },
+  {
+    "id": "dekor-alti-kollu-yuzuk-tutucu-ortasi-cukur-pr493445",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Altı Kollu Yüzük Tutucu (Ortası Çukur, Ters Çevrilince Mini Masa)",
+    "aciklama": "Çiçek ya da açık bir el gibi açılan altı konik koldan oluşan yüzük tutucu. İç çapı 11 mm ve üzeri yüzükler kollara geçirilir; ortadaki çukur bileklik ya da yüzük için küçük bir tepsidir. Ters çevrildiğinde küçük bir masa gibi de kullanılabilir. Fotoğraflarda beyaz model yüzükler ve bozuk parayla görülür, son karede bilgisayar çizimi vardır.\nYaklaşık dış ölçüler: 127 × 111 × 69 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr493445-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr493445-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr493445-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "chris.d",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "dekor-altigen-koni-yuzuk-tutucu-geometrik-pr497187",
     "kategori": "Dekorasyon",
     "marka": [],
