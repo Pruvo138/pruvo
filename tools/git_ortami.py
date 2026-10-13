@@ -368,6 +368,16 @@ DRIFT_MUAFIYETI = (
      "GIT_AUTHOR_DATE/GIT_COMMITTER_* o testin deterministik damgalaridir). Ayrica "
      "dosyanin KENDI X1 iddiasi bu kumeyi `_env()` ile capalar: sapma ORADA kirmizi "
      "yanar, yani kume nobetsiz DEGILDIR."),
+    ("tools/isci-urun-kapisi.py",
+     ("GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_COMMON_DIR", "GIT_DIR",
+      "GIT_INDEX_FILE", "GIT_NAMESPACE", "GIT_OBJECT_DIRECTORY", "GIT_PREFIX",
+      "GIT_WORK_TREE"),
+     "AYRI EKSEN — KURULU KOPYA: bu dosyanin canli hali ~/.claude/cron/isci-urun-kapisi.py "
+     "olarak KOPYALANIR ve isci.sh oradan (repo DISINDA, tools/ sys.path'te YOK) cagirir; "
+     "`from git_ortami import ...` kurulu kopyada ImportError verir ve kapi BITIS hukmunu "
+     "dusurur. Kume yalniz `git -C <isci agaci>` olcum cagrilarinda miras GIT_* "
+     "ezmesini onler (kok kesfi YOK, -C acik). Kabul: tools/isci-urun-kapisi-test.py "
+     "(o dosya kumeyi git_ortami'ndan alir) agac/dal eksenini 2/2 olcer."),
 )
 
 

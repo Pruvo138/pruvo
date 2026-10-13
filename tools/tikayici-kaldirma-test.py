@@ -1286,7 +1286,7 @@ def kalem4_kos():
         "## 2026-09-10 — BaBa (duz baslik) **D**", "govde KORUMALI kelimesi",
     ]
     baslar = ka.blok_baslari(satirlar)
-    bulgu, govde, dustu, olumsuz = ka.korumali_etiketli_bloklar(satirlar, baslar)
+    bulgu, govde, dustu, olumsuz, _kapandi = ka.korumali_etiketli_bloklar(satirlar, baslar)
     kaydet("K4 TABAN  KORUMALI veto=1 (yalniz gercek etiket)", len(bulgu) == 1,
            len(bulgu), 1)
     kaydet("K4 TABAN  ETIKET_OLUMSUZ=2 ('değil' + 'DEGIL', TR-guvenli)",
@@ -1341,7 +1341,7 @@ def kalem4_kos():
             kaydet("K4 MUTANT M4c OLUMSUZ-KOR", False, notu, "capa uygulanmali")
         else:
             kam = modul_yukle("k4_m4c", os.path.join(ht, "kutu-arsivle.py"))
-            b2, _g2, _d2, o2 = kam.korumali_etiketli_bloklar(satirlar, baslar)
+            b2, _g2, _d2, o2, _k2 = kam.korumali_etiketli_bloklar(satirlar, baslar)
             kaydet("K4 MUTANT M4c OLUMSUZ-KOR -> veto 1->3, ETIKET_OLUMSUZ=0 (KIRMIZI)",
                    len(b2) == 3 and len(o2) == 0,
                    "veto=%d olumsuz=%d" % (len(b2), len(o2)), "veto=3 olumsuz=0", notu)

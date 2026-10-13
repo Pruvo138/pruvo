@@ -25,6 +25,7 @@ Ortam: PRUVO_SCAD_DIR (vars. ~/dev/pruvo-jenerator/jeneratorler), PRUVO_OPENSCAD
 import importlib.util
 import io
 import json
+import math
 import os
 import random
 import subprocess
@@ -37,7 +38,8 @@ sys.path.insert(0, TEST_DIR)
 import dogrula     # noqa: E402
 import stl_hacim   # noqa: E402
 
-AILELER = ["konektor", "braket", "disli", "adaptor", "kutu", "kavanoz", "rampa"]
+AILELER = ["konektor", "braket", "disli", "adaptor", "kutu", "kavanoz", "rampa",
+           "saksi"]
 TOHUM = 42
 RASTGELE_SET = 6
 
@@ -80,6 +82,49 @@ ZORUNLU_SETLER = {
          "egim_yontemi": "yukseklik", "egim_acisi": 15, "ust_yuzey": "duz"},
     ],
 }
+
+
+# SAKSI (2026-10-13): kose setleri — duz silindir (ust=alt), en dik egim (40 deger
+# sinirina en yakin izgara noktasi), en kalin/ince duvar-taban, drenajsiz, en buyuk/en
+# kucuk kutu. Fiyat egrisinin uc noktalari (S/M/L on-ayarlari) da AYNEN olculur.
+ZORUNLU_SETLER["saksi"] = [
+    dict(ust_cap=100, alt_cap=70, yukseklik=90, duvar=2.4, taban=3, drenaj="var",
+         drenaj_capi=12, tabak="yok", tabak_yuksekligi=18),
+    dict(ust_cap=180, alt_cap=130, yukseklik=160, duvar=2.4, taban=3, drenaj="var",
+         drenaj_capi=12, tabak="yok", tabak_yuksekligi=18),
+    dict(ust_cap=60, alt_cap=60, yukseklik=50, duvar=1.6, taban=2, drenaj="var",
+         drenaj_capi=6, tabak="yok", tabak_yuksekligi=12),
+    dict(ust_cap=260, alt_cap=40, yukseklik=132, duvar=4, taban=5, drenaj="var",
+         drenaj_capi=20, tabak="var", tabak_yuksekligi=30),
+    dict(ust_cap=260, alt_cap=200, yukseklik=300, duvar=4, taban=5, drenaj="yok",
+         drenaj_capi=20, tabak="yok", tabak_yuksekligi=30),
+    dict(ust_cap=60, alt_cap=40, yukseklik=50, duvar=1.6, taban=2, drenaj="yok",
+         drenaj_capi=6, tabak="var", tabak_yuksekligi=12),
+]
+
+# KISITLI SEMADA RASTGELE SET: `dogrula.rastgele_set` sema kutusunu `kisitlar`
+# bilmeden orneklemektedir; saksida bu setlerin ~yarisi uretecin KENDI assert'ine
+# takilir (alt_cap <= ust_cap, yan egim <= 40 derece) ve render "israrla cokuyor"
+# ile durur. Suzgec yalnizca ORNEKLEME reddidir (hukum degil): uretec assert'lerinin
+# birebir yazimi; yanlis yazilirsa render yine cokup URETIMI DURDURUR (fail-loud).
+# Sema kisitlari <-> uretec assert paritesi ayrica jenerator/test/fiyat-test.js'te
+# izgaranin TAMAMINDA olculur.
+SET_SUZGECI = {
+    "saksi": lambda s: (
+        s["alt_cap"] <= s["ust_cap"] and
+        math.degrees(math.atan((s["ust_cap"] - s["alt_cap"]) / 2.0 / s["yukseklik"]))
+        <= 40 and
+        (s["drenaj"] != "var" or s["drenaj_capi"] / 2.0 < s["alt_cap"] / 2.0 - s["duvar"])),
+}
+
+
+def aday_set(aile, sema, rnd):
+    suzgec = SET_SUZGECI.get(aile)
+    for _ in range(10000):
+        s = dogrula.rastgele_set(sema, rnd)
+        if suzgec is None or suzgec(s):
+            return s
+    sys.exit("%s: suzgecten gecen rastgele set bulunamadi" % aile)
 
 
 def sirli_repo():
@@ -197,11 +242,11 @@ def main():
                 for secenek in p["secenekler"]:
                     deger = secenek["deger"] if isinstance(secenek, dict) \
                         else secenek
-                    s = dogrula.rastgele_set(sema, rnd)
+                    s = aday_set(aile, sema, rnd)
                     s[p["ad"]] = deger
                     setler.append(s)
         for _ in range(RASTGELE_SET):
-            setler.append(dogrula.rastgele_set(sema, rnd))
+            setler.append(aday_set(aile, sema, rnd))
         kayitlar = []
         with tempfile.TemporaryDirectory() as tmpdir:
             for i, sset in enumerate(setler):
