@@ -18,6 +18,11 @@ KARAR SIRASI (her sonuc TEK cikti satiri, `KUYRUK=` ile baslar):
      commit'i (ilk ebeveyn main). Cakisma -> abort, KUYRUK=CAKISMA rc1 (main degismez).
   4. kuyrugun main'e getirecegi NET fark ya da tek tek merge-disi commit'leri
      IZINLI_YOLLAR disina cikiyor -> KUYRUK=RED sebep=yabanci-yol rc1 (main degismez).
+  4b. (K441) aday'da YENI olan bir `parametrik:true` kayit icin `jenerator/urunler/<id>.json`
+     ADAY AGACINDA yoksa -> KUYRUK=RED sebep=semasiz-parametrik ids=<...> rc1 (main degismez).
+     Kural tools/parametrik_sema.py'de (denetim-kapisi KAPI 12 ile TEK KAYNAK). Kuyruk yalniz
+     urunler.json tasir (sema = kod, yabanci-yol RED) -> SIRA: ONCE sema main'e, SONRA kayit
+     kuyruga; sema main'e inene dek kaydi kuyruga SOKMA.
   5. aday main'e ff push (force YOK). Non-ff red (yaris) -> taze fetch, TUM karar BIR KEZ
      daha (Pages kontrolu dahil); ikinci red -> KUYRUK=YARIS rc1.
   6. push-tetikli is akislari workflow_dispatch ile atesler (GITHUB_TOKEN push'u `push`
@@ -189,6 +194,49 @@ def yabanci_yollar(main_sha, aday, kuyruk_sha):
     return sorted(set(net + tek) - IZINLI_YOLLAR)
 
 
+def _parametrik_sema_modulu():
+    """Kural TEK KAYNAKTA (tools/parametrik_sema.py; denetim-kapisi KAPI 12 de onu cagirir)."""
+    spec = importlib.util.spec_from_file_location(
+        "parametrik_sema", os.path.join(DEPO, "tools", "parametrik_sema.py"))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def _parametrikler(sha):
+    """`sha` agacindaki urunler.json'da parametrik kayitlar -> {id: kayit}.
+    Okunamaz/ayristirilamaz/liste degil -> OLCULEMEDI rc2 (belirsizlik 'sema var' DEMEZ)."""
+    p = git("show", "%s:urunler.json" % sha, kontrol=False)
+    if p.returncode != 0:
+        raise Dur("KUYRUK=OLCULEMEDI sebep=urunler-json-okunamadi sha=%s" % sha[:12], 2)
+    try:
+        veri = json.loads(p.stdout)
+    except ValueError:
+        veri = None
+    if not isinstance(veri, list):
+        raise Dur("KUYRUK=OLCULEMEDI sebep=urunler-json-ayristirilamadi sha=%s" % sha[:12], 2)
+    return {u.get("id"): u for u in veri if isinstance(u, dict) and u.get("parametrik")}
+
+
+def semasiz_parametrikler(main_sha, aday):
+    """K441: aday'da YENI olan (main'de parametrik OLMAYAN) parametrik kayitlardan sema dosyasi
+    ADAY AGACINDA bulunmayanlar -> [(id, gerekce)]. Urun verisi (urunler.json) net farkta yoksa
+    bakilmaz. Onceden main'de duran kayit (gecmis borc) TETIKLEMEZ — bu kapi ILERI-YONLUDUR.
+    NEDEN BURADA: --commit-farki CI kapisi kaydi main'e GIRDIKTEN SONRA gorur ve sonraki commit
+    'onceden var' sayar; kaydi main'e sokmadan durdurabilecek TEK nokta bu birlestiricidir."""
+    if "urunler.json" not in git("diff", "--name-only", main_sha, aday).stdout.split():
+        return []
+    onceki = _parametrikler(main_sha)
+    yeni = _parametrikler(aday)
+    yeni_idler = {i for i in yeni if i not in onceki}
+    if not yeni_idler:
+        return []
+    mod = _parametrik_sema_modulu()
+    return mod.semasizlar(
+        [yeni[i] for i in yeni_idler],
+        lambda yol: git("cat-file", "-e", "%s:%s" % (aday, yol), kontrol=False).returncode == 0)
+
+
 def tur(dispatch):
     """Tek karar+icra turu. Doner: (satir, rc) ya da "YARIS"."""
     # Kuyruk yoksa Pages anlamsiz (fetch de anlamsiz) — dogrudan BOS.
@@ -222,6 +270,10 @@ def tur(dispatch):
     yabanci = yabanci_yollar(main_sha, aday, kuyruk_sha)
     if yabanci:  # MUTANT-CAPA:YOL
         return "KUYRUK=RED sebep=yabanci-yol yollar=%s" % ",".join(yabanci[:5]), 1
+    semasiz = semasiz_parametrikler(main_sha, aday)
+    if semasiz:  # MUTANT-CAPA:SEMA
+        return "KUYRUK=RED sebep=semasiz-parametrik ids=%s" % ",".join(
+            str(i) for i, _ in semasiz[:5]), 1
     p = git("push", "--porcelain", UZAK, "%s:refs/heads/%s" % (aday, MAIN), kontrol=False)
     if p.returncode != 0:
         # Yalniz non-ff red YARIS'tir; yetki/ag hatasi tekrar denenmez (OLCULEMEDI).

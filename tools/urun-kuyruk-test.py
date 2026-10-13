@@ -12,9 +12,11 @@ Vakalar: V1 BEKLE · V2 BOS dal-yok · V3 BOS geride · V4 BOS esit · V5 BIRLES
 V6 BIRLESTI-merge (+kuyruk senkron) · V7 CAKISMA (main degismez) · V8 yabanci-yol RED ·
 V9 gizli yabanci yol (ekle+geri al) RED · V10 push yarisi (red -> taze fetch -> merge) ·
 V11 gh hatasi OLCULEMEDI · V12 dispatch hatasi · V13 baglam-disi · V14 K80 PROVA ·
-V15 dispatch listesi YAML'dan turer (deploy.yml ilk, nobet.yml haric).
+V15 dispatch listesi YAML'dan turer (deploy.yml ilk, nobet.yml haric) · V16-V18 aclik ·
+V19 semasiz parametrik RED (K441) · V20 sema main'de -> BIRLESTI · V21 gecmis borc
+tetiklemez · V22 bozuk urunler.json OLCULEMEDI.
 Mutantlar (izole kopya, once TABAN): BOS erken donusu silinir -> V3 · yol kapisi
-kapatilir -> V8.
+kapatilir -> V8 · sema kapisi kapatilir -> V19 (+ aclik mutantlari).
 """
 import importlib.util
 import json
@@ -425,6 +427,54 @@ def vakalar():
         if "aclik=" in satir:
             return "beklenmeyen aclik alani (Pages kosmuyor): %r" % satir
     v.append(("V18-BIRLESTI-aclik-yok", v18_kur, v18_dog))
+
+    # ── K441 (13 Eki 2026): parametrik kayit SEMASIZ main'e giremez ────────────────────────
+    # Kuyruk yalniz urunler.json tasir (sema = kod; yabanci-yol RED) -> SIRA: once sema main'e,
+    # sonra kayit kuyruga. Olculen olay: 009b7315 saksi-vazo kaydi semasiz girdi, deploy 40+ dk
+    # SKIPPED kaldi (alakasiz bir test kirmizisi asil kusuru gizledi).
+    sema_yok = json.dumps([{"id": "a"}, {"id": "olcuye-ozel-test", "parametrik": True}])
+
+    def v19_kur(s):
+        kur_kuyruk_urun(s, sema_yok)
+        return {}, True, {"main": s.uzak("main")}
+    v.append(("V19-RED-semasiz-parametrik", v19_kur,
+              red_dog("KUYRUK=RED sebep=semasiz-parametrik ids=olcuye-ozel-test")))
+
+    def v20_kur(s):
+        s.yaz("jenerator/urunler/olcuye-ozel-test.json", "{}\n")
+        s.commit("sema: once main'e")
+        s.g(s.yazar, "push", "-q", "origin", "HEAD:main")
+        k = kur_kuyruk_urun(s, sema_yok)
+        return {}, True, {"k": k}
+
+    def v20_dog(s, rc, satir, b):
+        if rc != 0 or not satir.startswith("KUYRUK=BIRLESTI sha=%s yol=ff" % b["k"][:12]):
+            return "rc/satir: %r" % satir
+        if s.uzak("main") != b["k"]:
+            return "main kuyruk ucuna ff olmadi"
+    v.append(("V20-BIRLESTI-sema-main'de", v20_kur, v20_dog))
+
+    def v21_kur(s):
+        # GECMIS BORC: semasiz parametrik kayit ZATEN main'de; kuyruk alakasiz bir kayit ekler.
+        s.yaz("urunler.json", sema_yok)
+        s.commit("borc: semasiz parametrik main'de")
+        s.g(s.yazar, "push", "-q", "origin", "HEAD:main")
+        k = kur_kuyruk_urun(s, json.dumps(
+            [{"id": "a"}, {"id": "olcuye-ozel-test", "parametrik": True}, {"id": "yeni-duz"}]))
+        return {}, True, {"k": k}
+    v.append(("V21-BIRLESTI-gecmis-borc-tetiklemez", v21_kur, v20_dog))
+
+    def v22_kur(s):
+        kur_kuyruk_urun(s, "[ bozuk json")
+        return {}, True, {"main": s.uzak("main")}
+
+    def v22_dog(s, rc, satir, b):
+        if rc != 2 or not satir.startswith(
+                "KUYRUK=OLCULEMEDI sebep=urunler-json-ayristirilamadi"):
+            return "rc/satir: %r" % satir
+        if s.push_sayisi() or s.dispatchler() or s.uzak("main") != b["main"]:
+            return "olculemezken push/dispatch/main degisimi"
+    v.append(("V22-OLCULEMEDI-bozuk-urunler-json", v22_kur, v22_dog))
     return v
 
 
@@ -481,6 +531,9 @@ MUTANTLAR = [
       '        pass  # MUTANT BOS'), "V3-BOS-geride"),
     ("M-YOL", "yabanci yol kapisi kapatildi",
      ("    if yabanci:  # MUTANT-CAPA:YOL", "    if False:  # MUTANT YOL"), "V8-yabanci-yol"),
+    ("M-SEMA", "semasiz parametrik kapisi kapatildi (K441)",
+     ("    if semasiz:  # MUTANT-CAPA:SEMA", "    if False:  # MUTANT SEMA"),
+     "V19-RED-semasiz-parametrik"),
     ("M-ACIK-KALDIR", "aclik kolu kaldirildi (Pages kosarken yine BEKLE)",
      ("    if bitmemis:  # MUTANT-CAPA:ACIK\n        yas_dk = kuyruk_yasi_dk()\n"
       "        if yas_dk < ACIK_DK:\n"
