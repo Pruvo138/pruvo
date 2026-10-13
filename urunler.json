@@ -1,5 +1,52 @@
 [
   {
+    "id": "mutfak-yuvali-kesme-tahtasi-standi-tezgah-ustu-pr196651",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Yuvalı Kesme Tahtası Standı (Tezgâh Üstü, Eğimli Yuvalar)",
+    "aciklama": "Kesme tahtalarını ve tepsileri ayrı ayrı yuvalara dik yerleştirmek için tezgâha konan, eğimli yuvalı stand. Tahtalar üst üste yığılmaz; ihtiyaç duyulan tahta kolayca çekilir. Fotoğraflarda mavi standın tezgâh üzerinde ahşap tahtalarla birlikte kullanımı ve yakından görünümü yer alır.\nYaklaşık dış ölçüler: 140 × 125 × 78 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr196651-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr196651-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr196651-3.jpg"
+    ]
+  },
+  {
+    "id": "mutfak-uc-boy-kesme-tahtasi-tutucu-basamakli-pr1537753",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Üç Boy Kesme Tahtası Tutucu (Büyükten Küçüğe Basamaklı Stand)",
+    "aciklama": "Üç kesme tahtasını büyükten küçüğe doğru basamaklı sıralayıp tezgâh üzerinde dik tutan küçük stand. Tahtalar birbirine yaslanmadan ayrı durur ve tezgâhın köşesinde az yer kaplar. Fotoğrafta üç bambu tahta köşede standa yaslı görülür; diğer karelerde standın yakın görüntüsü ve modelin üç boyutlu görünümü yer alır.\nYaklaşık dış ölçüler: 110 × 65 × 59 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1537753-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1537753-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1537753-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Imagine Prints",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mutfak-halkali-kutu-kapagi-acma-kolu-iki-boy-pr338611",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Halkalı Kutu Kapağı Açma Kolu (Kısa ve Uzun Kollu İki Sürüm)",
+    "aciklama": "Halkalı kapaklı konserve kutularının halkasına takılıp kaldıraç etkisiyle kapağı kaldıran, kıvrık ve sade tek parça kol. Parmakla çekme gücü gerektirmez; ellerde kavrama gücü az olanlar için kolaylık sağlar. Küçük kollu ve daha uzun kollu iki sürüm bulunur. Fotoğrafta sarı kolun kutu halkasında kullanımı, diğer karelerde iki sürümün görünümleri yer alır.\nYaklaşık dış ölçüler: 151 × 129 × 15 mm (uzun kollu sürüm).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr338611-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr338611-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr338611-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr338611-4.jpg"
+    ]
+  },
+  {
     "id": "banyo-pompali-sabun-sisesi-strok-sinirlayici-pr1604909",
     "kategori": "Ev",
     "marka": [],
