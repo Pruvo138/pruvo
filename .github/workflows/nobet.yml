@@ -519,6 +519,19 @@ jobs:
           command -v zsh >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq zsh; }
           python3 tools/agir-is-test.py
 
+      # AGIR-IS BEKCISI (13 Eki 2026, BaBa 06:5x): asili mutant bataryasi 3/3
+      # slotu saatlerce tuttu. agir isin slot tutucusu bekcidir: --tavan-dk (90)
+      # ya da agac CPU'su --asili-dk (10) boyunca <%5 -> KOMUT GRUBUNA TERM ->
+      # 30 sn -> KILL, HAL=TAVAN-OLDU|ASILI-OLDU, slot birakilir, rc 124;
+      # BEKLIYOR satirinda TUTAN=. HERMETIK: gecici slot koku / isci.log / HOME,
+      # kisaltilmis sureler + sahte CPU dosyasi. 7 vaka + 3 mutant.
+      # SERIT B: kirmizisi yayini DURDURMAZ (makine kapisi, musteri yuzeyi degil).
+      - name: "Agir is bekcisi — kabul testi (7 vaka + 3 mutant, hermetik)"
+        if: ${{ !cancelled() }}
+        run: |
+          command -v zsh >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq zsh; }
+          python3 tools/agir-is-tavan-test.py
+
       # RECETE KAPISI — MIMAR-ICRA-KAPISI'NIN RECETE KONTROLCUSU (18 Agu 2026, K168).
       # Arac, tools/ dizinindeki HER .py icindeki "python3 ..." komutlarini mimar-icra-kapisi
       # uzerinden kuru kosuma yollar; REDDEDILEN sayisi > 0 ise rc=1. SERIT B kapsaminda — kirmizisi
