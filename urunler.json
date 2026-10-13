@@ -1,5 +1,60 @@
 [
   {
+    "id": "oyun-sekiz-zarlik-sade-zar-kutusu-20-mm-pr176994",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Sekiz Zarlık Sade Zar Kutusu (20 mm Zarlar İçin, Kapakta Zar Resmi)",
+    "aciklama": "Sekiz adet 20 mm'lik zarı yan yana koruyan sade, kapaklı kutu. Kapağın üstünde zar resmi bulunur; resim zar sayısına göre ortalanır. Kutu parametriktir: duvar kalınlığı ve zar kenarı ölçüsü (varsayılan 20,5 mm) dosyalardaki değişkenlerle ayarlanabilir. Kapak iki geçme payıyla hazırdır (0,1 mm ve 0,2 mm), kapak sıkı ya da gevşek gelirse diğeri seçilir. Fotoğraflarda beyaz kapaklı kutu, içinde renkli zarlarla görülür.\nAlt gövde 99,5 × 53,5 × 13 mm, kapak 99,5 × 53,5 × 23 mm'dir.\nYaklaşık dış ölçüler: 99,5 × 53,5 × 13 mm (alt gövde).",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr176994-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr176994-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr176994-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "prochazkaml",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-yirmi-yuzlu-zar-kutusu-rakamlari-ayri-renkli-pr334038",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Yirmi Yüzlü Zar Kutusu (Rakamları Ayrı Renkte, Mıknatıslı Kapak)",
+    "aciklama": "Yirmi yüzlü zar biçimli kutu; yüzlerdeki rakamlar ayrı bir parça olarak hazırlandığından farklı renkte yapılabilir. Kapak 5 × 1 mm yuvarlak mıknatıslarla kapanır; mıknatıslar ürüne dahil değildir. Fotoğraflarda bej gövdeli yeşil rakamlı kutu ile gri-mavi ve mavi-turuncu kutular görülür.\nGövde 70 × 62 × 58,5 mm, üst yarı 56 × 51 × 30 mm'dir.\nYaklaşık dış ölçüler: 70 × 62 × 58,5 mm (gövde).",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr334038-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr334038-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr334038-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Adam (özgün tasarım: nico_fox)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-surgulu-kapakli-zar-kutusu-16-mm-bolmeli-pr320331",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Sürgülü Kapaklı Zar Kutusu (16 mm Bölmeli, Delikli Kapak)",
+    "aciklama": "Her biri 16 × 16 × 16 mm olan ayrı bölmelere zarları tek tek yerleştiren, sürgülü kapaklı uzun kutu. Zarlar sıkı oturur ama kolayca çıkar. Daha büyük zarlar için bütün model ölçeklenebilir. Kapağın üzerinde petek biçiminde delikler bulunur. Fotoğraflarda kırmızı kapaklı kutu, içinde beyaz ve siyah zarlarla görülür.\nKutu 93 × 43 × 18 mm, kapak 93 × 43 × 4 mm'dir.\nYaklaşık dış ölçüler: 93 × 43 × 18 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr320331-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr320331-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr320331-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr320331-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Bartosz Niedziałkowski",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "oyun-kapakli-zar-kutusu-12-zarlik-16-mm-pr719783",
     "kategori": "Oyun/Hobi",
     "marka": [],
