@@ -59,14 +59,18 @@ SENTETIK = [
     _p("dekor-v2", "Dekorasyon", "Dekoratif Vazo"),
     _p("ofis-v2", "Ofis", "Kalemlik"),
     _p("oyun-v2", "Oyun/Hobi", "Zar Tepsisi"),
-    _p("disi-v1", "Bahçe", "Sukulent Saksısı"),  # KÜME DIŞI id
+    _p("elek-v10", "Elektronik", "USB Bellek Tutucu"),       # V10: " | PRUVO" (yedek parça değil)
+    _p("kamera-v10", "Kamera", "Lens Kapagi"),               # V10: " | PRUVO Yedek Parça"
+    _p("oto-v10", "Otomobil", "Vites Topuzu"),               # V10: " | PRUVO Yedek Parça"
+    _p("disi-v1", "Bahçe", "Sukulent Saksısı"),              # KÜME DIŞI id
 ]
 SENTETIK_BY_ID = {p["id"]: p for p in SENTETIK}
 
 # Test koşumunda SENTETIK id'lerini geçici olarak dalga-1 kümesine ekle (modül yükünde).
 # V6 "küme dışı" testi 'disi-v1'i DALGA1'den çıkarıp yoklar.
 _TEST_DALGA1 = frozenset({"oto-v1", "oto-v3", "oto-v4", "oto-v5",
-                          "dekor-v2", "ofis-v2", "oyun-v2"})
+                          "dekor-v2", "ofis-v2", "oyun-v2",
+                          "elek-v10", "kamera-v10", "oto-v10"})
 _ORJ_DALGA1 = build.DALGA1_IDLER
 build.DALGA1_IDLER = _TEST_DALGA1  # test sentetik id'leri dalga-1 olarak görsün
 
@@ -199,70 +203,67 @@ def v6_kume_disi_bayt_ayni():
 
 
 def v7_gercek_dalga1_kumesi():
-    """Gerçek 560 ürünün TAMAMI ≤60 (başlık) ve ≤160 (meta) — N/N sayılır.
+    """Canlı `build.DALGA1_IDLER` kümesinin TAMAMI urunler.json'da var VE
+    başlık≤60 meta≤160. Tolerans YOK. KAYNAK=='git' ve N≥1000 zorunlu.
 
-    NOT: V1-V5 test override kullanır; V7/V8 GERÇEK DALGA1_IDLER'a döner (override'ı
-    askıya alır), sonra geri yükler. Aynı modül-nesnesinde kalıcı etki bırakmaz.
+    NOT: V1-V5 test override kullanır; V7/V8 canlı kümesine döner (override'ı askıya
+    alır), sonra geri yükler.
     """
-    dalga1_yolu = os.path.join(_ARACLAR_KOK, "baslik-dalga1-idler.json")
-    with open(dalga1_yolu, encoding="utf-8") as f:
-        dalga1 = json.load(f)
-    ids = dalga1["ids"]
-    if len(ids) != 560:
-        return _vaka(False, f"küme sayısı ≠ 560: {len(ids)}")
-    with open(os.path.join(os.path.dirname(_ARACLAR_KOK), "urunler.json"),
-              encoding="utf-8") as f:
-        urunler = {p["id"]: p for p in json.load(f)}
-    # GERÇEK küme (override askıda)
+    if build.DALGA1_KAYNAK != "git":
+        return _vaka(False, f"KAYNAK='git' değil: {build.DALGA1_KAYNAK!r} "
+                            "(_dalga1_turet git fallback'e düştü)")
+    # Canlı küme (override askıda)
     build.DALGA1_IDLER = _ORJ_DALGA1
     try:
-        baslik_ok = 0
-        meta_ok = 0
+        ids = list(build.DALGA1_IDLER)
+        n = len(ids)
+        if n < 1000:
+            return _vaka(False, f"N={n} < 1000 — canlı küme yeterince büyümedi")
+        with open(os.path.join(os.path.dirname(_ARACLAR_KOK), "urunler.json"),
+                  encoding="utf-8") as f:
+            urunler = {p["id"]: p for p in json.load(f)}
+        eksik_id = []
+        baslik_asim = []
+        meta_asim = []
         for pid in ids:
             p = urunler.get(pid)
             if p is None:
-                continue  # arada silinmiş olabilir (12 silinen id)
+                eksik_id.append(pid)
+                continue
             r = build.baslik_meta_dalga1(pid, p.get("baslik", ""),
-                                          p.get("kategori", ""),
-                                          p.get("aciklama", ""))
+                                         p.get("kategori", ""),
+                                         p.get("aciklama", ""))
             if r is None:
-                return _vaka(False, f"{pid}: yardımcı None — gerçek küme eksik")
-            title, _, meta_ok_meta = r
-            if len(title) <= 60:
-                baslik_ok += 1
-            if len(meta_ok_meta) <= 160:
-                meta_ok += 1
+                eksik_id.append(pid)
+                continue
+            title, _, meta = r
+            if len(title) > 60:
+                baslik_asim.append((pid, len(title)))
+            if len(meta) > 160:
+                meta_asim.append((pid, len(meta)))
+        if eksik_id:
+            return _vaka(False, f"{len(eksik_id)} id urunler.json'da yok: {eksik_id[:3]}")
+        if baslik_asim:
+            return _vaka(False, f"{len(baslik_asim)} başlık >60: {baslik_asim[:3]}")
+        if meta_asim:
+            return _vaka(False, f"{len(meta_asim)} meta >160: {meta_asim[:3]}")
+        return _vaka(True,
+                     f"V7_DALGA1_BASLIK_OK={n}/{n}  "
+                     f"V7_DALGA1_META_OK={n}/{n} KAYNAK=git")
     finally:
         build.DALGA1_IDLER = _TEST_DALGA1  # test override geri
-    # Spec "tamığı"=live catalogdaki karşılığı: 12 silinen + 3 boy_secenekleri'ne
-    # birleştirilen id eksik olabilir (küme listesinde durur, urunler.json'da yok).
-    # 560 - 12 silinen - 3 birleşen = 545 olabilir; bizim bulduğumuz 557 = 560 - 3
-    # birleşen (silinen id'ler zaten `cur - old` hesabında düşer).
-    n = 560
-    eksik = n - baslik_ok
-    if eksik > 5:  # tolere: 3 birleşen + ≤2 ufak yuvarlama farkı
-        return _vaka(False,
-                     f"baslik_ok={baslik_ok} meta_ok={meta_ok} / n={n} (eksik={eksik} — beklenen ≤5 birleşen)")
-    if baslik_ok < n and (n - baslik_ok) > eksik:
-        # Bir gerçek ürün 60/160 sınırını aşıyor demektir → KIRMIZI
-        return _vaka(False,
-                     f"baslik_ok={baslik_ok} meta_ok={meta_ok} / n={n} — sınır aşımı")
-    return _vaka(True,
-                 f"V7_DALGA1_BASLIK_OK={baslik_ok}/{n}  V7_DALGA1_META_OK={meta_ok}/{n} (eksik={eksik} birleşen)")
 
 
 def v8_yasak_sonek_yok():
-    """Dalga-1 kümesi üretiminde '3D baskı'/'Özel Tasarım'/'Özel Üretim' sonekte 0."""
-    dalga1_yolu = os.path.join(_ARACLAR_KOK, "baslik-dalga1-idler.json")
-    with open(dalga1_yolu, encoding="utf-8") as f:
-        dalga1 = json.load(f)
-    ids = dalga1["ids"]
+    """Dalga-1 kümesi (canlı `DALGA1_IDLER`) üretiminde '3D baskı'/'Özel Tasarım'/
+    'Özel Üretim' sonekte 0. Spec 13 Eki: yeni küme — frozen ids DEĞİL."""
     with open(os.path.join(os.path.dirname(_ARACLAR_KOK), "urunler.json"),
               encoding="utf-8") as f:
         urunler = {p["id"]: p for p in json.load(f)}
     yasak_re = re.compile(r"3D baskı|3D Baskı|Özel Tasarım|Özel Üretim")
     build.DALGA1_IDLER = _ORJ_DALGA1
     try:
+        ids = list(build.DALGA1_IDLER)
         bulunan = []
         for pid in ids:
             p = urunler.get(pid)
@@ -280,68 +281,72 @@ def v8_yasak_sonek_yok():
         build.DALGA1_IDLER = _TEST_DALGA1
     if bulunan:
         return _vaka(False, f"yasak sonek bulundu: {bulunan[:3]}")
-    return _vaka(True, "3D baskı/Özel Tasarım/Özel Üretim = 0")
+    return _vaka(True, "3D baskı/Özel Tasarım/Özel Üretim = 0 (canlı küme)")
 
 
-# -------- vaka 9-10: render_product <title> çıktısı (sayfa üretimi) -----------
-# Spec: render_product() L3605 dalga-1 title'ını kuruyor, ama eski bir L4130 satırı onu
-# koşulsuz eziyordu. Bu blok, sayfa üretim çağrısının (a) dalga-1 id için yeni şablonu
-# koruduğunu, (b) dalga-1 dışı id için eski şablonu bayt-aynı ürettiğini ölçer.
-
-def _render_html(p):
-    """render_product'ı minimal mock çağrı: [p] tüm ürün olarak, chip_map=None."""
-    return build.render_product(p, [p], None)
-
-
-def _extract_title(html):
-    """HTML'den ilk <title>...</title> döner. Yoksa None."""
-    m = re.search(r"<title>(.*?)</title>", html, re.DOTALL)
-    return m.group(1) if m else None
-
-
-def v9_render_dalga1_baslik_dogru():
-    """(a) Dalga-1 id sentetik ürün → render_product çıktısı <title> = baslik_meta_dalga1(...)[0]
-    VE ' — PRUVO Özel Tasarım Yedek Parça' İÇERMEZ.
-
-    Önceki davranışta render_product L4130 satırı dalga-1 title'ı KOŞULSUZ eziyordu;
-    bu test o ezilmeyi yakalar.
-    """
-    pid = "oto-v1"  # SENTETIK'te var, dalga-1 test kümesinde
-    p = SENTETIK_BY_ID[pid]
-    r = _baslik_ogtitle_meta(pid, p["kategori"], p["baslik"])
-    if r is None:
-        return _vaka(False, "önişlem: dalga-1 kümesinde değil (test override bozulmuş)")
-    beklenen_title = r[0]
-    html = _render_html(p)
-    title = _extract_title(html)
-    if title is None:
-        return _vaka(False, "HTML'de <title> bulunamadı")
-    if " — PRUVO Özel Tasarım Yedek Parça" in title:
+# -------- vaka 9-10: _dalga1_turet donmuş dalı + Elektronik sonek -----------
+# V9 (yeni): _dalga1_turet(var_olmayan_sha) → donmuş ids (560) + KAYNAK=='donmus'.
+# Mutant M1 bu testi KIRMIZI yapmak için donmuş dala `frozenset()` döndürür.
+def v9_dalga1_turet_fallback_donmus():
+    """_dalga1_turet(var_olmayan_sha) → küme donmuş 560 == frozen + KAYNAK=='donmus'."""
+    dalga1_yolu = os.path.join(_ARACLAR_KOK, "baslik-dalga1-idler.json")
+    with open(dalga1_yolu, encoding="utf-8") as f:
+        frozen_ids = set(json.load(f)["ids"])
+    if len(frozen_ids) != 560:
+        return _vaka(False, f"donmuş küme 560 değil: {len(frozen_ids)}")
+    # 40-karakter, geçersiz sha (git 'bad object' → CalledProcessError → donmus dalı)
+    bogus_sha = "g" * 40
+    dalga, kaynak = build._dalga1_turet(taban_sha=bogus_sha)
+    if kaynak != "donmus":
+        return _vaka(False, f"KAYNAK != 'donmus': {kaynak!r}")
+    if dalga != frozenset(frozen_ids):
+        eksik = frozen_ids - dalga
+        fazla = dalga - frozen_ids
         return _vaka(False,
-                     f"eski sonek sızmış (L4130 eziyor olabilir): title={title!r}")
-    if title != beklenen_title:
-        return _vaka(False, f"<title>={title!r} beklenen={beklenen_title!r}")
-    return _vaka(True, f"<title>={title!r} dalga-1 şablonu geçerli")
+                     f"küme donmuş 560 ile aynı değil "
+                     f"(eksik={len(eksik)} fazla={len(fazla)})")
+    return _vaka(True,
+                 f"_dalga1_turet(bogus_sha) = {len(dalga)}/{len(frozen_ids)} KAYNAK={kaynak}")
 
 
-def v10_render_disi_eski_sablon_bayt_ayni():
-    """(b) Dalga-1 DIŞI id → render_product çıktısı <title> = eski şablon (bayt-aynı).
-
-    Regresyon 0: küme dışı 15.930+ ürünün sayfa <title>'ı bayt bayt eski sonekle
-    çıkmalı (bayt-aynı kontrolü)."""
-    pid = "disi-v1"  # Bahçe, dalga-1 dışı
-    p = SENTETIK_BY_ID[pid]
-    r = build.baslik_meta_dalga1(pid, p["baslik"], p["kategori"], "")
-    if r is not None:
-        return _vaka(False, f"önişlem: küme dışı id için yardımcı None dönmeliydi: {r}")
-    html = _render_html(p)
-    title = _extract_title(html)
-    if title is None:
-        return _vaka(False, "HTML'de <title> bulunamadı")
-    beklenen = build.esc(p["baslik"]) + " — PRUVO Özel Tasarım Yedek Parça"
-    if title != beklenen:
-        return _vaka(False, f"<title>={title!r} beklenen={beklenen!r}")
-    return _vaka(True, f"<title>={title!r} bayt-aynı")
+# V10 (yeni): Elektronik artık 'Yedek Parça' soneki ALMAZ (ArTisT 13 Eki 19:2x).
+# Kamera + Otomobil = 'Yedek Parça' (Kamera zaten parça listesinde; Otomobil de).
+def v10_elektronik_sonek_diger_parca_ayni():
+    """Elektronik = ' | PRUVO' (Yedek Parça İÇERMEZ); Kamera + Otomobil = ' | PRUVO Yedek Parça'."""
+    # 1) Elektronik — diğer sonek
+    r_e = _baslik_ogtitle_meta("elek-v10", "Elektronik",
+                               SENTETIK_BY_ID["elek-v10"]["baslik"])
+    if r_e is None:
+        return _vaka(False, "Elektronik: dalga-1 kümesinde değil (test override bozulmuş)")
+    title_e = r_e[0]
+    if not title_e.endswith(" | PRUVO"):
+        return _vaka(False, f"Elektronik sonek yanlış: {title_e!r} (beklenen ' | PRUVO')")
+    if "Yedek Parça" in title_e:
+        return _vaka(False, f"Yedek Parça Elektronik'e sızdı: {title_e!r}")
+    if len(title_e) > 60:
+        return _vaka(False, f"Elektronik başlık >60: {len(title_e)}: {title_e!r}")
+    # 2) Kamera — parça sonek
+    r_k = _baslik_ogtitle_meta("kamera-v10", "Kamera",
+                               SENTETIK_BY_ID["kamera-v10"]["baslik"])
+    if r_k is None:
+        return _vaka(False, "Kamera: dalga-1 kümesinde değil (test override bozulmuş)")
+    title_k = r_k[0]
+    if not title_k.endswith(" | PRUVO Yedek Parça"):
+        return _vaka(False, f"Kamera sonek yanlış: {title_k!r} (beklenen ' | PRUVO Yedek Parça')")
+    if len(title_k) > 60:
+        return _vaka(False, f"Kamera başlık >60: {len(title_k)}: {title_k!r}")
+    # 3) Otomobil — parça sonek (regresyon: parça kategorisi değişmedi)
+    r_o = _baslik_ogtitle_meta("oto-v10", "Otomobil",
+                               SENTETIK_BY_ID["oto-v10"]["baslik"])
+    if r_o is None:
+        return _vaka(False, "Otomobil: dalga-1 kümesinde değil (test override bozulmuş)")
+    title_o = r_o[0]
+    if not title_o.endswith(" | PRUVO Yedek Parça"):
+        return _vaka(False, f"Otomobil sonek yanlış: {title_o!r} (beklenen ' | PRUVO Yedek Parça')")
+    if len(title_o) > 60:
+        return _vaka(False, f"Otomobil başlık >60: {len(title_o)}: {title_o!r}")
+    return _vaka(True,
+                 f"Elektronik='{title_e!r}'  Kamera='{title_k!r}'  Otomobil='{title_o!r}'")
 
 
 # -------- mutant'lar -----------------------------------------------------------
@@ -404,46 +409,6 @@ def mutant_kume_kontrolu_kaldirildi():
         build.DALGA1_IDLER = orj
 
 
-def mutant_render_title_ezildi():
-    """M4 — render_product'ta silinen `title_tag = esc(baslik) + ' — PRUVO Özel Tasarım Yedek Parça'`
-    satırı geri eklenirse V9 KIRMIZI olmalı.
-
-    İZOLE: canlı build.py'ye YAZMAz. Simülasyon: render_product çağrısının çıktısını al,
-    <title>'ı override ederek "ezilmiş" halini inşa et, V9'un kırmızı koşulunu doğrula.
-    Override sonrası title eski soneki İÇERİR → V9 reddedici koşulu (İÇERMEMELİ) yakalar.
-    """
-    pid = "oto-v1"
-    p = SENTETIK_BY_ID[pid]
-    # Önce DALGA-1 render'ın NORMAL çıktısı: yeni şablon, eski sonek YOK.
-    html_normal = _render_html(p)
-    title_normal = _extract_title(html_normal)
-    if title_normal is None:
-        return _vaka(False, "önişlem: HTML'de <title> bulunamadı")
-    if " — PRUVO Özel Tasarım Yedek Parça" in title_normal:
-        return _vaka(False,
-                     f"önişlem: dalga-1 sayfası zaten eski sonek içeriyor (önce ezilmemiş mi?): {title_normal!r}")
-    # Simülasyon: silinen satır geri eklenmiş gibi <title>'ı override et.
-    title_override = build.esc(p["baslik"]) + " — PRUVO Özel Tasarım Yedek Parça"
-    html_mutant = re.sub(r"<title>.*?</title>",
-                         "<title>%s</title>" % title_override,
-                         html_normal, count=1)
-    title_mutant = _extract_title(html_mutant)
-    if title_mutant is None:
-        return _vaka(False, "mutant etkisiz: <title> override başarısız")
-    if " — PRUVO Özel Tasarım Yedek Parça" not in title_mutant:
-        return _vaka(False, f"mutant etkisiz: eski sonek override edilemedi: {title_mutant!r}")
-    # V9 mantığı: (i) "eski sonek title'da OLMAMALI" → override sonrası İHLAL,
-    # (ii) title != beklenen dalga-1 title → İHLAL. İki yol da V9'u KIRMIZI yapar.
-    r_dalga1 = build.baslik_meta_dalga1(pid, p["baslik"], p["kategori"], "")
-    if r_dalga1 is None:
-        return _vaka(False, "önişlem: dalga-1 yardımcı None")
-    beklenen_dalga1_title = r_dalga1[0]
-    if title_mutant == beklenen_dalga1_title:
-        return _vaka(False, "mutant etkisiz: override ile yine dalga-1 title döndü")
-    return _vaka(True,
-                 f"mutant yakalandı: override ile title={title_mutant!r} → V9 kırmızı olur")
-
-
 # -------- ana akış ------------------------------------------------------------
 VAKALAR = [
     ("V1_parca_kategori", v1_parca_kategori),
@@ -454,14 +419,13 @@ VAKALAR = [
     ("V6_kume_disi_bayt_ayni", v6_kume_disi_bayt_ayni),
     ("V7_gercek_dalga1_kumesi", v7_gercek_dalga1_kumesi),
     ("V8_yasak_sonek_yok", v8_yasak_sonek_yok),
-    ("V9_render_dalga1_baslik_dogru", v9_render_dalga1_baslik_dogru),
-    ("V10_render_disi_eski_sablon_bayt_ayni", v10_render_disi_eski_sablon_bayt_ayni),
+    ("V9_dalga1_turet_fallback_donmus", v9_dalga1_turet_fallback_donmus),
+    ("V10_elektronik_sonek_diger_parca_ayni", v10_elektronik_sonek_diger_parca_ayni),
 ]
 MUTANTLAR = [
     ("M1_parca_listesi_degisti", mutant_liste_degisti),
     ("M2_karakter_bazli_kesim", mutant_karakter_bazli_kesim),
     ("M3_kume_kontrolu_kaldirildi", mutant_kume_kontrolu_kaldirildi),
-    ("M4_render_title_ezildi", mutant_render_title_ezildi),
 ]
 
 

@@ -4,6 +4,7 @@
     "taban_sha": "d8d5ce92",
     "taban_tarih": "2026-10-12 00:00 +0300",
     "turetim_komutu": "python3 -c 'import json,subprocess; old=json.loads(subprocess.check_output([\"git\",\"show\",\"d8d5ce92:urunler.json\"])); cur=json.load(open(\"urunler.json\")); old_ids={p[\"id\"] for p in old}; cur_ids={p[\"id\"] for p in cur}; print(sorted(cur_ids-old_ids))'",
+    "turetim": "build.py _dalga1_turet: cur - git show taban_sha (yedek: ids)",
     "eklenen_sayisi": 560,
     "silinen_sayisi": 12,
     "not": "silinenler cikarildi: dalga-1 = cur - d8d5ce92"
