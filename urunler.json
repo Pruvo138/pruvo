@@ -1,5 +1,97 @@
 [
   {
+    "id": "evcil-fare-ve-hamster-evi-dalgali-yuzeyli-pr988236",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Fare ve Hamster Evi (Dalgalı Yüzeyli, Delikli, Tek Parça)",
+    "aciklama": "Dalgalı dış yüzeyli, girişli, üst kenarında küçük delikler bulunan tek parça kemirgen evi. İlanda fare, sıçan ve hamster için belirtilmiştir. Görseller bilgisayar çizimidir.\nYaklaşık dış ölçüler: 158 × 156 × 100 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr988236-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr988236-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr988236-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Martin Branikovic",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "evcil-hamster-kosu-tekerlegi-200-mm-rulmanli-pr830838",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Hamster Koşu Tekerleği (200 mm, Rulmanlı, Ayaklı)",
+    "aciklama": "200 mm çaplı, rulmanla dönen ve ayaklığı üzerinde serbest duran hamster koşu tekerleği. Tekerlek, iskele ve burç olmak üzere üç parçadır. Standart 608 rulman, M8 somun ve en az 30 mm boyunda M8 cıvata gerekir; hiçbiri dahil değildir. Fotoğraflarda tekerlek kafesin içinde ve yakın planda, son karede bilgisayar render'ı görülür.\nYaklaşık dış ölçüler: 200 × 200 × 95 mm (tekerlek); iskele 220 × 135 × 120 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr830838-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr830838-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr830838-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr830838-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Hobbyist_Printer",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "evcil-hamster-kosu-tablasi-egimli-tabanli-pr464897",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Hamster Koşu Tablası (Eğimli Tabanlı, Yatık Dönen Disk)",
+    "aciklama": "Eğimli bir tabana mille bağlanan, yatık duran ve dönen daire biçimli hamster koşu tablası. Taban, mil ve tabla olmak üzere üç parçadan oluşur. İlk karede bilgisayar render'ı, sonraki karelerde kurulu tabla görülür.\nYaklaşık dış ölçüler: 200 × 200 × 32 mm (tabla); taban 163 × 108 × 58 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr464897-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr464897-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr464897-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr464897-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jacek",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "evcil-hamster-kum-kuregi-delikli-kucuk-pr1414443",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Hamster Kum Küreği (Delikli, Küçük Boy)",
+    "aciklama": "Hamster kafesindeki kum ve yatak malzemesi içinden atıkları ayıklamak için küçük, delikli, saplı tek parça kürek. Fotoğraflarda siyah kürek elde, diğer karelerde render olarak görülür.\nYaklaşık dış ölçüler: 138 × 45 × 16 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1414443-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1414443-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1414443-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1414443-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Ms. Kitty",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "evcil-kemirgen-evi-iki-bolmeli-halkali-desenli-pr18038",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kemirgen Evi (İki Bölmeli, Halkalı Desenli Yüzeyli)",
+    "aciklama": "İki bölmeli gövde ve ayrı bir çatı plakasından oluşan, dış yüzeyi halka desenli kemirgen evi. Gövdede yuvarlak bir giriş deliği bulunur. Fotoğraflarda ev kapalı ve açık halde görülür.\nYaklaşık dış ölçüler: 151 × 105 × 101 mm (gövde); çatı plakası 150 × 101 × 8 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr18038-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr18038-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jakub Kočí",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "evcil-kopek-odul-dagitici-donen-silindirli-pr641223",
     "kategori": "Ev",
     "marka": [],
