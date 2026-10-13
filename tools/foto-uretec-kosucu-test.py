@@ -1972,7 +1972,7 @@ G2_SATIR = {
         "ornek_ek": [("https://media.pruvo3d.com/foto/ornek/anahtarlik-figur-hilal-2-render.webp",
                       "https://media.pruvo3d.com/foto/ornek/anahtarlik-figur-hilal-onizleme.webp")],
         # 9 Eki (anahtarlik-foto-kolu): dürüstlük cümlesi ②'de 2× basılıyordu -> render notu AYRI cümle.
-        "notu": "Üretim dosyasının görüntüsüdür; yazı, renk ve kulak konumu seçimine göre üretilir.",
+        "notu": "Üretim dosyasının görüntüsüdür; yazı ve renk seçimine göre üretilir.",
         "durust": "Metal halka ve zincir dahil değildir; zincir ya da halka takılan kulakçıklı plastik gövde "
                   "(delik Ø 3,5–4 mm).",
     },

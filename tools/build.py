@@ -112,10 +112,12 @@ CATEGORIES = ["Marin", "Otomobil", "Motosiklet", "Bisiklet", "Tamirat", "Ev", "O
 NAV_GIZLI = ["Jeneratör", "Skan Art"]
 
 # --- BAŞLIK DALGA-1 ŞABLONU (BaBa 13 Eki 09:5x hükmü) ---------------------------
-# Kademeli: yalnız 12 Eki 00:00 (+0300) sonrası eklenen 560 ürün yeni şablona girer;
-# eski 38.8k ürün bayt-aynı kalır. Sonek kategoriye göre değişir:
+# Elektronik = aksesuar/stand, "| PRUVO" (ArTisT 13 Eki 19:2x — parça sonekten çıkarıldı;
+# usb bellek tutucu / sd kart kutusu vb. "yedek parça" hissiyatı yanıltıcı). Kamera kalır.
+# Kademeli: yalnız 12 Eki 00:00 (+0300) sonrası eklenen ürünler yeni şablona girer;
+# eski ~38.8k ürün bayt-aynı kalır. Sonek kategoriye göre değişir:
 #   parça kategorileri (yedek parça hissiyatı doğru): "<ad> | PRUVO Yedek Parça"
-#   diğer kategoriler (dekor/ev/ofis/hobi — "yedek parça" yanıltıcı): "<ad> | PRUVO"
+#   diğer kategoriler (dekor/ev/ofis/hobi/elektronik — "yedek parça" yanıltıcı): "<ad> | PRUVO"
 # Neden bu seçim: ölçüm (m3, 50 örneklem 13 Eki 09:4x) "Yedek Parça" sonekinin
 # dekor/küpe/kedi oyuncağı ürünlerinde yanıltıcı olduğunu gösterdi; sabit 33 kr
 # sonek de 49/50 başlığı >60 kr yapıyordu (Google ~55-60 kr'da kesiyor, markalı son
@@ -124,18 +126,54 @@ NAV_GIZLI = ["Jeneratör", "Skan Art"]
 #   🔴 "3D baskı"/"Özel Tasarım/Üretim" sonek olarak KULLANILMAZ (CLAUDE.md marka dili).
 #   🔴 JSON-LD `name` ve `breadcrumb` bu fonksiyondan geçmez (mevcut `baslik` kalır).
 BASLIK_PARCA_KATEGORILERI = frozenset({
-    "Marin", "Otomobil", "Motosiklet", "Bisiklet", "Tamirat", "Elektronik", "Kamera",
+    "Marin", "Otomobil", "Motosiklet", "Bisiklet", "Tamirat", "Kamera",
 })
-# Dalga-1 id listesi — tools/baslik-dalga1-idler.json'dan bir kez modül seviyesinde
-# yüklenir (560 id, 12 Eki 00:00 +0300 sonrası cur − d8d5ce92). YOKSA küme BOŞ sayılır
-# ve TÜM ürünler eski şablonla üretilir (fail-closed: küme yoksa yeni şablon UYGULANMAZ).
+# Dalga-1 id kümesi — tools/baslik-dalga1-idler.json'daki DONMUŞ `ids` (yedek) +
+# _meta.taban_sha üzerinden `git show` ile türetilen canlı `cur − eski` farkı (birincil).
+# Üretici: _dalga1_turet(taban_sha=None) → (frozenset[id], kaynak='git'|'donmus'|'yok').
+# 'yok'  = json bozuk (eski fail-closed: kume BOŞ kalır, TÜM ürünler eski şablonla üretilir,
+#           yeni şablon UYGULANMAZ).
+# 'donmus' = git hatası / timeout / json hatası / sha yok VEYA canlı fark BOŞ döndü
+#            (donmuş ids KULLANILIR — `ids` listesi 20 Eki GSC kıyası için DONDURULMUŞ kalır).
+# 'git'    = canlı diff başarılı, N boyutu canlı.
+# 🔴 Asla boş kümeye düşmez ('yok' hariç — eski fail-closed). stderr'e
+# `DALGA1_KAYNAK=donmus <sebep>` yazılır; tüketici bunu görmezden gelebilir.
 _DALGA1_JSON = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                            "baslik-dalga1-idler.json")
-try:
-    with open(_DALGA1_JSON, encoding="utf-8") as _f:
-        DALGA1_IDLER = frozenset(json.load(_f)["ids"])
-except (OSError, KeyError, ValueError):
-    DALGA1_IDLER = frozenset()
+def _dalga1_turet(taban_sha=None):
+    """(frozenset[id], kaynak) — 'git'|'donmus'|'yok'. Test `taban_sha` parametresiyle
+    sahte sha vererek donmuş dala düşüşü ölçer (tools/baslik-sablon-test.py V9)."""
+    try:
+        with open(_DALGA1_JSON, encoding="utf-8") as _f:
+            _meta = json.load(_f)
+        _frozen = list(_meta.get("ids") or [])
+    except (OSError, KeyError, ValueError):
+        return frozenset(), "yok"
+    if not _frozen:
+        return frozenset(), "yok"
+    _kull_sha = (taban_sha if taban_sha is not None
+                 else _meta.get("_meta", {}).get("taban_sha"))
+    if not _kull_sha:
+        return frozenset(_frozen), "donmus"
+    try:
+        _eski_bytes = subprocess.run(
+            ["git", "-C", ROOT, "show", f"{_kull_sha}:urunler.json"],
+            capture_output=True, timeout=120, check=True).stdout
+        _eski_ids = {p["id"] for p in json.loads(_eski_bytes)}
+        with open(JSON_PATH, encoding="utf-8") as _f:
+            _cur = json.load(_f)
+        _cur_ids = {p["id"] for p in _cur}
+        _dalga = _cur_ids - _eski_ids
+        if _dalga:
+            return frozenset(_dalga), "git"
+        print("DALGA1_KAYNAK=donmus git_bos", file=sys.stderr)
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired,
+            OSError, ValueError, KeyError) as _exc:
+        print("DALGA1_KAYNAK=donmus %s" % type(_exc).__name__, file=sys.stderr)
+    return frozenset(_frozen), "donmus"
+
+
+DALGA1_IDLER, DALGA1_KAYNAK = _dalga1_turet()
 # Başlık toplam ≤60 kr; sonek uzunlukları:
 _BASLIK_SONEK_PARCA = " | PRUVO Yedek Parça"   # 23 kr
 _BASLIK_SONEK_DIGER = " | PRUVO"               # 8 kr
