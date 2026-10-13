@@ -134,9 +134,9 @@ def vaka_v5(y, tmp):
 # ------------------------------------------------- isci agaci / dali ekseni
 # Gecici git deposu: GIT_DIR/GIT_WORK_TREE miras ALINMAZ (kanca icinde gercek
 # depoyu bozma dersi), HOME gecici dizine, global/sistem git ayari okunmaz.
-_GIT_ORTAM_SIL = ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_COMMON_DIR",
-                  "GIT_OBJECT_DIRECTORY", "GIT_ALTERNATE_OBJECT_DIRECTORIES",
-                  "GIT_PREFIX", "GIT_NAMESPACE", "GIT_CEILING_DIRECTORIES")
+# Kume TEK KAYNAKTAN (git_ortami.GIT_BAGLAM_DEGISKENLERI) — ikinci liste drift nobetini yakar.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from git_ortami import GIT_BAGLAM_DEGISKENLERI as _GIT_ORTAM_SIL  # noqa: E402
 
 
 def _git_ortami(tmp):
