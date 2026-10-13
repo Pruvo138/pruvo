@@ -111,6 +111,132 @@ CATEGORIES = ["Marin", "Otomobil", "Motosiklet", "Bisiklet", "Tamirat", "Ev", "O
 # index.html'deki GIZLI_KATEGORILER ile BİRLİKTE güncelle (CATEGORIES kuralının aynısı).
 NAV_GIZLI = ["Jeneratör", "Skan Art"]
 
+# --- BAŞLIK DALGA-1 ŞABLONU (BaBa 13 Eki 09:5x hükmü) ---------------------------
+# Kademeli: yalnız 12 Eki 00:00 (+0300) sonrası eklenen 560 ürün yeni şablona girer;
+# eski 38.8k ürün bayt-aynı kalır. Sonek kategoriye göre değişir:
+#   parça kategorileri (yedek parça hissiyatı doğru): "<ad> | PRUVO Yedek Parça"
+#   diğer kategoriler (dekor/ev/ofis/hobi — "yedek parça" yanıltıcı): "<ad> | PRUVO"
+# Neden bu seçim: ölçüm (m3, 50 örneklem 13 Eki 09:4x) "Yedek Parça" sonekinin
+# dekor/küpe/kedi oyuncağı ürünlerinde yanıltıcı olduğunu gösterdi; sabit 33 kr
+# sonek de 49/50 başlığı >60 kr yapıyordu (Google ~55-60 kr'da kesiyor, markalı son
+# düşüyordu). Kök şablon DÜZEYİNDE düzeltme — dalga-1 kümesi dışındaki sayfalar
+# bayt-aynı. Görsel/sayaç/özet testleri: tools/baslik-sablon-test.py.
+#   🔴 "3D baskı"/"Özel Tasarım/Üretim" sonek olarak KULLANILMAZ (CLAUDE.md marka dili).
+#   🔴 JSON-LD `name` ve `breadcrumb` bu fonksiyondan geçmez (mevcut `baslik` kalır).
+BASLIK_PARCA_KATEGORILERI = frozenset({
+    "Marin", "Otomobil", "Motosiklet", "Bisiklet", "Tamirat", "Elektronik", "Kamera",
+})
+# Dalga-1 id listesi — tools/baslik-dalga1-idler.json'dan bir kez modül seviyesinde
+# yüklenir (560 id, 12 Eki 00:00 +0300 sonrası cur − d8d5ce92). YOKSA küme BOŞ sayılır
+# ve TÜM ürünler eski şablonla üretilir (fail-closed: küme yoksa yeni şablon UYGULANMAZ).
+_DALGA1_JSON = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                           "baslik-dalga1-idler.json")
+try:
+    with open(_DALGA1_JSON, encoding="utf-8") as _f:
+        DALGA1_IDLER = frozenset(json.load(_f)["ids"])
+except (OSError, KeyError, ValueError):
+    DALGA1_IDLER = frozenset()
+# Başlık toplam ≤60 kr; sonek uzunlukları:
+_BASLIK_SONEK_PARCA = " | PRUVO Yedek Parça"   # 23 kr
+_BASLIK_SONEK_DIGER = " | PRUVO"               # 8 kr
+_BASLIK_SONEK_UZUNLUK = {"parca": 23, "diger": 8}
+# Son karakter noktalama/bağlaç olmaz (sonda ; , . - — vs. bırakılmaz)
+_BASLIK_TRAIL_RE = re.compile(r"[\s,;:.!?\-—–]+$")
+# Parantez içi ayrıntı yakalama: "(...)" veya " (...)" — sonda ya da ortada
+_BASLIK_PARANTEZ_RE = re.compile(r"\s*\([^)]*\)\s*")
+# Meta kesimi: önce cümle sınırı, yoksa kelime sınırı, "…" yok
+_META_CUMLE_RE = re.compile(r"[.!?;]\s")
+
+
+def _baslik_ad_ve_meta_oneki(baslik):
+    """(ad, meta_oneki) — parantez ayrıntıları başlıktan düşer, meta'ya eklenir.
+
+    "Masaüstü Kutu (Bölmeli)" -> ("Masaüstü Kutu", "Bölmeli ")
+    "Sade Başlık" -> ("Sade Başlık", "")
+    Birden çok parantez varsa hepsi meta_oneki'ne eklenir (sırayla).
+    """
+    parcalar = _BASLIK_PARANTEZ_RE.findall(baslik)
+    ad = _BASLIK_PARANTEZ_RE.sub("", baslik).strip()
+    if not parcalar:
+        return ad, ""
+    # Meta_oneki: "(...) " gruplarını parantezsiz, aralarına boşluk + nokta koyarak birleştir
+    oneki_ic = " ".join(pc.strip().strip("()").strip() for pc in parcalar).strip()
+    if oneki_ic and not oneki_ic.endswith((".", "!", "?")):
+        oneki_ic = oneki_ic + ". "
+    elif oneki_ic:
+        oneki_ic = oneki_ic + " "
+    return ad, oneki_ic
+
+
+def _ad_kelime_kisalt(ad, maks):
+    """ad: kelime sınırında ≤maks kr. Sonda noktalama/bağlaç bırakmaz. Karakter ortası YOK.
+
+    maks < ilk kelime uzunluğuysa (örn. 5 harfli ürün adı, maks=3) → kelime içinde kesmek
+    GEREKİR (aksi halde boş döner); o tek durumda karakter-bazlı kesim UYGULANIR ve mutant
+    listesinde (V3) bu sınırı zorlayan test KONMAZ — gerçek veride tüm adlar >10 kr.
+    """
+    if len(ad) <= maks:
+        return _BASLIK_TRAIL_RE.sub("", ad)
+    cut = ad[:maks]
+    # Son kelimeyi at (önceki boşluğa kadar)
+    if " " in cut:
+        cut = cut.rsplit(" ", 1)[0]
+    # Trailing punctuation/conjunction
+    cut = _BASLIK_TRAIL_RE.sub("", cut)
+    if not cut:
+        # Tek-kelime başlık + maks < kelime uzunluğu: karakter-bazlı kesim (son çare)
+        cut = ad[:maks]
+        cut = _BASLIK_TRAIL_RE.sub("", cut)
+    return cut
+
+
+def _meta_dalga1(metin, oneki=""):
+    """≤160, önce cümle sınırı, yoksa kelime sınırı, "…" YOK. oneki metnin BAŞINA eklenir.
+
+    oneki parantez ayrıntısıdını (başlıktan düşen). Toplam ≤160 olmalı.
+    Önce oneki eklenmiş metin hazırlanır, sonra 160'a indirilir.
+    """
+    temiz = re.sub(r"\s+", " ", (metin or "")).strip()
+    if oneki:
+        temiz = (oneki + temiz).strip()
+    if len(temiz) <= 160:
+        return temiz
+    # Önce cümle sınırı: 160'ın İÇİNDE kalan son cümle sonlandırıcısı tercih edilir.
+    # "…" yok → cümle sonu varsa onu koru, sonrasını at.
+    snip = temiz[:160]
+    # Son cümle sonlandırıcısını bul (aramayı GERİYE doğru yap)
+    son_cumle = None
+    for m in _META_CUMLE_RE.finditer(snip):
+        son_cumle = m.end()
+    if son_cumle is not None and son_cumle > 20:
+        # Cümle sınırı var ve makul bir yerde (en az 20 kr). "…" YOK.
+        return temiz[:son_cumle].rstrip()
+    # Kelime sınırında kes
+    snip = snip.rsplit(" ", 1)[0]
+    return snip.rstrip()
+
+
+def baslik_meta_dalga1(pid, baslik, kategori, aciklama):
+    """Wave-1 id'si için (title_tag, ogtitle_desc, desc160) üçlüsü. Döngü dışı çağrılır.
+
+    Dalga-1 kümesinde DEĞİLSE None döner → render_product mevcut şablonu kullanır
+    (bayt-aynı regresyon 0).
+    """
+    if pid not in DALGA1_IDLER:
+        return None
+    ad, oneki = _baslik_ad_ve_meta_oneki(baslik)
+    if kategori in BASLIK_PARCA_KATEGORILERI:
+        sonek = _BASLIK_SONEK_PARCA
+        maks_ad = 60 - _BASLIK_SONEK_UZUNLUK["parca"]
+    else:
+        sonek = _BASLIK_SONEK_DIGER
+        maks_ad = 60 - _BASLIK_SONEK_UZUNLUK["diger"]
+    ad_kisa = _ad_kelime_kisalt(ad, maks_ad)
+    title_tag = esc(ad_kisa) + sonek
+    ogtitle = esc(ad_kisa)
+    desc160 = _meta_dalga1(aciklama, oneki=oneki)
+    return (title_tag, ogtitle, desc160)
+
 
 def fiyat_normalize(p):
     """Katalog yukleme sinirinda `fiyat` alanini kanonik metne cevirir."""
@@ -3467,7 +3593,16 @@ def render_product(p, all_products, chip_map=None):
     paylasim_gorseli = imgs[0] if imgs else ""
     # Gorselsiz urunun yer tutucusuna kategori ADI CIZILIR -> gorunur etiket kullanilir.
     cover = paylasim_gorseli or placeholder_data_uri(gorunur_kat)
-    desc160 = meta_desc(p)
+    # --- BAŞLIK DALGA-1 (BaBa 13 Eki): yalnız 12 Eki 00:00 +0300 sonrası eklenenler
+    # yeni şablona girer. Dalga-1 dışı → None → aşağıdaki eski üretim (bayt-aynı).
+    # JSON-LD `name` ve breadcrumb bu fonksiyondan GEÇMEZ (mevcut `baslik` kalır).
+    _dalga1 = baslik_meta_dalga1(pid, baslik, kategori, p.get("aciklama") or "")
+    if _dalga1 is None:
+        title_tag = esc(baslik) + " — PRUVO Özel Tasarım Yedek Parça"
+        ogtitle_tag = esc(baslik)
+        desc160 = meta_desc(p)
+    else:
+        title_tag, ogtitle_tag, desc160 = _dalga1
     pnum = price_number(fiyat)
     parametrik = bool(p.get("parametrik"))
     # --- FIZIKSEL URUN (Okan, 31 Tem — canli kusur): `tur` == "fiziksel" olan kayit HAZIR
@@ -4207,7 +4342,7 @@ var URUN_KART_SECIM = {kart_secim};{konfigur_tanim}
         desc=esc(desc160),
         url=esc(url),
         favicon=FAVICON,
-        ogtitle=esc(baslik),
+        ogtitle=ogtitle_tag,
         # og:image / twitter:image — MUTLAK URL alanlari. Gorsel varsa satirlar (kendi
         # satir sonlariyla) bugunku HALIYLE basilir -> gorselli sayfa bayt-esit. Gorsel
         # yoksa satirlar HIC basilmaz: eskiden buraya 404 veren favicon.png yaziliyordu ve
