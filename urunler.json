@@ -1,5 +1,253 @@
 [
   {
+    "id": "banyo-kopek-basi-biciminde-tuvalet-kagidi-tutucusu-pr147613",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Köpek Başı Biçimli Tuvalet Kâğıdı Tutucusu (Duvara Asılır ya da Ayakta Durur)",
+    "aciklama": "Kulakları sarkık, gözlü ve burunlu bir köpek yüzü biçimindeki eğlenceli tuvalet kâğıdı tutucusu. Baş, gövde, burun, vida ve isteğe bağlı bir ara parçadan oluşur; vida önce başa takılır (isterseniz yapıştırıcıyla da sabitlenir), baş gövdeyle birleştirildiğinde düz durmazsa ara parça eklenir. Gövdedeki vida delikleri sayesinde duvara asılabilir ya da zemine konarak kullanılabilir. Fotoğraflarda kahverengi ve siyah köpek, rulolu hâlde ve parçaları ayrık görülür.\nGövde 127 × 116 × 98 mm'dir.\nYaklaşık dış ölçüler: 127 × 116 × 98 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr147613-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr147613-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr147613-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr147613-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "RostaP",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "banyo-kuvet-kenarina-takilan-tuvalet-kagidi-tutucusu-pr34281",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Küvet Kenarına Takılan Tuvalet Kâğıdı Tutucusu (Dışarıdan Kancalı)",
+    "aciklama": "Küvetin dış kenarına kancalanarak takılan, rulo milini küvetin yanına sarkıtan sade tuvalet kâğıdı tutucusu. Delik açmadan, banyoda küvet kenarında rulo bulundurmak için uygundur. Fotoğraflarda küvet kenarına takılı tutucu rulolu hâlde ve çizim görseli gösterilir.\nYaklaşık dış ölçüler: 186 × 75 × 30 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr34281-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr34281-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr34281-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "cimoalpacino (esinlenilen model: cimo)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "banyo-alttan-yuklemeli-otomatik-yerlesimli-tuvalet-kagidi-tutucusu-pr527199",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Alttan Yüklemeli Tuvalet Kâğıdı Tutucusu (Kancalar Kendiliğinden Kalkar)",
+    "aciklama": "Ruloyu alttan iterek yerleştirdiğiniz, kancaları ruloyu geçirirken yukarı kalkıp sonra yerine oturan, montajsız tek parça tuvalet kâğıdı tutucusu. Rulo bittiğinde boş karton merkez, tutucudan yukarı doğru kaldırılarak çıkarılır. Görsellerde gri gövde, kırmızı hareketli kancalarla ve rulo takılı hâlde gösterilir.\nYaklaşık dış ölçüler: 160 × 120 × 50 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr527199-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr527199-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Lars_Marinus",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "banyo-vidali-bolumlerle-uzayan-ayakli-tuvalet-kagidi-standi-pr282510",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Vidalı Bölümlerle Uzayan Ayaklı Tuvalet Kâğıdı Standı (Dört Rulo)",
+    "aciklama": "Geniş ruloları da alan, tabana, birbirine ve kapağa vidalanan bölümlerden oluşan ayaklı rulo standı. Bölüm sayısı artırılarak daha fazla rulo taşınabilir; fotoğraftaki örnek dört bölümlüdür ve yaklaşık dört rulo alır. Metal kafes tipi rulo rafının yerine kullanılmak üzere düşünülmüştür. Fotoğrafta siyah stand zeminde, yedek rulolarla görülür.\nTaban 150 × 150 × 120 mm'dir.\nYaklaşık dış ölçüler: 150 × 150 × 120 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr282510-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ecm1974",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "banyo-modul-duvar-parcali-delikli-kafes-tuvalet-kagidi-saklayici-pr807670",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Modüler Delikli Kafes Tuvalet Kâğıdı Saklayıcısı (Üst Üste Eklenir)",
+    "aciklama": "Tuvalet kâğıdı ruloları için, yan yüzeyi yarıklı ve petek delikli duvar parçalarından oluşan kafes biçimli saklayıcı. Taban ve duvar parçaları pimler ve deliklerle birbirine geçer; istediğiniz kadar parça eklenerek yükseklik artırılabilir. Fotoğraflarda siyah kafes, rulolu hâlde ve çeşitli açılardan gösterilir.\nDuvar parçası 121 × 121 × 103 mm'dir.\nYaklaşık dış ölçüler: 121 × 121 × 103 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr807670-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr807670-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr807670-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr807670-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Dror Avrahami",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "banyo-sade-minimalist-tuvalet-kagidi-tutucusu-pr999199",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Sade Minimalist Duvar Tuvalet Kâğıdı Tutucusu (Açık Uçlu Çubuk)",
+    "aciklama": "Duvara takılan iki ayak ve aralarındaki ince çubuktan oluşan, ince yapılı sade tuvalet kâğıdı tutucusu. Fotoğrafta koyu gri tutucu duvarda rulolu hâlde, renderlerde yalın görünümüyle gösterilir.\nYaklaşık dış ölçüler: 175 × 91 × 60 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr999199-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr999199-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr999199-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr999199-4.jpg"
+    ]
+  },
+  {
+    "id": "banyo-duvara-vidali-sade-tuvalet-kagidi-tutucusu-pr419725",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Duvara Vidalı Sağlam Gövdeli Tuvalet Kâğıdı Tutucusu",
+    "aciklama": "Duvara sabitlenen, sağlam gövdeli tuvalet kâğıdı tutucusu. Fotoğrafta siyah tutucu duvarda tam rulo ile, renderlerde gövdesi ve rulo mili ayrıntılı gösterilir.\nYaklaşık dış ölçüler: 130 × 115 × 100 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr419725-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr419725-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr419725-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Odd Inventor",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "banyo-vidali-dolap-alti-kagit-rulo-tutucusu-pr98369",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Vidalı Dolap Altı Kâğıt Rulo Tutucusu (Tuvalet Kâğıdı ve Kâğıt Havlu)",
+    "aciklama": "Dolap altına ya da duvara takılan, büyük tuvalet kâğıdı rulolarını ve kâğıt havlu rulolarını alan vidalı tutucu. İki yanda dişli vidalar ruloyu sabitler; bir uzun, bir kısa vida kullanılırsa kısa vidayı çıkarıp ruloyu eğik kaydırarak hızlıca değiştirmek mümkündür. Fotoğraflarda yeşil tutucu dolap altında kâğıt havlu ve karton merkezle gösterilir.\nUzun vida parçası 60 mm boyundadır.\nYaklaşık dış ölçüler: 60 × 60 × 60 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr98369-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr98369-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr98369-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr98369-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "SilentCarrier",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "banyo-rafli-vidali-baslikli-buyuk-rulo-tuvalet-kagidi-tutucusu-pr158714",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Raflı Büyük Rulo Tuvalet Kâğıdı Tutucusu (Vidalı Başlıklı)",
+    "aciklama": "Büyük ruloları taşıyan, üstünde küçük bir raf bulunan, iki parçalı tuvalet kâğıdı tutucusu. İkinci parça, gövdeye vidalanan başlıktır; ruloyu çekerken rulonun düşmesini önleyen bir engel oluşturur, rulonun merkezi dar ise çıkarılabilir. Görsellerde gri gövde rulolu hâlde ve renderlerde gösterilir.\nGövde 158 × 140 × 107 mm, başlık 36 × 36 × 15 mm'dir.\nYaklaşık dış ölçüler: 158 × 140 × 107 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr158714-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr158714-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr158714-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Brown Panda (esinlenilen model: anisb)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "banyo-petek-desenli-duvar-tuvalet-kagidi-tutucusu-pr554168",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Petek Desenli Duvar Tuvalet Kâğıdı Tutucusu (Bakır Görünümlü)",
+    "aciklama": "Altıgen petek desenli kolları olan, vidayla duvara sabitlenen dekoratif tuvalet kâğıdı tutucusu. Delikleri yaklaşık 171 mm aralıklıdır; büyük bir rulo kasasının yerine takmak için uygundur. Fotoğraflarda bakır renkli tutucu duvarda rulolu hâlde görülür.\nYaklaşık dış ölçüler: 207 × 189 × 110 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr554168-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr554168-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr554168-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Arerax",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "banyo-yuvarlak-borulu-telefon-islak-mendil-rafli-tuvalet-kagidi-tutucusu-pr839541",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Yuvarlak Borulu Telefon / Islak Mendil Raflı Tuvalet Kâğıdı Tutucusu",
+    "aciklama": "Üst yüzeyi telefon ya da ıslak mendil rafı olarak kullanılan duvar tipi tuvalet kâğıdı tutucusunun, rulonun yüzeyini yıpratmaması için yuvarlak borulu mile sahip sürümü. Fotoğraflarda gri tutucu duvarda boş ve rulolu hâlde gösterilir.\nYaklaşık dış ölçüler: 130 × 95 × 78 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr839541-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr839541-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Piotr (esinlenilen model: Celta)",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "banyo-bulut-biciminde-uc-parcali-yedek-rulo-rafi-pr471762",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Bulut Biçimli Üç Parçalı Yedek Tuvalet Kâğıdı Rafı (Duvara Vidalı)",
+    "aciklama": "Yedek tuvalet kâğıdı rulolarını duvarda bulut biçimli yuvalarda saklayan, üç parçalı raf. Sağ, sol ve orta parça yapıştırıcıyla birleştirilir, iki vidayla duvara sabitlenir. Fotoğraflarda beyaz parçalar duvarda üst üste dizilmiş rulolarla görülür.\nBir yan parça 240 × 105 × 85 mm'dir.\nYaklaşık dış ölçüler: 240 × 105 × 85 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr471762-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr471762-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr471762-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Willy (esinlenilen model: 3D_Willy)",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "banyo-burgulu-direkli-ayakli-yedek-rulo-standi-pr69690",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Burgulu Direkli Ayaklı Yedek Tuvalet Kâğıdı Standı",
+    "aciklama": "Dikey burgulu bir direk ve üç ayaklı tabandan oluşan, zemine konan yedek tuvalet kâğıdı standı. Direk tabana oturtularak takılır ve ruloları üst üste dizer. Fotoğraflarda stand klozetin yanında, rulolarla gösterilir.\nDirek 240 × 36 × 36 mm'dir.\nYaklaşık dış ölçüler: 240 × 36 × 36 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr69690-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr69690-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr69690-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr69690-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Usman Suriono (esinlenilen model: uzcaliber)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "banyo-altigen-biciminde-renkli-duvar-tuvalet-kagidi-tutucusu-pr452648",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Altıgen Biçimli Duvar Tuvalet Kâğıdı Tutucusu (Rulo Yuvalı Çerçeve)",
+    "aciklama": "Altıgen çerçeve biçimli, ruloyu içine alan, duvara asılan dekoratif tuvalet kâğıdı tutucusu. Birkaç tane farklı renkte yan yana asılabilir. Fotoğrafta dört farklı renkli altıgen tutucu duvarda rulolarla görülür.\nYaklaşık dış ölçüler: 181 × 157 × 76 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr452648-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr452648-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Dabble Dad",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "banyo-telefon-rafli-tuvalet-kagidi-tutucusu-pr231020",
     "kategori": "Ev",
     "marka": [],
