@@ -1,5 +1,203 @@
 [
   {
+    "id": "banyo-sabun-pompasi-saklama-tikaci-pr353360",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Sabun Pompası Saklama Tıkacı (Pompanın Aşağı İnmesini Engeller)",
+    "aciklama": "Pompalı sabunluk şişelerinin pompa başlığının, saklama sırasında aşağı inmesini engelleyen küçük tıkaç; dişli kilidi olmayan pompalı sabunluklarda kullanılır. Fotoğrafta siyah tıkaç gösterilir.\nYaklaşık dış ölçüler: 24 × 15 × 14 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr353360-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jaimelalone",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "banyo-kosede-petek-desenli-tuvalet-fircasi-kose-rafi-pr713703",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Köşeye Yapıştırılan Petek Desenli Tuvalet Fırçası Köşe Rafı (Üç Parçalı)",
+    "aciklama": "Taban ve iki yan panelden oluşan, tuvalet köşesine yapıştırılan, petek (voronoi) desenli delikli köşe rafı; tuvalet fırçası kabını tutar. Yan paneller birbirinin aynısı değildir, görsele göre yerleştirilir; delik yoktur, arka yüzeylere güçlü yapıştırıcı sürülerek duvara tutturulur. Fotoğrafta siyah raf köşede fırça kabıyla, görsellerde mavi paneller gösterilir.\nYaklaşık dış ölçüler: 110 × 110 × 105 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr713703-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr713703-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr713703-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr713703-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "EOLO (kaynak model: SALIDA999)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "banyo-pompali-sabun-sisesi-icin-petek-delikli-suslu-kilif-pr745182",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Pompalı Sabun Şişesi İçin Petek Delikli Süslü Kılıf (Ölçeklenebilir)",
+    "aciklama": "Pompalı sabun şişelerine zarif bir görünüm veren, petek (altıgen) delikli kılıf; yaklaşık 370 mL'lik bir şişeye tam oturur, farklı şişeler için ölçeklenerek kullanılabilir. Fotoğraflarda beyaz kılıf sabun şişesinde ve bir içecek kutusunda gösterilir.\nYaklaşık dış ölçüler: 108 × 73 × 73 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr745182-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr745182-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "BMOW (esinlenilen model: PiPinecone)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "banyo-sade-silindir-tuvalet-fircasi-tutucusu-pr1496142",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Sade Silindir Tuvalet Fırçası Tutucusu (8 cm Fırçalar İçin)",
+    "aciklama": "Çapı 8 cm'ye kadar olan tuvalet fırçalarını alan, sade silindir biçimli tutucu. Fotoğraflarda beyaz tutucu ahşap zeminde gösterilir.\nYaklaşık dış ölçüler: 100 × 100 × 95 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1496142-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1496142-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1496142-3.jpg"
+    ]
+  },
+  {
+    "id": "banyo-tuvalet-fircasi-sapi-icin-kenara-takilan-askisi-pr810972",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Tuvalet Fırçası Sapı İçin Tuvalet Kenarına Takılan Askı (Basit Kanca)",
+    "aciklama": "Belirli bir tuvalet fırçası sapı için tasarlanmış, tuvalet kenarına takılan basit askı; takılmadan önce sap ölçüsü kontrol edilmelidir. Fotoğraflarda askı tuvalet kenarında ve fırça sapıyla gösterilir.\nYaklaşık dış ölçüler: 80 × 49 × 6 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr810972-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr810972-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "bucketofcookies",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "banyo-dus-icin-iki-tiras-bicagi-ve-bir-tiras-aleti-askisi-pr12144",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Duş İçin İki Tıraş Bıçağı ve Bir Tıraş Aleti Askısı (Montaj Bantlı)",
+    "aciklama": "Duşta iki tek kullanımlık tıraş bıçağı ile bir küçük şarjlı düzeltme aletini taşıyan, montaj bantıyla duvara yapıştırılan askı. Belirli bir düzeltme aleti modeline göre ölçülmüştür; başka aletlerde takılmadan önce uyum kontrol edilmelidir. Görselde mavi askı gösterilir.\nYaklaşık dış ölçüler: 140 × 90 × 45 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr12144-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "mikebald",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "banyo-tuvalet-fircasi-ustune-takilan-yedek-rulo-basligi-pr344292",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Tuvalet Fırçası Üstüne Takılan Yedek Tuvalet Kâğıdı Rulo Başlığı (İki Ölçülü)",
+    "aciklama": "Belirli bir tuvalet fırçasının sapının üstüne geçirilen, yedek tuvalet kâğıdı rulolarını sapın etrafında tutan başlık; iki ölçüde (150 ve 175 mm) sürümü vardır. Fırçayı kullanmak için ruloları ve başlığı çıkarmak gerekir. Fotoğraflarda siyah başlık rulolarla ve tek başına gösterilir.\nYaklaşık dış ölçüler: 175 × 175 × 20 mm (175 mm sürümü).",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr344292-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr344292-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr344292-3.jpg"
+    ]
+  },
+  {
+    "id": "banyo-karavan-icin-tuvalet-fircasi-ve-tuvalet-kagidi-tutucusu-pr1225877",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Tuvalet Fırçası ve Tuvalet Kâğıdı Tutucusu (Karavan İçin)",
+    "aciklama": "Karavan tuvaleti için tasarlanmış, tuvalet fırçası ile kâğıt rulosunu bir arada taşıyan kutu biçimli tutucu; kutunun yan tarafında rulo mili bulunur. Fotoğraflarda beyaz tutucu karavan tuvalet bölmesinde gösterilir.\nYaklaşık dış ölçüler: 203 × 145 × 90 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1225877-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1225877-2.jpg"
+    ]
+  },
+  {
+    "id": "banyo-duvara-silikonla-yapisan-kose-tuvalet-fircasi-kabi-pr1087801",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Duvara Silikonla Yapıştırılan Köşe Tuvalet Fırçası Kabı (Ölçülendirilebilir)",
+    "aciklama": "Köşe tipi, silikonla duvara yapıştırılan tuvalet fırçası kabı; ölçüleri parametrik olarak tamamen ayarlanabilir şekilde tasarlanmıştır. Fotoğraflarda gri kap fayans duvarda fırçayla gösterilir.\nYaklaşık dış ölçüler: 128 × 128 × 60 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1087801-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1087801-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1087801-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Radek",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "banyo-duvar-askisina-oturan-olculendirilebilir-tuvalet-fircasi-kabi-pr21325",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Duvar Askısına Oturan Tuvalet Fırçası Kabı (Ölçülendirilebilir)",
+    "aciklama": "Kırılan bir cam tuvalet fırçası kabının yerine konan, duvardaki metal askının içine oturan, ölçüleri ihtiyaca göre ayarlanabilen kap. Fotoğraflarda beyaz kap metal duvar askısında ve fırçayla gösterilir.\nYaklaşık dış ölçüler: 198 × 92 × 92 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr21325-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr21325-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr21325-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Luis",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "banyo-duvara-yapisan-buyuk-tuvalet-fircasi-tutucusu-pr713679",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Duvara Yapıştırılan Büyük Tuvalet Fırçası Tutucusu (Kavisli Yan Duvarlı)",
+    "aciklama": "Duvara yapıştırılarak kullanılan, kavisli yan duvarlı büyük tuvalet fırçası tutucusu. Fotoğrafta tuvaletin yanında fırça ve yedek rulo ile, görselde mavi tutucu gösterilir.\nYaklaşık dış ölçüler: 136 × 109 × 86 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr713679-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr713679-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "EOLO (kaynak model: SALIDA999)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "banyo-boruya-oturan-tuvalet-fircasi-tutucusu-pr1546751",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Boruya Oturan Tuvalet Fırçası Tutucusu (Belirli Bir Fırça İçin)",
+    "aciklama": "Belirli bir tuvalet fırçası modeline göre ölçülmüş, su borusu ya da tutamak barının üstüne oturtulan fırça kabı. Boru sıcaklığı dikkate alınmalıdır. Fotoğraflarda siyah kap bara oturmuş ve fırçayla, görselde gri örnek gösterilir.\nYaklaşık dış ölçüler: 116 × 98 × 75 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1546751-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1546751-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1546751-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1546751-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JP",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "banyo-duvara-yapiskanli-kartuslu-tiras-bicagi-askisi-pr1358212",
     "kategori": "Ev",
     "marka": [],
