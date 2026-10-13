@@ -5707,7 +5707,7 @@ const C2_OLCU_FIGUR = "Anahtarlığın, başın arkasındaki halka dahil en uzun
 // "Örnek yakında" 0. Büst/yapboz /acik'te olsa da kart 0.
 const C2_KARTLAR = JSON.stringify([["anahtarlik_yazi", "anahtarlik-1-render.webp", false], ["insan", "kart-insan-2.webp", false],
   ["pet", "kart-pet-1.webp", false], ["plaket", "kart-plaket-2.webp", false],
-  ["anahtarlik_figur", "anahtarlik-figur-hilal-2-render.webp", false], ["model", "model-1-render.webp", false]]);
+  ["anahtarlik_figur", "anahtarlik-figur-hilal-2-render.webp", false], ["model", "kart-model-1.webp", false]]);
 async function c2Senaryo(ekranKaynak, veriKaynak) {
   const s = {}, iz = {};
   const kod6 = ["plaket", "figur", "yapboz", "bust", "anahtarlik"];
@@ -5780,7 +5780,7 @@ console.log("C2) ② TEK dürüstlük cümlesi (figür + plaket) + anahtarlık �
 // ArTisT 13. okuma BULGU 2: insan · model · anahtarlık–figür kartları boş kutu. TeKiN 3 render'ı (R2, sha kutuda) kartlara
 // bağlandı; kartOrnegi ALT türü ayırır (insan kartına kedi düşmez). Beklenen dosya adları BAĞIMSIZ yazılır.
 const FK_BEKLENEN = { anahtarlik_yazi: "anahtarlik-1-render.webp", insan: "kart-insan-2.webp", pet: "kart-pet-1.webp",
-  model: "model-1-render.webp", anahtarlik_figur: "anahtarlik-figur-hilal-2-render.webp" };
+  model: "kart-model-1.webp", anahtarlik_figur: "anahtarlik-figur-hilal-2-render.webp" };
 async function fkSenaryo(ekranKaynak, veriKaynak) {
   const s = {}, iz = {};
   const V = veriYukle(veriKaynak);
@@ -5822,7 +5822,7 @@ console.log("FK) FOTO KART GÖRSELLERİ — alt-duyarlı örnek eşleştirme (in
   const s = await fkSenaryo(EKRAN_KAYNAK, VERI_KAYNAK);
   ol("FK_INSAN insan kartı -> kart-insan-2 (kedi DEĞİL), yer tutucu 0", s.FK_INSAN, JSON.stringify(s.iz.kart.insan));
   ol("FK_PET pet kartı -> kedi örneği kart-pet-1", s.FK_PET, JSON.stringify(s.iz.kart.pet));
-  ol("FK_MODEL model kartı -> model-1-render", s.FK_MODEL, JSON.stringify(s.iz.kart.model));
+  ol("FK_MODEL model kartı -> kart-model-1 (logosuz)", s.FK_MODEL, JSON.stringify(s.iz.kart.model));
   ol("FK_AN_FIGUR anahtarlık–figür kartı -> anahtarlik-figur-hilal-2-render", s.FK_AN_FIGUR, JSON.stringify(s.iz.kart.anahtarlik_figur));
   ol("FK_AN_YAZI anahtarlık–yazı kartı -> mevcut yazı örneği anahtarlik-1-render", s.FK_AN_YAZI, JSON.stringify(s.iz.kart.anahtarlik_yazi));
   ol("FK_FAIL ornekGecerli alt: robot/''/null/toString/modelsiz tür -> SAYILMAZ; alan yok + insan -> sayılır", s.FK_FAIL, JSON.stringify(s.iz.fail));
