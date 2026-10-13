@@ -1,5 +1,132 @@
 [
   {
+    "id": "ev-uc-kollu-taki-standi-gomme-tepsili-pr495045",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Üç Kollu Takı Standı (Gömme Küpe Tepsili)",
+    "aciklama": "Üç yatay kolu ve altında gömme tepsisi olan takı standı. Kollara kolye, bileklik, halhal ve yüzük asılır; tepsi küpe ve ufak takılar içindir. Kol boyları 100, 135 ve 170 mm'dir, isteğe bağlı bir boy daha geniş kol seçeneği (205 mm) da vardır. Fotoğraflarda koyu kahverengi kollu, açık renk tabanlı model banyo tezgâhında takılarla görülür.\nYaklaşık dış ölçüler: 174 × 70 × 142 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr495045-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr495045-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr495045-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "squinn",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dekor-zincir-kolye-birlesik-halkali-pr1187228",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Zincir Kolye (Birleşik Halkalı, Kalp Uçlu Seçenekli)",
+    "aciklama": "Halkaları birbirine geçmiş halde gelen sade zincir kolye. Montaj gerekmez; boyun ve baş geçecek uzunluktadır. Dosyada kalp biçimli kolye ucu örneği ve zinciri kısaltmak için fazladan halka bulunur. Fotoğraflarda siyah zincir ahşap zeminde, bir karede kırmızı kalp uçlu halde görülür.\nYaklaşık dış ölçüler: 201 × 201 × 4 mm (halka halinde).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1187228-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1187228-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1187228-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Ned",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dekor-kulak-kelepcesi-delik-gerektirmez-pr467055",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kulak Kelepçesi (Ear Cuff, Delik Gerektirmez)",
+    "aciklama": "Kulak kıkırdağına geçirilen, delik açmayı gerektirmeyen sade kulak kelepçesi. Düz ve \"V\" biçimli iki sürümü bulunur. Fotoğraflarda kırmızı model kulakta, ikinci karede avuç içinde gümüş ve beyaz örneklerle görülür.\nYaklaşık dış ölçüler: 20 × 11 × 4 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr467055-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr467055-2.jpg"
+    ]
+  },
+  {
+    "id": "dekor-yarasa-kolye-ucu-pr305608",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Yarasa Kolye Ucu (Kanat Deliklerinden Zincir Geçirmeli)",
+    "aciklama": "Kanatları açık yarasa biçiminde düz kolye ucu. Kanat uçlarındaki deliklere halka takılarak zincire veya ipe bağlanır. Fotoğraflarda siyah model beyaz büst üzerinde görülür.\nYaklaşık dış ölçüler: 100 × 42 × 3 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr305608-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr305608-2.jpg"
+    ]
+  },
+  {
+    "id": "ev-kalp-uclu-kolye-askisi-15-kolyelik-pr667682",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kalp Uçlu Kolye Askısı (15 Kolye Kapasiteli, Duvara Monte)",
+    "aciklama": "Üzerinde 15 kalp uçlu çıkıntı bulunan yatay kolye askısı. Her çıkıntıya bir kolye asılır; dolap kapağına veya duvara vidayla ya da çift taraflı bantla sabitlenir. Fotoğrafta beyaz model duvarda kolyelerle, ikinci karede tezgâh üzerinde görülür.\nYaklaşık dış ölçüler: 270 × 22 × 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr667682-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr667682-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "3DP_Johnny",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dekor-kelebek-kolye-ucu-pr491826",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kelebek Kolye Ucu (Oyma Kanatlı)",
+    "aciklama": "Oyma kanat deseni olan kelebek biçiminde kolye ucu. Boyutu isteğe göre büyütülüp küçültülebilir. Görseller bilgisayar çizimidir: gri zeminde zincire takılı mor ve siyah örnek görülür.\nYaklaşık dış ölçüler: 91 × 83 × 4 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr491826-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr491826-2.jpg"
+    ]
+  },
+  {
+    "id": "ev-yuvarlak-boncuk-tepsisi-halkali-oluklu-pr752004",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Yuvarlak Boncuk Tepsisi (Halka Oluklu, Kolye ve Bileklik Yapımı İçin)",
+    "aciklama": "İç içe halka olukları olan yuvarlak boncuk tepsisi. En dıştaki oluk gerdanlık boyunda kolyeye, en küçük oluk bilekliğe göre ayrılmıştır; orta kısım ufak parçaları toplamak içindir. Fotoğraflarda beyaz tepsi kırmızı ve turkuaz boncuklarla görülür.\nYaklaşık dış ölçüler: 150 × 150 × 8 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr752004-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr752004-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "SonjaSelena",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "dekor-kalp-anahtarlik-kolye-halkali-pr129348",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kalp Anahtarlık / Kolye Ucu (Halka Delikli)",
+    "aciklama": "Üst köşesinde halka deliği olan sade kalp biçimli anahtarlık veya kolye ucu. Anahtarlık halkası ya da zincir geçirilerek kullanılır. Fotoğraflarda siyah model halkayla ve gri zeminde yakından görülür.\nYaklaşık dış ölçüler: 30 × 30 × 10 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr129348-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr129348-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr129348-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "SHAXperiment",
+      "tur": "GPL 2.0"
+    }
+  },
+  {
     "id": "ofis-cetvel-tutucu-gridfinity-uyumlu-35-x-42-mm-dar-modul-pr348416",
     "kategori": "Ofis",
     "marka": [],
