@@ -386,25 +386,15 @@
         ornek_kanit_izni: ["render"],
         alan_aciklamalari: {
           olcu: "Anahtarlığın kulakçık dahil en uzun boyutudur; fiyat bu ölçüye göre canlı hesaplanır.",
-          // ③ renk yardım cümlesi (iki seçici; ArTisT 19. okuma bu satırı değiştirir — TEK yer). Figür çeşidinin
-          // kendi `renk` cümlesi bunun yerine basılır (alanAciklamasi çeşide öncelik verir).
           renk: "Yazı için bir, taban için bir renk seç; ikisi birbirinden belirgin olmalı ki yazı net okunsun."
         },
-        // İKİ RENK (Okan 12 Eki, aynen "anahtarlıkta tek renk seçimi olmaz zaten minimum 2 renk olmalı"): yazı
-        // çeşidinde ③'te Yazı rengi + Taban rengi, ikisi de VERI.ANA_RENKLER; varsayılan siyah taban + beyaz yazı.
-        // kontrast_esigi = üreteç KONTRAST_MIN (pruvo-jenerator jeneratorler/foto/isimlik_uret.py: 3.0, plaka/yazi
-        // RET'i); metrik VERI.kontrastOrani (aynı dosyanın bagil_parlaklik/kontrast_orani formülü). Fiyat değişmez.
         bolge_renk_secimi: {
           cesit: "yazi",
           bolgeler: ["yazi", "plaka"],
           etiketler: { yazi: "Yazı rengi", plaka: "Taban rengi" },
           varsayilan: { yazi: "Beyaz", plaka: "Siyah" },
-          kontrast_esigi: 3.0
+          kontrast_esigi: 3
         },
-        // ③'te TEK ölçü kontrolü (Okan 12 Eki 17:5x "tek"; BaBa 13 Eki 11:4x): ayrı "Uzun kenar" alanı çizilmez, değeri
-        // sürgüden gelir ve sürgünün etiketi bu alanın etiketidir ("Uzun kenar (kulak dahil)"; ayrı "Ölçü" yok).
-        // KULAK SOL ÜST SABİT (Okan 8 Eki 23:0x): "Kulak konumu" seçicisi çizilmez, gövdeye form varsayılanı
-        // ("sol-ust") girer. Köprü `form`u değişmez (kopru-manifest-uret üretir); figür çeşidi formsuz -> etkisiz.
         form_sunum: {
           genislik_mm: { deger: "olcu", surgu_etiketi: true },
           anahtarlik_kulak_konum: { deger: "varsayilan" }
