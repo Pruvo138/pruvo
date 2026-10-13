@@ -1,5 +1,243 @@
 [
   {
+    "id": "mutfak-tencere-kapagi-ve-kasik-dinlendirici-pr103220",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Tencere Kapağı ve Kaşık Dinlendirici Stand",
+    "aciklama": "Pişirme sırasında tencere kapağını ve kaşık, kepçe, spatula gibi mutfak gereçlerini birlikte tutan stand. Kapak dik durur; oyuklar kapaktan damlayan suyu toplar ve tezgâha akmasını önler. Her boy kapağa uygundur. Görsellerde mavi renkli modelin farklı açıları yer alır.\nYaklaşık dış ölçüler: 184 × 148 × 103 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr103220-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr103220-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr103220-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Mikhail Babarinow",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mutfak-sade-kasik-dinlendirici-pr655562",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Sade Kaşık Dinlendirici",
+    "aciklama": "Standart kaşık, kepçe ve spatula için yuvarlak, sade formlu kaşıklık. Pişirme sırasında gerecin tezgâha değmesini önler. Görsellerde turuncu model ve masa üzerindeki kullanımı yer alır.\nYaklaşık dış ölçüler: 115 × 100 × 20 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr655562-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr655562-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ealux",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mutfak-tirnak-cilasi-sisesi-damlatma-standi-pr1085509",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Tırnak Cilası Şişesi Damlatma Standı",
+    "aciklama": "Küçük, ulaşılması zor tırnak cilası şişelerini ters tutarak içindekini başka bir kaba damlatan stand. Şişeyi saatlerce elde tutmak gerekmez; cila kendiliğinden boşalır. Fotoğraflarda beyaz modelin şişeyi tutuşu görülür.\nYaklaşık dış ölçüler: 90 × 60 × 50 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1085509-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1085509-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1085509-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DeckedKnight",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mutfak-ayakta-duran-kasik-dinlendirici-pr20870",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Ayakta Duran Kaşık Dinlendirici (Tabaklı)",
+    "aciklama": "Kaşığı dik tutan kavisli gövdeli stand ile alta oturan tabaktan oluşan kaşık dinlendirici. Gövdedeki delik 80 mm çaplıdır, tabak en fazla 125 mm'dir. Fotoğrafta ocak yanında kullanımı görülür.\nStand 210 × 148 × 100 mm, tutucu plaka 120 × 90 × 25 mm'dir.\nYaklaşık dış ölçüler: 210 × 148 × 100 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr20870-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr20870-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Wout",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mutfak-ahsap-kasik-icin-kasik-dinlendirici-pr384558",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Ahşap Kaşık İçin Kaşık Dinlendirici",
+    "aciklama": "Pişirme sırasında ahşap kaşık ve mutfak gereçlerini dinlendirmek için sade, küçük kaşıklık. Yazılı ve yazısız iki sürümü vardır; ölçeği ihtiyaca göre ayarlanabilir. Fotoğraflarda tezgâh üzerinde kullanımı görülür.\nYaklaşık dış ölçüler: 66 × 65 × 12 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr384558-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr384558-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Martin Küttner",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mutfak-cay-ve-kahve-kasigi-dinlendirici-pr1193064",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Çay ve Kahve Kaşığı Dinlendirici",
+    "aciklama": "Çay ya da kahveyi karıştırdıktan sonra çay kaşığını bekletmek için küçük, çukur yüzeyli dinlendirici. Çay, kahve ve tatlı kaşıklarına uygun boydadır.\nYaklaşık dış ölçüler: 55 × 40 × 10 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1193064-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1193064-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Tumblefluff",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mutfak-cok-yuvali-kasik-dinlendirici-yuzuk-direkli-pr1011509",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Çok Yuvalı Kaşık Dinlendirici (Yüzük Direkli)",
+    "aciklama": "Pişirme tezgâhını düzenli tutan çok yuvalı kaşıklık: normal kaşık yuvası, ayakta duran kaşık ve bıçak için iki yuva, ölçü kaşıkları için iki eğimli yuva ve yüzük bırakmak için ayrı bir direk bulunur. Görsellerde turuncu ve sarı modeller ölçü kaşıklarıyla görülür.\nYaklaşık dış ölçüler: 230 × 142 × 50 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1011509-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1011509-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1011509-3.jpg"
+    ]
+  },
+  {
+    "id": "mutfak-ofis-mutfagi-icin-kasik-dinlendirici-pr420229",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Ofis Mutfağı İçin Kaşık Dinlendirici",
+    "aciklama": "Ofis mutfağındaki kahve köşesi için iki kaşık yatıran, uzun ve sığ kaşıklık. Fotoğraflarda mavi model iki kaşıkla görülür.\nYaklaşık dış ölçüler: 221 × 113 × 12 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr420229-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr420229-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Zofo",
+      "tur": "GPL 3.0"
+    }
+  },
+  {
+    "id": "mutfak-katlanir-bardak-tutucu-kazigi-pr947168",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Katlanır Bardak Tutucu Kazığı (Kum ve Toprağa Saplanır)",
+    "aciklama": "Plaj, kamp ve bahçe için kum ya da yumuşak toprağa saplanan katlanır bardak tutucu kazığı. Sivri uç yere kolayca bastırılır; her bölümün ucundaki vida dişi sayesinde bölümler açıldıkça birbirine vidalanarak sağlam bir gövde oluşturur. Alçak plaj sandalyeleri için bazı bölümler kapalı bırakılabilir. 75 mm çapa kadar kutu ve şişeye göre ölçülüdür, üst kısmı bardaklar için genişler; X ve Y ekseninde büyütülebilir.\nAçıldığında yaklaşık 570 mm yüksekliğe ek 150 mm sivri uç sunar; katlanmış hâli 164 × 94 × 94 mm'dir.\nYaklaşık dış ölçüler: 164 × 94 × 94 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr947168-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr947168-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr947168-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "LoboCNC",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mutfak-camasir-deterjani-olcu-bardagi-tutucu-pr498229",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Çamaşır Deterjanı Ölçü Bardağı Tutucusu",
+    "aciklama": "Bidon tipi sıvı çamaşır deterjanlarının musluğuna takılarak ölçü bardağını musluğun altında tutan, damlamayı önleyen küçük tutucu. Standart deterjan musluklarına göre tasarlanmıştır; uyum için delik ölçüsünü musluğunuzla karşılaştırmanız önerilir. Görsellerde bidonun yan yatırılmış hâli ve modelin görünümü yer alır.\nYaklaşık dış ölçüler: 135 × 94 × 94 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr498229-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr498229-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jeremy Makes",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mutfak-deterjan-musluk-damlama-tutucusu-pr67540",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Deterjan Musluğu Damlama Tutucusu",
+    "aciklama": "Yan yatan musluklu deterjan bidonlarının musluğuna klipslenerek damlaları toplayan ve ölçü bardağını saklayan tutucu. Alt tabladaki oluklu yüzey damlaları yakalar. Fotoğraflarda büyük bir deterjan bidonuna takılı hâli görülür; musluk çapına göre ölçü kontrolü önerilir.\nYaklaşık dış ölçüler: 109 × 85 × 80 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr67540-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr67540-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dimo414",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mutfak-masa-kenari-kelepceli-termos-bardak-tutucu-pr809457",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Masa Kenarına Kelepçeli Büyük Termos Bardak Tutucusu",
+    "aciklama": "Masa kenarına vidalı kelepçeyle sabitlenen, büyük boy termos bardaklar için tutucu. Delme gerektirmez; kalın masalara göre ölçülüdür, vida sıkıldıkça daha ince masalara da oturur. Tabandaki delik büyük bardağın biraz içeri oturmasını sağlar ve devrilme riskini azaltır. Tutucu ve kelepçe cıvatası iki ayrı parçadır.\nTutucu 178 × 124 × 95 mm, cıvata 50 × 35 × 32 mm'dir.\nYaklaşık dış ölçüler: 178 × 124 × 95 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr809457-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr809457-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr809457-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr809457-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ShaneTalksTech",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mutfak-kamp-sandalyesi-bardakligi-pr258442",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kamp Sandalyesi Bardaklığı",
+    "aciklama": "Katlanır kamp sandalyelerinin çapraz çubukları arasına oturan bardaklık. 19,5 mm çubuk çapına ve en fazla 82 mm çaplı bardaklara göre ölçülüdür. Çubukların yönüne göre modeli yansıtmak gerekebilir. Fotoğraflarda kamp sandalyesine takılı hâli görülür.\nYaklaşık dış ölçüler: 171 × 150 × 30 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr258442-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr258442-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr258442-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "makewithjake",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mutfak-kasik-ve-kapak-dinlendirici-pr393640",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kaşık ve Kapak Dinlendirici",
+    "aciklama": "Pişirme sırasında kaşık, kepçe ve tencere kapaklarını tezgâha değmeden bekleten oluklu kaşıklık. Alt yüzeydeki kanallar damlaları toplar. Fotoğraflarda yeşil, beyaz ve gri modeller görülür.\nYaklaşık dış ölçüler: 156 × 127 × 50 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr393640-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr393640-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr393640-3.jpg"
+    ]
+  },
+  {
     "id": "elektronik-akilli-saat-sarj-standi-cmf-watch-2-pro-icin-pr1020659",
     "kategori": "Elektronik",
     "marka": [],
