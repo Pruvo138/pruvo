@@ -1,5 +1,76 @@
 [
   {
+    "id": "ofis-masa-alti-kilitli-kablo-klipsi-uc-boy-pr359285",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Masa Altı Kilitli Kablo Klipsi (Küçük, Orta ve Büyük Boy, Yapışkanlı Montaj)",
+    "aciklama": "Masanın altına yapıştırılarak kabloları toplayan, kapanınca kilitlenen kablo klipsi. Küçük, orta ve büyük olmak üzere üç boyu vardır; her boyun düz ve nervürlü iki sürümü bulunur. Yapışkan bantla sabitlenir; bant ürüne dahil değildir. Fotoğraflarda yeşil ve kırmızı klipsler masa altında kalın kablo demetlerini tutarken görülür.\nKüçük 31,6 × 22,7 × 15 mm, orta 41,2 × 25,2 × 15 mm, büyük 50,9 × 27,8 × 15 mm'dir.\nYaklaşık dış ölçüler: 51 × 28 × 15 mm (büyük boy).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr359285-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr359285-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "FH",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ofis-masa-kenari-canta-askisi-genis-kavisli-pr1453",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Masa Kenarı Çanta Askısı (Farklı Kalınlıktaki Masalara Geçen, Geniş Kavisli)",
+    "aciklama": "Dizüstü bilgisayar çantası, sırt çantası ya da torba gibi eşyaları masa kenarına asmak için geniş kavisli kanca. Farklı kalınlıktaki masa tablalarına geçecek biçimde tasarlanmıştır; çantanın içinde taşınıp gidilen her masada kullanılabilir. Fotoğraflarda kanca masa ve raf kenarında çantayla birlikte görülür.\nYaklaşık dış ölçüler: 225 × 150 × 30 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1453-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1453-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "PieSupplies",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mutfak-petek-desenli-tek-elle-sise-acacagi-pr467047",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Petek Desenli Tek Elle Kullanılan Şişe Açacağı (Madeni Parasız, Mıknatıs Yuvalı)",
+    "aciklama": "Parmağa takılarak tek elle şişe kapağı açan, gövdesi petek desenli şişe açacağı. Kapağı geniş bir yüzeyden kavrayan yapısı sayesinde madeni para gerektirmez; gövdesi kuvveti dağıtacak biçimde çizilmiştir. Gövdede mıknatıs yuvası bulunur; 10 × 2, 8 × 3, 8 × 2 ve 6 × 2,5 mm mıknatıslara göre dört sürüm verilir, mıknatıs ürüne dahil değildir. Fotoğraflarda açacak elde, masada ve şişe kapağı üzerinde görülür.\nYaklaşık dış ölçüler: 99 × 69 × 15 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr467047-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr467047-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr467047-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "quattro (özgün: Kart5a)",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ev-katlanir-duvar-kancasi-cerceveli-pr149039",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Katlanır Duvar Kancası (Kullanılmayınca Çerçeveye Yatan, İki Kapak Seçenekli)",
+    "aciklama": "Kullanılmadığında çerçevenin içine yatan, kullanılırken kalkan küçük duvar kancası; çerçeve, kanca, mil ve kapaktan oluşur. Kapak çerçeveyle birlikte duvara vidalanır; çerçevenin altından takılan alternatif kapak ve dört kancalı sıra sürümü de vardır. Fotoğraflarda mavi, turuncu, siyah ve şeffaf parçalar duvarda ve tek tek görülür.\nÇerçeve 40 × 16 × 13 mm, kanca 34,8 × 10,5 × 10 mm, kapak 48 × 24 × 13 mm, dört kancalı sıra 114 × 48 × 14 mm'dir.\nYaklaşık dış ölçüler: 48 × 24 × 13 mm (kapak).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr149039-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr149039-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr149039-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr149039-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "RostaP",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "oyun-donen-halkalar-oyuncagi-ic-ice-halkali-60-mm-pr7876",
     "kategori": "Oyun/Hobi",
     "marka": [],
