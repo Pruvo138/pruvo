@@ -1,5 +1,2654 @@
 [
   {
+    "id": "kart-destesi-kutusu",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "baslik": "Kart Destesi Kutusu (Kılıf Kapaklı, Başparmak Girintili)",
+    "aciklama": "İki parçalı kart destesi kutusu: açık üstlü gövde ve gövdenin üzerine geçip tabana kadar inen kılıf kapak. Kartlar gövdede kısa kenarı üstünde dik durur. Gövdenin iki geniş yüzünde üstten açık yarım daire başparmak girintisi vardır; deste girintiden tutularak çıkarılır.\n- İç ölçüler, kılıflı kart için varsayılan 66 × 91 mm kart ölçüsüne göre hesaplanmıştır (kartın her yanında 0,75 mm pay). Kartınızın ölçüsü bundan farklıysa iç boşluk da farklı kalır; sipariş öncesi kart ölçünüzü kontrol edin.\n- S: 20 mm kalınlığındaki deste için (kapalı 76 × 30 × 97 mm)\n- M: 35 mm kalınlığındaki deste için (kapalı 76 × 45 × 97 mm)\n- L: 60 mm kalınlığındaki deste için (kapalı 76 × 70 × 97 mm)\n- Gövde iç yüksekliği 60 mm'dir; kartların üst kısmı gövdenin dışında kalır. Kapak iç derinliği 95 mm'dir.\n- Kapak iç yüzü ile gövde dış yüzü arasında her yanda 0,25 mm tasarım boşluğu vardır.\n- Gövde, taban ve kapak cidarı 2 mm; dikey köşeler yuvarlatılmıştır.\nYaklaşık dış ölçüler (kapalı): 76 × 30 × 97 mm (S), 76 × 45 × 97 mm (M), 76 × 70 × 97 mm (L).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kart-destesi-kutusu-1.jpg",
+      "https://media.pruvo3d.com/urunler/kart-destesi-kutusu-2.jpg",
+      "https://media.pruvo3d.com/urunler/kart-destesi-kutusu-3.jpg",
+      "https://media.pruvo3d.com/urunler/kart-destesi-kutusu-4.jpg",
+      "https://media.pruvo3d.com/urunler/kart-destesi-kutusu-5.jpg"
+    ],
+    "tavsiyeFilament": [
+      "PLA",
+      "PETG"
+    ],
+    "boy_secenekleri": [
+      {
+        "etiket": "S",
+        "fark_tl": 0
+      },
+      {
+        "etiket": "M",
+        "fark_tl": 50
+      },
+      {
+        "etiket": "L",
+        "fark_tl": 150
+      }
+    ]
+  },
+  {
+    "id": "banyo-konik-tabanli-14-mm-yuvali-klasik-tiras-makinesi-standi-pr1836331",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Konik Tabanlı Klasik Tıraş Makinesi Standı (14 mm Sap Yuvası)",
+    "aciklama": "Yuvarlak konik gövdeli, tek parça klasik tıraş makinesi standı. Üstteki yuva 14 mm çapındadır ve standart klasik makinelere uyar; daha kalın saplar için ölçek büyütülebilir. Alt yüzünde üç küçük nokta, altına kaymaz ayak yapıştırılacak yerleri gösterir (ayaklar ürüne dahil değildir). Fotoğraflarda kiremit renkli stand makineyle ve alt yüzüyle gösterilir.\nYaklaşık dış ölçüler: 50 × 50 × 31 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1836331-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1836331-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1836331-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "vivid",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "banyo-bicak-paketi-bolmeli-kompakt-klasik-tiras-makinesi-standi-pr898591",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Bıçak Paketi Bölmeli Kompakt Klasik Tıraş Makinesi Standı",
+    "aciklama": "Sap çapı 14 mm ya da daha ince klasik tıraş makineleri için eğik gövdeli kompakt stand. 14,5 mm çaplı geniş ve pahlı delik makineyi kolay yerleştirmeyi sağlar; yan tarafındaki 52,5 × 29 mm'lik dikdörtgen bölme bir paket çift taraflı bıçağı alır. Taban deliği suyun birikmesini önler; uzun ve ağır makinelerde de devrilmeyecek biçimde güçlendirilmiştir. Fotoğraflarda açık renkli stand tek başına gösterilir.\nYaklaşık dış ölçüler: 66 × 57 × 34 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr898591-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr898591-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Nathan Smith",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "banyo-uc-ayakli-capraz-gecisli-klasik-tiras-makinesi-standi-pr232590",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Köprü Biçimli Klasik Tıraş Makinesi Standı (Başlık Yuvalı)",
+    "aciklama": "İki ayak ve üst köprüden oluşan, makinenin başlığını üst köprüdeki oyuğa oturtarak dik tutan sade stand. Belirli bir klasik tıraş makinesi modeli için tasarlanmıştır; başka modellerde başlık ve sap ölçüsü kontrol edilmelidir. Fotoğraflarda mavi stand tek başına ve makineyle gösterilir.\nYaklaşık dış ölçüler: 98 × 54 × 30 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr232590-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr232590-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Adam_24061",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "banyo-bicak-bicimli-pencereli-dik-klasik-tiras-makinesi-standi-pr364926",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Bıçak Biçimli Pencereli Dik Klasik Tıraş Makinesi Standı",
+    "aciklama": "Kare tabanlı, dik arka duvarlı ve üstte başlığı oturtan çıkıntısı olan klasik tıraş makinesi standı. Duvarın ortasındaki bıçak biçimli pencere standa ayırt edici bir görünüm verir. Başlığın altından ucuna kadar sapı 95 mm'yi, boyun kısmı 10 mm çapı aşmayan makinelere uyar. Fotoğrafta benekli gri tabanlı, siyah duvarlı stand makineyle gösterilir.\nYaklaşık dış ölçüler: 108 × 61 × 60 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr364926-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr364926-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Frej (esinlenilen model: Sithun)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "banyo-baslik-yuvali-ve-kullanim-sayacli-klasik-tiras-makinesi-standi-pr909925",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Başlık Yuvalı ve Kullanım Sayaçlı Klasik Tıraş Makinesi Standı",
+    "aciklama": "Klasik tıraş makinesini kutu biçimli bir gövdede dik tutan, makinenin yedek başlıkları için ayrılmış yuvaları ve bıçağın kaç kez kullanıldığını takip etmek için dört sap konumu bulunan stand. Her konum bir kullanım sayısını işaretlemek için kullanılır. Fotoğraflarda koyu gri stand lavabo tezgâhında makineyle görülür.\nYaklaşık dış ölçüler: 96 × 67 × 60 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr909925-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr909925-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr909925-3.jpg"
+    ]
+  },
+  {
+    "id": "banyo-yan-ve-taban-delikli-konik-tiras-makinesi-standi-pr297698",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Yan ve Taban Delikli Konik Tıraş Makinesi Standı",
+    "aciklama": "Kesik piramit biçimli gövdesinin yanlarında hava, tabanında süzme delikleri bulunan sade tıraş makinesi standı. Sap yukarıdan geçirilir, delikler sapın etrafında hava dolaşmasına izin verir. Fotoğrafta siyah stand granit tezgâhta gösterilir.\nYaklaşık dış ölçüler: 51 × 44 × 38 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr297698-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ARGreg",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "banyo-agirlik-yuvali-yatik-klasik-tiras-makinesi-standi-pr1010672",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Ağırlık Yuvalı Yatık Klasik Tıraş Makinesi Standı",
+    "aciklama": "Klasik tıraş makinesini yatık biçimde taşıyan alçak stand. Gövdesinin içindeki 90 × 15 × 4 mm'lik boş bölme ağırlık yerleştirmek içindir; bölme ağırlık eklendikten sonra kapatılır ve stand daha oturaklı olur. Ölçüler belirli bir alüminyum klasik makine modeline göre ayarlıdır, başka modellerde uyum denetlenmelidir. Fotoğrafta koyu stand makine ve fırçayla, renderde tek başına gösterilir.\nYaklaşık dış ölçüler: 100 × 38 × 21 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1010672-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1010672-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jakob W (esinlenilen model: TimW)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "banyo-bicak-kutusu-yuvali-yatik-klasik-tiras-makinesi-standi-pr1173779",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Bıçak Kutusu Yuvalı Yatık Klasik Tıraş Makinesi Standı",
+    "aciklama": "Klasik tıraş makinesini yatık biçimde taşıyan, sap yuvasının yanında bir bıçak kutusu için ayrılmış bölmesi bulunan alçak stand. Ölçüler belirli iki klasik makine modeline göre ayarlıdır, başka modellerde uyum denetlenmelidir. Fotoğrafta siyah stand makineyle ve bıçak kutusuyla ahşap yüzeyde gösterilir.\nYaklaşık dış ölçüler: 98 × 37 × 32 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1173779-1.jpg"
+    ]
+  },
+  {
+    "id": "banyo-bicak-hazneli-suzme-delikli-alcak-klasik-tiras-makinesi-standi-pr1133569",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Bıçak Hazneli ve Süzme Delikli Alçak Klasik Tıraş Makinesi Standı (Üç Sürüm)",
+    "aciklama": "Alçak profilli, yer kaplamayan ve kararlı klasik tıraş makinesi standı; yanında bıçaklar için bir hazne ve tabanında suyun toplanmasını engelleyen süzme delikleri bulunur. Üç sürümü vardır: birincisi yalnız içi boş saplı makineler için en küçük taban alanına sahiptir; ikincisi 16 mm dış çaplı bir yuvayla düz tabanlı daha ince makinelere uyar; üçüncüsü birincinin aynısıdır, ayrıca bıçağı kurutmak için bir kurutma rafı ekler. Fotoğraflarda stand tek başına ve makineyle gösterilir.\nYaklaşık dış ölçüler: 74 × 52 × 22 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1133569-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1133569-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "AlanHell",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "banyo-ucgen-cepli-tabanli-klasik-tiras-makinesi-standi-pr516116",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Üçgen Cepli Tabanlı Klasik Tıraş Makinesi Standı (15 mm Sap)",
+    "aciklama": "Sap çapı en çok 15 mm olan klasik tıraş makinelerini dik tutan, kare tabanlı tek parça stand. Sapı taban yuvasına oturur; taban köşesindeki üçgen cep standın hafif ve sade görünmesini sağlar. Fotoğraflarda beyaz stand makineyle ve yatık hâlde gösterilir.\nYaklaşık dış ölçüler: 80 × 80 × 60 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr516116-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr516116-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jordi",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "banyo-firca-ustura-ve-klasik-tiras-makinesi-standi-uc-yuvali-pr374708",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Fırça, Ustura ve Klasik Tıraş Makinesi Standı (Üç Yuvalı)",
+    "aciklama": "Bir tıraş fırçasını, katlanır tıraş ustarasını ve klasik jilet bıçaklı tıraş makinesini yan yana tutan üç yuvalı stand. Fırça üst plakadaki yuvaya ters asılır, ustura ortadaki dar yarığa dik oturur, makine sapından sağ taraftaki kutu yuvaya geçer. Küçük makine yuvası eki ana gövdeye ayrıca takılır. Fotoğraflarda siyah stand üç parçasıyla birlikte gösterilir.\nAna gövde 110 × 100 × 40 mm, makine yuvası eki 46 × 25 × 20 mm'dir.\nYaklaşık dış ölçüler: 110 × 100 × 40 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr374708-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr374708-2.jpg"
+    ]
+  },
+  {
+    "id": "banyo-12-mm-saplar-icin-alcak-tabanli-tiras-makinesi-standi-pr35976",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "12 mm Saplı Klasik Tıraş Makineleri İçin Alçak Tabanlı Stand",
+    "aciklama": "Sap çapı 12 mm ya da biraz daha ince klasik tıraş makineleri için küçük yer kaplayan, kanatlı tabanlı stand. Sapın ucu ortadaki yuvaya oturur; dört kanat tabanı genişletip standın devrilmesini azaltır. Fotoğraflarda siyah stand ahşap yüzeyde makineyle ve tek başına gösterilir.\nYaklaşık dış ölçüler: 40 × 38 × 30 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr35976-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr35976-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr35976-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr35976-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Blitz photo",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "banyo-guclendirilmis-petek-desenli-klasik-tiras-makinesi-standi-pr563297",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Güçlendirilmiş Petek Desenli Klasik Tıraş Makinesi Standı (Ağır Taban)",
+    "aciklama": "Yan yüzeyinde altıgen petek deseni bulunan, makine kollarının ve ayaklarının kalınlaştırıldığı, tabanı biraz daha ağır tutulmuş klasik tıraş makinesi standı. Güçlendirilmiş kollar kırılma riskini azaltır, ağır taban ise ağırlık merkezini aşağı çeker. Fotoğraflarda siyah stand makineyle ve tek başına görülür; kayma karşıtı ince bir köpük taban altına yapıştırılabilir.\nYaklaşık dış ölçüler: 119 × 50 × 35 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr563297-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr563297-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr563297-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "naxxfish (esinlenilen model: Adam Starbuck)",
+      "tur": "GPL 3.0"
+    }
+  },
+  {
+    "id": "banyo-kare-sabunluk-kasa-ve-petek-izgara-pr104222",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kare Sabunluk (Kasa ve Petek Izgara)",
+    "aciklama": "Kare sabun kalıpları için tasarlanmış, bir köşesi açık kasa ile içine oturan altıgen delikli ızgaradan oluşan iki parçalı sabunluk. Sabun ızgaranın üzerinde durur, süzülen su kasada toplanır; kasanın açık köşesi suyu boşaltmayı kolaylaştırır. Görsellerde kırmızı sabunluk kasa ve ızgarasıyla gösterilir.\nKasa 80 × 80 × 30 mm, ızgara 75 × 75 × 2 mm'dir.\nYaklaşık dış ölçüler: 80 × 80 × 30 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr104222-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr104222-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr104222-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Garag",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "banyo-ucgen-prizma-govdeli-klasik-tiras-makinesi-standi-pr318031",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Üçgen Prizma Gövdeli Klasik Tıraş Makinesi Standı",
+    "aciklama": "Üçgen prizma biçimli, tek parça klasik tıraş makinesi standı. Eğimli üst yüzeydeki delik makine sapını dik tutar. Fotoğrafta siyah stand makineyle, renderde mavi sürüm gösterilir.\nYaklaşık dış ölçüler: 80 × 70 × 45 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr318031-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr318031-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JenniferDigital",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "banyo-ince-kollu-genis-aralikli-tiras-makinesi-standi-pr127057",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "İnce Kollu Geniş Aralıklı Tıraş Makinesi Standı",
+    "aciklama": "İki ince koldan oluşan, kollar arasındaki boşluğu geniş tutulmuş sade tıraş makinesi standı. Kollar makinenin başlığını iki yandan yakalar, makine ayakta ve dengede kalır; geniş aralık daha kalın başlıklı makinelere de yer açar. Fotoğrafta beyaz stand makineyle, renderde mavi sürüm gösterilir.\nYaklaşık dış ölçüler: 132 × 70 × 45 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr127057-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr127057-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "KFWoeltje",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "banyo-elmas-kesimli-yuvarlak-tabanli-dis-fircasi-ve-tiras-makinesi-standi-pr471694",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Elmas Kesimli Yuvarlak Tabanlı Diş Fırçası ve Tıraş Makinesi Standı",
+    "aciklama": "Yüzeyi elmas kesim gibi üçgen yüzlerden oluşan, geniş yuvarlak tabanlı küçük stand. Üstündeki yuva ince saplı bir diş fırçasını ya da çok bıçaklı bir tıraş makinesinin sapını dik tutar; tabandaki delik yuvaya inen sıvının dışarı çıkmasını sağlar. Yuva çapı belirli ince saplı modellere göre ayarlıdır, kalın saplarda uyum denetlenmelidir. Fotoğraflarda mavi stand fırçayla ve makineyle gösterilir.\nYaklaşık dış ölçüler: 64 × 61 × 30 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr471694-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr471694-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr471694-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Denis Lebel (esinlenilen model: Hamstav)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "banyo-yatik-egimli-onlu-klasik-tiras-makinesi-standi-pr762901",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Yatık Eğimli Önlü Klasik Tıraş Makinesi Standı",
+    "aciklama": "Klasik tıraş makinesini yatık biçimde taşıyan, ön yüzü pahlı alçak stand. İki uçtaki yarım daire oyuklar sapı oturtur; pahlı ön yüz makinenin bıçak başını açıkta ve duvara dönük bırakır. Fotoğraflarda beyaz ve siyah standlar mermer tezgâhta makineyle, renderde mavi sürüm gösterilir.\nYaklaşık dış ölçüler: 99 × 29 × 25 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr762901-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr762901-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr762901-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr762901-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ben7897",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "banyo-bicak-kutulu-ve-atik-tepsili-klasik-tiras-makinesi-standi-pr841769",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Bıçak Kutulu ve Atık Tepsili Klasik Tıraş Makinesi Standı",
+    "aciklama": "Ortada makine sapını dik tutan bir yuva, solda yeni bıçak paketi için 51 × 29 mm'lik yatak ve sağda kullanılmış bıçaklar için çıkarılabilir tepsi bulunan düzenleyici stand. Sap yuvası en kalın yerinde 14 mm çaplı, yaklaşık 112 mm uzunluğunda saplar için ölçülmüştür; makine yuvaya yukarıdan serbestçe girer ya da önden itilerek oturur. Fotoğrafta siyah stand makineyle, bıçak paketiyle ve boş atık tepsisiyle görülür.\nAna gövde 104 × 75 × 67 mm, atık tepsisi 59 × 34 × 15 mm'dir.\nYaklaşık dış ölçüler: 104 × 75 × 67 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr841769-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "joegoodsell",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "banyo-dus-borusuna-takilan-kelepceli-sabunluk-pr52004",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Duş Çubuğuna Kelepçeyle Takılan Sabunluk (20–25 mm Çubuk İçin)",
+    "aciklama": "Duş askısının dikey çubuğuna kelepçeyle tutturulan, üstü açık sabun yuvası. Kelepçe 20–25 mm çaplı çubuklara uyar ve bir M3 kare somun ile M3 silindir başlı vidayla sıkılır (vida ve somun ürüne dahil değildir). Yuvanın yan yüzünde kabartma \"Soap\" yazısı bulunur. Fotoğraflarda mavi sabunluk duş çubuğunda sabunla görülür.\nYuva 112 × 50 × 40 mm, kelepçe 44 × 39 × 38 mm'dir.\nYaklaşık dış ölçüler: 112 × 50 × 40 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr52004-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr52004-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr52004-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr52004-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Aeonfly",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "banyo-trapez-cerceveli-klasik-tiras-makinesi-standi-pr606048",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Trapez Çerçeveli Klasik Tıraş Makinesi Standı",
+    "aciklama": "Jilet bıçaklı klasik tıraş makinesini sapından dik tutan, yamuk çerçeve biçimli tek parça stand. Üstündeki deliğe sap geçirilir, alttaki yuva sapın ucunu oturtur; makine bıçak kenarına yaslanmadan ve ağırlığı standın tabanında dengelenmiş olarak durur. Fotoğraflarda beyaz stand lavabo kenarında makineyle birlikte görülür.\nYaklaşık dış ölçüler: 95 × 87 × 77 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr606048-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr606048-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr606048-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jordi",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "banyo-dort-makineli-tiras-seti-standi-firca-ve-kase-yuvali-pr936351",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Dört Makineli Tıraş Seti Standı (Fırça ve Kase Yuvalı)",
+    "aciklama": "Dört klasik tıraş makinesini, bir tıraş fırçasını ve bir tıraş kasesini aynı çerçevede taşıyan büyük boy düzenleyici stand. Üst plakadaki yuvalar makinelerin sapını, 35 mm'lik açıklık geniş gövdeli fırçayı tutar; alttaki halka ise büyük boy bir tıraş kasesini oturtur (kase ürüne dahil değildir). Her makine için bir zar yuvası vardır; zarlar bıçağın kaç tıraşta kullanıldığını saymak için çevrilebilir (zarlar dahil değildir). Fotoğraflarda siyah stand kaseyle ve tek başına gösterilir.\nYaklaşık dış ölçüler: 184 × 138 × 138 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr936351-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr936351-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "SomeJoe7777",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "banyo-dalgali-yuzeyli-sunger-ve-sabunluk-damlalik-tepsili-pr1500553",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Dalgalı Yüzeyli Sünger ve Sabunluk (Damlalık Tepsisiyle)",
+    "aciklama": "Dalgalı yivli yüzeyiyle standart bir süngeri ya da bir sabun kalıbını taşıyan alçak profilli sabunluk ve altına yerleşen ayrı damlalık tepsisi. Yivlerden süzülen su tepsiye iner; tepsi lavabo kenarına ya da tezgâha bırakılabilir. Mutfak, çamaşır odası ve banyoda kullanılabilir. Fotoğraflarda gri sabunluk tepsiyle ve yeşil süngerle gösterilir.\nSabunluk 135 × 95 × 13 mm, damlalık tepsisi 140 × 108 × 17 mm'dir.\nYaklaşık dış ölçüler: 140 × 108 × 17 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1500553-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1500553-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1500553-3.jpg"
+    ]
+  },
+  {
+    "id": "banyo-torklu-merkezli-klasik-tiras-makinesi-standi-pr691459",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Bıçak Değiştirme Yuvalı Klasik Tıraş Makinesi Standı (Torklu Merkez)",
+    "aciklama": "Klasik jilet bıçaklı tıraş makinesini yatık biçimde tutan, ortasında bıçak değiştirmeye yardım eden bir merkez yuvası bulunan alçak stand. Bıçak değiştirirken başlığı ıslak parmaklarla tutmak yerine başlık yuvaya yerleştirilir ve sap çevrilir; bıçak kenarlarının yuvanın yan yüzeylerine değmesi için yeterli boşluk bırakılmıştır. Ölçüler belirli bir klasik tıraş makinesi modeline göre ayarlıdır, başka modellerde uyum denetlenmelidir. Fotoğraflarda turuncu stand makineyle ve elde kullanılırken görülür.\nYaklaşık dış ölçüler: 102 × 43 × 29 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr691459-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr691459-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr691459-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr691459-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ActusReus419 (esinlenilen model: TimW)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "banyo-13-mm-saplar-icin-klasik-tiras-makinesi-yuvasi-pr598561",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "13 mm Saplı Makineler İçin Klasik Tıraş Makinesi Yuvası",
+    "aciklama": "Sap çapı 13 mm olan klasik tıraş makinelerini dik tutan, delikli küp biçimli küçük stand. Sapı yuvaya geçirmek yeterlidir; stand lavabo kenarında ya da köşe rafında yer kaplamadan durur. Fotoğraflarda mavi stand makineyle ve yanında ayrı bir fırça yuvasıyla görülür.\nYaklaşık dış ölçüler: 50 × 50 × 50 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr598561-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr598561-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr598561-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "grumpy_scrambler",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "banyo-rampali-duz-sabunluk-pr688360",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Rampalı Düz Sabunluk (Alçak Profil)",
+    "aciklama": "Üst yüzeyinde sıralı eğimli rampalar bulunan, alçak profilli tek parça sabunluk. Sabun rampaların üzerinde durur, su rampa araları boyunca akıp gider. Fotoğrafta beyaz sabunluk lavabo kenarında sabunla, renderde açık mavi sürüm gösterilir.\nYaklaşık dış ölçüler: 100 × 68 × 12 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr688360-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr688360-2.jpg"
+    ]
+  },
+  {
+    "id": "banyo-dus-tutamak-barina-kayan-sabunluk-pr410776",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Duş Tutamak Barına Takılan Kayan Sabunluk (40 mm Bar İçin)",
+    "aciklama": "Duşta duvara paralel monte edilen 40 mm çaplı tutamak barının üzerinden geçirilerek takılan yivli sabunluk. Barın duvara uzaklığı 40 mm ise yerine oturur; bar boyunca yukarı aşağı kaydırılabilir ve kolayca çıkarılır. Satın almadan önce bar çapı ve duvar mesafesi kontrol edilmelidir. Görselde yeşil sabunluk render ve tezgâh fotoğrafında gösterilir.\nYaklaşık dış ölçüler: 98 × 71 × 37 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr410776-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Manguy dude",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "banyo-egimli-yatik-klasik-tiras-makinesi-standi-pr494863",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Eğimli Yatık Klasik Tıraş Makinesi Standı",
+    "aciklama": "Klasik jilet bıçaklı tıraş makinesinin sapını eğimli bir kanala yatırarak tutan, yamuk gövdeli stand. Makine sapının ucundan yatık şekilde yuvaya sürülür, bıçak başı havada kalır. Fotoğraflarda turuncu stand siyah saplı makineyle gösterilir.\nYaklaşık dış ölçüler: 118 × 55 × 30 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr494863-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr494863-2.jpg"
+    ]
+  },
+  {
+    "id": "banyo-duvara-dayanan-uc-yuvali-tiras-fircasi-ve-makine-standi-pr491411",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Üç Yuvalı Tıraş Fırçası ve Makine Standı (Çok Bıçaklı ve Klasik Makine İçin)",
+    "aciklama": "İnce saplı çok bıçaklı bir tıraş makinesi, klasik jilet bıçaklı tıraş makinesi ve tıraş fırçası için ayrı yuvalar bulunan, arkası dik duvarlı stand. Üst kenardaki oyuklar sapları ve fırçayı tutar, alttaki oluk damlayan suyu toplar; stand duvara yaslanarak ya da tezgâhta tek başına durabilir. Fotoğraflarda stand duvara yaslı ve tek başına görülür.\nYaklaşık dış ölçüler: 150 × 126 × 70 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr491411-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr491411-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Kbkathri",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "banyo-tiras-fircasi-ve-makine-standi-tek-parca-pr766676",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Tıraş Fırçası ve Makine Standı (Tek Parça)",
+    "aciklama": "Üst plakasındaki iki yuvasıyla bir tıraş fırçasını ve bir tıraş makinesini ters çevirerek asılı tutan, L biçimli tek parça stand. Fırça tüyleri hava alacak şekilde aşağı bakar, makine sapından asılır. Fotoğrafta stand fırça ve makineyle, renderde tek başına gösterilir.\nYaklaşık dış ölçüler: 114 × 100 × 60 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr766676-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr766676-2.jpg"
+    ]
+  },
+  {
+    "id": "banyo-duzensiz-delikli-iki-parcali-sabunluk-pr32064",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Düzensiz Delikli İki Parçalı Sabunluk (Dış Kasa ve İç Tabla)",
+    "aciklama": "Dikdörtgen bir dış kasa ile içine oturan, düzensiz yuvarlak deliklerle delinmiş ikinci bir tablodan oluşan sabunluk. Sabun deliklerin üzerinde durur, damlayan su alttaki kasada toplanır; tabla kasadan çıkarılıp ayrı ayrı yıkanabilir. Fotoğraflar mavi sabunluğu farklı açılardan ve iki parçası ayrılmış hâlde gösterir.\nDış kasa 126 × 81 × 37 mm, iç tabla 119 × 75 × 15 mm'dir.\nYaklaşık dış ölçüler: 126 × 81 × 37 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr32064-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr32064-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr32064-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr32064-4.jpg"
+    ]
+  },
+  {
+    "id": "banyo-egik-cizgili-iki-parcali-sabunluk-iki-boy-pr675580",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Eğik Çizgili İki Parçalı Sabunluk (Tam Boy ve Küçük Boy)",
+    "aciklama": "Derin bir kasa ile üzerine oturan, çapraz yarıklı kapak tablasından oluşan iki parçalı sabunluk. Tam boy sürüm standart bir sabun kalıbına, küçük boy sürüm daha dar sabunlara uygundur; yarıklardan süzülen su alttaki kasada toplanır. Fotoğrafta iki boy lavabo kenarında, renderlerde mavi gövde ve çapraz yarıklar görülür.\nTam boy kasa 114 × 89 × 41 mm, kapak tablası 108 × 70 × 17 mm'dir; küçük boy kasa 102 × 89 × 41 mm'dir.\nYaklaşık dış ölçüler: 114 × 89 × 41 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr675580-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr675580-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr675580-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr675580-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Seanoob",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "banyo-petek-desenli-klasik-tiras-makinesi-standi-pr55789",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Petek Desenli Klasik Tıraş Makinesi Standı (Tek Parça)",
+    "aciklama": "Jilet bıçaklı klasik tıraş makinelerini dik, bıçak kenarına yaslanmadan tutan ayaklı stand. Yan yüzeyindeki altıgen petek deseni hem hafifletir hem de görünümü sadeleştirir; geniş ayakları standı lavabo kenarında dengeli tutar. Görselde koyu renkli stand tek başına gösterilir.\nYaklaşık dış ölçüler: 114 × 50 × 35 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr55789-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Adam Starbuck",
+      "tur": "GPL 3.0"
+    }
+  },
+  {
+    "id": "banyo-ayarli-olculu-cok-bicakli-tiras-makinesi-standi-pr837790",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Çok Bıçaklı Tıraş Makinesi Standı (Standart, Ağır Taban ve Geniş Sürüm)",
+    "aciklama": "Çok bıçaklı el tıraş makinelerinin sapını iki kolla yakalayıp makineyi dik tutan, ağırlığı ayağın üzerinde toplayan stand. Üç sürüm vardır: standart, daha ağır ve geniş tabanlı sürüm ile biraz daha geniş sap yuvalı sürüm. Fotoğrafta gri stand üzerinde makine asılı hâlde görülür.\nStandart sürüm 119 × 53 × 50 mm, ağır taban sürümü 130 × 65 × 60 mm, geniş sürüm 134 × 65 × 60 mm'dir.\nYaklaşık dış ölçüler: 119 × 53 × 50 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr837790-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Steve DeGroof",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "banyo-agzi-acik-kurbaga-sabunluk-pr29549",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Ağzı Açık Kurbağa Biçimli Sabunluk",
+    "aciklama": "Bahçe kurbağasını andıran, ağzı sabun yatağı olan eğlenceli sabunluk. Sabun kalıbı ağzın içine yatırılır; geniş gövdesi lavabo ya da tezgâh üzerinde sabit durur. Fotoğraflarda koyu yeşil kurbağa granit tezgâhta sabunla birlikte görülür.\nYaklaşık dış ölçüler: 125 × 118 × 81 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr29549-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr29549-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Daniel BP (esinlenilen model: pmoews)",
+      "tur": "GPL 3.0"
+    }
+  },
+  {
+    "id": "banyo-egimli-tabanli-yivli-sabunluk-pr26014",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Eğimli Tabanlı Yivli Sabunluk (Alçak Profil)",
+    "aciklama": "Alçak profilli, yivli yüzeyi hafifçe eğimli olan tek parça sabunluk. Sabun yivlerin üzerinde durur; eğim sayesinde su tek bir yöne akar. Renderlerde gri sabunluk üstten ve yandan gösterilir.\nYaklaşık dış ölçüler: 104 × 70 × 16 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr26014-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr26014-2.jpg"
+    ]
+  },
+  {
+    "id": "banyo-bicak-saklamali-klasik-tiras-makinesi-standi-pr413900",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Bıçak Saklamalı Klasik Tıraş Makinesi Standı (Kullanılmış Bıçak Kutulu)",
+    "aciklama": "Klasik jilet bıçaklı tıraş makinesini dik tutan sap yuvası, yedek bıçak paketi için ayrılmış bir yatak ve kullanılmış bıçaklar için üstü yarıklı kapaklı bir atık kutusu içeren üç parçalı stand. Bıçak paketinin ve kutunun yerinde kalması için tabanda 12 × 2 mm mıknatıs yuvaları bulunur; mıknatıslar ürüne dahil değildir. Fotoğrafta koyu renkli stand sap yuvası ve kutusuyla birlikte gösterilir.\nStand 90 × 60 × 52 mm, atık kutusu gövdesi 48 × 41 × 26 mm, kutu kapağı 48 × 26 × 8 mm'dir.\nYaklaşık dış ölçüler: 90 × 60 × 52 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr413900-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "chzbacon",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "banyo-kesisen-yaprak-desenli-uc-ayakli-canak-sabunluk-pr33176",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kesişen Yaprak Desenli Üç Ayaklı Çanak Sabunluk",
+    "aciklama": "Birbirini kesen yaprak biçimli kemerlerden oluşan, üç ayak üzerinde duran, delikli çanak biçimli sabunluk. Desen sabunun altından suyun süzülmesine izin verir; ayaklar çanağı tezgâhtan yükseltir. İki sürümü vardır: tabanlı ve tabansız. Fotoğrafta beyazımsı sabunluk, renderde mavi sürüm gösterilir.\nTabanlı sürüm 120 × 120 × 48 mm, tabansız sürüm 120 × 120 × 32 mm'dir.\nYaklaşık dış ölçüler: 120 × 120 × 48 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr33176-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr33176-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Stefan (esinlenilen model: mafmuf)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "banyo-oval-petek-izgarali-iki-parcali-sabunluk-pr84674",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Oval Petek Izgaralı İki Parçalı Sabunluk (Çanak ve Izgara)",
+    "aciklama": "Yan duvarında su geçiş delikleri bulunan oval bir çanak ile içine oturan altıgen petek desenli ince ızgaradan oluşan iki parçalı sabunluk. Izgara çanağa zorlamadan geçirilir; sabun ızgaranın üzerinde durur, süzülen su çanakta toplanır. Fotoğraflarda lacivert çanak turuncu ızgarayla, bir sabunla ve lavabo kenarında gösterilir.\nÇanak 129 × 87 × 25 mm, ızgara 106 × 61 × 1 mm'dir.\nYaklaşık dış ölçüler: 129 × 87 × 25 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr84674-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr84674-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr84674-3.jpg"
+    ]
+  },
+  {
+    "id": "oyun-608-rulman-icin-fidget-basma-kapaklari-pr90264",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "608 Rulman İçin Fidget Basma Kapakları (Alt ve Üst Çift, Sıkı Oturan)",
+    "aciklama": "608 rulmanın iki yüzüne sıkıca oturan, parmakla bastırılıp tutulan alt ve üst fidget kapağı çifti. Kendi fidget gövdenizle ya da rulmanla birlikte kullanılır; rulman ürüne dahil değildir. Görsellerde sarı kapaklar ve mavi bilgisayar görseli gösterilir.\nYaklaşık dış ölçüler: 22 × 22 × 11 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr90264-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr90264-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "steve5092",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-kar-tanesi-planet-disli-fidget-pr1117633",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kar Tanesi Planet Dişli Fidget (Dişli Çarklı, Parmakla Çevrilen)",
+    "aciklama": "Kar tanesi biçimli, içinde planet dişli çarkları bulunan fidget oyuncağı; parmakla çevrilir. Fotoğraflarda mavi renkte, yılbaşı ışıkları önünde ve kumaş zeminde gösterilir.\nYaklaşık dış ölçüler: 113 × 107 × 15 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1117633-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1117633-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1117633-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "CebulaTech",
+      "tur": "GPL 2.0"
+    }
+  },
+  {
+    "id": "oyun-kapakli-uc-kollu-fidget-608-rulmanli-pr8680",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kapaklı Üç Kollu Fidget (Standart 608 Rulmanlı)",
+    "aciklama": "Üç kollu gövde ve ortadaki kapaktan oluşan fidget oyuncağı. Üç adet standart 608 rulman kullanılır; rulmanlar ürüne dahil değildir. Görseller bilgisayar görselidir.\nYaklaşık dış ölçüler: 79 × 73 × 7 mm (gövde; kapak 22 × 22 × 6 mm).",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr8680-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr8680-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Brian (esinlenilen model: killerb77)",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "oyun-rulmanlari-icinde-hazir-agirlikli-uc-kollu-fidget-pr246753",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Rulmanları İçinde Hazır Gelen Ağırlıklı Üç Kollu Fidget",
+    "aciklama": "İç mekanizması (küçük rulmanlar ve ağırlıklar) gövdeyle birlikte hazır gelen üç kollu fidget oyuncağı; ayrıca rulman edinmek gerekmez. Fotoğraflarda beyaz gövde ve elde dönerken hâli gösterilir.\nYaklaşık dış ölçüler: 73 × 66 × 11 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr246753-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr246753-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "TheRedstoneGenius Gaming",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "oyun-uc-halkali-sirali-kucuk-fidget-govdesi-iki-dugmeli-pr12306",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Üç Halkalı Sıralı Küçük Fidget Gövdesi (İki Düğmeli, Rulmanlar İçin)",
+    "aciklama": "Küçük ellere göre ölçülmüş, üç halkalı sıralı fidget gövdesi ve iki baş parmak düğmesi (alt ve üst). Düğmeler istenen rulmanın içine sıkıca geçirilir ve döndürürken üzerine bastırılabilir. Rulmanlar ürüne dahil değildir. Görsellerde beyaz ve mavi bilgisayar görselleri gösterilir.\nYaklaşık dış ölçüler: 76 × 26 × 7 mm (gövde; düğmeler 22 × 22 × 10 mm).",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr12306-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr12306-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr12306-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Sir Ged",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-dokulu-donen-fidget-yuzuk-21-mm-pr1265819",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Dokulu Dönen Fidget Yüzük (21 mm İç Çaplı, Tek Parça)",
+    "aciklama": "Dalgalı dokulu, katmanlı dönen fidget yüzük; tek parça hâlinde gelir. İç çapı 21 mm'dir. Görsellerde turuncu bilgisayar görseli ve beyaz renkli yüzük elde gösterilir.\nYaklaşık dış ölçüler: 30 × 30 × 8 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1265819-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1265819-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "VojtaSill",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-dislili-donen-halkali-fidget-gevsek-toleransli-pr153707",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Dişli Çarklı Dönen Halkalı Fidget (Üç Köşeli Gövde, Akıcı Dönüşlü)",
+    "aciklama": "Üç köşeli gövdenin içinde dişli çarkların birbirini döndürdüğü, dış halkası dönen fidget oyuncağı. Dişliler korunup üst ve alt kapaklar daha gevşek toleransla yenilendiğinden halka daha akıcı döner; ortadaki delik parmak oturağı olarak kullanılır. Parçalar: büyük dişli halka, küçük dişliler, üst ve alt kapak. Görsellerde beyaz renkte elde ve parça düzeninde gösterilir.\nYaklaşık dış ölçüler: 80 × 79 × 10 mm (büyük dişli halka).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr153707-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr153707-2.jpg"
+    ]
+  },
+  {
+    "id": "oyun-uc-dislili-cok-cerceveli-vidali-fidget-pr693715",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Üç Dişli Çarklı Çok Çerçeveli Fidget (Vidalı Montaj, Dişli Seti Dahil)",
+    "aciklama": "Üç dişli çarkın birbirini döndürdüğü, çok sayıda çerçeve seçeneği (üç yapraklı, altıgen, dişli çerçeveli ve benzeri) bulunan fidget oyuncağı. Her çerçeve alt ve üst yarıdan oluşur; plastik vidalar çerçeveyle birlikte gelir, dahil edilen anahtarla ya da bir Torx tornavidayla sıkılır (fazla sıkılmamalıdır). Fotoğraflarda altın, yeşil, mor ve kırmızı renklerde gösterilir.\nYaklaşık dış ölçüler: 108 × 63 × 13 mm (en büyük çerçeve; dişli seti 68 × 63 × 10 mm).",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr693715-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr693715-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr693715-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr693715-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Josh Carter",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "oyun-gevsek-siki-gecme-denemeli-uc-kollu-fidget-pr819699",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Gevşek ve Sıkı Geçme Denemeli Üç Kollu Fidget (Çıkarılabilir Pimli)",
+    "aciklama": "Üç kollu gövdeye iki pimin gevşek ve sıkı geçme farkını denemek için tasarlanmış, elde çevrilen sade fidget oyuncağı. Gövde ve iki ayrı pim (dış ve iç) birlikte gelir; düzgün çalışması için birleşim yüzeylerinin hafifçe zımparalanması gerekebilir. Fotoğraflarda beyaz gövde ve pimler gösterilir; son görsel bilgisayar görselidir.\nYaklaşık dış ölçüler: 75 × 75 × 12 mm (gövde; pimler 21 × 21 × 13 mm).",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr819699-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr819699-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr819699-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jürgen Rotner",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-ortadan-veya-kenardan-donen-uc-kollu-fidget-pr498216",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Ortadan veya Kenardan Dönen Üç Kollu Sade Fidget (Geçmeli Merkez Parçalı)",
+    "aciklama": "Ortasından ya da kolların uçlarından tutularak döndürülebilen, üç kollu sade fidget oyuncağı. Merkez parça gövdeye ayrı geçirilir; ayrılmaması için yapıştırıcı önerilir. Yağlayıcıyla ya da yağlayıcısız akıcı döndüğü belirtilir. Fotoğraflarda siyah renkte gösterilir.\nYaklaşık dış ölçüler: 89 × 80 × 8 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr498216-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr498216-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Gerf",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-cicek-bicimli-donen-fidget-yuzuk-19-mm-pr133624",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Çiçek Biçimli Dönen Fidget Yüzük (19 mm, İki Parçalı)",
+    "aciklama": "Parmağa takılan halkaya geçirilen çiçek biçimli döner başlıkla kullanılan fidget yüzük. 19 mm ölçülüdür; iki parça hâlinde gelir: halka ve dönen çiçek başlık. Görsellerde sarı halka ve mavi çiçek başlık gösterilir.\nYaklaşık dış ölçüler: 32 × 32 × 3 mm (çiçek başlık; halka 28 × 23 × 6 mm).",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr133624-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr133624-2.jpg"
+    ]
+  },
+  {
+    "id": "oyun-dikey-rulmanli-uc-kollu-fidget-pr423834",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Dikey Rulmanlı Üç Kollu Fidget (4 Adet 608 Rulman İçin)",
+    "aciklama": "Üç kolun uçlarında dikey yerleştirilmiş rulmanları olan fidget. Dıştaki rulmanlar pimlerle, pimler de ortadaki rulmanla yerinde tutulur; orta rulman ve tutamaklar hızlı yapıştırıcıyla sabitlenir. Dört adet 608 rulman ve yapıştırıcı ürüne dahil değildir. Görsellerde mavi–altın renkli örnek ve parça görselleri gösterilir.\nYaklaşık dış ölçüler: 75 × 69 × 7 mm (gövde; tutamak 30 × 30 × 10 mm, pim 22 × 8 × 8 mm).",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr423834-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr423834-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr423834-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr423834-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Troy",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-dinozor-bicimli-donen-fidget-kapakli-pr548436",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Dinozor Biçimli Dönen Fidget (Rulman Yuvalı, Kapaklı)",
+    "aciklama": "Dinozor biçiminde, ortasında rulman yuvası bulunan ve kapakla kapatılan fidget oyuncağı. Rulman ürüne dahil değildir. Fotoğraflarda gri renkte, düz zeminde gösterilir.\nYaklaşık dış ölçüler: 82 × 57 × 7 mm (gövde; kapak 22 × 22 × 5 mm).",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr548436-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr548436-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr548436-3.jpg"
+    ]
+  },
+  {
+    "id": "oyun-sirali-cubuklu-kinetik-masa-heykeli-montajsiz-pr428795",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Sıralı Çubuklu Kinetik Masa Heykeli (Montajsız, Üç Aralık Sürümlü)",
+    "aciklama": "Sıralı çubukları hareketli birleşimlerle bir bütün olarak gelen kinetik masa heykeli. Montaj ya da yapıştırıcı gerektirmez. Parçalar arası boşluğu 0,4, 0,5 ve 0,6 mm olan üç sürüm vardır; uygun olan seçilir. Fotoğraflarda pembe ve sarı renkte gösterilir.\nYaklaşık dış ölçüler: 170 × 64 × 54 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr428795-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr428795-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr428795-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "yahbluez",
+      "tur": "GPL 3.0"
+    }
+  },
+  {
+    "id": "oyun-katmanli-fidget-koleksiyonu-sekiz-surum-pr1028304",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Katmanlı Fidget Koleksiyonu (Yıldız, Örümcek Ağı, Sünger, Kasırga; 8 Sürüm)",
+    "aciklama": "Dört biçimli katmanlı fidget oyuncağı: yıldız, örümcek ağı, sünger ve kasırga. Her biçim boş ve dolu merkezli iki sürümdür, toplam sekiz model. Elde çevrilerek kullanılır. Fotoğraflarda kırmızı ve beyaz renkte gösterilir.\nYaklaşık dış ölçüler: 78 × 78 × 18 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1028304-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1028304-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1028304-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "PenguinPrototypes",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "oyun-spiral-halkali-jiroskop-fidget-pr1112791",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Spiral Halkalı Jiroskop Fidget (Eksen Etrafında Dönen)",
+    "aciklama": "Spiral yapısı eksen çevresinde akıcı dönen, elde çevirmek için tasarlanmış jiroskop biçimli fidget oyuncağı; hem yetişkinlere hem çocuklara uygundur. Tek parçadır. Fotoğraflarda altın ve gri renkte, elde gösterilir.\nYaklaşık dış ölçüler: 44 × 44 × 12 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1112791-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1112791-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1112791-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Zenith3DProOfficial",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-uc-rulmanli-klasik-uc-kollu-fidget-kedi-baslikli-pr38058",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Üç Rulmanlı Klasik Üç Kollu Fidget (Kedi Başlı Merkez Kapaklı)",
+    "aciklama": "Klasik üç kollu fidget gövdesi ve kedi başı biçimli merkez kapak. Biri ortada, üçü kolların uçlarında olmak üzere dört adet 608 rulman gerekir; rulmanlar sıkı oturur ve ürüne dahil değildir. Görseller bilgisayar görselidir.\nYaklaşık dış ölçüler: 75 × 70 × 8 mm (gövde; kapak 29 × 26 × 6 mm).",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr38058-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr38058-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Geoff (esinlenilen model: GeoffHackett)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-esnek-bacakli-sekiz-kollu-ahtapot-fidget-pr791581",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Esnek Bacaklı Sekiz Kollu Ahtapot Fidget (Değiştirilebilir Bacak ve Merkez Parçalı)",
+    "aciklama": "Ortasında halka bulunan, sekiz esnek bacaklı ahtapot biçimli fidget oyuncağı. Bacaklar eklemlidir ve elde bükülüp kıvrılabilir; değiştirilebilir bacak ve merkez parçası da dahildir. Fotoğraflarda farklı renklerde, tahta blok üzerinde gösterilir.\nYaklaşık dış ölçüler: 106 × 106 × 9 mm (sekiz kollu gövde).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr791581-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr791581-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr791581-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr791581-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "WaterDragon14 (esinlenilen model: DrLex)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-kare-halkali-serbest-donen-fidget-pr825097",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kare Halkalı Serbest Dönen Fidget (İç İçe Geçmiş Çerçeveler)",
+    "aciklama": "Düz bir plaka içinde birbirine geçmiş kare çerçevelerden oluşan, çerçeveleri her yöne serbestçe dönen fidget oyuncağı. Tek bütün hâlinde gelir, montaj gerektirmez; elde çevirip kurcalamak için tasarlanmıştır. Fotoğraflarda gri renkte, elde ve düz zeminde gösterilir.\nYaklaşık dış ölçüler: 61 × 61 × 8 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr825097-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr825097-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr825097-3.jpg"
+    ]
+  },
+  {
+    "id": "oyun-altigen-planet-disli-fidget-dort-kalinlik-pr342612",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Altıgen Planet Dişli Fidget (Çevrilen Dişli Çarklı, 4 Kalınlık Seçenekli)",
+    "aciklama": "Altıgen bir çerçevenin içinde dişli çarkların birbirini döndürdüğü planet dişli düzenekli fidget oyuncağı; parmakla çevrilir. 15, 12, 10 ve 8 mm kalınlıkta dört sürümü vardır; 8 mm olanı küçük dişlileri nedeniyle daha hassastır. Fotoğraflarda mor, siyah, yeşil ve kırmızı renklerde gösterilir.\nYaklaşık dış ölçüler: 55 × 50 × 15 mm (en kalın sürüm).",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr342612-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr342612-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr342612-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr342612-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Waschtl (esinlenilen model: Prusa Research)",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "oyun-tirtilli-donerek-kapanan-kutu-fidget-pr885577",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Tırtıllı Dönerek Kapanan Kutu Fidget (İç Dişli, Yerçekimiyle Oturan Kapak)",
+    "aciklama": "Dışı tırtıllı yüzeyli, içi vida dişli iki parçalı silindirik kutu. Kapak yerçekimiyle dönerek kendiliğinden yerine oturur; hem fidget oyuncağı hem küçük parça kutusu olarak kullanılabilir. Parçalar sıkı toleranslıdır. Fotoğraflarda yeşil ve pembe renkli kutular gösterilir.\nYaklaşık dış ölçüler: 100 × 46 × 46 mm (alt parça; kapak 86 × 46 × 46 mm).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr885577-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr885577-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr885577-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Betsy Weber (esinlenilen model: rayperkins)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-esnek-ag-dokulu-sikma-fidget-pr905711",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Esnek Ağ Dokulu Sıkma Fidget (Yumuşak, Elde Bükülen)",
+    "aciklama": "Çapraz kafes dokusu sayesinde yumuşak ve esnek bir his veren, elde sıkılıp bükülen düz ağ biçimli fidget oyuncağı. Tek parçadır. Fotoğraflarda siyah renkte, ahşap yüzeyde farklı açılardan gösterilir.\nYaklaşık dış ölçüler: 194 × 194 × 8 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr905711-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr905711-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr905711-3.jpg"
+    ]
+  },
+  {
+    "id": "oyun-alti-kollu-piramit-icten-gecen-bulmaca-fidget-pr1000805",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Altı Kollu Piramit İçten Geçen Bulmaca Fidget (65 mm Boy)",
+    "aciklama": "Altı kollu piramit biçimli, parçaların birbirinin içinden döndürülerek geçirildiği bulmaca tipi fidget oyuncağı. Boyutu parametriktir; bu sürüm 65 mm yüksekliğindedir. Fotoğraflarda pembe ve sarı renkte gösterilir.\nYaklaşık dış ölçüler: 65 × 30 × 30 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1000805-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1000805-2.jpg"
+    ]
+  },
+  {
+    "id": "oyun-dairesel-mekanik-dalga-otomati-pr293684",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Dairesel Mekanik Dalga Otomatı (Elle Çevrilen Kollu, Dişli Düzenekli)",
+    "aciklama": "Kolu elle çevrilen, dişli düzeneğiyle mavi kanatları dalga gibi yükselip alçaltan dairesel mekanik otomat. İki çark ters yönde döner: biri dalgayı, diğeri kanatları ve kanatlara klipsle takılan küçük tekneyi taşır; yeşil nilüfer parçasının altında üç küçük balık gizlidir. Dönüşün kilitlenmemesi için kanat yüzeylerinin zımparalanması gerekir. Görsellerdeki küçük tekne ürüne dahil değildir.\nAltı plakadan oluşur: taban, çarklar, kanatlar ve tekne klipsi, kol ve ayaklar, balıklar, nilüfer.\nYaklaşık dış ölçüler: 197 × 196 × 56 mm (en büyük gövde parçası; çarklar yaklaşık 188 mm çapındadır).",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr293684-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr293684-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr293684-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr293684-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "M4NU",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-tiklamali-kilitli-donen-desenli-kutu-bes-boy-pr1014453",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Tıklamalı Kilitli Dönen Desenli Kutu (Bulmaca Gibi Açılan, 5 Boy)",
+    "aciklama": "Spiral desenli, iki renkli silindir kutu. Kapak döndürülerek tıklamayla kilitlenir; iç parçada tutacak bırakılmadığından kutunun nasıl açılacağı ilk bakışta anlaşılmaz, bu yüzden hem saklama kutusu hem küçük bir bulmaca olarak kullanılır. Beş boyda gelir: dış çap × yükseklik olarak yaklaşık 48 × 52, 59 × 52, 70 × 62, 81 × 62 ve 104 × 82 mm. Görsellerde farklı renklerde ve boylarda kutular gösterilir.\nYaklaşık dış ölçüler: 104 × 104 × 82 mm (en büyük boy).",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1014453-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1014453-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1014453-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1014453-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DrJones",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-firlaticili-icten-gecen-topac-fidget-pr1337322",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Fırlatıcılı İçten Geçen Topaç Fidget Oyuncağı (Pim ve Somunlu)",
+    "aciklama": "Çekirdek topaç fırlatıcının içinden geçirilebilen, istenirse somunla kilitlenerek daha büyük bir topaç olarak da döndürülebilen oyuncak. Tolerans geniş tutulduğundan çekirdek az sürtünmeyle geçer; pim sıkı oturur. Parçalar: topaç çekirdeği, fırlatıcı, somun ve pim. Görsellerde altın ve lacivert renkli topaç farklı açılardan gösterilir.\nYaklaşık dış ölçüler: 60 × 60 × 50 mm (fırlatıcı; topaç çekirdeği 50 × 48 × 48 mm).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1337322-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1337322-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1337322-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1337322-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ffosl",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-burmali-kapakli-ince-zar-tupu-pr439514",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Burmalı Kapaklı İnce Zar Tüpü (Rol Yapma Seti veya 6 Zar İçin)",
+    "aciklama": "İki parçalı, burularak kapanan hafif zar tüpü. İki boyda gelir: rol yapma oyunlarının çok yüzlü zar setine uygun uzun tüp ve altı standart zar için kısa tüp; ayrıca deneme amaçlı küçük bir mini tüp bulunur. Mıknatıs gerektirmez. Görsellerde bordo renkli tüp açık ve kapalı hâliyle zarlarla gösterilir.\nYaklaşık dış ölçüler: 133 × 30 × 30 mm (zar seti tüpü; 6 zar tüpü 118 × 27 × 27 mm, mini tüp 53 × 20 × 20 mm).",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr439514-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr439514-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DrJones",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-altigen-parcali-yuvarlak-hatli-yerlestirme-bulmacasi-pr764544",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Altıgen Parçalı Yuvarlak Hatlı Yerleştirme Bulmacası (Tepsili)",
+    "aciklama": "Bütün parçaları tepsinin içine sığdırmaya çalıştığınız yerleştirme bulmacası. Her parça dört ya da beş altıgenin birleşiminden oluşur ve kenarları yuvarlatılmıştır; bu da parçalara yumuşak, damlaya benzer bir görünüm verir. Tek renkli ya da iki renkli parça dosyaları bulunur. Fotoğraflarda pembe parçalar tepsiye yerleşmiş, bir parça elde ve katmanlı hâlde görülür.\nTepsi 135 × 134 × 8 mm, parçalar en çok 40 × 27 × 10 mm'dir.\nYaklaşık dış ölçüler: 135 × 134 × 8 mm (tepsi).",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr764544-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr764544-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr764544-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ransElectronics",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-avuc-ici-spiral-labirent-bulmaca-kucuk-bilyeli-pr1658665",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Avuç İçi Spiral Labirent Bulmaca (Çok Katmanlı Yol, Küçük Bilyeli)",
+    "aciklama": "Avuç içine sığan, çok katmanlı spiral yoldan oluşan labirent oyunu. Bilyeleri bitiş noktasına ulaştırmaya çalışırken el-göz koordinasyonu ve dikkat çalışılır; her yaşa uygundur. Oyun için 3-4,5 mm çapında küçük bir bilye gerekir (cam ya da çelik bilye kullanılabilir); bilye ürüne dahil değildir. Üzerinde şeffaf kapak takmak için delikler ve pimler bulunur; şeffaf kapak da ürüne dahil değildir. Küçük bilyeler yutulabileceğinden 3 yaş altı çocuklara uygun değildir. Fotoğraflarda sarı labirent kırmızı noktalarla ve yanında küçük bilyelerle görülür.\nYaklaşık dış ölçüler: 120 × 120 × 7 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1658665-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1658665-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1658665-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1658665-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Lean",
+      "tur": "CC BY-ND 4.0"
+    }
+  },
+  {
+    "id": "oyun-madeni-para-volanli-surtunmeli-oyuncak-araba-pr973796",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Madeni Para Volanlı Sürtünmeli Oyuncak Araba (14-20 mm Para İçin, Yapıştırıcısız)",
+    "aciklama": "Dönen ağırlığı olarak bozuk para kullanan, volanlı sürtünmeli oyuncak araba. Gövdenin sol ve sağ yarısı, çatı, eksenler, volan kapağı ve dişli vida ya da yapıştırıcı olmadan birbirine geçer. Volanın içine 14 mm ile 20 mm arasında çaplı bir madeni para yerleştirilir; para ürüne dahil değildir ve parayı sığdırmak için dokuz farklı volan boyu bulunur. Volanın dönen ağırlığı aracın iki tekerlek üzerinde de hareket etmesini sağlar; tamponu sayesinde bir engele çarpınca yön değiştirir. Küçük parçalar içerdiğinden 3 yaş altı çocuklara uygun değildir. Fotoğraflarda mavi gövdeli, beyaz tekerlekli araba granit yüzeyde ve alttan görülür.\nGövde yarısı 113 × 50 × 25 mm'dir.\nYaklaşık dış ölçüler: 113 × 50 × 25 mm (gövde).",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr973796-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr973796-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr973796-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr973796-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Keenan Finucan",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-degistirilebilir-parcali-oyuncak-araba-seti-pr388737",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Değiştirilebilir Parçalı Oyuncak Araba Seti (Üç Gövde, Dört Tekerlek Tipi)",
+    "aciklama": "Gövde ve tekerlekleri istediğiniz gibi eşleştirebileceğiniz oyuncak araba sistemi. Sette bir temel şasi, SUV, spor ve düz gövde ile dört farklı tekerlek tipi bulunur. Bir araç için 1 şasi, 1 gövde ve 4 tekerlek gerekir; tekerleklerin aynı tip olması gerekmez. Fotoğraflarda parçalar sarı zeminde dizili, SUV gövdeli araç ise masa üzerinde görülür.\nSUV gövde 84 × 42 × 28 mm, spor gövde 87 × 41 × 23 mm, düz gövde 82 × 40 × 9 mm, tekerlek 15 × 15 × 8 mm'dir.\nYaklaşık dış ölçüler: 87 × 41 × 23 mm (spor gövde).",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr388737-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr388737-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr388737-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Frodo",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-mini-oyuncak-araba-donen-tekerlekli-3-4-cm-pr1340671",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Mini Oyuncak Araba (Tek Parçadan, Dönen Tekerlekli, 3,4 cm)",
+    "aciklama": "Yaklaşık 3,4 cm boyunda, tek parça gelen küçük bir oyuncak araba. Tekerlekleri serbestçe döner, avuca ya da cebe rahatça sığar. Fotoğraflarda kırmızı ve mavi minik arabalar tahta zeminde, bir tanesi bozuk para yanında görülür.\nYaklaşık dış ölçüler: 34 × 15 × 11 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1340671-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1340671-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1340671-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1340671-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "yightning",
+      "tur": "GPL 3.0"
+    }
+  },
+  {
+    "id": "oyun-eski-usul-oyuncak-araba-lastik-bantli-firlatici-pr387195",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Eski Usul Oyuncak Araba ve Lastik Bantlı Fırlatıcı (Küçük Çocuklar İçin)",
+    "aciklama": "Eskiden herkesin oyuncak sandığında bulunan ahşap arabaları anımsatan oyuncak araba ve onu ileri fırlatan düzenek. Araba için kullanılan pim fırlatıcıda da kullanılır. Fırlatıcı iki ya da dört lastik bantla çalışır; lastik bantlar ürüne dahil değildir. Küçük parçalar içerdiğinden 3 yaş altı çocuklara uygun değildir. Görsellerde turkuaz arabalar turuncu tekerlekli ve fırlatıcı bir çizimle görülür.\nGövde 110 × 41 × 40 mm, tekerlek 30 mm çapında, fırlatıcı tabanı 150 × 140 × 16 mm'dir.\nYaklaşık dış ölçüler: 110 × 41 × 40 mm (gövde).",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr387195-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr387195-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr387195-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Mark_S996",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-acilir-kasali-kucuk-kamyonet-oyuncak-araba-pr389381",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Açılır Kasalı Küçük Kamyonet Oyuncak Araba (Arka Kapağı Dışa Açılır)",
+    "aciklama": "Belli bir araca benzetilmemiş, kamyonet biçiminde basit bir oyuncak araba. Arkadaki kasa kapağı dışa doğru açılır; kapağı içe doğru itmemek gerekir. Dört tekerlek ayrı parçadır ve gövdeye takılır. Fotoğraflarda gri kamyonet çakıl zemin üzerinde farklı açılardan görülür.\nGövde 176 × 84 × 41 mm, tekerlek 18 × 18 × 6 mm'dir.\nYaklaşık dış ölçüler: 176 × 84 × 41 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr389381-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr389381-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr389381-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr389381-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Korbinian",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-sekiz-seklinde-bilye-yolu-heykel-gorunumlu-pr485625",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Sekiz Şeklinde Bilye Yolu (Heykel Görünümlü, 15 mm Çelik Bilye İçin)",
+    "aciklama": "Üst katmandan başlayıp sekiz çizerek aşağı inen, bilyenin yavaşça döndüğü dev bir bilye yolu. Kanallar 16 mm genişliğinde olup 15 mm çelik bilye için ayarlıdır; bilye ürüne dahil değildir. Yol, rafta ya da masada dururken heykel gibi görünür. Standart eğimli gövde ile daha dik eğimli ikinci bir gövde seçeneği vardır. Fotoğrafta koyu renkli bilye yolu masa üzerinde, görsellerde ise yolun çizim görünümleri yer alır.\nStandart gövde 237 × 154 × 137 mm, dik eğimli gövde 237 × 185 × 154 mm'dir.\nYaklaşık dış ölçüler: 237 × 154 × 137 mm (standart gövde).",
+    "fiyat": "750 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr485625-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr485625-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr485625-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "3DVJ Models",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-ic-ice-gecen-xox-oyunu-kopek-kedi-gulen-yuz-pr366593",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "İç İçe Geçen XOX Oyunu (Köpek, Kedi ve Gülen Yüz Taşlarıyla)",
+    "aciklama": "Taşların küçük, orta ve büyük boyda olduğu ve birbirinin üstüne kapatılabildiği XOX oyunu. Büyük taş küçük ve orta taşı örter, böylece rakibin hamlesi kapatılabilir. Köpek, kedi ve gülen yüz olmak üzere üç taş stili vardır; her stilde küçük, orta ve büyük boydan ikişer taş bulunur. Oyun alanı dört ince çıtadan kurulur. Fotoğraflarda mor ve mavi taşlar siyah çıtalı tahtada görülür; kumaş torba ürüne dahil değildir.\nTaşlar 45 × 25 × 24 mm (küçük), 50 × 31 × 30 mm (orta) ve 55 × 37 × 36 mm (büyük); çıta 140 × 9 × 8 mm'dir.\nYaklaşık dış ölçüler: 55 × 37 × 36 mm (en büyük taş).",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr366593-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr366593-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr366593-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr366593-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "tjdesign",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-vidali-tekerlekli-oyuncak-araba-tornavidali-kit-pr624877",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Vidalı Tekerlekli Oyuncak Araba (Tornavidalı Çocuk Kiti)",
+    "aciklama": "Çocukların kendi kurabildiği basit bir oyuncak araba kiti. Set bir gövde, dört tekerlek, dört vida ve küçük bir oyuncak tornavidadan oluşur; tekerlekler vidalarla gövdeye takılır. Küçük parçalar içerdiğinden 3 yaş altı çocuklara uygun değildir. Fotoğraflarda açık renkli, ahşap görünümlü araba tornavidasıyla masa üzerinde görülür.\nGövde 150 × 55 × 35 mm, tekerlek 40 mm çapında, vida 24,5 × 13 mm, tornavida 86 × 29 mm'dir.\nYaklaşık dış ölçüler: 150 × 55 × 35 mm (gövde).",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr624877-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr624877-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr624877-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr624877-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "3dworkbench",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-kalin-tekerlekli-yuvarlak-hatli-oyuncak-araba-pr457455",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kalın Tekerlekli Yuvarlak Hatlı Oyuncak Araba (Küçük Çocuklar İçin)",
+    "aciklama": "Köşeleri yuvarlatılmış gövdesi ve 40 mm çapında kalın tekerlekleriyle küçük elde rahat tutulan basit bir oyuncak araba. Dört tekerlek gövdeye M4 × 12 mm vidalarla sabitlenir; vidalar ürüne dahil değildir. Fotoğraflarda pembe-mor ve kırmızı-siyah arabalar görülür.\nGövde 109 × 63 × 35 mm, tekerlek 40 × 40 × 20 mm'dir.\nYaklaşık dış ölçüler: 109 × 63 × 35 mm (gövde).",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr457455-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr457455-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr457455-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr457455-4.jpg"
+    ]
+  },
+  {
+    "id": "oyun-iki-yonlu-istiflenen-yapboz-ayirma-tepsisi-pr357647",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "İki Yönlü İstiflenen Yapboz Ayırma Tepsisi (185 × 185 mm, Alçak ve Yüksek Boy)",
+    "aciklama": "Yapboz parçalarını renge ya da türe göre ayırmak için kare tepsi. Tepsiler üst üste düz istiflenebildiği gibi çapraz açıyla da dizilebilir; böylece her tepsinin içi tek bakışta görülür. Kenardaki oyuk, istif nasıl yapılırsa yapılsın tepsilerin kaymasını önler. Alçak tepsinin iç yüksekliği 12 mm, yüksek tepsinin 22 mm'dir. Fotoğraflarda mavi, kırmızı ve pembe tepsiler üst üste ve çapraz istiflenmiş hâlde görülür.\nAlçak tepsi 185 × 185 × 19,5 mm, yüksek tepsi 185 × 185 × 29,5 mm'dir.\nYaklaşık dış ölçüler: 185 × 185 × 19,5 mm (alçak tepsi).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr357647-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr357647-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "NetKissa",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ev-cr2032-ve-cr2450-dugme-pil-saklama-kutusu-pr119328",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Düğme Pil Saklama Kutusu (CR2032 ve CR2450 Boyları, Ayraçlı Yuvalı)",
+    "aciklama": "CR2032 ve CR2450 düğme piller için ayrı kutu boyları. Piller iç ayraçlarla yan yana ve ayrı ayrı dizilir, üstten geçirilen kapak pilleri bir arada tutar. Fotoğrafta lacivert kutular kapaklarındaki pil türü yazılarıyla, çizimde sarı-yeşil kutu iç yuvalarıyla görülür.\nYaklaşık dış ölçüler: CR2032 kutusu 97,6 × 23,2 × 21,4 mm; CR2450 kutusu 43 × 27,2 × 25,4 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr119328-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr119328-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "mls (özgün tasarım: Oretz)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "elektronik-nvme-2280-ssd-saklama-kutusu-7-kartlik-pr289463",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "NVMe 2280 SSD Saklama Kutusu (7 Kart Kapasiteli, Dört Mandallı)",
+    "aciklama": "Isı emicisiz M.2 NVMe 2280 SSD kartlarını yedi ayrı yuvada saklayan kutu. İki yarımdan oluşur ve dört mandalla kapanır; kartlar sıkıştırılmadan durur, iki yüzünde çip bulunan kartlar da sığar. Kutu yatay tutularak açılmalıdır, aksi hâlde kartlar düşebilir. Ek vida ya da parça gerekmez. Fotoğraflarda gri kutu açık hâlde kartlarla ve kapalı hâlde görülür.\nYaklaşık dış ölçüler: 86 × 86 mm taban; iki yarımın yüksekliği 13 mm ve 17,3 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr289463-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr289463-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr289463-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Damir Perisa",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "elektronik-kapakli-usb-bellek-saklama-kutusu-pr82729",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "USB Bellek Saklama Kutusu (Kapaklı, Üzeri Yazılı)",
+    "aciklama": "USB bellekleri tek yerde toplamak için kapaklı dikdörtgen kutu. Kapağın üstünde 'USB STICKS' yazısı oyulmuştur; kutu iki renkli olarak hazırlanır. Fotoğraflarda turuncu kapaklı, siyah gövdeli kutu kapalı ve açık hâlde, içinde bellekle görülür.\nYaklaşık dış ölçüler: 80 × 50 × 34 mm (kapak dahil).",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr82729-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr82729-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "G4SXR",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ev-kablo-baglanti-kutusu-citcitli-kapak-iki-vida-delikli-pr694557",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kablo Bağlantı Kutusu (Çıtçıtlı Kapak, İki Vida Delikli)",
+    "aciklama": "Kablo uçlarını ve bağlantılarını toplayan küçük kutu. Kapak çıtçıtla yerine oturur, gövdedeki iki 4 mm vida deliğiyle masa, duvar ya da ahşap yüzeye sabitlenir. Fotoğraflarda gri kutu ahşap yüzeye monte, kablolar içinden geçerken ve kapalı hâlde, çizimde yeşil kutu görülür.\nYaklaşık dış ölçüler: gövde 73,6 × 43,6 × 21,8 mm; kapak 73,6 × 43,6 × 3,8 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr694557-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr694557-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr694557-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "marcel293",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ev-kilitli-kapakli-orgu-sisi-saklama-kutusu-pr1456041",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Örgü Şişi Saklama Kutusu (Kilitli Kapaklı, Ölçü Yazılı)",
+    "aciklama": "Değiştirilebilir kablolu örgü şişlerini saklamak ve ayırmak için küçük kutu. Kapak gövdeye geçmeli oturur, mandalı sayesinde kendiliğinden açılmaz. Gövdede şiş ölçüsü yazılıdır. Fotoğraflarda 5,5 mm ve 4,0 mm yazılı farklı renkli kutular ve içlerindeki şişler görülür.\nYaklaşık dış ölçüler: gövde 130,2 × 22 × 13 mm; kapak 22,2 × 21 × 15 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1456041-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1456041-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1456041-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1456041-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "maciejka3000",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ev-petek-desenli-sarj-kablosu-duzenleyici-kutu-pr458729",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Petek Desenli Şarj Kablosu Düzenleyici Kutu (Bölmeli, Priz Adaptörü Yuvalı)",
+    "aciklama": "Şarj kablolarını türüne göre ayırmak için petek delikli, bölmeli açık kutu. Ön tarafta priz adaptörlerine ayrı yer vardır; USB-C, Micro USB ve Lightning kabloları ayrı gözlerde toplanır. Fotoğrafta siyah kutu boş hâlde, çizimde turuncu örnek görülür.\nYaklaşık dış ölçüler: 222 × 208 × 60 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr458729-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr458729-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Radswid",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ev-dort-bolmeli-menteseli-saklama-kutusu-pr56432",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Dört Bölmeli Menteşeli Saklama Kutusu (Üç Eşit ve Bir Uzun Bölme)",
+    "aciklama": "Küçük eşyaları ayırmak için dört bölmeli, kapaklı saklama kutusu. Üç bölme eşit boyuttadır, dördüncüsü uzun bir bölmedir. Kapak kilitlenen bilyeli bir menteşeyle bağlanır; vida, somun, boncuk ve benzeri ufak parçalar için uygundur. Çizimlerde mavi kutu, kapalı ve açık hâlde iç bölmeleriyle görülür.\nYaklaşık dış ölçüler: gövde 102,6 × 75 × 28,5 mm; kapak 102,6 × 78 × 21 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr56432-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr56432-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "TheSameNameTwice",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tamirat-matkap-ve-tornavida-ucu-saklama-kutusu-60-uc-pr1359391",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Matkap ve Tornavida Ucu Saklama Kutusu (60 Uç Kapasiteli, 12 × 5 Yuvalı)",
+    "aciklama": "Matkap ve tornavida uçlarını 12 × 5 düzende dik tutan, 60 uç kapasiteli kutu. Kapak ve gövde hazır bağlantılı tek bütün olarak gelir, ek bağlantı elemanı gerekmez. Uçlar yuvalarda sıkı durur ama kolayca çıkarılır; çekmeceye ya da alet çantasına sığar. Fotoğraflarda gri kutu uçlarla dolu ve kapalı hâlde görülür.\nYaklaşık dış ölçüler: gövde 124 × 73 × 31 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1359391-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1359391-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1359391-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "danid",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ev-kapakli-dikdortgen-saklama-kutusu-150x100-pr766224",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kapaklı Dikdörtgen Saklama Kutusu (150 × 100 mm, Yivli Kapak)",
+    "aciklama": "Tornavida, ip ve benzeri küçük eşyalar için kapaklı dikdörtgen saklama kutusu. Gri gövdeye turuncu, yivli kapak oturur; gövdenin kenarında tutma oyuğu bulunur. Fotoğraflarda kutu açık ve kapalı hâlde, içinde bir anahtarla görülür.\nYaklaşık dış ölçüler: 150 × 100 × 55 mm (kapak dahil).",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr766224-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr766224-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr766224-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Dorito Homelander",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ev-voronoi-yivli-ve-petek-desenli-ust-uste-saklama-sepeti-pr968678",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Voronoi, Yivli ve Petek Desenli Saklama Sepeti (Üst Üste Dizilebilir)",
+    "aciklama": "Yan yüzeyleri yivli, voronoi ya da petek desenli delikli saklama sepeti; sepetler üst üste dizilebilir. Küçük ve büyük boyu ile otuzdan fazla farklı yüzey deseni seçeneği vardır. Masa üstü, çekmece ve raf içinde küçük eşya sepeti olarak kullanılır. Fotoğraflarda siyah sepetler tek tek ve üst üste, çizimlerde voronoi desenli örnek görülür.\nYaklaşık dış ölçüler: küçük boy 140 × 80 × 50 mm; büyük boy 280 × 160 × 100 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr968678-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr968678-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr968678-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr968678-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Michael (özgün tasarım: MrElektro)",
+      "tur": "GPL 2.0"
+    }
+  },
+  {
+    "id": "tamirat-menteseli-miknatisli-kucuk-parca-kutusu-pr779466",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Menteşeli Küçük Parça Kutusu (Mıknatıslı Kapak, Bölmeli Gövde Seçenekli)",
+    "aciklama": "Vida, rulman ve benzeri küçük parçalar için menteşeli, kapaklı kutu. Gövde düz ya da iç bölmeli (dört ve altı gözlü) olarak seçilebilir. Kapağın düzgün kapanması için dört adet 3 × 2 mm mıknatıs ve iki adet M3 × 12 vida gerekir. Fotoğrafta kırmızı-mor kutu açık hâlde rulmanlarla dolu, çizimlerde yeşil gövde ve kırmızı kapak bölmeleriyle görülür.\nYaklaşık dış ölçüler: gövde 84,2 × 71,4 × 36,1 mm; kapak 84,2 × 71,4 × 22,2 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr779466-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr779466-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr779466-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr779466-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Armin",
+      "tur": "CC BY-ND 4.0"
+    }
+  },
+  {
+    "id": "ev-ust-uste-dizilebilen-acik-saklama-kutusu-150x90x70-pr224287",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Üst Üste Dizilebilen Açık Saklama Kutusu (150 × 90 × 70 mm)",
+    "aciklama": "Üstü açık, ön kenarında oyuk bulunan, üst üste dizilebilen küçük saklama kutusu. Kutular birbirinin üzerine oturarak raf ya da çekmece içinde sütun oluşturur; ön oyuk içindekini görmeyi ve almayı kolaylaştırır. Fotoğraflarda yeşil ve siyah kutular tek tek ve üst üste görülür.\nYaklaşık dış ölçüler: 150 × 90 × 70 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr224287-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr224287-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Blaze3D",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tamirat-menteseli-mandalli-kabartmali-saklama-kutusu-pr1305453",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Mandallı Menteşeli Saklama Kutusu (Elmas Desenli Kabartmalı Yüzey)",
+    "aciklama": "Gövdesi ve kapağı elmas desenli kabartmayla kaplı, menteşeli geniş saklama kutusu. Kapak iki mandalla kapanır; mandallar M3 cıvata ve somunla bağlanır. Küçük aletler, bağlantı elemanları ve yedek parçalar için taşınabilir kutu olarak kullanılır. Fotoğraflarda mavi gövdeli, kırmızı mandallı kutu açık ve kapalı hâlde, çizimlerde siyah-sarı ve gri örnekler görülür.\nYaklaşık dış ölçüler: taban 158 × 127 mm; gövde yüksekliği 36 mm, kapak yüksekliği 26 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1305453-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1305453-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1305453-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1305453-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "slavik kopanov",
+      "tur": "GPL 3.0"
+    }
+  },
+  {
+    "id": "ev-aa-pil-saklama-kutusu-16-pil-dikey-yuvali-pr12906",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "AA Pil Saklama Kutusu (16 Pil Kapasiteli, Dikey Yuvalı)",
+    "aciklama": "AA boy pilleri dikey yuvalarda düzenli tutan, 16 pil kapasiteli kutu. Yuvalı gövde ve üstten kapanan kapaktan oluşur; çekmeceye ya da çantaya atılan pilleri bir arada toplar. Fotoğraflarda yeşil kutu açık hâlde içindeki pillerle, ikinci karede ise AA ve daha küçük AAA boy kutular kapalı hâlde görülür.\nYaklaşık dış ölçüler: 65 × 65 × 52 mm (gövde); kapak 65 × 65 × 17 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr12906-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr12906-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Mantra7S",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ev-aaa-pil-saklama-kutusu-25-pil-mandalli-kapakli-pr1529005",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "AAA Pil Saklama Kutusu (25 Pil Kapasiteli, Mandallı Kapaklı)",
+    "aciklama": "AAA boy pilleri yuvalarında dik tutan, mandalla kapanan taşıma ve saklama kutusu. Kapak yana açılan mandalla kilitlenir; mandal iki M3 cıvata ile bağlanır. 25 pil kapasitesi vardır. Çizimlerde beyaz gövdeli, kırmızı mandallı kutu boş ve pillerle dolu hâlde görülür.\nYaklaşık dış ölçüler: 98 × 79 × 41 mm (gövde); kapak 98 × 79 × 28 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1529005-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1529005-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1529005-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "slavik kopanov",
+      "tur": "GPL 3.0"
+    }
+  },
+  {
+    "id": "ev-vidali-kapakli-yuvarlak-saklama-kutusu-alti-boy-pr74594",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Vidalı Kapaklı Yuvarlak Saklama Kutusu (Altı Boy, Tek Kapak Ölçüsü)",
+    "aciklama": "Aynı kapağa uyan altı farklı yükseklikte (XS, S, M, L, XL ve XXL) yuvarlak saklama kutusu. Kenarı tırtıklı kapak ve gövde dişle birbirine geçer; kutular üst üste dizilebilir. Vida, boncuk ve benzeri küçük parçaları ayırmak için uygundur. Fotoğraflarda mavi, kırmızı ve bej kutular tek tek ve üst üste, çizimlerde altı boy yan yana görülür.\nYaklaşık dış ölçüler: çap 85 mm; gövde yüksekliği XS 22, S 29, M 39, L 49, XL 69, XXL 99 mm; kapak yüksekliği 25 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr74594-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr74594-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr74594-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr74594-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Fredslund",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "dekor-civi-bicimli-duvar-saati-rakamlari-pasli-gorunum-pr644939",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Çivi Biçimli Duvar Saati Rakamları (Paslı Görünüm)",
+    "aciklama": "İnşaat çivisinden bükülmüş görünümlü, retro ve endüstriyel tarzda duvar saati rakamları. Pas etkili boyayla eski çivi görüntüsü verilebilen rakamlar kalaslar, ahşap panolar ve tuğla duvarlar için uygundur; dört rakam parçası (1, 2, 3 ve 6) bulunur. Saat mekanizması ve ibreler ürüne dahil değildir. Fotoğraflarda eski kalaslar üzerine monte edilmiş saat ve ahşap zeminde 1-2-3-6-9 rakamları görülür.\nYaklaşık dış ölçüler: 63 × 36 × 6 mm (en geniş rakam).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr644939-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr644939-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr644939-3.jpg"
+    ]
+  },
+  {
+    "id": "dekor-cicek-bicimli-duvar-saati-govdesi-yapraklari-gecmeli-pr738901",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Çiçek Biçimli Duvar Saati Gövdesi (Yaprakları Geçmeli)",
+    "aciklama": "Yapıştırıcı gerektirmeden birbirine geçen parçalardan oluşan çiçek biçimli duvar saati. Çiçek yaprakları, arka plan ve rakamlar yerine oturur; saat mekanizması ve akrep-yelkovan ayrıca temin edilir. Fotoğrafta kahverengi gövdeli ve altın rakamlı saat, çizimlerde kırmızı ve bej çiçek parçaları görülür.\nYaklaşık dış ölçüler: 250 × 250 × 4 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr738901-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr738901-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr738901-3.jpg"
+    ]
+  },
+  {
+    "id": "dekor-anlik-fotograf-karti-ayakligi-uc-genislik-ince-govdeli-pr783033",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Anlık Fotoğraf Kartı Ayaklığı (Üç Genişlik, İnce Gövdeli)",
+    "aciklama": "Anlık fotoğraf makinelerinin kartlarını ayakta tutan, ince ve sade gövdeli ayaklık. Üç farklı kart genişliğine uygun üç model gelir (yaklaşık 53, 88 ve 54 mm genişliğindeki kartlar); birden fazla kart tutmak için daha uzun yapılabilir. Fotoğraflarda beyaz ayaklık kartla birlikte ve tek başına, çizimde koyu zeminde gri model görülür.\nYaklaşık dış ölçüler: 111 × 43 × 10 mm (en büyük model).",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr783033-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr783033-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr783033-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Ocelotzlasu",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dekor-katlanabilir-fotograf-standi-ucgen-ayakli-evrensel-pr146971",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Katlanabilir Fotoğraf Standı (Üçgen Ayaklı, Evrensel)",
+    "aciklama": "Fotoğraf, kartpostal ve küçük resimleri ayakta tutan, üçgen ayaklı evrensel stand. İnce yapısı sayesinde masa ve rafta az yer kaplar. Fotoğraflarda siyah stand eski bir fotoğrafı farklı açılardan taşırken, bir karede beyaz kartı tutarken görülür.\nYaklaşık dış ölçüler: 114 × 100 × 2 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr146971-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr146971-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr146971-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr146971-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "AlexMu",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dekor-yarim-daire-tabanli-fotograf-ayakligi-duz-ve-delikli-pr778782",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Yarım Daire Tabanlı Fotoğraf Ayaklığı (Düz ve Delikli)",
+    "aciklama": "Fotoğraf ve kartları dik tutan, üst yüzünde ince yuvası bulunan yarım daire tabanlı basit ayaklık. Dolu sürümün yanında daha hafif delikli bir sürüm de bulunur. Fotoğraflarda turuncu ayaklık yakın planda ve düz zeminde görülür.\nYaklaşık dış ölçüler: 60 × 55 × 15 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr778782-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr778782-2.jpg"
+    ]
+  },
+  {
+    "id": "dekor-mini-sovale-bicimli-fotograf-ve-qr-kod-standi-civatali-pr469972",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Mini Şövale Biçimli Fotoğraf ve QR Kod Standı (Cıvatalı)",
+    "aciklama": "Küçük bir şövale biçimindeki, fotoğraf ya da QR kodlu kartvizit sunmak için kullanılan stand. Parçalar M3 × 20 mm cıvata ve M3 somunla birleşir; cıvata ile somun ürüne dahil değildir. Masaya kurulduğunda kart ya da fotoğrafı dik tutar. Fotoğraflarda gri şövale ahşap masada ön ve yan görünümüyle verilmiştir.\nYaklaşık dış ölçüler: 170 × 102 × 15 mm (tüm parçalar).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr469972-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr469972-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "_Building_Arts_",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "dekor-basit-fotograf-ve-kartpostal-ayakligi-centikli-duz-ayak-pr337369",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Basit Fotoğraf ve Kartpostal Ayaklığı (Çentikli Düz Ayak)",
+    "aciklama": "Fotoğraf ve kartpostalları ayakta tutan, çerçeveden çok daha sade bir ayaklık; kart ayaktaki çentiğe oturur. Standart, ikinci sürüm ve ağırlıklı model olmak üzere üç sürümü vardır. Fotoğraflarda gri ayaklık kedi ve köpek fotoğrafını tutarken, ayrıca gri ve yeşil ayaklar yakın planda görülür.\nYaklaşık dış ölçüler: 111 × 37 × 8 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr337369-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr337369-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr337369-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "FMUC",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ev-kitaplik-hizalayici-egimli-surum-dahil-pr222894",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kitaplık Hizalayıcı (Eğimli Sürüm Dahil)",
+    "aciklama": "Kitaplıkta kitap sırtlarını rafın kenarıyla aynı hizaya getirmeyi kolaylaştıran basit hizalayıcı. Düz ve eğimli iki sürümü vardır; eğimli sürüm kitapları tek hamlede hizalamaya yarar. Fotoğraflarda siyah hizalayıcı kitap sırtlarının önünde ve elde görülür.\nYaklaşık dış ölçüler: 150 × 76 × 35 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr222894-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr222894-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Celta (özgün tasarım: Hawwwran)",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "dekor-yassi-duvar-saati-ayagi-240-mm-capli-saat-icin-pr404486",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Yassı Duvar Saati Ayağı (240 mm Çaplı Saat İçin)",
+    "aciklama": "Kenarı düz ve yeterince geniş olan yassı silindirik duvar saatlerini rafta ve masada ayakta tutan sade ayak. Minimalist yapısı saati görünür bırakır. 240 mm çaplı ve 40 mm yüksekliğindeki saat için hazırlanmıştır. Fotoğraflarda ayak saatle birlikte rafta ve tek başına, çizimde yeşil model görülür.\nYaklaşık dış ölçüler: 147 × 50 × 24 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr404486-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr404486-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr404486-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr404486-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Printer4496",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "dekor-dev-duvar-saati-rakam-ve-ibre-seti-120-cm-capli-pr952264",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Dev Duvar Saati Rakam ve İbre Seti (120 cm Çaplı)",
+    "aciklama": "Duvara tek tek yerleştirilerek yaklaşık 120 cm çapında dev bir saat oluşturan rakam ve ibre seti. Ana rakamlar (12, 3, 6, 9) 120 mm, küçük rakamlar 100 mm yüksekliğindedir; dakika ve saat ibresi de takımdadır. Rakamlar çift taraflı bantla duvara tutturulur; saat mekanizması ayrıca temin edilir. Fotoğraflarda duvarda gri rakamlı saat, çizimde 0-9 rakam seti görülür.\nYaklaşık dış ölçüler: 120 × 85 × 3 mm (büyük rakam).",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr952264-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr952264-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr952264-3.jpg"
+    ]
+  },
+  {
+    "id": "dekor-modern-duvar-saati-govdesi-200-ve-220-mm-asma-delikli-pr1136904",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Modern Duvar Saati Gövdesi (200 ve 220 mm, Asma Delikli)",
+    "aciklama": "Köşeli, iç içe geçen biçimlerden oluşan modern duvar saati gövdesi. 200 ve 220 mm olmak üzere iki ebat, asma deliği ve ibre seti bulunur; delikli pano askı sürümü de vardır. Saat mekanizması ayrıca temin edilir. Fotoğraflarda beyaz saat duvarda iki farklı yakınlıkta görülür.\nYaklaşık dış ölçüler: 220 × 204 × 18 mm (220 mm sürüm).",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1136904-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1136904-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "3dgranddad",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dekor-gunes-isinli-duvar-saati-govdesi-uc-ibreli-pr129689",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Güneş Işınlı Duvar Saati Gövdesi (Üç İbreli)",
+    "aciklama": "İnce ışınlarla güneşi andıran duvar saati gövdesi; gövde, saat, dakika ve saniye ibresi parçaları bulunur. Saat mekanizması ayrıca temin edilir. Fotoğraflarda beyaz gövde ve siyah ibreler ahşap zeminde, yakın planda ve duvarda görülür.\nYaklaşık dış ölçüler: 205 × 205 × 19 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr129689-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr129689-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr129689-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Domasschwarz",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-sekiz-zarlik-sade-zar-kutusu-20-mm-pr176994",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Sekiz Zarlık Sade Zar Kutusu (20 mm Zarlar İçin, Kapakta Zar Resmi)",
+    "aciklama": "Sekiz adet 20 mm'lik zarı yan yana koruyan sade, kapaklı kutu. Kapağın üstünde zar resmi bulunur; resim zar sayısına göre ortalanır. Kutu parametriktir: duvar kalınlığı ve zar kenarı ölçüsü (varsayılan 20,5 mm) dosyalardaki değişkenlerle ayarlanabilir. Kapak iki geçme payıyla hazırdır (0,1 mm ve 0,2 mm), kapak sıkı ya da gevşek gelirse diğeri seçilir. Fotoğraflarda beyaz kapaklı kutu, içinde renkli zarlarla görülür.\nAlt gövde 99,5 × 53,5 × 13 mm, kapak 99,5 × 53,5 × 23 mm'dir.\nYaklaşık dış ölçüler: 99,5 × 53,5 × 13 mm (alt gövde).",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr176994-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr176994-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr176994-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "prochazkaml",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-yirmi-yuzlu-zar-kutusu-rakamlari-ayri-renkli-pr334038",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Yirmi Yüzlü Zar Kutusu (Rakamları Ayrı Renkte, Mıknatıslı Kapak)",
+    "aciklama": "Yirmi yüzlü zar biçimli kutu; yüzlerdeki rakamlar ayrı bir parça olarak hazırlandığından farklı renkte yapılabilir. Kapak 5 × 1 mm yuvarlak mıknatıslarla kapanır; mıknatıslar ürüne dahil değildir. Fotoğraflarda bej gövdeli yeşil rakamlı kutu ile gri-mavi ve mavi-turuncu kutular görülür.\nGövde 70 × 62 × 58,5 mm, üst yarı 56 × 51 × 30 mm'dir.\nYaklaşık dış ölçüler: 70 × 62 × 58,5 mm (gövde).",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr334038-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr334038-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr334038-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Adam (özgün tasarım: nico_fox)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-surgulu-kapakli-zar-kutusu-16-mm-bolmeli-pr320331",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Sürgülü Kapaklı Zar Kutusu (16 mm Bölmeli, Delikli Kapak)",
+    "aciklama": "Her biri 16 × 16 × 16 mm olan ayrı bölmelere zarları tek tek yerleştiren, sürgülü kapaklı uzun kutu. Zarlar sıkı oturur ama kolayca çıkar. Daha büyük zarlar için bütün model ölçeklenebilir. Kapağın üzerinde petek biçiminde delikler bulunur. Fotoğraflarda kırmızı kapaklı kutu, içinde beyaz ve siyah zarlarla görülür.\nKutu 93 × 43 × 18 mm, kapak 93 × 43 × 4 mm'dir.\nYaklaşık dış ölçüler: 93 × 43 × 18 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr320331-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr320331-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr320331-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr320331-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Bartosz Niedziałkowski",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-kapakli-zar-kutusu-12-zarlik-16-mm-pr719783",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kapaklı Zar Kutusu (16 mm Altı Yüzlü Zarlardan 12 Adet Alır)",
+    "aciklama": "16 mm'lik altı yüzlü zarlardan 12 adet alan, üstüne geçen kapaklı sade kutu. Zar dışında jeton, para ya da küçük oyun parçalarını saklamak için de uygundur. Fotoğraflarda koyu gri kutu açık hâlde, içinde üç sıra hâlinde renkli zarlarla, kapağı ise yanında dururken görülür.\nGövde 69,5 × 53,7 × 19,7 mm, kapak 69,5 × 53,7 × 10 mm'dir.\nYaklaşık dış ölçüler: 69,5 × 53,7 × 19,7 mm (gövde).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr719783-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr719783-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Pocahontius",
+      "tur": "GPL 2.0"
+    }
+  },
+  {
+    "id": "oyun-surgulu-kepenk-kapakli-zar-kutusu-24-zarlik-pr971522",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kepenk Kapaklı Zar Kutusu (24 Adet 16 mm Zar ya da İki Standart Zar Takımı Alır)",
+    "aciklama": "Esnek kepenk biçimli kapağı yan oluklarda kayan küçük zar kutusu; 24 adet 16 mm'lik altı yüzlü zarı ya da iki standart zar takımını birkaç fazladan zarla birlikte alır. Kapağın her oluk arasındaki çizgileri kutu birleştirilmeden önce hafifçe kıvırmak kapağın akıcı kayması için gerekir. Fotoğraflarda yeşil ve kahverengi kutular açık ve kepenk kapaklı hâlde, içinde renkli zarlarla görülür.\nGövde 108 × 82 × 33 mm, kapak 107,5 × 98 × 6 mm'dir.\nYaklaşık dış ölçüler: 108 × 82 × 33 mm (gövde).",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr971522-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr971522-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr971522-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "BlueFalcon1066",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "oyun-cift-bolmeli-oyun-parcasi-tepsisi-kapakli-pr1069484",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Çift Bölmeli Oyun Parçası Tepsisi (İki ya da Üç Bölmeli Taban, Sıkı Geçen Kapaklı)",
+    "aciklama": "Masa oyunu parçaları, jeton ya da küçük madeni paralar için geniş tepsi; iki bölmeli ve üç bölmeli iki taban ile ikisine de uyan tek bir kapak dosyalar arasındadır. Kapak sıkı oturur, böylece tepsi oyun kutusunun içinde parçaları dağıtmadan durur. Fotoğraflarda koyu gri tepsiler içinde madeni paralarla ve kapaklı hâlde ahşap masa üzerinde görülür.\nTaban 160 × 80 × 20 mm, kapak 160 × 80 × 8 mm'dir.\nYaklaşık dış ölçüler: 160 × 80 × 20 mm (taban).",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1069484-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1069484-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "PandaruExpress",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "oyun-on-iki-kenarli-zar-kutusu-yedili-takim-miknatisli-pr799468",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "On İki Kenarlı Zar Kutusu (Yedi Petek Gözlü, Standart Zar Takımı İçin, Mıknatıslı)",
+    "aciklama": "On iki kenarlı, yedi adet altıgen gözü olan zar kutusu; yedili standart zar takımına göre hazırlanmıştır. Kapak ve taban toplam 6 adet 6 × 2 mm mıknatısla birleşir; mıknatıslar ürüne dahil değildir. 2 cm'den büyük zarlar ölçeklenmeden sığmaz. İki sürüm vardır: sade ve kapak ile tabanında desenli. Fotoğraflarda mavi, beyaz ve siyah kutular ahşap masa üzerinde, petek gözleriyle ve desenli kapaklarıyla görülür.\nKutu parçası 86 × 86 × 15,5 mm'dir.\nYaklaşık dış ölçüler: 86 × 86 × 15,5 mm (kapak ya da taban parçası).",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr799468-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr799468-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr799468-3.jpg"
+    ]
+  },
+  {
+    "id": "oyun-cekmeceli-zar-kutusu-iki-takim-parmak-delikli-pr1205031",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Çekmeceli Zar Kutusu (İki Zar Takımı Alır, Parmak Delikli Çıkarılabilir Çekmece)",
+    "aciklama": "İki zar takımı için kayar çekmeceli kutu. Çekmecenin tabanında parmak deliği bulunur; çekmeceyi dışarı çekmek ve ardından zarları almak kolaylaşır. Çekmece bölmelere ayrılmıştır, zarlar birbirine çarpmaz. Fotoğraflarda siyah kılıflı kırmızı çekmeceli kutu açık, yarı açık ve kapalı hâlde, içinde zarlarla görülür.\nYaklaşık dış ölçüler: 139 × 89 × 31,5 mm (en büyük parça).",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1205031-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1205031-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1205031-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1205031-4.jpg"
+    ]
+  },
+  {
+    "id": "oyun-kapakli-deste-kutusu-36-zar-yuvali-miknatisli-pr204083",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kapaklı Deste Kutusu (100 Kartlık, Yanında 36 Adet 12 mm Zar Yuvalı, Mıknatıslı Kapak)",
+    "aciklama": "Yaklaşık 100 kartlık bir desteyi içine alan ve yan duvarında 36 adet 12 mm'lik altı yüzlü zar saklayan kapaklı kutu. Zarlar sayaç ya da jeton olarak kullanılabilir; deste için fazladan jeton yeri de kalır. Kapak 8 adet 6 × 2 mm mıknatısla yerinde durur; mıknatıslar yapıştırılır ve kutuya dahil değildir. Fotoğraflarda ahşap masa üzerinde gri kutu, renkli zar sütunları ve içinde kartlarla görülür.\nGövde 98 × 96 × 88,5 mm, kapak 98 × 88,5 × 51 mm'dir.\nYaklaşık dış ölçüler: 98 × 96 × 89 mm (gövde).",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr204083-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr204083-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr204083-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "kwfredeen",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "oyun-yirmi-yuzlu-zar-seklinde-zar-kutusu-menteseli-pr284321",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Yirmi Yüzlü Zar Şeklinde Zar Kutusu (Menteşeli, Mıknatıslı Kapak)",
+    "aciklama": "Kendisi dev bir yirmi yüzlü zara benzeyen, içine zar takımınızı saklayan kutu. Kapak 5 adede kadar 6 × 3 mm yuvarlak mıknatısla kapalı kalır, menteşeler kısa bir parça filmaşinla takılır. Alt ve üst parçaların köşe tırnaklı sürümleri de dosyalar arasındadır. Mıknatıslar ve menteşe teli ürüne dahil değildir. Fotoğraflarda turuncu ve yeşil kutu açık ve kapalı hâlde, içinde zarlarla görülür.\nAlt gövde 128 × 121 × 103 mm, kapak 121 × 118 × 39 mm'dir.\nYaklaşık dış ölçüler: 128 × 121 × 103 mm (alt gövde).",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr284321-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr284321-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr284321-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Bubba_BWatts",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-altigen-zar-kutusu-zar-atma-tepsili-kapak-pr767848",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Altıgen Zar Kutusu (Zar Atma Tepsisi Olarak da Kullanılan Kapaklı, Yedi Zarlık)",
+    "aciklama": "Yedi parçalı standart zar takımı için tasarlanmış altıgen kutu; kapağı ters çevrilince zar atma tepsisi olur. Kapak iki sürümdedir: düz ve içine desen işlenmiş. Tepsi tabanına keçe ya da kumaş yapıştırılırsa zarlar sessiz yuvarlanır; keçe ürüne dahil değildir. Fotoğraflarda koyu mavi kutu, altın renkli desenli kapak ve içinde renkli zarlarla görülür.\nTaban 137 × 122 × 18 mm, kapak deseni 105 × 91 mm'dir.\nYaklaşık dış ölçüler: 137 × 122 × 18 mm (taban).",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr767848-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr767848-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr767848-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "alexberkowitz",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "oyun-yedili-zar-kutusu-zar-standi-menteseli-pr273689",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Yedili Zar Kutusu (Zar Standı Olarak da Kullanılan, Menteşeli, Tek Parça)",
+    "aciklama": "Yedi parçalı standart zar takımını tek tek yuvalarda taşıyan ince, uzun kutu; oyun sırasında dik durup zar standı görevi görür. Menteşe ve mandal kutuyla birlikte tek parça hâlinde çıkar, montaj gerekmez. Mandalın toleransı sıkıdır, ana menteşe biraz gevşektir ama kapak oynamaz. İsimli ve isimsiz iki sürüm vardır. Fotoğraflarda sarı kutu açık ve kapalı hâlde, içinde zarlarla görülür.\nKutu 160 × 38,5 × 18,5 mm'dir.\nYaklaşık dış ölçüler: 160 × 38,5 × 18,5 mm (kapalı kutu).",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr273689-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr273689-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr273689-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "fav",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-yirmi-yuzlu-zar-kutusu-miknatisli-kapak-pr37506",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Yirmi Yüzlü Zar Kutusu (Gelişmiş Mıknatıslı Kapak, İç Köpük Şablonlu)",
+    "aciklama": "Yirmi yüzlü zar biçimli, zar takımı için kutu; kapak 6 adet 5 × 10 × 2 mm mıknatısla kapanır. İç yüzeyi 2 mm'lik köpükle kaplamak için kesim şablonu dosyalar arasındadır. Mıknatıslar ve köpük ürüne dahil değildir. Fotoğraflarda gri kutu açık ve kapalı hâlde, kırmızı iç kaplamalı ve yanında dağınık zarlarla görülür.\nGövde 120 × 120 × 120 mm, kapak 110 × 106 × 35 mm'dir.\nYaklaşık dış ölçüler: 120 × 120 × 120 mm (gövde).",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr37506-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr37506-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Xavier Marquet",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-meeple-seklinde-istiflenebilir-oyun-tepsisi-iki-boy-pr394021",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Meeple Şeklinde İstiflenebilir Oyun Tepsisi (9 cm ve 15 cm, İnce Duvarlı)",
+    "aciklama": "Masa oyunu taşları ve küçük parçalar için meeple figürü biçiminde tepsi; iki boyu dosyalar arasındadır. Tepsiler üst üste dizilince yer kaplamaz. Duvar kalınlığı 1,2 mm'dir. Fotoğraflarda açık mavi ve siyah tepsi iç içe ve ayrı ayrı görülür.\nKüçük tepsi 90 × 89 × 15 mm, büyük tepsi 150 × 148 × 15 mm'dir.\nYaklaşık dış ölçüler: 150 × 148 × 15 mm (büyük tepsi).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr394021-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr394021-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr394021-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "SamMi",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-zar-kutusu-kapakta-zar-atici-panelli-menteseli-pr521669",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Zar Kutusu (Kapağına Yerleşik Zar Atıcılı, Ön Panelli, Menteşeli, Her Masaüstü Rol Oyunu İçin)",
+    "aciklama": "Kapağının içinde zar atıcı bulunan zar kutusu: zarlar kapak içindeki rampada yuvarlanır, kutunun bölmelerinde saklanır. Kutu altı parçadan oluşur: kutu gövdesi, kapak, zar atıcıyı kapatan ön panel ve iki yarım vidalı menteşe. Fotoğraflarda mavi-mor geçişli kutu açık ve kapalı hâlde, içindeki bölmelerle ve menteşe mili ile görülür.\nDış kutu 210 × 210 × 70 mm, kapak iç kutusu 200 × 200 × 47 mm'dir.\nYaklaşık dış ölçüler: 210 × 210 × 70 mm (dış kutu).",
+    "fiyat": "700 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr521669-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr521669-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr521669-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr521669-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Selinth",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "oyun-zar-kutusu-ve-zar-kulesi-bir-arada-pr469335",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Zar Kutusu ve Zar Kulesi Bir Arada (Kapağa Takılan Kule, Zar Saklama Bölmeli)",
+    "aciklama": "Zar saklama bölmesi ve kapağında bir zar kulesi bulunan sade kutu. Zar kuleden atılır, kutunun içindeki bölmeye düşer; iş bitince zarlar aynı kutuda saklanır. Kule ile kapak yapıştırılarak birleştirilir; yapıştırıcı dahil değildir. Fotoğraflarda gri kutu kapalı hâlde ve kulesi açık, içinde zarlarla görülür.\nKutu 210 × 84 × 66 mm, kapak 210 × 84 × 9 mm, kule 150 × 74 × 63 mm'dir.\nYaklaşık dış ölçüler: 210 × 84 × 66 mm (kutu).",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr469335-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr469335-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr469335-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JBWill",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-otomatik-acilan-cicek-zar-kutusu-esnek-yapraklar-pr440318",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Otomatik Açılan Çiçek Biçimli Zar Kutusu (Esnek Yapraklı, Ortadaki Kolu Çevirince Açılır)",
+    "aciklama": "Ortadaki kolu çevirince çiçek gibi açılan, yaprakların içinde zar saklayan kutu. Yaprağı geri bastırınca kendiliğinden tıklayarak kapanır; mili ve deliği hizalamak gerekmez. Esnek parça yay görevi görür; çiçek tek parça ya da ayrı parçalar hâlinde kurulabilir. Fotoğraflarda kırmızı çiçek kutusu açık hâlde, yapraklarında renkli zarlarla görülür; çizimler iç yapıyı gösterir.\nAna gövde 93 × 91 × 12 mm, kapak 37 × 35 × 24,5 mm'dir.\nYaklaşık dış ölçüler: 93 × 91 × 12 mm (ana gövde).",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr440318-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr440318-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr440318-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr440318-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Denis Polyarush",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "oyun-silindir-zar-kutusu-36-zar-ve-4-yirmi-yuzlu-pr198873",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Silindir Zar Kutusu (36 Adet 12 mm Zar ve 4 Yirmi Yüzlü Zar Alır, Tırnaklı Kapak)",
+    "aciklama": "Bir içecek kutusu büyüklüğünde, sekizgen kesitli silindir zar kutusu. İçine 36 adet 12 mm'lik altı yüzlü zar ile 4 adet yirmi yüzlü zar sığar. Kapak, kutuya tırnaklarla sürtünmeyle oturur; tırnaksız kapak ve güçlendirilmiş tırnaklı kapak sürümleri de dosyalar arasındadır. Fotoğraflarda koyu renk kutu ahşap masa üzerinde, kapağı açık ve yanında dökülmüş zarlarla görülür.\nGövde 97 × 62 × 60 mm, kapak 62 × 60 × 28,5 mm'dir.\nYaklaşık dış ölçüler: 97 × 62 × 60 mm (gövde).",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr198873-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr198873-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr198873-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr198873-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "kwfredeen",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oyun-bes-zar-takimi-kutusu-zar-atma-tepsili-kapak-pr202343",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Beş Zar Takımı Kutusu (24 mm'ye Kadar Zar, Zar Atma Tepsisi Olan Mıknatıslı Kapak)",
+    "aciklama": "Beş adet yedili standart zar takımını (24 mm'ye kadar zarlar) alan kutu; mıknatıslı kapak ters çevrilince zar atma tepsisi olur. Kapanma için 8 adet 6 × 2 mm yuvarlak mıknatıs gerekir; mıknatıslar ürüne dahil değildir. Görsellerde petek desenli koyu mavi ve kırmızı kutu, alt ve kapak parçaları ayrı ayrı görülür.\nAlt ve kapak parçaları 190,5 × 120,7 × 19 mm'dir.\nYaklaşık dış ölçüler: 190,5 × 120,7 × 19 mm (alt ve kapak parçası).",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr202343-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr202343-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Skitty4fingers",
+      "tur": "GPL 3.0"
+    }
+  },
+  {
+    "id": "dekor-led-isik-zinciri-kanali-duvara-bantlanir-pr757196",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "LED Işık Zinciri Kanalı (Duvara Bantlanır, Boyayı Korur)",
+    "aciklama": "LED ışık zincirini ya da şeridi doğrudan duvara bantlayıp sökerken boyayı soyma derdinden kurtaran uzun kanal. Işık zinciri bu kanalın içine bantlanır, kanal ise duvara tutturulur; sonradan sökmek boyaya zarar vermez. Dar ve uzun yapısı şeridi dümdüz tutar. Fotoğraflarda yan görünüm ve yan yana dizilmiş kanallar görülür.\nYaklaşık dış ölçüler: 246 × 15 × 12 mm (tek kanal).",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr757196-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr757196-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Athillion",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dekor-cirt-bantli-el-feneri-tasiyicisi-kargo-pantolon-cebi-pr552190",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Cırt Bantlı El Feneri Taşıyıcısı (Kargo Pantolon Cebi İçin)",
+    "aciklama": "Kargo pantolonun dış cebindeki cırt banda tutturulan, el fenerini cebin içinde kaybolmaktan ve diğer eşyalara zarar vermekten koruyan silindirik taşıyıcı. Fener kolayca ulaşılan bir yerde, güvenle durur. Arka yüzeyine cırt bant parçası yapıştırılarak kullanılır (cırt bant ayrıca temin edilir). Takmadan önce kendi fener gövdenizin çapını kontrol edin. Fotoğraflarda pantolon üzerinde ve fenerli/fenersiz hâli görülür.\nYaklaşık dış ölçüler: 114 × 43 × 42 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr552190-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr552190-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr552190-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Daniel Ehme",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dekor-isik-zinciri-aski-kancasi-civiyle-ahsaba-pr328958",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Işık Zinciri Askı Kancası (Çiviyle Ahşaba Sabitlenir)",
+    "aciklama": "Yılbaşı ışık zincirlerini saçak altı, kiriş ve ahşap yüzeylere asmak için hafif askı kancası. İki küçük deliğinden ince döşemeci çivisiyle (1,4 mm çaplı çivilerle denenmiştir) ahşaba çakılır; ortadaki yuvaya ışık zincirinin kablosu geçirilir. Çivi ayrıca temin edilir. Fotoğraflarda kanca ve ahşap kirişe monte hâli görülür.\nYaklaşık dış ölçüler: 40 × 20 × 8 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr328958-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr328958-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "koudy",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dekor-5-mm-led-isik-zinciri-noel-difuzorleri-yildiz-kar-tanesi-kardan-adam-pr334436",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "5 mm LED Işık Zinciri Noel Difüzörleri (Yıldız, Kar Tanesi, Kardan Adam)",
+    "aciklama": "5 mm'lik LED'li ışık zincirlerinin ucuna takılan, ışığı yumuşatıp Noel şekillerine dönüştüren üç ayrı difüzör: yıldız, kar tanesi ve kardan adam. Işık zinciri ayrıca temin edilir. Fotoğraflarda difüzör çeşitleri ve şömine rafında ışıklı hâli görülür.\nYaklaşık dış ölçüler: 39 × 38 × 10 mm (yıldız); 34 × 20 × 14 mm (kardan adam); 40 × 31 × 8 mm (kar tanesi).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr334436-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr334436-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "CM3D",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "dekor-duvara-asilan-petek-delikli-el-feneri-tutucusu-pr631138",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Duvara Asılan Petek Delikli El Feneri Tutucusu",
+    "aciklama": "Atölye rafının önüne ya da duvara vidalanan, altıgen delikli silindirik el feneri tutucusu. Fener içine rahatça girer ve çıkar; üst kısmındaki iki delikten vidalanır. Yaklaşık 130 mm (5⅛ inç) boyunda, 38-44 mm çaplı silindirik bir el feneri için ölçülmüştür; kendi fener ölçünüzü kontrol edin. Fotoğraflarda rafa asılı hâli ve temiz görünümü görülür.\nYaklaşık dış ölçüler: 133 × 55 × 51 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr631138-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr631138-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "mscalora",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dekor-el-feneri-tripod-adaptoru-1-4-ve-3-8-inc-disli-pr593158",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "El Feneri Tripod Adaptörü (¼ ve ⅜ İnç Dişli, 15 ve 17 mm Gövde)",
+    "aciklama": "Küçük el fenerlerini standart tripod ve kamera bağlantı dişlisine takan klips tipi adaptör. ¼-20 ve ⅜-16 inç dişli iki sürüm içerir. Büyük çaplı yuva 17 mm gövdeli fenerler, küçük çaplı yuva 15 mm gövdeli fenerler içindir; biraz daha kalın gövdeler yuvayı hafifçe esnetir. Fotoğraflarda iki farklı fenerle eklemli bir kolun ucuna takılı hâli görülür.\nYaklaşık dış ölçüler: 52 × 33 × 25 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr593158-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr593158-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Blackvan",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dekor-perde-rayi-isik-zinciri-askisi-delmeden-takilir-pr1488086",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Perde Rayı Işık Zinciri Askısı (Delmeden Takılır)",
+    "aciklama": "Duvarı ya da tavanı delmeden perde rayından ışık zinciri veya kablo asmak için küçük askı. Rayın kenarına tutturulur ve perdenin önünde durur, kumaşın hareketini engellemez. İstediğiniz kadar askıyı ray boyunca dizerek kabloyu kıvrımlı yönlendirebilir ya da ağır bölümleri taşıtabilirsiniz; takması ve sökmesi kolaydır. Fotoğraflarda ray üzerinde takılı hâli görülür.\nYaklaşık dış ölçüler: 22 × 16 × 4 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1488086-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1488086-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Remi",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dekor-tv-arkasi-isik-zinciri-kilavuzu-bantla-yapisir-pr1007207",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "TV Arkası Işık Zinciri Kılavuzu (Bantla Yapışır)",
+    "aciklama": "Televizyonun arkasına çift taraflı bantla yapıştırılarak ince ışık zincirlerinin ledlerini yönlendiren ve yerinde tutan küçük kılavuz. Işık zinciri ekran arkasında dağılmadan düzenli durur. Işık zinciri ve bant ayrıca temin edilir. Fotoğraflarda televizyon arkasında ışıklı kullanım ve kılavuzun yakın çekimleri görülür.\nYaklaşık dış ölçüler: 30 × 14 × 9 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1007207-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1007207-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1007207-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1007207-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Suraj",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "elektronik-akilli-saat-sarj-standi-huawei-watch-gt-6-pro-icin-pr1592966",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Akıllı Saat Şarj Standı (Huawei Watch GT 6 Pro İçin, İki Kablo Yönlendirmeli)",
+    "aciklama": "Huawei Watch GT 6 Pro için hazırlanmış, saati şarj aletinin üzerinde dengeli tutan stand. İki sürümü vardır: kablonun dışarıdan geçtiği, kolay erişimli sürüm ve kablonun içeriden geçip gizlendiği sade sürüm. Orijinal şarj aleti çift taraflı bantla standın içine sabitlenir, gerektiğinde çıkarılabilir (bant ürüne dahil değildir). Şarj yuvasının çapı 39 mm'dir. Fotoğraflarda lacivert stand şarj aletiyle ve çizim olarak görülür.\nYaklaşık dış ölçüler: dış kablo sürümü 88 × 64 × 55 mm; iç kablo sürümü 98 × 64 × 55 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1592966-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1592966-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1592966-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1592966-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jakub Lattenberg",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "elektronik-akilli-saat-sarj-standi-galaxy-watch-4-classic-icin-pr250293",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Akıllı Saat Şarj Standı (Galaxy Watch 4 Classic 46 mm İçin)",
+    "aciklama": "Galaxy Watch 4 Classic 46 mm için hazırlanmış şarj standı; aynı şarj aletini kullanan Galaxy Watch 3 ve 4 modellerine küçük ayarlarla uyabilir. Gövdenin arkasındaki kablo yuvası ve kesik sayesinde şarj kablosu görünmeden geçer. Fotoğraflarda siyah stand saatle ve çizim olarak görülür.\nYaklaşık dış ölçüler: 100 × 75 × 53 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr250293-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr250293-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr250293-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Alex Schladetsch",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "elektronik-akilli-saat-sarj-standi-huawei-watch-fit-icin-pr286844",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Akıllı Saat Şarj Standı (Huawei Watch Fit İçin)",
+    "aciklama": "Huawei Watch Fit saatini şarj kablosu bağlı halde tutan sade stand. Şarj kablosu sürtünmeyle yuvasına oturur; sabitlemek için az miktarda sıcak silikon yapıştırıcı kullanılabilir (yapıştırıcı ürüne dahil değildir). Fotoğraflarda siyah stand saatle ve tek başına görülür.\nYaklaşık dış ölçüler: 90 × 80 × 80 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr286844-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr286844-2.jpg"
+    ]
+  },
+  {
+    "id": "ofis-dik-yaslanmali-tablet-standi-genis-yuzeyli-pr145612",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Dik Yaslanmalı Tablet Standı (Geniş Yüzeyli)",
+    "aciklama": "Tableti dik yaslanma açısıyla masada tutan, tek parça geniş yüzeyli stand. Alt kenardaki çıkıntı tabletin kaymasını engeller. Örnek uygulama 10 cm genişliğindedir. Fotoğraflarda siyah stand tabletle ve çizim olarak görülür.\nYaklaşık dış ölçüler: 109 × 100 × 65 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr145612-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr145612-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr145612-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr145612-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "angel618",
+      "tur": "GPL 3.0"
+    }
+  },
+  {
+    "id": "elektronik-akilli-saat-sarj-standi-galaxy-watch-5-40-mm-icin-pr678192",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Akıllı Saat Şarj Standı (Galaxy Watch 5 40 mm İçin, Halkalı)",
+    "aciklama": "Galaxy Watch 5 40 mm ile gelen orijinal USB-C hızlı kablosuz şarj aletine göre ölçülmüş şarj standı. Şarj aletinin çapı 29,3 mm, yüksekliği 6,7 mm'dir. Halka biçimli gövde saati şarj aletiyle ayakta tutar, kablo arkadan geçer. Fotoğraflarda beyaz stand saatle ve tek başına görülür.\nYaklaşık dış ölçüler: 66 × 63 × 59 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr678192-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr678192-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr678192-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr678192-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Plotter",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tamirat-lehim-havyasi-sapi-ts101-icin-yuvarlatilmis-koseli-pr1255533",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Lehim Havyası Sapı (TS101 İçin, Yuvarlatılmış Köşeli)",
+    "aciklama": "TS101 lehim havyası için tutma sapı. Lehim sırasında düğmelere, vidaya ve sıcak uca yanlışlıkla dokunmayı önleyen kapalı bir tutacaktır; köşeleri elde daha rahat oturması için yuvarlatılmış, düz tabanı kaldırılmıştır. Masada bırakmak için değil, elde kullanım için tasarlanmıştır. Görsellerde yandan ve kesit çizimleri görülür.\nYaklaşık dış ölçüler: 57 × 19 × 16 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1255533-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1255533-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Dmytro Pyrih (özgün tasarım: Torte)",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mutfak-tencere-kapagi-ve-kasik-dinlendirici-pr103220",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Tencere Kapağı ve Kaşık Dinlendirici Stand",
+    "aciklama": "Pişirme sırasında tencere kapağını ve kaşık, kepçe, spatula gibi mutfak gereçlerini birlikte tutan stand. Kapak dik durur; oyuklar kapaktan damlayan suyu toplar ve tezgâha akmasını önler. Her boy kapağa uygundur. Görsellerde mavi renkli modelin farklı açıları yer alır.\nYaklaşık dış ölçüler: 184 × 148 × 103 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr103220-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr103220-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr103220-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Mikhail Babarinow",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mutfak-sade-kasik-dinlendirici-pr655562",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Sade Kaşık Dinlendirici",
+    "aciklama": "Standart kaşık, kepçe ve spatula için yuvarlak, sade formlu kaşıklık. Pişirme sırasında gerecin tezgâha değmesini önler. Görsellerde turuncu model ve masa üzerindeki kullanımı yer alır.\nYaklaşık dış ölçüler: 115 × 100 × 20 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr655562-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr655562-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ealux",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mutfak-tirnak-cilasi-sisesi-damlatma-standi-pr1085509",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Tırnak Cilası Şişesi Damlatma Standı",
+    "aciklama": "Küçük, ulaşılması zor tırnak cilası şişelerini ters tutarak içindekini başka bir kaba damlatan stand. Şişeyi saatlerce elde tutmak gerekmez; cila kendiliğinden boşalır. Fotoğraflarda beyaz modelin şişeyi tutuşu görülür.\nYaklaşık dış ölçüler: 90 × 60 × 50 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1085509-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1085509-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1085509-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DeckedKnight",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mutfak-ayakta-duran-kasik-dinlendirici-pr20870",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Ayakta Duran Kaşık Dinlendirici (Tabaklı)",
+    "aciklama": "Kaşığı dik tutan kavisli gövdeli stand ile alta oturan tabaktan oluşan kaşık dinlendirici. Gövdedeki delik 80 mm çaplıdır, tabak en fazla 125 mm'dir. Fotoğrafta ocak yanında kullanımı görülür.\nStand 210 × 148 × 100 mm, tutucu plaka 120 × 90 × 25 mm'dir.\nYaklaşık dış ölçüler: 210 × 148 × 100 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr20870-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr20870-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Wout",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mutfak-ahsap-kasik-icin-kasik-dinlendirici-pr384558",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Ahşap Kaşık İçin Kaşık Dinlendirici",
+    "aciklama": "Pişirme sırasında ahşap kaşık ve mutfak gereçlerini dinlendirmek için sade, küçük kaşıklık. Yazılı ve yazısız iki sürümü vardır; ölçeği ihtiyaca göre ayarlanabilir. Fotoğraflarda tezgâh üzerinde kullanımı görülür.\nYaklaşık dış ölçüler: 66 × 65 × 12 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr384558-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr384558-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Martin Küttner",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mutfak-cay-ve-kahve-kasigi-dinlendirici-pr1193064",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Çay ve Kahve Kaşığı Dinlendirici",
+    "aciklama": "Çay ya da kahveyi karıştırdıktan sonra çay kaşığını bekletmek için küçük, çukur yüzeyli dinlendirici. Çay, kahve ve tatlı kaşıklarına uygun boydadır.\nYaklaşık dış ölçüler: 55 × 40 × 10 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1193064-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1193064-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Tumblefluff",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mutfak-cok-yuvali-kasik-dinlendirici-yuzuk-direkli-pr1011509",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Çok Yuvalı Kaşık Dinlendirici (Yüzük Direkli)",
+    "aciklama": "Pişirme tezgâhını düzenli tutan çok yuvalı kaşıklık: normal kaşık yuvası, ayakta duran kaşık ve bıçak için iki yuva, ölçü kaşıkları için iki eğimli yuva ve yüzük bırakmak için ayrı bir direk bulunur. Görsellerde turuncu ve sarı modeller ölçü kaşıklarıyla görülür.\nYaklaşık dış ölçüler: 230 × 142 × 50 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1011509-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1011509-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1011509-3.jpg"
+    ]
+  },
+  {
+    "id": "mutfak-ofis-mutfagi-icin-kasik-dinlendirici-pr420229",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Ofis Mutfağı İçin Kaşık Dinlendirici",
+    "aciklama": "Ofis mutfağındaki kahve köşesi için iki kaşık yatıran, uzun ve sığ kaşıklık. Fotoğraflarda mavi model iki kaşıkla görülür.\nYaklaşık dış ölçüler: 221 × 113 × 12 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr420229-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr420229-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Zofo",
+      "tur": "GPL 3.0"
+    }
+  },
+  {
+    "id": "mutfak-katlanir-bardak-tutucu-kazigi-pr947168",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Katlanır Bardak Tutucu Kazığı (Kum ve Toprağa Saplanır)",
+    "aciklama": "Plaj, kamp ve bahçe için kum ya da yumuşak toprağa saplanan katlanır bardak tutucu kazığı. Sivri uç yere kolayca bastırılır; her bölümün ucundaki vida dişi sayesinde bölümler açıldıkça birbirine vidalanarak sağlam bir gövde oluşturur. Alçak plaj sandalyeleri için bazı bölümler kapalı bırakılabilir. 75 mm çapa kadar kutu ve şişeye göre ölçülüdür, üst kısmı bardaklar için genişler; X ve Y ekseninde büyütülebilir.\nAçıldığında yaklaşık 570 mm yüksekliğe ek 150 mm sivri uç sunar; katlanmış hâli 164 × 94 × 94 mm'dir.\nYaklaşık dış ölçüler: 164 × 94 × 94 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr947168-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr947168-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr947168-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "LoboCNC",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mutfak-camasir-deterjani-olcu-bardagi-tutucu-pr498229",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Çamaşır Deterjanı Ölçü Bardağı Tutucusu",
+    "aciklama": "Bidon tipi sıvı çamaşır deterjanlarının musluğuna takılarak ölçü bardağını musluğun altında tutan, damlamayı önleyen küçük tutucu. Standart deterjan musluklarına göre tasarlanmıştır; uyum için delik ölçüsünü musluğunuzla karşılaştırmanız önerilir. Görsellerde bidonun yan yatırılmış hâli ve modelin görünümü yer alır.\nYaklaşık dış ölçüler: 135 × 94 × 94 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr498229-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr498229-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jeremy Makes",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mutfak-deterjan-musluk-damlama-tutucusu-pr67540",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Deterjan Musluğu Damlama Tutucusu",
+    "aciklama": "Yan yatan musluklu deterjan bidonlarının musluğuna klipslenerek damlaları toplayan ve ölçü bardağını saklayan tutucu. Alt tabladaki oluklu yüzey damlaları yakalar. Fotoğraflarda büyük bir deterjan bidonuna takılı hâli görülür; musluk çapına göre ölçü kontrolü önerilir.\nYaklaşık dış ölçüler: 109 × 85 × 80 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr67540-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr67540-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dimo414",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mutfak-masa-kenari-kelepceli-termos-bardak-tutucu-pr809457",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Masa Kenarına Kelepçeli Büyük Termos Bardak Tutucusu",
+    "aciklama": "Masa kenarına vidalı kelepçeyle sabitlenen, büyük boy termos bardaklar için tutucu. Delme gerektirmez; kalın masalara göre ölçülüdür, vida sıkıldıkça daha ince masalara da oturur. Tabandaki delik büyük bardağın biraz içeri oturmasını sağlar ve devrilme riskini azaltır. Tutucu ve kelepçe cıvatası iki ayrı parçadır.\nTutucu 178 × 124 × 95 mm, cıvata 50 × 35 × 32 mm'dir.\nYaklaşık dış ölçüler: 178 × 124 × 95 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr809457-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr809457-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr809457-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr809457-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ShaneTalksTech",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mutfak-kamp-sandalyesi-bardakligi-pr258442",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kamp Sandalyesi Bardaklığı",
+    "aciklama": "Katlanır kamp sandalyelerinin çapraz çubukları arasına oturan bardaklık. 19,5 mm çubuk çapına ve en fazla 82 mm çaplı bardaklara göre ölçülüdür. Çubukların yönüne göre modeli yansıtmak gerekebilir. Fotoğraflarda kamp sandalyesine takılı hâli görülür.\nYaklaşık dış ölçüler: 171 × 150 × 30 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr258442-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr258442-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr258442-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "makewithjake",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mutfak-kasik-ve-kapak-dinlendirici-pr393640",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kaşık ve Kapak Dinlendirici",
+    "aciklama": "Pişirme sırasında kaşık, kepçe ve tencere kapaklarını tezgâha değmeden bekleten oluklu kaşıklık. Alt yüzeydeki kanallar damlaları toplar. Fotoğraflarda yeşil, beyaz ve gri modeller görülür.\nYaklaşık dış ölçüler: 156 × 127 × 50 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr393640-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr393640-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr393640-3.jpg"
+    ]
+  },
+  {
     "id": "elektronik-akilli-saat-sarj-standi-cmf-watch-2-pro-icin-pr1020659",
     "kategori": "Elektronik",
     "marka": [],
