@@ -1,5 +1,55 @@
 [
   {
+    "id": "ofis-petek-desenli-bukumlu-masa-duzenleyici-4lu-ve-16li-pr840825",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Petek Desenli Bükümlü Masa Düzenleyici (4'lü ve 16'lı Sürüm)",
+    "aciklama": "Altıgen (petek) gözlerin hafifçe bükülerek dizildiği, kalem, fırça ve küçük aletler için çok gözlü masa düzenleyici. İki sürümü vardır: küçük 4'lü ve büyük 16'lı. Görsellerde düzenleyici bilgisayar çizimi olarak farklı açılardan görülür.\nYaklaşık dış ölçüler: 16'lı sürüm 234 × 201 × 76 mm; 4'lü sürüm 124 × 93 × 81 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr840825-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr840825-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr840825-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Ariel Warsh",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ofis-kucuk-defter-sehpasi-egimli-tutucu-140x111-mm-defter-icin-pr1134848",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Küçük Defter Sehpası (140 × 111 mm Defter İçin)",
+    "aciklama": "Yaklaşık 140 × 111 mm boyundaki küçük defteri masada eğimli ve dik tutan, küçük ve sade sehpa. Gövde tek parçadır; daha büyük defterler için ölçek büyütülebilir, ağır defterlerde altına kaymaz altlık konabilir. Fotoğraflarda siyah sehpa spiralli defterle yandan ve önden görülür.\nYaklaşık dış ölçüler: 73 × 69 × 63 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1134848-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1134848-2.jpg"
+    ]
+  },
+  {
+    "id": "ofis-kaset-calar-gorunumlu-masa-duzenleyici-kalem-bardakli-pr1801670",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kaset Çalar Görünümlü Masa Düzenleyici (Kalem Bardaklı, Telefon Yuvalı)",
+    "aciklama": "Retro bir kaset çalar görünümündeki masa düzenleyici. İki kalem bardağı 52 mm derinliğindedir; ortadaki tepsi ataç, bozuk para, bellek gibi ufak eşyalar içindir; arkadaki hafif eğimli yuva kılıflı telefonu tutar ve arka panelden şarj kablosu geçirilebilir. Altta kaset biçimli bir çekmece dışarı çekilir; çekmece önündeki etiket yandan kaydırılarak değiştirilir (dokuz hazır etiket vardır). Fotoğrafta gri gövde ve pembe çekmece, çizimlerde parçalar görülür.\nYaklaşık dış ölçüler: gövde 112 × 74 × 58 mm; çekmece 76 × 70 × 32 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1801670-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1801670-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1801670-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1801670-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Miloslav Brožek",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "ev-evrensel-bicak-blogu-dik-govdeli-tabanli-pr267209",
     "kategori": "Ev",
     "marka": [],
