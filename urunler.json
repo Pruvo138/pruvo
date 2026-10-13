@@ -1,5 +1,154 @@
 [
   {
+    "id": "tamirat-iki-parcali-kablo-klipsi-vidali-bantli-pr1497416",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kablo Klipsi (İki Parçalı, Vidalı ya da Bantlı, 5 × 4,5 ve 4 × 7 mm)",
+    "aciklama": "Masa altı, duvar ya da mobilya yüzeyinde kabloları sıralı tutan iki parçalı kablo klipsi. İki parça küre biçimli bir geçme sistemiyle birbirine oturur; bu sistem parçaların birbirinden kaymasını önler. Küçük bir vidayla ya da çift taraflı bantla sabitlenir (vida ve bant ürüne dahil değildir). 5 × 4,5 mm ve 4 × 7 mm kesitli iki ayrı kablo yuvası seçeneği vardır; kablonuzun kesitini önceden ölçün. Fotoğraflarda klipsler koyu zeminde kablo üzerinde ve tek başına görülür.\nYaklaşık dış ölçüler: 37,8 × 11 × 8,5 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1497416-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1497416-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Bndzi",
+      "tur": "GPL 3.0"
+    }
+  },
+  {
+    "id": "tamirat-civi-cakmali-kablo-tutucu-3-12-mm-1-5-kablolu-pr673110",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Çivi Çakmalı Kablo Tutucu (3–12 mm Kablo, 1–5 Kablolu)",
+    "aciklama": "Kabloları duvara ya da ahşap yüzeye çivi ile sabitleyen bloklu tutucu. İki ucundaki 2 mm çaplı deliklerden çivi çakılır (çivi ürüne dahil değildir). 3 mm ile 12 mm arasındaki kablo çaplarına ve bir ile beş kabloyu yan yana tutan yuva sayılarına göre çok sayıda ölçüsü vardır; kablonuzun çapını ölçüp uygun ölçüyü seçin. Fotoğraflarda farklı çap ve yuva sayılarına göre hazırlanmış tutucu sıraları görülür.\nYaklaşık dış ölçüler (örnek: 3 kablolu, 5 mm çaplı): 27 × 7,4 × 6 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr673110-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr673110-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "SHQ",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tamirat-kilitli-kablo-klipsi-16-yuvali-4-montaj-secenegi-pr1408377",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kilitli Kablo Klipsi (1–16 Yuvalı, Bantlı, Kablo Bağlı ya da Vidalı)",
+    "aciklama": "Masa kenarı, kasa ya da duvar yüzeyinde kabloları ayrı yuvalarda tutan, kapağı kilitlenen kalın gövdeli kablo klipsi. Her yuva 7,5 mm genişliğindedir ve çoğu kablonun rahat geçmesine uygundur. 1'den 16 yuvaya kadar ölçüleri ve dört sabitleme seçeneği vardır: arkadaki oyuğa yerleştirilen 30 mm çift taraflı bant, kablo bağı kulakları, havşalı ahşap vidalar ya da yalnızca yapıştırıcı (bant, kablo bağı, vida ve yapıştırıcı ürüne dahil değildir). Bölmesiz sürümü de vardır. Fotoğraflarda klips tek başına, kapağı açık konumda görülür.\nYaklaşık dış ölçüler (6 yuvalı bantlı model): 81 × 45,2 × 15 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1408377-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1408377-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1408377-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "neoyarus",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "tamirat-masa-alti-kablo-klipsi-3-mm-vidali-pr1348825",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Masa Altı Kablo Klipsi (Çok Yuvalı, 3 mm Vidalı)",
+    "aciklama": "Masanın altına ya da dolap içine vidalanan, kabloları yan yana ayrı yuvalarda tutan çok yuvalı kablo klipsi. Montaj deliği 3 mm çaplı vidaya uygundur (vida ürüne dahil değildir). Fotoğraflarda klips raf altında kablolarla birlikte ve tek başına görülür.\nYaklaşık dış ölçüler: 64 × 25 × 15 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1348825-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1348825-2.jpg"
+    ]
+  },
+  {
+    "id": "tamirat-kucuk-kablo-klipsi-vidali-ya-da-bantli-pr122738",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Küçük Kablo Klipsi (Vidalı ya da Bantlı)",
+    "aciklama": "Hoparlör, şarj ve benzeri ince kabloları duvar ve zemin boyunca düzenli tutan küçük kablo klipsi. Açık yüzü mümkünse yukarı bakacak biçimde yerleştirilmelidir. 2 ya da 2,5 × 10 mm (veya daha uzun) düz başlı ahşap vidayla ya da yaklaşık 11 × 7 mm ölçüsünde kesilmiş köpük bantla sabitlenir; yüzey bant tutmuyorsa yüksek tutuşlu bant kullanılabilir (vida ve bant ürüne dahil değildir). Fotoğraflarda klips render görüntülerinde ve dolap içinde bir kablo üzerinde görülür.\nYaklaşık dış ölçüler: 11,5 × 10,5 × 10,5 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr122738-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr122738-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr122738-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jerrari",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tamirat-kablo-klipsi-10-mm-kablolara-kadar-l-ve-m-boy-pr204167",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kablo Klipsi (10 mm Kalınlığa Kadar, L ve M Boy)",
+    "aciklama": "10 mm kalınlığa kadar kabloları yüzeye tutturan sade, tek parça kablo klipsi. Uzun (L) ve orta (M) olmak üzere iki boyda bulunur. Tek vidayla ahşap ve benzeri yüzeylere sabitlenir (vida ürüne dahil değildir). Fotoğraflarda turuncu klipsler ahşap yüzeyde kabloyu tutarken görülür.\nYaklaşık dış ölçüler (L boy): 33,5 × 13,8 × 10 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr204167-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr204167-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr204167-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr204167-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Michel",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tamirat-2020-profil-kablo-klipsi-yuvaya-cevirerek-takilan-pr118550",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "2020 Profil Kablo Klipsi (Yuvaya Çevirerek Takılan)",
+    "aciklama": "2020 tipi alüminyum profillerin yuvasına takılan kablo klipsi. Profil yuvasına yerleştirilip çevrilerek oturur; ek vida ya da bant gerektirmez ve kabloları profil boyunca toplu tutar. İki ayrı biçimi vardır; profilinizin yuva genişliği farklıysa uygun değildir. Fotoğraflarda beyaz klipsler kırmızı profil üzerinde görülür.\nYaklaşık dış ölçüler: 18 × 14,1 × 5 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr118550-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr118550-2.jpg"
+    ]
+  },
+  {
+    "id": "tamirat-alcipan-dubeli-kendinden-delen-kucuk-ve-buyuk-vida-pr61117",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Alçıpan Dübeli (Kendinden Delen, Küçük ve Büyük Vida İçin)",
+    "aciklama": "Alçıpan levhaya vida tutturmak için kullanılan, kendi deliğini açan dübel. İki sürümü vardır: biri küçük vidalar, diğeri daha kalın vidalar içindir. Dübeli duvara yerleştirmeden önce vidanızı dübelde deneyin; ölçüsü uymayan vida için uygun değildir. Fotoğraflarda siyah dübel masa üzerinde ve elde görülür.\nYaklaşık dış ölçüler: 33,7 × 14,6 × 14,6 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr61117-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr61117-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "marcvivet",
+      "tur": "GPL 3.0"
+    }
+  },
+  {
+    "id": "tamirat-duvar-dubeli-iki-parcali-iki-boy-pr225390",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Duvar Dübeli (İki Parçalı, Gözenekli ve Kırılgan Yüzeyler İçin, İki Boy)",
+    "aciklama": "Beton gibi sert, gözenekli ya da kırılgan duvar malzemelerinde vidanın tutunması için hazırlanmış iki parçalı dübel. Yaklaşık 12 mm ve 25 mm uzunluğunda iki boyu vardır; iki yarısı küçük bir köprüyle birleştirilmiş sürümü de bulunur. Delik çapınıza ve vidanıza uyup uymadığını önce deneyin; farklı çaplar için uygun değildir. Görsellerde dübel bilgisayar render görüntüsüyle gösterilir.\nYaklaşık dış ölçüler (büyük boy): 24,8 × 10,8 × 10 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr225390-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr225390-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Mape",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "dekor-gerdanlik-ve-kelepce-bileklik-iki-parcali-pr243691",
     "kategori": "Dekorasyon",
     "marka": [],
