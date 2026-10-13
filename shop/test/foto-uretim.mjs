@@ -19,8 +19,11 @@
  *   G HAVUZ             : bakiye esigin altinda -> bolum kapanir + Telegram TEK bildirim
  *   H /baslat           : fiyat SUNUCUDA formulden (+kargo kurali), havale RED, suresi dolmus
  *                         onizleme RED
- *   I URETIM ZINCIRI    : 'bekliyor' siparis uretime GIRMEZ; 'odendi' -> model -> analiz ->
- *                         4 renk -> 3MF+GLB ozel kovada -> panelde indirilebilir; kredi 46
+ *   I URETIM ZINCIRI    : 'bekliyor' siparis uretime GIRMEZ; 'odendi' -> 'onay-bekliyor' -> (Okan onayi,
+ *                         SO bolumu) -> model -> analiz -> 4 renk -> 3MF+GLB ozel kovada -> panelde
+ *                         indirilebilir; kredi 46
+ *   SO OKAN ONAYI       : odenen saglayici kalemi onaysiz saglayiciya GITMEZ; siparis-onayla (okan_onay:true)
+ *                         -> build-baslat; 70 sa -> elle; 48/66 sa TEK hatirlatma; ornek-uret bayraksiz 403
  *   J ANALIZ KIRMIZI    : renk adimi KOSMAZ, satir 'elle' + Telegram bir kez
  *   K MARKASIZ          : saglayici adi / anahtar oneki calisma agacinda 0 (git grep)
  *   L DRIFT             : wrangler.toml cron + hiz siniri beyani index.js ile ayni
@@ -425,6 +428,24 @@ const onizlemeGovde = (ek) => ({ tur: "plaket", olcu_mm: 100, gorsel: GORSEL, ay
   onay_surum: VERI.onay_surum, turnstile_token: "jeton", ...(ek || {}) });
 const protoSayisi = () => P.cagri.filter((c) => /^POST .*\/v1\/prototype$/.test(c)).length;
 
+/** 'onay-bekliyor' satirlarin HEPSINI panel onay ucuyla (okan_onay:true) onaylar; onaylanan sayisi. */
+async function okanOnaylar(fm, e, db) {
+  const r = await db.prepare("SELECT siparis_no, kalem FROM foto_uretim WHERE asama = 'onay-bekliyor'").all();
+  let n = 0;
+  for (const x of (r.results || [])) {
+    const y = await fm.panelSiparisOnayla(new Request("https://pruvo3d.com/x", { method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ siparis_no: x.siparis_no, kalem: x.kalem, okan_onay: true }) }), e, Date.now(), null);
+    if (y.status === 200) { n++; }
+  }
+  return n;
+}
+/** Bir cron turu; onay bekleyen satir onaylandiysa tur AYNEN tekrarlanir (onay oncesi tek tura esdeger). */
+async function turVeOnay(fm, e, db) {
+  await fm.fotoUretimTuru(e, Date.now(), null);
+  if (await okanOnaylar(fm, e, db)) { await fm.fotoUretimTuru(e, Date.now(), null); }
+}
+
 // ================================================================ ANA KOSUM
 
 const kopru = koprukur();
@@ -715,7 +736,11 @@ let siparisNo;
 }
 
 console.log("I) URETIM ZINCIRI");
-const cron = async () => modul.scheduled({ cron: "*/5 * * * *", scheduledTime: Date.now() }, env, ctx);
+const cronHam = async () => modul.scheduled({ cron: "*/5 * * * *", scheduledTime: Date.now() }, env, ctx);
+// OKAN ONAYI (13 Eki 21:0x): odenen saglayici kalemi 'onay-bekliyor'da bekler; zincirin geri kalanini olcen
+// senaryolarda onay panel ucuyla verilir ve AYNI tur yeniden kosar (tur sayisi onay oncesiyle esdeger).
+// Onaysiz davranis SO bolumunde (S1..S6) ham turla olculur.
+const cron = async () => { await cronHam(); if (await okanOnaylar(foto, env, d1)) { await cronHam(); } };
 {
   await cron();
   const bos = await d1.prepare("SELECT COUNT(*) AS n FROM foto_uretim").first();
@@ -965,13 +990,13 @@ let ornekIs = "";
   ol("O7 ornek isi sepette RED (400 foto-onizleme-yok), iyzico'ya istek YOK",
      sb.kod === 400 && sb.v.hata === "foto-onizleme-yok" && P.iyzico.length === iyOnce, JSON.stringify(sb.v));
   // O8 URET: musteri isi uretilemez; hazir olmayan ornek 409; hazir ornek siparissiz satir.
-  const um = await istek(env, "/yonet/foto/ornek-uret", { govde: { is: musteriIs }, basliklar: YONET });
+  const um = await istek(env, "/yonet/foto/ornek-uret", { govde: { is: musteriIs, okan_onay: true }, basliklar: YONET });
   const hazirDegil = await d1.prepare("SELECT is_no FROM foto_isler WHERE ziyaretci = ? AND asama = 'onizleme' AND gorev != '' LIMIT 1")
     .bind(foto.ORNEK_ZIYARETCI).first();
-  const uh = await istek(env, "/yonet/foto/ornek-uret", { govde: { is: hazirDegil && hazirDegil.is_no }, basliklar: YONET });
+  const uh = await istek(env, "/yonet/foto/ornek-uret", { govde: { is: hazirDegil && hazirDegil.is_no, okan_onay: true }, basliklar: YONET });
   ol("O8 musteri isi ornek-uret'te 404 · hazir olmayan ornek 409", um.kod === 404 && uh.kod === 409, um.kod + "/" + uh.kod);
-  const u1 = await istek(env, "/yonet/foto/ornek-uret", { govde: { is: ornekIs }, basliklar: YONET });
-  const u2 = await istek(env, "/yonet/foto/ornek-uret", { govde: { is: ornekIs }, basliklar: YONET });
+  const u1 = await istek(env, "/yonet/foto/ornek-uret", { govde: { is: ornekIs, okan_onay: true }, basliklar: YONET });
+  const u2 = await istek(env, "/yonet/foto/ornek-uret", { govde: { is: ornekIs, okan_onay: true }, basliklar: YONET });
   const ornekNo = "ORNEK-" + ornekIs.slice(0, 12);
   ol("O8b ornek-uret -> siparis_no ORNEK-<is ilk 12>, ikinci cagri yeni satir ACMAZ",
      u1.kod === 200 && u1.v.siparis_no === ornekNo && u1.v.yeni === true && u2.v.yeni === false, JSON.stringify(u1.v) + JSON.stringify(u2.v));
@@ -1581,7 +1606,7 @@ async function olcekSenaryolar(fm, ayrinti) {
     await k.d1.prepare("INSERT INTO siparisler (siparis_no, tarih, durum, tutar_kurus, urunler) VALUES (?, ?, 'odendi', 1, ?)")
       .bind(no, new Date().toISOString(), JSON.stringify([{ id: "ozel-foto-plaket", foto_is: is, foto_tur: "plaket", olcu_mm: 120, foto_renkler: ["Beyaz", "Siyah", "Gri", "Mavi"] }])).run();
     P.ucmf = ucmf; P.analiz = a || "healthy"; P.analizOnarim = ao || null;
-    for (let i = 0; i < 10; i++) { await fm.fotoUretimTuru(e2, Date.now(), null); }
+    for (let i = 0; i < 10; i++) { await turVeOnay(fm, e2, k.d1); }
     P.ucmf = null; P.analiz = "healthy"; P.analizOnarim = null;
     const u = await k.d1.prepare("SELECT asama, sebep, analiz FROM foto_uretim WHERE siparis_no = ?").bind(no).first();
     const d = r2b.m.get("foto/" + no + "/0/model.ham.3mf");
@@ -2597,7 +2622,7 @@ async function darSenaryolar(fm) {
   await k.d1.prepare("INSERT INTO siparisler (siparis_no, tarih, durum, tutar_kurus, urunler) VALUES ('PR-TEST-MUT', ?, 'odendi', 1, ?)")
     .bind(new Date().toISOString(), JSON.stringify([{ id: "ozel-foto-plaket", foto_is: is, foto_tur: "plaket", olcu_mm: 100, foto_renkler: ["Beyaz"] }])).run();
   P.analiz = "error";
-  for (let i = 0; i < 8; i++) { await fm.fotoUretimTuru(e2, Date.now(), null); }
+  for (let i = 0; i < 8; i++) { await turVeOnay(fm, e2, k.d1); }
   P.analiz = "healthy";
   const u = await k.d1.prepare("SELECT asama, build_gorev FROM foto_uretim WHERE siparis_no = 'PR-TEST-MUT'").first();
   // 8 Eki: kirmizi analiz -> saglayici onarimi (zincir 3 halka) -> 'onarim-bekliyor' (elle DEGIL).
@@ -2719,7 +2744,7 @@ async function onarimSenaryolar(fm) {
     P.analiz = a; P.analizOnarim = ao;
     const an = P.cagri.filter((c) => c === "POST /v1/print/analyze").length;
     const rn = P.cagri.filter((c) => c === "POST /v1/print/multi-color").length;
-    for (let i = 0; i < 10; i++) { await fm.fotoUretimTuru(e2, Date.now(), null); }
+    for (let i = 0; i < 10; i++) { await turVeOnay(fm, e2, k.d1); }
     P.analiz = "healthy"; P.analizOnarim = null;
     const u = await k.d1.prepare("SELECT asama, sebep FROM foto_uretim WHERE siparis_no = ?").bind(no).first();
     return { no, u, analiz: P.cagri.filter((c) => c === "POST /v1/print/analyze").length - an,
@@ -2826,7 +2851,7 @@ async function metrikSenaryolar(fm) {
     const on = P.cagri.filter((c) => c === "POST /v1/print/repair").length;
     const rn = P.cagri.filter((c) => c === "POST /v1/print/multi-color").length;
     const an = P.cagri.filter((c) => c === "POST /v1/print/analyze").length;
-    for (let i = 0; i < 14; i++) { await fm.fotoUretimTuru(e2, Date.now(), null); }
+    for (let i = 0; i < 14; i++) { await turVeOnay(fm, e2, k.d1); }
     P.analiz = "healthy"; P.analizOnarim = null; P.analizMetrik = null;
     const u = await k.d1.prepare("SELECT asama, sebep FROM foto_uretim WHERE siparis_no = ?").bind(no).first();
     return { u, onarim: P.cagri.filter((c) => c === "POST /v1/print/repair").length - on,
@@ -2915,7 +2940,7 @@ async function ornekSenaryolar(fm) {
   const dosya = async (no) => (await fm.panelFotoDosya(e2, new URL("https://pruvo3d.com/x?siparis_no=" + no + "&kalem=0&bicim=3mf"))).status;
   s.DOSYA = (await dosya("ORNEK-mutant000001")) === 404 && (await dosya("ORNEK-mutant000002")) === 200;
   const uret = async (is) => (await fm.panelOrnekUret(new Request("https://pruvo3d.com/x", { method: "POST",
-    headers: { "Content-Type": "application/json" }, body: JSON.stringify({ is }) }), e2, Date.now(), null)).status;
+    headers: { "Content-Type": "application/json" }, body: JSON.stringify({ is, okan_onay: true }) }), e2, Date.now(), null)).status;
   s.URET = (await uret(mus)) === 404 && (await uret(orn)) === 200;
   k.kapat();
   return s;
@@ -3052,6 +3077,170 @@ for (const [ad, capa, yerine, olmeli] of ONAYLI_MUTANTLAR) {
      Object.keys(s).length === 5 && JSON.stringify(kirmizilar) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(s));
 }
 
+// ================================================================ SO — SIPARIS KALEMI OKAN ONAYI (13 Eki 21:0x, para)
+
+/**
+ * Odenen siparisin saglayici foto kalemi 'onay-bekliyor' acilir; 3D build YALNIZ POST /yonet/foto/siparis-onayla
+ * (okan_onay:true) ile. Temiz SQLite; D1 + saglayici cagrisi sayilir. Donus {s, ayrinti}:
+ *   S1 odenen siparis -> satir 'onay-bekliyor', 2 cron turunda saglayici cagrisi 0, "ONAYI BEKLİYOR" Telegram 1
+ *   S2 onay ucu okan_onay:true -> 200 build-baslat (Telegram "OKAN ONAYLADI no/kalem"), 2. onay 409, yok 404;
+ *      sonraki tur build POST 1, govdede input_task_id = onizleme gorevi
+ *   S3 bayraksiz / "true" (string) -> 403, D1 cagrisi 0, saglayici 0, satir hala 'onay-bekliyor'
+ *   S4 70 sa asan onizleme: cron 'elle' (onizleme-suresi-doldu, Telegram) · ucta 409 onizleme-suresi-doldu
+ *   S5 hatirlatma: 48 sa esiginde TEK, 66 sa esiginde TEK (tekrar turlarinda yeni Telegram yok)
+ *   S6 panelOrnekUret bayraksiz / "true" -> 403 + D1 0 + satir 0; okan_onay:true -> 200
+ *   E3 ayni is icin ORNEK- satiri varken siparis satiri yine 'onay-bekliyor' + Telegram'da cift zincir notu +
+ *      saticiFotoBilgileri ornek_no/notu; E2V Okan bilgisi is_no + uretim_notu + panel gorsel linki (anahtar YOK)
+ */
+async function siparisOnaySenaryolar(fm) {
+  const k = koprukur(); await k.hazir;
+  let d1Cagri = 0;
+  const d1s = { prepare(sql) { d1Cagri++; return k.d1.prepare(sql); } };
+  const r2b = r2Kur();
+  const e2 = envKur(d1s, r2b);
+  const simdi = Date.now(), iso = new Date(simdi).toISOString();
+  const saatOnce = (h) => new Date(simdi - h * 3600000).toISOString();
+  const A = "5".repeat(32), B = "6".repeat(32), C = "7".repeat(32), D = "8".repeat(32), E = "9".repeat(32),
+    O = "4".repeat(32);
+  const NOT = "<b>kalın</b> & 'tırnak' çerçeve";
+  for (const [is, yas, ziy, not] of [[A, 0, "0123456789abcdef", NOT], [B, fm.ONIZLEME_KURULUM_SINIRI_SAAT + 1, "0123456789abcdef", ""],
+    [C, 49, "0123456789abcdef", ""], [D, fm.ONIZLEME_KURULUM_SINIRI_SAAT + 1, "0123456789abcdef", ""],
+    [E, 0, "0123456789abcdef", ""], [O, 0, fm.ORNEK_ZIYARETCI, ""]]) {
+    await k.d1.prepare("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, gorev, hazir_tarih, uretim_notu)" +
+      " VALUES (?, 'plaket', 100, ?, ?, 'hazir', ?, ?, ?)").bind(is, ziy, saatOnce(yas), "gorev-so-" + is.slice(0, 1), saatOnce(yas), not).run();
+  }
+  const kalemOf = (is) => [{ id: "ozel-foto-plaket", foto_is: is, foto_tur: "plaket", olcu_mm: 100, foto_renkler: ["Beyaz"],
+    malzeme: "PLA", renk: "Beyaz" }];
+  for (const [no, is] of [["PR-SO-A", A], ["PR-SO-B", B], ["PR-SO-C", C], ["PR-SO-E", E]]) {
+    await k.d1.prepare("INSERT INTO siparisler (siparis_no, tarih, durum, tutar_kurus, urunler) VALUES (?, ?, 'odendi', 1, ?)")
+      .bind(no, iso, JSON.stringify(kalemOf(is))).run();
+  }
+  // E'nin ORNEK zinciri zaten uretilmis (hazir) — cron onu islemez.
+  const ornekE = fm.ORNEK_SIPARIS_ONEK + E.slice(0, 12);
+  await k.d1.prepare("INSERT INTO foto_uretim (siparis_no, kalem, is_no, tur, olcu_mm, asama, tarih, guncel) VALUES (?, 0, ?, 'plaket', 100, 'hazir', ?, ?)")
+    .bind(ornekE, E, iso, iso).run();
+  // D: onay bekleyen ama onizlemesi 70 sa'i asmis satir (cron'dan ONCE ucta 409).
+  await k.d1.prepare("INSERT INTO foto_uretim (siparis_no, kalem, is_no, tur, olcu_mm, asama, tarih, guncel) VALUES ('PR-SO-D', 0, ?, 'plaket', 100, 'onay-bekliyor', ?, ?)")
+    .bind(D, iso, iso).run();
+  const tg = [];
+  const tgFn = async (_e, m) => { tg.push(m); };
+  const onay = async (govde) => {
+    const r = await fm.panelSiparisOnayla(new Request("https://pruvo3d.com/x", { method: "POST",
+      headers: { "Content-Type": "application/json" }, body: JSON.stringify(govde) }), e2, Date.now(), tgFn);
+    return { kod: r.status, v: await r.json() };
+  };
+  const satir = async (no) => k.d1.prepare("SELECT asama, sebep, deneme FROM foto_uretim WHERE siparis_no = ? AND kalem = 0").bind(no).first();
+  const tgSay = (parca, no) => tg.filter((m) => m.includes(parca) && m.includes(no)).length;
+  const tur = async () => fm.fotoUretimTuru(e2, Date.now(), tgFn);
+  const s = {}, ayrinti = {};
+
+  const d4 = await onay({ siparis_no: "PR-SO-D", kalem: 0, okan_onay: true });
+  const p0 = P.cagri.length;
+  await tur(); await tur();
+  const sA = await satir("PR-SO-A");
+  ayrinti.S1 = { satir: sA, saglayici: P.cagri.slice(p0), tg: tgSay("OKAN ONAYI BEKLİYOR: PR-SO-A", "PR-SO-A") };
+  s.S1 = !!sA && sA.asama === "onay-bekliyor" && P.cagri.length === p0 && ayrinti.S1.tg === 1;
+
+  let d0 = d1Cagri, q0 = P.cagri.length;
+  const s3a = await onay({ siparis_no: "PR-SO-A", kalem: 0 });
+  const s3b = await onay({ siparis_no: "PR-SO-A", kalem: 0, okan_onay: "true" });
+  const sA3 = await satir("PR-SO-A");
+  // satir() sayilmayan k.d1'den okur -> fark yalniz uctan gelir.
+  ayrinti.S3 = { a: s3a, b: s3b, d1: d1Cagri - d0, saglayici: P.cagri.length - q0, asama: sA3 && sA3.asama };
+  s.S3 = s3a.kod === 403 && s3b.kod === 403 && s3a.v.hata === "okan-onayi-yok" && s3b.v.hata === "okan-onayi-yok" &&
+    d1Cagri - d0 === 0 && P.cagri.length === q0 && !!sA3 && sA3.asama === "onay-bekliyor";
+
+  const sB = await satir("PR-SO-B"), sD = await satir("PR-SO-D");
+  const b4 = await onay({ siparis_no: "PR-SO-B", kalem: 0, okan_onay: true });
+  ayrinti.S4 = { B: sB, D: sD, d4, b4, tg: tgSay("ELLE BAKILACAK", "PR-SO-B") };
+  s.S4 = !!sB && sB.asama === "elle" && sB.sebep === "onizleme-suresi-doldu" && ayrinti.S4.tg === 1 &&
+    d4.kod === 409 && d4.v.hata === "onizleme-suresi-doldu" && b4.kod === 409 && b4.v.hata === "onay-beklemiyor";
+
+  const h1 = tgSay("hatırlatma", "PR-SO-C"), c1 = await satir("PR-SO-C");
+  await k.d1.prepare("UPDATE foto_isler SET hazir_tarih = ? WHERE is_no = ?").bind(saatOnce(67), C).run();
+  await tur(); await tur();
+  const h2 = tgSay("hatırlatma", "PR-SO-C"), c2 = await satir("PR-SO-C");
+  ayrinti.S5 = { h1, c1, h2, c2, A: tgSay("hatırlatma", "PR-SO-A") };
+  s.S5 = h1 === 1 && c1 && c1.deneme === 1 && c1.asama === "onay-bekliyor" && h2 === 2 && c2 && c2.deneme === 2 &&
+    c2.asama === "onay-bekliyor" && ayrinti.S5.A === 0;
+
+  const sE = await satir("PR-SO-E");
+  const bilgiE = await fm.saticiFotoBilgileri(e2, "PR-SO-E", kalemOf(E));
+  const notluTg = tg.filter((m) => m.includes("PR-SO-E") && m.includes("bu iş için zaten üretim var: " + ornekE)).length;
+  ayrinti.E3 = { satir: sE, tg: notluTg, bilgi: bilgiE };
+  s.E3 = !!sE && sE.asama === "onay-bekliyor" && notluTg === 1 && bilgiE.length === 1 && bilgiE[0].ornek_no === ornekE &&
+    bilgiE[0].cift_zincir_notu === "bu iş için zaten üretim var: " + ornekE;
+  const bilgiA = await fm.saticiFotoBilgileri(e2, "PR-SO-A", kalemOf(A));
+  const bA = bilgiA[0] || {};
+  ayrinti.E2V = bilgiA;
+  s.E2V = bilgiA.length === 1 && bA.is_no === A && bA.uretim_notu === NOT && bA.onay_gerekli === true && bA.ornek_no === "" &&
+    bA.gorsel === "https://pruvo3d.com/api/shop/yonet/foto-dosya?siparis_no=PR-SO-A&kalem=0&bicim=onizleme" &&
+    !bA.gorsel.includes(e2.YONET_ANAHTAR) && bA.malzeme === "PLA" && bA.renk === "Beyaz";
+
+  const b0 = P.cagri.filter((c) => /\/v1\/build$/.test(c)).length;
+  const s2 = await onay({ siparis_no: "PR-SO-A", kalem: 0, okan_onay: true });
+  const sA2 = await satir("PR-SO-A");
+  const s2b = await onay({ siparis_no: "PR-SO-A", kalem: 0, okan_onay: true });
+  const s2c = await onay({ siparis_no: "PR-SO-Z", kalem: 0, okan_onay: true });
+  P.sonBuild = null;
+  await tur();
+  const b1 = P.cagri.filter((c) => /\/v1\/build$/.test(c)).length;
+  ayrinti.S2 = { s2, asama: sA2 && sA2.asama, s2b: s2b.kod, s2c: s2c.kod, build: b1 - b0, govde: P.sonBuild,
+                 tg: tgSay("OKAN ONAYLADI PR-SO-A/0", "PR-SO-A") };
+  s.S2 = s2.kod === 200 && s2.v.asama === "build-baslat" && !!sA2 && sA2.asama === "build-baslat" && s2b.kod === 409 &&
+    s2c.kod === 404 && b1 - b0 === 1 && !!P.sonBuild && P.sonBuild.input_task_id === "gorev-so-5" && ayrinti.S2.tg === 1;
+
+  d0 = d1Cagri; q0 = P.cagri.length;
+  const ornekUret = async (govde) => (await fm.panelOrnekUret(new Request("https://pruvo3d.com/x", { method: "POST",
+    headers: { "Content-Type": "application/json" }, body: JSON.stringify(govde) }), e2, Date.now(), null));
+  const o1 = await ornekUret({ is: O }), o2 = await ornekUret({ is: O, okan_onay: "true" });
+  const od1 = d1Cagri - d0, osag = P.cagri.length - q0;
+  const oSatir0 = (await k.d1.prepare("SELECT COUNT(*) AS n FROM foto_uretim WHERE is_no = ?").bind(O).first()).n;
+  const o3 = await ornekUret({ is: O, okan_onay: true });
+  const oSatir1 = (await k.d1.prepare("SELECT COUNT(*) AS n FROM foto_uretim WHERE is_no = ?").bind(O).first()).n;
+  ayrinti.S6 = { o1: o1.status, o2: o2.status, d1: od1, saglayici: osag, oSatir0, o3: o3.status, oSatir1 };
+  s.S6 = o1.status === 403 && o2.status === 403 && od1 === 0 && osag === 0 && oSatir0 === 0 && o3.status === 200 && oSatir1 === 1;
+  k.kapat();
+  return { s, ayrinti };
+}
+console.log("SO) SIPARIS KALEMI OKAN ONAYI (onay-bekliyor -> siparis-onayla -> build-baslat)");
+{
+  const { s, ayrinti } = await siparisOnaySenaryolar(foto);
+  ol("S1 odenen siparis -> 'onay-bekliyor', 2 cron turunda saglayici cagrisi 0, ONAYI BEKLİYOR Telegram 1", s.S1, JSON.stringify(ayrinti.S1));
+  ol("S2 okan_onay:true -> 200 build-baslat + 'OKAN ONAYLADI no/kalem' · 2. onay 409 · yok 404 · sonraki tur build POST 1, input_task_id = onizleme gorevi",
+     s.S2, JSON.stringify(ayrinti.S2));
+  ol("S3 bayraksiz / \"true\" -> 403, D1 cagrisi 0, saglayici 0, satir onay-bekliyor", s.S3, JSON.stringify(ayrinti.S3));
+  ol("S4 70 sa asan onay-bekliyor -> cron 'elle' onizleme-suresi-doldu (Telegram 1) · ucta 409", s.S4, JSON.stringify(ayrinti.S4));
+  ol("S5 hatirlatma 48 sa TEK + 66 sa TEK (tekrar turunda yeni Telegram yok, deneme 1 -> 2)", s.S5, JSON.stringify(ayrinti.S5));
+  ol("S6 panelOrnekUret bayraksiz / \"true\" -> 403 + D1 0 + satir 0 · okan_onay:true -> 200", s.S6, JSON.stringify(ayrinti.S6));
+  ol("E3 ORNEK zinciri varken siparis satiri yine onay-bekliyor + Telegram cift zincir notu + Okan bilgisinde ornek_no",
+     s.E3, JSON.stringify(ayrinti.E3));
+  ol("E2V Okan bilgisi: is_no + uretim_notu + panel onizleme linki (anahtar URL'de YOK) + malzeme/renk", s.E2V, JSON.stringify(ayrinti.E2V));
+  // Rota: panel anahtarinin ARKASINDA (anahtarsiz 404) · anahtarli+bayraksiz 403 · MAKINE_UCLARI DISI.
+  const rAnahtarsiz = await istek(env, "/yonet/foto/siparis-onayla", { govde: { siparis_no: "PR-SO-A", kalem: 0, okan_onay: true } });
+  const rOnaysiz = await istek(env, "/yonet/foto/siparis-onayla", { govde: { siparis_no: "PR-SO-A", kalem: 0 }, basliklar: YONET });
+  const yonetKaynak = fs.readFileSync(path.join(SHOP, "src", "yonet.js"), "utf8");
+  const makine = /const MAKINE_UCLARI = \[([^\]]*)\]/.exec(yonetKaynak);
+  ol("S7 rota: anahtarsiz 404 · anahtarli+bayraksiz 403 · MAKINE_UCLARI'nda siparis-onayla YOK",
+     rAnahtarsiz.kod === 404 && rOnaysiz.kod === 403 && !!makine && !makine[1].includes("siparis-onayla"),
+     rAnahtarsiz.kod + "/" + rOnaysiz.kod);
+}
+const SIPARIS_ONAY_MUTANTLAR = [
+  ["SO-M1 ODENEN KALEM YINE build-baslat", "det ? \"uretec-bekliyor\" : ONAY_BEKLIYOR,", "det ? \"uretec-bekliyor\" : \"build-baslat\",",
+   ["E3", "S1", "S2", "S3", "S5"]],
+  ["SO-M2 ONAY UCUNDA BAYRAK KONTROLU SILINDI",
+   "  if (!g || g.okan_onay !== true) { return fjson({ hata: \"okan-onayi-yok\", yol: \"siparis\" }, 403); }\n", "", ["S2", "S3"]],
+  ["SO-MK KONTROL", "// Deterministik kol (uretec) saglayici kredisi harcamaz", "// Deterministik  kol (uretec) saglayici kredisi harcamaz", []],
+];
+for (const [ad, capa, yerine, olmeli] of SIPARIS_ONAY_MUTANTLAR) {
+  const fm = await mutantModul(capa, yerine);
+  if (!fm) { ol(ad + " capa bulundu", false, "capa kayip/coklu: " + capa); continue; }
+  const { s } = await siparisOnaySenaryolar(fm);
+  const kirmizilar = Object.keys(s).filter((x) => s[x] !== true).sort();
+  ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]",
+     Object.keys(s).length === 8 && JSON.stringify(kirmizilar) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(kirmizilar));
+}
+
 const OLCEK_MUTANTLAR = [
   ["OM-A OLCU KAPISI ATLANDI", "const olc = await ucmfOlcekle(ucmf.tampon, VERI.olcekHedefMm(u.olcu_mm));",
    "const olc = { tampon: ucmf.tampon, olcek: 1, L_once: u.olcu_mm, L_sonra: u.olcu_mm, z_mm: 0 };", ["BUYUK", "BOZUK", "IKIOGE", "ONARIMLI"]],
@@ -3154,7 +3343,7 @@ async function renkSenaryolar(fm) {
       .bind(no, new Date().toISOString(), JSON.stringify([kalem])).run();
     const once = P.cagri.filter((c) => /multi-color$/.test(c)).length;
     P.sonRenk = null; P.analiz = "healthy";
-    for (let i = 0; i < 8; i++) { await fm.fotoUretimTuru(e2, Date.now(), null); }
+    for (let i = 0; i < 8; i++) { await turVeOnay(fm, e2, k.d1); }
     const u = await k.d1.prepare("SELECT asama, sebep, renk_sayisi FROM foto_uretim WHERE siparis_no = ?").bind(no).first();
     return { u, renk: P.cagri.filter((c) => /multi-color$/.test(c)).length - once, son: P.sonRenk };
   };
@@ -5178,7 +5367,7 @@ async function c2a2Senaryolar(fm, veriYama) {
       .bind(no, iso, JSON.stringify([{ id: "ozel-foto-anahtarlik", foto_is: fig2, foto_tur: "anahtarlik", olcu_mm: AH_MM,
         foto_renkler: ["Beyaz"] }])).run();
     c0 = P.cagri.length;
-    await fm.fotoUretimTuru(e2, Date.now(), null);
+    await turVeOnay(fm, e2, k.d1);
     iz.kuyrukCagri = P.cagri.slice(c0).filter((x) => /build/.test(x));
     iz.kuyruk = await k.d1.prepare("SELECT asama, sebep FROM foto_uretim WHERE siparis_no = ?").bind(no).first();
     // V9 MUSTERI FIGUR YOLU (bellek acik:true): saglayici prototipi figur yolundan + satir cesit='figur' + girdi.json

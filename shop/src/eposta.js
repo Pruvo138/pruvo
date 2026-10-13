@@ -154,10 +154,45 @@ function cerceve(baslikMetin, icerik) {
 }
 
 /**
+ * OKAN (satici) KOPYASI foto kalem blogu (Okan 13 Eki 21:0x): is_no · tur · olcu · cesit/alt tur · renk/malzeme ·
+ * "Nasil olsun?" notu · onizleme gorseli LINKI (panel ucu; gorsel GOMULMEZ, anahtar URL'de YOK) · onay yonergesi ·
+ * cift zincir notu. Bilgi foto.js saticiFotoBilgileri'nden gelir; tum metin kac() ile kacisli.
+ * 🔴 Musteri kopyasina BASILMAZ (cagiran satici=true degilse bos doner).
+ */
+function saticiFotoBlogu(fotoBilgi) {
+  const satir = (ad, deger) => "<tr><td style='padding:2px 12px 2px 0;color:#6b7280'>" + kac(ad) + "</td><td>" +
+    deger + "</td></tr>";
+  return fotoBilgi.map((b) => {
+    const cesit = [b.cesit, b.alt_tur].filter(Boolean).join(" / ");
+    const malzemeRenk = [b.malzeme, b.renk].filter(Boolean).join(" / ");
+    const onay = b.onay_gerekli
+      ? "<p style='margin:6px 0;font-size:13px'><b>Onay:</b> 3D üretim Okan onayı olmadan BAŞLAMAZ. " +
+        kac(b.onay_yonergesi || "") + " — gövde: {siparis_no, kalem: " + kac(b.kalem) + ", okan_onay: true}.</p>"
+      : "<p style='margin:6px 0;font-size:13px'>Bu kalem üreteç kolunda (sağlayıcı kredisi yok, onay gerekmez).</p>";
+    return "<div style='margin-top:12px;padding:10px;border:1px solid #12294d;border-radius:6px;font-size:14px'>" +
+      "<b>📸 Fotoğraftan üretim — kalem " + kac(b.kalem) + "</b>" +
+      (b.ornek_no ? "<p style='background:#fee2e2;padding:6px;border-radius:4px;margin:6px 0'>⚠️ " +
+        kac(b.cift_zincir_notu || "") + "</p>" : "") +
+      "<table style='margin-top:6px;font-size:14px'>" +
+      satir("İş no", "<code>" + kac(b.is_no) + "</code>") +
+      satir("Tür", kac(b.tur)) +
+      satir("Ölçü", kac(b.olcu_mm) + " mm") +
+      satir("Çeşit / alt tür", kac(cesit || "—")) +
+      satir("Renk / malzeme", kac(malzemeRenk || "—")) +
+      satir("Nasıl olsun?", "<span style='white-space:pre-wrap'>" + kac(b.uretim_notu || "—") + "</span>") +
+      satir("Önizleme", "<a href='" + kac(b.gorsel) + "' style='color:#12294d'>önizleme görseli (panel girişi gerekir)</a>") +
+      "</table>" +
+      (b.okunamadi ? "<p style='color:#b91c1c;font-size:13px'>Önizleme kaydı okunamadı — panelden bakın.</p>" : "") +
+      onay + "</div>";
+  }).join("");
+}
+
+/**
  * Siparis onay e-postasi govdesi (tetik 1: odendi / havale-bekliyor).
  * @param dokum {tutarKurus, kargoKurus, kdvKurus, tahsilatKurus}
+ * @param fotoBilgi YALNIZ satici kopyasinda okunur (foto.js saticiFotoBilgileri); musteri kopyasi bayt-ayni.
  */
-export function onayEpostasiHtml(siparis, satirlar, dokum, havale, satici = false) {
+export function onayEpostasiHtml(siparis, satirlar, dokum, havale, satici = false, fotoBilgi = null) {
   const dokumTablo = "<table style='margin-top:12px;font-size:14px'>" +
     "<tr><td style='padding:2px 12px 2px 0'>Ara toplam</td><td style='text-align:right'>" +
       kurusTL(dokum.tutarKurus) + "</td></tr>" +
@@ -200,6 +235,7 @@ export function onayEpostasiHtml(siparis, satirlar, dokum, havale, satici = fals
     satirTablosu(satirlar, sinif) +
     dokumTablo +
     musteriNotu +
+    (satici && Array.isArray(fotoBilgi) && fotoBilgi.length ? saticiFotoBlogu(fotoBilgi) : "") +
     "<p style='margin-top:12px;font-size:14px'><b>Teslimat adresi:</b><br>" +
     kac(siparis.musteri_ad) + "<br>" + kac(siparis.musteri_adres) + "</p>";
   return cerceve("Sipariş Onayı", icerik);
