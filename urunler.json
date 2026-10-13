@@ -1,5 +1,372 @@
 [
   {
+    "id": "mutfak-hindi-sekilli-pecetelik-pr320700",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Hindi Başlı Peçetelik (Şükran Günü)",
+    "aciklama": "Şükran Günü sofraları için hindi başlı peçetelik; kenarları peçetelerin yana düşmesini engeller. Düz ve yuvarlatılmış kenarlı iki sürümü bulunur. Görsellerde sarı ve turuncu modeller yandan görülür.\nDüz sürüm 112 × 98 × 62 mm, yuvarlatılmış sürüm 112 × 95 × 60 mm'dir.\nYaklaşık dış ölçüler: 112 × 98 × 62 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr320700-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr320700-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Persano",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mutfak-yilbasi-geyikli-daire-pecetelik-pr1092783",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Yılbaşı Geyikli Daire Çerçeveli Peçetelik",
+    "aciklama": "Yılbaşı sofraları için geyik ve çam ağacı silüetli, dairesel çerçeveli peçetelik. İki parça birbirine geçerek peçete destesini ortada tutar. Fotoğraflarda siyah model kırmızı ve ahşap yüzeylerde görülür.\nHer parça 130 × 90 mm, 21-23 mm kalınlıktadır.\nYaklaşık dış ölçüler: 130 × 90 × 44 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1092783-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1092783-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Souky1122",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mutfak-ari-petegi-desenli-pecetelik-pr1764007",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Arı Peteği Desenli Peçetelik",
+    "aciklama": "İki yan paneli arı peteği deseniyle delikli, şık ve sade peçetelik. Paneller arasında peçete dik durur ve kolayca çekilir. Fotoğraflarda krem rengi model ahşap yüzeyde görülür.\nPeçetelik 140 × 126 × 100 mm'dir.\nYaklaşık dış ölçüler: 140 × 126 × 100 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1764007-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1764007-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1764007-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1764007-4.jpg"
+    ]
+  },
+  {
+    "id": "mutfak-kelebek-motifli-pecetelik-pr1739419",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kelebek Motifli İşlemeli Peçetelik",
+    "aciklama": "İşlemeli kelebek motifli iki panel ve tabandan oluşan dekoratif peçetelik; mutfak ve yemek masası için. Fotoğraflarda siyah model açık havada peçeteyle görülür.\nPaneller 178 × 145 × 3 mm, taban 135 × 45 × 5 mm'dir.\nYaklaşık dış ölçüler: 178 × 45 × 145 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1739419-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1739419-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1739419-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "WallArtMania",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mutfak-degistirilebilir-panelli-dekoratif-pecetelik-pr299143",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Değiştirilebilir Panelli Dekoratif Peçetelik (4 Desen)",
+    "aciklama": "Düğün, yılbaşı, Paskalya ve benzeri özel günler için tek tabanlı, değiştirilebilir panelli peçetelik. Dans, Paskalya, yılbaşı ve hayat ağacı olmak üzere dört işlemeli panel desenini kapsar. Fotoğraflarda kırmızı model peçeteyle görülür.\nTaban 150 × 135 × 31 mm, paneller 150 × 140 × 2 mm'dir.\nYaklaşık dış ölçüler: 150 × 135 × 140 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr299143-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr299143-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr299143-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "MerlinEl",
+      "tur": "GPL 2.0"
+    }
+  },
+  {
+    "id": "mutfak-tavsan-kulakli-pecete-halkalari-pr1270899",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Tavşan Kulaklı Peçete Halkaları (İki Model)",
+    "aciklama": "Paskalya sofraları için tavşan kulaklı iki peçete halkası modeli; rulo yapılmış peçeteyi sarar. Fotoğraflarda kahverengi ve gri-beyaz halkalar peçete rulolarıyla görülür.\nHalka 78,5 × 41 × 20 mm'dir.\nYaklaşık dış ölçüler: 78,5 × 41 × 20 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1270899-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1270899-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1270899-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1270899-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Hias",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mutfak-ucgen-desenli-pecetelik-pr1095799",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Üçgen Desenli Yan Panelli Peçetelik",
+    "aciklama": "Yan yüzeylerinde geometrik üçgen kesikler bulunan, sade formlu peçetelik; ayakta duran peçete destesini yana düşürmeden tutar. Fotoğraflarda siyah model peçeteyle ve meyve kasesi yanında görülür.\nPeçetelik 100 × 90 × 46 mm'dir.\nYaklaşık dış ölçüler: 100 × 90 × 46 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1095799-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1095799-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1095799-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1095799-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Martin",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mutfak-beyaz-cit-desenli-pecetelik-pr756953",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Beyaz Çit Desenli Peçetelik (Paskalya)",
+    "aciklama": "Beyaz çit (palisat) esinli, Paskalya sofraları için peçetelik. İki yan panel tabandaki yuvalara geçer; yemek masası boyu peçetelerden 15-20 adedini, kalınlığına göre alır. Fotoğraflarda beyaz model kırmızı fonda ve pencere önünde peçeteyle görülür.\nYan paneller 118 × 100 × 2 mm, taban 110 × 35 × 3 mm'dir.\nYaklaşık dış ölçüler: 118 × 35 × 100 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr756953-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr756953-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr756953-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "teotwaki",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mutfak-tavsan-siluetli-pecetelik-pr421496",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Uzun Kulaklı Tavşan Peçetelik",
+    "aciklama": "Uzun kulaklı tavşan silüetli, ayaklı peçetelik. Tavşan önde durur, peçete destesi silüetin arkasına yerleşir; bahar ve Paskalya sofraları için eğlenceli bir seçenek. Fotoğraflarda mor model peçeteyle ve masa üzerinde görülür.\nPeçetelik 266 × 179 × 6 mm'dir.\nYaklaşık dış ölçüler: 266 × 179 × 6 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr421496-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr421496-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Chad Baker",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mutfak-yaprak-desenli-pecete-halkasi-pr322384",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Yaprak Desenli Peçete Halkası",
+    "aciklama": "Yaprak biçimli, damarları açık işlemeli peçete halkası. Rulo yapılmış peçetenin çevresine geçirilir; sofra düzenine sade bir yaprak motifi katar. Görsellerde siyah halka tek başına ve peçete rulosu üzerinde görülür.\nHalka 63 × 44 × 36 mm'dir.\nYaklaşık dış ölçüler: 63 × 44 × 36 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr322384-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr322384-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr322384-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr322384-4.jpg"
+    ]
+  },
+  {
+    "id": "mutfak-tavsan-paskalya-pecetelik-pr429795",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Paskalya Tavşanı Peçetelik",
+    "aciklama": "Sade bir tavşan silüetiyle Paskalya sofrasına uyan basit peçetelik. Fotoğraflarda beyaz model koyu masa üzerinde, tabak yanında görülür.\nPeçetelik 120 × 80 × 4 mm'dir.\nYaklaşık dış ölçüler: 120 × 80 × 4 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr429795-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr429795-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Dark Havoc",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mutfak-kalp-bicimli-pecetelik-pr281865",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kalp Biçimli Peçetelik",
+    "aciklama": "Çift katmanlı kalp silüetinin ortasında küçük kalp kabartması bulunan sade peçetelik. Peçeteler iki kalp yüzeyi arasında dik durur. Görsellerde açık mavi model önden ve yandan görülür.\nPeçetelik 139 × 92 × 32 mm'dir.\nYaklaşık dış ölçüler: 139 × 92 × 32 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr281865-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr281865-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DDDavid",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mutfak-at-nali-pecetelik-pr1177713",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "At Nalı Peçetelik",
+    "aciklama": "At sevenler için iki at nalı ve onları birleştiren tabandan oluşan peçetelik. Nalların açık yapısı peçeteyi ortada dik tutar; altın rengi uygulamada sofraya şık bir vurgu verir. Fotoğraflarda altın rengi model tek başına ve peçeteyle görülür.\nPeçetelik 138 × 114 × 67 mm'dir.\nYaklaşık dış ölçüler: 138 × 114 × 67 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1177713-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1177713-2.jpg"
+    ]
+  },
+  {
+    "id": "mutfak-tavsan-bicimli-pecetelik-pr819899",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Tavşan Biçimli Peçetelik (İki Sürüm)",
+    "aciklama": "Paskalya tavşanı biçimli, iki sürümlü peçetelik: biri yuvarlatılmış kenarlı, diğeri dolu gövdeli. Üçgen katlanmış peçeteleri tavşanın önünde dik tutar. Fotoğraflarda beyaz model ahşap masa üzerinde peçeteyle, görsellerde iki sürümü birlikte görülür.\nPeçetelik 124 × 91 × 45 mm'dir.\nYaklaşık dış ölçüler: 124 × 91 × 45 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr819899-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr819899-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "hyblma",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mutfak-dag-siluetli-pecetelik-pr646589",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Dağ Sırası Siluetli Peçetelik",
+    "aciklama": "Tepesi sivri dağ sırası biçiminde kesilmiş, alçak ve uzun peçetelik. Katlanmış peçeteleri dik tutar; masa ve tezgâh üzerinde sade, modern bir görünüm verir. Fotoğraflarda siyah model tek başına ve içinde peçeteyle görülür.\nPeçetelik 180 × 63 × 35 mm'dir.\nYaklaşık dış ölçüler: 180 × 63 × 35 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr646589-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr646589-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr646589-3.jpg"
+    ]
+  },
+  {
+    "id": "mutfak-art-deco-pecetelik-pr243566",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Art Deco Peçetelik (16 cm Peçeteler İçin)",
+    "aciklama": "1920'lerin art deco çizgilerinden esinlenen, dört köşesi kemerli yapraklarla süslü peçetelik. Yaklaşık 16 cm kare peçeteler için ayarlanmıştır; peçete destesi dört kemerin arasına yerleşir. Fotoğraflarda beyaz model kırmızı kumaş üzerinde yandan, üstten ve peçeteyle görülür.\nPeçetelik 175 × 175 × 135 mm'dir.\nYaklaşık dış ölçüler: 175 × 175 × 135 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr243566-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr243566-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr243566-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr243566-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Optiki_Makes",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mutfak-dag-desenli-pecetelik-pr1121119",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Dağ Silüetli Peçetelik",
+    "aciklama": "Dağ silüeti ve kar tepesi çizgisiyle sofraya doğa havası katan peçetelik. Üçgen gövdesi standart boy peçeteleri dik tutar, kenarları yumuşak yuvarlatılmıştır. Fotoğrafta siyah gövde peçetelerle, görsellerde farklı renk seçenekleriyle görülür.\nPeçetelik 185 × 66 × 30 mm'dir.\nYaklaşık dış ölçüler: 185 × 66 × 30 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1121119-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1121119-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1121119-3.jpg"
+    ]
+  },
+  {
+    "id": "mutfak-petek-desenli-pecetelik-pr512132",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Petek Desenli Açık Gövdeli Peçetelik",
+    "aciklama": "Yan yüzeyleri altıgen petek desenli, üstü açık peçetelik. En çok 16,5 × 16,5 cm boyundaki peçete destesini içine alır; desenli duvarlar peçeteyi kolayca çekmenize izin verir. Fotoğraflarda beyaz model bitki saksısının yanında ve peçete istifiyle görülür.\nPeçetelik 179 × 179 × 85 mm'dir.\nYaklaşık dış ölçüler: 179 × 179 × 85 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr512132-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr512132-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "exopunk",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mutfak-agac-desenli-pecetelik-pr562837",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Ağaç Silüetli Peçetelik",
+    "aciklama": "Yan panelinde ağaç dalları silüeti bulunan, tabanlı peçetelik. Peçeteler tabanın üzerinde yan panelin dayanağında durur; ağaç deseni siyah gövdede keskin görünür. Fotoğraflarda model ahşap masa üzerinde peçeteyle ve tek başına görülür.\nTaban 152 × 64 × 10 mm, yan panel 135 × 126 × 5 mm'dir.\nYaklaşık dış ölçüler: 152 × 64 × 136 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr562837-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr562837-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Derek Antrican",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mutfak-yilbasi-agaclar-kemerli-pecetelik-pr1102008",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Yılbaşı Çam Ağaçları Kemerli Peçetelik",
+    "aciklama": "Yılbaşı sofraları için çam ağacı siluetli, kemerli peçetelik. İki parça birbirine geçerek kemer biçimli gövdeyi oluşturur; ağaçlar üçgen katlanmış peçeteleri çerçeveler. Fotoğraflarda siyah model kırmızı örtü üzerinde görülür.\nHer parça 130 × 90 × 31 mm'dir.\nYaklaşık dış ölçüler: 130 × 90 × 62 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1102008-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1102008-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Souky1122",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mutfak-voronoi-desenli-kutu-pecetelik-pr1172566",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Voronoi Desenli Kutu Peçetelik",
+    "aciklama": "Organik hücre (Voronoi) desenli levhalardan oluşan, üstü açık kutu peçetelik. Beş levha geçme çentiklerle birleşir ve peçete destesi kutunun içine yerleşir; üstteki U biçimli kesimden peçete kolayca çekilir. Fotoğraflarda mor ve yeşil modeller peçete istifiyle görülür.\nLevhalar 3 mm kalınlıkta, kutu birleşince 135 × 135 × 133 mm'dir.\nYaklaşık dış ölçüler: 135 × 135 × 133 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1172566-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1172566-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1172566-3.jpg"
+    ]
+  },
+  {
+    "id": "mutfak-geometrik-ayakli-pecetelik-pr336191",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Geometrik Ayaklı Peçetelik (İki Boy)",
+    "aciklama": "Geometrik çizgili, iki çapraz ayak üzerinde sabit duran peçetelik. Peçete paketini komple içine yerleştirirsiniz; büyük boy 16,5 × 16,5 cm peçeteler için ayarlanmıştır, küçük boy daha dar paketlere uygundur. Fotoğraflarda ahşap görünümlü model peçeteyle görülür.\nBüyük model 252 × 239 × 100 mm, küçük model 247 × 239 × 75 mm'dir.\nYaklaşık dış ölçüler: 252 × 239 × 100 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr336191-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr336191-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr336191-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "hinand",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "dekor-deniz-kabugu-yuzuk-tutucu-tepsili-pr494174",
     "kategori": "Dekorasyon",
     "marka": [],
