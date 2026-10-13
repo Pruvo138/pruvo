@@ -1,5 +1,38 @@
 [
   {
+    "id": "kart-destesi-kutusu",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "baslik": "Kart Destesi Kutusu (Kılıf Kapaklı, Başparmak Girintili)",
+    "aciklama": "İki parçalı kart destesi kutusu: açık üstlü gövde ve gövdenin üzerine geçip tabana kadar inen kılıf kapak. Kartlar gövdede kısa kenarı üstünde dik durur. Gövdenin iki geniş yüzünde üstten açık yarım daire başparmak girintisi vardır; deste girintiden tutularak çıkarılır.\n- İç ölçüler, kılıflı kart için varsayılan 66 × 91 mm kart ölçüsüne göre hesaplanmıştır (kartın her yanında 0,75 mm pay). Kartınızın ölçüsü bundan farklıysa iç boşluk da farklı kalır; sipariş öncesi kart ölçünüzü kontrol edin.\n- S: 20 mm kalınlığındaki deste için (kapalı 76 × 30 × 97 mm)\n- M: 35 mm kalınlığındaki deste için (kapalı 76 × 45 × 97 mm)\n- L: 60 mm kalınlığındaki deste için (kapalı 76 × 70 × 97 mm)\n- Gövde iç yüksekliği 60 mm'dir; kartların üst kısmı gövdenin dışında kalır. Kapak iç derinliği 95 mm'dir.\n- Kapak iç yüzü ile gövde dış yüzü arasında her yanda 0,25 mm tasarım boşluğu vardır.\n- Gövde, taban ve kapak cidarı 2 mm; dikey köşeler yuvarlatılmıştır.\nYaklaşık dış ölçüler (kapalı): 76 × 30 × 97 mm (S), 76 × 45 × 97 mm (M), 76 × 70 × 97 mm (L).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kart-destesi-kutusu-1.jpg",
+      "https://media.pruvo3d.com/urunler/kart-destesi-kutusu-2.jpg",
+      "https://media.pruvo3d.com/urunler/kart-destesi-kutusu-3.jpg",
+      "https://media.pruvo3d.com/urunler/kart-destesi-kutusu-4.jpg",
+      "https://media.pruvo3d.com/urunler/kart-destesi-kutusu-5.jpg"
+    ],
+    "tavsiyeFilament": [
+      "PLA",
+      "PETG"
+    ],
+    "boy_secenekleri": [
+      {
+        "etiket": "S",
+        "fark_tl": 0
+      },
+      {
+        "etiket": "M",
+        "fark_tl": 50
+      },
+      {
+        "etiket": "L",
+        "fark_tl": 150
+      }
+    ]
+  },
+  {
     "id": "banyo-konik-tabanli-14-mm-yuvali-klasik-tiras-makinesi-standi-pr1836331",
     "kategori": "Ev",
     "marka": [],
