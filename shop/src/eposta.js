@@ -159,7 +159,7 @@ function cerceve(baslikMetin, icerik) {
  * cift zincir notu. Bilgi foto.js saticiFotoBilgileri'nden gelir; tum metin kac() ile kacisli.
  * 🔴 Musteri kopyasina BASILMAZ (cagiran satici=true degilse bos doner).
  */
-function saticiFotoBlogu(fotoBilgi) {
+function saticiFotoBlogu(fotoBilgi, onaySatiri = true) {
   const satir = (ad, deger) => "<tr><td style='padding:2px 12px 2px 0;color:#6b7280'>" + kac(ad) + "</td><td>" +
     deger + "</td></tr>";
   return fotoBilgi.map((b) => {
@@ -183,8 +183,40 @@ function saticiFotoBlogu(fotoBilgi) {
       satir("Önizleme", "<a href='" + kac(b.gorsel) + "' style='color:#12294d'>önizleme görseli (panel girişi gerekir)</a>") +
       "</table>" +
       (b.okunamadi ? "<p style='color:#b91c1c;font-size:13px'>Önizleme kaydı okunamadı — panelden bakın.</p>" : "") +
-      onay + "</div>";
+      (onaySatiri ? onay : "") + "</div>";
   }).join("");
+}
+
+/**
+ * OKAN ONAY BILDIRIMI (Okan Telegram KULLANMIYOR, 13 Eki): foto.js onayBekleyenNobeti'nin uc olayi —
+ * "acildi" (satir onay-bekliyor) · "hatirlatma" (48/66 sa) · "sure-doldu" (70 sa asildi, is 'elle'de).
+ * Alici YALNIZ env.BILDIRIM_EPOSTA (cagiran foto.js); musteri kopyasi YOKTUR. Govde saticiFotoBlogu ile ayni
+ * kalem bilgisi (is_no · tur · olcu · cesit · renk/malzeme · "Nasil olsun?" · onizleme linki) + KALAN SURE.
+ * @param bilgi foto.js saticiFotoBilgileri kalem kaydi (+ siparis_no) · @param kalanSaat 70 sa sinirina kalan
+ * @returns {{konu:string, html:string}}
+ */
+export function onayBildirimiEpostasi(olay, bilgi, kalanSaat, yasSaat, sinirSaat) {
+  const ref = String(bilgi.siparis_no) + "/" + String(bilgi.kalem);
+  const p = (ic) => "<p style='margin:8px 0;font-size:14px'>" + ic + "</p>";
+  let konu, baslik, giris;
+  if (olay === "sure-doldu") {
+    konu = "3D üretim onay süresi doldu: " + ref + " — iş elle kuyruğunda";
+    baslik = "Onay süresi doldu — iş elle kuyruğuna düştü";
+    giris = p("Önizleme " + kac(sinirSaat) + " saat sınırını geçti; kalem onaylanmadığı için <b>elle bakılacak</b> " +
+      "kuyruğuna düştü (panel → Siparişler → Elle bakılacak). Onay ucu artık 409 döner.");
+  } else {
+    const hatirlatma = olay === "hatirlatma";
+    konu = (hatirlatma ? "Hatırlatma (" + Math.floor(yasSaat) + " sa): " : "") + "3D üretim onayı bekliyor: " + ref;
+    baslik = hatirlatma ? "Hatırlatma — 3D üretim onayı bekliyor" : "3D üretim onayı bekliyor";
+    giris = p("Ödenen siparişin fotoğraftan üretim kalemi <b>Okan onayı</b> bekliyor; 3D üretim onaysız BAŞLAMAZ.") +
+      p("<b>Kalan süre:</b> " + kac(Math.max(0, Math.floor(kalanSaat))) + " sa (önizleme " + kac(sinirSaat) +
+        " saatte düşer; süre dolarsa iş elle kuyruğuna geçer).");
+  }
+  const html = "<div style='font-family:Arial,Helvetica,sans-serif;color:#1f2937;max-width:640px;margin:0 auto'>" +
+    "<h2 style='color:#12294d;margin:0 0 4px'>PRUVO</h2>" +
+    "<h3 style='color:#12294d'>" + kac(baslik) + " — " + kac(ref) + "</h3>" + giris +
+    saticiFotoBlogu([bilgi], olay !== "sure-doldu") + "</div>";
+  return { konu, html };
 }
 
 /**
@@ -260,8 +292,10 @@ export function kargoEpostasiHtml(siparis, satirlar, firma, kod) {
  * sarar). @param olaylar [{kime, konu, html, etiket}]
  */
 export async function epostaAkisi(env, telegram, siparisNo, olaylar) {
+  // E-posta kanalinin KENDI hatasi: ikinci e-posta DENENMEZ (dongu yok); Telegram satiri + panel kaydi.
   try {
     if (!env.RESEND_API_KEY) {
+      await bildirimHatasiYaz(env, "siparis " + siparisNo, "anahtar-yok");
       await telegram(env, "⚠️ PRUVO e-posta gönderilemedi (anahtar yok) — " + siparisNo +
         " (RESEND_API_KEY tanımlı değil; sipariş akışı etkilenmedi)");
       return;
@@ -269,12 +303,89 @@ export async function epostaAkisi(env, telegram, siparisNo, olaylar) {
     for (const o of olaylar) {
       const r = await epostaGonder(env, o.kime, o.konu, o.html);
       if (!r.ok) {
+        await bildirimHatasiYaz(env, "siparis " + siparisNo + " (" + (o.etiket || "alici") + ")", r.hata);
         await telegram(env, "⚠️ PRUVO e-posta hatası — " + siparisNo + " (" +
           (o.etiket || o.kime) + "): " + r.hata);
       }
     }
   } catch (e) {
+    await bildirimHatasiYaz(env, "siparis " + siparisNo, "istisna " + String((e && e.message) || e));
     await telegram(env, "⚠️ PRUVO e-posta istisnası — " + siparisNo +
       " (sipariş akışı etkilenmedi)");
   }
+}
+
+/**
+ * OKAN BILDIRIM SINIFI (13 Eki 2026 — Okan Telegram KULLANMIYOR). Tek yardimci:
+ *  - Telegram satiri AYNEN gider (log); `telegram` fonksiyon degilse atlanir.
+ *  - sinif EYLEM/GOZ -> ayni metin YALNIZ env.BILDIRIM_EPOSTA'ya e-posta ("[PRUVO EYLEM] …"/"[PRUVO GÖZ] …",
+ *    govde HTML kacisli). BILGI (ya da bilinmeyen sinif) -> yalniz Telegram.
+ *  - Ayni `anahtar` icin e-posta TEKRARI YOK: foto_ayar[OKAN_BILDIRIM_ONEK + anahtar] = 'gonderildi'
+ *    (sema DEGISMEZ). Isaret YALNIZ basarili gonderimde yazilir -> basarisiz olay bir sonraki tetikte yeniden denenir.
+ *  - Hata ASLA firlatilmaz; e-posta hatasi ikinci bildirim DENEMEZ (dongu yok): yalniz BILDIRIM_HATA_ANAHTARI
+ *    kaydi (panel /yonet/foto-ozet `bildirim_son_hata`) + log. Donus: e-posta gitti mi (onceden gittiyse de true).
+ */
+export const OKAN_BILDIRIM_ONEK = "okan_bildirim:";
+export const BILDIRIM_HATA_ANAHTARI = "bildirim_son_hata";
+const SINIF_KONU = Object.freeze({ EYLEM: "[PRUVO EYLEM] ", GOZ: "[PRUVO GÖZ] " });
+
+export async function okanaBildir(env, telegram, sinif, konu, metin, anahtar) {
+  if (typeof telegram === "function") {
+    try { await telegram(env, metin); } catch (e) {
+      console.error("OKAN_BILDIRIM_TELEGRAM_HATA " + anahtar + " " + ((e && e.message) || e));
+    }
+  }
+  const onek = Object.prototype.hasOwnProperty.call(SINIF_KONU, sinif) ? SINIF_KONU[sinif] : "";
+  if (!onek) { return false; }
+  const isaret = OKAN_BILDIRIM_ONEK + String(anahtar || "");
+  let r;
+  try {
+    const once = anahtar ? await ayarIsaretOku(env, isaret) : null;
+    if (once && once.deger === "gonderildi") { return true; }
+    r = env.BILDIRIM_EPOSTA ? await epostaGonder(env, env.BILDIRIM_EPOSTA, onek + konu,
+      "<div style='font-family:Arial,Helvetica,sans-serif;color:#1f2937'><h3 style='color:#12294d'>" + kac(onek + konu) +
+      "</h3><p style='white-space:pre-wrap'>" + kac(metin) + "</p></div>")
+      : { ok: false, hata: "alici-yok (BILDIRIM_EPOSTA tanimli degil)" };
+  } catch (e) {
+    r = { ok: false, hata: "istisna " + String((e && e.message) || e).slice(0, 120) };
+  }
+  if (r.ok) {
+    if (anahtar) {
+      try { await ayarIsaretYaz(env, isaret, "gonderildi"); } catch (e) {
+        console.error("OKAN_BILDIRIM_ISARET_HATA " + isaret + " " + ((e && e.message) || e));
+      }
+    }
+    console.log("OKAN_BILDIRIM " + sinif + " " + isaret);
+    return true;
+  }
+  console.error("OKAN_BILDIRIM_HATA " + isaret + " " + r.hata);
+  await bildirimHatasiYaz(env, "okan-bildirim " + String(anahtar || ""), r.hata);
+  return false;
+}
+
+/** E-posta kanalinin SON hatasi -> foto_ayar[BILDIRIM_HATA_ANAHTARI] (panel okur). Hata ASLA firlatmaz, bildirim YOK. */
+export async function bildirimHatasiYaz(env, kaynak, hata) {
+  try {
+    await ayarIsaretYaz(env, BILDIRIM_HATA_ANAHTARI, JSON.stringify({
+      kaynak: String(kaynak || "").slice(0, 120), hata: String(hata || "").slice(0, 200),
+      zaman: new Date().toISOString() }));
+  } catch (e) {
+    console.error("BILDIRIM_HATA_KAYDI_YAZILAMADI " + ((e && e.message) || e));
+  }
+}
+
+async function ayarIsaretOku(env, anahtar) {
+  try {
+    return await env.KATALOG.prepare("SELECT deger, guncel FROM foto_ayar WHERE anahtar = ?").bind(anahtar).first();
+  } catch (e) {
+    console.error("OKAN_BILDIRIM_ISARET_OKUNAMADI " + anahtar + " " + ((e && e.message) || e));
+    return null;
+  }
+}
+
+async function ayarIsaretYaz(env, anahtar, deger) {
+  await env.KATALOG.prepare(
+    "INSERT INTO foto_ayar (anahtar, deger, guncel) VALUES (?, ?, ?)" +
+    " ON CONFLICT(anahtar) DO UPDATE SET deger = excluded.deger, guncel = excluded.guncel"
+  ).bind(anahtar, String(deger), Date.now()).run();
 }

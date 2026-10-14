@@ -24,6 +24,8 @@
  *                         indirilebilir; kredi 46
  *   SO OKAN ONAYI       : odenen saglayici kalemi onaysiz saglayiciya GITMEZ; siparis-onayla (okan_onay:true)
  *                         -> build-baslat; 70 sa -> elle; 48/66 sa TEK hatirlatma; ornek-uret bayraksiz 403
+ *   OE OKAN E-POSTASI   : acilis / 48-66 sa hatirlatma / 70 sa sure doldu Okan'a (YALNIZ BILDIRIM_EPOSTA) TEK
+ *                         e-posta; hata -> isaret artmaz, sonraki tur yeniden; OE-M1..M3 KIRMIZI, OE-MK hicbiri
  *   J ANALIZ KIRMIZI    : renk adimi KOSMAZ, satir 'elle' + Telegram bir kez
  *   K MARKASIZ          : saglayici adi / anahtar oneki calisma agacinda 0 (git grep)
  *   L DRIFT             : wrangler.toml cron + hiz siniri beyani index.js ile ayni
@@ -282,6 +284,8 @@ const GLB = new TextEncoder().encode("glTF-sahte-govde");
 const GLB_DOKULU = new TextEncoder().encode("glTF-sahte-onarilmis-dokulu-govde");
 const P = {
   cagri: [], bakiye: 1000, analiz: "healthy", turnstile: "ok", telegram: [], iyzico: [],
+  // OKAN ONAY E-POSTASI: sahte Resend ucuna giden HER deneme {to, subject, html, kod}; epostaKod != 2xx -> hata.
+  eposta: [], epostaKod: 200,
   // 6 MODEL V6-4: /v1/prototype istek govdeleri (figur alt turu istemi `prompt` olculur).
   protoGovde: [],
   protoDurum: new Map(),
@@ -373,6 +377,11 @@ globalThis.fetch = async function sahteFetch(hedef, init) {
     return yanit(P.turnstile === "ok" ? { success: true, hostname: "pruvo3d.com" } : { success: false, "error-codes": ["x"] });
   }
   if (u.startsWith("https://telegram.test")) { P.telegram.push(JSON.parse(init.body).text); return yanit({ ok: true }); }
+  if (u.startsWith("https://resend.test/emails")) {
+    const g = JSON.parse(init.body);
+    P.eposta.push({ to: g.to, subject: g.subject, html: g.html, kod: P.epostaKod });
+    return P.epostaKod < 300 ? yanit({ id: "e-" + P.eposta.length }) : yanit({ message: "sahte hata" }, P.epostaKod);
+  }
   if (u.startsWith("https://iyzico.test")) {
     P.iyzico.push(JSON.parse(init.body));
     return yanit({ status: "success", token: "iyz-" + P.iyzico.length, paymentPageUrl: "https://odeme.test/sayfa" });
@@ -397,6 +406,9 @@ function envKur(d1, r2, ek) {
   };
 }
 const ctx = { bekleyen: [], waitUntil(p) { this.bekleyen.push(p); } };
+/** Okan onay e-postasi ortami (sahte Resend; alici YALNIZ BILDIRIM_EPOSTA olmali). */
+const OKAN_EPOSTA = "okan-bildirim@ornek.test";
+const OKAN_EPOSTA_ENV = { RESEND_API_KEY: "re-sahte", RESEND_URL: "https://resend.test", BILDIRIM_EPOSTA: OKAN_EPOSTA };
 
 const B64 = Buffer.from(Uint8Array.from([...PNG, ...new Array(4096).fill(3)])).toString("base64");
 const GORSEL = "data:image/png;base64," + B64;
@@ -2577,7 +2589,7 @@ console.log("RKU) BOLGELI TUR EKRANDA — tek renk secicisi (3 ana renk), bolge 
   };
   const s = await rku(EKRAN_KAYNAK);
   ol("RKU1 bolgeli tur: bolge basina renk secicisi 0 · tek renk secicisi [Siyah,Beyaz,Gri] · form alanlari (taban/baslik) yerinde", s.ILK === true, JSON.stringify(s));
-  const m = await rku(EKRAN_KAYNAK.replace("    var secenek = F.ANA_RENKLER.slice();", "    var secenek = F.PLA_RENKLERI.slice();"));
+  const m = await rku(EKRAN_KAYNAK.replace("    var secenek = (mr || F.ANA_RENKLER).slice();", "    var secenek = (mr || F.PLA_RENKLERI).slice();"));
   ol("RKU-M1 ana renk yerine 9 renk listesi -> RKU KIRMIZI", m.ILK === false, JSON.stringify(m));
 }
 
@@ -3097,14 +3109,14 @@ async function siparisOnaySenaryolar(fm) {
   let d1Cagri = 0;
   const d1s = { prepare(sql) { d1Cagri++; return k.d1.prepare(sql); } };
   const r2b = r2Kur();
-  const e2 = envKur(d1s, r2b);
+  const e2 = envKur(d1s, r2b, OKAN_EPOSTA_ENV);
   const simdi = Date.now(), iso = new Date(simdi).toISOString();
   const saatOnce = (h) => new Date(simdi - h * 3600000).toISOString();
   const A = "5".repeat(32), B = "6".repeat(32), C = "7".repeat(32), D = "8".repeat(32), E = "9".repeat(32),
     O = "4".repeat(32);
   const NOT = "<b>kalın</b> & 'tırnak' çerçeve";
   for (const [is, yas, ziy, not] of [[A, 0, "0123456789abcdef", NOT], [B, fm.ONIZLEME_KURULUM_SINIRI_SAAT + 1, "0123456789abcdef", ""],
-    [C, 49, "0123456789abcdef", ""], [D, fm.ONIZLEME_KURULUM_SINIRI_SAAT + 1, "0123456789abcdef", ""],
+    [C, 1, "0123456789abcdef", ""], [D, fm.ONIZLEME_KURULUM_SINIRI_SAAT + 1, "0123456789abcdef", ""],
     [E, 0, "0123456789abcdef", ""], [O, 0, fm.ORNEK_ZIYARETCI, ""]]) {
     await k.d1.prepare("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, gorev, hazir_tarih, uretim_notu)" +
       " VALUES (?, 'plaket', 100, ?, ?, 'hazir', ?, ?, ?)").bind(is, ziy, saatOnce(yas), "gorev-so-" + is.slice(0, 1), saatOnce(yas), not).run();
@@ -3156,6 +3168,9 @@ async function siparisOnaySenaryolar(fm) {
   s.S4 = !!sB && sB.asama === "elle" && sB.sebep === "onizleme-suresi-doldu" && ayrinti.S4.tg === 1 &&
     d4.kod === 409 && d4.v.hata === "onizleme-suresi-doldu" && b4.kod === 409 && b4.v.hata === "onay-beklemiyor";
 
+  // C taze acildi (acilis e-postasi); 48 sa esigi -> TEK hatirlatma, 66 sa esigi -> TEK hatirlatma.
+  await k.d1.prepare("UPDATE foto_isler SET hazir_tarih = ? WHERE is_no = ?").bind(saatOnce(49), C).run();
+  await tur(); await tur();
   const h1 = tgSay("hatırlatma", "PR-SO-C"), c1 = await satir("PR-SO-C");
   await k.d1.prepare("UPDATE foto_isler SET hazir_tarih = ? WHERE is_no = ?").bind(saatOnce(67), C).run();
   await tur(); await tur();
@@ -3239,6 +3254,252 @@ for (const [ad, capa, yerine, olmeli] of SIPARIS_ONAY_MUTANTLAR) {
   const kirmizilar = Object.keys(s).filter((x) => s[x] !== true).sort();
   ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]",
      Object.keys(s).length === 8 && JSON.stringify(kirmizilar) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(kirmizilar));
+}
+
+// ================================================================ OE — OKAN ONAY E-POSTASI (Okan Telegram KULLANMIYOR, 13 Eki)
+
+/**
+ * onay-bekliyor olaylari Okan'a E-POSTA (alici YALNIZ BILDIRIM_EPOSTA; musteri e-postasi 0). Temiz SQLite; sahte Resend.
+ *   T1 odenen foto siparisi -> Okan e-postasi 1 (alici BILDIRIM_EPOSTA, govdede is_no + "Onayla (3D üret)" + kalan sure),
+ *      musteri e-postasi 0; ikinci tur ek e-posta 0
+ *   T2 48 sa -> hatirlatma e-postasi 1, ayni tur tekrar -> 0 ek (deneme 1)
+ *   T3 66 sa -> hatirlatma e-postasi 1 daha, tekrar -> 0 ek (deneme 2)
+ *   T4 70 sa asimi -> 'elle' + "süre doldu" e-postasi 1, tekrar -> 0 ek
+ *   T5 gonderim hatasi -> isaret ARTMAZ (deneme / acilis / sure-doldu), asama ilerlemesi bozulmaz (onay-bekliyor acilir,
+ *      70 sa satiri 'elle'ye duser), Telegram uyari olay basina 1; sonraki basarili turda HER olay TEK e-posta
+ *   T6 "Nasıl olsun?" notu govdede HTML KACISLI (ham etiket 0)
+ */
+async function onayEpostaSenaryolar(fm) {
+  const k = koprukur(); await k.hazir;
+  const e2 = envKur(k.d1, r2Kur(), OKAN_EPOSTA_ENV);
+  const simdi = Date.now();
+  const saatOnce = (h) => new Date(simdi - h * 3600000).toISOString();
+  const NOT = "<script>x</script> & 'tırnak' <b>kalın</b>";
+  const N = { A: "a1".repeat(16), C: "c1".repeat(16), B: "b1".repeat(16), G: "d1".repeat(16), H: "e1".repeat(16), I: "f1".repeat(16) };
+  const isEkle = async (is, yas, not) => k.d1.prepare("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, gorev, hazir_tarih," +
+    " uretim_notu) VALUES (?, 'plaket', 100, '0123456789abcdef', ?, 'hazir', ?, ?, ?)").bind(is, saatOnce(yas), "gorev-oe-" + is.slice(0, 2),
+    saatOnce(yas), not || "").run();
+  const sipEkle = async (no, is) => k.d1.prepare("INSERT INTO siparisler (siparis_no, tarih, durum, tutar_kurus, urunler, musteri_eposta)" +
+    " VALUES (?, ?, 'odendi', 1, ?, 'musteri@ornek.test')").bind(no, new Date(simdi).toISOString(), JSON.stringify([{ id: "ozel-foto-plaket",
+    foto_is: is, foto_tur: "plaket", olcu_mm: 100, foto_renkler: ["Beyaz"], malzeme: "PLA", renk: "Beyaz" }])).run();
+  const yasla = async (is, h) => k.d1.prepare("UPDATE foto_isler SET hazir_tarih = ? WHERE is_no = ?").bind(saatOnce(h), is).run();
+  for (const [ad, yas, not] of [["A", 0, NOT], ["C", 0, ""], ["B", 0, ""], ["I", 0, ""]]) { await isEkle(N[ad], yas, not); await sipEkle("PR-OE-" + ad, N[ad]); }
+  const tg = [];
+  const tgFn = async (_e, m) => { tg.push(m); };
+  const tur = async () => fm.fotoUretimTuru(e2, Date.now(), tgFn);
+  const satir = async (no) => k.d1.prepare("SELECT asama, sebep, deneme FROM foto_uretim WHERE siparis_no = ? AND kalem = 0").bind(no).first();
+  const ep0 = P.eposta.length;
+  const ep = () => P.eposta.slice(ep0);
+  const gitti = (parca, no) => ep().filter((m) => m.kod < 300 && m.subject.includes(parca) && m.subject.includes(no + "/0")).length;
+  const s = {}, ayrinti = {};
+
+  await tur();
+  const t1a = gitti("3D üretim onayı bekliyor", "PR-OE-A");
+  await tur();
+  const mA = ep().filter((m) => m.subject.includes("PR-OE-A/0"));
+  const mA0 = mA[0] || { html: "", to: [] };
+  const musteri = ep().filter((m) => JSON.stringify(m.to) !== JSON.stringify([OKAN_EPOSTA])).length;
+  ayrinti.T1 = { t1a, n: mA.length, to: mA0.to, konu: mA0.subject, musteri, hepsi: ep().map((m) => m.subject) };
+  s.T1 = t1a === 1 && mA.length === 1 && JSON.stringify(mA0.to) === JSON.stringify([OKAN_EPOSTA]) && musteri === 0 &&
+    mA0.subject === "3D üretim onayı bekliyor: PR-OE-A/0" && mA0.html.includes(N.A) && mA0.html.includes("Onayla (3D üret)") &&
+    /Kalan süre:<\/b> (69|70) sa/.test(mA0.html) && ep().filter((m) => m.subject.includes("Hatırlatma")).length === 0;
+  ayrinti.T6 = mA0.html.slice(mA0.html.indexOf("Nasıl olsun?"), mA0.html.indexOf("Nasıl olsun?") + 200);
+  s.T6 = mA0.html.includes("&lt;script&gt;x&lt;/script&gt; &amp; &#39;tırnak&#39; &lt;b&gt;kalın&lt;/b&gt;") &&
+    !mA0.html.includes("<script>") && !mA0.html.includes("<b>kalın</b>");
+
+  await yasla(N.C, 49); await tur();
+  const t2a = gitti("Hatırlatma (49 sa)", "PR-OE-C");
+  await tur();
+  const t2b = ep().filter((m) => m.subject.startsWith("Hatırlatma") && m.subject.includes("PR-OE-C/0")).length, c2 = await satir("PR-OE-C");
+  ayrinti.T2 = { t2a, t2b, c2 };
+  s.T2 = t2a === 1 && t2b === 1 && !!c2 && c2.deneme === 1 && c2.asama === "onay-bekliyor";
+
+  await yasla(N.C, 67); await tur();
+  const t3a = gitti("Hatırlatma (67 sa)", "PR-OE-C");
+  await tur();
+  const t3b = ep().filter((m) => m.subject.startsWith("Hatırlatma") && m.subject.includes("PR-OE-C/0")).length, c3 = await satir("PR-OE-C");
+  ayrinti.T3 = { t3a, t3b, c3 };
+  s.T3 = t3a === 1 && t3b === 2 && !!c3 && c3.deneme === 2 && c3.asama === "onay-bekliyor";
+
+  await yasla(N.B, fm.ONIZLEME_KURULUM_SINIRI_SAAT + 1); await tur();
+  const t4a = gitti("onay süresi doldu", "PR-OE-B");
+  await tur();
+  const t4b = gitti("onay süresi doldu", "PR-OE-B"), b4 = await satir("PR-OE-B");
+  ayrinti.T4 = { t4a, t4b, b4 };
+  s.T4 = t4a === 1 && t4b === 1 && !!b4 && b4.asama === "elle" && b4.sebep === "onizleme-suresi-doldu";
+
+  // T5: hata penceresi — G yeni acilir (acilis e-postasi), H 70 sa'i asar (sure doldu), I 48 sa esigine girer (hatirlatma).
+  // H once BASARILI acilir (acilis e-postasi gitti); G hata penceresinde ILK kez acilir.
+  await isEkle(N.H, 0, ""); await sipEkle("PR-OE-H", N.H); await tur();
+  await isEkle(N.G, 0, ""); await sipEkle("PR-OE-G", N.G);
+  await yasla(N.H, fm.ONIZLEME_KURULUM_SINIRI_SAAT + 1); await yasla(N.I, 49);
+  const tg0 = tg.length, h0 = ep().length;
+  P.epostaKod = 500;
+  try { await tur(); await tur(); } finally { P.epostaKod = 200; }
+  const hataAn = { G: await satir("PR-OE-G"), H: await satir("PR-OE-H"), I: await satir("PR-OE-I"),
+    deneme: ep().slice(h0).length, uyari: tg.slice(tg0).filter((m) => m.includes("Okan e-postası gönderilemedi")).length };
+  await tur();
+  const sonra = { G: gitti("3D üretim onayı bekliyor", "PR-OE-G"), H: gitti("onay süresi doldu", "PR-OE-H"),
+    I: gitti("Hatırlatma (49 sa)", "PR-OE-I"), Is: await satir("PR-OE-I") };
+  await tur();
+  const tekrar = { G: gitti("3D üretim onayı bekliyor", "PR-OE-G"), H: gitti("onay süresi doldu", "PR-OE-H"),
+    I: ep().filter((m) => m.kod < 300 && m.subject.startsWith("Hatırlatma") && m.subject.includes("PR-OE-I/0")).length };
+  ayrinti.T5 = { hataAn, sonra, tekrar };
+  s.T5 = !!hataAn.G && hataAn.G.asama === "onay-bekliyor" && !!hataAn.H && hataAn.H.asama === "elle" &&
+    hataAn.H.sebep === "onizleme-suresi-doldu" && !!hataAn.I && hataAn.I.deneme === 0 && hataAn.I.asama === "onay-bekliyor" &&
+    hataAn.deneme === 6 && hataAn.uyari === 3 &&
+    sonra.G === 1 && sonra.H === 1 && sonra.I === 1 && !!sonra.Is && sonra.Is.deneme === 1 &&
+    tekrar.G === 1 && tekrar.H === 1 && tekrar.I === 1;
+  k.kapat();
+  return { s, ayrinti };
+}
+console.log("OE) OKAN ONAY E-POSTASI (acilis · 48/66 sa hatirlatma · 70 sa sure doldu · hata -> yeniden deneme)");
+{
+  const { s, ayrinti } = await onayEpostaSenaryolar(foto);
+  ol("T1 odenen foto siparisi -> Okan e-postasi 1 (alici BILDIRIM_EPOSTA, is_no + \"Onayla (3D üret)\" + kalan sure), musteri e-postasi 0",
+     s.T1, JSON.stringify(ayrinti.T1));
+  ol("T2 48 sa -> hatirlatma e-postasi 1, tekrar tur 0 ek (deneme 1)", s.T2, JSON.stringify(ayrinti.T2));
+  ol("T3 66 sa -> hatirlatma e-postasi 1, tekrar tur 0 ek (deneme 2)", s.T3, JSON.stringify(ayrinti.T3));
+  ol("T4 70 sa asimi -> 'elle' + \"süre doldu\" e-postasi 1, tekrar 0 ek", s.T4, JSON.stringify(ayrinti.T4));
+  ol("T5 gonderim hatasi -> isaret artmaz, asama bozulmaz, Telegram uyari olay basina 1; sonraki tur TEK e-posta",
+     s.T5, JSON.stringify(ayrinti.T5));
+  ol("T6 \"Nasıl olsun?\" notu govdede HTML KACISLI", s.T6, JSON.stringify(ayrinti.T6));
+}
+/**
+ * OB) OKAN BILDIRIM SINIFI (13 Eki — Okan Telegram KULLANMIYOR): EYLEM/GOZ Telegram satirlari ayni metinle Okan'a
+ * (YALNIZ BILDIRIM_EPOSTA) e-posta da gider (eposta.js okanaBildir). Temiz SQLite; sahte Resend.
+ *   B4 kredi havuzu KAPANDI -> "[PRUVO EYLEM]" e-postasi 1; ayni durum 2. tur 0 ek; ayni gun acilip tekrar kapanir
+ *      (salinim) -> Telegram 2. satir VAR, e-posta 0 ek (anahtar tekrari onler)
+ *   B5 elleDusur (onizleme-yok) -> EYLEM e-postasi 1, Telegram satiri AYNEN
+ *   B6 GOZ (panel siparis-onayla "OKAN ONAYLADI") -> "[PRUVO GÖZ]" e-postasi 1
+ *   B7 Resend 500 -> akis bozulmaz (asama 'elle'), dongu yok (olay basina TEK deneme, ek Telegram 0),
+ *      /yonet/foto-ozet `bildirim_son_hata` kaydi; epostaAkisi hatasi da ayni kayda (ikinci e-posta denemesi 0)
+ *   B8 onay-bekliyor olayi hala TEK e-posta (onay e-postasi 1, "[PRUVO" e-postasi 0); 70 sa sure-doldu "[PRUVO" 0
+ *   B9 butun bu e-postalarda musteri adresine 0
+ */
+async function okanBildirimSenaryolar(fm) {
+  const k = koprukur(); await k.hazir;
+  const e2 = envKur(k.d1, r2Kur(), OKAN_EPOSTA_ENV);
+  const em = await import(url.pathToFileURL(path.join(SHOP, "src", "eposta.js")).href);
+  const T0 = Date.parse("2026-10-13T08:00:00.000Z");
+  const iso = (t) => new Date(t).toISOString();
+  const tg = [];
+  const tgFn = async (_e, m) => { tg.push(m); };
+  const ep0 = P.eposta.length;
+  const ep = () => P.eposta.slice(ep0);
+  const okan = (onek, parca) => ep().filter((m) => m.kod < 300 && m.subject.startsWith(onek) && m.subject.includes(parca)).length;
+  const ayar = (a, d, t) => k.d1.prepare("INSERT INTO foto_ayar (anahtar, deger, guncel) VALUES (?, ?, ?)" +
+    " ON CONFLICT(anahtar) DO UPDATE SET deger = excluded.deger, guncel = excluded.guncel").bind(a, String(d), t).run();
+  const s = {}, a = {};
+
+  // B4 — havuz kapandi / ayni durum / ayni gun salinim
+  await ayar("bakiye", 0, T0); await fm.havuzHukmu(e2, T0, tgFn);
+  const b4a = okan("[PRUVO EYLEM]", "kredi havuzu");
+  await fm.havuzHukmu(e2, T0 + 1000, tgFn);
+  const b4b = okan("[PRUVO EYLEM]", "kredi havuzu");
+  await ayar("bakiye", 100000, T0 + 2000); await fm.havuzHukmu(e2, T0 + 2000, tgFn);
+  await ayar("bakiye", 0, T0 + 3000); await fm.havuzHukmu(e2, T0 + 3000, tgFn);
+  const b4c = okan("[PRUVO EYLEM]", "kredi havuzu"), b4tg = tg.filter((m) => m.includes("bölümü KAPANDI")).length;
+  a.B4 = { b4a, b4b, b4c, b4tg };
+  s.B4 = b4a === 1 && b4b === 1 && b4c === 1 && b4tg === 2;
+
+  // B5 — elleDusur (onizleme-yok): onay bekleyen satirin onizlemesi hazir degil
+  const satirEkle = async (no, is) => {
+    await k.d1.prepare("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama) VALUES (?, 'plaket', 100," +
+      " '0123456789abcdef', ?, 'onizleme')").bind(is, iso(Date.now())).run();
+    await k.d1.prepare("INSERT INTO foto_uretim (siparis_no, kalem, is_no, tur, olcu_mm, asama, tarih, guncel)" +
+      " VALUES (?, 0, ?, 'plaket', 100, 'onay-bekliyor', ?, ?)").bind(no, is, iso(Date.now()), iso(Date.now())).run();
+  };
+  await satirEkle("PR-OB-E", "e5".repeat(16));
+  const tg5 = tg.length;
+  await fm.fotoUretimTuru(e2, Date.now(), tgFn);
+  const e5 = await k.d1.prepare("SELECT asama, sebep FROM foto_uretim WHERE siparis_no = 'PR-OB-E'").first();
+  const b5 = okan("[PRUVO EYLEM]", "PR-OB-E/0"), b5tg = tg.slice(tg5).filter((m) => m.includes("ELLE BAKILACAK: PR-OB-E")).length;
+  const m5 = ep().find((m) => m.subject.includes("PR-OB-E/0")) || { html: "", to: [] };
+  a.B5 = { e5, b5, b5tg, konu: m5.subject };
+  s.B5 = !!e5 && e5.asama === "elle" && e5.sebep === "onizleme-yok" && b5 === 1 && b5tg === 1 &&
+    m5.html.includes("ELLE BAKILACAK: PR-OB-E kalem 0") && JSON.stringify(m5.to) === JSON.stringify([OKAN_EPOSTA]);
+
+  // B6 + B8 — odenen foto siparisi -> onay-bekliyor (onay e-postasi TEK) -> panel onayi (GOZ e-postasi 1)
+  const isG = "a6".repeat(16);
+  await k.d1.prepare("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, gorev, hazir_tarih)" +
+    " VALUES (?, 'plaket', 100, '0123456789abcdef', ?, 'hazir', 'gorev-ob', ?)").bind(isG, iso(Date.now()), iso(Date.now())).run();
+  await k.d1.prepare("INSERT INTO siparisler (siparis_no, tarih, durum, tutar_kurus, urunler, musteri_eposta)" +
+    " VALUES ('PR-OB-G', ?, 'odendi', 1, ?, 'musteri@ornek.test')").bind(iso(Date.now()), JSON.stringify([{ id: "ozel-foto-plaket",
+    foto_is: isG, foto_tur: "plaket", olcu_mm: 100, foto_renkler: ["Beyaz"], malzeme: "PLA", renk: "Beyaz" }])).run();
+  await fm.fotoUretimTuru(e2, Date.now(), tgFn); await fm.fotoUretimTuru(e2, Date.now(), tgFn);
+  const b8 = { onay: ep().filter((m) => m.subject.includes("PR-OB-G/0") && m.subject.includes("onayı bekliyor")).length,
+               pruvo: ep().filter((m) => m.subject.startsWith("[PRUVO") && m.subject.includes("PR-OB-G")).length,
+               tg: tg.filter((m) => m.includes("OKAN ONAYI BEKLİYOR: PR-OB-G")).length };
+  const y6 = await fm.panelSiparisOnayla(new Request("https://pruvo3d.com/x", { method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ siparis_no: "PR-OB-G", kalem: 0, okan_onay: true }) }), e2, Date.now(), tgFn);
+  const b6 = okan("[PRUVO GÖZ]", "PR-OB-G/0"), b6tg = tg.filter((m) => m.includes("OKAN ONAYLADI PR-OB-G/0")).length;
+  a.B6 = { kod: y6.status, b6, b6tg }; a.B8 = b8;
+  s.B6 = y6.status === 200 && b6 === 1 && b6tg === 1;
+  s.B8 = b8.onay === 1 && b8.pruvo === 0;
+
+  // B7 — Resend 500: akis bozulmaz, dongu yok, panel kaydi
+  await satirEkle("PR-OB-H", "b7".repeat(16));
+  const h0 = ep().length, tg7 = tg.length;
+  P.epostaKod = 500;
+  let firladi = "";
+  try { await fm.fotoUretimTuru(e2, Date.now(), tgFn); } catch (e) { firladi = String((e && e.message) || e); }
+  finally { P.epostaKod = 200; }
+  const h7 = await k.d1.prepare("SELECT asama, sebep FROM foto_uretim WHERE siparis_no = 'PR-OB-H'").first();
+  const deneme7 = ep().slice(h0).filter((m) => m.subject.includes("PR-OB-H")).length;
+  const tgEk7 = tg.slice(tg7).length;
+  const oz = await istek(e2, "/yonet/foto-ozet", { basliklar: YONET });
+  const bh = oz.v && oz.v.bildirim_son_hata;
+  P.epostaKod = 500;
+  const tgA = [], h1 = ep().length;
+  try { await em.epostaAkisi(e2, async (_e, m) => { tgA.push(m); }, "PR-OB-AKIS",
+    [{ kime: OKAN_EPOSTA, konu: "x", html: "<p>x</p>", etiket: "satici" }]); } catch (e) { firladi += " akis:" + e.message; }
+  finally { P.epostaKod = 200; }
+  const oz2 = await istek(e2, "/yonet/foto-ozet", { basliklar: YONET });
+  const bh2 = oz2.v && oz2.v.bildirim_son_hata;
+  a.B7 = { firladi, h7, deneme7, tgEk7, bh, akisDeneme: ep().slice(h1).length, tgA: tgA.length, bh2 };
+  s.B7 = !firladi && !!h7 && h7.asama === "elle" && deneme7 === 1 && tgEk7 === 1 &&
+    !!bh && /PR-OB-H/.test(bh.kaynak) && /resend-500/.test(bh.hata) &&
+    a.B7.akisDeneme === 1 && tgA.length === 1 && !!bh2 && /PR-OB-AKIS/.test(bh2.kaynak) && /resend-500/.test(bh2.hata);
+
+  // B9 — bu senaryodaki HICBIR e-posta musteri adresine gitmedi
+  const musteri = ep().filter((m) => JSON.stringify(m.to) !== JSON.stringify([OKAN_EPOSTA])).length;
+  a.B9 = { musteri, toplam: ep().length };
+  s.B9 = musteri === 0 && ep().length > 0;
+  k.kapat();
+  return { s, a };
+}
+console.log("OB) OKAN BILDIRIM SINIFI (EYLEM/GOZ Telegram -> Okan e-postasi; tekrar onleme; kanal hatasi panel kaydi)");
+{
+  const { s, a } = await okanBildirimSenaryolar(foto);
+  ol("OB-B4 kredi havuzu KAPANDI -> EYLEM e-postasi 1; ayni durum 2. tur 0 ek; ayni gun salinim 0 ek (Telegram 2)", s.B4, JSON.stringify(a.B4));
+  ol("OB-B5 elleDusur (onizleme-yok) -> EYLEM e-postasi 1 (alici BILDIRIM_EPOSTA), Telegram AYNEN", s.B5, JSON.stringify(a.B5));
+  ol("OB-B6 GOZ (panel siparis-onayla) -> \"[PRUVO GÖZ]\" e-postasi 1", s.B6, JSON.stringify(a.B6));
+  ol("OB-B7 Resend 500 -> akis bozulmaz, olay basina TEK deneme, ek Telegram 0; panel bildirim_son_hata (okanaBildir + epostaAkisi)",
+     s.B7, JSON.stringify(a.B7));
+  ol("OB-B8 onay-bekliyor olayi TEK e-posta (onay e-postasi 1, \"[PRUVO\" 0)", s.B8, JSON.stringify(a.B8));
+  ol("OB-B9 Okan bildirimlerinde musteri adresine e-posta 0", s.B9, JSON.stringify(a.B9));
+}
+const ONAY_EPOSTA_MUTANTLAR = [
+  ["OE-M1 ACILIS E-POSTASI CAGRISI KALKTI", "const gitti = await okanEpostasi(env, acAnahtar, acildi, ac, simdi, telegram);",
+   "const gitti = false;", ["T1", "T2", "T3", "T5", "T6"]],
+  ["OE-M2 HATIRLATMA E-POSTASI KALKTI (yalniz Telegram)",
+   "const gitti = await okanEpostasi(env, anahtar, await ayarOku(env, anahtar), hat, simdi, telegram);", "const gitti = true;",
+   ["T2", "T3", "T5"]],
+  ["OE-M3 ISARET GONDERIMDEN ONCE ARTAR",
+   "      const gitti = await okanEpostasi(env, anahtar, await ayarOku(env, anahtar), hat, simdi, telegram);",
+   "      await hatirlatmaIsaretle(env, u, once, hedef);\n      const gitti = await okanEpostasi(env, anahtar, await ayarOku(env, anahtar), hat, simdi, telegram);",
+   ["T5"]],
+  ["OE-MK KONTROL", "// E-posta asagidaki sure-doldu turunda", "// E-posta  asagidaki sure-doldu turunda", []],
+];
+for (const [ad, capa, yerine, olmeli] of ONAY_EPOSTA_MUTANTLAR) {
+  const fm = await mutantModul(capa, yerine);
+  if (!fm) { ol(ad + " capa bulundu", false, "capa kayip/coklu: " + capa); continue; }
+  const { s } = await onayEpostaSenaryolar(fm);
+  const kirmizilar = Object.keys(s).filter((x) => s[x] !== true).sort();
+  ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]",
+     Object.keys(s).length === 6 && JSON.stringify(kirmizilar) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(kirmizilar));
 }
 
 const OLCEK_MUTANTLAR = [
@@ -4563,7 +4824,7 @@ console.log("K3b) TEK KUTU 4 PENCERE — kartlar · tek pencere · Geri/İleri �
     ["M-FORMKORUMA kart seciciden form-cizilmedi korumasi kalkti", "      if (S.alanOlcu) {\n        doldurS1Olcu();",
      "      {\n        doldurS1Olcu();", regresyon, ["REGRESYON"]],
     // Okan 9 Eki: Renkli fotoğrafsız akışta görünürse RENK KIRMIZI · PETG kartı fiyatı çarpansız okursa MALZEME KIRMIZI.
-    ["M-RENKLI-FOTOSUZ Renkli fotografsiz akista gorunur", "return !!renkliTurde(kod) && !!(S.fotoRenkleri && S.fotoRenkleri.length);",
+    ["M-RENKLI-FOTOSUZ Renkli fotografsiz akista gorunur", "return !!renkliTurde(kod) && !!(S.fotoRenkleri && S.fotoRenkleri.length) && !malzemeRenkListesi(kod);",
      "return true;", ucuncu, ["RENK"]],
     ["M-MALZEME-KART kart fiyati malzemesiz", "var sec = { renkli: renkliMi(), malzeme: kod };", "var sec = { renkli: renkliMi() };", ucuncu, ["MALZEME"]],
     ["K3b-MK KONTROL (yorum)", "  function kartVurgula() {", "  // kontrol\n  function kartVurgula() {", hepsi, []],
@@ -7313,6 +7574,90 @@ console.log("AKR) ANAHTARLIK–YAZI iki renk (Yazı rengi + Taban rengi), ③'te
     ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", tut, JSON.stringify(kir(m)));
   }
   console.log("  AKR MUTANT " + akrMut + "/" + AKR_MUT.length);
+}
+
+// ================================================================ TPU — anahtarlık TPU (+%55, tek renk Beyaz), Okan 13 Eki
+/**
+ * Okan 13 Eki 23:1x "anahtarlıklara tpu da ekle fiyatını ayarla" + 23:2x "yazı anahtarlıkta da tpu olmalı" + BaBa 23:3x
+ * TPU renk listesi ["Beyaz"] (VERİ: anahtarlik.malzeme_renkleri). Sunucu (fotoKalemFiyatla) vakaları, temiz SQLite:
+ *   TA  (a) yazı + figür çeşidi TPU fiyatı = round(taban × 1,55) = VERI.fiyatKurus(.., {malzeme:"TPU"}) (istemci formülü),
+ *           satır malzeme TPU + " · TPU (+%55)"
+ *   TB  (b) TPU + Renkli -> 400 (figür çeşidi palet + yazı çeşidi)
+ *   TC  (c) TPU + Beyaz dışı renk (yazı Siyah/Beyaz, Siyah/Siyah, figür ["Siyah"]) -> 400
+ *   TD  (d) bust / plaket TPU -> 400 gecersiz-malzeme (mesaj "PLA, PETG ya da TPU"); figür türünde VERI.turMalzemeleri TPU'suz
+ *   TE  (e) girdi.json (uretecGirdiJson) malzeme "TPU" (PLA'da "PLA")
+ */
+async function tpuSunucu(fm) {
+  const asilOrnek = VERI.ornekSayisi;
+  VERI.ornekSayisi = () => 1;
+  const k = koprukur(); await k.hazir;
+  const e2 = envKur(k.d1, r2Kur());
+  await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('anahtarlik_yazi', 1, 'x'), ('anahtarlik_figur', 1, 'x'), " +
+    "('bust', 1, 'x'), ('plaket', 1, 'x')").run();
+  let no = 0;
+  const isKur = async (tur, mm, asama, cesit) => {
+    const is = "7b" + (++no).toString(16).padStart(30, "0"), iso = new Date().toISOString();
+    await k.d1.prepare("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, gorev, hazir_tarih, son_kontrol, cesit)" +
+      " VALUES (?, ?, ?, 'z', ?, ?, 'gorev-tpu', ?, 0, ?)").bind(is, tur, mm, iso, asama, iso, cesit).run();
+    return is;
+  };
+  const sonuc = (r) => (r.satir ? r.satir : r.kod + ":" + (r.hata && r.hata.hata));
+  const yazi = async (malz, yaziR, plakaR, ek) => sonuc(await fm.fotoKalemFiyatla(e2, { foto_is: await isKur("anahtarlik", AH_MM, "onizleme-hazir", "yazi"),
+    olcu_mm: AH_MM, adet: 1, renkli: false, malzeme: malz, secim: { plaka_renk: plakaR, yazi_renk: yaziR, govde_malzeme: malz },
+    renk_sayisi: new Set([yaziR, plakaR]).size, ...(ek || {}) }, Date.now()));
+  const figur = async (ek) => sonuc(await fm.fotoKalemFiyatla(e2, { foto_is: await isKur("anahtarlik", AH_MM, "hazir", "figur"),
+    olcu_mm: AH_MM, adet: 1, ...ek }, Date.now()));
+  const s = {}, iz = {};
+  try {
+    const formul = VERI.fiyatKurus("anahtarlik", AH_MM, { renkli: false, malzeme: "TPU" });
+    const ya = await yazi("TPU", "Beyaz", "Beyaz"), fa = await figur({ malzeme: "TPU", renkler: ["Beyaz"] });
+    iz.a = { formul, yazi: ya.birim_kurus || ya, figur: fa.birim_kurus || fa, detay: ya.parametre_detay };
+    s.TA = formul === Math.round(VERI.fiyatKurus("anahtarlik", AH_MM) * 1.55) && formul === 93000 &&
+      ya.birim_kurus === formul && ya.malzeme === "TPU" && / · TPU \(\+%55\)/.test(ya.parametre_detay || "") &&
+      fa.birim_kurus === formul && fa.malzeme === "TPU" && / · TPU \(\+%55\)/.test(fa.parametre_detay || "");
+    iz.b = [await figur({ malzeme: "TPU", renkli: true, renkler: ["Beyaz"] }), await yazi("TPU", "Beyaz", "Beyaz", { renkli: true }),
+      await figur({ malzeme: "PLA", renkli: true, renkler: ["Beyaz"] })];
+    s.TB = iz.b[0] === "400:gecersiz-renk" && iz.b[1] === "400:gecersiz-renk" && !!iz.b[2].birim_kurus;
+    iz.c = [await yazi("TPU", "Siyah", "Beyaz"), await yazi("TPU", "Siyah", "Siyah"), await figur({ malzeme: "TPU", renkler: ["Siyah"] }),
+      await yazi("PLA", "Siyah", "Beyaz")];
+    s.TC = iz.c.slice(0, 3).every((x) => typeof x === "string" && /^400:gecersiz-(renk|secim)$/.test(x)) && !!iz.c[3].birim_kurus;
+    const bust = await isKur("bust", 100, "onizleme-hazir", ""), plaket = await isKur("plaket", 100, "hazir", "");
+    const bRed = await fm.fotoKalemFiyatla(e2, { foto_is: bust, olcu_mm: 100, adet: 1, renkler: ["Beyaz"], malzeme: "TPU", secim: { govde_malzeme: "TPU" } }, Date.now());
+    const pRed = await fm.fotoKalemFiyatla(e2, { foto_is: plaket, olcu_mm: 100, adet: 1, renkler: ["Beyaz"], malzeme: "TPU" }, Date.now());
+    const pOk = await fm.fotoKalemFiyatla(e2, { foto_is: plaket, olcu_mm: 100, adet: 1, renkler: ["Beyaz"], malzeme: "PETG" }, Date.now());
+    iz.d = [sonuc(bRed), sonuc(pRed), bRed.hata && bRed.hata.mesaj, VERI.turMalzemeleri("figur")];
+    s.TD = bRed.kod === 400 && bRed.hata.hata === "gecersiz-malzeme" && pRed.kod === 400 && pRed.hata.hata === "gecersiz-malzeme" &&
+      bRed.hata.mesaj === "Malzeme seçimi geçersiz (PLA, PETG ya da TPU)." && !!pOk.satir &&
+      ["plaket", "figur", "yapboz", "bust"].every((t) => VERI.turMalzemeleri(t).indexOf("TPU") < 0);
+    const gT = fm.uretecGirdiJson("PR-TPU", { kalem: 0, tur: "anahtarlik", olcu_mm: AH_MM, secim: { govde_malzeme: "TPU", plaka_renk: "Beyaz", yazi_renk: "Beyaz" } });
+    const gP = fm.uretecGirdiJson("PR-TPU", { kalem: 0, tur: "anahtarlik", olcu_mm: AH_MM, secim: { govde_malzeme: "PLA", plaka_renk: "Siyah", yazi_renk: "Beyaz" } });
+    iz.e = [gT.malzeme, gP.malzeme, gT.malzemeler];
+    s.TE = gT.malzeme === "TPU" && gP.malzeme === "PLA" && JSON.stringify(gT.malzemeler) === '{"govde":"TPU"}';
+  } finally { VERI.ornekSayisi = asilOrnek; k.kapat(); }
+  return { s, iz };
+}
+console.log("TPU) ANAHTARLIK TPU — +%55 (FILAMENT_FARK), tek renk Beyaz, TPU+Renkli 400, başka türde TPU 400, girdi.json malzeme");
+{
+  const { s, iz } = await tpuSunucu(foto);
+  ol("TPU-a yazı + figür çeşidi TPU 60 mm = round(600 TL × 1,55) = 930 TL = VERI.fiyatKurus(TPU) (istemci=sunucu) · ' · TPU (+%55)'", s.TA === true, JSON.stringify(iz.a));
+  ol("TPU-b TPU + Renkli -> 400 gecersiz-renk (figür palet + yazı); PLA + Renkli figür geçer", s.TB === true, JSON.stringify(iz.b));
+  ol("TPU-c TPU + Siyah (yazı Siyah/Beyaz · Siyah/Siyah · figür Siyah) -> 400; PLA Siyah/Beyaz geçer", s.TC === true, JSON.stringify(iz.c));
+  ol("TPU-d bust / plaket TPU -> 400 gecersiz-malzeme 'PLA, PETG ya da TPU' · figür/yapboz/bust/plaket turMalzemeleri TPU'suz", s.TD === true, JSON.stringify(iz.d));
+  ol("TPU-e girdi.json malzeme TPU (PLA'da PLA) + malzemeler.govde", s.TE === true, JSON.stringify(iz.e));
+  // MUTANTLAR (gecici foto.js kopyasi, canli govde DEGIL): M1 TPU'ya %30 uygulanir · M2 TPU+Renkli gecer -> KIRMIZI.
+  const TPU_MUT = [
+    ["TPU-M1 TPU'ya %30 uygulanir (sunucu)", "  const birim = rs ? VERI.fiyatKurus(tur.kod, olcu.mm, { renkli: rs.renkli, malzeme: malz }) : null;",
+     "  const birim = rs ? VERI.fiyatKurus(tur.kod, olcu.mm, { renkli: rs.renkli, malzeme: malz === \"TPU\" ? \"PETG\" : malz }) : null;", ["TA"]],
+    ["TPU-M2 TPU + Renkli gecer", "  if (mr && (renkli || (Array.isArray(k.renkler)", "  if (mr && (false || (Array.isArray(k.renkler)", ["TB"]],
+    ["TPU-MK KONTROL (yorum)", "/** Satir detayindaki fiyat secimi:", "/**  Satir detayindaki fiyat secimi:", []],
+  ];
+  for (const [ad, capa, yerine, olmeli] of TPU_MUT) {
+    const fm = await mutantModul(capa, yerine);
+    if (!fm) { ol(ad + " capa bulundu", false, "capa kayip/coklu: " + capa); continue; }
+    const m = (await tpuSunucu(fm)).s;
+    const kir = Object.keys(m).filter((x) => m[x] !== true).sort();
+    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", Object.keys(m).length === 5 && JSON.stringify(kir) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(kir));
+  }
 }
 
 console.log(kirmizi ? "\n❌ " + kirmizi + " iddia KIRMIZI" : "\n✅ HEPSI GECTI");

@@ -93,6 +93,10 @@ RENK_LISTE_TAVAN = 4  # AMS 4 yuva (VERI.renkTavani 1..4)
 # Okan 9 Eki "malzeme seçiminde sadece pla ve petg": foto-uretim-veri.js VERI.MALZEMELER kodlariyla AYNI (sapma
 # tools/kopru-manifest-uret-test.py + --denetle ile olculur: kopru ASA/ABS izinli olsa da manifeste girmez).
 FOTO_MALZEMELERI = ("PLA", "PETG")
+# PRUVO MALZEME EKI (Okan 13 Eki 23:1x "anahtarliklara tpu da ekle"; 23:2x yazi + figur ikisi de): kopru izinli
+# listesinden suzulen govdeye tur bazinda EKLENIR (kopru kaydi TPU tasimiyor; esik TeKiN isimlik_uret'te girdi.json
+# `malzeme`den). Yalniz burada adi gecen turde; VERI.MALZEMELER'deki `yalniz_tur_listesinde` malzeme baska ture girmez.
+PRUVO_EK_MALZEME = {"anahtarlik": ("TPU",)}
 KONUM_ADIM = {"enlem": 0.000001, "boylam": 0.000001}
 VARSAYILAN_ADIM = 0.01
 # Bolge renk listeleri (sunum kurali, kayitta YOK): cift sirali bolge acik-once, tek sirali koyu-once ->
@@ -305,7 +309,8 @@ def satir_uret(kayit, parametreler=None, kod=None, girdi_tipi=None, sema=None):
              "olcu_mm": {"en_az": o.get("min_mm"), "en_cok": o.get("max_mm")},
              "renk_bolgeleri": bolgeler,
              # Okan 9 Eki: foto programinda malzeme YALNIZ PLA/PETG (VERI.MALZEMELER) — kopru izinli listesi suzulur.
-             "malzemeler": {"govde": [m for m in (kayit.get("izinli_malzeme") or []) if m in FOTO_MALZEMELERI]},
+             "malzemeler": {"govde": [m for m in (kayit.get("izinli_malzeme") or []) if m in FOTO_MALZEMELERI] +
+                                     list(PRUVO_EK_MALZEME.get(kod, ()))},
              "form": form,
              "olcu_ekseni": "sabit" if o.get("belirleyen_parametre") else "turetilmis",
              "fiyat_adim_mm": o.get("adim_mm"),

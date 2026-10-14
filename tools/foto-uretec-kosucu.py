@@ -444,6 +444,8 @@ def siparis_girdisi(i, t):
     return {"sozlesme": 1, "kategori": i["tur"], "siparis_no": i["siparis_no"], "kalem": i["kalem"],
             # TURETILMIS eksen: onizleme girdisiyle AYNI (olcu 0; uretec olcuyu parametreden turetir) -> kopya kolu.
             "olcu_mm": 0 if turetilmis(t) else i["olcu_mm"], "renkler": renkler, "malzemeler": malzemeler,
+            # Tek malzeme -> `malzeme` (TPU esigi isimlik_uret'te buradan; foto.js tekMalzeme AYNASI).
+            **({"malzeme": next(iter(set(malzemeler.values())))} if len(set(malzemeler.values())) == 1 else {}),
             "parametreler": k.get("parametreler") if isinstance(k.get("parametreler"), dict) else {},
             "dosyalar": {"gri_harita": "gri_harita.png"}}
 

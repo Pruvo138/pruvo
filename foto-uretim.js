@@ -657,8 +657,11 @@
   // Malzeme PLA ya da PETG (+%30) kartı. Fiyat F.fiyatKurus(kod, mm, fiyatSecimi()) — sunucu AYNI fonksiyonu çağırır.
   var RENKLI = "Renkli";
   function renkliSunulur(kod) {
-    return !!renkliTurde(kod) && !!(S.fotoRenkleri && S.fotoRenkleri.length);
+    return !!renkliTurde(kod) && !!(S.fotoRenkleri && S.fotoRenkleri.length) && !malzemeRenkListesi(kod);
   }
+  // TEK RENK MALZEME (TPU, Okan 13 Eki): seçili malzemenin F.malzemeRenkleri listesi (yoksa null) — varken Renkli
+  // kapanır, renk seçici yalnız listeyi sunar, iki renk (bölge) seçici çizilmez (ürün tek renk; sunucu AYNI kural).
+  function malzemeRenkListesi(kod) { return F.malzemeRenkleri ? F.malzemeRenkleri(kod, seciliMalzeme()) : null; }
   // Tür + SEÇİLİ çeşitte Renkli sunulabilir mi (F.renkliSecilebilir — çeşit kolu: figür anahtarlık TEK gövde -> hayır).
   function renkliTurde(kod) {
     return !!F.renkliSecilebilir(kod, kod === S.tur && cesitliTur() ? seciliCesit() : undefined);
@@ -667,6 +670,17 @@
   // (fotoğrafsız yazı anahtarlık; tek gövde figür anahtarlık) cümle Renkli'yi ANMAZ — ekranda yanlış vaat yok.
   var RENK_CUMLESI_RENKLI = "Renk: Siyah, Beyaz, Gri ya da Renkli (+%15; renkler fotoğrafından otomatik seçilir). ";
   var RENK_CUMLESI_TEK = "Renk: Siyah, Beyaz ya da Gri. ";
+  // ③ malzeme cümlesi türün malzemelerinden (F.turMalzemeleri + ek_yuzde): PLA/PETG türünde metin AYNEN kalır,
+  // anahtarlıkta "PLA, PETG (+%30) ya da TPU (+%55)".
+  var MALZEME_CUMLESI_TEMEL = "Malzeme: PLA ya da PETG (+%30). ";
+  function malzemeCumlesi(kod) {
+    var p = (F.turMalzemeleri ? F.turMalzemeleri(kod) : []).map(function (m) {
+      var e = F.malzemeBul(m).ek_yuzde; return m + (e ? " (+%" + e + ")" : "");
+    });
+    if (!p.length) return MALZEME_CUMLESI_TEMEL;
+    var son = p.pop();
+    return "Malzeme: " + (p.length ? p.join(", ") + " ya da " : "") + son + ". ";
+  }
   // ① cümlesi AÇIK kartlardan: "N seçenekten birini seç: a, b, … ya da z." (kart adları, çizim sırasıyla).
   function birinciAciklama() {
     var adlar = [];
@@ -678,6 +692,7 @@
   function pencereAciklamasi(n) {
     if (n === 1) return birinciAciklama();
     var a = PENCERELER[n - 1].aciklama;
+    if (n === 3 && S.tur) a = a.replace(MALZEME_CUMLESI_TEMEL, malzemeCumlesi(S.tur));
     return n === 3 && S.tur && !renkliTurde(S.tur) ? a.replace(RENK_CUMLESI_RENKLI, RENK_CUMLESI_TEK) : a;
   }
   function renkliMi() { return S.renkSecim === RENKLI && renkliSunulur(S.tur); }
@@ -685,8 +700,16 @@
   function cesitPaletMi(kod) { return kod === S.tur && cesitliTur() && F.cesitPaleti(kod, seciliCesit()); }
   // Renkler paletten mi: palet türü ya da palet çeşidinde Renkli (tek renkte figür bugünkü yol — renkler gönderilmez).
   function paletTuru(kod) { return F.renkPaleti(kod) || (cesitPaletMi(kod) && renkliMi()); }
-  function anaRenk() { return F.ANA_RENKLER.indexOf(S.renkSecim) >= 0 ? S.renkSecim : F.VARSAYILAN_RENK; }
-  function seciliMalzeme() { return F.malzemeBul(S.malzeme) ? S.malzeme : F.VARSAYILAN_MALZEME; }
+  function anaRenk() {
+    var mr = malzemeRenkListesi(S.tur);
+    if (mr) return mr.indexOf(S.renkSecim) >= 0 ? S.renkSecim : mr[0];
+    return F.ANA_RENKLER.indexOf(S.renkSecim) >= 0 ? S.renkSecim : F.VARSAYILAN_RENK;
+  }
+  // Seçili malzeme türde sunuluyorsa o (F.turMalzemeleri: TPU yalnız anahtarlıkta), değilse PLA.
+  function seciliMalzeme() {
+    return F.malzemeBul(S.malzeme) && (!F.turMalzemeleri || F.turMalzemeleri(S.tur).indexOf(S.malzeme) >= 0)
+      ? S.malzeme : F.VARSAYILAN_MALZEME;
+  }
   function fiyatSecimi() { return { renkli: renkliMi(), malzeme: seciliMalzeme() }; }
   // Palet türünde renkler: ana renkte [renk]; Renkli'de paletKaynagi() (türün tavanı kadar).
   function paletTavani(kod) { return (cesitPaletMi(kod) ? F.cesitRenkTavani(kod, seciliCesit()) : F.renkTavani(kod)) || 1; }
@@ -701,7 +724,8 @@
   // İKİ RENK (anahtarlık–yazı, Okan 12 Eki): türün F.bolgeRenkSecimi kaydı seçili çeşide uyuyorsa ana renkte her
   // bölgenin AYRI rengi (S.bolgeRenk; yoksa kaydın varsayılanı), değilse null (tek seçici yolu).
   function bolgeRenkKaydi(kod) {
-    return kod && !renkliMi() ? F.bolgeRenkSecimi(kod, cesitliTur() && kod === S.tur ? seciliCesit() : undefined) : null;
+    return kod && !renkliMi() && !malzemeRenkListesi(kod)
+      ? F.bolgeRenkSecimi(kod, cesitliTur() && kod === S.tur ? seciliCesit() : undefined) : null;
   }
   function bolgeRenkleri(k) {
     var c = {};
@@ -797,9 +821,10 @@
   function renkSecici(nt, degisti) {
     var bk = bolgeRenkKaydi(nt.kod);
     if (bk && !renkliSunulur(nt.kod)) return bolgeRenkSecici(nt, bk, degisti);
-    var secenek = F.ANA_RENKLER.slice();
+    var mr = malzemeRenkListesi(nt.kod);
+    var secenek = (mr || F.ANA_RENKLER).slice();
     if (renkliSunulur(nt.kod)) secenek.push(RENKLI);
-    if (secenek.indexOf(S.renkSecim) < 0) S.renkSecim = F.VARSAYILAN_RENK;
+    if (secenek.indexOf(S.renkSecim) < 0) S.renkSecim = mr ? mr[0] : F.VARSAYILAN_RENK;
     var g = el("div", "foto-uretim-form-grup");
     var fs_ = el("fieldset", "foto-uretim-renk-secim");
     fs_.appendChild(el("legend", "foto-uretim-form-etiket", "Renk"));
@@ -841,7 +866,9 @@
     g.setAttribute("aria-label", "Malzeme");
     g.style.display = "flex"; g.style.flexWrap = "wrap"; g.style.gap = "12px";
     S.malzemeFiyatEl = {};
+    var turda = F.turMalzemeleri ? F.turMalzemeleri(nt.kod) : null;
     for (var i = 0; i < F.MALZEMELER.length; i++) {
+      if (turda && turda.indexOf(F.MALZEMELER[i].kod) < 0) continue;
       (function (m) {
         var secili = seciliMalzeme() === m.kod;
         var b = el("button", "foto-uretim-malzeme-kart");
