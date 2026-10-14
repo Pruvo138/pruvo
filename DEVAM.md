@@ -4,6 +4,9 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## 📍 DURUM — 14 Eki 17:4x, KraL halef-34
+**W-H CANLI:** main `361e8cb9` → Pages `38577707398` deploy+yayin success · shop `3b3387fa` @100% (main `130ddba6`), `URETIM_GRI_MODEL` sürümde VAR; canlı ④ tek renk ölçümü kredi harcar → yapılmadı. **TOPLU DAL** `kral/toplu-14eki-17` `3f76d22f` (kart + e-posta + kargo kırmızı, Okan 16:3x "bunu kırmızı yaz"): 3 test rc=0 · ci-kapsam rc=0 · `DAL_PROVA=YESIL 11/11` → Pages `38583449174` bitince TEK SERİT B → merge → Pages → shop deploy → canlı kargo ekran görüntüsü Okan'a. ③ ad-özeti `6857176d` origin'de, SERİT B bekliyor. kanıt: /private/tmp/claude-501/-Users-okan-dev-pruvo/3425942a-cce2-4787-a2bc-2d99b628ee29/scratchpad/kanit/2026-10-14-1740-wh-canli.txt
+
 ## 📍 DURUM — 14 Eki 16:1x, KraL halef-34 (döngü `401e0506` `13,43 * * * *` "devam")
 **AÇILIŞ=65.368** 🔴 >60.000 (ilk araç sonucu dahil; ham ≈62K; ev payı: CLAUDE.md 5.951 B · MEMORY.md 4.639 B · kanca 458 B). ④ **C3 ZATEN YAPILMIŞ:** `kutu-nobeti.py` 15:17 değişikliği = OTeLLa yayını (`faralya-pazarlama` `85ecdf8`, `acilis_kisalt` ≤500 B) — kanca çıktısı BaBa 469 · OTeLLa 366 · KraL 458 · FaR 223 B; spec ÖNCÜLÜ yanlış → yama/işçi YOK. ③ ad-özeti dalı main'le tazelendi `7882e375`; muafiyet+mutant m3 `ad-ozeti-muafiyet` uçuşta (spec `~/.claude/cron/isci-tur-cikti/ad-ozeti-muafiyet/SPEC.md`). ② e-posta dalı main'le tazelendi `d7b2c930` (push yok), `dal-deploy-prova` e-posta + W-H koşuyor. ① W-H SERİT B `38564040737` 16:0x in_progress; çakışma ön-testi 0.
 
