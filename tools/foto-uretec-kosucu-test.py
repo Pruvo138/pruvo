@@ -218,6 +218,21 @@ os.makedirs(out, exist_ok=True)
 open(os.path.join(out, i["kod"] + "-1-render.webp"), "w").write(json.dumps({"filament_colour": fc}))
 '''
 
+# ④ TEK RENK (Okan 14 Eki): sahte Blender — tools/foto-renk-render.py'nin cagirdigi `Blender -b ... -- blender-ic --glb
+# --renk HEX --cikti PNG` arayuzu. Cagriyi FAKE_LOG'a ["blender", hex] yazar, --cikti'ya PNG imzali bayt + hex yazar.
+# FAKE_BLENDER=rc1 -> rc 1, dosya YOK.
+SAHTE_BLENDER = r'''
+import json, os, sys
+a = sys.argv[1:]
+b = a[a.index("--") + 1:] if "--" in a else a
+renk = b[b.index("--renk") + 1]; cikti = b[b.index("--cikti") + 1]; glb = b[b.index("--glb") + 1]
+open(os.environ["FAKE_LOG"], "a").write(json.dumps(["blender", renk, os.path.isfile(glb)]) + "\n")
+if os.environ.get("FAKE_BLENDER") == "rc1":
+    sys.exit(1)
+open(cikti, "wb").write(b"\x89PNG\r\n\x1a\n" + renk.encode())
+print("RENK-IC=OK yassi=0")
+'''
+
 # Sahte tekin-ortak ureteci (G1/G2 CLI: --girdi <uretec json> --cikti <dizin> -> uretec.3mf + onizleme.png
 # + ozet.json). Aldigi JSON'u FAKE_TEKIN_LOG'a yazar; extruder sayisi = girdideki renk alani sayisi
 # (FAKE_TEKIN_EXTRUDER zorlar). FAKE_TEKIN_RET dolu -> stderr "RET: <metin>" rc 2.
@@ -593,6 +608,30 @@ class Ortam:
         y = os.path.join(self.r2, "foto", SIP, "0", "model.3mf")
         return open(y, "rb").read() if os.path.isfile(y) else None
 
+    def renk_is(self, renk="Gri", glb=True, hata="", is_no=IS):
+        """④ TEK RENK: Worker build'i bitirdi -> foto_renk_onizleme 'render-bekliyor' + R2 GLB (glb=False: GLB YOK)."""
+        self.sql("INSERT INTO foto_renk_onizleme (is_no, renk, asama, build_gorev, build_olcu, tarih, son_kontrol, hata,"
+                 " guncel) VALUES (?,?,?,?,?,?,?,?,?)", is_no, renk, "render-bekliyor", "gorev-renk", 100, GUNCEL0, 5,
+                 hata, 5)
+        if glb:
+            os.makedirs(os.path.join(self.r2, "foto-onizleme"), exist_ok=True)
+            with open(os.path.join(self.r2, "foto-onizleme", is_no + "-model.glb"), "wb") as f:
+                f.write(b"glTF-sahte-onizleme-modeli")
+
+    def renk_env(self, **ek):
+        """Sahte Blender (tools/foto-renk-render.py FOTO_RENK_BLENDER kancasi) + Blender kapisi atlanir (hermetik)."""
+        b = os.path.join(self.d, "blender.py")
+        with open(b, "w") as f:
+            f.write(SAHTE_BLENDER)
+        return dict({"FOTO_RENK_BLENDER": "%s %s" % (sys.executable, b), "FOTO_RENK_KAPI_YOK": "1"}, **ek)
+
+    def renk_satiri(self, is_no=IS):
+        r = self.sql("SELECT renk, asama, hata FROM foto_renk_onizleme WHERE is_no = ?", is_no)
+        return r[0] if r else None
+
+    def blender_cagri(self):
+        return [json.loads(x) for x in open(self.log) if json.loads(x)[0] == "blender"]
+
     def kapat(self):
         shutil.rmtree(self.d, ignore_errors=True)
 
@@ -903,10 +942,10 @@ def vakalar(kosucu):
     def t24(o):
         o.kos("--hedef", "onizleme")
         o.kos()
-        # Bos kuyrukta her kosum 3 SELECT (siparis + onizleme + onarim kuyrugu, 8 Eki).
+        # Bos kuyrukta her kosum 4 SELECT (siparis + onizleme + onarim kuyrugu, 8 Eki; + ④ tek renk kuyrugu, 14 Eki).
         adlar = [a[2] for a in (json.loads(s) for s in open(o.log)) if a[:2] == ["d1", "execute"]]
-        return (len(adlar) == 6 and set(adlar[:3]) == {"pruvo-katalog-onizleme"} and
-                set(adlar[3:]) == {"pruvo-katalog"}), "%s" % adlar
+        return (len(adlar) == 8 and set(adlar[:4]) == {"pruvo-katalog-onizleme"} and
+                set(adlar[4:]) == {"pruvo-katalog"}), "%s" % adlar
 
     def t25(o):
         # Uretec onizlemesi OLMAYAN ornek isi (girdi.json yok): 'hazir' + gri harita -> ORNEK siparis uretilir.
@@ -1443,6 +1482,64 @@ def vakalar(kosucu):
     vaka("RN2", rn2)
     vaka("RN3", rn3)
     vaka("RN4", rn4)
+
+    # ④ TEK RENK ONIZLEMESI (Okan 14 Eki 03:0x): Worker build'i bitirdi (render-bekliyor + R2 GLB) -> koşucu SECILEN
+    # renkte (manifest RENK_HEX) sahte Blender'la cizer -> R2 foto-onizleme/<is>-<renk>.png -> 'hazir'.
+    RENK_PNG = lambda renk: os.path.join("foto-onizleme", IS + "-" + renk + ".png")  # noqa: E731
+
+    def rr1(o):
+        o.renk_is("Gri")
+        rc, son, c = o.kos("--uygula", **o.renk_env())
+        y = os.path.join(o.r2, RENK_PNG("Gri"))
+        icerik = open(y, "rb").read() if os.path.isfile(y) else b""
+        return (son == "HAL=ISLEDI uretildi=1 red=0 ariza=0 rc=0" and o.renk_satiri()["asama"] == "hazir" and
+                icerik == b"\x89PNG\r\n\x1a\n" + RENK_HEX_KARAR["Gri"].lstrip("#").encode() and
+                o.blender_cagri() == [["blender", RENK_HEX_KARAR["Gri"].lstrip("#"), True]] and
+                not os.path.isfile(os.path.join(o.r2, RENK_PNG("Beyaz")))), \
+            "%s satir=%s cagri=%s png=%r" % (son, o.renk_satiri(), o.blender_cagri(), icerik[:20])
+
+    def rr2(o):
+        o.renk_is("Beyaz", glb=False)
+        rc, son, c = o.kos("--uygula", **o.renk_env())
+        s = o.renk_satiri()
+        return (s["asama"] == "basarisiz" and s["hata"] == "model-yok" and o.blender_cagri() == [] and
+                not os.path.isfile(os.path.join(o.r2, RENK_PNG("Beyaz")))), "%s satir=%s" % (son, s)
+
+    def rr3(o):
+        o.renk_is("Siyah")
+        sonlar = []
+        for _ in range(3):
+            o.sql("UPDATE foto_renk_onizleme SET son_kontrol = 5")
+            rc, son, c = o.kos("--uygula", **o.renk_env(FAKE_BLENDER="rc1"))
+            sonlar.append((son, dict(o.renk_satiri())))
+        return (sonlar[0][1] == {"renk": "Siyah", "asama": "render-bekliyor", "hata": "render-ariza-1"} and
+                sonlar[1][1]["hata"] == "render-ariza-2" and
+                sonlar[2][1] == {"renk": "Siyah", "asama": "basarisiz", "hata": "render-basarisiz"} and
+                not os.path.isfile(os.path.join(o.r2, RENK_PNG("Siyah")))), "%s" % sonlar
+
+    def rr4(o):
+        # Goc oncesi hedef: tablo YOK -> renk kuyrugu BOS (OLCULEMEDI DEGIL), diger kuyruklar aynen.
+        o.sql("DROP TABLE foto_renk_onizleme")
+        rc, son, c = o.kos("--uygula", **o.renk_env())
+        o.onizleme_is()
+        rc2, son2, c2 = o.kos("--uygula", **o.renk_env())
+        return (rc == 1 and son == "HAL=BOS rc=1" and rc2 == 0 and son2.startswith("HAL=ISLEDI uretildi=1")), \
+            "%s / %s" % (son, son2)
+
+    def rr5(o):
+        # --kuyruk renk: yalniz ④ cizimi; bekleyen uretec onizlemesi DOKUNULMAZ (kanit kosumu canli kuyrugu yemez).
+        o.renk_is("Beyaz")
+        o.onizleme_is()
+        rc, son, c = o.kos("--uygula", "--kuyruk", "renk", **o.renk_env())
+        u = o.sql("SELECT asama FROM foto_isler WHERE is_no = ?", IS2)
+        return (son == "HAL=ISLEDI uretildi=1 red=0 ariza=0 rc=0" and o.renk_satiri()["asama"] == "hazir" and
+                u and u[0]["asama"] == "uretec-onizleme" and o.uretec_sayisi() == 0), "%s %s" % (son, u)
+
+    vaka("RR1", rr1)
+    vaka("RR2", rr2)
+    vaka("RR3", rr3)
+    vaka("RR4", rr4)
+    vaka("RR5", rr5)
     vaka("T67", t67)
     vaka("T68", t68)
     vaka("T69", t69)
@@ -1890,6 +1987,13 @@ MUTANTLAR = {
                   '    shutil.copyfile(os.path.join(dz + "-on", "duzelt.3mf"), olcekli)\n    L = olcu\n',
                   {"FZ1", "FZ2", "FZ3", "FZ4", "FZ6"}),
     "M-FZ-RED-HAZIR": ('    if rc == 0 and satir.startswith("DENGE=OK "):\n', '    if rc in (0, 2):\n', {"FZ3"}),
+    # ④ TEK RENK (Okan 14 Eki): cizim yanlis renkte (secilen yerine Beyaz hex'i) -> RR1 · R2 anahtari renkten bagimsiz
+    # (hep -Beyaz.png) -> RR1 · tablo yokken kuyruk OLCULEMEDI'ye dusurur (diger kuyruklar da durur) -> RR4.
+    "M-RR-HEX": ('    hx = renk_tablosu().get(i["renk"]) if RENK_ADI_KALIBI', '    hx = renk_tablosu().get("Beyaz") if RENK_ADI_KALIBI',
+                 {"RR1"}),
+    "M-RR-ANAHTAR": ('    return "foto-onizleme/%s-%s.png" % (is_no, renk)', '    return "foto-onizleme/%s-Beyaz.png" % is_no',
+                     {"RR1"}),
+    "M-RR-TABLO": ("    except TabloYok:\n        return []\n", "    except KeyError:\n        return []\n", {"RR4"}),
     "M0": ("import argparse\n", "import argparse  # kontrol mutanti\n", set()),
 }
 
@@ -1908,6 +2012,8 @@ def mutant_kos(ad):
         os.makedirs(os.path.join(d, "shop"))
         shutil.copyfile(os.path.join(KOK, "foto-uretim-veri.js"), os.path.join(d, "foto-uretim-veri.js"))
         shutil.copyfile(os.path.join(KOK, "shop", "wrangler.onizleme.toml"), os.path.join(d, "shop", "wrangler.onizleme.toml"))
+        # ④ TEK RENK: koşucu cizim aracini KENDI kokunden cagirir (tools/foto-renk-render.py) -> kopyada da olmali.
+        shutil.copyfile(os.path.join(KOK, "tools", "foto-renk-render.py"), os.path.join(d, "tools", "foto-renk-render.py"))
         os.makedirs(os.path.join(d, "jenerator", "kopru"))
         shutil.copyfile(os.path.join(KOK, "jenerator", "kopru", "kopru_kayitlari.json"),
                         os.path.join(d, "jenerator", "kopru", "kopru_kayitlari.json"))
@@ -2359,7 +2465,9 @@ def main():
     # SURE (8 Eki 2026: seri 273 sn, pre-push ayna tavani 300 sn): mutantlar PARALEL kosar. Her mutant kendi
     # tempfile agacinda + her vaka kendi Ortam'inda (ayri SQLite/R2/kilit) -> paylasilan durum yok; anlam AYNI.
     from concurrent.futures import ThreadPoolExecutor
-    with ThreadPoolExecutor(max_workers=min(8, os.cpu_count() or 4)) as h:
+    # FOTO_KOSUCU_TEST_ISCI: es zamanli mutant tavani (agir-is kapisi altinda <=3); yoksa eski deger AYNEN.
+    isci = int(os.environ.get("FOTO_KOSUCU_TEST_ISCI") or min(8, os.cpu_count() or 4))
+    with ThreadPoolExecutor(max_workers=max(1, isci)) as h:
         sonuclar = list(h.map(mutant_kos, list(MUTANTLAR)))
     for ad, (g, ac) in zip(MUTANTLAR, sonuclar):
         print("%s %s — %s" % ("✅" if g else "❌ SURVIVOR", ad, ac))

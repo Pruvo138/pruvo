@@ -13,6 +13,9 @@ IKI KUYRUK
              turu). Girdi: R2 `foto-uretec-onizleme/<is_no>/girdi.json` + orada beyan edilen dosyalar.
              Cikti ayni dizine {onizleme.png, olcu.json, model.3mf} -> asama 'onizleme-hazir'
              (model.3mf siparise kadar R2'de bekler). foto_isler'de 'elle' yok: red -> 'basarisiz'.
+  renk     : foto_renk_onizleme.asama='render-bekliyor' (④ TEK RENK, Okan 14 Eki): R2 `foto-onizleme/<is>-model.glb`
+             -> secilen stok renginde Blender cizimi (tools/foto-renk-render.py) -> `foto-onizleme/<is>-<renk>.png`
+             -> 'hazir'. Tablo yoksa kuyruk BOS. `--kuyruk renk` yalniz bu kuyrugu isler.
 KOPYA KOLU: siparis kalemi onizleme dizinine bagliysa (R2'de girdi.json VAR) girdi oradan kurulur
   (renk/malzeme/olcu siparisten); olcu.json `girdi_sha256` (koşucunun kanonik girdi parmak izi,
   siparis_no/kalem HARIC) siparis girdisiyle AYNIYSA uretec KOSMAZ, uc dosya kopyalanir (§3 yine
@@ -101,6 +104,7 @@ ONIZLEME_DIZIN = "foto-uretec-onizleme/%s/"  # siparis oncesi uretec onizlemesi 
 # OLCUM ARACI kanit dizini (--kanit-dizin; launchd VERMEZ -> ""): onarim figur kolunun ham ozet.json (kulak
 # olcumleri) + onizleme.png kopyasi. D1/R2 sozlesmesine GIRMEZ (TUR-C2c, tools/foto-ornek-uc-uca.py --cesit figur).
 KANIT_DIZIN = ""
+KUYRUK = "hepsi"  # --kuyruk renk: yalniz ④ tek renk cizim kuyrugu (elle/kanit kosumu); launchd hepsi
 SIPARIS_KALIBI = re.compile(r"^[A-Za-z0-9-]{6,40}$")  # shop/src/foto.js ile ayni
 IS_KALIBI = re.compile(r"^[0-9a-f]{32}$")
 # Uretec deposu SALT OKUNUR: alt surec __pycache__ yazmaz. `npx wrangler` alt surecleri de
@@ -167,6 +171,10 @@ _MANIFEST = {}
 
 class Erisilemedi(Exception):
     """D1/R2/wrangler erisilemedi — is kuyrukta kalir, satir degismez."""
+
+
+class TabloYok(Erisilemedi):
+    """D1 `no such table` — tablonun gocu hedefe henuz uygulanmadi (yalniz yeni kuyruklar bunu BOS sayar)."""
 
 
 def simdi_iso():
@@ -245,6 +253,8 @@ def wr(argumanlar, zaman=180):
 def d1(sql):
     p = wr(["d1", "execute", D1_AD, "--remote", "--json", "--command", sql])
     if p.returncode != 0:
+        if re.search(r"(?i)no such table", (p.stdout or "") + (p.stderr or "")):
+            raise TabloYok("d1-tablo-yok")
         raise Erisilemedi("d1")
     try:
         v = json.loads(p.stdout)
@@ -302,6 +312,7 @@ def isleri_cek(manifest):
                       "is_no": r.get("is_no"), "tur": r.get("tur"), "olcu_mm": r.get("olcu_mm"),
                       "deneme": int(r.get("deneme") or 0), "gorulen": r.get("guncel") or "",
                       "urunler": r.get("urunler") or ""})
+    isler.extend(renk_isleri_cek())
     for i in isler:
         t = manifest.get(i["tur"]) or {}
         i["motor"] = t.get("motor", "")
@@ -317,6 +328,8 @@ def satirli(i):
 def is_adi(i):
     if satirli(i):
         return "%s %s#%s" % (i["kuyruk"], i["siparis_no"], i["kalem"])
+    if i["kuyruk"] == "renk":
+        return "renk %s %s" % (i["is_no"], i.get("renk"))
     return "onizleme %s" % i["is_no"]
 
 
@@ -341,6 +354,10 @@ def nerede(i):
         asama = "onarim-bekliyor" if i["kuyruk"] == "onarim" else "uretec-bekliyor"
         return ("foto_uretim", "siparis_no = %s AND kalem = %d AND asama = '%s'"
                 % (sql_metin(i["siparis_no"]), i["kalem"], asama))
+    if i["kuyruk"] == "renk":
+        # Kira + son yazim AYNI renge bagli: musteri bu arada rengi degistirdiyse yazim tutmaz (yeni renk kuyrukta).
+        return ("foto_renk_onizleme", "is_no = %s AND asama = 'render-bekliyor' AND renk = %s"
+                % (sql_metin(i["is_no"]), sql_metin(i["renk"])))
     return ("foto_isler", "is_no = %s AND asama = 'uretec-onizleme'" % sql_metin(i["is_no"]))
 
 
@@ -1998,6 +2015,131 @@ def render_cli(is_no, model, onizleme_png, renkler, uygula, yaz, kaydet=""):
         shutil.rmtree(gecici, ignore_errors=True)
 
 
+# ④ TEK RENK ONIZLEMESI (Okan 14 Eki 2026 03:0x, Y1): tek renk (Siyah/Beyaz/Gri) secilen saglayici onizlemesinde
+# Worker 3D build'i ONIZLEMEDE kurar, GLB'yi R2 `foto-onizleme/<is>-model.glb`e indirir ve foto_renk_onizleme
+# satirini 'render-bekliyor' yapar (shop/src/foto.js renkIlerle). Bu kuyruk modeli SECILEN STOK RENGINDE (manifest
+# RENK_HEX) tek malzemeyle Blender'da cizer (tools/foto-renk-render.py; 2D boyama YOK) -> R2
+# `foto-onizleme/<is>-<renk>.png` -> satir 'hazir'. Kira/son yazim AYNI renge bagli (musteri rengi degistirdiyse yazim
+# tutmaz, yeni renk kuyrukta kalir; cizilen eski renk R2'de kalir — geri donuste aninda gelir). GLB yok / renk tabloda
+# yok -> 'basarisiz' (④ eski davranis); Blender dustu -> deneme+1 (hata render-ariza-N), DENEME_TAVANI'nda 'basarisiz'
+# render-basarisiz. Tablo yoksa (goc uygulanmadi) kuyruk BOS (diger kuyruklar etkilenmez).
+RENK_RENDER_BETIK = "tools/foto-renk-render.py"
+RENK_ADI_KALIBI = re.compile(r"^[A-Za-z]{2,20}$")
+
+
+def renk_model_anahtari(is_no):
+    return "foto-onizleme/%s-model.glb" % is_no  # shop/src/foto.js renkModelAnahtari ile AYNI
+
+
+def renk_onizleme_anahtari(is_no, renk):
+    return "foto-onizleme/%s-%s.png" % (is_no, renk)  # shop/src/foto.js renkOnizlemeAnahtari ile AYNI
+
+
+def renk_isleri_cek():
+    try:
+        sat, _ = d1("SELECT is_no, renk, son_kontrol, hata FROM foto_renk_onizleme"
+                    " WHERE asama = 'render-bekliyor' ORDER BY guncel LIMIT " + str(IS_SINIRI))
+    except TabloYok:
+        return []
+    isler = []
+    for r in sat:
+        m = re.match(r"^render-ariza-(\d+)$", r.get("hata") or "")
+        isler.append({"kuyruk": "renk", "is_no": r.get("is_no"), "renk": r.get("renk") or "", "tur": "",
+                      "olcu_mm": 0, "deneme": int(m.group(1)) if m else 0,
+                      "gorulen": int(r.get("son_kontrol") or 0)})
+    return isler
+
+
+def renk_sonuc_sql(i, jeton, karar, sebep=""):
+    """karar: hazir | basarisiz | ariza. Son yazim kiraya (son_kontrol) + AYNI renge bagli (CAS)."""
+    tablo, kosul = nerede(i)
+    kosul += " AND " + jeton_kosulu(i, jeton)
+    ms = int(time.time() * 1000)
+    if karar == "hazir":
+        st = "asama = 'hazir', hata = '', guncel = %d" % ms
+    elif karar == "basarisiz":
+        st = "asama = 'basarisiz', hata = %s, guncel = %d" % (sql_metin(sebep), ms)
+    else:
+        st = "hata = %s" % sql_metin("render-ariza-%d" % (i["deneme"] + 1))
+    return "UPDATE %s SET %s WHERE %s" % (tablo, st, kosul)
+
+
+def renk_render_araci():
+    """ORTAK RENDER SOZLESMESI (`--model --renk [--renk2 --bolge2] --arkaplan studyo --cikti`): TeKiN'in ortak araci
+    (jenerator tools/foto_kart_render.py) sozlesmeyi tasiyorsa O, yoksa bu deponun gecici koprusu (GLB, tek malzeme)."""
+    b = render_betigi()
+    try:
+        if b and "--arkaplan" in open(b, encoding="utf-8").read():
+            return b
+    except OSError:
+        pass
+    return os.path.join(KOK, RENK_RENDER_BETIK)
+
+
+def renk_render_uret(glb, hx, cikti):
+    """Model -> secilen renkte PNG (ortak render sozlesmesi). Donus (ok, sebep, sure_sn)."""
+    py = os.environ.get("FOTO_KOSUCU_PYTHON") or sys.executable
+    bas = time.time()
+    try:
+        p = subprocess.run([py, renk_render_araci(), "--model", glb, "--renk", hx.lstrip("#"), "--arkaplan", "studyo",
+                            "--cikti", cikti], capture_output=True, text=True,
+                           timeout=RENDER_SURE_SN, env=SALT_OKUMA_ENV)
+    except subprocess.TimeoutExpired:
+        return False, "sure-asimi", int(time.time() - bas)
+    except OSError:
+        return False, "baslatilamadi", int(time.time() - bas)
+    sure = int(time.time() - bas)
+    son = ((p.stdout or "").strip().splitlines() or [""])[-1]
+    # Basari = rc 0 + PNG imzali, bos olmayan cikti (iki aracin satir bicimi farkli olabilir; sozlesme dosyadir).
+    png_ok = False
+    if os.path.isfile(cikti) and os.path.getsize(cikti) > 8:
+        with open(cikti, "rb") as f:
+            png_ok = f.read(8) == b"\x89PNG\r\n\x1a\n"
+    if p.returncode != 0 or not png_ok:
+        m = re.search(r"sebep=(\S+)", son)
+        return False, (m.group(1) if m else "render-rc-%d" % p.returncode), sure
+    return True, "", sure
+
+
+def renk_isle(i, jeton, yaz):
+    """'render-bekliyor' satiri: R2 GLB -> secilen renkte Blender cizimi -> R2 png -> 'hazir'."""
+    hx = renk_tablosu().get(i["renk"]) if RENK_ADI_KALIBI.match(i["renk"] or "") else None
+    gecici = tempfile.mkdtemp(prefix="foto-renk-")
+    try:
+        glb, png = os.path.join(gecici, "model.glb"), os.path.join(gecici, "renk.png")
+        sure = 0
+        if not hx:
+            karar, sebep = "basarisiz", "renk-tabloda-yok"
+        elif not r2_al(renk_model_anahtari(i["is_no"]), glb):
+            karar, sebep = "basarisiz", "model-yok"
+        else:
+            ok, sebep, sure = renk_render_uret(glb, hx, png)
+            if ok:
+                r2_koy(renk_onizleme_anahtari(i["is_no"], i["renk"]), png, "image/png")
+                karar, sebep = "hazir", ""
+            elif i["deneme"] + 1 >= DENEME_TAVANI:
+                karar, sebep = "basarisiz", "render-basarisiz"
+            else:
+                karar = "ariza"
+        _, n = d1(renk_sonuc_sql(i, jeton, karar, sebep))
+        if n != 1:
+            yaz("CAS %s son yazim tutmadi (renk degismis ya da jeton)" % is_adi(i))
+            return "cas"
+        yaz("%s %s%s sure_sn=%d" % ({"hazir": "HAZIR", "basarisiz": "ELLE", "ariza": "ARIZA"}[karar], is_adi(i),
+                                    (" sebep=" + sebep) if sebep else "", sure)
+            + (" anahtar=%s bayt=%d" % (renk_onizleme_anahtari(i["is_no"], i["renk"]), os.path.getsize(png))
+               if karar == "hazir" else ""))
+        return {"hazir": "uretildi", "basarisiz": "red", "ariza": "ariza"}[karar]
+    except Erisilemedi:
+        try:
+            d1(geri_ver_sql(i, jeton))
+        except Erisilemedi:
+            pass
+        raise
+    finally:
+        shutil.rmtree(gecici, ignore_errors=True)
+
+
 def onarim_isle(i, jeton, yaz, t=None):
     """'onarim-bekliyor' satiri: R2 model.ham.3mf -> kopru -> olcum -> model.3mf + 'hazir' (ya da 'elle').
     Figur cesidi (onizleme girdi.json `uretec`): onarilmis model cesidin ureteciyle (figur_kulak) islenir."""
@@ -2056,6 +2198,13 @@ def onarim_isle(i, jeton, yaz, t=None):
 
 
 def plan_bas(i, yaz):
+    if i["kuyruk"] == "renk":
+        yaz("IS %s deneme=%d" % (is_adi(i), i["deneme"]))
+        yaz("  PLAN R2 GET %s/%s -> Blender %s -> R2 PUT %s/%s" % (
+            R2_KOVA, renk_model_anahtari(i["is_no"]), RENK_RENDER_BETIK, R2_KOVA,
+            renk_onizleme_anahtari(i["is_no"], i["renk"])))
+        yaz("  PLAN D1 %s" % renk_sonuc_sql(i, 0, "hazir"))
+        return
     a = cikti_anahtarlari(i)
     yaz("IS %s tur=%s olcu=%s motor=%s uretec=%s deneme=%d"
         % (is_adi(i), i["tur"], i["olcu_mm"], i["motor"] or "-", i["uretec"] or "-", i["deneme"]))
@@ -2081,6 +2230,8 @@ def is_isle(i, manifest, yaz):
         return "cas"
     if i["kuyruk"] == "onarim":
         return onarim_isle(i, jeton, yaz, t)
+    if i["kuyruk"] == "renk":
+        return renk_isle(i, jeton, yaz)
     gecici = tempfile.mkdtemp(prefix="foto-kosucu-")
     try:
         girdi_dizin = os.path.join(gecici, "girdi")
@@ -2195,6 +2346,9 @@ def tur_kos(uygula, yaz):
         isler = isleri_cek(manifest)
     except Erisilemedi as e:
         return "HAL=OLCULEMEDI sebep=%s rc=4" % e, 4
+    # --kuyruk renk (elle / kanit kosumu): YALNIZ ④ tek renk cizimleri; diger kuyruklara yazim YOK.
+    if KUYRUK != "hepsi":
+        isler = [i for i in isler if i["kuyruk"] == KUYRUK]
     if not isler:
         return "HAL=BOS rc=1", 1
     if not uygula:
@@ -2228,7 +2382,11 @@ def main(argv=None):
     ap.add_argument("--onizleme", default="")
     ap.add_argument("--renkler", default="", help="virgullu renk ADLARI (bos: filament tablosu)")
     ap.add_argument("--kaydet", default="", help="--render webp'inin yerel kopyasi")
+    ap.add_argument("--kuyruk", choices=["hepsi", "renk"], default="hepsi",
+                    help="yalniz bu kuyruk (renk: ④ tek renk cizimleri; launchd varsayilani hepsi)")
     a = ap.parse_args(argv)
+    global KUYRUK
+    KUYRUK = a.kuyruk
     if a.donustur_litofan:
         return donustur_litofan(*a.donustur_litofan)
     if a.donustur_tekin:

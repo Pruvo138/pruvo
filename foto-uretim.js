@@ -138,6 +138,10 @@
     is: null,
     gorsel: null,
     render: null,   // ④ figür kolu: basılacak dosyanın çizimi (sunucu /durum `render`); yoksa null
+    // ④ TEK RENK (Okan 14 Eki): sunucunun bu iş için bildiği renk + durum ({renk, durum, gorsel}); yoksa null.
+    renkSunucu: null,
+    renkBekliyor: false,   // S2 "Renk önizlemesi hazırlanıyor…" (sağlayıcı görseli gösterilir, yoklama sürer)
+    renkSonIstek: "",      // aynı iş + renk için /foto/renk TEK kez (sunucu kabul etmezse döngü yok, eski davranış)
     gecerlilik: null,
     ilerleme: null,
     hazirlayiciYas: undefined,
@@ -584,7 +588,10 @@
       }
     }
     if (S.pencereAciklama) S.pencereAciklama.textContent = pencereAciklamasi(n);
-    if (n === 4 && S.adim === "S3") cizS3();
+    // ④'e dönüşte (③'te renk değişmiş olabilir) tek renk çizimi seçimle eşitlenir; eşitse bugünkü çizim.
+    if (n === 4 && (S.adim === "S3" || (S.adim === "S2" && S.renkBekliyor))) {
+      if (!renkEsitle() && S.adim === "S3") cizS3();
+    }
     gezintiGuncelle();
   }
   // İleri şartı: ① tür seçili · ② girdilerden EN AZ BİRİ (foto ya da yazı; F.girdiYeterli — sunucuyla AYNI)
@@ -1885,6 +1892,7 @@
     S.is = null;
     S.gorsel = null;
     S.render = null;
+    renkSifirla();
     S.gecerlilik = null;
     S.fiyatKurus = null;
     S.b2Onay = false;
@@ -2215,6 +2223,23 @@
     turnsTemizle(S.alanCap1);
     S.captchaToken1 = "";
     while (S.alan.firstChild) S.alan.removeChild(S.alan.firstChild);
+    if (S.renkBekliyor) {
+      // ④ TEK RENK: model seçilen renkte çiziliyor; bu sırada sağlayıcı görseli gösterilir (boş görsel YOK).
+      S.alan.appendChild(el("p", null, RENK_HAZIRLANIYOR));
+      if (S.gorsel) {
+        var tim = el("img", "foto-uretim-onizleme-img");
+        tim.alt = "Tasarım önizlemesi";
+        tim.width = 300; tim.height = 300;
+        tim.loading = "lazy"; tim.decoding = "async";
+        tim.src = S.gorsel;
+        S.alan.appendChild(tim);
+      }
+      var rbtn = el("button", "foto-uretim-buton-ikincil", "Yeniden kontrol et");
+      rbtn.type = "button";
+      rbtn.addEventListener("click", function () { if (S.is) { yoksBaslat(S.is); durumSorgula(S.is, false); } });
+      S.alan.appendChild(rbtn);
+      return;
+    }
     S.alan.appendChild(el("p", null, !!(F && F.kolu && F.kolu(S.tur) === "deterministik") ?
       "Önizlemen sırada; üretim dosyasıyla birlikte hazırlanıyor…" :
       "Önizlemen hazırlanıyor… (genelde 1 dakika)"));
@@ -2246,6 +2271,57 @@
 
   /* ④ render kolu (sunucu renderKolu ile AYNI): figür türü (insan · pet · model) + anahtarlık–figür çeşidi. */
   function figurKoluMu() { return S.tur === "figur" || (cesitliTur() && seciliCesit() === "figur"); }
+
+  /* ④ TEK RENK ÖNİZLEMESİ (Okan 14 Eki 03:0x): sağlayıcı kolunda (plaket · figür · anahtarlık–figür) tek renk
+     (Siyah/Beyaz/Gri) seçiliyken ④ görseli = modelin O RENKTE çizimi (sunucu /durum `renk_durum` + `renk_gorsel`).
+     Renkli'de bugünkü gibi sağlayıcı görseli (renk isteği/alanı YOK). Çizim hazırlanırken S2 "Renk önizlemesi
+     hazırlanıyor…" + sağlayıcı görseli (sessiz boş görsel YOK); sunucu `yok` derse (tavan/hata/gecikme) eski davranış. */
+  var RENK_URL = "/api/shop/foto/renk";
+  var RENK_HAZIRLANIYOR = "Renk önizlemesi hazırlanıyor…";
+  var RENK_CUMLESI = "Önizleme seçtiğin renkte çizildi; ürün bu renkte üretilir.";
+  var RENK_YOKLAMA_TAVAN_MS = 900000;   // sunucu RENK_RENDER_BEKLEME_SN (15 dk) ile AYNI; sonra eski davranış
+  function renkOnizlemeKolu() {
+    return !!S.tur && (figurKoluMu() || !(F && F.kolu && F.kolu(S.tur) === "deterministik"));
+  }
+  // Seçimin istediği tek renk ("" = renk çizimi yok: Renkli ya da üreteç kolu).
+  function renkHedefi() { return renkOnizlemeKolu() && !renkliMi() ? anaRenk() : ""; }
+  function renkCizimiHazir() {
+    var h = renkHedefi();
+    return !!h && !!S.renkSunucu && S.renkSunucu.renk === h && S.renkSunucu.durum === "hazir" && !!S.renkSunucu.gorsel;
+  }
+  function renkSifirla() { S.renkSunucu = null; S.renkBekliyor = false; S.renkSonIstek = ""; }
+  // ④'e dönüş: seçili tek renk sunucunun rengiyle aynı değilse /foto/renk (build TEKRARLANMAZ, yalnız yeni çizim);
+  // Renkli'ye dönüldüyse beklenen renk çizimi bırakılır, sağlayıcı görseli. Donus: ekran burada çizildi mi.
+  function renkEsitle() {
+    var h = renkHedefi();
+    if (!S.is) return false;
+    if (!h) {
+      if (!S.renkBekliyor) return false;
+      S.renkBekliyor = false; yoksDurdur(); adimKoy("S3");
+      return true;
+    }
+    if (S.renkSunucu && S.renkSunucu.renk === h) return false;
+    S.renkSonIstek = "";
+    renkIste(h);
+    return true;
+  }
+  function renkIste(renk) {
+    var isNo = S.is;
+    if (!isNo) return;
+    S.renkSonIstek = isNo + "|" + renk;
+    S.renkSunucu = { renk: renk, durum: "hazirlaniyor", gorsel: "" };
+    S.renkBekliyor = true;
+    adimKoy("S2");
+    jsonPost(RENK_URL, { is: isNo, renk: renk }, function (ok, kod, veri) {
+      if (S.is !== isNo) return;
+      if (ok && veri && veri.asama) { durumIsle(isNo, veri, false); return; }
+      // Uç kapalı / hata: eski davranış (sağlayıcı görseli + bugünkü cümle); boş görsel YOK.
+      S.renkSunucu = { renk: renk, durum: "yok", gorsel: "" };
+      S.renkBekliyor = false;
+      yoksDurdur();
+      adimKoy("S3");
+    });
+  }
   function figurGorunumNotu() {
     return S.render ? F.FIGUR_RENDER_NOTU : F.FIGUR_ORNEK_NOTU;
   }
@@ -2258,8 +2334,10 @@
     while (S.alan.firstChild) S.alan.removeChild(S.alan.firstChild);
 
     var figurKol = figurKoluMu();
+    // ④ TEK RENK: seçili renkte çizim hazırsa görsel O çizim ve altında TEK cümle (RENK_CUMLESI); üst cümle YOK.
+    var renkCiz = renkCizimiHazir();
     // Figür türünde üst cümle YOK: ④ görselinin altındaki görünüm notu tek dürüstlük cümlesidir (çelişki olmasın).
-    if (!(figurKol && S.tur === "figur")) S.alan.appendChild(el("p", "foto-uretim-ayrinti", false ? "" :
+    if (!renkCiz && !(figurKol && S.tur === "figur")) S.alan.appendChild(el("p", "foto-uretim-ayrinti", false ? "" :
       !!(F && F.kolu && F.kolu(S.tur) === "deterministik") ? ((litofanKaydi() || {}).durustluk || "") :
       "Önizleme — ürün bunun seçtiğin renk sayısında olur; tam kopyası değildir."));
     if (false && S.secim) {
@@ -2270,12 +2348,20 @@
       S.alan.appendChild(el("p", "foto-uretim-ayrinti", "Seçimin: " + secMetin.join(" · ")));
     }
 
-    if (S.gorsel || (figurKol && S.render)) {
+    if (S.gorsel || (figurKol && S.render) || renkCiz) {
       var img = el("img", "foto-uretim-onizleme-img");
       img.alt = figurKol ? (S.render ? "Basılacak figürün görüntüsü" : "Figürün yaklaşık görünümü") : "Önizleme";
       img.width = 300; img.height = 300;
       img.loading = "lazy"; img.decoding = "async";
-      if (figurKol) {
+      if (renkCiz) {
+        // ④ TEK RENK (Okan 14 Eki): modelin seçilen renkte tek malzemeyle çizimi (2D boyama YOK).
+        img.alt = "Önizleme — " + S.renkSunucu.renk + " renkte çizim";
+        // Hover/dokunma "renkli alternatif" VERİSİ (davranış KraL): aynı işin sağlayıcı görseli.
+        if (S.renkSunucu.saglayici) img.setAttribute("data-onizleme-saglayici-url", S.renkSunucu.saglayici);
+        img.src = S.renkSunucu.gorsel;
+        S.alan.appendChild(img);
+        S.alan.appendChild(el("p", "foto-uretim-ayrinti foto-uretim-renk-notu", RENK_CUMLESI));
+      } else if (figurKol) {
         // ④ FİGÜR KOLU (Okan 12 Eki "birebir aynı çıktı"): render varsa basılacak dosyanın çizimi AYNEN; yoksa
         // sağlayıcı görseli AYNEN (yeniden boyama yok) — hangisinin gösterildiği görselin altında söylenir.
         var not = el("p", "foto-uretim-ayrinti foto-uretim-gorunum-notu", figurGorunumNotu());
@@ -2368,6 +2454,7 @@
       S.b2Onay = false;
       S.gorsel = null;
       S.render = null;
+      renkSifirla();
       S.gecerlilik = null;
       S.fiyatKurus = null;
       S.adet = 1;
@@ -2551,6 +2638,11 @@
           if (ilk) { adimKoy("S1"); }
           return;
         }
+        durumIsle(isNo, veri, ilk);
+      });
+  }
+  // /foto/durum ve /foto/renk yanıtı AYNI biçim: tek işleyici.
+  function durumIsle(isNo, veri, ilk) {
         var a = veri.asama;
         if (a === "hazir") {
           S.is = isNo;
@@ -2562,8 +2654,28 @@
           if (veri.tur) S.tur = veri.tur;
           S.gecerlilik = veri.gecerlilik_bitis || S.gecerlilik;
           S.adet = 1;
-          yoksDurdur();
           ssIsKaydet();
+          // ④ TEK RENK: sunucunun bildiği renk + durum. Seçim başka bir tek renkse (③'te değişti ya da önizleme
+          // Renkli alındı) /foto/renk TEK kez; çizim hazırlanıyorsa S2'de sağlayıcı görseliyle beklenir.
+          // VERİ SÖZLEŞMESİ (sunucu foto.js renkYanitAlanlari): onizleme_renk · onizleme_renk_durum · onizleme_renk_url ·
+          // onizleme_saglayici_url (hover "renkli alternatif"; görünüm KraL).
+          S.renkSunucu = typeof veri.onizleme_renk === "string" && veri.onizleme_renk ? { renk: veri.onizleme_renk,
+            durum: veri.onizleme_renk_durum || "",
+            gorsel: typeof veri.onizleme_renk_url === "string" ? veri.onizleme_renk_url : "",
+            saglayici: typeof veri.onizleme_saglayici_url === "string" ? veri.onizleme_saglayici_url : "" } : null;
+          var h = renkHedefi();
+          if (h && (!S.renkSunucu || S.renkSunucu.renk !== h) && S.renkSonIstek !== isNo + "|" + h) {
+            renkIste(h);
+            return;
+          }
+          if (h && S.renkSunucu && S.renkSunucu.renk === h && S.renkSunucu.durum === "hazirlaniyor") {
+            S.renkBekliyor = true;
+            if (!S.yoksIs) yoksBaslat(isNo);
+            if (S.adim !== "S2") adimKoy("S2"); else cizS2();
+            return;
+          }
+          S.renkBekliyor = false;
+          yoksDurdur();
           adimKoy("S3");
           return;
         }
@@ -2594,7 +2706,6 @@
           S.ilerleme = typeof veri.ilerleme === "number" ? veri.ilerleme : null;
           cizS2();
         }
-      });
   }
   function yoksBaslat(isNo) {
     yoksDurdur();
@@ -2605,7 +2716,15 @@
     var tavan = uretec ? Math.round(URETEC_YOKLAMA_TAVAN_MS / URETEC_YOKLAMA_MS) : YOKLAMA_TAVAN;
     S.yoksIs = setInterval(function () {
       S.yoksSayac++;
-      if (S.yoksSayac >= tavan) {
+      // ④ TEK RENK çizimi beklenirken tavan RENK_YOKLAMA_TAVAN_MS; aşılınca eski davranış (sağlayıcı görseli, S3).
+      if (S.renkBekliyor && S.yoksSayac >= Math.round(RENK_YOKLAMA_TAVAN_MS / aralik)) {
+        yoksDurdur();
+        S.renkBekliyor = false;
+        if (S.renkSunucu) S.renkSunucu.durum = "yok";
+        adimKoy("S3");
+        return;
+      }
+      if (!S.renkBekliyor && S.yoksSayac >= tavan) {
         yoksDurdur();
         S.ilerleme = null;
         cizS2();
@@ -2676,6 +2795,11 @@
       altTurGovdeyeKoy(govde);
       notGovdeyeKoy(govde);
       if (Object.keys(formSemasi()).length) govde.parametreler = parametreGovde();
+      // ④ TEK RENK (Okan 14 Eki): tek renk seçiliyse renk önizleme isteğine girer (sunucu modeli o renkte çizdirir);
+      // Renkli'de alan YOK (bugünkü istek bayt-aynı).
+      var rh = renkHedefi();
+      if (rh) govde.renk = rh;
+      renkSifirla();
       jsonPost(ONIZLEME_URL, govde, function (ok, kod, veri) {
         turnsSifirla(S.alanCap1);
         hakYanitiIsle(kod, veri);
@@ -2686,6 +2810,8 @@
         }
         if (kod === 200 && veri.is) {
           S.is = veri.is;
+          // Renk önizleme isteğiyle kaydedildi: durum yanıtı rengi taşır; ayrıca /foto/renk GEREKMEZ.
+          if (rh) S.renkSonIstek = veri.is + "|" + rh;
           ssIsKaydet();
           S.ilerleme = null;
           S.hazirlayiciYas = undefined;
