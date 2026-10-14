@@ -2122,7 +2122,7 @@ def uretec_renk_cizimi(i, t, girdi_dizin, model, gecici, yaz, koy=True):
     if renk_render_araci() == os.path.join(KOK, RENK_RENDER_BETIK):
         # TeKiN ortak araci henuz yok -> MEVCUT TeKiN 3MF araci (render_uret; Cycles; gecici olarak duz zemin) YALNIZ
         # TEK RENKTE. 14 Eki olcumu: uretec 3MF'inde bolgeler PART duzeyinde (model_settings part extruder 1/2); eski
-        # arac yalniz nesne extruder'ini okuyup iki renkli anahtarligi (Siyah plaka + Beyaz yazi) TUMDEN Siyah cizdi ->
+        # arac yalniz nesne extruder'ini okuyup iki renkli parcayi (Siyah plaka + Beyaz yazi) TUMDEN Siyah cizdi ->
         # yanlis renk SESSIZCE gosterilirdi. Iki renk yalniz ortak arac (--renk2/--bolge2) ile; yoksa cizim YOK.
         if len(farkli) != 1:
             yaz("RENK-CIZIM=YOK %s sebep=iki-renk-ortak-arac-yok" % is_adi(i))
