@@ -34,26 +34,21 @@
   var MESAFELI_URL = "/mesafeli-satis/";
   var ANA_BOLUM_ID = "fotoUretim";
   var STIL_ID = "fotoUretimStil";
-  // ① KARTLAR — TEK tablo, YALNIZ Okan'ın 6 modeli, Okan'ın SIRASIYLA ve ADLARIYLA (Okan 10 Eki ~16:3x: "1- Anahtarlık –
-  // yazı 2- insan ayakta duran figür 3- pet ayakta duran figür 4- Kabartma plaket 5- Anahtarlık – figür 6- Model figür.
+  // ① KARTLAR — TEK tablo, YALNIZ Okan'ın 4 modeli, Okan'ın SIRASIYLA ve ADLARIYLA (Okan 10 Eki ~16:3x, 14 Eki anahtarlık
+  // çıkarılmış: "1- insan ayakta duran figür 2- pet ayakta duran figür 3- Kabartma plaket 4- Model figür.
   // sadece bunları yapalım."). kod = kart · tur = üretim türü (manifest/`/acik` kodu) · alt = figür alt türü (S.altTur;
-  // önizleme isteğine `alt_tur` olarak gider, sağlayıcı istemi SUNUCUDA) · cesit = kartın sabitlediği çeşit (anahtarlık
-  // iki AYRI kart; ② çeşit düğmesi çizilmez) · ad + ret = sayfa metni. Büst/yapboz bu tabloda YOK: hiçbir durumda çizilmez.
+  // önizleme isteğine `alt_tur` olarak gider, sağlayıcı istemi SUNUCUDA) · ad + ret = sayfa metni. Büst/yapboz bu tabloda YOK: hiçbir durumda çizilmez.
   // Türü `/acik` listesinde olmayan, KENDİ kodu `/acik` `modeller` listesinde olmayan (ya da çeşidi açık olmayan) kart
   // ÇİZİLMEZ ("Yakında" etiketi YOK).
   // `ornek:false` ile işaretlenen kartın örneği ÇİZİLMEZ; ornekCiz nötr yer tutucu + "Örnek yakında" etiketi basar
   // (kart aktif/tıklanabilir kalır, gizleme YOK). Yeni görsel/URL UYDURMA.
   var KARTLAR = [
-    { kod: "anahtarlik_yazi", tur: "anahtarlik", alt: null, cesit: "yazi", ad: "Anahtarlık – yazı",
-      ret: "Anahtarlık için kısa bir yazı gerekir." },
     { kod: "insan", tur: "figur", alt: "insan", ad: "İnsan figürü (ayakta)",
       ret: "İnsan figürü için tek kişinin ayakta, baştan ayağa tam boy görünen net fotoğrafı gerekir." },
     { kod: "pet", tur: "figur", alt: "pet", ad: "Pet figürü (ayakta)",
       ret: "Pet figürü için tek hayvanın ayakta, tam boy görünen net fotoğrafı gerekir." },
     { kod: "plaket", tur: "plaket", alt: null, ad: "Kabartma plaket",
       ret: "Kabartma plaket için yüksek çözünürlüklü, iyi aydınlatılmış fotoğraf gerekir." },
-    { kod: "anahtarlik_figur", tur: "anahtarlik", alt: null, cesit: "figur", ad: "Anahtarlık – figür",
-      ret: "Anahtarlık için net bir fotoğraf gerekir." },
     { kod: "model", tur: "figur", alt: "model", ad: "Model figür",
       ret: "Model figür için tek nesne, araç ya da modelin net fotoğrafı gerekir." }
   ];

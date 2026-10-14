@@ -65,7 +65,7 @@ if (!VERI) { throw new Error("foto-uretim-veri.js yuklenemedi — tur/ornek tek 
  * SUNULAN TURLER (Okan karari 5 Eki 21:4x: "plaket yapalim" — yalniz plastik uretiyoruz,
  * metal halka/miknatis YOK): bizim tur kodumuz -> saglayicinin urun yolu parcasini tasiyan
  * ORTAM DEGISKENININ ADI. Saglayicinin tur adi/yolu bu dosyada GECMEZ (`wrangler secret put`).
- * Bu tabloda olmayan tur (anahtarlik, magnet ...) HER uclu REDDEDILIR: onizleme
+ * Bu tabloda olmayan tur (magnet ...) HER uclu REDDEDILIR: onizleme
  * `tur-kapali`, odeme kalemi `foto-kapali`, panel acilis `gecersiz-tur`, kuyruk almaz.
  */
 export const TUR_ORTAM = { plaket: "URETIM_TUR_PLAKET", figur: "URETIM_TUR_FIGUR" };
@@ -129,7 +129,7 @@ function uretecOnizlemeIsi(is) { return !figurKolu(is) && !!is && uretecOnizleme
 /** Is deterministik kolda mi (figur kolu HARIC). */
 function deterministikIs(is) { return !figurKolu(is) && !!is && deterministikTur(is.tur); }
 /**
- * ④ RENDER KOLU (Okan 11 Eki "bu 4 renkli bir figur degil"): figur (insan · pet · model) + anahtarlik-figur.
+ * ④ RENDER KOLU (Okan 11 Eki "bu 4 renkli bir figur degil"): figur (insan · pet · model).
  * Bu islerde ④ gorseli = uretim 3MF'inin render'i (yerel koşucu R2 `foto-onizleme/<is>-render.webp`); yoksa
  * istemci saglayici gorselini durust cumleyle gosterir. Plaket ve deterministik kol DEGISMEZ.
  */
@@ -184,7 +184,7 @@ export function girdiGovdeDogrula(turKod, g) {
   }
   const p = formsuz ? { ok: true, deger: {} } : VERI.parametreDogrula(turKod, g.parametreler);
   if (!p.ok) { return p.hata; }
-  // EN AZ BIR GIRDI (anahtarlik 9 Eki: foto VEYA yazi) — bolumun ② "Ileri" kapisiyla AYNI fonksiyon.
+  // EN AZ BIR GIRDI — bolumun ② "Ileri" kapisiyla AYNI fonksiyon.
   const gy = VERI.girdiYeterli(turKod, { foto: g.gorsel !== undefined, parametreler: p.deger, cesit: g.cesit });
   if (gy) { return gy; }
   if (g.svg !== undefined) {
@@ -264,20 +264,18 @@ export function figurIstemi(tur, cesit, altTur) {
 }
 
 /**
- * 6 MODEL (Okan 10 Eki: "canlida YALNIZ gecen model"): acilis anahtari MODEL duzeyinde. D1 `foto_acik.tur` model
- * kodunu tasir; modelli turun (anahtarlik, figur) ESKI tur satiri ('anahtarlik' / 'figur') tek basina HICBIR modeli
+ * 4 MODEL (Okan 14 Eki anahtarlık silindi: "canlida YALNIZ gecen model"): acilis anahtari MODEL duzeyinde. D1 `foto_acik.tur` model
+ * kodunu tasir; modelli turun (figur) ESKI tur satiri ('figur') tek basina HICBIR modeli
  * acmaz (fail-closed). Modelsiz tur (bust, yapboz, litofan, ...) tur koduyla acilir (bugunku gibi); plaket: model
  * kodu = tur kodu. Kod/sira/ad istemci KARTLAR ile AYNI (foto-uretim.js). Goc: tools/d1-goc/2026-10-10-foto-model-acik.sql
  */
 export const MODELLER = Object.freeze([
-  Object.freeze({ kod: "anahtarlik_yazi", tur: "anahtarlik", cesit: "yazi", alt: "", ad: "Anahtarlık – yazı" }),
   Object.freeze({ kod: "insan", tur: "figur", cesit: "", alt: "insan", ad: "İnsan figürü (ayakta)" }),
   Object.freeze({ kod: "pet", tur: "figur", cesit: "", alt: "pet", ad: "Pet figürü (ayakta)" }),
   Object.freeze({ kod: "plaket", tur: "plaket", cesit: "", alt: "", ad: "Kabartma plaket" }),
-  Object.freeze({ kod: "anahtarlik_figur", tur: "anahtarlik", cesit: "figur", alt: "", ad: "Anahtarlık – figür" }),
   Object.freeze({ kod: "model", tur: "figur", cesit: "", alt: "model", ad: "Model figür" }),
 ]);
-/** Modelli tur: modeli tur kodundan FARKLI kodla acilan tur (anahtarlik, figur). */
+/** Modelli tur: modeli tur kodundan FARKLI kodla acilan tur (figur). */
 export function modelliTur(tur) { return MODELLER.some((m) => m.tur === tur && m.kod !== tur); }
 /**
  * Istegin / isin MODEL KODU: tur + cesit ('' / undefined = turun varsayilan cesidi) + figur alt turu (figurAltTurCoz;
@@ -1344,7 +1342,7 @@ async function uretecOnizlemeUcu(request, env, simdi, g) {
   await env.OZEL_DOSYA.put(uretecOnizlemeAnahtari(isNo, "girdi.json"), JSON.stringify(girdi),
     { httpMetadata: { contentType: "application/json" } });
   const onay = onayKaydi(VERI.onay_surum, simdi);
-  // CESIT (D1 foto_isler.cesit, TUR-C2a): cozulmus cesit (anahtarlik 'yazi'); cesitsiz tur ''.
+  // CESIT (D1 foto_isler.cesit, TUR-C2a): cozulmus cesit; cesitsiz tur ''.
   const cesit = VERI.cesitCoz(tur.kod, g.cesit);
   if (nt.deger) {
     await env.KATALOG.prepare(
@@ -2074,7 +2072,7 @@ export function fotoKalemCoz(k) {
  * fotograftan (istemci VERI.fotoRenkleri) — palet turunde 1..tavan, VERI.PLA_RENKLERI'nde, tekrarsiz; bolge turunde
  * AKTIF bolgelerde FARKLI renk sayisi <= tavan (renk_kosul'u saglanmayan bolge uretilmez -> sayilmaz, BaBa 8 Eki 15:5x).
  * Renkli yalniz fotografli turde (VERI.renkliSecilebilir). Renk ADEDI fiyata GIRMEZ. Kural bozuksa null (400, fail-closed).
- * IKI RENK (anahtarlik-yazi, Okan 12 Eki): turun VERI.bolgeRenkSecimi kaydi cesitte gecerliyse ana renkte kayittaki
+ * IKI RENK (bolgeler icin, 12 Eki): turun VERI.bolgeRenkSecimi kaydi cesitte gecerliyse ana renkte kayittaki
  * HER bolge ANA_RENKLER'de ve VERI.bolgeRenkHukmu "" (uretec kontrast esigi) olmali -> n=2 serbest; aksi null.
  * TEK RENK MALZEME (TPU, Okan 13 Eki): `malzeme`nin VERI.malzemeRenkleri listesi varsa Renkli RED, renkler (bolge +
  * kalem) YALNIZ o listeden, urun tek renk (kontrast kaydi uygulanmaz: yazi kabartmayla okunur).
@@ -2083,7 +2081,7 @@ function renkSayimi(turKod, k, sc, p, cesit, malzeme) {
   const renkli = k.renkli === true;
   const mr = malzeme === undefined ? null : VERI.malzemeRenkleri(turKod, malzeme);
   if (mr && (renkli || (Array.isArray(k.renkler) && !k.renkler.every((x) => mr.includes(x))))) { return null; }
-  // CESIT PALETI (figur anahtarlik renk_modu palet): Renkli'de renkler kalemden, tavan cesidin (4); tek renkte bugunku yol.
+  // CESIT PALETI (figur renk_modu palet): Renkli'de renkler kalemden, tavan cesidin (4); tek renkte bugunku yol.
   const cesitPalet = renkli && cesit !== undefined && VERI.cesitPaleti(turKod, cesit);
   const tavan = cesitPalet ? VERI.cesitRenkTavani(turKod, cesit) : VERI.renkTavani(turKod);
   if (tavan === null) { return null; }
@@ -2108,7 +2106,7 @@ function renkSayimi(turKod, k, sc, p, cesit, malzeme) {
 }
 
 /**
- * Kalemin MALZEMESI (Okan 9 Eki: PLA ya da PETG; 13 Eki anahtarlikta TPU): kalemin `malzeme`si; yoksa deterministik
+ * Kalemin MALZEMESI (Okan 9 Eki: PLA ya da PETG): kalemin `malzeme`si; yoksa deterministik
  * secimin `<bolge>_malzeme`si; o da yoksa PLA. Ikisi birden varsa AYNI olmali; deger turde sunulan malzemelerde
  * (VERI.turMalzemeleri: bolge listeleri; bolgesiz turde TPU YOK) olmali. Gecersizse null.
  */
@@ -3318,7 +3316,7 @@ async function renkOnizlemeOzeti(env, simdi) {
 export async function panelFotoAcik(request, env, simdi) {
   let g;
   try { g = await request.json(); } catch (e) { return fjson({ hata: "gecersiz-json" }, 400); }
-  // Model kodu (6 model) ya da modelsiz tur kodu; modelli turun ESKI tur kodu ('anahtarlik'/'figur') RED.
+  // Model kodu (4 model) ya da modelsiz tur kodu; modelli turun ESKI tur kodu ('figur') RED.
   const tur = g && (MODELLER.some((m) => m.kod === g.tur) || (turSunuluyor(g.tur) && !modelliTur(g.tur))) ? g.tur : null;
   if (!tur) { return fjson({ hata: "gecersiz-tur" }, 400); }
   if (typeof g.acik !== "boolean") { return fjson({ hata: "gecersiz-acik" }, 400); }

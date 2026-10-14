@@ -25,7 +25,7 @@ Bir kategoride (foto turu) zinciri ONIZLEMEDE olcer; her olcut HAZIR/EKSIK + say
   (6) 375 px       : mobil emulasyonda (375x812, mobile) tur secili iken yatay tasma 0 + konsol hatasi 0
 
 MUTANT (her kosumda, olcutun on kosulu; IKI AYRI SATIR, ikisi de gecmeli):
-  (a) `kapali-model`: modelli turde (6 model, shop/src/foto.js MODELLER; anahtarlik/figur) KAPALI model ->
+  (a) `kapali-model`: modelli turde (4 model, shop/src/foto.js MODELLER; figur) KAPALI model ->
       sunucu MODEL KAPISI 400 + `hata="model-kapali"` DEMELI. Ornek: sunulan turun /acik `modeller`'inde
       OLMAYAN cesitsiz modeli; yoksa modele COZULEMEYEN istek (figur, alt tursuz -> modelKodu "" = kapali).
   (b) `acik-olmayan-kategori`: acik OLMAYAN modelsiz kategoriye (manifest - /acik; yoksa manifestte
@@ -99,7 +99,7 @@ TOLERANS = {"D": 0.01, "R": 0.03, "M": 0.01}
 # `doku` 0 cunku doku adiminin kendi ucreti zincirin oncesinde `onarim` Tikte (10) zaten ayrilmis; uretim-doku
 # bittikten sonra analizBaslat yalniz bir sonraki (ucretsiz re-)analiz->renk kapisini acar.
 KREDI_ONIZLEME = 6
-# CESIT KOLU (TUR-C2c, --cesit figur): anahtarlik figur cesidi saglayici koluna gider (shop/src/foto.js figurKolu).
+# CESIT KOLU (TUR-C2c, --cesit figur): figur cesidi saglayici koluna gider (shop/src/foto.js figurKolu).
 # Olcu 60 (B2, KraL 10 Eki): surgu = KULAK DAHIL en uzun boyut (cesit 60..72, olcu_en_cok 72); sunucu ciplak figuru
 # olcuye olcekler, koşucu tepe sigmazsa sirta duser -> model (figur + kulak) uzun kenari = olcu ± tol. Kulak
 # olcumleri koşucunun --kanit-dizin kopyasindan (figur_kulak ozet.json `kulak`) okunur; 4 alan sayi > 0 olmali.
@@ -122,15 +122,15 @@ DILIM_DESEN = re.compile(r"^[a-z0-9-]{3,40}$")
 # `figur_denge.py` (devrilme/kopma/tek kabuk). Girdi ONARILMIS model.3mf (koşucu onarim kuyrugu ciktisi, R2
 # foto/<siparis>/0/model.3mf) — saglayicinin ham 3MF'i (`model.ham.3mf`) KAPIYA VERILMEZ (TeKiN (a)).
 # rc 0 + `DENGE=OK` -> HAZIR · rc 2 + `DENGE=RED` -> RED (kart acilmaz) · diger rc / satir yok / kapi yok ->
-# OLCULEMEDI (YESIL SAYILMAZ). Anahtarlik/plaket satiri `DENGE=-` (uygulanmaz). Jenerator yolu TEK sabit
+# OLCULEMEDI (YESIL SAYILMAZ). Plaket satiri `DENGE=-` (uygulanmaz). Jenerator yolu TEK sabit
 # (koşucu ile ayni FOTO_KOSUCU_JENERATOR); stdout satiri aynen rapora, kapinin sha256'si basilir.
 JENERATOR = os.environ.get("FOTO_KOSUCU_JENERATOR") or os.path.expanduser("~/dev/pruvo-jenerator")
 DENGE_BETIK = os.path.join(JENERATOR, "jeneratorler", "foto", "figur_denge.py")
 DENGE_TURLERI = ("figur",)
 DENGE_GIRDI_AD = "model.3mf"
 DENGE_SURE_SN = 300
-# CESIT KABUK (renk=palet: palet yolunda koşucunun cok govde reddi atlanir): anahtarlik figur ciktisina AYNI kapi,
-# yalniz `sebep` okunur (devrilme anahtarlikta uygulanmaz) -> cok_kabuk | manifold_degil = RED.
+# CESIT KABUK (renk=palet: palet yolunda koşucunun cok govde reddi atlanir): figur ciktisina AYNI kapi,
+# yalniz `sebep` okunur -> cok_kabuk | manifold_degil = RED.
 KABUK_RED_SEBEP = ("cok_kabuk", "manifold_degil")
 # 6 MODEL adlari (rapor satiri MODEL=; kart -> istek eslemesi shop/test V6-3 ile ayni).
 FIGUR_ALT_TURLER = ("insan", "pet", "model")
@@ -164,7 +164,7 @@ def denge_hukmu(tr):
 
 def kabuk_hukmu(tr):
     """CESIT KABUK alani (yalniz --cesit figur): kapinin sebep'i cok_kabuk|manifold_degil -> RED; satir yoksa
-    OLCULEMEDI; diger sebepler (devrilme vb. anahtarlikta uygulanmaz) -> OK."""
+    OLCULEMEDI; diger sebepler -> OK."""
     if not tr.cesit:
         return "-", ""
     h, satir = denge_calistir(tr.model_yolu)
@@ -175,11 +175,9 @@ def kabuk_hukmu(tr):
 
 
 def model_adi(tr):
-    """6 model adi: anahtarlik_yazi | insan | pet | plaket | anahtarlik_figur | model (diger turler: kod)."""
+    """4 model adi: insan | pet | plaket | model (diger turler: kod)."""
     if tr.kod == "figur" and tr.alt_tur:
         return tr.alt_tur
-    if tr.kod == "anahtarlik":
-        return "anahtarlik_figur" if tr.cesit == "figur" else "anahtarlik_yazi"
     return tr.kod
 
 
@@ -1593,9 +1591,9 @@ def mutant_on_kosul(acik_kodlar):
     bugun figur acilip gorsel-gecersiz 400'e dusmesi) sunucu KAPI KAPALI degil demektir, GECERSIZ."""
     hata_bek = _red_metni_onizleme()
     # Yalniz SAGLAYICI kolu (motor M) kapali turu: D/R kolundaki kapali tur /foto/onizleme'de once
-    # turHazir'a takilir ve 503 `kapali` doner (9 Eki 2026 olcumu: anahtarlik kaydi geldi, ornegi yok) —
+    # turHazir'a takilir ve 503 `kapali` doner —
     # o da fail-closed ama bu bekcinin olctugu `tur-kapali` dali DEGIL; o kod BILINMEYEN_TUR'a duser.
-    # Modelli tur (anahtarlik/figur) SECILMEZ: sunucuda model kapisi tip kapisindan ONCE kosar ve 400
+    # Modelli tur (figur) SECILMEZ: sunucuda model kapisi tip kapisindan ONCE kosar ve 400
     # `model-kapali` doner (83f3d436) — o dal mutant_model_kosul satirinda ayrica olculur.
     modelli = modelli_turler(sunucu_modelleri())
     kapali = [t["kod"] for t in MAN["turler"] if t["kod"] not in acik_kodlar and t.get("motor") == "M" and
@@ -1632,7 +1630,7 @@ def main(argv=None):
     ap.add_argument("--dilim-tavan", type=int, default=0,
                     help="dilimin TOPLAM kredi tavani (onceki koşumlar dahil). --kredi-tavani > 0 iken ZORUNLU (> 0).")
     ap.add_argument("--cesit", choices=["figur"], default="",
-                    help="tur cesidi (VERI.cesitler; anahtarlik figur -> saglayici kolu). Yalniz TEK --tur ve "
+                    help="tur cesidi (VERI.cesitler; figur -> saglayici kolu). Yalniz TEK --tur ve "
                          "--kredi-tavani > 0 ile gecerli.")
     ap.add_argument("--alt-tur", choices=list(FIGUR_ALT_TURLER), default="",
                     help="figur alt turu (6 model: insan | pet | model); saglayici istegine alt_tur gider, sunucu "

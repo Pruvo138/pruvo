@@ -50,11 +50,6 @@ kurulur — kategori basina TEK esleme fonksiyonu (ESLEMELER, URETEC_CLI'da `esl
   muhur    muhur_uret              yuz_mm            sap (sap_renk=ayri sabit)                govde->renk_govde · sap->renk_sap
   sablon   siluet_sablon_uret      uzun_kenar_mm     mod                                      sablon->renk
   yapboz   yapboz_uret             uzun_kenar_mm     form AYNEN (satir/sutun/tohum/kabartma_yon) palet renk1..4->renkler[0..3]
-  anahtarlik isimlik_uret          genislik_mm       form AYNEN (satirlar listesi) +            plaka->renk_plaka
-                                                     anahtarlik=true (kopru cagri.sabit)        yazi->renk_yazi
-  anahtarlik_foto figur_kulak      (saglayici figuru) dosyalar.figur (3MF/STL) -> --girdi DOSYA; (tek govde, renk YOK)
-                                                     figur_kulak_konum (tepe|sirt) -> konum -> kopru
-                                                     `cagri.parametre_bayraklari` (--konum); yoksa tepe
 Renk ADI -> hex manifestteki TEK tablo `RENK_HEX`ten; tabloda olmayan ad, eslenemeyen secim, sema disi
 parametre -> rc 2 (uretec KOSMAZ). Cikti: `uretec.3mf`->`model.3mf`, `ozet.json`->`olcu.json` (§3;
 renk_sayisi 3MF'teki extruder sayisi OLCULUR), onizleme >= 1024 px tam sayi kat buyutulur. Uretec
@@ -125,7 +120,7 @@ ONARIM_SURE_SN = 600
 # --girdi` olcer: DENGE=OK -> 'hazir' · DENGE=RED -> 'elle' uretec-red:denge-<sebep> (musteri metni mevcut genel
 # cumle, VERI.uretecRedMetni) · duzelt rc != 0 (rc 2 + sebep denge_* HARIC: geometri yazildi, kalan kapi olcek
 # meselesi -> olcekli denge karar verir) / denge rc 1 / olcek tutmadi -> ariza. Betik yoksa Erisilemedi (kuyrukta).
-# Anahtarlik-figur (figur_kos) ve plaket (onarilmis model AYNEN) zinciri DEGISMEZ.
+# Figur (figur_kos) zinciri DEGISMEZ.
 FIGUR_ZINCIR_TURLERI = ("figur",)
 FIGUR_DUZELT_BETIK = "jeneratorler/foto/figur_duzelt.py"
 FIGUR_DENGE_BETIK = "jeneratorler/foto/figur_denge.py"
@@ -137,11 +132,10 @@ FIGUR_OLCEK_TOLERANS = 0.01
 URETEC_CLI = {
     "litofan_uret": {"bicim": "litofan", "betik": "jeneratorler/foto/litofan_uret.py"},
     "isimlik_uret": {"bicim": "tekin-ortak", "betik": "jeneratorler/foto/isimlik_uret.py", "esle": "isimlik"},
-    # FOTO KOLU (anahtarlik-foto; 10 Eki figur_kulak, eski plaket_kulak eslemesi KALKTI): manifest `foto_kolu.uretec`;
+    # FOTO KOLU (figur_kulak): manifest `foto_kolu.uretec`;
     # `--girdi` JSON DEGIL figur DOSYASI, parametreler kopru `cagri.parametre_bayraklari` ile CLI bayragi
     # (dosya_girdisi = uretec girdisindeki dosya alani).
-    "figur_kulak": {"bicim": "tekin-ortak", "betik": "jeneratorler/foto/figur_kulak.py", "esle": "anahtarlik_foto",
-                    "kol": "foto", "dosya_girdisi": "figur"},
+    "figur_kulak": {"bicim": "tekin-ortak", "betik": "jeneratorler/foto/figur_kulak.py"},
     "qr_plaket_uret": {"bicim": "tekin-ortak", "betik": "jeneratorler/foto/qr_plaket_uret.py", "esle": "qr"},
     "svg_ekstruzyon_uret": {"bicim": "tekin-ortak", "betik": "jeneratorler/foto/svg_ekstruzyon_uret.py",
                             "esle": "logo"},
@@ -805,8 +799,7 @@ def esle_braille(g, dizin, rh):
     return u, ["plaka", "nokta"] + (["yazi"] if str(u.get("ust_yazi") or "").strip() else [])
 
 # G5 sabit olcu ekseni: kaydin `olcek.belirleyen_parametre`si (kopru-esle-kapisi-test E3 kayittan olcer).
-G5_OLCU_ALANI = {"topo": "olcu_mm", "sehir": "olcu_mm", "yildiz": "olcu_mm", "koordinat": "genislik_mm",
-                 "anahtarlik": "genislik_mm"}
+G5_OLCU_ALANI = {"topo": "olcu_mm", "sehir": "olcu_mm", "yildiz": "olcu_mm", "koordinat": "genislik_mm"}
 # Kayitta min 0 / varsayilan 0 (= "oto"/uretec varsayilani) ama uretec SEMA'si 0'i REDDEDER (kadir_esigi min 2,
 # 0 YALNIZ varsayilan; kose_yaricap_mm min 1) -> 0 gelirse alan GONDERILMEZ (uretec kendi varsayilanini koyar).
 G5_SIFIR_VARSAYILAN = {"yildiz": ("kadir_esigi",), "koordinat": ("kose_yaricap_mm",)}
@@ -954,48 +947,6 @@ def esle_yapboz(g, dizin, rh):
     return u, secilen
 
 
-def esle_anahtarlik(g, dizin, rh):
-    """anahtarlik (TeKiN kopru kaydi, K3c) = isimlik_uret + kopru `cagri.sabit` {anahtarlik: true} (kulakli taban;
-    plaka modunun yasak alanlari formda YOK). Form AYNEN (satirlar listesi VERI.parametreDogrula'dan), surgu olcusu
-    genislik_mm'ye, secilen bolge renkleri renk_plaka / renk_yazi."""
-    u, bolgeler = _esle_gelen_renkli(g, rh, "anahtarlik")
-    u["anahtarlik"] = True
-    # TEK MALZEME (TPU, Okan 13 Eki): zarfin `malzeme`si uretece GECER — isimlik_uret MALZEME_ESIK'i (TPU: kontrast
-    # kapisi YOK, tek renk beyaz) buradan okur. Gecmezse uretec PLA sanar, beyaz/beyaz `uretec-red:kontrast` (14 Eki
-    # canli is c55ec9b3: Okan TPU sectiginde onizleme reddedildi).
-    if g.get("malzeme"):
-        u["malzeme"] = g["malzeme"]
-    return u, bolgeler
-
-
-# figur_kulak kulakcik konumu (kopru FIGUR_KULAK_SEMA.konum); yazi kolunun `anahtarlik_kulak_konum`undan AYRI.
-KONUM_VARSAYILAN = "tepe"
-KONUM_SECENEK = ("tepe", "sirt")
-
-
-def esle_anahtarlik_foto(g, dizin, rh):
-    """anahtarlik FOTO kolu (TeKiN kopru kaydi `anahtarlik-foto`, figur_kulak; ② "Figur olarak"): girdi saglayicinin
-    FIGUR turu ciktisi (`dosyalar.figur`, 3MF ya da STL), kulakcik konumu `figur_kulak_konum` (tepe|sirt; yoksa
-    tepe). Renk bolgesi YOK (tek govde). Figur uzun kenari >72 mm ise uretec rc 2 -> `anahtarlik-boyut`
-    (RET_KALIPLARI). Zarf `renk_modu` palet -> `--renk-modu palet` (3MF ucgen boyasi korunur); tek/yok -> bayrak
-    YOK (komut bugunkuyle bayt-ayni)."""
-    ad = (g.get("dosyalar") or {}).get("figur")
-    if not isinstance(ad, str) or not DOSYA_ADI_KALIBI.match(ad) or not ad.endswith((".3mf", ".stl")) or \
-            not os.path.isfile(os.path.join(dizin, ad)):
-        raise KopruRed("gorsel")
-    # Onarim kolu (figur_kos) konumu zarfin `konum`unda verir (K2 tepe -> sirt dususu; musteri formu degil).
-    konum = (g.get("parametreler") or {}).get("figur_kulak_konum", g.get("konum") or KONUM_VARSAYILAN)
-    if konum not in KONUM_SECENEK:
-        raise KopruRed("parametre")
-    u = {"figur": os.path.join(dizin, ad), "konum": konum}
-    rm = g.get("renk_modu", "tek")
-    if rm not in RENK_MODU_SECENEK:
-        raise KopruRed("parametre")
-    if rm == "palet":
-        u["renk_modu"] = "palet"
-    return u, []
-
-
 def kopru_cagri(uretec):
     """Repodaki SABIT kopru kaydindan (jenerator/kopru/, TeKiN anlik goruntusu) uretecin `cagri`si; yoksa {}."""
     try:
@@ -1025,8 +976,7 @@ def dosya_girdili_komut(g, u, py, jen, ham):
 
 # KATEGORI BASINA TEK esleme fonksiyonu (URETEC_CLI `esle` buradan secer).
 ESLEMELER = {"isimlik": esle_isimlik, "qr": esle_qr, "logo": esle_logo, "muhur": esle_muhur,
-             "sablon": esle_sablon, "yapboz": esle_yapboz, "anahtarlik": esle_anahtarlik,
-             "anahtarlik_foto": esle_anahtarlik_foto,
+             "sablon": esle_sablon, "yapboz": esle_yapboz,
              "kutu": esle_kutu,
              "saksi": esle_saksi,
              "rolyef": esle_rolyef,
@@ -1042,13 +992,13 @@ ESLEMELER = {"isimlik": esle_isimlik, "qr": esle_qr, "logo": esle_logo, "muhur":
 RET_KALIPLARI = [
     # figur_kulak 1.1 tabla ankraji yetersiz, TeKiN 281fb3e; BaBa 12 Eki 01:4x
     (r"ankraj-red|tabla ankraj", "ankraj"),
-    # figur_kulak (anahtarlik foto kolu): figur >72 mm / kulak sigmadi -> TEK musteri cumlesi (Okan/BaBa birebir).
-    (r"figur uzun kenar|kulak dahil uzun kenar|kulak yerlesmez", "anahtarlik-boyut"),
+    # figur_kulak: figur >72 mm / kulak sigmadi -> TEK musteri cumlesi (Okan/BaBa birebir).
+    (r"figur uzun kenar|kulak dahil uzun kenar|kulak yerlesmez", "boyut"),
     (r"kontrast", "kontrast"),
     (r"parca kisa kenari|satir\*sutun|parca tabladan", "parca"),
     (r"metin cok uzun|modul boyutu", "qr-uzun"),
     (r"fontta bulunmayan|denetim/gorunmez|surrogate", "karakter"),
-    # isimlik_uret anahtarlik kolu (genislik_mm) ince cizgi RET'i (TeKiN 93a2e1e: duz yazi 30 mm "Ayşe" 0,561 mm < 0,8;
+    # isimlik_uret ince cizgi RET'i (TeKiN 93a2e1e: duz yazi 30 mm "Ayşe" 0,561 mm < 0,8;
     # duz yazi ~40 mm ister, el yazisi 30 mm'de gecer) -> kendi cumlesi (genisligi buyut / el yazisi); "metni kisalt"
     # yakalayan genel yazi reddinden ONCE. Plaka kolu ("plakayi buyut") metin-sigmadi'da kalir.
     (r"ince cizgi.*genislik_mm", "yazi-ince"),
@@ -1609,7 +1559,7 @@ def figur_duzlestir(model, stl):
 # AYNI iste bir kez sirt; musteriye konum/ret YOK. Baska ret sinifinda (XY uzun kenar, cok bilesen, ...) dusus YOK.
 FIGUR_KONUM_SIRASI = ("tepe", "sirt")
 TEPE_RED = re.compile(r"kulak yerlesmez \(tepe\)|kulak dahil uzun kenar [0-9.]+ mm > [0-9.]+ mm \(konum=tepe\b")
-# FIGUR OLCU KURALI (B2, KraL 10 Eki; BaBa 14:0x "kulak dahil en uzun boyut", kopru 2950833): anahtarlik figur
+# FIGUR OLCU KURALI (B2, KraL 10 Eki; BaBa 14:0x "kulak dahil en uzun boyut", kopru 2950833): figürün
 # cesidinde surgu = kulakcik DAHIL en uzun boyut (3 eksen). Sunucu ciplak figuru siparis olcusune olcekler
 # (foto-uretim-veri.js VERI.olcekHedefMm — kuralin TEK yeri); kulak sirtta ya da XY-uzun figurde uzun kenari
 # BUYUTMEZ, tepede ancak sigarsa. Bu yuzden tepe ciktisinin kulak dahil uzun kenari olcu*(1+tolerans)'i asarsa
@@ -1853,7 +1803,7 @@ def kanit_yaz(i, cd):
 
 
 # ④ ONIZLEME = URETIM 3MF'INin RENDER'I (Okan 11 Eki "bu 4 renkli bir figur degil"): figur kolunda (insan · pet ·
-# model + anahtarlik-figur) teslim edilecek model.3mf hazir olunca TeKiN `tools/foto_kart_render.py hepsi` (Blender
+# model) teslim edilecek model.3mf hazir olunca TeKiN `tools/foto_kart_render.py hepsi` (Blender
 # Cycles, kredi 0) renk BOLGELERINI kare webp'e cizer -> R2 `foto-onizleme/<is>-render.webp`; sunucu /foto/durum'da
 # varsa `render` adresini verir, istemci onu palete indirgemeden gosterir. Render basarisizligi isin kararini
 # DEGISTIRMEZ (log `RENDER=YOK sebep=`); render yoksa ④ durust cumleyle saglayici gorselini gosterir (sessiz dusus YOK).
@@ -2144,7 +2094,7 @@ def renk_cizim_cli(is_no, uygula, yaz, kaydet=""):
 def uretec_renk_cizimi(i, t, girdi_dizin, model, gecici, yaz, koy=True):
     """④ URETEC TURU (Okan 14 Eki 03:5x: tum 6 modulde secilen renk): onizleme modeli (model.3mf) girdinin SECILEN
     renk(ler)iyle ortak studyo sablonunda cizilir -> R2 foto-uretec-onizleme/<is>/renk.png (sunucu ayni veri
-    sozlesmesini verir). Tek renk -> --renk; iki bolge iki renk (anahtarlik-yazi plaka + yazi) -> --renk ilk bolge
+    sozlesmesini verir). Tek renk -> --renk; iki bolge iki renk (bolgeler icin) -> --renk ilk bolge
     + --renk2/--bolge2 ikinci bolge; 3+ renk (Renkli palet) cizilmez (④ uretec gorseli AYNEN). Karar DEGISMEZ:
     cizim dusse de onizleme hazir olur (log satiri her durumda)."""
     try:

@@ -129,7 +129,7 @@ def plan_kur(kodlar):
         t = manifest.get(kod)
         uretec = (t or {}).get("uretec")
         if not t:
-            # FOTO KOLU kaydi (anahtarlik-foto): ayri tur satiri yok; ana turun `foto_kolu.uretec`i bu kaydin uretec'i.
+            # FOTO KOLU kaydi: ayri tur satiri yok; ana turun `foto_kolu.uretec`i bu kaydin uretec'i.
             kk = next((r for r in kayitlar if r.get("kod") == kod), None)
             t = next((v for v in manifest.values() if kk and ((v.get("foto_kolu") or {}).get("uretec")
                                                               == kk.get("uretec"))), None)
@@ -171,7 +171,7 @@ def ornek_girdisi(kayit, dizin):
     for ad, v in (kayit["ornek"].get("girdi") or {}).items():
         if isinstance(v, str) and v.startswith("<"):
             if tipler.get(ad) == "dosya" and "3MF" in v:
-                # Plaket 3MF ornegi (anahtarlik-foto) URETILMEZ: saglayici ciktisi/TeKiN ornegi env ile verilir.
+                # Plaket 3MF ornegi (figur_kulak) URETILMEZ: saglayici ciktisi/TeKiN ornegi env ile verilir.
                 v = os.environ.get("KOPRU_ORNEK_PLAKET") or ""
                 if not os.path.isfile(v):
                     raise Red("yer-tutucu-cozulemedi:%s (KOPRU_ORNEK_PLAKET)" % ad)
@@ -186,8 +186,8 @@ def ornek_girdisi(kayit, dizin):
             else:
                 raise Red("yer-tutucu-cozulemedi:%s" % ad)
         u[ad] = v
-    # Kopru `cagri.sabit` (anahtarlik: {anahtarlik: true}) uretece HER cagride gider — kosucu esle_anahtarlik ile
-    # ayni sozlesme. Yoksa isimlik_uret kulak alanlarini RET eder (9 Eki, anahtarlik-kart olcumu).
+    # Kopru `cagri.sabit` (eski anahtarlik kaydi silindi) uretece HER cagride gider.
+    # Yoksa isimlik_uret kulak alanlarini RET eder.
     u.update((kayit.get("cagri") or {}).get("sabit") or {})
     return u
 

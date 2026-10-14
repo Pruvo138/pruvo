@@ -2671,7 +2671,7 @@ async function fotoYukle(){
  }
  // ACILIS ANAHTARI — fiyat tablosu YOK (Okan 7 Eki): fiyat = max(600 TL, en uzun boyut (mm) × 10 TL), tek formül.
  // Tür yalnız anahtarı AÇIK + gerçek örneği varsa satılır; varsayılan KAPALI.
- // 6 MODEL: anahtarlık/figür MODEL satırlarıyla açılır (anahtarlik_yazi … model); eski tür satırı hiçbirini açmaz.
+ // 4 MODEL: figür MODEL satırlarıyla açılır (insan … model); eski tür satırı hiçbirini açmaz.
  var acikK={};(o.acik||[]).forEach(function(k){acikK[k]=true;});
  h.push('<div class="kart"><b>Satışa açık türler</b> (fiyat: '+esc(o.fiyat_formulu||"")+'; KDV dahil, kargo ayrı)'+
   '<table class="kucuk"><tr><th>Tür</th><th>Ölçü (mm)</th><th>En düşük</th><th>Durum</th><th></th></tr>'+
