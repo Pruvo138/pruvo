@@ -41,7 +41,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from git_ortami import sentetik_git
+from git_ortami import git_ortami, sentetik_git
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
@@ -979,7 +979,10 @@ def ic_rapor_nobeti(kosucu=None, fikstur=True):
 # KULLANILDI. Boylece yanlis-pozitif yuzeyi calisma-agaci koluyla BIREBIR ayni kalir
 # (ayni yesil/kirmizi fikstur ailesi iki kolu da korur).
 #
-# NEREYE BAGLANDI: PRE-PUSH KANCASI (kurulum: tools/gecmis-nobeti-hook-kur.py).
+# NEREYE BAGLANDI: PRE-PUSH KANCASI — izlenen kaynak tools/kancalar/pre-push
+# ("PRUVO GECMIS NOBETI BLOGU"), kurulum `python3 tools/kanca-kur.py`. (14 Eki 2026:
+# blok 4 Agu -> 14 Eki yalniz `.git/hooks/pre-push`ta duruyordu, git core.hooksPath
+# yuzunden o dosyayi OKUMUYORDU; asagidaki "bedel" paragrafi o eski kurulumu anlatir.)
 # CI'ya BAGLANMADI, iki OLCULMUS sebeple:
 #   1) deploy.yml `actions/checkout@v4`i fetch-depth VERMEDEN kullanir -> SIG (depth=1)
 #      klon: `origin/main..HEAD` gibi bir aralik CI'da COZULEMEZ, taranacak gecmis YOK.
@@ -987,15 +990,14 @@ def ic_rapor_nobeti(kosucu=None, fikstur=True):
 #      kosar. O anda commit ZATEN public remote'tadir; yayini durdurmak sizmis blob'u
 #      geri getirmez. 27 Tem'in iki kacagi da DAL push'unda olmustu — CI o dallari
 #      hic gormez. Bu eksenin tum degeri ONLEMEDIR -> kapi push'tan ONCE olmali.
-# Bunun bedeli: kanca .git/hooks altinda yasar ve GIT'E GIRMEZ -> her makinede
-# `python3 tools/gecmis-nobeti-hook-kur.py` ile kurulur; kurulu mu, asagidaki
-# varsayilan kosumun son satiri soyler.
+# Kanca kopyasi `.git/` altinda yasar ve GIT'E GIRMEZ; kaynak IZLENIR. Kurulu mu,
+# asagidaki varsayilan kosumun son satiri soyler (git'in OKUDUGU yola bakar, K384).
 #
 # CI'DA NE KOSAR: gecmis_fikstur_hatalari() — GERCEK git ile GECICI bir depo kurup
 # "ekle + ayni aralikta sil" olayini yeniden oynatir (bicim capasi: kanned metin
 # gercek git ciktisindan kayarsa yakalanir) + 4 kirmizi/12 yesil kanned senaryo.
-# Yani parser/kural/gercek-git zinciri CI'da nobetsiz KALMAZ; nobetsiz kalan tek
-# halka kancanin KENDISIDIR (commit edilemez).
+# Kanca govdesindeki cagri satiri tools/kanca-nobeti.py BEKLENEN + kanca-kablolama
+# FAIL_CLOSED envanterindedir: satir silinir/yutulursa nobetci KIRMIZI yakar.
 
 _GECMIS_AYRAC = "\x02"        # commit basligi oneki (git log --format=%x02%H)
 
@@ -1032,12 +1034,18 @@ def gecmis_isabetleri(ham):
 
 def _git_log_eklenen(kapsam, kok=None):
     """Gercek kosucu: (rc, stdout, stderr). Ag YOK, yalniz yerel git nesneleri.
-    kapsam = git rev-list argumanlari listesi (or. ['origin/main..HEAD'] ya da ['--all'])."""
+    kapsam = git rev-list argumanlari listesi (or. ['origin/main..HEAD'] ya da ['--all']).
+
+    🔴 env=git_ortami() (14 Eki 2026, olculdu): linked worktree'den push'ta git kancaya
+    GIT_DIR'i MUTLAK ihrac eder ve o `-C <kok>`u EZER -> gercek-git bicim capasi
+    (gecici depo) GERCEK depoda `git log` kosup "Invalid revision range" ile OLCULEMEDI
+    veriyordu = fail-closed blok worktree'den gelen HER push'u durdururdu."""
     try:
         r = subprocess.run(
             ["git", "-C", kok or ROOT, "log", "--no-renames", "--diff-filter=A",
              "--name-only", "-z", "--format=%x02%H"] + list(kapsam),
-            capture_output=True, text=True)
+            capture_output=True, text=True,
+            env=git_ortami())  # K384-V7 mutant capasi
     except OSError as e:
         return 127, "", "git calistirilamadi: %s" % e
     return r.returncode, r.stdout, r.stderr
@@ -1250,16 +1258,26 @@ def gecmis_nobeti(kapsam, kosucu=None, fikstur=True, kok=None):
 _SIFIR = ("0" * 40, "0" * 64)
 
 
-def pre_push_araliklari(stdin_metni):
+def _commit_yerelde_mi(sha):
+    return subprocess.run(["git", "-C", ROOT, "cat-file", "-e", sha + "^{commit}"],
+                          capture_output=True, text=True, env=git_ortami()).returncode == 0
+
+
+def pre_push_araliklari(stdin_metni, yerelde_mi=None):
     """git pre-push stdin ('<local_ref> <local_sha> <remote_ref> <remote_sha>' satirlari)
-    -> taranacak `git rev-list` kapsam listeleri. SAF fonksiyon (test edilebilir).
+    -> taranacak `git rev-list` kapsam listeleri. <yerelde_mi> enjekte edilirse SAF (test).
 
     * local_sha sifir  -> dal SILINIYOR, taranacak yeni commit yok.
     * remote_sha sifir -> uzakta YENI dal: uzakta zaten olan her seyi disla
                           (`<sha> --not --remotes`), yoksa TUM gecmis taranir ve
                           bugunku eski kayitlar her yeni dal push'unu bloklardi.
+    * remote_sha YERELDE YOK (fetch edilmemis uzak uca force-push) -> ayni
+                          `--not --remotes` dususu (kardes gecmis-geri-donus-kapisi.py
+                          `eklenen_commitler` ile ayni kural). Olculdu 14 Eki (curutucu D1):
+                          `<uzak>..<yerel>` "Invalid revision range" ile OLCULEMEDI veriyordu.
     * aksi halde       -> `<remote_sha>..<local_sha>`
     """
+    yerelde_mi = yerelde_mi or _commit_yerelde_mi
     kapsamlar = []
     for satir in (stdin_metni or "").splitlines():
         alan = satir.split()
@@ -1268,7 +1286,7 @@ def pre_push_araliklari(stdin_metni):
         _yerel_ref, yerel_sha, _uzak_ref, uzak_sha = alan[0], alan[1], alan[2], alan[3]
         if yerel_sha in _SIFIR:
             continue
-        if uzak_sha in _SIFIR:
+        if uzak_sha in _SIFIR or not yerelde_mi(uzak_sha):
             kapsamlar.append([yerel_sha, "--not", "--remotes"])
         else:
             kapsamlar.append(["%s..%s" % (uzak_sha, yerel_sha)])
@@ -1336,9 +1354,10 @@ def _kanca_kurulum_onerisi(yol, kaynak):
         return "kurucu hedefi okunamadi (%s): %s" % (kurucu, e)
     if hedef and os.path.normpath(hedef) == os.path.normpath(yol):
         return "python3 tools/gecmis-nobeti-hook-kur.py"
-    return ("gecmis-nobeti-hook-kur.py %s'e YAZAR ama git (%s) %s'i OKUR -> o arac bu "
-            "kurulumda ETKISIZ; blok kanca KAYNAGINA (tools/kancalar/pre-push) girip "
-            "`python3 tools/kanca-kur.py` ile serilmeli" % (hedef, kaynak, yol))
+    return ("git (%s) %s'i OKUR, gecmis-nobeti-hook-kur.py'nin hedefi %s DEGIL -> o arac "
+            "bu kurulumda REDDEDER (rc 3); blok izlenen kaynakta (tools/kancalar/pre-push) "
+            "durur, `python3 tools/kanca-kur.py` ile serilir (ana checkout main'deyken)"
+            % (kaynak, yol, hedef))
 
 
 def _k384_fikstur_git(kok, *args):
@@ -1386,6 +1405,109 @@ def k384_vakalari():
             shutil.rmtree(d, ignore_errors=True)
             if os.path.exists(d):
                 sonuc.append((ad + "-TEMIZLIK", False, "gecici dizin SILINEMEDI: %s" % d))
+    return sonuc + k384_kurucu_vakalari()
+
+
+def k384_kurucu_vakalari():
+    """[(ad, gecti_mi, ayrinti)] — 14 Eki 2026 olayinin iki ekseni.
+    V4 KAYNAK: izlenen tools/kancalar/pre-push kurucunun BLOK'unu BAYT-ESIT tasir
+       (blok yalniz `.git/hooks`ta olu kaldigi icin nobet ~10 hafta kosmadi).
+    V5 RET: core.hooksPath ayarli depoda kurucu rc=3 verir ve `.git/hooks/pre-push`a
+       HICBIR SEY yazmaz (olu dosyaya "yazildi" demek olayin ta kendisiydi).
+    V6 KONTROL (tek degisken = hooksPath): ayarsiz depoda ayni kurucu rc=0 ile yazar.
+    V7 MIRAS GIT_DIR: kanca baglaminda --pre-push YESIL kalir (asagida).
+    V8 FETCH EDILMEMIS UZAK UC: force-push araligi `--not --remotes`a duser (asagida)."""
+    kurucu = os.path.join(ROOT, "tools", "gecmis-nobeti-hook-kur.py")
+    sonuc = []
+    try:
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("_gn_kur_k384", kurucu)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        with open(os.path.join(ROOT, "tools", "kancalar", "pre-push"),
+                  encoding="utf-8") as f:
+            kaynak = f.read()
+        sonuc.append(("K384-V4", mod.BLOK in kaynak,
+                      "tools/kancalar/pre-push kurucu BLOK'unu %s"
+                      % ("bayt-esit TASIYOR" if mod.BLOK in kaynak else "TASIMIYOR")))
+    except (OSError, ImportError, AttributeError) as e:
+        sonuc.append(("K384-V4", False, "kaynak/kurucu okunamadi: %s" % e))
+    ortam = git_ortami()
+    ortam.update({"GIT_CONFIG_GLOBAL": os.devnull, "GIT_CONFIG_NOSYSTEM": "1"})
+    for ad, hooks_path_var, bek_rc, bek_dosya in (("K384-V5", True, 3, False),
+                                                  ("K384-V6", False, 0, True)):
+        d = tempfile.mkdtemp(prefix="kisisel-veri-k384-kur-")
+        try:
+            _k384_fikstur_git(d, "init", "-q")
+            if hooks_path_var:
+                _k384_fikstur_git(d, "config", "core.hooksPath", "kancalar-hp")
+            s = subprocess.run([sys.executable, kurucu, "--repo", d], capture_output=True,
+                               text=True, env=ortam, timeout=60)
+            eski = os.path.join(d, ".git", "hooks", "pre-push")
+            dosya = False
+            if os.path.isfile(eski):
+                with open(eski, encoding="utf-8", errors="replace") as f:
+                    dosya = "--pre-push" in f.read()
+            gecti = s.returncode == bek_rc and dosya is bek_dosya
+            sonuc.append((ad, gecti, "rc=%d (beklenen %d) .git/hooks/pre-push blok=%s "
+                          "(beklenen %s) %s" % (s.returncode, bek_rc, dosya, bek_dosya,
+                                                (s.stderr or "").strip()[:160])))
+        except (OSError, subprocess.SubprocessError) as e:
+            sonuc.append((ad, False, "fikstur kurulamadi: %s" % e))
+        finally:
+            shutil.rmtree(d, ignore_errors=True)
+    # V7 MIRAS GIT_DIR: linked worktree'den push'ta git kancaya GIT_DIR'i MUTLAK ihrac
+    # eder. Scrub'siz `git -C` cagrilari onu izleyip yanlis depoyu olcuyordu -> blok HER
+    # worktree push'unu OLCULEMEDI ile durdururdu (14 Eki 2026, olculdu). GIT_DIR BOS bir
+    # SENTETIK depoya baglanir (gercek depoya ASLA); taranan depo IKINCI bir sentetik depodur
+    # (ic rapor ekleyen commit). ROOT'un commit grafigine BAGLI DEGIL: nobetci-mutasyon-test
+    # D0 aynasi commit'siz `git init`tir (olculdu: ROOT HEAD'e bagli ilk surum orada dustu).
+    # Beklenen: aralik_kapisi rc=1 + rapor ADI (gercek bulgu), OLCULEMEDI YOK. Scrub kalkarsa
+    # bicim capasi (git log) ya da rev-list BOS depoya gider -> OLCULEMEDI -> V7 duser.
+    import contextlib
+    import io
+    d_bos = tempfile.mkdtemp(prefix="kisisel-veri-k384-gitdir-")
+    d_hedef = tempfile.mkdtemp(prefix="kisisel-veri-k384-hedef-")
+    eski_git_dir = os.environ.get("GIT_DIR")
+    try:
+        _k384_fikstur_git(d_bos, "init", "-q")
+        _k384_fikstur_git(d_hedef, "init", "-q")
+        shalar = []
+        # Ic rapor adi = 21 Tem gercek olayinin adi (_GECMIS_KIRMIZI ile ayni aile).
+        rapor = "tools/yedek-topolojisi-raporu.md"
+        os.makedirs(os.path.join(d_hedef, "tools"), exist_ok=True)
+        for ad in ("a.txt", rapor):
+            with open(os.path.join(d_hedef, ad), "w", encoding="utf-8") as f:
+                f.write("x\n")
+            _k384_fikstur_git(d_hedef, "add", "-A")
+            _k384_fikstur_git(d_hedef, "commit", "-q", "-m", ad)
+            shalar.append(_k384_fikstur_git(d_hedef, "rev-parse", "HEAD").stdout.strip())
+        os.environ["GIT_DIR"] = os.path.join(d_bos, ".git")
+        cikti = io.StringIO()
+        with contextlib.redirect_stdout(cikti):
+            rc = aralik_kapisi([[shalar[1], "--not", shalar[0]]], "K384-V7", kok=d_hedef)
+        metin = cikti.getvalue()
+        gecti = rc == 1 and rapor in metin and "OLCULEMEDI" not in metin
+        sonuc.append(("K384-V7", gecti, "miras GIT_DIR (bos sentetik) altinda rc=%d (beklenen 1 "
+                      "+ rapor adi, OLCULEMEDI yok) %s"
+                      % (rc, metin.strip().replace("\n", " | ")[-220:])))
+    except (OSError, subprocess.SubprocessError) as e:
+        sonuc.append(("K384-V7", False, "fikstur kurulamadi: %s" % e))
+    finally:
+        if eski_git_dir is None:
+            os.environ.pop("GIT_DIR", None)
+        else:
+            os.environ["GIT_DIR"] = eski_git_dir
+        shutil.rmtree(d_bos, ignore_errors=True)
+        shutil.rmtree(d_hedef, ignore_errors=True)
+    # V8 FETCH EDILMEMIS UZAK UC (curutucu D1): uzak sha yerelde YOKSA `--not --remotes`a
+    # duser; KONTROL = ayni satir uzak sha yerelde VARKEN `<uzak>..<yerel>` araligi.
+    y, u = "1" * 40, "2" * 40
+    satir = "refs/heads/s %s refs/heads/s %s\n" % (y, u)
+    yok = pre_push_araliklari(satir, yerelde_mi=lambda _s: False)
+    var = pre_push_araliklari(satir, yerelde_mi=lambda _s: True)
+    sonuc.append(("K384-V8", yok == [[y, "--not", "--remotes"]] and var == [["%s..%s" % (u, y)]],
+                  "yerelde yok -> %r · yerelde var -> %r" % (yok, var)))
     return sonuc
 
 
@@ -2429,6 +2551,9 @@ _K_MUTANTLAR = (
     ("K384", "hooksPath okumasi kaldirilir", 'hp = git(kok, "config"',
      lambda s: s[:len(s) - len(s.lstrip())]
      + 'hp = subprocess.CompletedProcess([], 1, "", "")  # MUTANT', "K384-V1 BASARISIZ"),
+    ("K384", "gecmis git log'u miras GIT_DIR'i scrub ETMEZ",
+     "env=git_ortami())  # K384-V7 mutant capasi",
+     lambda s: s.replace("env=git_ortami())", "env=None)", 1), "K384-V7 BASARISIZ"),
     ("K198", ".toml evrenden cikar", "_IBAN_ATLA_UZANTILARI = (",
      lambda s: s.replace("(", '(".toml", ', 1), "K198-V1 BASARISIZ"),
     ("K198", "IBAN deseni silinir", "_IBAN_RE = re.compile(",
@@ -2536,8 +2661,9 @@ def _yaz_hatalar(baslik, hatalar):
         print("  - " + h)
 
 
-def aralik_kapisi(kapsamlar, etiket):
+def aralik_kapisi(kapsamlar, etiket, kok=None):
     """BLOKLAYICI geçmiş kolu (--aralik / --pre-push). Çıkış kodu döner.
+    kok: taranan depo (None = ROOT; K384-V7 sentetik depoyla olcer).
 
     🔴 KAPSAM GORUNURLUGU (kusur 4 kardesi): her kapsam icin commit sayisi HER ZAMAN
     basilir. Cozulemeyen kapsam = KIRMIZI (fail-closed). Commit sayisi 0 olan bir
@@ -2553,8 +2679,8 @@ def aralik_kapisi(kapsamlar, etiket):
     hatalar = gecmis_fikstur_hatalari()
     toplam_commit = 0
     for kapsam in kapsamlar:
-        s = subprocess.run(["git", "-C", ROOT, "rev-list", "--count"] + list(kapsam),
-                           capture_output=True, text=True)
+        s = subprocess.run(["git", "-C", kok or ROOT, "rev-list", "--count"] + list(kapsam),
+                           capture_output=True, text=True, env=git_ortami())
         if s.returncode != 0:
             hatalar.append("OLCULEMEDI — kapsam cozulemedi (%s): %s"
                            % (" ".join(kapsam), (s.stderr or "").strip() or "?"))
@@ -2562,7 +2688,7 @@ def aralik_kapisi(kapsamlar, etiket):
         sayi = int((s.stdout.strip() or "0").split()[0])
         toplam_commit += sayi
         print("  kapsam: %-52s -> %d commit" % (" ".join(kapsam), sayi))
-        h, _isabet = gecmis_nobeti(kapsam, fikstur=False)
+        h, _isabet = gecmis_nobeti(kapsam, fikstur=False, kok=kok)
         hatalar.extend(h)
     if hatalar:
         _yaz_hatalar("geçmiş ekseni (iç rapor / commit geçmişi)", hatalar)

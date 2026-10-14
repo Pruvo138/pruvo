@@ -224,6 +224,37 @@ exec < "$pruvo_gd_girdi"
 rm -f "$pruvo_gd_girdi"
 # <<< PRUVO GECMIS GERI-DONUS NOBETI BLOGU <<<
 
+# >>> PRUVO GECMIS NOBETI BLOGU (tools/gecmis-nobeti-hook-kur.py uretir — ELLE DUZENLEME) >>>
+# FAIL-CLOSED: ic rapor bir commit'te EKLENDIYSE (sonradan SILINSE BILE) push DURUR.
+# Gerekce + CI yerine kanca secimi: tools/gecmis-nobeti-hook-kur.py basligi.
+# stdin BIR KEZ okunur -> gecici dosyaya alinip 'exec 0<' ile geri baglanir ki
+# asagidaki D1 senkron blogunun 'while read' dongusu ref satirlarini gorebilsin.
+pruvo_gn_kok=$(git rev-parse --show-toplevel 2>/dev/null)
+pruvo_gn_tmp=$(mktemp 2>/dev/null)
+if [ -z "$pruvo_gn_tmp" ] || [ ! -f "$pruvo_gn_tmp" ]; then
+  echo "!! PUSH DURDURULDU — gecmis nobeti girdisi icin gecici dosya acilamadi." >&2
+  exit 1
+fi
+# Sinyalle kesilse de ref satirlari $TMPDIR'de KALMAZ (curutucu D2, 14 Eki).
+trap 'rm -f "$pruvo_gn_tmp"' EXIT HUP INT TERM
+cat > "$pruvo_gn_tmp"
+if [ -z "$pruvo_gn_kok" ] || [ ! -f "$pruvo_gn_kok/tools/kisisel-veri-test.py" ]; then
+  echo "!! GECMIS NOBETI KOSULAMADI (tools/kisisel-veri-test.py yok) — PUSH DURDURULDU." >&2
+  echo "!! Sizinti kapisi fail-closed'dir. Kasten atlamak icin: git push --no-verify" >&2
+  rm -f "$pruvo_gn_tmp"
+  exit 1
+fi
+if ! python3 "$pruvo_gn_kok/tools/kisisel-veri-test.py" --pre-push < "$pruvo_gn_tmp"; then
+  echo "!! PUSH DURDURULDU — ic rapor sizintisi ya da OLCULEMEDI (gecmis ekseni)." >&2
+  echo "!! Envanter: python3 tools/kisisel-veri-test.py --gecmis" >&2
+  rm -f "$pruvo_gn_tmp"
+  exit 1
+fi
+exec 0< "$pruvo_gn_tmp"
+rm -f "$pruvo_gn_tmp"
+trap - EXIT HUP INT TERM
+# <<< PRUVO GECMIS NOBETI BLOGU <<<
+
 # --- KANARYA SONRASI (FAIL-CLOSED, 9 Eki 2026) -------------------------------
 # Fail-closed batarya (0b/0c/K80 oz-testleri/geri-donus) bitti: 0a'daki ONCE goruntusu
 # ile ayni eksenler (core.bare · refs/remotes/origin sayisi · local config sha256)

@@ -58,7 +58,7 @@ import tempfile
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 if TOOLS not in sys.path:
     sys.path.insert(0, TOOLS)
-from git_ortami import sentetik_git  # noqa: E402
+from git_ortami import kanca_hedef_reddi, sentetik_git  # noqa: E402
 
 BAS = "# >>> PRUVO YEDEK BLOGU (tools/yedek-hook-kur.py uretir — ELLE DUZENLEME) >>>"
 SON = "# <<< PRUVO YEDEK BLOGU <<<"
@@ -466,6 +466,14 @@ def main():
     if not yol:
         print("HATA: git deposu bulunamadi: " + repo, file=sys.stderr)
         return 1
+    # 🔴 14 Eki 2026: core.hooksPath baska yeri gosteriyorsa `yol` OLU dosyadir
+    # (kardes gecmis-nobeti-hook-kur.py ~10 hafta oraya "yazildi" dedi) -> RET.
+    # Blok tools/kancalar/pre-push'ta durur; kurulum: python3 tools/kanca-kur.py
+    ret = kanca_hedef_reddi(repo, "pre-push")
+    if ret:
+        print("🔴 KURULUM REDDEDILDI (rc=3, hicbir sey yazilmadi): %s" % ret,
+              file=sys.stderr)
+        return 3
 
     mevcut = None
     if os.path.isfile(yol):
