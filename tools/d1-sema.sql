@@ -671,7 +671,23 @@ CREATE TABLE IF NOT EXISTS foto_acik (
   guncel       TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS foto_ayar (
-  anahtar      TEXT PRIMARY KEY,           -- 'bakiye' | 'havuz_durum'
+  anahtar      TEXT PRIMARY KEY,           -- 'bakiye' | 'havuz_durum' | 'renk_onizleme_tavan' (④ tek renk build tavani, 24 sa)
   deger        TEXT NOT NULL,
   guncel       INTEGER NOT NULL            -- ms
 );
+-- ④ TEK RENK ONIZLEMESI (Okan 14 Eki 2026 03:0x, kod shop/src/foto.js renkIlerle + tools/foto-uretec-kosucu.py renk
+-- kuyrugu). Tek renk (Siyah/Beyaz/Gri) secilen saglayici onizlemesinde 3D build ONIZLEMEDE kurulur, GLB R2
+-- foto-onizleme/<is>-model.glb, koşucu secilen renkte cizer -> foto-onizleme/<is>-<renk>.png. Renkli secimde satir YOK.
+-- Siparis zinciri build_gorev'i yeniden SATIN ALMAZ (onizlemeBuildi). Var olan D1'e: tools/d1-goc/2026-10-14-foto-renk-onizleme.sql
+CREATE TABLE IF NOT EXISTS foto_renk_onizleme (
+  is_no        TEXT PRIMARY KEY,           -- foto_isler.is_no
+  renk         TEXT NOT NULL,              -- musterinin SON istedigi tek renk (VERI.ANA_RENKLER)
+  asama        TEXT NOT NULL,              -- 'bekliyor'|'build'|'render-bekliyor'|'hazir'|'tavan'|'basarisiz'
+  build_gorev  TEXT NOT NULL DEFAULT '',   -- onizleme build gorevi (saglayici); siparis AYNI kimligi kullanir
+  build_olcu   INTEGER NOT NULL DEFAULT 0, -- build'in olcusu (plaket size_mm); siparis olcusu farkliysa yeni build
+  tarih        TEXT NOT NULL,              -- istek / build baslangici (ISO) — 24 sa tavan build baslangicini sayar
+  son_kontrol  INTEGER NOT NULL DEFAULT 0, -- yoklama CAS kilidi (ms; Worker build + koşucu render kirasi)
+  hata         TEXT NOT NULL DEFAULT '',   -- sebep kodu (tavan|havuz|kapali|build-red|build-basarisiz|render-ariza-N|...)
+  guncel       INTEGER NOT NULL DEFAULT 0  -- son asama degisimi (ms) — render bekleme suresi buradan
+);
+CREATE INDEX IF NOT EXISTS idx_foto_renk_onizleme_asama ON foto_renk_onizleme (asama, guncel);

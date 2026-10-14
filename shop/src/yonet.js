@@ -2656,7 +2656,12 @@ async function fotoYukle(){
   (o.turler||[]).map(function(t){return '<tr><td>'+esc(t.ad)+'</td><td>'+esc(t.kalem)+'</td><td>'+
    esc(t.hazir)+'</td><td>'+esc(t.elle)+'</td><td>'+esc(t.suruyor)+'</td></tr>';}).join("")+'</table>'+
   '<div class="kucuk">Kredi: bu ay '+esc(o.kredi&&o.kredi.bu_ay)+' · geçen ay '+esc(o.kredi&&o.kredi.gecen_ay)+
-  ' · havuz: '+(o.bakiye?esc(o.bakiye.kredi):'okunmadı')+'</div></div>');
+  ' · havuz: '+(o.bakiye?esc(o.bakiye.kredi):'okunmadı')+'</div>'+
+  // ④ TEK RENK (Okan 14 Eki): önizlemede kurulan 3D model sayısı + kredi tahmini (tavan foto_ayar renk_onizleme_tavan).
+  '<div class="kucuk">Tek renk önizleme (önizlemede 3D model): '+(o.renk_onizleme&&o.renk_onizleme.kurulu?
+   'son 24 sa '+esc(o.renk_onizleme.son_24s_build)+'/'+esc(o.renk_onizleme.tavan)+' build · tahmini kredi '+
+   esc(o.renk_onizleme.kredi_tahmini)+' · çizim bekleyen '+esc(o.renk_onizleme.render_bekleyen):
+   '<span class="hata">tablo kurulu değil (özellik kapalı)</span>')+'</div></div>');
  if((o.elle||[]).length){
   h.push('<div class="kart"><b>Elle bakılacak</b>'+o.elle.map(function(e){return '<div class="kucuk">'+
    esc(e.siparis_no)+' · kalem '+esc(e.kalem)+' · '+esc(e.tur)+' — <span class="hata">'+esc(e.sebep)+'</span></div>';}).join("")+'</div>');

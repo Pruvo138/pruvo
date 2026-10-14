@@ -1150,6 +1150,8 @@ async function onizlemeUcu(request, env, simdi, telegram) {
   if (oh) { return fjson({ hata: oh }, 400); }
   const gorsel = gorselCoz(g.gorsel);
   if (!gorsel) { return fjson({ hata: "gorsel-gecersiz" }, 400); }
+  // ④ TEK RENK (Okan 14 Eki): `renk` yalniz tek renk seciminde gelir (ANA_RENKLER); baska deger kredi harcanmadan 400.
+  if (g.renk !== undefined && !tekRenkGecerli(g.renk)) { return fjson({ hata: "gecersiz-renk" }, 400); }
 
   if (await hizSiniriAsildi(request, env)) { return fjson({ hata: "cok-istek" }, 429); }
   const ip = request.headers.get("CF-Connecting-IP") || "yok";
@@ -1170,6 +1172,11 @@ async function onizlemeUcu(request, env, simdi, telegram) {
   const hata = await onizlemeGonder(env, isNo, tur.kod, olcu, ziyaretci, gorsel.uri, simdi, telegram, nt.deger,
     VERI.onay_surum, cesit, altTur);
   if (hata) { return hata; }
+  // Tek renk istegi kaydedilir; build onizleme HAZIR olunca (musteri bakarken /foto/durum) baslar. Tablo yoksa
+  // (goc oncesi) sessizce bugunku yol: ④ saglayici gorseli (renk alani yanitta YOK).
+  if (g.renk !== undefined && renkOnizlemeIsi({ tur: tur.kod, cesit, ziyaretci })) {
+    try { await renkIste(env, isNo, g.renk, simdi); } catch (e) { if (!tabloYok(e)) { throw e; } }
+  }
   return fjson({ is: isNo, ...kalanHak(env, sayi) }, 200);
 }
 
@@ -1259,7 +1266,7 @@ export const URETEC_YOKLAMA = { aralik_sn: 5, tavan_sn: 180 };
 /** Girdi fotografinin sozlesme §2 adi (koşucu ad kalibi `[a-z_]+.(png|jpg|svg|wav)`; webp YOK). */
 const URETEC_FOTO_UZANTI = { "image/png": "png", "image/jpeg": "jpg" };
 /** Dizinde olabilecek her ad (temizlik bunlari siler). */
-const URETEC_DIZIN_ADLARI = ["girdi.json", "olcu.json", "model.3mf", "onizleme.png", "foto.png", "foto.jpg", "svg.svg"];
+const URETEC_DIZIN_ADLARI = ["girdi.json", "olcu.json", "model.3mf", "onizleme.png", "foto.png", "foto.jpg", "svg.svg", "renk.png"];
 
 /**
  * POST /foto/onizleme (uretec kolu) — girdi + parametreler (VERI.parametreDogrula) + secim dogrulanir;
@@ -1388,7 +1395,20 @@ async function uretecDurumYaniti(env, is, simdi) {
   // TURETILMIS eksen: fiyat onizlemeyle BIRLIKTE, koşucunun KAYITLI olcusunden (D1 olcu_mm; istemci degil).
   v.olcu_kaynagi = olcuKaynagi(is.tur);
   if (v.olcu_kaynagi === "turetilmis") { v.fiyat_kurus = VERI.fiyatKurus(is.tur, is.olcu_mm); }
+  // ④ TEK RENK / IKI RENK (Okan 14 Eki 03:5x "tum 6 modulde secilen renk"): koşucu uretec modelini onizlemede SECILEN
+  // renk(ler)le studyoda cizdiyse (R2 <dizin>/renk.png) ayni veri sozlesmesi; cizim yoksa alan YOK (bugunku yanit).
+  if (await uretecRenkVar(env, is.is_no)) { Object.assign(v, uretecRenkAlanlari(is.is_no)); }
   return fjson(v, 200);
+}
+
+async function uretecRenkVar(env, isNo) {
+  try { return !!(env.OZEL_DOSYA && await env.OZEL_DOSYA.head(uretecOnizlemeAnahtari(isNo, "renk.png"))); } catch (e) { return false; }
+}
+/** Uretec turunde renk(ler) girdinin kendisi (onizleme o renklerle uretildi): onizleme_renk "" + cizim hazir. */
+export function uretecRenkAlanlari(isNo) {
+  return { onizleme_renk: "", onizleme_renk_durum: "hazir",
+           onizleme_renk_url: "/api/shop/foto/gorsel?is=" + isNo + "&gorunum=renk",
+           onizleme_saglayici_url: "/api/shop/foto/gorsel?is=" + isNo };
 }
 
 // ---------------------------------------------------------------- uc: /foto/litofan (deterministik)
@@ -1475,6 +1495,255 @@ async function renderVar(env, is) {
   try { return !!(await env.OZEL_DOSYA.head(onizlemeRenderAnahtari(is.is_no))); } catch (e) { return false; }
 }
 
+// ---------------------------------------------------------------- ④ TEK RENK ONIZLEMESI (Okan 14 Eki 03:0x, Y1)
+//
+// "beyaz seçince neden beyaz göster demem gerekiyor?" -> tek renk (Siyah/Beyaz/Gri) secen musteri ④'te urunu O
+// RENKTE gorur. Saglayici onizlemesi (2D) bugunku gibi gelir; hazir olunca AYNI isin `input_task_id`'siyle 3D build
+// ONIZLEMEDE kurulur (13 Eki "STL yalniz siparis sonrasi" kurali bu kalemde degisti: Okan onayi artik build'i degil
+// URETIM baslangicini kapilar), GLB R2'ye (`foto-onizleme/<is>-model.glb`) iner, Mac koşucusu (tools/foto-uretec-
+// kosucu.py renk kuyrugu + tools/foto-renk-render.py) modeli SECILEN STOK RENGINDE tek malzemeyle Blender'da cizer ->
+// `foto-onizleme/<is>-<renk>.png`. 2D boyama/posterize YOK (12 Eki reddi surer). Renkli secimde HICBIR sey degismez
+// (satir yazilmaz, build siparis sonrasi). Renk degisimi (Beyaz -> Gri) build'i TEKRARLAMAZ, yalniz yeni render.
+// Siparis: onizlemede kurulmus build VARSA uretim zinciri onu yeniden SATIN ALMAZ (onizlemeBuildi; ayni gorev
+// kimligi, sadakat = ayni is_no zinciri). Kredi emniyeti: son 24 saatte en cok `renk_onizleme_tavan` (foto_ayar;
+// varsayilan 30) build; tavan dolunca ④ eski davranisa duser + Okan'a E-POSTA (gun basina tek).
+// Tablo yoksa (goc uygulanmadi) ozellik KAPALI: ④ bugunku gibi (fail-closed, sessiz hata yok).
+// Asamalar: bekliyor (on izleme hazir degil / build baslamadi) -> build -> render-bekliyor -> hazir;
+//           tavan (tavan ya da havuz kapali) · basarisiz (build/render dustu, onizleme eski).
+export const RENK_ONIZLEME_TAVAN_VARSAYILAN = 30;
+export const RENK_ONIZLEME_TAVAN_ANAHTARI = "renk_onizleme_tavan";
+/** Panel tahmini: onizleme build'i basina kredi (14 Eki olcumu: gercek build consumed_credits 30; gercek tuketim defterde). */
+export const RENK_BUILD_KREDI_TAHMINI = 30;
+/** Render bu kadar sn bekledikten sonra ④ eski davranisa duser (satir kuyrukta kalir; cizilince gelir). */
+export const RENK_RENDER_BEKLEME_SN = 900;
+/** Koşucu damgasi bundan eskiyse (Mac kapali) render beklenmez, ④ eski davranis (istemci HAZIRLAYICI tavaniyla AYNI). */
+export const RENK_HAZIRLAYICI_TAVAN_SN = 600;
+/** Cron turunda en cok kac onizleme build'i yoklanir (musteri ayrilsa da GLB iner, kredi deftere girer). */
+export const RENK_BUILD_TUR_LIMITI = 4;
+
+/** Tek renk onizlemesinin R2 anahtari (koşucu renk_onizleme_anahtari ile AYNI). */
+export function renkOnizlemeAnahtari(isNo, renk) { return "foto-onizleme/" + isNo + "-" + renk + ".png"; }
+/** Onizleme build'inin GLB'si (koşucu renk_model_anahtari ile AYNI). */
+export function renkModelAnahtari(isNo) { return "foto-onizleme/" + isNo + "-model.glb"; }
+/** Tek renk onizlemesi istenebilen renk: VERI.ANA_RENKLER (Siyah/Beyaz/Gri); Renkli ve digerleri DEGIL. */
+export function tekRenkGecerli(r) { return typeof r === "string" && VERI.ANA_RENKLER.includes(r); }
+/** Is tek renk onizlemesi alabilir mi: musteri isi (ornek degil) + saglayici kolu (plaket · figur · figur cesidi). */
+export function renkOnizlemeIsi(is) { return !!is && !ornekMi(is) && saglayiciIsi(is); }
+
+const RENK_SUTUNLARI = "is_no, renk, asama, build_gorev, build_olcu, tarih, son_kontrol, hata, guncel";
+async function renkSatiri(env, isNo) {
+  return env.KATALOG.prepare("SELECT " + RENK_SUTUNLARI + " FROM foto_renk_onizleme WHERE is_no = ?").bind(isNo).first();
+}
+
+/** foto_ayar `renk_onizleme_tavan` (0..1000 tam sayi); yok/bozuk -> varsayilan 30. */
+async function renkTavani(env) {
+  const k = await ayarOku(env, RENK_ONIZLEME_TAVAN_ANAHTARI);
+  const n = k ? Number(k.deger) : NaN;
+  return Number.isInteger(n) && n >= 0 && n <= 1000 ? n : RENK_ONIZLEME_TAVAN_VARSAYILAN;
+}
+/** Son 24 saatte BASLATILAN onizleme build'i sayisi (tarih = build baslangici). */
+async function renkBuildSayisi(env, simdi) {
+  const r = await env.KATALOG.prepare(
+    "SELECT COUNT(*) AS n FROM foto_renk_onizleme WHERE build_gorev != '' AND tarih >= ?"
+  ).bind(saatOnce(simdi, 24)).first();
+  return (r && r.n) || 0;
+}
+
+/**
+ * Musterinin istedigi tek rengi kaydeder. Satir yoksa 'bekliyor' (build onizleme hazir olunca, musteri bakarken
+ * baslar). Renk degisti: model VARSA (render-bekliyor/hazir/render dustu) yalniz yeni render istenir — build
+ * TEKRARLANMAZ; 'tavan' satiri yeniden denenir ('bekliyor'); build dustuyse (kredi korumasi) yeniden denenmez.
+ */
+async function renkIste(env, isNo, renk, simdi) {
+  await env.KATALOG.prepare(
+    "INSERT OR IGNORE INTO foto_renk_onizleme (is_no, renk, asama, tarih, guncel) VALUES (?, ?, 'bekliyor', ?, ?)"
+  ).bind(isNo, renk, simdiIso(simdi), simdi).run();
+  const s = await renkSatiri(env, isNo);
+  if (!s || s.renk === renk) { return s; }
+  const modelVar = s.asama === "render-bekliyor" || s.asama === "hazir" ||
+    (s.asama === "basarisiz" && s.hata === "render-basarisiz");
+  const yeni = modelVar ? "render-bekliyor" : (s.asama === "tavan" ? "bekliyor" : s.asama);
+  await env.KATALOG.prepare(
+    "UPDATE foto_renk_onizleme SET renk = ?, asama = ?, hata = ?, guncel = ? WHERE is_no = ?"
+  ).bind(renk, yeni, modelVar || s.asama === "tavan" ? "" : s.hata, simdi, isNo).run();
+  return { ...s, renk, asama: yeni, guncel: simdi, hata: modelVar || s.asama === "tavan" ? "" : s.hata };
+}
+
+async function renkAsamaYaz(env, s, asama, alanlar, simdi, oncekiAsama) {
+  const ek = Object.keys(alanlar || {});
+  const r = await env.KATALOG.prepare(
+    "UPDATE foto_renk_onizleme SET asama = ?, guncel = ?" + ek.map((a) => ", " + a + " = ?").join("") +
+    " WHERE is_no = ? AND asama = ?"
+  ).bind(asama, simdi, ...ek.map((a) => alanlar[a]), s.is_no, oncekiAsama || s.asama).run();
+  return r && r.meta && r.meta.changes === 1 ? { ...s, ...alanlar, asama, guncel: simdi } : s;
+}
+
+/**
+ * 'bekliyor' -> 'build': onizleme hazir + yeterince taze + yapilandirma hazir + tavan + havuz -> saglayiciya AYNI isin
+ * input_task_id'siyle build. Ayni anda iki yoklama iki build ALMASIN: son_kontrol CAS kilidi (onizlemeIlerle ile AYNI).
+ */
+async function renkBuildBaslat(env, is, s, simdi, telegram) {
+  if (simdi - (s.son_kontrol || 0) < DURUM_ARALIK_MS) { return s; }
+  const kilit = await env.KATALOG.prepare(
+    "UPDATE foto_renk_onizleme SET son_kontrol = ? WHERE is_no = ? AND asama = 'bekliyor' AND son_kontrol = ?"
+  ).bind(simdi, s.is_no, s.son_kontrol || 0).run();
+  if (!kilit || !kilit.meta || kilit.meta.changes !== 1) { return s; }
+  s = { ...s, son_kontrol: simdi };
+  if (!is.gorev || !((simdi - Date.parse(is.hazir_tarih)) / 3600000 <= ONIZLEME_KURULUM_SINIRI_SAAT)) {
+    return renkAsamaYaz(env, s, "basarisiz", { hata: "onizleme-eski" }, simdi);
+  }
+  if (!yapilandirma(env).hazir || !isHazir(env, is)) { return renkAsamaYaz(env, s, "tavan", { hata: "kapali" }, simdi); }
+  const tavan = await renkTavani(env);
+  const sayi = await renkBuildSayisi(env, simdi);
+  if (sayi >= tavan) {
+    // Okan'a E-POSTA (Telegram DEGIL; okanaBildir telegram=null), gun basina TEK (anahtar).
+    await okanaBildir(env, null, "EYLEM", "Fotoğraftan üretim: tek renk önizleme tavanı doldu",
+      "📸 Tek renk önizleme (önizlemede 3D model + seçilen renkte çizim) son 24 saatte " + sayi + "/" + tavan +
+      " build ile tavana ulaştı. Yeni tek renk önizlemeler şu an sağlayıcının 2D görseliyle gösteriliyor (eski davranış)." +
+      " Tavan foto_ayar '" + RENK_ONIZLEME_TAVAN_ANAHTARI + "' ile değişir (build başına ~" + RENK_BUILD_KREDI_TAHMINI + " kredi).",
+      "renk-tavan:" + simdiIso(simdi).slice(0, 10));
+    return renkAsamaYaz(env, s, "tavan", { hata: "tavan" }, simdi);
+  }
+  const havuz = await havuzHukmu(env, simdi, telegram);
+  if (!havuz.acik) { return renkAsamaYaz(env, s, "tavan", { hata: "havuz" }, simdi); }
+  // Build govdesi siparis zinciriyle AYNI fonksiyon (plaket: olcu + sabit kabartma/taban + kapali sirt).
+  const c = await saglayici(env, "POST", turYolu(env, yolTuru(is)) + "/v1/build",
+                            buildGovdesi({ tur: is.tur, olcu_mm: is.olcu_mm, siparis_no: is.is_no.slice(0, 12) }, is.gorev));
+  const gorev = gorevKimligi(c.govde);
+  if (c.kod >= 200 && c.kod < 300 && gorev) {
+    return renkAsamaYaz(env, s, "build", { build_gorev: gorev, build_olcu: is.olcu_mm, tarih: simdiIso(simdi), hata: "" }, simdi);
+  }
+  const kol = hataKolu(c.kod);
+  if (kol === "gecici") { return s; }   // sonraki yoklama yeniden dener (kilit DURUM_ARALIK_MS)
+  return renkAsamaYaz(env, s, "basarisiz", { hata: kol === "kredi" ? "kredi" : "build-red" }, simdi);
+}
+
+/** 'build' yoklamasi: bitti -> GLB R2'ye + kredi defterine (adim 'build'; siparis ayni gorevi tekrar YAZMAZ). */
+async function renkBuildYokla(env, is, s, simdi) {
+  if (simdi - (s.son_kontrol || 0) < DURUM_ARALIK_MS) { return s; }
+  const kilit = await env.KATALOG.prepare(
+    "UPDATE foto_renk_onizleme SET son_kontrol = ? WHERE is_no = ? AND asama = 'build' AND son_kontrol = ?"
+  ).bind(simdi, s.is_no, s.son_kontrol || 0).run();
+  if (!kilit || !kilit.meta || kilit.meta.changes !== 1) { return s; }
+  s = { ...s, son_kontrol: simdi };
+  const c = await saglayici(env, "GET", turYolu(env, yolTuru(is)) + "/v1/build/" + s.build_gorev, null);
+  if (c.kod !== 200 || !c.govde) { return s; }
+  const d = gorevDurumu(c.govde);
+  if (d === "dustu") {
+    await krediYaz(env, simdi, "build", s.is_no, "", s.build_gorev, krediSayisi(c.govde));
+    return renkAsamaYaz(env, s, "basarisiz", { hata: "build-basarisiz" }, simdi);
+  }
+  if (d !== "bitti") { return s; }
+  const dosya = await dosyaIndir(c.govde.model_urls && c.govde.model_urls.glb);
+  if (!dosya) { return s; }   // sonraki yoklama yeniden dener
+  await env.OZEL_DOSYA.put(renkModelAnahtari(s.is_no), dosya.tampon, { httpMetadata: { contentType: "model/gltf-binary" } });
+  // UNIQUE(gorev, adim): siparis zinciri ayni build'in 'build' kaydini ikinci kez YAZAMAZ (cift sayim yok).
+  await krediYaz(env, simdi, "build", s.is_no, "", s.build_gorev, krediSayisi(c.govde));
+  return renkAsamaYaz(env, s, "render-bekliyor", { hata: "" }, simdi);
+}
+
+async function renkGorselVar(env, isNo, renk) {
+  try { return !!(await env.OZEL_DOSYA.head(renkOnizlemeAnahtari(isNo, renk))); } catch (e) { return false; }
+}
+
+/**
+ * Hazir saglayici isinin tek renk onizlemesini bir adim ilerletir. Donus: null (renk istenmedi -> bugunku yanit) ya da
+ * {renk, durum: 'hazir'|'hazirlaniyor'|'yok', sebep?}. 'yok' = ④ eski davranis (saglayici gorseli + bugunku cumle).
+ */
+async function renkIlerle(env, is, simdi, telegram) {
+  let s = await renkSatiri(env, is.is_no);
+  if (!s) { return null; }
+  if (s.asama === "bekliyor") { s = await renkBuildBaslat(env, is, s, simdi, telegram); }
+  if (s.asama === "build") { s = await renkBuildYokla(env, is, s, simdi); }
+  const v = { renk: s.renk };
+  if (s.asama === "render-bekliyor" || s.asama === "hazir") {
+    // Istenen rengin cizimi R2'de varsa HAZIR (renk degisiminde daha once cizilmis renk aninda gelir).
+    if (await renkGorselVar(env, s.is_no, s.renk)) {
+      if (s.asama !== "hazir") {
+        await env.KATALOG.prepare(
+          "UPDATE foto_renk_onizleme SET asama = 'hazir', hata = '', guncel = ? WHERE is_no = ? AND renk = ? AND asama = 'render-bekliyor'"
+        ).bind(simdi, s.is_no, s.renk).run();
+      }
+      return { ...v, durum: "hazir" };
+    }
+    if (s.asama === "hazir") { s = await renkAsamaYaz(env, s, "render-bekliyor", {}, simdi); }
+    const yas = await hazirlayiciYasSn(env, simdi);
+    if (yas === null || yas > RENK_HAZIRLAYICI_TAVAN_SN) { return { ...v, durum: "yok", sebep: "hazirlayici" }; }
+    if ((simdi - (s.guncel || 0)) / 1000 > RENK_RENDER_BEKLEME_SN) { return { ...v, durum: "yok", sebep: "gecikme" }; }
+    return { ...v, durum: "hazirlaniyor" };
+  }
+  if (s.asama === "bekliyor" || s.asama === "build") {
+    // Build uzadiysa (tarih = istek/build baslangici) musteri bekletilmez; satir yoklanmaya devam eder.
+    if ((simdi - Date.parse(s.tarih)) / 1000 > RENK_RENDER_BEKLEME_SN) { return { ...v, durum: "yok", sebep: "gecikme" }; }
+    return { ...v, durum: "hazirlaniyor" };
+  }
+  return { ...v, durum: "yok", sebep: s.hata || s.asama };
+}
+
+/**
+ * ④ VERI SOZLESMESI (istemci foto-uretim.js; hover/zemin gorunumu KraL): renk istendiyse
+ *   onizleme_renk          istenen tek renk (VERI.ANA_RENKLER)
+ *   onizleme_renk_durum    'hazir' | 'hazirlaniyor' | 'yok' ('yok' = ④ eski davranis: saglayici/uretec gorseli)
+ *   onizleme_renk_url      yalniz 'hazir': secilen renkte cizimin adresi (④ ana gorseli)
+ *   onizleme_saglayici_url yalniz 'hazir': ayni isin ilk gorseli (saglayici renkli gorseli; hover "alternatif")
+ * Renk istenmediyse HICBIRI yok (yanit bugunkuyle bayt-esit).
+ */
+export function renkYanitAlanlari(isNo, renk) {
+  if (!renk) { return {}; }
+  const v = { onizleme_renk: renk.renk, onizleme_renk_durum: renk.durum };
+  if (renk.durum === "hazir") {
+    v.onizleme_renk_url = "/api/shop/foto/gorsel?is=" + isNo + "&renk=" + encodeURIComponent(renk.renk);
+    v.onizleme_saglayici_url = "/api/shop/foto/gorsel?is=" + isNo;
+  }
+  return v;
+}
+
+/** renkIlerle + tablo yoksa (goc oncesi) null: ④ bugunku gibi (fail-closed). */
+async function renkIlerleGuvenli(env, is, simdi, telegram) {
+  if (!renkOnizlemeIsi(is) || is.asama !== "hazir" || !env.OZEL_DOSYA) { return null; }
+  try { return await renkIlerle(env, is, simdi, telegram); } catch (e) {
+    if (tabloYok(e)) { return null; }
+    throw e;
+  }
+}
+
+/**
+ * SIPARIS ZINCIRI: bu is icin onizlemede kurulmus (dusmemis) build varsa gorev kimligi, yoksa "". Plaket build'i
+ * olcuye baglidir (size_mm + sabit kabartma/taban mm): siparis olcusu onizleme build'inden farkliysa "" (yeni build;
+ * olceklemek kabartma/taban kalinligini bozardi). Figur build'i olcusuzdur (sonradan olceklenir) -> her olcude ayni.
+ */
+export async function onizlemeBuildi(env, u) {
+  let s;
+  try { s = await renkSatiri(env, u.is_no); } catch (e) {
+    if (tabloYok(e)) { return ""; }
+    throw e;
+  }
+  if (!s || !s.build_gorev || (s.asama === "basarisiz" && s.hata === "build-basarisiz")) { return ""; }
+  if (u.tur === "plaket" && s.build_olcu !== u.olcu_mm) { return ""; }
+  return s.build_gorev;
+}
+
+/** CRON: musteri ayrilsa da baslamis onizleme build'leri yoklanir (GLB iner, kredi deftere). YENI build BASLATMAZ. */
+async function renkBuildNobeti(env, simdi) {
+  let r;
+  try {
+    r = await env.KATALOG.prepare(
+      "SELECT " + RENK_SUTUNLARI + " FROM foto_renk_onizleme WHERE asama = 'build' ORDER BY guncel LIMIT ?"
+    ).bind(RENK_BUILD_TUR_LIMITI).all();
+  } catch (e) {
+    if (tabloYok(e)) { return 0; }
+    throw e;
+  }
+  let n = 0;
+  for (const s of (r.results || [])) {
+    const is = await isGetir(env, s.is_no);
+    if (!is || !renkOnizlemeIsi(is)) { continue; }
+    const y = await renkBuildYokla(env, is, s, simdi);
+    if (y.asama !== s.asama) { n++; }
+  }
+  return n;
+}
+
 async function isGetir(env, isNo) {
   return env.KATALOG.prepare(
     "SELECT is_no, tur, olcu_mm, ziyaretci, tarih, asama, gorev, hazir_tarih, son_kontrol, hata, cesit" +
@@ -1489,12 +1758,14 @@ async function isGetirYoksaNull(env, isNo) {
   }
 }
 
-function durumYaniti(is, render) {
+function durumYaniti(is, render, renk) {
   if (is.asama === "hazir") {
     return fjson({ asama: "hazir", tur: is.tur, olcu_mm: is.olcu_mm,
                    gorsel: "/api/shop/foto/gorsel?is=" + is.is_no,
                    // ④: render varsa istemci ONU gosterir (palete indirgeme YOK); yoksa alan YOK.
                    ...(render ? { render: "/api/shop/foto/gorsel?is=" + is.is_no + "&gorunum=render" } : {}),
+                   // ④ TEK RENK (Okan 14 Eki): renkYanitAlanlari — renk istenmediyse (Renkli / eski istemci) alan YOK.
+                   ...renkYanitAlanlari(is.is_no, renk),
                    gecerlilik_bitis: new Date(Date.parse(is.hazir_tarih) +
                      VERI.gecerlilik_saat * 3600 * 1000).toISOString() }, 200);
   }
@@ -1511,7 +1782,7 @@ function durumYaniti(is, render) {
   return fjson({ asama: "onizleme" }, 200);
 }
 
-async function durumUcu(env, url, simdi) {
+async function durumUcu(env, url, simdi, telegram) {
   const isNo = url.searchParams.get("is") || "";
   if (!IS_KALIBI.test(isNo)) { return fjson({ hata: "bulunamadi" }, 404); }
   const is = await isGetirYoksaNull(env, isNo);
@@ -1519,7 +1790,30 @@ async function durumUcu(env, url, simdi) {
   // Ornek isi (panel) musteri ucunda YOK sayilir: varligi da sizmaz.
   if (ornekMi(is)) { return fjson({ hata: "bulunamadi" }, 404); }
   if (uretecOnizlemeIsi(is)) { return uretecDurumYaniti(env, is, simdi); }
-  return onizlemeIlerle(env, is, simdi, yapilandirma(env).hazir, async (x) => durumYaniti(x, await renderVar(env, x)));
+  return onizlemeIlerle(env, is, simdi, yapilandirma(env).hazir, async (x) =>
+    durumYaniti(x, await renderVar(env, x), await renkIlerleGuvenli(env, x, simdi, telegram)));
+}
+
+/**
+ * POST /foto/renk {is, renk} — ④ tek renk onizlemesi icin musterinin SECILI rengi (③'te degisti / Renkli'den tek renge
+ * dondu). Renk VERI.ANA_RENKLER disi -> 400 (Renkli bu uca GELMEZ: istemci saglayici gorselini gosterir). Is anahtari
+ * (32 hex) yetki; build onizleme basina EN COK BIR (renk degisimi yalniz render), gunluk tavan + havuz build'i kapilar.
+ * Yanit /foto/durum ile AYNI bicim.
+ */
+async function renkUcu(request, env, simdi, telegram) {
+  let g;
+  try { g = await request.json(); } catch (e) { g = null; }
+  const isNo = g && typeof g.is === "string" ? g.is : "";
+  if (!IS_KALIBI.test(isNo)) { return fjson({ hata: "bulunamadi" }, 404); }
+  if (!tekRenkGecerli(g.renk)) { return fjson({ hata: "gecersiz-renk" }, 400); }
+  const is = await isGetirYoksaNull(env, isNo);
+  if (!is || !renkOnizlemeIsi(is)) { return fjson({ hata: "bulunamadi" }, 404); }
+  if (await hizSiniriAsildi(request, env)) { return fjson({ hata: "cok-istek" }, 429); }
+  try { await renkIste(env, isNo, g.renk, simdi); } catch (e) {
+    if (tabloYok(e)) { return fjson({ hata: "kapali" }, 503); }
+    throw e;
+  }
+  return durumUcu(env, { searchParams: new URLSearchParams({ is: isNo }) }, simdi, telegram);
 }
 
 /**
@@ -1591,6 +1885,16 @@ async function gorselUcu(env, url) {
   if (url.searchParams.get("gorunum") === "render") {
     return renderKolu(is) ? onizlemeGorseli(env, isNo, onizlemeRenderAnahtari(isNo)) : fjson({ hata: "bulunamadi" }, 404);
   }
+  // ④ uretec turunun secilen renk(ler)de studyo cizimi (koşucu <dizin>/renk.png); baska iste YOK sayilir.
+  if (url.searchParams.get("gorunum") === "renk") {
+    return uretecOnizlemeIsi(is) ? onizlemeGorseli(env, isNo, uretecOnizlemeAnahtari(isNo, "renk.png")) : fjson({ hata: "bulunamadi" }, 404);
+  }
+  // ④ TEK RENK cizimi: yalniz ANA_RENKLER ve saglayici kolu (anahtar uydurulamaz: renk kapali kumeden).
+  if (url.searchParams.has("renk")) {
+    const rk = url.searchParams.get("renk");
+    return tekRenkGecerli(rk) && renkOnizlemeIsi(is)
+      ? onizlemeGorseli(env, isNo, renkOnizlemeAnahtari(isNo, rk)) : fjson({ hata: "bulunamadi" }, 404);
+  }
   return onizlemeGorseli(env, isNo, uretecOnizlemeIsi(is) ? uretecOnizlemeAnahtari(isNo, "onizleme.png") : "");
 }
 
@@ -1601,7 +1905,8 @@ export async function fotoUclari(request, env, url, yol, telegram) {
   if (yol === "/foto/acik" && m === "GET") { return acikUcu(env, simdi, telegram); }
   if (yol === "/foto/onizleme" && m === "POST") { return onizlemeUcu(request, env, simdi, telegram); }
   if (yol === "/foto/litofan" && m === "POST") { return litofanUcu(request, env, simdi); }
-  if (yol === "/foto/durum" && m === "GET") { return durumUcu(env, url, simdi); }
+  if (yol === "/foto/durum" && m === "GET") { return durumUcu(env, url, simdi, telegram); }
+  if (yol === "/foto/renk" && m === "POST") { return renkUcu(request, env, simdi, telegram); }
   if (yol === "/foto/gorsel" && m === "GET") { return gorselUcu(env, url); }
   return fjson({ hata: "bulunamadi" }, 404);
 }
@@ -2205,6 +2510,10 @@ async function uretimAdimi(env, u, simdi, telegram) {
     if ((simdi - Date.parse(is.hazir_tarih)) / 3600000 > ONIZLEME_KURULUM_SINIRI_SAAT) {
       return elleDusur(env, u, "onizleme-suresi-doldu", "", simdi, telegram);
     }
+    // ④ TEK RENK (Okan 14 Eki): onizlemede AYNI isin prototipinden kurulmus build varsa YENIDEN SATIN ALINMAZ — gorev
+    // kimligi satira baglanir, 'build' adimi onu yoklar (kredi defteri UNIQUE(gorev, adim): ikinci kayit YOK).
+    const onb = await onizlemeBuildi(env, u);
+    if (onb) { return asamaYaz(env, u, "build", { build_gorev: onb }, simdi); }
     const c = await saglayici(env, "POST", turYolu(env, yolTuru(u)) + "/v1/build", buildGovdesi(u, is.gorev));
     const gorev = gorevKimligi(c.govde);
     if (c.kod >= 200 && c.kod < 300 && gorev) {
@@ -2521,6 +2830,11 @@ async function onizlemeTemizle(env, simdi) {
     await env.OZEL_DOSYA.delete(onizlemeAnahtari(s.is_no));
     // ④ render'i fotograftan turer: onizlemeyle AYNI saklama (3 gun).
     if (renderKolu(s)) { await env.OZEL_DOSYA.delete(onizlemeRenderAnahtari(s.is_no)); }
+    // ④ TEK RENK: onizleme build'inin GLB'si + renk cizimleri de AYNI saklama (siparise donusmediyse).
+    if (renkOnizlemeIsi(s)) {
+      await env.OZEL_DOSYA.delete(renkModelAnahtari(s.is_no));
+      for (const r of VERI.ANA_RENKLER) { await env.OZEL_DOSYA.delete(renkOnizlemeAnahtari(s.is_no, r)); }
+    }
     // Figur kolunun girdi.json'u da uretec dizinindedir.
     if (uretecOnizlemeIsi(s) || figurKolu(s)) {
       for (const ad of URETEC_DIZIN_ADLARI) { await env.OZEL_DOSYA.delete(uretecOnizlemeAnahtari(s.is_no, ad)); }
@@ -2538,7 +2852,7 @@ async function onizlemeTemizle(env, simdi) {
  * Donus olcum ozeti (log + test): {kuyruga, ilerleyen, silinen}.
  */
 export async function fotoUretimTuru(env, simdi, telegram) {
-  const ozet = { kuyruga: 0, ilerleyen: 0, silinen: 0, onarim_bayat: 0, onay_bekleyen: 0, atlandi: "" };
+  const ozet = { kuyruga: 0, ilerleyen: 0, silinen: 0, onarim_bayat: 0, onay_bekleyen: 0, renk_build: 0, atlandi: "" };
   if (!env || !env.KATALOG || !env.OZEL_DOSYA || !env.URETIM_API_ANAHTAR || !env.URETIM_API_TABAN ||
       !env.URETIM_TUR_ONEK || !saglayiciYoluVar(env)) {
     ozet.atlandi = "yapilandirma";
@@ -2571,6 +2885,7 @@ export async function fotoUretimTuru(env, simdi, telegram) {
       }
     }
     ozet.onarim_bayat = await onarimBayatNobeti(env, simdi, telegram);
+    ozet.renk_build = await renkBuildNobeti(env, simdi);
     ozet.silinen = await onizlemeTemizle(env, simdi);
   } catch (e) {
     if (tabloYok(e)) { ozet.atlandi = "sema"; return ozet; }
@@ -2901,7 +3216,25 @@ export async function panelFotoOzet(env, simdi) {
     if (!tabloYok(e)) { throw e; }
     cikti.sema = false;
   }
+  cikti.renk_onizleme = await renkOnizlemeOzeti(env, simdi);
   return fjson(cikti, 200);
+}
+
+/**
+ * Panel satiri (④ tek renk): son 24 saatte baslatilan onizleme build'i · tavan · tahmini kredi (build x ~20) ·
+ * render bekleyen. Tablo yoksa {kurulu: false} (ozellik kapali; sessiz sifir YOK).
+ */
+async function renkOnizlemeOzeti(env, simdi) {
+  try {
+    const n = await renkBuildSayisi(env, simdi);
+    const b = await env.KATALOG.prepare(
+      "SELECT COUNT(*) AS n FROM foto_renk_onizleme WHERE asama = 'render-bekliyor'").first();
+    return { kurulu: true, son_24s_build: n, tavan: await renkTavani(env),
+             kredi_tahmini: n * RENK_BUILD_KREDI_TAHMINI, render_bekleyen: (b && b.n) || 0 };
+  } catch (e) {
+    if (tabloYok(e)) { return { kurulu: false }; }
+    throw e;
+  }
 }
 
 /**
