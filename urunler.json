@@ -1,5 +1,42 @@
 [
   {
+    "id": "mutfak-sprey-sisesi-duvar-askisi-yapiskanli-iki-surum-pr245126",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Sprey Şişesi Duvar Askısı (Tetikli Şişeler İçin, Standart ve 30 mm Geniş İki Sürüm)",
+    "aciklama": "Tetikli sprey şişelerini tetik kısmından asarak duvarda dik tutan küçük, kamalı askı. Çift taraflı montaj bandıyla yapıştırıldığı için delik açmayı gerektirmez. Standart sürüm ve daha geniş tetikli şişeler için 30 mm genişliğinde ikinci sürüm bulunur. Fotoğraflarda askının yakından görünümü ve duvara tutturulmuş hâli yer alır.\nYaklaşık dış ölçüler: 72,7 × 44,8 × 34 mm (geniş sürüm).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr245126-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr245126-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr245126-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr245126-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Layer By Layer (özgün tasarım: DJMac)",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mutfak-sarap-sisesi-tutucu-ince-telli-piramit-dizilim-pr207209",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Şarap Şişesi Tutucu (Üç Şişelik, İnce Telli, Piramit Dizilimli)",
+    "aciklama": "Şişeleri yan yatırıp üç şişelik sıra halinde tutan, çok ince telli ve hafif bir tutucu. İki adet üst üste dizildiğinde altı şişeye kadar piramit biçiminde istiflenir; dolap rafında ya da tezgâhta çok az yer kaplar. Fotoğraflarda şişelerin piramit dizilimi ve tutucunun yakından görünümü yer alır.\nYaklaşık dış ölçüler: 221 × 21,5 × 19,5 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr207209-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr207209-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr207209-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "kuboris",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "banyo-cam-dus-kabini-havlu-kancasi-5-20-mm-cam-secenekli-pr692245",
     "kategori": "Ev",
     "marka": [],
