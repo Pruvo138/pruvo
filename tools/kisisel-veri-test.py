@@ -1458,25 +1458,48 @@ def k384_kurucu_vakalari():
             shutil.rmtree(d, ignore_errors=True)
     # V7 MIRAS GIT_DIR: linked worktree'den push'ta git kancaya GIT_DIR'i MUTLAK ihrac
     # eder. Scrub'siz `git -C` cagrilari onu izleyip yanlis depoyu olcuyordu -> blok HER
-    # worktree push'unu OLCULEMEDI ile durdururdu (14 Eki 2026, olculdu). GIT_DIR bilerek
-    # SENTETIK bir depoya baglanir (gercek depoya ASLA): gerileme olsa bile zarar gecicide kalir.
-    d = tempfile.mkdtemp(prefix="kisisel-veri-k384-gitdir-")
+    # worktree push'unu OLCULEMEDI ile durdururdu (14 Eki 2026, olculdu). GIT_DIR BOS bir
+    # SENTETIK depoya baglanir (gercek depoya ASLA); taranan depo IKINCI bir sentetik depodur
+    # (ic rapor ekleyen commit). ROOT'un commit grafigine BAGLI DEGIL: nobetci-mutasyon-test
+    # D0 aynasi commit'siz `git init`tir (olculdu: ROOT HEAD'e bagli ilk surum orada dustu).
+    # Beklenen: aralik_kapisi rc=1 + rapor ADI (gercek bulgu), OLCULEMEDI YOK. Scrub kalkarsa
+    # bicim capasi (git log) ya da rev-list BOS depoya gider -> OLCULEMEDI -> V7 duser.
+    import contextlib
+    import io
+    d_bos = tempfile.mkdtemp(prefix="kisisel-veri-k384-gitdir-")
+    d_hedef = tempfile.mkdtemp(prefix="kisisel-veri-k384-hedef-")
+    eski_git_dir = os.environ.get("GIT_DIR")
     try:
-        _k384_fikstur_git(d, "init", "-q")
-        head = subprocess.run(["git", "-C", ROOT, "rev-parse", "HEAD"], capture_output=True,
-                              text=True, env=git_ortami()).stdout.strip()
-        miras = dict(ortam, GIT_DIR=os.path.join(d, ".git"))
-        s = subprocess.run([sys.executable, os.path.abspath(__file__), "--pre-push"],
-                           input="refs/heads/x %s refs/heads/x %s\n" % (head, head),
-                           capture_output=True, text=True, env=miras, cwd=ROOT, timeout=300)
-        sonuc.append(("K384-V7", len(head) == 40 and s.returncode == 0,
-                      "miras GIT_DIR (sentetik) altinda --pre-push rc=%d (beklenen 0) %s"
-                      % (s.returncode, ((s.stdout or "") + (s.stderr or ""))
-                         .strip().replace("\n", " | ")[-200:])))
+        _k384_fikstur_git(d_bos, "init", "-q")
+        _k384_fikstur_git(d_hedef, "init", "-q")
+        shalar = []
+        # Ic rapor adi = 21 Tem gercek olayinin adi (_GECMIS_KIRMIZI ile ayni aile).
+        rapor = "tools/yedek-topolojisi-raporu.md"
+        os.makedirs(os.path.join(d_hedef, "tools"), exist_ok=True)
+        for ad in ("a.txt", rapor):
+            with open(os.path.join(d_hedef, ad), "w", encoding="utf-8") as f:
+                f.write("x\n")
+            _k384_fikstur_git(d_hedef, "add", "-A")
+            _k384_fikstur_git(d_hedef, "commit", "-q", "-m", ad)
+            shalar.append(_k384_fikstur_git(d_hedef, "rev-parse", "HEAD").stdout.strip())
+        os.environ["GIT_DIR"] = os.path.join(d_bos, ".git")
+        cikti = io.StringIO()
+        with contextlib.redirect_stdout(cikti):
+            rc = aralik_kapisi([[shalar[1], "--not", shalar[0]]], "K384-V7", kok=d_hedef)
+        metin = cikti.getvalue()
+        gecti = rc == 1 and rapor in metin and "OLCULEMEDI" not in metin
+        sonuc.append(("K384-V7", gecti, "miras GIT_DIR (bos sentetik) altinda rc=%d (beklenen 1 "
+                      "+ rapor adi, OLCULEMEDI yok) %s"
+                      % (rc, metin.strip().replace("\n", " | ")[-220:])))
     except (OSError, subprocess.SubprocessError) as e:
         sonuc.append(("K384-V7", False, "fikstur kurulamadi: %s" % e))
     finally:
-        shutil.rmtree(d, ignore_errors=True)
+        if eski_git_dir is None:
+            os.environ.pop("GIT_DIR", None)
+        else:
+            os.environ["GIT_DIR"] = eski_git_dir
+        shutil.rmtree(d_bos, ignore_errors=True)
+        shutil.rmtree(d_hedef, ignore_errors=True)
     # V8 FETCH EDILMEMIS UZAK UC (curutucu D1): uzak sha yerelde YOKSA `--not --remotes`a
     # duser; KONTROL = ayni satir uzak sha yerelde VARKEN `<uzak>..<yerel>` araligi.
     y, u = "1" * 40, "2" * 40
@@ -2638,8 +2661,9 @@ def _yaz_hatalar(baslik, hatalar):
         print("  - " + h)
 
 
-def aralik_kapisi(kapsamlar, etiket):
+def aralik_kapisi(kapsamlar, etiket, kok=None):
     """BLOKLAYICI geçmiş kolu (--aralik / --pre-push). Çıkış kodu döner.
+    kok: taranan depo (None = ROOT; K384-V7 sentetik depoyla olcer).
 
     🔴 KAPSAM GORUNURLUGU (kusur 4 kardesi): her kapsam icin commit sayisi HER ZAMAN
     basilir. Cozulemeyen kapsam = KIRMIZI (fail-closed). Commit sayisi 0 olan bir
@@ -2655,7 +2679,7 @@ def aralik_kapisi(kapsamlar, etiket):
     hatalar = gecmis_fikstur_hatalari()
     toplam_commit = 0
     for kapsam in kapsamlar:
-        s = subprocess.run(["git", "-C", ROOT, "rev-list", "--count"] + list(kapsam),
+        s = subprocess.run(["git", "-C", kok or ROOT, "rev-list", "--count"] + list(kapsam),
                            capture_output=True, text=True, env=git_ortami())
         if s.returncode != 0:
             hatalar.append("OLCULEMEDI — kapsam cozulemedi (%s): %s"
@@ -2664,7 +2688,7 @@ def aralik_kapisi(kapsamlar, etiket):
         sayi = int((s.stdout.strip() or "0").split()[0])
         toplam_commit += sayi
         print("  kapsam: %-52s -> %d commit" % (" ".join(kapsam), sayi))
-        h, _isabet = gecmis_nobeti(kapsam, fikstur=False)
+        h, _isabet = gecmis_nobeti(kapsam, fikstur=False, kok=kok)
         hatalar.extend(h)
     if hatalar:
         _yaz_hatalar("geçmiş ekseni (iç rapor / commit geçmişi)", hatalar)
