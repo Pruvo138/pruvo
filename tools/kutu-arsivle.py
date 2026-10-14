@@ -3671,6 +3671,8 @@ def main(argv=None):
                 print("UYARI: %d satir tavani (%d) asiyor ama korunan %d blok disinda "
                       "tasinabilir blok YOK -> is yapilmadi"
                       % (p.once_satir, a.tavan, p.korunan))
+                # Plan satiri bu dalda da basilir: kanca (`KUTU_ROTASYON_KURU`) onu okur.
+                print("tasinacak_blok=0 sonra_satir=%d" % p.once_satir)
                 # 🔴 KOTA KILIDI ACILMAZ, ama GIZLENMEZ: sebep KORUMA ise ADIYLA soylenir.
                 # Sessiz pes etme yasak (spec K313g); gorunurluk kota kirmizisina TERCIH
                 # EDILIR ve bu tercih her kosumda TEKRAR BASILIR.

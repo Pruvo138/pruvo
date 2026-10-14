@@ -200,6 +200,8 @@ def v_b(kok, d):
     d("b3 `🟠 KUTU_TEFTIS satir=<n> tavan=500 korumali=100` RAPOR basildi",
       ("\U0001f7e0 KUTU_TEFTIS satir=%d tavan=%d korumali=100" % (once, TAVAN)) in c, c[-500:])
     d("b4 kutu DEGISMEDI (korunan bloklar tasinmadi)", oku(kutu) == metin, "")
+    d("b5 tasinabilir blok YOKKEN de plan basildi (`KUTU_ROTASYON_KURU ... sonra_satir=%d`)"
+      % once, kuru_plan_satir(c) == once, c[-500:])
 
 
 def v_c(kok, d):
