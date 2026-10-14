@@ -152,6 +152,14 @@ MUTANTLAR = (
      '    shalar = list(shalar)\n'
      '    muaf_bilinen_public = 0',
      True),
+    # 🔴 M19 (BaBa 14 Eki 16:0x, ASIL YON): muafiyet ASIRI genislerse — listede OLMAYAN
+    # yeni adli commit de muaf sayilirsa — VAKA 13b ("listede olmayan ENGELLENDI")
+    # KIRMIZI yanmali. M18 muafiyetin CALISTIGINI olcer; M19 SINIRINI olcer.
+    ("M19 BILINEN PUBLIC MUAFIYETI ASIRI GENIS (listede olmayan da muaf)",
+     "kapi",
+     '    shalar = [s for s in shalar if s not in bilinen]\n',
+     '    shalar = []\n',
+     True),
 )
 
 
