@@ -1,5 +1,67 @@
 [
   {
+    "id": "tamirat-m6-civata-pimli-mentese-57-x-40-mm-pr450137",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "M6 Cıvata Pimli Menteşe (57 × 40 mm Plakalı)",
+    "aciklama": "İki parçası eklem noktasından geçirilen M6 × 40 mm cıvata ile birleştirilen, kapak ve panel kenarlarına vidalanan plaka menteşe. Plakalarında M5 vida için iki adet 5,5 mm, 4 mm vida için üç adet 4 mm delik bulunur (cıvata ve vidalar ürüne dahil değildir). Fotoğraflarda menteşe ahşap panele vidalanmış halde ve tek başına görülür.\nYaklaşık dış ölçüler: 57 × 40 × 11 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr450137-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr450137-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Štěpán",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "tamirat-klipsli-moduler-mentese-dar-ve-genis-plakali-pr58767",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Klipsli Modüler Menteşe (Dar ve Geniş Plaka Seçenekli)",
+    "aciklama": "İki parçası birbirine klipslenerek birleşen modüler menteşe. Farklı montaj plakalı parçalar eşleştirilerek ihtiyaca uygun menteşe oluşturulur; birleştirme ve sökme menteşe kapalı konumdayken yapılır. Parça içindeki pim yerleşik gelir, dönüşü rahatlatmak için alt yüzü hafifçe temizlenerek yuvarlak hale getirilir. Fotoğraflarda menteşe parçaları ve elde tutulan kapalı menteşe görülür.\nYaklaşık dış ölçüler: dar plaka biçimi 37,4 × 14 × 8,2 mm; geniş plaka biçimi 32 × 27,4 × 8,2 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr58767-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr58767-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr58767-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JCW",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tamirat-mentese-yuvasi-delme-kilavuzu-35-mm-forstner-uc-tutuculu-pr225417",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Menteşe Yuvası Delme Kılavuzu (35 mm Forstner Uç Tutuculu)",
+    "aciklama": "Kapak menteşelerinin 35 mm çaplı yuva deliğini kapak kenarından doğru mesafede açmak için kıskaçla sabitlenen delme kılavuzu. Forstner uç tutucusu matkabı yuvanın ortasında tutar; seçtiğiniz boydan iki adet durdurucu (3 mm ve 4 mm seçenekleri) delik kenarı ile kapak kenarı arasındaki mesafeyi belirler. Menteşenin takviye vida delikleri kılavuzla açılmaz, menteşenin kendi deliklerinden matkapla delinir. Set gövde, uç tutucu, M8 başlı pim ve iki boy durdurucudan oluşur. Fotoğraflarda kılavuz kıskaçlarla sabitlenmiş ve matkapla kullanılırken görülür.\nYaklaşık dış ölçüler: gövde 192 × 95 × 17,3 mm; uç tutucu 77,7 × 75,6 × 38 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr225417-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr225417-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr225417-3.jpg"
+    ]
+  },
+  {
+    "id": "tamirat-gizli-kollu-mentese-seti-m3-vidali-pr1220639",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Gizli Kollu Menteşe Seti (Kapı ve Kasa Montajlı, M3 Vidalı)",
+    "aciklama": "Kapı kapandığında görünmeyen, kollu mekanizmalı gizli menteşe. Kapıya ve kasaya vidalanan iki montaj parçası, birbirine bağlanan dört ayrı kol türü ve ara pullardan oluşur. Montaj için 3 adet M3 × 8 mm vida, 4 adet M3 × 12 mm vida ve 14 adet 0,5 mm kalınlığında M3 pul gerekir (vida ve pul ürüne dahil değildir). Fotoğraflarda kolların birleşmiş hali görülür.\nYaklaşık dış ölçüler: kapı montaj parçası 41 × 30,5 × 14 mm; kasa montaj parçası 40 × 27,5 × 17,5 mm; en uzun kol 61,5 × 11,2 × 2 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1220639-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1220639-2.jpg"
+    ]
+  },
+  {
     "id": "dekor-hayalet-kedi-biblosu-cadilar-bayrami-masa-susu-pr1870339",
     "kategori": "Dekorasyon",
     "marka": [],
