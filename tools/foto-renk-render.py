@@ -400,7 +400,8 @@ def main(argv):
     ap.add_argument("--ornek", type=int, default=ORNEK)
     ap.add_argument("--arka", default=ARKA)
     ap.add_argument("--dokulu", action="store_true", help=argparse.SUPPRESS)
-    a = ap.parse_args(argv)
+    # TeKiN ortak aracinin alt komutu (`sablon`) bu koprude de kabul edilir (koşucu tek cagri bicimi kullanir).
+    a = ap.parse_args(argv[1:] if argv[:1] == ["sablon"] else argv)
     if a.renk2 or a.bolge2:
         print("RENK-RENDER=YOK sebep=iki-malzeme-desteklenmiyor")
         return 2

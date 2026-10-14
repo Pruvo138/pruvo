@@ -216,6 +216,8 @@ with zipfile.ZipFile(i["3mf"]) as z:
         fc = None
 os.makedirs(out, exist_ok=True)
 open(os.path.join(out, i["kod"] + "-1-render.webp"), "w").write(json.dumps({"filament_colour": fc}))
+# gercek arac png kopyasini da yazar (tools/foto_kart_render.py hepsi: <kod>-1-render.png + .webp)
+open(os.path.join(out, i["kod"] + "-1-render.png"), "wb").write(b"\x89PNG\r\n\x1a\n" + json.dumps({"filament_colour": fc}).encode())
 '''
 
 # ④ ORTAK RENDER SOZLESMESI (TeKiN, 14 Eki): sahte arac — `--model M --renk HEX [--renk2 HEX --bolge2 ad] --arkaplan
@@ -1580,9 +1582,28 @@ def vakalar(kosucu):
     vaka("RR3", rr3)
     vaka("RR4", rr4)
     vaka("RR5", rr5)
+    def rr9(o):
+        # Ortak arac YOK + iki renk (anahtarlik-yazi): eski 3MF araci part renklerini okumaz (14 Eki olcumu: Siyah+Beyaz
+        # anahtarlik TUMDEN Siyah cizildi) -> cizim YOK (uretec gorseli AYNEN); tek renkte eski arac cizer.
+        o.uretec_onizleme(CEKIRDEK_TUR, 120, {"plaka": "Siyah", "yazi": "Beyaz"}, {},
+                          {"gri_harita": ("gri_harita.png", png_gri(200, 140))})
+        rc, son, c = o.kos("--uygula", FOTO_KOSUCU_JENERATOR=o.jen(render=True))
+        iki = (os.path.isfile(os.path.join(o.r2, RENK_URETEC)), "sebep=iki-renk-ortak-arac-yok" in c)
+        return (son.startswith("HAL=ISLEDI uretildi=1") and iki == (False, True)), "%s %s" % (son, iki)
+
+    def rr10(o):
+        # Cizim istisnasi (sahte uretecin 3MF'i zip degil -> eski arac yolunda BadZipFile) onizlemeyi DUSURMEZ.
+        o.uretec_onizleme(CEKIRDEK_TUR, 120, {"govde": "Gri"}, {}, {"gri_harita": ("gri_harita.png", png_gri(200, 140))})
+        rc, son, c = o.kos("--uygula", FOTO_KOSUCU_JENERATOR=o.jen(render=True))
+        r = o.sql("SELECT asama FROM foto_isler WHERE is_no = ?", IS2)[0]
+        return (son.startswith("HAL=ISLEDI uretildi=1") and r["asama"] == "onizleme-hazir" and
+                "RENK-CIZIM=YOK" in c and "sebep=istisna" in c), "%s %s" % (son, r)
+
     vaka("RR6", rr6)
     vaka("RR7", rr7)
     vaka("RR8", rr8)
+    vaka("RR9", rr9)
+    vaka("RR10", rr10)
     vaka("T67", t67)
     vaka("T68", t68)
     vaka("T69", t69)
@@ -2039,8 +2060,10 @@ MUTANTLAR = {
     "M-RR-TABLO": ("    except TabloYok:\n        return []\n", "    except KeyError:\n        return []\n", {"RR4"}),
     # ④ uretec cizimi: kanca kalkarsa cizim YOK -> RR6/RR7 · ikinci renk dusurulurse iki renkli anahtarlik tek renk -> RR7.
     "M-RR-URETEC-KANCA": ('                if i["kuyruk"] == "onizleme":\n                    try:\n',
-                          '                if False:\n                    try:\n', {"RR6", "RR7"}),
+                          '                if False:\n                    try:\n', {"RR6", "RR7", "RR8", "RR9", "RR10"}),
     "M-RR-IKINCI-RENK": ("    if len(farkli) == 2:\n        bolge2", "    if False:\n        bolge2", {"RR7"}),
+    # eski 3MF araci iki renkte de kullanilirsa (part renkleri okunmaz) yanlis renkli cizim yazilir -> RR9.
+    "M-RR-ESKI-IKI-RENK": ("        if len(farkli) != 1:\n            yaz(", "        if False:\n            yaz(", {"RR9"}),
     "M0": ("import argparse\n", "import argparse  # kontrol mutanti\n", set()),
 }
 
