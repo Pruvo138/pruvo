@@ -2644,6 +2644,14 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/serit-b-uc-kapisi-test.py
 
+      # DAL DEPLOY PROVASI (14 Eki 2026, BaBa 07:4x) — Pages 38505301885: serit-a3 adim 47
+      # (foto-uretec-kosucu-test SURVIVOR M4/M5) yalniz deploy.yml'de kosuyordu, dal SERIT B'si
+      # yesildi -> deploy+yayin SKIPPED. Arac merge ONCESI dal ucunda elle kosulur; burada yalniz
+      # HERMETIK batarya: sentetik depo, 9 vaka + 3 mutant (izole kopya). M4 kopya vakasi: --agir.
+      - name: "Dal deploy provasi kabul bataryasi (deploy.yml serit-a3 foto araligi, mutant 3)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/dal-deploy-prova-test.py
+
       # SERIT B DISPATCH KAPISI (12 Eki 2026, BaBa 00:1x) — K438/K434: dal main'in GERISINDEN
       # SERIT B'ye gonderildi, parite (filament-test TEST 5) KIRMIZI, ~90 dk kosucu bosa.
       # Arac dispatch ANINDA elle kosulur; burada HERMETIK batarya: 7 vaka + taban + 2 mutant
