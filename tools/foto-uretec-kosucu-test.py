@@ -2039,7 +2039,7 @@ MUTANTLAR = {
     "M-RR-TABLO": ("    except TabloYok:\n        return []\n", "    except KeyError:\n        return []\n", {"RR4"}),
     # ④ uretec cizimi: kanca kalkarsa cizim YOK -> RR6/RR7 · ikinci renk dusurulurse iki renkli anahtarlik tek renk -> RR7.
     "M-RR-URETEC-KANCA": ('                if i["kuyruk"] == "onizleme":\n                    try:\n',
-                          '                if False:\n                    try:\n', {"RR6", "RR7"}),
+                          '                if False:\n                    try:\n', {"RR6", "RR7", "RR8"}),
     "M-RR-IKINCI-RENK": ("    if len(farkli) == 2:\n        bolge2", "    if False:\n        bolge2", {"RR7"}),
     "M0": ("import argparse\n", "import argparse  # kontrol mutanti\n", set()),
 }
