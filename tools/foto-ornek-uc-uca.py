@@ -27,7 +27,7 @@ Bir kategoride (foto turu) zinciri ONIZLEMEDE olcer; her olcut HAZIR/EKSIK + say
 MUTANT (her kosumda, olcutun on kosulu; IKI AYRI SATIR, ikisi de gecmeli):
   (a) `kapali-model`: modelli turde (4 model, shop/src/foto.js MODELLER; figur) KAPALI model ->
       sunucu MODEL KAPISI 400 + `hata="model-kapali"` DEMELI. Ornek: sunulan turun /acik `modeller`'inde
-      OLMAYAN cesitsiz modeli; yoksa modele COZULEMEYEN istek (figur, alt tursuz -> modelKodu "" = kapali).
+      OLMAYAN modeli; yoksa modele COZULEMEYEN istek (figur, alt tursuz -> modelKodu "" = kapali).
   (b) `acik-olmayan-kategori`: acik OLMAYAN modelsiz kategoriye (manifest - /acik; yoksa manifestte
       OLMAYAN sabit `BILINMEYEN_TUR`) onizleme istegi -> sunucu 400 + `hata="tur-kapali"` DEMELI.
       Modelli tur (b)'ye GIRMEZ: sunucuda model kapisi tip kapisindan ONCE kosar (83f3d436).
@@ -99,14 +99,6 @@ TOLERANS = {"D": 0.01, "R": 0.03, "M": 0.01}
 # `doku` 0 cunku doku adiminin kendi ucreti zincirin oncesinde `onarim` Tikte (10) zaten ayrilmis; uretim-doku
 # bittikten sonra analizBaslat yalniz bir sonraki (ucretsiz re-)analiz->renk kapisini acar.
 KREDI_ONIZLEME = 6
-# CESIT KOLU (TUR-C2c, --cesit figur): figur cesidi saglayici koluna gider (shop/src/foto.js figurKolu).
-# Olcu 60 (B2, KraL 10 Eki): surgu = KULAK DAHIL en uzun boyut (cesit 60..72, olcu_en_cok 72); sunucu ciplak figuru
-# olcuye olcekler, koşucu tepe sigmazsa sirta duser -> model (figur + kulak) uzun kenari = olcu ± tol. Kulak
-# olcumleri koşucunun --kanit-dizin kopyasindan (figur_kulak ozet.json `kulak`) okunur; 4 alan sayi > 0 olmali.
-# TUR-C2d (K2 tepe -> sirt dususu): kullanilan `konum` da ④ ekseninde (tepe|sirt; yoksa EKSIK).
-FIGUR_OLCU_MM = 60
-KULAK_ALANLARI = ("dis_cap_olculen_mm", "delik_cap_olculen_mm", "min_et_mm", "bag_genislik_mm")
-KULAK_KONUMLARI = ("tepe", "sirt")
 KREDI_TIK = {"build-baslat": 30, "analiz": 10, "onarim": 10, "doku": 0}
 # KREDI_TIK_POST: her POST'tan sonra D1 farki tavan asimi KONTROLU (BETIK `ayir` sadece BIR SONRAKI adimi
 # gorur; cum D1 ancak POST sonrasi yakalanir). Renk adiminin kendisi 10 ama KREDI_TIK['renk']=0; zincir
@@ -129,9 +121,6 @@ DENGE_BETIK = os.path.join(JENERATOR, "jeneratorler", "foto", "figur_denge.py")
 DENGE_TURLERI = ("figur",)
 DENGE_GIRDI_AD = "model.3mf"
 DENGE_SURE_SN = 300
-# CESIT KABUK (renk=palet: palet yolunda koşucunun cok govde reddi atlanir): figur ciktisina AYNI kapi,
-# yalniz `sebep` okunur -> cok_kabuk | manifold_degil = RED.
-KABUK_RED_SEBEP = ("cok_kabuk", "manifold_degil")
 # 6 MODEL adlari (rapor satiri MODEL=; kart -> istek eslemesi shop/test V6-3 ile ayni).
 FIGUR_ALT_TURLER = ("insan", "pet", "model")
 
@@ -156,22 +145,10 @@ def denge_calistir(girdi):
 
 
 def denge_hukmu(tr):
-    """DENGE alani: figur disi / cesit -> '-' (uygulanmaz) · figur -> denge_calistir(onarilmis model.3mf)."""
-    if tr.kod not in DENGE_TURLERI or tr.cesit:
+    """DENGE alani: figur disi -> '-' (uygulanmaz) · figur -> denge_calistir(onarilmis model.3mf)."""
+    if tr.kod not in DENGE_TURLERI:
         return "-", ""
     return denge_calistir(tr.model_yolu)
-
-
-def kabuk_hukmu(tr):
-    """CESIT KABUK alani (yalniz --cesit figur): kapinin sebep'i cok_kabuk|manifold_degil -> RED; satir yoksa
-    OLCULEMEDI; diger sebepler -> OK."""
-    if not tr.cesit:
-        return "-", ""
-    h, satir = denge_calistir(tr.model_yolu)
-    m = re.search(r"\bsebep=(\S+)", satir) if h in ("HAZIR", "RED") else None
-    if not m:
-        return "OLCULEMEDI", satir
-    return ("RED" if m.group(1) in KABUK_RED_SEBEP else "OK"), satir
 
 
 def model_adi(tr):
@@ -207,9 +184,7 @@ if(mod==='dok'){
   renk_bolgeleri:t.renk_bolgeleri||[],malzemeler:t.malzemeler||{},durustluk:t.durustluk||'',
   ornek_notu:t.ornek_notu,aydinlatma:F.aydinlatmaMaddeleri(t.kod),
   tarayici_onizleyici:!!(F.TARAYICI_ONIZLEYICI&&F.TARAYICI_ONIZLEYICI[t.uretec]===true),
-  turetilmis:F.olcuTuretilmis(t.kod),
-  cesitler:(F.cesitler&&F.cesitler[t.kod])?F.cesitler[t.kod].secenekler:[],
-  cesit_varsayilan:F.cesitCoz(t.kod,undefined)}))};
+  turetilmis:F.olcuTuretilmis(t.kod)}))};
  process.stdout.write(JSON.stringify(out));
 } else {
  const g=JSON.parse(process.argv[3]);const r={};
@@ -481,16 +456,6 @@ ORNEK_SVG = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 60"><path
 ORNEK_GENLIK = [round(0.5 + 0.45 * math.sin(i * 2 * math.pi / 25), 4) for i in range(100)]
 ORNEK_KONUM = {"enlem": 41.0082, "boylam": 28.9784}
 ORNEK_TARIH = {"tarih": "2026-10-07", "saat": "21:30", "utc_ofset_saat": 3}
-
-
-def figur_foto():
-    """Figur cesidi girdisi: tools/saglayici-ornek.py SENTETIK oyuncak kedi cizimi (kisi/marka/telifli gorsel YOK;
-    vitrin figur orneginin girdisiyle AYNI ureteç)."""
-    import importlib.util
-    sp = importlib.util.spec_from_file_location("saglayici_ornek", os.path.join(KOK, "tools", "saglayici-ornek.py"))
-    m = importlib.util.module_from_spec(sp)
-    sp.loader.exec_module(m)
-    return m.kedi_cizimi()
 
 
 def olcu_sec(t):
@@ -973,8 +938,7 @@ def tarayici_olc(kodlar, prova=None):
 
 
 # ------------------------------------------------------------------ kosucu (kopru)
-def kosucu_kos(kanit=""):
-    """kanit: koşucu --kanit-dizin (figur cesidi; onarim kolunun ozet.json + onizleme.png kopyasi)."""
+def kosucu_kos():
     yol = os.environ.get("FOTO_UU_KOSUCU") or os.path.join(KOK, "tools", "foto-uretec-kosucu.py")
     env = dict(os.environ)
     h = hesap_kimligi()
@@ -985,8 +949,7 @@ def kosucu_kos(kanit=""):
     env.setdefault("FOTO_KOSUCU_PYTHON", sys.executable)
     env["PYTHONDONTWRITEBYTECODE"] = "1"
     for _ in range(10):
-        p = subprocess.run([sys.executable, yol, "--hedef", "onizleme", "--uygula"] +
-                           (["--kanit-dizin", kanit] if kanit else []), capture_output=True, text=True,
+        p = subprocess.run([sys.executable, yol, "--hedef", "onizleme", "--uygula"], capture_output=True, text=True,
                            env=env, timeout=3600)
         son = (p.stdout.strip().splitlines() or [""])[-1]
         if not son.startswith("HAL=KILITLI"):
@@ -1004,7 +967,6 @@ class Tur:
         self.olcu = None
         self.parametre, self.secim, self.dosyalar = {}, {}, {}
         self.hazirlik = ""
-        self.cesit, self.cesit_tavan, self.kanit = "", None, ""
         self.alt_tur, self.model_yolu, self.onizleme_bayt = "", "", b""
 
     def koy(self, o, gecti, ac):
@@ -1043,41 +1005,6 @@ def hazirla(tr, olcu=0):
         tr.hazirlik = h or h2
         return
     tr.parametre, tr.dosyalar, tr.secim = p, d, ornek_secim(t)
-
-
-def cesit_kur(tr, cesit, gecici, olcu=0):
-    """--cesit: turun cesit kaydi (VERI.cesitler) -> saglayici kolu; olcu FIGUR_OLCU_MM (--olcu verilirse o), parametre
-    YOK, girdi foto (istemci figurde ③ formunu gizler, secim.cesit gonderir). Donus "" ya da hazirlik sebebi.
-    --olcu cesit tavanini (olcu_en_cok) asarsa yerelde DURDURULMAZ: sunucunun reddi (400, kredi 0) olcumun kendisidir."""
-    ck = next((c for c in tr.t.get("cesitler") or [] if c.get("kod") == cesit), None)
-    if not ck or not ck.get("saglayici_tur") or not isinstance(ck.get("olcu_en_cok"), int):
-        return "cesit-kaydi-yok:%s" % cesit
-    mm = olcu or FIGUR_OLCU_MM
-    if mm not in (tr.t.get("olcu_secenekleri") or []) or (not olcu and mm > ck["olcu_en_cok"]):
-        return "cesit-olcu:%d" % mm
-    tr.cesit, tr.cesit_tavan, tr.kanit = cesit, ck["olcu_en_cok"], os.path.join(gecici, "kanit")
-    tr.t = dict(tr.t, kol="saglayici")
-    tr.olcu, tr.parametre, tr.secim = mm, {}, {"cesit": cesit}
-    tr.dosyalar = {"foto": ("foto.png", figur_foto(), "image/png")}
-    return ""
-
-
-def kulak_oku(yol):
-    """figur_kulak ozet.json `kulak` -> {alan: deger} (KULAK_ALANLARI + konum); dosya/alan yoksa None deger."""
-    try:
-        with open(yol, encoding="utf-8") as f:
-            oz = json.load(f)
-    except (OSError, ValueError):
-        oz = {}
-    k = oz.get("kulak") if isinstance(oz, dict) and isinstance(oz.get("kulak"), dict) else {}
-    return dict({a: k.get(a) for a in KULAK_ALANLARI}, konum=k.get("konum"))
-
-
-def kulak_gecerli(kd):
-    if kd.get("konum") not in KULAK_KONUMLARI:
-        return False
-    return all(isinstance(v, (int, float)) and not isinstance(v, bool) and v > 0
-               for a, v in kd.items() if a in KULAK_ALANLARI) and all(a in kd for a in KULAK_ALANLARI)
 
 
 def onizleme_isi_yaz(tr, bulut, gecici):
@@ -1186,8 +1113,6 @@ def saglayici_2(tr, kredi, devam_is_no=""):
         _, bayt, tip = tr.dosyalar["foto"]
         govde = {"tur": tr.kod, "olcu_mm": tr.olcu, "gorsel": "data:%s;base64,%s" % (
             tip, base64.b64encode(bayt).decode())}
-        if tr.cesit:
-            govde["cesit"] = tr.cesit
         if tr.alt_tur:
             govde["alt_tur"] = tr.alt_tur
         k, _, b = yonet("POST", "/foto/ornek-onizleme", govde)
@@ -1241,7 +1166,7 @@ def saglayici_4(tr, kredi):
             if onarim_kosu:
                 tr.koy("4", False, "siparis=%s onarim-bekliyor kosucu sonrasi da (%s)" % (no, onarim_son))
                 return False
-            onarim_kosu, (onarim_son, _) = 1, kosucu_kos(tr.kanit)
+            onarim_kosu, (onarim_son, _) = 1, kosucu_kos()
             print("KOPRU onarim: %s" % onarim_son)
             continue
         y = kredi.bulut.sql("SELECT COUNT(*) AS n FROM foto_uretim WHERE asama NOT IN ('hazir', 'elle', "
@@ -1355,12 +1280,7 @@ def olc_4(tr, bulut, gecici):
     # hicbir parca urun olcusunu ASMAZ.
     eksen_yolu = "tabla"
     eksen = bool(m) and abs(m["uzun"] - tr.olcu) <= tr.olcu * tol + 1e-9
-    if tr.cesit:
-        # CESIT KOLU: model = figur + kulak (figur_kulak) -> olcek ekseni KULAK DAHIL uzun kenar = olcu ± tol
-        # (B2: surgu kulak dahil; olcu cesit tavanini asamaz).
-        eksen_yolu = "cesit-kulak-dahil=%d" % tr.olcu
-        eksen = bool(m) and tr.olcu <= tr.cesit_tavan and abs(m["uzun"] - tr.olcu) <= tr.olcu * tol + 1e-9
-    elif m and not eksen and m["parca"] > 1 and m["uzun"] > tr.olcu:
+    if m and not eksen and m["parca"] > 1 and m["uzun"] > tr.olcu:
         eksen_yolu = "montaj"
         eksen = (m["parca_en_uzun"] <= tr.olcu * (1 + tol) + 1e-9 and isinstance(uk, (int, float)) and
                  abs(uk - tr.olcu) <= tr.olcu * tol + 1e-9)
@@ -1373,14 +1293,6 @@ def olc_4(tr, bulut, gecici):
         alanlar, b = glb_gecerli(dosya["model.glb"]), None
         pv = tr.s["2"][0]
         tr.dosya_yollari = {"model.3mf": dosya["model.3mf"]}
-        if tr.cesit:
-            # Koşucu --kanit-dizin: figur_kulak ozet.json (kulak 4 sayi) + onizleme.png (koşucu §3 donusumu).
-            kd = os.path.join(tr.kanit, no)
-            tr.kulak = kulak_oku(os.path.join(kd, "ozet.json"))
-            b = png_boyut(os.path.join(kd, "onizleme.png")) if os.path.isfile(os.path.join(kd, "onizleme.png")) else None
-            alanlar = alanlar and kulak_gecerli(tr.kulak) and bool(b)
-            tr.dosya_yollari = {"model.3mf": dosya["model.3mf"], "ozet.json": os.path.join(kd, "ozet.json"),
-                                "onizleme.png": os.path.join(kd, "onizleme.png")}
     else:
         b = png_boyut(dosya["onizleme.png"])
         pv = bool(b) and max(b) >= ONIZLEME_MIN_PX
@@ -1390,8 +1302,7 @@ def olc_4(tr, bulut, gecici):
                no, 1 if kayit else 0, m["sizdirmaz_nesne"] if m else 0, m["nesne"] if m else 0,
                m["kutu"] if m else None, m["uzun"] if m else None, eksen_yolu if eksen else "YANLIS",
                m["parca"] if m else 0, m["parca_en_uzun"] if m else None, tr.olcu, tol * 100, uk,
-               1 if alanlar else 0, "%dx%d" % b if b else "yok") +
-           ((" kulak=%s" % json.dumps(tr.kulak, sort_keys=True)) if tr.cesit else ""))
+               1 if alanlar else 0, "%dx%d" % b if b else "yok"))
     if tr.t.get("tarayici_onizleyici"):
         tr.koy("2", tr.s["2"][0] and pv, tr.s["2"][1] + " · uretec_onizleme=%s" % ("%dx%d" % b if b else "yok"))
 
@@ -1405,7 +1316,7 @@ def istek_govdesi(tr, onay):
         g["gorsel"] = "data:image/png;base64," + base64.b64encode(ornek_gri_harita()).decode()
         return "/api/shop/foto/litofan", g
     g["parametreler"] = tr.parametre
-    g["secim"] = tr.secim   # cesit kolunda {"cesit": ...} (istemci govde.secim.cesit, TUR-C2b)
+    g["secim"] = tr.secim
     if tr.alt_tur:
         # 6 MODEL: figur istegi model koduna alt_tur ile cozulur; alt tursuz figur sunucu MODEL KAPISINDA
         # 400 `model-kapali` (83f3d436) -> (5) onay kapisini hic olcemezdi.
@@ -1532,15 +1443,15 @@ def _red_metni_model():
 
 
 def sunucu_modelleri():
-    """shop/src/foto.js `MODELLER` (kod, tur, cesit, alt) — KAYNAKTAN; ikinci sozluk UYDURULMAZ. Bos -> Ayar."""
+    """shop/src/foto.js `MODELLER` (kod, tur, alt) — KAYNAKTAN; ikinci sozluk UYDURULMAZ. Bos -> Ayar."""
     src = open(os.path.join(SHOP, "src", "foto.js"), encoding="utf-8").read()
     i = src.find("export const MODELLER")
     j = src.find("]);", i)
-    ms = re.findall(r'kod:\s*"([a-z_]+)",\s*tur:\s*"([a-z_]+)",\s*cesit:\s*"([a-z_]*)",\s*alt:\s*"([a-z_]*)"',
+    ms = re.findall(r'kod:\s*"([a-z_]+)",\s*tur:\s*"([a-z_]+)",\s*(?:cesit:\s*"[a-z_]*",\s*)?alt:\s*"([a-z_]*)"',
                     src[i:j]) if i >= 0 and j > i else []
     if not ms:
         raise Ayar("shop/src/foto.js: MODELLER okunamadi (model bekcisi kurulamadi)")
-    return [{"kod": a, "tur": b, "cesit": c, "alt": d} for a, b, c, d in ms]
+    return [{"kod": a, "tur": b, "alt": c} for a, b, c in ms]
 
 
 def modelli_turler(modeller):
@@ -1551,9 +1462,9 @@ def modelli_turler(modeller):
 def mutant_model_kosul(acik_kodlar, acik_modeller):
     """KAPALI model -> sunucu MODEL KAPISI 400 + `model-kapali` (kaynaktan). Donus (gecti, aciklama).
 
-    Ornek secimi: (1) SUNULAN modelli turun /acik `modeller`'inde OLMAYAN cesitsiz modeli (sunucu /acik bu modeli
-    yalniz D1'de kapaliysa duser -> kapi KESIN reddeder); (2) yoksa modele COZULEMEYEN istek (cesit varsayilani +
-    alt tursuz eslesen model yok; bugun figur) -> modelKodu "" -> kapali. Sunulmayan turun modeli SECILMEZ:
+    Ornek secimi: (1) SUNULAN modelli turun /acik `modeller`'inde OLMAYAN modeli (sunucu /acik bu modeli
+    yalniz D1'de kapaliysa duser -> kapi KESIN reddeder); (2) yoksa modele COZULEMEYEN istek (alt tursuz
+    eslesen model yok; bugun figur) -> modelKodu "" -> kapali. Sunulmayan turun modeli SECILMEZ:
     D1'de acik olabilir (turHazir/havuz /acik'ten duser) ve istek kapidan gecip saglayici koluna ilerler."""
     if not isinstance(acik_modeller, list):
         return False, "/acik `modeller` alani YOK — sunucu model kapisi surumu degil (bek_hata=%s)" % _red_metni_model()
@@ -1563,7 +1474,7 @@ def mutant_model_kosul(acik_kodlar, acik_modeller):
     harita = {t["kod"]: t for t in MAN["turler"]}
     acik_m = set(acik_modeller)
     aday = [m for m in modeller if m["tur"] in modelli and m["tur"] in harita and m["tur"] in acik_kodlar and
-            not m["cesit"] and m["kod"] not in acik_m]
+            m["kod"] not in acik_m]
     govde = {"olcu_mm": 100, "aydinlatma_onay": True, "onay_surum": MAN["onay_surum"]}
     if aday:
         m = aday[0]
@@ -1571,8 +1482,7 @@ def mutant_model_kosul(acik_kodlar, acik_modeller):
         kaynak, ad = "kapali_model", m["kod"]
     else:
         coz = [k for k in sorted(modelli) if k in harita and not any(
-            m["tur"] == k and m["cesit"] == (harita[k].get("cesit_varsayilan") or "") and not m["alt"]
-            for m in modeller)]
+            m["tur"] == k and not m["alt"] for m in modeller)]
         if not coz:
             return False, "kapali model ornegi KURULAMADI (sunulan turde kapali model yok, cozulmez modelli tur yok)"
         govde["tur"] = coz[0]
@@ -1629,14 +1539,11 @@ def main(argv=None):
                          "--devam-is tekrari dahil, ONIZLEME D1 foto_kredi_dilim). --kredi-tavani > 0 iken ZORUNLU.")
     ap.add_argument("--dilim-tavan", type=int, default=0,
                     help="dilimin TOPLAM kredi tavani (onceki koşumlar dahil). --kredi-tavani > 0 iken ZORUNLU (> 0).")
-    ap.add_argument("--cesit", choices=["figur"], default="",
-                    help="tur cesidi (VERI.cesitler; figur -> saglayici kolu). Yalniz TEK --tur ve "
-                         "--kredi-tavani > 0 ile gecerli.")
     ap.add_argument("--alt-tur", choices=list(FIGUR_ALT_TURLER), default="",
                     help="figur alt turu (6 model: insan | pet | model); saglayici istegine alt_tur gider, sunucu "
-                         "FIGUR_ALT_ISTEM'i secer. Yalniz TEK --tur figur ile (cesitsiz) gecerli.")
+                         "FIGUR_ALT_ISTEM'i secer. Yalniz TEK --tur figur ile gecerli.")
     ap.add_argument("--cikti-dizin", default="",
-                    help="saglayici kolu: ④'un model.3mf + onizleme.png (cesitte + ozet.json) kopyasi bu dizine")
+                    help="saglayici kolu: ④'un model.3mf + onizleme.png kopyasi bu dizine")
     ap.add_argument("--devam-is", default="",
                     help="saglayici kolu: onceki kosumda park etmis is_no'dan zinciri surdurur "
                          "(ornek-onizleme POST'U YAPMAZ, KREDI_ONIZLEME ayirmaz). Yalniz --kredi-tavani > 0 "
@@ -1645,8 +1552,7 @@ def main(argv=None):
                     help="foto girdili turde ornek gorsel yerine bu YEREL dosya (PNG/JPEG; tip basliktan). Yalniz TEK "
                          "--tur ile; sha256 rapora basilir.")
     ap.add_argument("--olcu", type=int, default=0,
-                    help="ornek olcusu (mm; turun olcu seceneklerinden). Yalniz TEK --tur ile; --cesit ile cesit "
-                         "olcusu (tavani asarsa sunucu reddi olculur).")
+                    help="ornek olcusu (mm; turun olcu seceneklerinden). Yalniz TEK --tur ile.")
     a = ap.parse_args(argv)
     if a.kredi_tavani > 0 and (not DILIM_DESEN.match(a.dilim or "") or a.dilim_tavan <= 0):
         print("HATA dilim: --kredi-tavani > 0 iken --dilim <^[a-z0-9-]{3,40}$> ve --dilim-tavan <N > 0> ZORUNLU "
@@ -1657,12 +1563,8 @@ def main(argv=None):
         print("HATA --devam-is yalniz --kredi-tavani > 0 ve TEK --tur ile gecerli")
         print("HAZIR=0/0 rc=2")
         return 2
-    if a.cesit and (a.kredi_tavani <= 0 or len(a.tur) != 1 or a.hepsi):
-        print("HATA --cesit yalniz --kredi-tavani > 0 ve TEK --tur ile gecerli")
-        print("HAZIR=0/0 rc=2")
-        return 2
-    if a.alt_tur and (a.tur != ["figur"] or a.hepsi or a.cesit):
-        print("HATA --alt-tur yalniz TEK --tur figur ile (cesitsiz, --hepsi'siz) gecerli")
+    if a.alt_tur and (a.tur != ["figur"] or a.hepsi):
+        print("HATA --alt-tur yalniz TEK --tur figur ile (--hepsi'siz) gecerli")
         print("HAZIR=0/0 rc=2")
         return 2
     if (a.foto or a.olcu) and (len(a.tur) != 1 or a.hepsi):
@@ -1718,8 +1620,6 @@ def main(argv=None):
                 continue
             olc_1(tr, acik_kodlar)
             hazirla(tr, a.olcu)
-            if a.cesit and not tr.hazirlik:
-                tr.hazirlik = cesit_kur(tr, a.cesit, gecici, a.olcu)
             if foto and not tr.hazirlik:
                 if "foto" not in tr.dosyalar:
                     tr.hazirlik = "foto-girdisi-yok"
@@ -1785,25 +1685,22 @@ def main(argv=None):
             for tr in provalar:
                 prova_sil(tr, bulut)
         n = denge_n = denge_kume = 0
-        if any(tr.kod in DENGE_TURLERI or tr.cesit for tr in turler):
+        if any(tr.kod in DENGE_TURLERI for tr in turler):
             print("DENGE_KAPI yol=%s sha256=%s" % (DENGE_BETIK, dosya_sha(DENGE_BETIK)))
         for tr in turler:
             satir = " ".join("%s%s" % (ETIKET[o], "HAZIR" if tr.s[o][0] else "EKSIK") for o in OLCUTLER)
             denge, dsatir = denge_hukmu(tr)
-            kabuk, ksatir = kabuk_hukmu(tr)
             denge_kume += 0 if denge == "-" else 1
             denge_n += 1 if denge == "HAZIR" else 0
-            # Kart acilir = 6 olcut HAZIR VE (denge uygulanmaz | HAZIR) VE (kabuk uygulanmaz | OK).
-            tamam = tr.hazir() and denge in ("-", "HAZIR") and kabuk in ("-", "OK")
-            print("TUR %s MODEL=%s %s DENGE=%s%s => %s%s" % (
-                tr.kod, model_adi(tr), satir, denge, (" KABUK=%s" % kabuk) if kabuk != "-" else "",
+            # Kart acilir = 6 olcut HAZIR VE (denge uygulanmaz | HAZIR).
+            tamam = tr.hazir() and denge in ("-", "HAZIR")
+            print("TUR %s MODEL=%s %s DENGE=%s => %s%s" % (
+                tr.kod, model_adi(tr), satir, denge,
                 "HAZIR" if tamam else "EKSIK", (" is=%s" % tr.is_no) if tr.is_no else ""))
             for o in OLCUTLER:
                 print("  %s %s %s" % (ETIKET[o], "HAZIR" if tr.s[o][0] else "EKSIK", tr.s[o][1]))
             if dsatir:
                 print("  DENGE %s" % dsatir)
-            if ksatir:
-                print("  KABUK %s" % ksatir)
             n += 1 if tamam else 0
         rc = 0 if n == len(turler) else 1
         if kredi:

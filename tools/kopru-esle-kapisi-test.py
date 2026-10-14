@@ -18,7 +18,7 @@ IKI KATMAN
   E (sinif-r-k80 9 Eki: repodaki SABIT kayit jenerator/kopru/ + uretec_semalari.json -> CI'da da KOSAR;
      kayit yoksa `ESLE=KIRMIZI kayit-yok` + MA/MS2 SURVIVOR — ATLANDI YOK; `KOPRU_KAYIT` env elle karsilastirma):
      her kopru kaydi (+ teklif turu bust) icin S1'in DOGRULANMIS parametresi + ornek dosya/renk -> esle_<kod>:
-     E1 ALAN  cikti anahtarlari ⊆ kayit `parametreler` adlari ∪ cagri bayrak adlari ∪ cagri `sabit` anahtarlari
+     E1 ALAN  cikti anahtarlari ⊆ kayit `parametreler` adlari ∪ cagri bayrak adlari
      E2 TIP   her deger uretecin `SEMA[alan]` kuralina uyar (uretec dosyasindan ast; kayit `sema_adi` doluysa o
               sozluk SEMA'nin ustune; uretec_ortak._deger_dogrula aynasi; SEMA'da
               olmayan alan = uretec `bilinmeyen alan` RET'i)
@@ -27,7 +27,6 @@ IKI KATMAN
               bolgelerinin renkleri de konur (odenen palet rengi esleyiciye ULASIR)
               + PALET-EKSIK: palet turunde palet_bolgeleri < fiyat.renk_tavani · RENK-DUSTU: renkli palet bolgesi
               esleme donusunde yok
-     E5 SABIT kayit `cagri.sabit` ciktida AYNEN (14 Eki: sabitli kayit kalmadi, katman bos kosar)
 MUTANTLAR (gecici kopyada; calisma agacina YAZMAZ). 14 Eki: anahtarlik kaydi silindi -> kalan kopru turu yapboz
 (+ bust teklif); anahtarlik capali E1/E2 mutantlari yapboza TASINDI. G5 (_esle_gelen_renkli: surgu alani + renk_
 on eki) ve E5 SABIT kullanan kayit kalmadi -> eski MA3/MA4/MA5 + metin manifest mutantlari MS1/MS2 SILINDI
@@ -201,8 +200,7 @@ def e_katmani(kosucu, kayitlar, jen, turler, deger):
             continue
         n += 1
         cagri = k.get("cagri") or {}
-        sabit = cagri.get("sabit") if isinstance(cagri.get("sabit"), dict) else {}
-        kabul = {p.get("ad") for p in k.get("parametreler") or []} | set(sabit)
+        kabul = {p.get("ad") for p in k.get("parametreler") or []}
         kabul |= {b[2:] for b in list(cagri.get("bayraklar") or []) +
                   [cagri.get(x) for x in ("girdi_bayragi", "cikti_bayragi", "veri_bayragi")]
                   if isinstance(b, str) and b.startswith("--")}
@@ -242,9 +240,6 @@ def e_katmani(kosucu, kayitlar, jen, turler, deger):
                 r = deger_dogrula(a, u[a], sema[a])
                 if r:
                     kirmizi.append("TIP %s.%s %s" % (kod, a, r))
-        for a, v in sorted(sabit.items()):
-            if u.get(a) != v:
-                kirmizi.append("SABIT %s.%s beklenen=%r gelen=%r" % (kod, a, v, u.get(a)))
         if bel and u.get(bel) != float(olcu):
             kirmizi.append("EKSEN %s.%s beklenen=%s gelen=%s" % (kod, bel, float(olcu), u.get(bel)))
         # Palet turu (bust) bolgeleri manifest palet_bolgeleri'nden (renkler[i] -> palet_bolgeleri[i]).

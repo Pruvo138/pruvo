@@ -1446,11 +1446,11 @@ MUTANTLAR = {
     # ham girdi korumasi duserse V-DG4 KIRMIZI · figur disi ture de uygulanirsa V-DENGE KIRMIZI.
     "M-DG-RED": ('    if p.returncode == 2 and satir.startswith("DENGE=RED "):\n        return "RED", satir',
                  '    if p.returncode == 2 and satir.startswith("DENGE=RED "):\n        return "HAZIR", satir', {"V-DG2"}),
-    "M-DG-KART": ('tamam = tr.hazir() and denge in ("-", "HAZIR") and', 'tamam = tr.hazir() and', {"V-DG2", "V-DG3"}),
+    "M-DG-KART": ('tamam = tr.hazir() and denge in ("-", "HAZIR")\n', 'tamam = tr.hazir()\n', {"V-DG2", "V-DG3"}),
     "M-DG-HAM": ("    if not girdi or os.path.basename(girdi) != DENGE_GIRDI_AD or not os.path.isfile(girdi):",
                  "    if not girdi or not os.path.isfile(girdi):", {"V-DG4"}),
-    "M-DG-TUR": ("    if tr.kod not in DENGE_TURLERI or tr.cesit:\n        return \"-\", \"\"",
-                 "    if tr.cesit:\n        return \"-\", \"\"", {"V-DENGE"}),
+    "M-DG-TUR": ("    if tr.kod not in DENGE_TURLERI:\n        return \"-\", \"\"",
+                 "    if False:\n        return \"-\", \"\"", {"V-DENGE"}),
     # --foto: dosya ornek gorselin yerine yazilmazsa saglayiciya elips gider -> V-FT1 KIRMIZI.
     "M-FT": ('                    tr.dosyalar["foto"] = foto\n', '                    pass\n', {"V-FT1"}),
     # 6 MODEL bekcisi (10 Eki ariza): model satiri tur red metnini beklerse kapali model -> GECERSIZ (V-MK1/2);

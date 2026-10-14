@@ -171,7 +171,7 @@ def ornek_girdisi(kayit, dizin):
     for ad, v in (kayit["ornek"].get("girdi") or {}).items():
         if isinstance(v, str) and v.startswith("<"):
             if tipler.get(ad) == "dosya" and "3MF" in v:
-                # Plaket 3MF ornegi (figur_kulak) URETILMEZ: saglayici ciktisi/TeKiN ornegi env ile verilir.
+                # 3MF dosya ornegi (bust-kaide: bust 3MF) URETILMEZ: saglayici ciktisi/TeKiN ornegi env ile verilir.
                 v = os.environ.get("KOPRU_ORNEK_PLAKET") or ""
                 if not os.path.isfile(v):
                     raise Red("yer-tutucu-cozulemedi:%s (KOPRU_ORNEK_PLAKET)" % ad)
@@ -186,9 +186,6 @@ def ornek_girdisi(kayit, dizin):
             else:
                 raise Red("yer-tutucu-cozulemedi:%s" % ad)
         u[ad] = v
-    # Kopru `cagri.sabit` (eski anahtarlik kaydi silindi) uretece HER cagride gider.
-    # Yoksa isimlik_uret kulak alanlarini RET eder.
-    u.update((kayit.get("cagri") or {}).get("sabit") or {})
     return u
 
 
@@ -205,8 +202,8 @@ def render_komutlari(p, dizin):
     cagri = kayit.get("cagri") or {}
     pb = cagri.get("parametre_bayraklari")
     if isinstance(pb, dict):
-        # DOSYA GIRDILI uretec (plaket_kulak): --girdi JSON DEGIL dosya; parametreler kopru bayraklariyla (cagri.sabit
-        # yukarida girdi.json'a da girer). Bayragi tanimsiz parametre -> Red (fail-closed).
+        # DOSYA GIRDILI uretec (bust-kaide): --girdi JSON DEGIL dosya; parametreler kopru bayraklariyla.
+        # Bayragi tanimsiz parametre -> Red (fail-closed).
         with open(ugirdi, encoding="utf-8") as f:
             u = json.load(f)
         dosya = [q.get("ad") for q in kayit.get("parametreler") or [] if q.get("tip") == "dosya"]

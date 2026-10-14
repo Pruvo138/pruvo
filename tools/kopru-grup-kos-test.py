@@ -15,7 +15,7 @@ VAKALAR
   V8 gecici kok adinda "d1"/"r2" (kopru-grup-test-d1r2-): V5 yine D1=rc1 — sahte uretec hata eslesmesi
      argv alt dizgesine degil betik ADINA bagli (12 Eki: rastgele mkdtemp son eki "d1" tasiyinca serit-a3 yandi)
   V6 yer tutucu: dosya (yapboz `gorsel`) -> gecerli PNG; bust -> rolyef kaydi + rolyef_uret.py
-     (kayit URETEC adiyla bulunur, tur adi != uretec adi); cagri.sabit ornek girdisine gider; kopru kaydi
+     (kayit URETEC adiyla bulunur, tur adi != uretec adi); kopru kaydi
      olmayan tur (plaket, figur) ->
      uretec-ya-da-kayit-yok (fail-closed)
 EVREN (sayfa-3adim K3d): manifest foto-uretim-veri.js TEK KAYNAK; sahte kopru kayitlari yapboz + rolyef (bust).
@@ -207,9 +207,6 @@ def yer_tutucu_vakasi(o):
     p = m.plan_kur(["bust"])[0]
     vaka("V6 bust -> rolyef kaydi + rolyef_uret.py", p.get("kayit", {}).get("kod") == "rolyef"
          and p.get("g", {}).get("betik", "").endswith("rolyef_uret.py"), str(p.get("hata")))
-    ua = m.ornek_girdisi({"ornek": {"girdi": {"yukseklik_mm": 40}}, "cagri": {"sabit": {"mod": "kaide"}}}, d)
-    vaka("V6 ornek girdisi kopru cagri.sabit'i tasir (mod=kaide)", ua.get("mod") == "kaide" and ua.get("yukseklik_mm") == 40,
-         str(sorted(ua)))
     yok = {q["kod"]: q.get("hata") for q in m.plan_kur(["plaket", "figur"])}
     vaka("V6 kopru kaydi olmayan tur (plaket, figur) -> uretec-ya-da-kayit-yok",
          yok == {"plaket": "uretec-ya-da-kayit-yok", "figur": "uretec-ya-da-kayit-yok"}, str(yok))
