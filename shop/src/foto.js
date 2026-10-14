@@ -1903,6 +1903,78 @@ async function gorselUcu(env, url) {
   return onizlemeGorseli(env, isNo, uretecOnizlemeIsi(is) ? uretecOnizlemeAnahtari(isNo, "onizleme.png") : "");
 }
 
+// ---------------------------------------------------------------- DOKU DENEMESI (tek seferlik, YALNIZ onizleme)
+//
+// Okan 14 Eki 13:1x (para penceresi: "dokulu uc + duz renk istemi, once 15 kr test", lite).
+// Soru: saglayicinin dokulu 3D ucu duz renk istemiyle TEK RENK model gorseli verir mi?
+// Uc YALNIZ onizleme surumunde vardir (canlida 404). Kredi YALNIZ R2'de `doku-deneme/istek.json`
+// varken harcanir; istek OKUNUR OKUNMAZ silinir (ikinci cagri yeniden harcamaz) ve govde burada
+// SABITTIR. Model adi saglayici adini tasidigi icin (repo public) istekten gelir ama YALNIZ
+// `<ad>-6-lite` (dokulu 15 kr) kalibi kabul edilir -> tek deneme = tek gorev = tavan 15 kr.
+// Sonraki cagrilar ucretsiz yoklar; bitince saglayici gorselleri R2'ye `doku-deneme/` altina iner.
+const DOKU_DENEME_DIZIN = "doku-deneme/";
+const DOKU_DENEME_MODEL = /^[a-z]{3,12}-6-lite$/;
+export const DOKU_DENEME_GOVDE = {
+  should_texture: true,
+  texture_prompt: "solid matte white, uniform single color, no pattern, no gradient",
+  enable_pbr: false,
+  alpha_thumbnail: true,
+  target_formats: ["glb"],
+};
+
+function base64Tampon(tampon) {
+  const b = new Uint8Array(tampon);
+  let s = "";
+  for (let i = 0; i < b.length; i += 0x8000) { s += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000)); }
+  return btoa(s);
+}
+
+export async function dokuDenemeUcu(env) {
+  if (!onizlemeMi(env) || !env.OZEL_DOSYA || !env.KATALOG || !env.URETIM_API_ANAHTAR || !env.URETIM_API_TABAN) {
+    return fjson({ hata: "bulunamadi" }, 404);
+  }
+  const durumNesne = await env.OZEL_DOSYA.get(DOKU_DENEME_DIZIN + "durum.json");
+  if (durumNesne) {
+    const d = JSON.parse(await durumNesne.text());
+    if (d.asama !== "surdu") { return fjson(d); }
+    const c = await saglayici(env, "GET", "/v1/image-to-3d/" + d.gorev, null);
+    const g = c.govde || {};
+    const du = c.kod === 200 ? gorevDurumu(g) : "surdu";
+    if (du === "surdu") { return fjson({ ...d, ilerleme: g.progress, kod: c.kod }); }
+    const son = { ...d, asama: du, kredi: krediSayisi(g), bitis: Date.now(), gorseller: [] };
+    if (du === "bitti") {
+      for (const [ad, adres] of [["kucuk", g.thumbnail_url], ["alfa", g.alpha_thumbnail_url]]) {
+        const f = await dosyaIndir(adres);
+        if (f) {
+          await env.OZEL_DOSYA.put(DOKU_DENEME_DIZIN + ad + ".png", f.tampon, { httpMetadata: { contentType: f.tip } });
+          son.gorseller.push(ad);
+        }
+      }
+    } else {
+      son.hata = g.task_error || null;
+    }
+    await env.OZEL_DOSYA.put(DOKU_DENEME_DIZIN + "durum.json", JSON.stringify(son));
+    return fjson(son);
+  }
+  const istekNesne = await env.OZEL_DOSYA.get(DOKU_DENEME_DIZIN + "istek.json");
+  if (!istekNesne) { return fjson({ hata: "bulunamadi" }, 404); }
+  const istek = JSON.parse(await istekNesne.text());
+  // Tek seferlik: istek SAGLAYICIYA GITMEDEN silinir (hata da olsa ikinci harcama yok).
+  await env.OZEL_DOSYA.delete(DOKU_DENEME_DIZIN + "istek.json");
+  const isNo = typeof istek.is_no === "string" && /^[0-9a-f]{32}$/.test(istek.is_no) ? istek.is_no : "";
+  const model = typeof istek.model === "string" && DOKU_DENEME_MODEL.test(istek.model) ? istek.model : "";
+  const giris = isNo && model ? await env.OZEL_DOSYA.get(onizlemeAnahtari(isNo)) : null;
+  if (!giris) { return fjson({ hata: "giris-yok" }, 404); }
+  const govde = { ...DOKU_DENEME_GOVDE, ai_model: model,
+    image_url: "data:image/png;base64," + base64Tampon(await giris.arrayBuffer()) };
+  const c = await saglayici(env, "POST", "/v1/image-to-3d", govde);
+  const gorev = gorevKimligi(c.govde);
+  const d = gorev ? { asama: "surdu", gorev, is_no: isNo, baslangic: Date.now() }
+                  : { asama: "baslamadi", kod: c.kod, is_no: isNo, govde: c.govde };
+  await env.OZEL_DOSYA.put(DOKU_DENEME_DIZIN + "durum.json", JSON.stringify(d));
+  return fjson(d);
+}
+
 /** /api/shop/foto/* yonlendiricisi. */
 export async function fotoUclari(request, env, url, yol, telegram) {
   const simdi = Date.now();
@@ -1913,6 +1985,7 @@ export async function fotoUclari(request, env, url, yol, telegram) {
   if (yol === "/foto/durum" && m === "GET") { return durumUcu(env, url, simdi, telegram); }
   if (yol === "/foto/renk" && m === "POST") { return renkUcu(request, env, simdi, telegram); }
   if (yol === "/foto/gorsel" && m === "GET") { return gorselUcu(env, url); }
+  if (yol === "/foto/doku-deneme" && m === "GET") { return dokuDenemeUcu(env); }
   return fjson({ hata: "bulunamadi" }, 404);
 }
 
