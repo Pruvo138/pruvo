@@ -960,6 +960,11 @@ def esle_anahtarlik(g, dizin, rh):
     genislik_mm'ye, secilen bolge renkleri renk_plaka / renk_yazi."""
     u, bolgeler = _esle_gelen_renkli(g, rh, "anahtarlik")
     u["anahtarlik"] = True
+    # TEK MALZEME (TPU, Okan 13 Eki): zarfin `malzeme`si uretece GECER — isimlik_uret MALZEME_ESIK'i (TPU: kontrast
+    # kapisi YOK, tek renk beyaz) buradan okur. Gecmezse uretec PLA sanar, beyaz/beyaz `uretec-red:kontrast` (14 Eki
+    # canli is c55ec9b3: Okan TPU sectiginde onizleme reddedildi).
+    if g.get("malzeme"):
+        u["malzeme"] = g["malzeme"]
     return u, bolgeler
 
 

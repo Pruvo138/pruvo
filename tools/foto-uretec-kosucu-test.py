@@ -1780,6 +1780,16 @@ def foto_kolu_vakalari(kosucu, s):
             fn = m.esle_fonksiyonu(t, cli.get("isimlik_uret"))
             return (fn is m.esle_anahtarlik and not (cli.get("isimlik_uret") or {}).get("dosya_girdisi"),
                     "fn=%s" % getattr(fn, "__name__", fn))
+        def t45():
+            # TPU (14 Eki canli is c55ec9b3): zarfin `malzeme`si yazi anahtarlik koprusunden uretece GECER;
+            # malzemesiz zarfta alan YOK (uretec varsayilani PLA, eski davranis).
+            zt = {"sozlesme": 1, "kategori": "anahtarlik", "olcu_mm": 60, "renkler": {"plaka": "Beyaz", "yazi": "Beyaz"},
+                  "malzemeler": {"govde": "TPU"}, "malzeme": "TPU", "parametreler": {"satirlar": ["EGE"]}}
+            u1, _ = m.esle_anahtarlik(zt, d, {"Beyaz": "#F2F2F2"})
+            z0 = {k: v for k, v in zt.items() if k != "malzeme"}
+            u0, _ = m.esle_anahtarlik(z0, d, {"Beyaz": "#F2F2F2"})
+            return (u1.get("malzeme") == "TPU" and "malzeme" not in u0,
+                    "tpu=%s pla=%s" % (u1.get("malzeme"), u0.get("malzeme")))
         vb3_iz = {}
 
         def vb3_hucre(g, gd, olcu, ad, konum):
@@ -1864,7 +1874,7 @@ def foto_kolu_vakalari(kosucu, s):
                 return "atla" in v, v.get("atla") or v.get("hata")
             elle = [a for a in sorted(v) if v[a]["rc"] != 0 or v[a].get("kabul")]
             return not elle, "elle=%s kos=%s" % (elle, {ad: v["kos/" + ad]["konum"] for ad, *_ in VB3_SENARYO})
-        for ad, fn in (("T40", t40), ("T41", t41), ("T42", t42), ("T42A", t42a), ("T43", t43), ("T44", t44),
+        for ad, fn in (("T40", t40), ("T41", t41), ("T42", t42), ("T42A", t42a), ("T43", t43), ("T44", t44), ("T45", t45),
                        ("VB3", vb3), ("VB4", vb4)):
             dene(ad, fn)
     finally:
@@ -2037,6 +2047,8 @@ MUTANTLAR = {
     # Yazi kolu gerilemesi: foto dali her ureteci yakalar -> anahtarlik yazi isi esle_isimlik'e duser (T13/T14/...).
     "M49": ('    if (g or {}).get("kol") == "foto":\n', '    if True:\n',
             {"T13-anahtarlik", "T14", "T14Y", "T16", "T17", "T22", "T43", "RS1"}),
+    # TPU malzemesi koprude dusurulurse (14 Eki c55ec9b3 hatasi) T45 KIRMIZI.
+    "M-TPU": ('    if g.get("malzeme"):\n        u["malzeme"] = g["malzeme"]\n', "", {"T45"}),
     # TUR-B ⑧: eski alan atilmazsa eski yapboz isi `RED parametre` ile duser.
     "M4-ESKI": ("    eski_alanlari_at(t.get(\"kod\"), girdi)\n", "", {"V5-ESKI"}),
     # FIGUR ZINCIRI (22:3x): duzelt atlanirsa kaidesiz pet devrilir, 5 kabuk kalir, cagri sirasi bozulur; olcek
@@ -2162,7 +2174,7 @@ URETEC_ALANLARI = {
     "yapboz": {"gorsel", "uzun_kenar_mm", "satir", "sutun", "tohum", "kabartma_yon", "renkler"},
     "anahtarlik": {"satirlar", "yazi_tipi", "hizalama", "genislik_mm", "renk_plaka", "renk_yazi", "anahtarlik",
                    "anahtarlik_kulak_konum", "kontur_tasma_mm", "anahtarlik_kulak_dis_cap_mm",
-                   "anahtarlik_delik_cap_mm"},
+                   "anahtarlik_delik_cap_mm", "malzeme"},
 }
 URETEC_OLCU_ALANI = {"yapboz": "uzun_kenar_mm", "anahtarlik": "genislik_mm"}
 URETEC_SABIT = {"yapboz": {}, "anahtarlik": {"anahtarlik": True}}
