@@ -15,7 +15,16 @@ KARAR SIRASI (her sonuc TEK cikti satiri, `KUYRUK=` ile baslar):
      "aclik" kolu, kuyruk Pages sebebiyle saatlerce beklemis olmasin (13 Eki 2026 olay
      detay: ~70 dk); aclik=1 bekleme_dk=<n> BIRLESTI/DISPATCH-HATA satirinin SONUNA eklenir.
   3. main kuyrugun atasi -> aday = kuyruk ucu (ff); degilse aday = main + kuyruk merge
-     commit'i (ilk ebeveyn main). Cakisma -> abort, KUYRUK=CAKISMA rc1 (main degismez).
+     commit'i (ilk ebeveyn main). Cakisan yol kumesi TAM OLARAK {urunler.json} ise YAPISAL
+     kol (14 Eki 2026 olay: main de kuyruk da diziye BASTAN ekler -> metin cakismasi,
+     KUYRUK=CAKISMA 5 kez, 132 urun elle birlesene dek bekledi): taban = merge-base,
+     kimlik `id`, sonuc = [kuyrugun yenileri] + [main sirasi; kuyrugun sildigi cikar,
+     kuyrugun degistirdigi kuyruk haliyle] (yapisal_birlestir). cift-ekleme ·
+     cift-degisiklik · sil-degistir · mukerrer-id · ayristirilamadi · bicim (main
+     duzelt.py yaziciyla roundtrip-esit degil) · sayim -> abort, KUYRUK=CAKISMA ...
+     sebep=<ad> rc1 (main degismez). Baska herhangi bir yol cakisiyorsa abort,
+     KUYRUK=CAKISMA rc1 (main degismez). Yapisal sonuc: yol=yapisal eklenen= silinen=
+     degisen= ; sonraki kapilar AYNEN kosar.
   4. kuyrugun main'e getirecegi NET fark ya da tek tek merge-disi commit'leri
      IZINLI_YOLLAR disina cikiyor -> KUYRUK=RED sebep=yabanci-yol rc1 (main degismez).
   4b. (K441) aday'da YENI olan bir `parametrik:true` kayit icin `jenerator/urunler/<id>.json`
@@ -237,6 +246,97 @@ def semasiz_parametrikler(main_sha, aday):
         lambda yol: git("cat-file", "-e", "%s:%s" % (aday, yol), kontrol=False).returncode == 0)
 
 
+class YapisalRed(Exception):
+    def __init__(self, sebep):
+        super().__init__(sebep)
+        self.sebep = sebep
+
+
+def _id_dizini(liste):
+    """[kayit] -> ({id: kayit}, [id sirasi]). Liste degil -> ayristirilamadi; dict degil,
+    id'siz/bos id ya da tekrar eden id -> mukerrer-id (eksik/tekrar eden kimlik)."""
+    if not isinstance(liste, list):
+        raise YapisalRed("ayristirilamadi")
+    dizin, sira = {}, []
+    for u in liste:
+        uid = u.get("id") if isinstance(u, dict) else None
+        if not isinstance(uid, str) or not uid or uid in dizin:
+            raise YapisalRed("mukerrer-id")
+        dizin[uid] = u
+        sira.append(uid)
+    return dizin, sira
+
+
+def yapisal_birlestir(taban, main_l, kuyruk_l):
+    """SAF uc-yollu birlesim (git'e dokunmaz). Doner (sonuc, sayim); red -> YapisalRed(sebep).
+    Sonuc = [kuyrukta YENI (tabanda da main'de de olmayan), kuyruk sirasiyla] + [main sirasi;
+    kuyrugun tabana gore SILDIGI cikar, kuyrugun DEGISTIRDIGI (main degistirmediyse) kuyruk
+    haliyle]. Main'in sildigi kayit main'de olmadigi icin sonuca GIRMEZ (silme korunur)."""
+    t, _ = _id_dizini(taban)
+    m, m_sira = _id_dizini(main_l)
+    k, k_sira = _id_dizini(kuyruk_l)
+    for uid in k_sira:
+        if uid not in t and uid in m and m[uid] != k[uid]:  # MUTANT-CAPA:CIFT-EKLEME
+            raise YapisalRed("cift-ekleme")
+    k_sil = {i for i in t if i not in k}
+    m_sil = {i for i in t if i not in m}
+    k_deg = {i for i in t if i in k and k[i] != t[i]}
+    m_deg = {i for i in t if i in m and m[i] != t[i]}
+    if any(k[i] != m[i] for i in k_deg & m_deg):  # MUTANT-CAPA:CIFT-DEGISIKLIK
+        raise YapisalRed("cift-degisiklik")
+    if (k_sil & m_deg) or (m_sil & k_deg):
+        raise YapisalRed("sil-degistir")
+    eklenen = [i for i in k_sira if i not in t and i not in m]  # MUTANT-CAPA:SILME
+    silinen = k_sil & set(m_sira)
+    degisen = k_deg - m_deg
+    sonuc = [k[i] for i in eklenen] + [k[i] if i in degisen else m[i]
+                                       for i in m_sira if i not in silinen]
+    # Son sayim iddiasi (RED yolu, assert DEGIL): |sonuc| = |M| + |K yeni| - |K sildi|, tekil id.
+    ids = [u["id"] for u in sonuc]
+    if len(set(ids)) != len(ids):
+        raise YapisalRed("mukerrer-id")
+    if len(sonuc) != len(m_sira) + len(eklenen) - len(silinen):
+        raise YapisalRed("sayim")
+    return sonuc, {"eklenen": len(eklenen), "silinen": len(silinen), "degisen": len(degisen)}
+
+
+def urunler_baytlari(nesne):
+    """Depodaki TEK yazicinin bicimi (tools/duzelt.py::_atomic_write: json.dump(...,
+    ensure_ascii=False, indent=2), dosya sonunda satir sonu YOK). Ikinci bicim UYDURULMAZ:
+    yapisal kol once main'i bu yaziciyla roundtrip eder, bayt-esit degilse sebep=bicim RED."""
+    return json.dumps(nesne, ensure_ascii=False, indent=2).encode("utf-8")
+
+
+def _blob(rev):
+    """`rev:urunler.json` HAM bayt (text=True satir sonu donusturur; bicim kapisi bayt ister)."""
+    p = subprocess.run([GIT, "-C", TEST_KOK or DEPO, "show", "%s:urunler.json" % rev],
+                       capture_output=True)
+    return p.stdout if p.returncode == 0 else None
+
+
+def yapisal_kol(main_sha, kuyruk_sha):
+    """Cakisma yalniz urunler.json'da iken (merge yarim, MERGE_HEAD var) sonucu yazar + stage
+    eder. Doner sayim; red -> YapisalRed. Commit'i cagiran tamamlar."""
+    taban_sha = git("merge-base", main_sha, kuyruk_sha).stdout.strip()
+    ham = {ad: _blob(rev) for ad, rev in
+           (("taban", taban_sha), ("main", main_sha), ("kuyruk", kuyruk_sha))}
+    veri = {}
+    for ad, b in ham.items():
+        try:
+            veri[ad] = json.loads(b.decode("utf-8"))
+        except (AttributeError, ValueError):
+            raise YapisalRed("ayristirilamadi")
+        if not isinstance(veri[ad], list):
+            raise YapisalRed("ayristirilamadi")
+    if urunler_baytlari(veri["main"]) != ham["main"]:
+        raise YapisalRed("bicim")
+    sonuc, sayim = yapisal_birlestir(veri["taban"], veri["main"], veri["kuyruk"])
+    with open(os.path.join(TEST_KOK or DEPO, "urunler.json"), "wb") as f:
+        f.write(urunler_baytlari(sonuc))
+    git("add", "urunler.json")
+    return sayim
+
+
 def tur(dispatch):
     """Tek karar+icra turu. Doner: (satir, rc) ya da "YARIS"."""
     # Kuyruk yoksa Pages anlamsiz (fetch de anlamsiz) — dogrudan BOS.
@@ -256,17 +356,37 @@ def tur(dispatch):
         if yas_dk < ACIK_DK:
             return "KUYRUK=BEKLE pages=%s" % bitmemis[0].get("databaseId"), 0
         aclik_bilgi = " aclik=1 bekleme_dk=%d" % yas_dk
+    yol_bilgi = ""
     if ata_mi(main_sha, kuyruk_sha):
         aday, yol = kuyruk_sha, "ff"
     else:
         git("checkout", "--quiet", "--detach", main_sha)
-        m = git(*KIMLIK, "merge", "--no-ff", "--no-edit", "-m",
-                "urun-kuyruk: %s -> %s birlestirme" % (KUYRUK, MAIN), kuyruk_sha,
+        mesaj = "urun-kuyruk: %s -> %s birlestirme" % (KUYRUK, MAIN)
+        m = git(*KIMLIK, "merge", "--no-ff", "--no-edit", "-m", mesaj, kuyruk_sha,
                 kontrol=False)
+        yol = "merge"
         if m.returncode != 0:
-            git("merge", "--abort", kontrol=False)
-            return "KUYRUK=CAKISMA main=%s kuyruk=%s" % (main_sha[:12], kuyruk_sha[:12]), 1
-        aday, yol = git("rev-parse", "HEAD").stdout.strip(), "merge"
+            cakisma = "KUYRUK=CAKISMA main=%s kuyruk=%s" % (main_sha[:12], kuyruk_sha[:12])
+            cakisan = sorted(git("diff", "--name-only", "--diff-filter=U",
+                                 kontrol=False).stdout.split())
+            if cakisan != ["urunler.json"]:  # MUTANT-CAPA:CAKISAN
+                git("merge", "--abort", kontrol=False)
+                return cakisma, 1
+            try:
+                sayim = yapisal_kol(main_sha, kuyruk_sha)
+            except YapisalRed as r:
+                git("merge", "--abort", kontrol=False)
+                return "%s sebep=%s" % (cakisma, r.sebep), 1
+            except Dur:
+                git("merge", "--abort", kontrol=False)
+                raise
+            c = git(*KIMLIK, "commit", "--quiet", "-m", mesaj, kontrol=False)
+            if c.returncode != 0:
+                git("merge", "--abort", kontrol=False)
+                return "KUYRUK=OLCULEMEDI sebep=yapisal-commit main=%s" % main_sha[:12], 2
+            yol = "yapisal"
+            yol_bilgi = " eklenen=%(eklenen)d silinen=%(silinen)d degisen=%(degisen)d" % sayim
+        aday = git("rev-parse", "HEAD").stdout.strip()
     yabanci = yabanci_yollar(main_sha, aday, kuyruk_sha)
     if yabanci:  # MUTANT-CAPA:YOL
         return "KUYRUK=RED sebep=yabanci-yol yollar=%s" % ",".join(yabanci[:5]), 1
@@ -289,8 +409,8 @@ def tur(dispatch):
     if hatali:
         return ("KUYRUK=DISPATCH-HATA sha=%s is-akisi=%s (main itildi, yayin TETIKLENMEDI)%s"
                 % (aday[:12], ",".join(hatali), aclik_bilgi)), 1
-    return "KUYRUK=BIRLESTI sha=%s yol=%s dispatch=%s%s" % (
-        aday[:12], yol, ",".join(dispatch), aclik_bilgi), 0
+    return "KUYRUK=BIRLESTI sha=%s yol=%s dispatch=%s%s%s" % (
+        aday[:12], yol, ",".join(dispatch), yol_bilgi, aclik_bilgi), 0
 
 
 def calis():
