@@ -1,26 +1,28 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""kosucu-gecici-agac-test.py — sarmalayici kabul testi (4/4 + mutant 2/2).
+"""kosucu-gecici-agac-test.py — foto kosucusu gecici-agac sarmalayicisinin kabul testi.
 
-IZOLE: sahte bare repo + sahte ana checkout + sahte koşucu betiği. GERÇEK ev
-yoluna (PRUVO) rm YOK; ana checkout env override (PRUVO_KOSUCU_ANA).
+IZOLE: sahte bare repo + GERIDE ve KIRLI sahte ana checkout + sahte kosucu. GERCEK ev
+yoluna hicbir yazim/silme YOK (PRUVO_KOSUCU_ANA / _D_KOK env override).
 
-4/4 SONUC:
-  (i)  wrapper, origin/main'deki koşucu surumunu calistirir (mock rc=0, icerik v1)
-  (ii) MUTANT: ana checkout'a sahte kirli koşucu yazilir (push YOK) -> cikti DEGISMEZ
-       (wrapper yine de origin/main'in v1'ini kullanir)
-  (iii) cikis sonrasi gecici dizin YOK + log satirinda SILINDI=<KB>
-  (iv) ic rc (ornek 4) disari aynen gecer
+Kurulum, canli arizanin (14 Eki 2026) birebir modelidir: ana checkout origin/main'in
+GERISINDE (v1 commit'li) ve calisma agaci KIRLI (v2), origin/main ise IKINCI bir
+klondan push'lanmis v3'tur. Dogru sarmalayici v3'u kosar.
 
-MUTANT 2/2: iki el ile uretilen mutant wrapper'da test (ii) ve (iii) KIRMIZI olmali;
-bu dosya onlari KENDI URETMEZ, sarmalayici kopyasinda uygulanir (elle):
-    sed -i.bak 's|archive "$SHA"|cd "$ANA_KOK"; ls|' tools/kosucu-gecici-agac.sh.bak
-    mv tools/kosucu-gecici-agac.sh.bak tools/kosucu-gecici-agac.sh
-  -> (ii) KIRMIZI (cikti v2 olur); rm -rf satiri silinirse -> (iii) KIRMIZI.
+IDDIALAR:
+  I1 origin/main'deki surum (v3) kosar — ne ana HEAD (v1) ne kirli agac (v2)
+  I2 cikista gecici dizin YOK + log satirinda AGAC=... SILINDI=<n>KB
+  I3 ic rc (4) disari aynen gecer
+  I4 --log ic kosucuya da GECER (kosucunun HAL= satiri log'a dusmeye devam eder)
 
-Sentetik git depolarindaki git cagrilari KANONIK `git_ortami.sentetik_git` ile
-yapilir (`fikstur-git-sizinti-kapisi` KIRMIZI sinifi — MIRAS GIT_* gercek depoya
-inmesin).
+MUTASYON KANITI (sarmalayicinin KOPYASINA delik acilir; listelenen iddia KIRMIZI olmali,
+sabit "OLDU" satiri BASILMAZ — her mutant KOSTURULUR):
+  M1 archive origin/main yerine HEAD          -> I1
+  M2 kosucu ana checkout'tan calistirilir      -> I1
+  M3 fetch yapilmaz (bayat origin/main)        -> I1
+  M4 cikista rm -rf yok                        -> I2
+  M5 ic rc yutulur                             -> I3
+  M6 --log ic kosucudan sokulur                -> I4
 """
 import os
 import shutil
@@ -29,147 +31,144 @@ import sys
 import tempfile
 from pathlib import Path
 
-# KANONIK sentetik git yardimcisi (kabul: fikstur-git-sizinti-kapisi).
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from git_ortami import sentetik_git  # noqa: E402
 
-KOK = Path(__file__).resolve().parent
-WRAPPER = KOK / "kosucu-gecici-agac.sh"
-
-# Sahte koşucu v1: stdout'a V1 basar, MOCK_RC env ile rc verir (test ic rc yayilimi).
-MOCK_V1 = (
-    b"#!/usr/bin/env python3\n"
-    b"import os, sys\n"
-    b"print('V1_ORIGIN_MAIN MOCK_RC=' + os.environ.get('MOCK_RC', '0'))\n"
-    b"sys.exit(int(os.environ.get('MOCK_RC', '0')))\n"
-)
-# Sahte koşucu v2: stdout'a V2 basar, rc=99 (MUTANT — push'lanmamali).
-MOCK_V2 = (
-    b"#!/usr/bin/env python3\n"
-    b"import sys\n"
-    b"print('V2_MUTANT_KIRLI')\n"
-    b"sys.exit(99)\n"
-)
+WRAPPER = Path(__file__).resolve().parent / "kosucu-gecici-agac.sh"
 
 
-def bare_kur(kok):
-    p = Path(kok) / "bare.git"
-    p.mkdir(parents=True, exist_ok=True)
-    sentetik_git(str(p), "init", "-q", "--bare", "--initial-branch=main",
-                 capture_output=True, text=True)
-    return p
+def _mock(etiket):
+    # --log <yol> verilirse oraya "HAL=MOCK <etiket>" ekler; MOCK_RC env ile rc verir.
+    return (
+        "#!/usr/bin/env python3\n"
+        "import os, sys\n"
+        "a = sys.argv[1:]\n"
+        "if '--log' in a:\n"
+        "    with open(a[a.index('--log') + 1], 'a') as f:\n"
+        "        f.write('HAL=MOCK %s\\n')\n"
+        "print('SURUM=%s')\n"
+        "sys.exit(int(os.environ.get('MOCK_RC', '0')))\n" % (etiket, etiket)
+    ).encode()
 
 
-def ana_kur(kok, bare):
-    a = Path(kok) / "ana"
-    (a / "tools").mkdir(parents=True, exist_ok=True)
-    (a / "tools" / "foto-uretec-kosucu.py").write_bytes(MOCK_V1)
-    sentetik_git(str(a), "init", "-q", "-b", "main",
-                 capture_output=True, text=True)
-    sentetik_git(str(a), "add", ".", capture_output=True, text=True)
-    sentetik_git(str(a), "commit", "-q", "-m", "v1",
-                 capture_output=True, text=True)
-    sentetik_git(str(a), "remote", "add", "origin", str(bare),
-                 capture_output=True, text=True)
-    sentetik_git(str(a), "push", "-q", "origin", "main",
-                 capture_output=True, text=True)
-    return a
+def _git(kok, *args):
+    sentetik_git(str(kok), *args, check=True, capture_output=True, text=True)
 
 
-def ana_mutant_yaz(ana, icerik):
-    (ana / "tools" / "foto-uretec-kosucu.py").write_bytes(icerik)
+def _kur(kok):
+    bare = kok / "bare.git"
+    bare.mkdir()
+    _git(bare, "init", "-q", "--bare", "--initial-branch=main")
+    ana = kok / "ana"
+    (ana / "tools").mkdir(parents=True)
+    (ana / "tools" / "foto-uretec-kosucu.py").write_bytes(_mock("v1"))
+    _git(ana, "init", "-q", "-b", "main")
+    _git(ana, "config", "user.name", "t")
+    _git(ana, "config", "user.email", "t@example.invalid")
+    _git(ana, "add", ".")
+    _git(ana, "commit", "-q", "-m", "v1")
+    _git(ana, "remote", "add", "origin", str(bare))
+    _git(ana, "push", "-q", "origin", "main")
+    # ikinci klon origin/main'i v3'e ilerletir; ana checkout GERIDE kalir
+    klon = kok / "klon"
+    _git(kok, "clone", "-q", str(bare), str(klon))
+    _git(klon, "config", "user.name", "t")
+    _git(klon, "config", "user.email", "t@example.invalid")
+    (klon / "tools" / "foto-uretec-kosucu.py").write_bytes(_mock("v3"))
+    _git(klon, "commit", "-q", "-am", "v3")
+    _git(klon, "push", "-q", "origin", "main")
+    # ana checkout KIRLI (commit'siz v2)
+    (ana / "tools" / "foto-uretec-kosucu.py").write_bytes(_mock("v2"))
+    return ana
 
 
-def wrapper_kos(env, args, log_yol):
-    """Sarmalayiciyi izole env ile calistir; (rc, stdout, stderr, log_son_satir) don."""
-    tam_env = os.environ.copy()
-    tam_env.update(env)
-    if log_yol is not None:
-        args = list(args) + ["--log", str(log_yol)]
-    p = subprocess.run(["bash", str(WRAPPER)] + list(args),
-                       capture_output=True, text=True, env=tam_env)
-    son = ""
-    if log_yol is not None and Path(log_yol).exists():
-        with open(log_yol) as f:
-            satirlar = f.readlines()
-        son = satirlar[-1].strip() if satirlar else ""
-    return p.returncode, p.stdout, p.stderr, son
+def _kos(wrapper, ana, tmp, log, rc=None):
+    env = dict(os.environ, PRUVO_KOSUCU_ANA=str(ana), PRUVO_KOSUCU_D_KOK=str(tmp),
+               PRUVO_KOSUCU_D_DESEN="gecici-XXXXXX")
+    if rc is not None:
+        env["MOCK_RC"] = str(rc)
+    return subprocess.run(["bash", str(wrapper), "--uygula", "--log", str(log)],
+                          capture_output=True, text=True, env=env)
 
 
-def assert_msg(gercek, beklenen, aciklama):
-    if gercek != beklenen:
-        raise AssertionError("%s: beklenen %r, gelen %r" % (aciklama, beklenen, gercek))
+def iddialari_kos(wrapper):
+    """{etiket: (gecti, ayrinti)} — her cagri kendi izole kokunu kurar ve siler."""
+    kok = Path(tempfile.mkdtemp(prefix="pruvo-kosucu-test-"))
+    try:
+        ana = _kur(kok)
+        tmp = kok / "tmp"
+        tmp.mkdir()
+        log = kok / "kosucu.log"
+        s = {}
+        p = _kos(wrapper, ana, tmp, log)
+        s["I1"] = ("SURUM=v3" in p.stdout and p.returncode == 0, p.stdout.strip() + p.stderr.strip())
+        satirlar = log.read_text().splitlines() if log.exists() else []
+        agac = [x for x in satirlar if "AGAC=" in x]
+        son = agac[-1] if agac else ""
+        yol = son.split("AGAC=", 1)[1].split(" ", 1)[0] if son else ""
+        s["I2"] = (bool(yol) and "SILINDI=" in son and "KB" in son and not Path(yol).exists()
+                   and not any(tmp.iterdir()), son)
+        s["I4"] = (any(x.startswith("HAL=MOCK") for x in satirlar), "log=%r" % satirlar)
+        p4 = _kos(wrapper, ana, tmp, log, rc=4)
+        s["I3"] = (p4.returncode == 4, "rc=%d" % p4.returncode)
+        return s
+    finally:
+        shutil.rmtree(kok, ignore_errors=True)
+
+
+MUTANTLAR = [
+    ("M1 archive origin/main yerine HEAD",
+     [('archive "$SHA"', 'archive HEAD')], ["I1"]),
+    ("M2 kosucu ana checkout'tan calistirilir",
+     [('python3 "$D/tools/', 'python3 "$ANA_KOK/tools/'),
+      ('python3 "$D/tools/', 'python3 "$ANA_KOK/tools/')], ["I1"]),
+    ("M3 fetch yapilmaz (bayat origin/main)",
+     [('fetch -q origin main', 'fetch -q origin YOK-DAL')], ["I1"]),
+    ("M4 cikista gecici dizin silinmez",
+     [('        rm -rf "$D"\n', '')], ["I2"]),
+    ("M5 ic rc yutulur",
+     [('exit $RC', 'exit 0')], ["I3"]),
+    ("M6 --log ic kosucudan sokulur",
+     [('        ARGS+=("$1" "$2")\n', '')], ["I4"]),
+]
+
+
+def mutant_kos(yama, beklenen):
+    kaynak = WRAPPER.read_text()
+    for bul, koy in yama:
+        if bul not in kaynak:
+            return False, "MUTASYON UYGULANAMADI: %r" % bul
+        kaynak = kaynak.replace(bul, koy, 1)
+    d = Path(tempfile.mkdtemp(prefix="pruvo-kosucu-mutant-"))
+    try:
+        kopya = d / "kosucu-gecici-agac.sh"
+        kopya.write_text(kaynak)
+        s = iddialari_kos(kopya)
+        hayatta = [e for e in beklenen if s[e][0]]
+        return not hayatta, ("hayatta: %s" % ",".join(hayatta)) if hayatta else "kirmizi: %s" % ",".join(beklenen)
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
 
 
 def main():
-    # izole gecici kok: kendi tmpdir, /tmp/pruvo-kosucu altinda — wrapper'a env ile ver.
-    test_kok = Path(tempfile.mkdtemp(prefix="pruvo-kosucu-test-"))
-    bare = bare_kur(test_kok)
-    ana = ana_kur(test_kok, bare)
-
-    # Wrapper env override
-    test_tmp_kok = test_kok / "tmp"
-    test_tmp_kok.mkdir(exist_ok=True)
-    env_override = {
-        "PRUVO_KOSUCU_ANA": str(ana),
-        "PRUVO_KOSUCU_D_KOK": str(test_tmp_kok),
-        "PRUVO_KOSUCU_D_DESEN": "gecici-XXXXXX",
-    }
-
-    log_yol = test_kok / "kosucu.log"
-
-    # ============ (i) wrapper, origin/main'deki v1 koşucuyu calistirir ============
-    rc, out, err, log_son = wrapper_kos(env_override, [], log_yol)
-    assert_msg(rc, 0, "(i) wrapper rc")
-    if "V1_ORIGIN_MAIN" not in out:
-        raise AssertionError("(i) stdout v1 icermiyor: %r" % out)
-    if "MOCK_RC=0" not in out:
-        raise AssertionError("(i) MOCK_RC=0 bekleniyor: %r" % out)
-
-    # ============ (ii) MUTANT: ana checkout'a v2 yaz (push YOK) → cikti DEGISMEZ ===
-    ana_mutant_yaz(ana, MOCK_V2)
-    # ANA checkout kirli; ama origin/main (bare) hala v1
-    rc2, out2, err2, _ = wrapper_kos(env_override, [], log_yol)
-    if "V1_ORIGIN_MAIN" not in out2:
-        raise AssertionError("(ii) MUTANT: wrapper v2'yi calistirdi! out=%r" % out2)
-    if "V2_MUTANT_KIRLI" in out2:
-        raise AssertionError("(ii) MUTANT: v2 sizdi! out=%r" % out2)
-    # mutant v2 yazildi ama push'lanmamis → bare hala v1; v1 yaz geri
-    ana_mutant_yaz(ana, MOCK_V1)
-
-    # ============ (iii) cikis sonrasi gecici dizin YOK + log'da SILINDI= ============
-    # log satirindan AGAC yolunu cek
-    if "AGAC=" not in log_son or "SILINDI=" not in log_son:
-        raise AssertionError("(iii) log satiri eksik: %r" % log_son)
-    agac_yol = log_son.split("AGAC=", 1)[1].split(" ", 1)[0]
-    if Path(agac_yol).exists():
-        raise AssertionError("(iii) gecici dizin hala duruyor: %s" % agac_yol)
-    if "KB" not in log_son:
-        raise AssertionError("(iii) SILINDI=<KB> yok: %r" % log_son)
-
-    # ============ (iv) ic rc (4) disari aynen gecer ============================
-    tam_env = os.environ.copy()
-    tam_env.update(env_override)
-    tam_env["MOCK_RC"] = "4"
-    p = subprocess.run(["bash", str(WRAPPER), "--log", str(log_yol)],
-                       capture_output=True, text=True, env=tam_env)
-    assert_msg(p.returncode, 4, "(iv) ic rc=4 disari aynen gecmedi")
-
-    # TEMIZLIK
-    shutil.rmtree(test_kok, ignore_errors=True)
-
-    # RAPOR
-    print("SONUC 4/4")
-    print("MUTANT 2/2 OLDU")  # el ile uretilen mutantlar KIRMIZI vermeli (bu script KENDI uretmez)
-    return 0
+    s = iddialari_kos(WRAPPER)
+    gecen = 0
+    for e in ("I1", "I2", "I3", "I4"):
+        gecti, ayrinti = s[e]
+        gecen += int(gecti)
+        print("%s %s%s" % ("GECTI" if gecti else "KALDI", e, "" if gecti else " — " + ayrinti))
+    print("SONUC %d/4" % gecen)
+    if gecen != 4:
+        print("MUTASYON ATLANDI: taban kirmizi (kirmizi tabanda mutant olumu kanit degildir)")
+        return 1
+    olen = 0
+    for ad, yama, beklenen in MUTANTLAR:
+        oldu, ayrinti = mutant_kos(yama, beklenen)
+        olen += int(oldu)
+        print("%s %s (%s)" % ("OLDU  " if oldu else "KALDI ", ad, ayrinti))
+    print("MUTANT %d/%d OLDU" % (olen, len(MUTANTLAR)))
+    return 0 if olen == len(MUTANTLAR) else 1
 
 
 if __name__ == "__main__":
-    try:
-        sys.exit(main())
-    except AssertionError as e:
-        print("SONUC HATA: %s" % e, file=sys.stderr)
-        sys.exit(1)
-    except Exception as e:
-        print("SONUC CALISTIRILAMADI: %s: %s" % (type(e).__name__, e), file=sys.stderr)
-        sys.exit(2)
+    sys.exit(main())

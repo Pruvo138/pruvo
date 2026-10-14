@@ -491,16 +491,15 @@ jobs:
           python3 tools/dal-envanteri.py --kendini-test
           python3 tools/dal-envanteri.py --mutasyon
 
-      # FOTO KOSUCU GECICI AGAC SARMALAYICI (14 Eki 2026, BaBa 19:5x — ana checkout
+      # FOTO KOSUCU GECICI AGAC SARMALAYICI (14 Eki 2026, BaBa 21:3x — ana checkout
       # kirli/geride kalinca main'deki onarim canliya inmiyordu, 3. vaka): launchd
-      # ARTIK `bash tools/kosucu-gecici-agac.sh --uygula --log ...` ile kosar; sarmalayici
-      # origin/main'in GECICI arxivinden kosar, cikista OLCEUP siler. Kabul testi
-      # 4/4 (origin/main kullanimi, mutant, temizlik, rc yayilimi) + mutant 2/2
-      # (elle uretilen iki mutant testin (ii) ve (iii) eksenini KIRMIZI yapmali).
-      # HERMETIK: sahte bare repo + sahte ana checkout; gercek /Users/okan/dev/pruvo'ya
-      # rm YOK (PRUVO_KOSUCU_ANA env override).
-      # SERIT B: kirmizisi yayini DURDURMAZ (launchd altyapisi; SERIT B zaten bloklamaz).
-      - name: "Foto kosucu gecici agac sarmalayici — kabul testi (4/4 + mutant 2/2)"
+      # `bash tools/kosucu-gecici-agac.sh --uygula --log ...` ile kosar; sarmalayici
+      # origin/main'in GECICI arsivinden kosar, cikista olcup siler. Kabul testi
+      # 4 iddia (origin/main surumu, temizlik, rc yayilimi, --log gecisi) + 6 mutant
+      # (KOSTURULUR; taban kirmiziysa mutant sayilmaz).
+      # HERMETIK: sahte bare repo + geride/kirli sahte ana checkout; gercek ev yoluna
+      # yazim YOK (PRUVO_KOSUCU_ANA env override).
+      - name: "Foto kosucu gecici agac sarmalayici — kabul testi (4/4 + mutant 6/6)"
         if: ${{ !cancelled() }}
         run: python3 tools/kosucu-gecici-agac-test.py
 

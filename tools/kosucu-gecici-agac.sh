@@ -21,12 +21,15 @@ ANA_KOK="${PRUVO_KOSUCU_ANA:-/Users/okan/dev/pruvo}"
 D_KOK="${PRUVO_KOSUCU_D_KOK:-/private/tmp}"
 D_DESEN="${PRUVO_KOSUCU_D_DESEN:-pruvo-kosucu-XXXXXX}"
 
-# --log <yol> argumanini AYIR (sarmalayici log'a kendi satiri ekler; ic betige VERMEZ).
+# --log <yol> argumanini OKU ve ic betige AYNEN GECIR: kosucunun HAL=/RED satirlari
+# log'a yazmaya devam eder (14 Eki olcumu: TPU kontrast RED'i yalniz bu logda gorundu);
+# sarmalayici ayni dosyaya kendi AGAC= satirini EKLER.
 LOG_YOL=""
 ARGS=()
 while [[ $# -gt 0 ]]; do
     if [[ "$1" == "--log" && -n "${2:-}" ]]; then
         LOG_YOL="$2"
+        ARGS+=("$1" "$2")
         shift 2
         continue
     fi
