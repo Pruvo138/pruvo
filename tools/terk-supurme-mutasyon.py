@@ -179,7 +179,12 @@ MUTANTLAR = [
         # Yan olumler BEYAN EDILIR: (d)+(n)+(p) 1001/HTTP-400 gibi GERCEK altyapi hatalarini
         # da kesin sayar, (g)+(s) o satirlar iptal olunca sayac+idempotens sozlesmesi kayar,
         # (k) karisik turda iptal 3 yerine 4 olur, (r) /donus'ta 1001 de 'basarisiz' yazar.
-        ["d", "g", "k", "n", "p", "q", "r", "s"],
+        # (b) 14 Eki 2026: Okan e-postasi vakasi B1 (retrieve HATASI -> 'incele' + [PRUVO EYLEM]) ayni
+        # sebeple olur — altyapi hatasi kesin sayilinca satir 'incele'ye degil 'basarisiz'a duser, EYLEM
+        # e-postasi hic dogmaz. Vaka grubu eklendiginde bu kume guncellenmedigi icin deploy.yml serit-a2
+        # 9db6ab77'de KIRMIZI yandi (YAN EKSEN KIRILDI ['b']); batarya yalniz main'de kostugu icin dal
+        # SERIT B'si gormedi.
+        ["b", "d", "g", "k", "n", "p", "q", "r", "s"],
         IYZICO_BAGIL,
     ),
     (
