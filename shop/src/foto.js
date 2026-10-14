@@ -1903,23 +1903,27 @@ async function gorselUcu(env, url) {
   return onizlemeGorseli(env, isNo, uretecOnizlemeIsi(is) ? uretecOnizlemeAnahtari(isNo, "onizleme.png") : "");
 }
 
-// ---------------------------------------------------------------- DOKU DENEMESI (tek seferlik, YALNIZ onizleme)
+// ---------------------------------------------------------------- DOKU DENEMESI (adli, tek seferlik, YALNIZ onizleme)
 //
-// Okan 14 Eki 13:1x (para penceresi: "dokulu uc + duz renk istemi, once 15 kr test", lite).
-// Soru: saglayicinin dokulu 3D ucu duz renk istemiyle TEK RENK model gorseli verir mi?
-// Uc YALNIZ onizleme surumunde vardir (canlida 404). Kredi YALNIZ R2'de `doku-deneme/istek.json`
-// varken harcanir; istek OKUNUR OKUNMAZ silinir (ikinci cagri yeniden harcamaz) ve govde burada
-// SABITTIR. Model adi saglayici adini tasidigi icin (repo public) istekten gelir ama YALNIZ
-// `<ad>-6-lite` (dokulu 15 kr) kalibi kabul edilir -> tek deneme = tek gorev = tavan 15 kr.
-// Sonraki cagrilar ucretsiz yoklar; bitince saglayici gorselleri R2'ye `doku-deneme/` altina iner.
-const DOKU_DENEME_DIZIN = "doku-deneme/";
+// Okan 14 Eki: saglayicinin image-to-3d ucu ③ tek renk secimi icin kullanilabilir mi?
+//   duz-renk (13:1x, 15 kr): dokulu + duz renk istemi -> OLMADI %29,9 (sonuc R2 `doku-deneme/`).
+//   dokusuz  (12:58, 5 kr):  doku KAPALI gri model -> gorsel + GLB + yazdirilabilirlik analizi (ucretsiz).
+// Uc YALNIZ onizleme surumunde vardir (canlida 404). Her deneme KENDI dizininde: kredi YALNIZ o dizinde
+// `istek.json` varken harcanir; istek OKUNUR OKUNMAZ silinir (ikinci cagri yeniden harcamaz) ve govde
+// burada SABITTIR. Model adi saglayici adini tasidigi icin (repo public) istekten gelir ama YALNIZ
+// `<ad>-6-lite` kalibi kabul edilir (lite: dokulu 15 kr, dokusuz 5 kr) -> tek deneme = tek gorev.
+// Sonraki cagrilar ucretsiz yoklar; bitince saglayici dosyalari R2'de o dizine iner.
 const DOKU_DENEME_MODEL = /^[a-z]{3,12}-6-lite$/;
-export const DOKU_DENEME_GOVDE = {
-  should_texture: true,
-  texture_prompt: "solid matte white, uniform single color, no pattern, no gradient",
-  enable_pbr: false,
-  alpha_thumbnail: true,
-  target_formats: ["glb"],
+export const DOKU_DENEMELERI = {
+  "duz-renk": {
+    dizin: "doku-deneme/",
+    govde: { should_texture: true, texture_prompt: "solid matte white, uniform single color, no pattern, no gradient",
+             enable_pbr: false, alpha_thumbnail: true, target_formats: ["glb"] },
+  },
+  "dokusuz": {
+    dizin: "doku-deneme/dokusuz/",
+    govde: { should_texture: false, enable_pbr: false, alpha_thumbnail: true, target_formats: ["glb"] },
+  },
 };
 
 function base64Tampon(tampon) {
@@ -1929,51 +1933,77 @@ function base64Tampon(tampon) {
   return btoa(s);
 }
 
-export async function dokuDenemeUcu(env) {
-  if (!onizlemeMi(env) || !env.OZEL_DOSYA || !env.KATALOG || !env.URETIM_API_ANAHTAR || !env.URETIM_API_TABAN) {
+/** Bitmis gorevin dosyalarini indirir; GLB varsa ucretsiz yazdirilabilirlik analizini baslatir. */
+async function dokuDenemeBitti(env, dizin, d, g) {
+  const son = { ...d, asama: "bitti", kredi: krediSayisi(g), bitis: Date.now(), gorseller: [] };
+  for (const [ad, adres] of [["kucuk", g.thumbnail_url], ["alfa", g.alpha_thumbnail_url]]) {
+    const f = await dosyaIndir(adres);
+    if (f) {
+      await env.OZEL_DOSYA.put(dizin + ad + ".png", f.tampon, { httpMetadata: { contentType: f.tip } });
+      son.gorseller.push(ad);
+    }
+  }
+  const glb = g.model_urls && g.model_urls.glb;
+  const m = await dosyaIndir(glb);
+  if (m) {
+    await env.OZEL_DOSYA.put(dizin + "model.glb", m.tampon, { httpMetadata: { contentType: "model/gltf-binary" } });
+    son.glb_bayt = m.tampon.byteLength;
+    const a = await saglayici(env, "POST", "/v1/print/analyze", { model_url: glb });
+    const ag = gorevKimligi(a.govde);
+    if (ag) { son.asama = "analiz"; son.analiz_gorev = ag; } else { son.analiz_kod = a.kod; }
+  }
+  return son;
+}
+
+export async function dokuDenemeUcu(env, url) {
+  const tur = (url && url.searchParams && url.searchParams.get("tur")) || "duz-renk";
+  const dn = Object.prototype.hasOwnProperty.call(DOKU_DENEMELERI, tur) ? DOKU_DENEMELERI[tur] : null;
+  if (!dn || !onizlemeMi(env) || !env.OZEL_DOSYA || !env.KATALOG || !env.URETIM_API_ANAHTAR || !env.URETIM_API_TABAN) {
     return fjson({ hata: "bulunamadi" }, 404);
   }
-  const durumNesne = await env.OZEL_DOSYA.get(DOKU_DENEME_DIZIN + "durum.json");
+  const dizin = dn.dizin;
+  const durumNesne = await env.OZEL_DOSYA.get(dizin + "durum.json");
   if (durumNesne) {
     const d = JSON.parse(await durumNesne.text());
-    if (d.asama !== "surdu") { return fjson(d); }
-    const c = await saglayici(env, "GET", "/v1/image-to-3d/" + d.gorev, null);
-    const g = c.govde || {};
-    const du = c.kod === 200 ? gorevDurumu(g) : "surdu";
-    if (du === "surdu") { return fjson({ ...d, ilerleme: g.progress, kod: c.kod }); }
-    const son = { ...d, asama: du, kredi: krediSayisi(g), bitis: Date.now(), gorseller: [] };
-    if (du === "bitti") {
-      for (const [ad, adres] of [["kucuk", g.thumbnail_url], ["alfa", g.alpha_thumbnail_url]]) {
-        const f = await dosyaIndir(adres);
-        if (f) {
-          await env.OZEL_DOSYA.put(DOKU_DENEME_DIZIN + ad + ".png", f.tampon, { httpMetadata: { contentType: f.tip } });
-          son.gorseller.push(ad);
-        }
-      }
+    let son = null;
+    if (d.asama === "surdu") {
+      const c = await saglayici(env, "GET", "/v1/image-to-3d/" + d.gorev, null);
+      const g = c.govde || {};
+      const du = c.kod === 200 ? gorevDurumu(g) : "surdu";
+      if (du === "surdu") { return fjson({ ...d, ilerleme: g.progress, kod: c.kod }); }
+      son = du === "bitti" ? await dokuDenemeBitti(env, dizin, d, g)
+        : { ...d, asama: du, kredi: krediSayisi(g), bitis: Date.now(), hata: g.task_error || null };
+    } else if (d.asama === "analiz") {
+      const c = await saglayici(env, "GET", "/v1/print/analyze/" + d.analiz_gorev, null);
+      const g = c.govde || {};
+      const du = c.kod === 200 ? gorevDurumu(g) : "surdu";
+      if (du === "surdu") { return fjson({ ...d, kod: c.kod }); }
+      son = { ...d, asama: "bitti", analiz_kredi: krediSayisi(g), analiz: du === "bitti" ? (g.printability || {}) : null };
     } else {
-      son.hata = g.task_error || null;
+      return fjson(d);
     }
-    await env.OZEL_DOSYA.put(DOKU_DENEME_DIZIN + "durum.json", JSON.stringify(son));
+    await env.OZEL_DOSYA.put(dizin + "durum.json", JSON.stringify(son));
     return fjson(son);
   }
-  const istekNesne = await env.OZEL_DOSYA.get(DOKU_DENEME_DIZIN + "istek.json");
+  const istekNesne = await env.OZEL_DOSYA.get(dizin + "istek.json");
   if (!istekNesne) { return fjson({ hata: "bulunamadi" }, 404); }
   const istek = JSON.parse(await istekNesne.text());
   // Tek seferlik: istek SAGLAYICIYA GITMEDEN silinir (hata da olsa ikinci harcama yok).
-  await env.OZEL_DOSYA.delete(DOKU_DENEME_DIZIN + "istek.json");
+  await env.OZEL_DOSYA.delete(dizin + "istek.json");
   const isNo = typeof istek.is_no === "string" && /^[0-9a-f]{32}$/.test(istek.is_no) ? istek.is_no : "";
   const model = typeof istek.model === "string" && DOKU_DENEME_MODEL.test(istek.model) ? istek.model : "";
   const giris = isNo && model ? await env.OZEL_DOSYA.get(onizlemeAnahtari(isNo)) : null;
   if (!giris) { return fjson({ hata: "giris-yok" }, 404); }
-  const govde = { ...DOKU_DENEME_GOVDE, ai_model: model,
+  const govde = { ...dn.govde, ai_model: model,
     image_url: "data:image/png;base64," + base64Tampon(await giris.arrayBuffer()) };
   const c = await saglayici(env, "POST", "/v1/image-to-3d", govde);
   const gorev = gorevKimligi(c.govde);
-  const d = gorev ? { asama: "surdu", gorev, is_no: isNo, baslangic: Date.now() }
-                  : { asama: "baslamadi", kod: c.kod, is_no: isNo, govde: c.govde };
-  await env.OZEL_DOSYA.put(DOKU_DENEME_DIZIN + "durum.json", JSON.stringify(d));
+  const d = gorev ? { tur, asama: "surdu", gorev, is_no: isNo, baslangic: Date.now() }
+                  : { tur, asama: "baslamadi", kod: c.kod, is_no: isNo, govde: c.govde };
+  await env.OZEL_DOSYA.put(dizin + "durum.json", JSON.stringify(d));
   return fjson(d);
 }
+
 
 /** /api/shop/foto/* yonlendiricisi. */
 export async function fotoUclari(request, env, url, yol, telegram) {
@@ -1985,7 +2015,7 @@ export async function fotoUclari(request, env, url, yol, telegram) {
   if (yol === "/foto/durum" && m === "GET") { return durumUcu(env, url, simdi, telegram); }
   if (yol === "/foto/renk" && m === "POST") { return renkUcu(request, env, simdi, telegram); }
   if (yol === "/foto/gorsel" && m === "GET") { return gorselUcu(env, url); }
-  if (yol === "/foto/doku-deneme" && m === "GET") { return dokuDenemeUcu(env); }
+  if (yol === "/foto/doku-deneme" && m === "GET") { return dokuDenemeUcu(env, url); }
   return fjson({ hata: "bulunamadi" }, 404);
 }
 
