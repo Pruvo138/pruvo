@@ -2143,6 +2143,62 @@ console.log("ES) EKRAN — ① kart: render 'Örnek görsel (bilgisayar çizimi)
   }
 }
 
+// KA) ① KART KUCUK RESMI (Okan 14 Eki 16:1x): anahtarlik_figur kartinda ornek.render yerine kart alani cizilir;
+// alt metni kart_alt; diger 5 kart bayt-esit ayni (degisiklik ONCESI deger).
+console.log("KA) KART KUCUK RESMI — anahtarlik_figur: kart URL + 'Anahtarlık – figür örneği' alt; diger 5 kart eski render/baski/''");
+{
+  const KART_URL = "https://media.pruvo3d.com/foto/ornek/anahtarlik-figur-kart.webp";
+  const KART_ALT = "Anahtarlık – figür örneği";
+  // Diger 5 kart icin ONCESI deger: ornek.render / ornek.baski + alt = "" — kayit VERI_KAYNAK'tan (degisiklik
+  // ONCESI = "hilal-2-render.webp" + ""). Bu degerler kart yapisinin (ornekCiz'in `kart ||` fallback'i) birebir
+  // davranmasinin kanitidir: figur_figur kartinda `kart` URL gorulurse yalniz bu kod yolu secmis demektir.
+  const DIGER_BEKLENEN = {
+    anahtarlik_yazi: { src: "https://media.pruvo3d.com/foto/ornek/anahtarlik-1-render.webp", alt: "" },
+    insan:           { src: "https://media.pruvo3d.com/foto/ornek/kart-insan-2.webp", alt: "" },
+    pet:             { src: "https://media.pruvo3d.com/foto/ornek/kart-pet-1.webp", alt: "" },
+    plaket:          { src: "https://media.pruvo3d.com/foto/ornek/kart-plaket-2.webp", alt: "" },
+    model:           { src: "https://media.pruvo3d.com/foto/ornek/kart-model-1.webp", alt: "" },
+  };
+  const kartBul = (bolum, kod) => [...bolum.agac()].filter((n) => n.tagName === "BUTTON" && n.getAttribute("data-kart") === kod)[0] || null;
+  const imgBul = (kart) => kart ? [...kart.agac()].find((n) => n.tagName === "IMG") || null : null;
+  const kartKos = async (kaynak) => {
+    const V = veriYukle(VERI_KAYNAK);
+    const tur = (kod, ad) => ({ kod, ad, aciklama: "x", ornek_sayisi: 1, olculer: [{ mm: 120, fiyat_kurus: 44900 }] });
+    const e = await ekranKos(kaynak, V, { acik: true, turler: [tur("plaket", "Plaket"), tur("figur", "Figür"), tur("anahtarlik", "Anahtarlık")] });
+    const figurKart = kartBul(e.bolum, "anahtarlik_figur");
+    const figurImg = imgBul(figurKart);
+    // foto-uretim.js `im.src = ...` / `im.alt = ...` ile PROPERTY atar (setAttribute değil); sahte DOM'da
+    // JS özelliği olarak okunmalı.
+    const figur = { kartVar: !!figurKart, src: figurImg && figurImg.src, alt: figurImg && figurImg.alt };
+    const diger = {};
+    for (const kod of Object.keys(DIGER_BEKLENEN)) {
+      const k = kartBul(e.bolum, kod);
+      const im = imgBul(k);
+      diger[kod] = { kartVar: !!k, src: im && im.src, alt: im && im.alt };
+    }
+    return { figur, diger };
+  };
+  const s = await kartKos(EKRAN_KAYNAK);
+  ol("KA1 anahtarlik_figur karti VAR, img.src = kart URL, img.alt = '" + KART_ALT + "'",
+     s.figur.kartVar && s.figur.src === KART_URL && s.figur.alt === KART_ALT,
+     JSON.stringify(s.figur));
+  const digerKirmizi = [];
+  for (const kod of Object.keys(DIGER_BEKLENEN)) {
+    const b = DIGER_BEKLENEN[kod];
+    const r = s.diger[kod];
+    if (!r.kartVar || r.src !== b.src || r.alt !== b.alt) { digerKirmizi.push(kod + ":" + JSON.stringify(r)); }
+  }
+  ol("KA2 diger 5 kart (yazi/insan/pet/plaket/model) src/alt bayt-esit ayni",
+     digerKirmizi.length === 0, digerKirmizi.join(" | "));
+  // MUTANT: `it.ornek.kart ||` fallback'i SILINIR -> anahtarlik_figur eski render URL'ine doner, KA1 KIRMIZI.
+  const kaCapa = "im.src = it.ornek.kart || (it.kanit === \"render\" ? it.ornek.render : it.kanit === \"yakinda\" ? \"\" : it.ornek.baski);";
+  const kaYerine = "im.src = (it.kanit === \"render\" ? it.ornek.render : it.kanit === \"yakinda\" ? \"\" : it.ornek.baski);";
+  const kaMu = EKRAN_KAYNAK.split(kaCapa).length === 2 ? await kartKos(EKRAN_KAYNAK.replace(kaCapa, kaYerine)) : null;
+  ol("KA-M1 mutant (it.ornek.kart || fallback kaldirildi) -> KA1 KIRMIZI (figur eski render'a doner)",
+     !!kaMu && (kaMu.figur.src !== KART_URL || kaMu.figur.alt !== KART_ALT),
+     JSON.stringify(kaMu && kaMu.figur));
+}
+
 console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (gercek bust kaydi: sayi + bool alanlari; ureteç kuyrugu)");
 {
   const SONRA = "Önizleme, üretim dosyasıyla birlikte hazırlanır; birkaç dakika sürebilir.";
@@ -6037,10 +6093,11 @@ const C2_OLCU = "Anahtarlığın kulakçık dahil en uzun boyutudur; fiyat bu ö
 const C2_OLCU_FIGUR = "Anahtarlığın, başın arkasındaki halka dahil en uzun boyutudur; fiyat bu ölçüye göre canlı hesaplanır.";
 // VM4 beklenen ① kart listesi — 6 MODEL (Okan 10 Eki, sıra + kod): [data-kart, görsel dosyası | null, "Örnek yakında"].
 // Kart başına yalnız KENDİ örneği (11 Eki: TeKiN 3 render'ı; alt-duyarlı kartOrnegi): 6/6 kartta görsel,
-// "Örnek yakında" 0. Büst/yapboz /acik'te olsa da kart 0.
+// "Örnek yakında" 0. Büst/yapboz /acik'te olsa da kart 0. 14 Eki 16:1x: anahtarlik_figur kartında kart alanı
+// (renkli tasarım) öncelik alır — ornek.render YERINE kart URL'si gösterilir.
 const C2_KARTLAR = JSON.stringify([["anahtarlik_yazi", "anahtarlik-1-render.webp", false], ["insan", "kart-insan-2.webp", false],
   ["pet", "kart-pet-1.webp", false], ["plaket", "kart-plaket-2.webp", false],
-  ["anahtarlik_figur", "anahtarlik-figur-hilal-2-render.webp", false], ["model", "kart-model-1.webp", false]]);
+  ["anahtarlik_figur", "anahtarlik-figur-kart.webp", false], ["model", "kart-model-1.webp", false]]);
 async function c2Senaryo(ekranKaynak, veriKaynak) {
   const s = {}, iz = {};
   const kod6 = ["plaket", "figur", "yapboz", "bust", "anahtarlik"];
@@ -6113,7 +6170,7 @@ console.log("C2) ② TEK dürüstlük cümlesi (figür + plaket) + anahtarlık �
 // ArTisT 13. okuma BULGU 2: insan · model · anahtarlık–figür kartları boş kutu. TeKiN 3 render'ı (R2, sha kutuda) kartlara
 // bağlandı; kartOrnegi ALT türü ayırır (insan kartına kedi düşmez). Beklenen dosya adları BAĞIMSIZ yazılır.
 const FK_BEKLENEN = { anahtarlik_yazi: "anahtarlik-1-render.webp", insan: "kart-insan-2.webp", pet: "kart-pet-1.webp",
-  model: "kart-model-1.webp", anahtarlik_figur: "anahtarlik-figur-hilal-2-render.webp" };
+  model: "kart-model-1.webp", anahtarlik_figur: "anahtarlik-figur-kart.webp" };
 async function fkSenaryo(ekranKaynak, veriKaynak) {
   const s = {}, iz = {};
   const V = veriYukle(veriKaynak);

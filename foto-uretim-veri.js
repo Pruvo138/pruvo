@@ -18,7 +18,9 @@
  *   - Render kaydında müşterinin / Okan'ın ÖZGÜN fotoğrafı YAYINLANMAZ: `foto` boş ya da yok
  *     olabilir (örnek, özgün fotoğraf yayına çıkmadan önizleme + render ile gösterilir).
  *
- * Örnek kaydı: { tur, alt, cesit, kanit, olcu_mm, foto, onizleme, baski, render, not }
+ * Örnek kaydı: { tur, alt, cesit, kanit, olcu_mm, foto, onizleme, baski, render, not, kart, kart_alt }
+ *   kart     : yalnız ① kart küçük resmi; yoksa eski alan (im.src = ornek.render / ornek.baski düşer)
+ *   kart_alt : kart'ın alt metni; yoksa eski im.alt = "" davranışı
  *   tur      : turler[].kod
  *   alt      : figür alt türü (türün `olcu_modelleri` anahtarı: insan|pet|model). Alt türlü kart ① yalnız
  *              `o.alt === kart.alt` örneği gösterir. Alan yoksa kayıt türde SAYILIR ama alt türlü karta düşmez;
@@ -614,6 +616,9 @@
         olcu_mm: 60,
         onizleme: "https://media.pruvo3d.com/foto/ornek/anahtarlik-figur-hilal-onizleme.webp",
         render: "https://media.pruvo3d.com/foto/ornek/anahtarlik-figur-hilal-2-render.webp",
+        // ① kart küçük resmi: render yerine bu görsel kullanılır (Okan 14 Eki 16:1x renkli tasarım).
+        kart: "https://media.pruvo3d.com/foto/ornek/anahtarlik-figur-kart.webp",
+        kart_alt: "Anahtarlık – figür örneği",
         not: "60 mm, başın arkasına gömülü yarım halkalı figür anahtarlık"
       }
     ],

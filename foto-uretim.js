@@ -1489,8 +1489,8 @@
           d.appendChild(el("span", "foto-uretim-kart-yer"));
         } else {
           var im = el("img");
-          im.src = it.kanit === "render" ? it.ornek.render : it.kanit === "yakinda" ? "" : it.ornek.baski;
-          im.alt = ""; im.width = 240; im.height = 240; im.decoding = "async";
+          im.src = it.ornek.kart || (it.kanit === "render" ? it.ornek.render : it.kanit === "yakinda" ? "" : it.ornek.baski);
+          im.alt = it.ornek.kart_alt || ""; im.width = 240; im.height = 240; im.decoding = "async";
           if (sira > 0) im.loading = "lazy";
           d.appendChild(im);
         }
