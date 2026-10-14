@@ -109,5 +109,25 @@
     "tur": "tek-seferlik",
     "kaynak_bayt": 7178,
     "gerekce": "Mimar karari 3 Eki 2026 (KraL, K425). OLCULDU: kanonik yedek 32239 B -> canli 7178 B; kuculme commit'li (pruvo-hasat b8a00cd5, 21 Eyl), buyuk surum git'te (0945a80f:olcum/hasat_data_panasonic_thingiverse.py = 32239 B, cat-file ile olculdu) ve Drive KIRLI-IZLENEN/olcum/ altinda 32239 B -> kabul KAYIPSIZ."
+  },
+  "pruvo/AGENTS.md": {
+    "tur": "tek-seferlik",
+    "kaynak_bayt": 5951,
+    "gerekce": "Okan emri 14 Eki 2026 (acilis <=60K, C1 CLAUDE.md <=6000 B). OLCULDU: 10460 B -> 5951 B; dusen 19 satir git-disi CLAUDE-ARSIV.md sonuna BAYT-ESIT eklendi (diff silinen = tasinan, cmp esit; comm 0 fark). Onceki surum Drive tarihli kopyada."
+  },
+  "-Users-okan-dev-pruvo/memory/MEMORY.md": {
+    "tur": "tek-seferlik",
+    "kaynak_bayt": {"en_az": 4096, "en_cok": 5120},
+    "gerekce": "Okan emri 14 Eki 2026 (acilis <=60K, C2 MEMORY.md <=5000 B). OLCULDU: 19400 B -> 4639 B; tam indeks MEMORY-ARSIV.md sonuna BAYT-ESIT eklendi (tail -c 19400 cmp esit). Govde dosyalari degismedi. Aralik yeni 5000 B tavanini kapsar."
+  },
+  "merge-kapisi/SKILL.md": {
+    "tur": "tek-seferlik",
+    "kaynak_bayt": [7930, 7918],
+    "gerekce": "Okan emri 14 Eki 2026 (acilis <=60K, B3 <=8 KB). OLCULDU: 27974 B -> 7930 B (15:29 ortak tanim kisalmasiyla 7918 B); tasinan satirlar ayni dizinde REFERANS.md'ye BAYT-ESIT (cmp esit; kalan+tasinan = orijinal, sort cmp esit). KONU-CAPALARI SKILL.md'de kaldi."
+  },
+  "isci-devri/SKILL.md": {
+    "tur": "tek-seferlik",
+    "kaynak_bayt": 4882,
+    "gerekce": "Okan emri 14 Eki 2026 (acilis <=60K, B3 <=5 KB). OLCULDU: 10420 B -> 4882 B; tasinan satirlar ayni dizinde REFERANS.md'ye BAYT-ESIT (cmp esit; comm 0 fark)."
   }
 }
