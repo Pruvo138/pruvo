@@ -1427,8 +1427,8 @@
   }
 
   /* ① KARTLAR — `KARTLAR` tablosundan; türü `/acik` listesinde olmayan ya da sayılan örneği olmayan kart
-     ÇİZİLMEZ. Kart = türün sayılan örneğinin görseli + ad (+ kanıt etiketi: render "Örnek görsel (bilgisayar çizimi)",
-     baskı "basılmış ürün" — hukuk kapısı 13:4x). Render örneği türün dürüstlük cümlesi alanı (ornek_notu)
+     ÇİZİLMEZ. Kart = türün sayılan örneğinin görseli + ad (kanıt etiketi kartta ÇİZİLMEZ — Okan 14 Eki 18:5x
+     "bunları sil"; veri alanı `kanit` durur, ② lightbox ornek_notu yazısı AYNEN). Render örneği türün dürüstlük cümlesi alanı (ornek_notu)
      olmadan çizilmez (fail-closed; "" = ② kutusunda tek cümle, `durustluk` kapsar). acikKodlar: /foto/acik türleri; null = henüz bilinmiyor (kart 0). */
   // Çeşit sabitleyen kart (anahtarlık yazı/figür) yalnız KENDİ çeşidinin örneğini gösterir (örneği yoksa yer tutucu).
   // Alt türlü kart (figür insan/pet/model) yalnız `o.alt === alt` örneğini gösterir (insan kartına kedi düşmez).
@@ -1496,10 +1496,11 @@
         }
         d.appendChild(el("span", "foto-uretim-kart-ad",
           devreDisi ? (it.kart.yakinda || it.kart.ad) : it.kart.ad));
-        d.appendChild(el("span", "foto-uretim-kart-etiket",
-          devreDisi ? "yakında"
-          : it.kanit === "ornek-yok" ? "Örnek yakında"
-          : (it.kanit === "render" ? "Örnek görsel (bilgisayar çizimi)" : "basılmış ürün")));
+        // kanıt etiketi kartta ÇİZİLMEZ (Okan 14 Eki 18:5x "bunları sil"); ornegi olan kart için span YOK.
+        // "yakında" (devre dışı) ve "Örnek yakında" (ornek-yok) etiketleri AYNEN durur.
+        if (devreDisi || it.kanit === "ornek-yok") {
+          d.appendChild(el("span", "foto-uretim-kart-etiket", devreDisi ? "yakında" : "Örnek yakında"));
+        }
         if (!devreDisi) d.addEventListener("click", function () { galeriSec(it.kart.kod); });
         ornekBlok.appendChild(d);
       })(liste[n], n);

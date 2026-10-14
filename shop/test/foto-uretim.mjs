@@ -64,9 +64,10 @@
  *   RO-M1..RO-M3        : izin kontrolu silindi / izin varsayilani acik / render gorsel sarti
  *                         silindi -> ilgili RO senaryosu KIRMIZI; RO-MK (yalniz yorum) -> hicbiri
  *                         (mutant veri dosyasinin BELLEKTEKI kopyasina uygulanir)
- *   ES                  : bolumde render kaydi "Örnek görsel (bilgisayar çizimi)" etiketi + abarti cumlesiyle
- *                         cizilir, "gerçek fotoğraf" metni 0, ozgun foto gorseli 0; baski kaydi
- *                         eski etiketle (ES-M1/ES-M2 ekran mutantlari KIRMIZI)
+ *   ES                  : bolumde ① kart kanıt etiketi render/baski kartlarında ÇİZİLMEZ (Okan 14 Eki 18:5x
+ *                         "bunları sil"); "Örnek görsel (bilgisayar çizimi)" / "basılmış ürün" metinleri
+ *                         ① kart bölgesinde 0; "Örnek yakında" (ornek-yok) + "yakında" (devre dışı) etiketleri
+ *                         AYNEN durur; ② ornek_notu AYNEN, "gerçek fotoğraf" 0 (ES-M1 ekran mutantı KIRMIZI)
  *   AK                  : olceklenmis 3MF'in ALT KENAR kalinligi (Y en kucuk 10 mm serit, Z
  *                         yayilimi) analiz ozetine + panel kaydina `alt_kenar_mm`; sentetik
  *                         6,5 mm serit -> 6,5 ±0,1 (olceksiz ve 10x olcekli). AK-M1..AK-M4 KIRMIZI
@@ -2098,28 +2099,41 @@ console.log("RO) RENDER ORNEGI — plaket gercek baski beklemeden acilir (Okan 7
   }
 }
 
-// 13:4x (kopru-15) MİMAR BULGUSU: dürüstlük testleri GERÇEK iddia: her render kartında "Örnek görsel (bilgisayar çizimi)"
-// etiketi VAR ve "gerçek fotoğraf"/"Gerçek örnekler" iddiası 0 · baskı kaydı kartı "basılmış ürün" der ·
-// türün ornek_notu (render dürüstlük cümlesi) AYNEN görünür. K3b: ızgara + büyütme penceresi KALKTI (Okan
-// 01:0x) → kart ① penceresinde, ornek_notu ② dürüstlük kutusunda (kart seçilince). C2 (10 Eki): gerçek plaket
-// ornek_notu "" (② TEK cümle, VM2) -> MEKANİZMA burada bellek yamasıyla (plaket ornek_notu = CUMLE_P) ölçülür.
-console.log("ES) EKRAN — ① kart: render 'Örnek görsel (bilgisayar çizimi)', baski 'basılmış ürün', 'gerçek fotoğraf'/'Gerçek örnekler' 0; ② ornek_notu AYNEN");
+// 14 Eki 18:5x (Okan, aynen "bunları sil"): ① kart kanıt etiketi kartta ÇİZİLMEZ; ornekli kart için span YOK,
+// "Örnek görsel (bilgisayar çizimi)" / "basılmış ürün" metinleri ① kart bölgesinde 0 · "yakında" (devre dışı)
+// + "Örnek yakında" (ornek-yok) etiketleri AYNEN durur · ② ornek_notu AYNEN, "gerçek fotoğraf" 0.
+// K3b: ızgara + büyütme penceresi KALKTI (Okan 01:0x) → kart ① penceresinde, ornek_notu ② dürüstlük
+// kutusunda (kart seçilince). C2 (10 Eki): gerçek plaket ornek_notu "" (② TEK cümle, VM2) -> MEKANİZMA burada
+// bellek yamasıyla (plaket ornek_notu = CUMLE_P) ölçülür.
+console.log("ES) EKRAN — ① kart: render/baski kanıt etiketi YOK, metin 0; ornek-yok/devre-dışı AYNEN; 'gerçek fotoğraf' 0; ② ornek_notu AYNEN");
 {
   const sinifli = (kok, c) => [...kok.agac()].filter((n) => n.classList.contains(c));
   const CUMLE_P = "TEST render notu: üretim dosyasının görüntüsüdür (bellek yaması; mekanizma ölçümü).";
   const notYama = (V) => { const t = V.turBul("plaket"); if (t) { t.ornek_notu = CUMLE_P; } return V; };
   const tur = (kod, ad) => ({ kod, ad, aciklama: "x", ornek_sayisi: 1, olculer: [{ mm: 120, fiyat_kurus: 44900 }] });
-  const yol = async (kaynak, V) => {
-    const e = await ekranKos(kaynak, V, { acik: true, turler: [tur("plaket", "Kabartma plaket")] });
-    const kart = sinifli(e.bolum, "foto-uretim-kart").find((k) => k.getAttribute("data-tur") === "plaket");
-    const etiket = kart && (sinifli(kart, "foto-uretim-kart-etiket")[0] || { textContent: null }).textContent;
+  // opts.turler: açık tür listesi (varsayılan: [plaket]); opts.hedefKart: tıklanacak kart kodu (data-kart).
+  const yol = async (kaynak, V, opts = {}) => {
+    const turler = opts.turler || [tur("plaket", "Kabartma plaket")];
+    const hedefKart = opts.hedefKart || null;
+    const e = await ekranKos(kaynak, V, { acik: true, turler });
+    const kartlar = [...sinifli(e.bolum, "foto-uretim-kart")];
+    const kart = hedefKart ? kartlar.find((k) => k.getAttribute("data-kart") === hedefKart) : kartlar[0];
+    const etiketSpan = kart ? sinifli(kart, "foto-uretim-kart-etiket")[0] : null;
+    const etiket = etiketSpan ? etiketSpan.textContent : null;
     const once = e.bolum.textContent;
     if (kart) { kart.tetikle("click"); }
     const d = sinifli(e.bolum, "foto-uretim-durustluk")[0];
     const not = d && d.childNodes[1] ? d.childNodes[1].textContent : null;
     const eski = ["foto-uretim-buyuk-kart", "foto-uretim-isik", "foto-uretim-galeri-kucuk", "foto-uretim-ornek-grup"]
       .some((c) => sinifli(e.bolum.parentNode, c).length > 0);
-    return { kart: !!kart, etiket, not, metin: once + " " + e.bolum.textContent, eski };
+    return {
+      kart: !!kart, etiket, etiketVar: !!etiketSpan, not,
+      metin: once + " " + e.bolum.textContent, eski,
+      kartlar: kartlar.map((k) => ({
+        kod: k.getAttribute("data-kart"),
+        etiket: (sinifli(k, "foto-uretim-kart-etiket")[0] || { textContent: null }).textContent,
+      })),
+    };
   };
   const esDene = async (kaynak) => {
     const Va = notYama(veriYukle(VERI_KAYNAK));
@@ -2129,26 +2143,50 @@ console.log("ES) EKRAN — ① kart: render 'Örnek görsel (bilgisayar çizimi)
     Vb.ornekler.splice(0, Vb.ornekler.length, { tur: "plaket", kanit: "baski", olcu_mm: 100, foto: "https://media.pruvo3d.com/b-f.webp",
       onizleme: "https://media.pruvo3d.com/b-o.webp", baski: "https://media.pruvo3d.com/b-b.webp", not: "t" });
     const B = await yol(kaynak, Vb);
+    // Y: anahtarlik tür açık; yalnız anahtarlik_yazi orneki var → anahtarlik_figur kart kanit="ornek-yok"
+    // ("Örnek yakında" etiketi). ① kart kanıt etiketi YOK iddiası burada da görünür (yazi kart render orneği).
+    const Vc = notYama(veriYukle(VERI_KAYNAK));
+    Vc.ornekler.splice(0, Vc.ornekler.length, ...Vc.ornekler.filter((o) => o.tur === "anahtarlik" && o.cesit === "yazi"));
+    const Y = await yol(kaynak, Vc, { turler: [tur("anahtarlik", "Anahtarlık")], hedefKart: "anahtarlik_yazi" });
     const kirmizi = [];
-    if (R.etiket !== "Örnek görsel (bilgisayar çizimi)") kirmizi.push("ETIKET_RENDER");
-    if (B.etiket !== "basılmış ürün") kirmizi.push("ETIKET_BASKI");
+    // ① kart kanıt etiketi: ornekli kartlarda span YOK (render, baski, ornekli kart dahil).
+    if (R.etiketVar) kirmizi.push("ETIKET_RENDER_VAR");
+    if (B.etiketVar) kirmizi.push("ETIKET_BASKI_VAR");
+    const yaziKart = Y.kartlar.find((k) => k.kod === "anahtarlik_yazi");      // ornekli (render)
+    const figurKart = Y.kartlar.find((k) => k.kod === "anahtarlik_figur");    // ornek-yok
+    if (yaziKart && yaziKart.etiket !== null) kirmizi.push("ETIKET_ANAHTARLIK_VAR");
+    // ① kart bölgesi metninde "Örnek görsel (bilgisayar çizimi)" / "basılmış ürün" 0.
+    if (/Örnek görsel \(bilgisayar çizimi\)/.test(R.metin)) kirmizi.push("METIN_RENDER");
+    if (/basılmış ürün/.test(B.metin)) kirmizi.push("METIN_BASKI");
+    if (/Örnek görsel \(bilgisayar çizimi\)/.test(Y.metin)) kirmizi.push("METIN_RENDER_Y");
+    if (/basılmış ürün/.test(Y.metin)) kirmizi.push("METIN_BASKI_Y");
+    // ornek-yok davranışı AYNEN: "Örnek yakında" etiketi VAR.
+    if (!figurKart || figurKart.etiket !== "Örnek yakında") kirmizi.push("ORNEK_YOK_ETIKET");
+    // eski iddialar korunur.
     if (/Gerçek örnek/.test(R.metin + B.metin)) kirmizi.push("BASLIK_GERCEK_ORNEK");
     if (/gerçek fotoğraf/i.test(R.metin)) kirmizi.push("RENDER_GERCEK_FOTOGRAF");
     if (/gerçek fotoğraf/i.test(B.metin) || /Basılmış ürün \(gerçek fotoğraf\)/.test(B.metin)) kirmizi.push("BASKI_GERCEK_FOTOGRAF");
     if (R.not !== CUMLE_P) kirmizi.push("ORNEK_NOTU");
-    // Render dürüstlük cümlesi baskı kaydına (basılmış ürünün kendisi) YAZILMAZ.
+    // Render dürüstlük cümlesi baskı kaydına YAZILMAZ.
     if (B.not !== "") kirmizi.push("BASKI_NOTU");
     if (R.eski || B.eski) kirmizi.push("BUYUK_KART");
-    return { kirmizi, R, B };
+    return { kirmizi, R, B, Y };
   };
   const s = await esDene(EKRAN_KAYNAK);
-  ol("ES1 render kaydi: kartta etiket 'Örnek görsel (bilgisayar çizimi)', 'gerçek fotoğraf' 0, 'Gerçek örnekler' 0; ②'de ornek_notu AYNEN; buyuk kart/isik/izgara 0",
+  ol("ES1 render kaydi: kartta kanit etiketi span YOK, 'Örnek görsel (bilgisayar çizimi)' metni 0, 'Gerçek örnekler' 0; ②'de ornek_notu AYNEN; buyuk kart/isik/izgara 0",
      s.kirmizi.length === 0, JSON.stringify(s));
-  ol("ES2 baski kaydi: kartta etiket 'basılmış ürün'; 'Basılmış ürün (gerçek fotoğraf)' 0; render cumlesi baskiya yazilmaz",
+  ol("ES2 baski kaydi: kartta kanit etiketi span YOK, 'basılmış ürün' metni 0; 'Basılmış ürün (gerçek fotoğraf)' 0; render cumlesi baskiya yazilmaz",
      s.kirmizi.length === 0, JSON.stringify(s));
+  ol("ES3 ornek-yok kart ('Örnek yakında') AYNEN + ornekli kart span YOK (anahtarlik yazi render, anahtarlik figur ornek-yok)",
+     s.Y.kartlar.some((k) => k.etiket === "Örnek yakında") && s.Y.kartlar.some((k) => k.etiket === null),
+     JSON.stringify(s.Y.kartlar));
   const ES_MUT = [
-    ["ES-M1 baski kart etiketi 'gerçek fotoğraf' yapildi", 'it.kanit === "render" ? "Örnek görsel (bilgisayar çizimi)" : "basılmış ürün"',
-     'it.kanit === "render" ? "Örnek görsel (bilgisayar çizimi)" : "gerçek fotoğraf"', ["BASKI_GERCEK_FOTOGRAF", "ETIKET_BASKI"]],
+    // ES-M1: ornekli kart için span geri konursa ETIKET_RENDER_VAR + ETIKET_BASKI_VAR + ETIKET_ANAHTARLIK_VAR
+    // tetiklenir (her devre'de span eklenir, render/baski/yazi kartlarında artık etiket VAR).
+    ["ES-M1 ① kart kanit etiketi geri kondu (ornekli kart icin span eklendi)",
+     'if (devreDisi || it.kanit === "ornek-yok") {',
+     'if (true) {',
+     ["ETIKET_RENDER_VAR", "ETIKET_BASKI_VAR", "ETIKET_ANAHTARLIK_VAR"]],
     ["ES-M2 ornek_notu ②'ye yazilmadi", 'S.ornekNotP.textContent = it && it.kanit === "render" ? it.tur.ornek_notu || "" : "";',
      'S.ornekNotP.textContent = "";', ["ORNEK_NOTU"]],
     ["ES-M3 render sarti kalkti (render cumlesi baskiya yazilir)", 'S.ornekNotP.textContent = it && it.kanit === "render" ? it.tur.ornek_notu || "" : "";',

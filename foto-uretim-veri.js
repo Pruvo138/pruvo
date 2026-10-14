@@ -11,8 +11,9 @@
  *   - 5 Eki kuralı: "render ya da üretilmiş baskı görseli bu listeye GİRMEZ". 7 Eki 2026'da
  *     PLAKET için Okan kararıyla değişti ("bu dosya ok · baskı yapmayacağım böyle tamam":
  *     ilk örnek plaketin üretim dosyası hatasız dilimlendi, fiziksel baskı istenmedi) →
- *     plakette `kanit: "render"` kaydı da sayılır; bölüm onu "Örnek görsel (bilgisayar çizimi)" etiketiyle ve
- *     abartı cümlesiyle gösterir. Diğer türlerde kural AYNEN durur (yalnız basılmış ürün).
+ *     plakette `kanit: "render"` kaydı da sayılır; bölüm onu render dürüstlük cümlesiyle (② ornek_notu) gösterir.
+ *     Diğer türlerde kural AYNEN durur (yalnız basılmış ürün).
+ *     ① kart kanıt etiketi kartta ÇİZİLMEZ (Okan 14 Eki 18:5x "bunları sil"); veri alanı `kanit` durur.
  *   - Sayılan örneği olmayan tür AÇILMAZ (bölümde sipariş formu o tür için çıkmaz, sunucu da
  *     o türe önizleme üretmez). Görseller R2 medya kovasında durur; buraya yalnız adres yazılır.
  *   - Render kaydında müşterinin / Okan'ın ÖZGÜN fotoğrafı YAYINLANMAZ: `foto` boş ya da yok
