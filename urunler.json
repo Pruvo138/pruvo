@@ -1,5 +1,58 @@
 [
   {
+    "id": "bahce-arac-yikama-hortum-kilavuzu-tekerlege-yaslanan-makarali-pr387063",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Araç Yıkama Hortum Kılavuzu (Tekerleğe Yaslanan, Makaralı)",
+    "aciklama": "Araç yıkarken bahçe ya da yıkama hortumunun tekerleğin altına sıkışmasını önleyen kılavuz: tekerleğe yaslanan sağlam bir gövde ile hortumun sürtünmeden kayarak geçtiği dikey makaradan oluşur. Birleştirmek için M8 × 60 mm vida ve düz pul gerekir (dahil değildir). Fotoğraflarda kırmızı gövde ve mavi makara tekerleğin yanında, tezgâhta ise gövde, iki makara, vida ve pul ayrı ayrı görülür.\nYaklaşık dış ölçüler: gövde 177 × 127 × 67 mm, makara 31 × 31 × 26 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr387063-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr387063-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr387063-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr387063-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "TlustejHanz",
+      "tur": "GPL 3.0"
+    }
+  },
+  {
+    "id": "evcil-akvaryum-hortum-kilavuzu-kenara-gecen-18-mm-hortum-icin-pr452477",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Akvaryum Hortum Kılavuzu (Kenara Geçen, 18 mm Hortum İçin)",
+    "aciklama": "Akvaryumu doldururken ya da su değiştirirken esnek PVC hortumu cam kenarında kavisli tutan kanca: hortum üzerindeki klipslerle yerinde durur, böylece hortum kenardan sarkıp kıvrılmaz. Klipsler 18 mm çaplı hortuma göre ölçülüdür; yay çapı 10 cm'dir. Fotoğraflarda siyah kılavuz akvaryumun kenarında hortumu kavisli tutarken görülür.\nYaklaşık dış ölçüler: 140 × 112 × 22 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr452477-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr452477-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "SailorJerry",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "bahce-domates-ipi-icin-vidali-toprak-ankraji-dikey-ip-germe-pr221186",
+    "kategori": "Bahçe",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Domates İpi İçin Vidalı Toprak Ankrajı (Dikey İp Germe Noktası)",
+    "aciklama": "Dikey ip germe yöntemiyle yetiştirilen domates ve benzeri sebzeler için vidalı toprak ankrajı: ipi üstteki başa bağlar, ankrajı bitkinin dibine yakın toprağa vidalarsınız; ip yukarı doğru kafese ya da çıtaya uzanır. İp gerginliğini kolay ayarlamak için üst uçta kamyoncu düğümü önerilir; ip dahil değildir. Fotoğraflarda siyah vidalı ankraj ipiyle birlikte bozuk para yanında ve toprağa yerleştirilmiş halde görülür.\nYaklaşık dış ölçüler: 75 × 30 × 17 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr221186-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr221186-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "gexgecko (özgün: dbarthel)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "tamirat-m6-civata-pimli-mentese-57-x-40-mm-pr450137",
     "kategori": "Tamirat",
     "marka": [],
