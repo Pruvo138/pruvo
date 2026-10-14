@@ -44,8 +44,8 @@ bloklar `*-arsiv.md`'ye TASINIR.
 
 🔴🔴 KUTU KILIDI KALKTI (BaBa 8 Eki 00:5x): asagidaki kovalarin rc'si TARIHSEL kayittir;
 bugun KUTU kolunun rc'ye katkisi HER KOVADA 0'dir. Tavan asiminda kapi sahip aracin
-lossless rotasyonunu KENDISI kosar; hala tavan ustundeyse `🟠 KUTU_TEFTIS satir= tavan=
-korumali=` RAPOR basar, arac cokerse/kilit alinamazsa `KUTU_TEFTIS=OLCULEMEDI`. DEVAM ve
+rotasyonunu YALNIZ `--kuru` kosar (BaBa 14 Eki 10:4x — kanca kutuya YAZMAZ), plani
+`KUTU_ROTASYON_KURU sonra_satir=<n>` ile ve `🟠 KUTU_TEFTIS satir= tavan= korumali=` RAPOR basar, arac cokerse/kilit alinamazsa `KUTU_TEFTIS=OLCULEMEDI`. DEVAM ve
 HAFIZA eksenleri AYNEN durur. Kabul + mutant: `python3 tools/kutu-kilidi-test.py`.
 
 KUTU HUKUM KOVALARI (BES KOVA — ucuncu kovanin yutulmamasi icin AYRI jetonlar,
@@ -189,14 +189,23 @@ KUTU_HUKUM_ALINAMADI = "KUTU_HUKUM_ALINAMADI"
 # --- KUTU KILIDI KALKTI (BaBa 8 Eki 00:5x — tikayici sinifi / Okan 11 Eyl) ----
 # 🔴 OLCULEN VAKA (8 Eki): kutu 544 > 500 -> KUTU_ASILDI rc=1 -> KraL'in ILGISIZ dal
 # commit'i DURDU; filonun her evi AYNI kilide acikti (kutu ORTAK, commit EVIN).
-# HUKUM: KUTU ekseni commit/push'u REDDETMEZ. Tavan asilinca kapi ONCE sahip aracin
-# bayt-esit rotasyonunu KENDISI kosar (kilitli, lossless dogrulamali — aracin mevcut
-# yolu); hala tavan ustundeyse `🟠 KUTU_TEFTIS` RAPOR basar. Arac cokerse / kilit
+# HUKUM: KUTU ekseni commit/push'u REDDETMEZ. Tavan asilinca kapi sahip aracin
+# rotasyonunu (14 Eki'den beri YALNIZ `--kuru`, asagi bkz.) kosar ve `🟠 KUTU_TEFTIS`
+# RAPOR basar. Arac cokerse / kilit
 # alinamazsa da commit gecer, rapor `KUTU_TEFTIS=OLCULEMEDI` basar. KUTU kolunun
 # rc'ye katkisi HER KOVADA 0'dir; DEVAM/HAFIZA eksenleri AYNEN kalir.
 # Kabul + mutant: tools/kutu-kilidi-test.py (M1 bu tabloyu 1'e geri ceker -> KIRMIZI).
 KUTU_TEFTIS = "KUTU_TEFTIS"
 KUTU_ROTASYON = "KUTU_ROTASYON"
+# --- KANCA KUTUYA YAZMAZ (BaBa 14 Eki 10:4x) ----------------------------------
+# 🔴 OLCULEN VAKA (14 Eki 10:1x): bir dal commit'inde pre-commit, commit edilen agacin
+# (merge EDILMEMIS) `kutu-arsivle.py`'sini GERCEK ortak kutuda YAZAN kipte kosturdu:
+# 1042 -> 1007 satir, 9 blok arsive (kayip 0, ama dal kodu ortak dosyaya yazdi).
+# HUKUM: KUTU_ASILDI kolunda rotasyon YALNIZ `--kuru` kosar; plan RAPOR edilir
+# (`KUTU_ROTASYON_KURU sonra_satir=<n>`). Yazan kip yalniz mimar tiki + main'deki arac.
+# Commit yine REDDEDILMEZ (KUTU_RC tablosu AYNEN). Kabul + mutant: tools/kutu-kilidi-test.py
+# (vaka h; M4 yazan kipi geri koyar -> KIRMIZI).
+KUTU_ROTASYON_KURU = "KUTU_ROTASYON_KURU"
 
 KUTU_RC = {
     KUTU_SAHIPSIZ: 0,
@@ -561,7 +570,7 @@ def _kutu_olculemedi_rapor():
 
 
 def kutu_rotasyonu_kos(sahip_yolu, kutu_yolu, calistir=None):
-    """(rc, ham, hata) — sahip aracin YAZAR kipini kosar (kilit + lossless ICINDE).
+    """(rc, ham, hata) — sahip aracin KURU kipini kosar (kutuya YAZMAZ — BaBa 14 Eki).
 
     hata dolu = arac kosmadi / sifir-disi rc (KILIT=3, KIRMIZI=1) -> cagiran
     `KUTU_TEFTIS=OLCULEMEDI` basar ve commit'i GECIRIR (BaBa 8 Eki).
@@ -570,6 +579,7 @@ def kutu_rotasyonu_kos(sahip_yolu, kutu_yolu, calistir=None):
         def calistir(komut):
             return subprocess.run(komut, capture_output=True, text=True, timeout=180)
     komut = [sys.executable, sahip_yolu, "--kutu", kutu_yolu]
+    komut.append("--kuru")      # 🔴 dal kodu + yazan kip = RED (BaBa 14 Eki 10:4x)
     if _KUTU_SIMDI:
         komut += ["--simdi", _KUTU_SIMDI]
     try:
@@ -579,7 +589,7 @@ def kutu_rotasyonu_kos(sahip_yolu, kutu_yolu, calistir=None):
     ham = (r.stdout or "") + (r.stderr or "")
     if r.returncode != 0:
         return r.returncode, ham, ("rotasyon araci rc=%d dondu (3=KILIT ALINAMADI, "
-                                   "1=KIRMIZI/lossless gecmedi) — kutu DEGISMEDI"
+                                   "1=KIRMIZI) — kutu DEGISMEDI"
                                    % r.returncode)
     return r.returncode, ham, None
 
@@ -655,9 +665,9 @@ def kutu_kontrol(kok, kol_no_op=False):
         return _kutu_olculemedi_rapor()
 
     if hal == KUTU_ASILDI:
-        # 🔴 BaBa 8 Eki — KAPI ONCE ROTASYONU KENDISI KOSAR (sahip aracin YAZAR kipi:
-        # flock + lossless dogrulama aracin ICINDE). Sonuc ne olursa olsun KUTU kolu
-        # commit'i REDDETMEZ; hal RAPOR edilir, GIZLENMEZ.
+        # 🔴 BaBa 14 Eki 10:4x — KANCA ROTASYONU YALNIZ KURU KOSAR: commit edilen agacin
+        # (dalin, merge edilmemis) araci ortak kutuya YAZAMAZ. Plan RAPOR edilir; KUTU
+        # kolu commit'i REDDETMEZ (BaBa 8 Eki rc davranisi AYNEN).
         rot_rc, rot_ham, rot_hata = kutu_rotasyonu_kos(sahip_yolu, kutu_yolu)
         if rot_hata is not None:
             print("%s %s=OLCULEMEDI satir=%d tavan=%d sebep=%s (commit GECER; "
@@ -667,7 +677,7 @@ def kutu_kontrol(kok, kol_no_op=False):
                 print("   arac ciktisi (son 5 satir): %s"
                       % " | ".join(rot_ham.strip().splitlines()[-5:]), file=sys.stderr)
             return KUTU_RC[KUTU_TEFTIS]
-        sonra_satir, sonra_bayt = _kutu_olc(kutu_yolu)
+        plan_satir = _jeton_degeri(rot_ham, "sonra_satir=")
         hukum_ = "YOK"
         for h_satir in rot_ham.splitlines():
             if h_satir.startswith("HUKUM="):
@@ -675,25 +685,21 @@ def kutu_kontrol(kok, kol_no_op=False):
                 hukum_ = parca[0] if parca else ""
                 break
         print("%s rc=%d once_satir=%d sonra_satir=%s tavan=%d HUKUM=%s kutu=%s"
-              % (KUTU_ROTASYON, rot_rc, satir, sonra_satir, tavan, hukum_, kutu_yolu))
-        if sonra_satir is None:
-            print("%s %s=OLCULEMEDI sebep=rotasyon sonrasi kutu OKUNAMADI (%s); "
-                  "commit GECER" % (_TURUNCU, KUTU_TEFTIS, kutu_yolu), file=sys.stderr)
-            return KUTU_RC[KUTU_TEFTIS]
-        if sonra_satir > tavan:
-            korumali = _jeton_degeri(rot_ham, "korunan=")
-            print("%s %s satir=%d tavan=%d korumali=%s"
-                  % (_TURUNCU, KUTU_TEFTIS, sonra_satir, tavan,
-                     "OLCULEMEDI" if korumali is None else korumali), file=sys.stderr)
-            print("   (Rotasyon kostu ama korunan bloklar yuzunden kutu tavanin USTUNDE. "
-                  "Commit BLOKLANMADI — KUTU ekseni RAPOR eder. Koruma %d saatte ya da "
-                  "`Kapatan` satirindaki `\u2714\ufe0e KAPANDI` ile duser.)"
-                  % getattr(mod, "KORUMA_OMRU_SAAT", 48), file=sys.stderr)
-            _kutu_teftis_bas(sahip_yolu, kutu_yolu)
-            return KUTU_RC[KUTU_TEFTIS]
-        print("%s satir=%d bayt=%d tavan=%d kutu=%s (rotasyon sonrasi)"
-              % (KUTU_YESIL, sonra_satir, sonra_bayt, tavan, kutu_yolu))
-        return KUTU_RC[KUTU_YESIL]
+              % (KUTU_ROTASYON_KURU, rot_rc, satir,
+                 "OLCULEMEDI" if plan_satir is None else plan_satir, tavan, hukum_,
+                 kutu_yolu))
+        print("   \u26a0\ufe0f kanca kutuya YAZMAZ: yazan kip yalniz mimar tiki + main'deki "
+              "arac (`tools/kutu-arsivle.py`, main checkout'tan). Plan yukarida; kutu "
+              "DEGISMEDI.", file=sys.stderr)
+        korumali = _jeton_degeri(rot_ham, "korunan=")
+        print("%s %s satir=%d tavan=%d korumali=%s"
+              % (_TURUNCU, KUTU_TEFTIS, satir, tavan,
+                 "OLCULEMEDI" if korumali is None else korumali), file=sys.stderr)
+        print("   (Commit BLOKLANMADI — KUTU ekseni RAPOR eder. Koruma %d saatte ya da "
+              "`Kapatan` satirindaki `\u2714\ufe0e KAPANDI` ile duser.)"
+              % getattr(mod, "KORUMA_OMRU_SAAT", 48), file=sys.stderr)
+        _kutu_teftis_bas(sahip_yolu, kutu_yolu)
+        return KUTU_RC[KUTU_TEFTIS]
 
     print("%s satir=%d bayt=%d tavan=%d kutu=%s" % (KUTU_YESIL, satir, bayt,
                                                     tavan, kutu_yolu))

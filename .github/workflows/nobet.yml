@@ -1937,9 +1937,10 @@ jobs:
         run: python3 tools/kutu-ekle-test.py
 
       # KUTU KILIDI KALKTI (BaBa 8 Eki) — KUTU ekseni commit/push'u REDDETMEZ: kapi tavan
-      # asiminda rotasyonu KENDISI kosar, kalan hal `KUTU_TEFTIS` RAPORudur. Koruma
-      # 48 saatte ya da `Kapatan ... ✔︎ KAPANDI` ile duser; UZUN_BLOK raporu (`--teftis`).
-      # 36 iddia + 3 mutant (KUTU rc geri · 48s sil · KAPANDI sil) izole tempfile
+      # asiminda rotasyonu YALNIZ `--kuru` kosar (BaBa 14 Eki: kanca kutuya YAZMAZ), kalan
+      # hal `KUTU_TEFTIS` RAPORudur. Koruma 48 saatte ya da `Kapatan ... ✔︎ KAPANDI` ile
+      # duser; UZUN_BLOK raporu (`--teftis`). 39 iddia + 4 mutant (KUTU rc geri · 48s sil ·
+      # KAPANDI sil · kancaya yazan kip geri) izole tempfile
       # kopyasinda; GERCEK kutuya DOKUNMAZ, ~10 s. SERIT B: mimar yazisma hijyeni.
       - name: "Kutu kilidi kabul + mutant bataryasi (SERIT B)"
         if: ${{ !cancelled() }}

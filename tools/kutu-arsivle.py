@@ -2177,6 +2177,32 @@ def korumali_yas_sinifi(baslik, simdi, yas_sa):
     return "GENC"
 
 
+# ── EN AZ YAS TABANI (BaBa 14 Eki 10:4x — her bloga, etiketli/etiketsiz) ──────────────
+# 🔴 OLCULEN VAKA (14 Eki 10:1x): tavan asiminda rotasyon ayni saat yazilmis 📊/▶️
+#   bloklarini (10:16 TeKiN x2, 10:1x KraL) arsive tasidi — muhatap okumadan kutudan dustu.
+# CARE: basligi `--en-az-yas-sa` saatten GENC olan HICBIR blok tasinmaz (SABIT kumeye
+#   akar). Yas `korumali_yas_sinifi` ile AYNI olcuyle: `x` -> 0, saatsiz baslik gun sonu
+#   (23:59). Tarih OKUNAMAYAN blok bu eksende TUTULMAZ (eski davranis) ama SAYILIR
+#   (`EN_AZ_YAS_TARIH_YOK`). Katmanlar: etiketsiz >= 24 sa · KORUMALI >= 48 sa ·
+#   kalici sinif asla · bekleyen kapanis / acik cip AYNEN. `0` = eksen KAPALI.
+EN_AZ_YAS_SAAT = 24
+
+
+def en_az_yas_sinifi(baslik, simdi, yas_sa):
+    """"GENC" | "TARIH_YOK" | "YASLI" — taban ekseninin blok karari (saf, IO yok)."""
+    gun, aralik = blok_araligi(baslik)
+    if gun is None:
+        return "TARIH_YOK"          # taban TUTMAZ, cagiran SAYAR
+    try:
+        blok_dk = _dakika_damgasi(gun, (aralik or (TUM_GUN[1], TUM_GUN[1]))[0])
+        simdi_dk = _dakika_damgasi(simdi[0], simdi[1])
+    except ValueError:
+        return "TARIH_YOK"
+    if simdi_dk - blok_dk < yas_sa * 60:
+        return "GENC"
+    return "YASLI"
+
+
 # ── UZUN BLOK RAPORU (`--teftis`, BaBa 8 Eki) — RAPOR'dur, reddetmez ──────────────────
 UZUN_BLOK_MIMAR = 6
 UZUN_BLOK_BABA = 10
@@ -2276,10 +2302,13 @@ class Plan(object):
         self.koruma_dusen = {}             # {blok_idx: "YAS"|"KAPANDI"}
         self.korumali_yas_sa = 0           # 0 = etiket yas ekseni KAPALI (eski davranis)
         self.korumali_yas = {}             # {etiket blok_idx: KALICI|TARIH_YOK|GENC|ACIK}
+        self.en_az_yas_sa = 0              # 0 = en az yas tabani KAPALI (eski davranis)
+        self.en_az_yas_tutulan = []        # tabanla SABIT'e eklenen blok indeksleri
+        self.en_az_yas_tarih_yok = 0       # tarihi okunamayan etiketsiz blok sayisi
 
 
 def planla(kutu_metin, tavan, koru, arsiv_kayitlari=None, simdi=None,
-           korumali_yas_sa=0):
+           korumali_yas_sa=0, en_az_yas_sa=0):
     """Kutuyu tavana indirmek icin SONDAN kac blok tasinacagini hesapla.
 
     O1 (16 Agu 2026): eski davranis kutu tam tavanda (300) duruyor ve bir
@@ -2375,6 +2404,20 @@ def planla(kutu_metin, tavan, koru, arsiv_kayitlari=None, simdi=None,
 
     p.sabit = sabit_indeksler(len(baslar), koru, korumali_idx, acik_idx, etiket_idx)
 
+    # 🔴 EN AZ YAS TABANI (BaBa 14 Eki 10:4x) — SECIMDEN ve CIFT KOLUNDAN ONCE: genc
+    # acilis SABIT'e girerse kapanisi da cift kolunca pinlenir (cift bolunmez).
+    if en_az_yas_sa > 0 and simdi is not None:
+        p.en_az_yas_sa = en_az_yas_sa
+        etiketli = set(b for b, _s, _o in p.korumali_etiket)
+        for b in range(len(baslar)):
+            sinif = en_az_yas_sinifi(satirlar[baslar[b]], simdi, en_az_yas_sa)
+            if sinif == "GENC":
+                if b not in p.sabit:
+                    p.en_az_yas_tutulan.append(b)
+            elif sinif == "TARIH_YOK" and b not in etiketli:
+                p.en_az_yas_tarih_yok += 1
+        p.sabit = p.sabit | set(p.en_az_yas_tutulan)
+
     # 🔴 CIFT BUTUNLUGU KOLU (K359-B KUSUR B, 2 Eyl 2026) — SECIMDEN ONCE.
     # OLCULEN VAKA: `KraL-UrunSilmeButonu-2Eyl`in ACILISI (kusur A yuzunden) ACIK
     # sayilip YERINDE ATLANDI; rotasyon onun USTUNDEKI bloklara devam edip AYNI CIPIN
@@ -2436,6 +2479,7 @@ def planla(kutu_metin, tavan, koru, arsiv_kayitlari=None, simdi=None,
         # tam olarak "arac ISI KASITLI OLARAK yapmiyor" halini tuketir ve bu hal
         # odur. Bu yuzden AYNI hukme akar — ama SAYILARI ayri basilir.
         p.koruma_tuttu = (p.korumali_kilitledi + p.acik_kilitledi + p.etiket_kilitledi
+                          + len(p.en_az_yas_tutulan)
                           + len([c for c, _a, _s in p.cift_korumasi
                                  if c >= koru])) > 0
         return p
@@ -3239,6 +3283,11 @@ def main(argv=None):
                          "kalici sinif (Okan emri / OKAN KARARI / ILKE / DOKTRIN) varsa "
                          "yas aranmaz. Tarihsiz baslik KILITLI kalir. 0 = eski davranis "
                          "(varsayilan %d — BaBa 14 Eki)" % KORUMALI_YAS_SAAT)
+    ap.add_argument("--en-az-yas-sa", type=int, default=EN_AZ_YAS_SAAT, metavar="N",
+                    help="basligi N saatten GENC olan HICBIR blok (etiketli/etiketsiz) "
+                         "tasinmaz; tarihsiz baslik bu eksende tutulmaz ama sayilir "
+                         "(EN_AZ_YAS_TARIH_YOK). 0 = kapali (varsayilan %d — BaBa 14 Eki)"
+                         % EN_AZ_YAS_SAAT)
     ap.add_argument("--teftis", action="store_true",
                     help="SALT OKUMA rapor: satir/tavan + UZUN_BLOK (mimar > %d, BaBa "
                          "> %d satir). Kilit almaz, yazmaz, rc daima 0 (okunamazsa 2)."
@@ -3258,6 +3307,9 @@ def main(argv=None):
         return RC_KIRMIZI
     if a.korumali_yas_sa < 0:
         print("KIRMIZI: --korumali-yas-sa >= 0 olmali")
+        return RC_KIRMIZI
+    if a.en_az_yas_sa < 0:
+        print("KIRMIZI: --en-az-yas-sa >= 0 olmali")
         return RC_KIRMIZI
     if a.su_seviye_orani <= 0 or a.su_seviye_orani > 1:
         print("KIRMIZI: --su-seviye-orani (0, 1] araliginda olmali")
@@ -3405,7 +3457,8 @@ def main(argv=None):
         # kayit URETILMEZ (hicbir blok serbest kalmaz) ve sebep ADIYLA basilir.
         ars_kayit, ars_hata = arsiv_kapanis_kayitlari(arsiv_metin)
         p = planla(kutu_metin, a.tavan, a.koru, arsiv_kayitlari=ars_kayit,
-                   simdi=simdi_t, korumali_yas_sa=a.korumali_yas_sa)
+                   simdi=simdi_t, korumali_yas_sa=a.korumali_yas_sa,
+                   en_az_yas_sa=a.en_az_yas_sa)
         p.arsiv_hatasi = ars_hata
         p.su_seviye = int(a.tavan * a.su_seviye_orani)
         if p.su_seviye < 1:
@@ -3467,6 +3520,9 @@ def main(argv=None):
               "KORUMALI_TARIH_YOK=%d korumali_yas_sa=%d  [KAPI]"
               % (yas_sayi["ACIK"], yas_sayi["KALICI"], yas_sayi["GENC"],
                  yas_sayi["TARIH_YOK"], p.korumali_yas_sa))
+        # 🔴 EN AZ YAS TABANI (BaBa 14 Eki 10:4x) — HER kosumda basilir; 0 ile n AYNI satirdan.
+        print("EN_AZ_YAS_TUTULAN=%d EN_AZ_YAS_TARIH_YOK=%d en_az_yas_sa=%d  [KAPI]"
+              % (len(p.en_az_yas_tutulan), p.en_az_yas_tarih_yok, p.en_az_yas_sa))
         for blok_idx, satir_no, ozet in p.korumali_etiket:
             yas = p.korumali_yas.get(blok_idx)
             if yas == "ACIK":
