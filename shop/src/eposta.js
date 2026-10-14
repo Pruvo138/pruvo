@@ -18,7 +18,6 @@
 import "../../secenekler.js";   // yan etkili: globalThis.PRUVO_SECENEK'i kurar (tek kaynak)
 
 const GONDEREN = "PRUVO <siparis@pruvo3d.com>";
-const WHATSAPP = "905451386526"; // sipariş/WhatsApp linki bot numarasina gider (CLAUDE.md)
 const SITE = "https://pruvo3d.com"; // urun kalici sayfalari: SITE/urun/<id>/
 
 /** Kurusu "1.234,56 TL" bicimine cevirir (tamsayi aritmetigi; sunucu tarafiyla ayni mantik). */
@@ -144,12 +143,10 @@ function cerceve(baslikMetin, icerik) {
   return "<div style='font-family:Arial,Helvetica,sans-serif;color:#1f2937;max-width:640px;" +
     "margin:0 auto'>" +
     "<h2 style='color:#12294d;margin:0 0 4px'>PRUVO</h2>" +
-    "<p style='color:#6b7280;margin:0 0 16px;font-size:13px'>Endüstriyel Parça Üretimi · Fethiye</p>" +
+    // Okan 14 Eki 12:5x: sehir satiri ve WhatsApp kapanis satiri e-postadan CIKTI.
+    "<p style='color:#6b7280;margin:0 0 16px;font-size:13px'>Endüstriyel Parça Üretimi</p>" +
     "<h3 style='color:#12294d'>" + kac(baslikMetin) + "</h3>" +
     icerik +
-    "<p style='margin-top:20px;font-size:13px;color:#6b7280'>Sorularınız için " +
-    "<a href='https://wa.me/" + WHATSAPP + "' style='color:#12294d'>WhatsApp</a> üzerinden " +
-    "bize ulaşabilirsiniz.</p>" +
     "</div>";
 }
 

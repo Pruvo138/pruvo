@@ -172,5 +172,22 @@ function fotoSenaryolar(onay) {
   }
 }
 
+console.log("S) SADE CERCEVE (Okan 14 Eki 12:5x: sehir satiri + WhatsApp kapanis satiri e-postadan CIKTI)");
+{
+  // Musteri metni (satir icerigi) bilerek sehir/WhatsApp TASIMAZ: olculen yalniz cercevenin urettigi metin.
+  const temiz = { ...SIPARIS, musteri_adres: "Test Mah. No:1" };
+  const sablonlar = [
+    ["onay musteri", onayEpostasiHtml(temiz, [RESIMLI], DOKUM, false)],
+    ["onay havale", onayEpostasiHtml(temiz, [RESIMLI], DOKUM, true)],
+    ["onay satici", onayEpostasiHtml(temiz, [RESIMLI], DOKUM, false, true)],
+    ["kargo", kargoEpostasiHtml(temiz, [RESIMLI], "Yurtici", "123")],
+  ];
+  for (const [ad, h] of sablonlar) {
+    ol("S " + ad + ": sehir adi YOK", !/Fethiye/i.test(h));
+    ol("S " + ad + ": WhatsApp kapanis satiri/baglantisi YOK", !/Sorularınız için|wa\.me|ulaşabilirsiniz/.test(h));
+    ol("S " + ad + ": marka satiri DURUR", h.includes(">Endüstriyel Parça Üretimi</p>"));
+  }
+}
+
 console.log("\nSONUC: " + gecen + " gecti, " + kalan + " kaldi" + (kalan ? "" : " — HEPSI YESIL ✅"));
 process.exit(kalan ? 1 : 0);
