@@ -2660,7 +2660,8 @@ async function fotoYukle(){
   // ④ TEK RENK (Okan 14 Eki): önizlemede kurulan 3D model sayısı + kredi tahmini (tavan foto_ayar renk_onizleme_tavan).
   '<div class="kucuk">Tek renk önizleme (önizlemede 3D model): '+(o.renk_onizleme&&o.renk_onizleme.kurulu?
    'son 24 sa '+esc(o.renk_onizleme.son_24s_build)+'/'+esc(o.renk_onizleme.tavan)+' build · tahmini kredi '+
-   esc(o.renk_onizleme.kredi_tahmini)+' · çizim bekleyen '+esc(o.renk_onizleme.render_bekleyen):
+   esc(o.renk_onizleme.kredi_tahmini)+' ('+esc(o.renk_onizleme.son_24s_build)+'×30 build + '+
+   esc(o.renk_onizleme.son_24s_build)+'×6 prototip) · çizim bekleyen '+esc(o.renk_onizleme.render_bekleyen):
    '<span class="hata">tablo kurulu değil (özellik kapalı)</span>')+'</div></div>');
  if((o.elle||[]).length){
   h.push('<div class="kart"><b>Elle bakılacak</b>'+o.elle.map(function(e){return '<div class="kucuk">'+
