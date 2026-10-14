@@ -14,9 +14,13 @@ V9 gizli yabanci yol (ekle+geri al) RED · V10 push yarisi (red -> taze fetch ->
 V11 gh hatasi OLCULEMEDI · V12 dispatch hatasi · V13 baglam-disi · V14 K80 PROVA ·
 V15 dispatch listesi YAML'dan turer (deploy.yml ilk, nobet.yml haric) · V16-V18 aclik ·
 V19 semasiz parametrik RED (K441) · V20 sema main'de -> BIRLESTI · V21 gecmis borc
-tetiklemez · V22 bozuk urunler.json OLCULEMEDI.
-Mutantlar (izole kopya, once TABAN): BOS erken donusu silinir -> V3 · yol kapisi
-kapatilir -> V8 · sema kapisi kapatilir -> V19 (+ aclik mutantlari).
+tetiklemez · V22 bozuk urunler.json OLCULEMEDI · YAPISAL BIRLESIM (14 Eki): Y1 iki taraf
+basa ekledi -> yol=yapisal · Y2 main'in sildigi geri gelmez · Y3 cift-ekleme · Y4
+cift-degisiklik · Y5 sil-degistir · Y6 urunler.json + kod.txt cakismasi -> CAKISMA (sebepsiz)
+· Y7 bicim (main roundtrip-esit degil) · Y8 ozdes ekleme tek kopya. Toplam 30 vaka (V15 dahil).
+Mutantlar (izole kopya, once TABAN; 9 mutant): BOS erken donusu silinir -> V3 · yol kapisi
+kapatilir -> V8 · sema kapisi kapatilir -> V19 · aclik x2 · cakisan-yol kumesi -> Y6 ·
+cift-degisiklik -> Y4 · silme korumasi -> Y2 · cift-ekleme -> Y3.
 """
 import importlib.util
 import json
@@ -475,7 +479,97 @@ def vakalar():
         if s.push_sayisi() or s.dispatchler() or s.uzak("main") != b["main"]:
             return "olculemezken push/dispatch/main degisimi"
     v.append(("V22-OLCULEMEDI-bozuk-urunler-json", v22_kur, v22_dog))
+
+    # ── YAPISAL BIRLESIM (14 Eki 2026): main de kuyruk da diziye BASTAN ekler -> metin
+    # cakismasi; cakisan yol kumesi TAM {urunler.json} ise id ile uc-yollu birlesim.
+    def y_kur(taban, kuyruk, main_l, main_metin=None, kuyruk_ek=None, main_ek=None):
+        def kur(s):
+            s.yaz("urunler.json", kanonik(taban))
+            s.commit("taban: kanonik urunler")
+            s.g(s.yazar, "push", "-q", "origin", "HEAD:main")
+            for yol, metin in (kuyruk_ek or {}).items():
+                s.yaz(yol, metin)
+            k = kur_kuyruk_urun(s, kanonik(kuyruk))
+            s.g(s.yazar, "checkout", "-q", "--detach", s.uzak("main"))
+            s.yaz("urunler.json", main_metin if main_metin is not None else kanonik(main_l))
+            for yol, metin in (main_ek or {}).items():
+                s.yaz(yol, metin)
+            m = s.commit("urun: main tarafi")
+            s.g(s.yazar, "push", "-q", "origin", "HEAD:main")
+            return {}, True, {"main": m, "k": k}
+        return kur
+
+    def y_birlesti(beklenen_ids, sayim):
+        def dog(s, rc, satir, b):
+            if rc != 0 or not satir.startswith("KUYRUK=BIRLESTI") or " yol=yapisal " not in satir:
+                return "rc/satir: %r" % satir
+            if " eklenen=%d silinen=%d degisen=%d" % sayim not in satir:
+                return "sayim alani: %r" % satir
+            yeni = s.uzak("main")
+            s.g(s.yazar, "fetch", "-q", "origin")
+            ebeveyn = s.g(s.yazar, "rev-list", "--parents", "-n", "1", yeni).split()[1:]
+            if ebeveyn != [b["main"], b["k"]]:
+                return "ebeveynler %s (ilk main olmali)" % ebeveyn
+            if s.g(s.yazar, "log", "-1", "--format=%s", yeni) != \
+                    "urun-kuyruk: urun-kuyruk -> main birlestirme":
+                return "merge mesaji degisti"
+            metin = s.g(s.yazar, "show", "%s:urunler.json" % yeni)
+            ids = [u["id"] for u in json.loads(metin)]
+            if ids != beklenen_ids:
+                return "sonuc id sirasi %s != %s" % (ids, beklenen_ids)
+            if metin != kanonik(json.loads(metin)):
+                return "sonuc kanonik bicimde degil"
+            if s.push_sayisi("main") != 1 or s.uzak("urun-kuyruk") != yeni:
+                return "push/senkron"
+        return dog
+
+    def y_cakisma(sebep):
+        taban_dog = red_dog("KUYRUK=CAKISMA main=")
+
+        def dog(s, rc, satir, b):
+            beklenen = "KUYRUK=CAKISMA main=%s kuyruk=%s" % (b["main"][:12], b["k"][:12])
+            if sebep:
+                beklenen += " sebep=" + sebep
+            if satir != beklenen:
+                return "satir %r != %r" % (satir, beklenen)
+            return taban_dog(s, rc, satir, b)
+        return dog
+
+    a, bb, c = {"id": "a", "ad": "A"}, {"id": "b", "ad": "B"}, {"id": "c", "ad": "C"}
+    k1, m1 = {"id": "k1", "ad": "K1"}, {"id": "m1", "ad": "M1"}
+    v.append(("Y1-yapisal-iki-taraf-basa-ekledi",
+              y_kur([a, bb], [k1, a, bb], [m1, a, bb]),
+              y_birlesti(["k1", "m1", "a", "b"], (1, 0, 0))))
+    v.append(("Y2-yapisal-main-sildi-korunur",
+              y_kur([a, bb, c], [k1, a, bb, c], [m1, a, bb]),
+              y_birlesti(["k1", "m1", "a", "b"], (1, 0, 0))))
+    v.append(("Y3-cift-ekleme",
+              y_kur([a, bb], [{"id": "x", "ad": "K"}, a, bb], [{"id": "x", "ad": "M"}, a, bb]),
+              y_cakisma("cift-ekleme")))
+    v.append(("Y4-cift-degisiklik",
+              y_kur([a, bb], [k1, {"id": "a", "ad": "AK"}, bb], [m1, {"id": "a", "ad": "AM"}, bb]),
+              y_cakisma("cift-degisiklik")))
+    v.append(("Y5-sil-degistir",
+              y_kur([a, bb, c], [k1, a, bb, {"id": "c", "ad": "CK"}], [m1, a, bb]),
+              y_cakisma("sil-degistir")))
+    v.append(("Y6-urunler-ve-kod-cakisti",
+              y_kur([a, bb], [k1, a, bb], [m1, a, bb],
+                    kuyruk_ek={"kod.txt": "kod-K\n"}, main_ek={"kod.txt": "kod-M\n"}),
+              y_cakisma(None)))
+    v.append(("Y7-bicim-bozuk-main",
+              y_kur([a, bb], [k1, a, bb], None,
+                    main_metin=json.dumps([m1, a, bb], ensure_ascii=False, indent=4)),
+              y_cakisma("bicim")))
+    x = {"id": "x", "ad": "X"}
+    v.append(("Y8-ozdes-ekleme-tek-kopya",
+              y_kur([a, bb], [k1, x, a, bb], [m1, x, a, bb]),
+              y_birlesti(["k1", "m1", "x", "a", "b"], (1, 0, 0))))
     return v
+
+
+def kanonik(liste):
+    """Depodaki yazicinin bicimi (tools/duzelt.py::_atomic_write) — fikstur tabani."""
+    return json.dumps(liste, ensure_ascii=False, indent=2)
 
 
 def dispatch_vakasi():
@@ -545,6 +639,19 @@ MUTANTLAR = [
     ("M-ESIK-SIFIR", "ACIK_DK=0 (esik sifira cekildi, env override yutulur)",
      ("ACIK_DK = int(os.environ.get(\"PRUVO_KUYRUK_ACLIK_DK\", \"45\"))  # MUTANT-CAPA:ESIK",
       "ACIK_DK = 0  # MUTANT ESIK"), "V17-BEKLE-aclik-yok"),
+    ("M-CAKISAN", "cakisan yol kumesi kontrolu kaldirildi (urunler.json + kod.txt yapisala girer)",
+     ('            if cakisan != ["urunler.json"]:  # MUTANT-CAPA:CAKISAN',
+      "            if False:  # MUTANT CAKISAN"), "Y6-urunler-ve-kod-cakisti"),
+    ("M-CIFT-DEGISIKLIK", "cift-degisiklik kontrolu kaldirildi",
+     ("    if any(k[i] != m[i] for i in k_deg & m_deg):  # MUTANT-CAPA:CIFT-DEGISIKLIK",
+      "    if False:  # MUTANT CIFT-DEGISIKLIK"), "Y4-cift-degisiklik"),
+    ("M-SILME", "silme korumasi kaldirildi (main'in sildigi kuyruktan geri gelir)",
+     ("    eklenen = [i for i in k_sira if i not in t and i not in m]  # MUTANT-CAPA:SILME",
+      "    eklenen = [i for i in k_sira if i not in m]  # MUTANT SILME"),
+     "Y2-yapisal-main-sildi-korunur"),
+    ("M-CIFT-EKLEME", "cift-ekleme kontrolu kaldirildi",
+     ("        if uid not in t and uid in m and m[uid] != k[uid]:  # MUTANT-CAPA:CIFT-EKLEME",
+      "        if False:  # MUTANT CIFT-EKLEME"), "Y3-cift-ekleme"),
 ]
 
 
