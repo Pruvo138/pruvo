@@ -8137,6 +8137,17 @@ async function rnIstemci(kaynak, V) {
   s.RNH5 = nh5Img.src === RN_GORSEL && nhDinle(nh5Img) === 0 && nhIpucu(nh5).length === 0 &&
     nh5Img.classList.contains("foto-uretim-renk-degis") === false;
 
+  // RNH7: üreteç türü (anahtarlık–yazı, fotoğraf YOK) → "fotoğraftaki" ipucu ÇİZİLMEZ · alt metinde boş renk adı yok ·
+  // alternatif (üretecin düz görünümü) yine üstüne gelince gelir, alt = "düz görünüm".
+  const nh7Img = nhImg(e8);
+  const nh7Alt0 = nh7Img.alt;
+  nh7Img.tetikle("pointerenter", { pointerType: "mouse" });
+  const nh7Enter = { src: nh7Img.src, alt: nh7Img.alt };
+  nh7Img.tetikle("pointerleave", { pointerType: "mouse" });
+  iz.RNH7 = { ipucu: nhIpucu(e8).length, alt0: nh7Alt0, enter: nh7Enter, src: nh7Img.src };
+  s.RNH7 = nhIpucu(e8).length === 0 && nh7Alt0 === "Önizleme — seçilen renklerde çizim" &&
+    nh7Enter.src === RN_GORSEL && nh7Enter.alt === "Önizleme — düz görünüm" && nh7Img.src === UR;
+
   // RNH6: ipucu metni birebir + RENK_CUMLESI birebir + sıra (cümle önce, ipucu sonra; aynı).
   const nh6 = await nhKos(kaynak, V, kayit("plaket", "Beyaz"),
     rnHazir("plaket", { onizleme_renk: "Beyaz", onizleme_renk_durum: "hazir", onizleme_renk_url: RG("Beyaz"), onizleme_saglayici_url: RN_GORSEL }));
@@ -8173,6 +8184,7 @@ async function rnIstemci(kaynak, V) {
     RNH4: "RNH4 S.gorsel boş → dinleyici 0 · ipucu yok · sınıf yok · src = renk çizimi",
     RNH5: "RNH5 Renkli seçili (renkCiz=false) → dinleyici 0 · ipucu yok · src = sağlayıcı görseli",
     RNH6: "RNH6 ipucu metni birebir + RENK_CUMLESI birebir + DOM sırası (cümle önce, ipucu sonra)",
+    RNH7: "RNH7 üreteç türü (fotoğraf yok) → 'fotoğraftaki' ipucu 0 · alt 'seçilen renklerde çizim' · üstünde düz görünüm → geri",
   };
   for (const a of Object.keys(ADLAR)) { ol(ADLAR[a], s[a] === true, JSON.stringify(s.iz[a]).slice(0, 700)); }
   const RNE_MUT = [
@@ -8193,7 +8205,7 @@ async function rnIstemci(kaynak, V) {
     ["M-RNH-LEAVE pointerleave geri döndürmüyor (cizimGoster no-op) -> RNH1+RNH2+RNH3 KIRMIZI (hepsi cizimGoster'ı paylaşır)",
      "var renkDegisCizimGoster = function () { img.src = renkDegisCizim; img.alt = renkDegisAltCizim; };",
      "var renkDegisCizimGoster = function () {};",
-     ["RNH1", "RNH2", "RNH3"]],
+     ["RNH1", "RNH2", "RNH3", "RNH7"]],
     ["M-RNH-BOSKEN-DINLE S.gorsel boşken de dinleyici kuruluyor -> RNH4 KIRMIZI",
      "if (renkCiz && S.renkSunucu && S.gorsel) {",
      "if (renkCiz && S.renkSunucu) {",
@@ -8202,6 +8214,10 @@ async function rnIstemci(kaynak, V) {
      "if (renkCiz && S.renkSunucu && S.gorsel) {",
      "if (S.gorsel) {",
      ["RNH5"]],
+    ["M-RNH-URETEC-IPUCU üreteç kolunda da 'fotoğraftaki' ipucu çiziliyor -> RNH7 KIRMIZI",
+     "if (renkDegisFotoKolu) S.alan.appendChild(el(\"p\", \"foto-uretim-ayrinti foto-uretim-renk-ipucu\", RENK_IPUCU));",
+     "S.alan.appendChild(el(\"p\", \"foto-uretim-ayrinti foto-uretim-renk-ipucu\", RENK_IPUCU));",
+     ["RNH7"]],
     ["M-RNH-K0 KONTROL (yorum)", "  // ④ HOVER ALTERNATİF (Okan 14 Eki 03:5x): fareyle", "  // ④ HOVER ALTERNATİF (Okan 14 Eki 03:5x): fareyle", []],
   ];
   for (const [ad, capa, yerine, olmeli] of RNH_MUT) {
