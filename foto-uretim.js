@@ -346,6 +346,10 @@
     ".foto-uretim-captcha{margin:14px 0;}" +
     ".foto-uretim-onizleme-img{display:block;max-width:100%;height:auto;" +
     "border-radius:6px;margin:10px 0;background:#eef0f3;}" +
+    // ④ HOVER ALTERNATİF (Okan 14 Eki 03:5x): fare/dokunma ile sağlayıcının renkli görseline geçiş; uzun basış
+    // menüsünü kapat, metin seçimini kapat (görsel altındaki ipucu okunsun), sayfa kaydırma yatay değil dikey.
+    ".foto-uretim-renk-degis{cursor:pointer;-webkit-touch-callout:none;-webkit-user-select:none;" +
+    "user-select:none;touch-action:pan-y;}" +
     ".foto-uretim-ozet{background:#eef0f3;padding:12px;border-radius:6px;" +
     "font-size:14px;margin:10px 0;line-height:1.6;}" +
     ".foto-uretim-ayrinti{font-size:13px;color:#5b6573;margin:8px 0;line-height:1.5;}" +
@@ -2279,6 +2283,9 @@
   var RENK_URL = "/api/shop/foto/renk";
   var RENK_HAZIRLANIYOR = "Renk önizlemesi hazırlanıyor…";
   var RENK_CUMLESI = "Önizleme seçtiğin renkte çizildi; ürün bu renkte üretilir.";
+  // ④ HOVER ALTERNATİF (Okan 14 Eki 03:5x): görselin üstüne gelince / basılı tutunca sağlayıcının renkli
+  // görseli gösterilir; cümlenin altında TEK satır ipucu (yalnız S.gorsel doluyken).
+  var RENK_IPUCU = "Fotoğraftaki renkli hâlini görmek için görselin üstüne gel ya da basılı tut.";
   var RENK_YOKLAMA_TAVAN_MS = 900000;   // sunucu RENK_RENDER_BEKLEME_SN (15 dk) ile AYNI; sonra eski davranış
   function renkOnizlemeKolu() {
     return !!S.tur && (figurKoluMu() || !(F && F.kolu && F.kolu(S.tur) === "deterministik"));
@@ -2375,6 +2382,37 @@
         // ④ görseli sağlayıcının/üretecin görseli AYNEN (Okan 12 Eki: yeniden boyama yok).
         img.src = S.gorsel;
         S.alan.appendChild(img);
+      }
+      // ④ HOVER ALTERNATİF (Okan 14 Eki 03:5x): fareyle üstüne gelince / basılı tutunca sağlayıcının renkli
+      // görseli. Yalnız renkCiz + S.gorsel doluyken kurulur; geri dönüş değeri KURULUM ANINDA YAKALANAN çizim
+      // adresidir (S sonradan değişse bile o görsele döner). Renkli / üreteç kolu / çizim hazır değil → HİÇBİR.
+      if (renkCiz && S.renkSunucu && S.gorsel) {
+        // Sözleşme alanı `onizleme_saglayici_url` (S.renkSunucu.saglayici) önce; yoksa aynı işin S.gorsel'i.
+        var renkDegisSaglayici = (S.renkSunucu && S.renkSunucu.saglayici) || S.gorsel;
+        var renkDegisCizim = (S.renkSunucu && S.renkSunucu.gorsel) || "";
+        img.classList.add("foto-uretim-renk-degis");
+        img.tabIndex = 0;
+        var renkDegisAltCizim = img.alt;
+        var renkDegisAltRenkli = "Önizleme — fotoğraftaki renkli hâli";
+        // Titreme olmasın: ön yükle (Image yoksa atla — test ortamı sahte DOM'da yoksay).
+        if (typeof Image === "function") { try { var __prv = new Image(); __prv.src = renkDegisSaglayici; } catch (__prve) {} }
+        var renkDegisRenkliGoster = function () { img.src = renkDegisSaglayici; img.alt = renkDegisAltRenkli; };
+        var renkDegisCizimGoster = function () { img.src = renkDegisCizim; img.alt = renkDegisAltCizim; };
+        img.addEventListener("contextmenu", function (e) {
+          if (e && typeof e.preventDefault === "function") { e.preventDefault(); }
+        });
+        img.addEventListener("pointerenter", function (e) {
+          if (e && e.pointerType === "mouse") { renkDegisRenkliGoster(); }
+        });
+        img.addEventListener("pointerleave", renkDegisCizimGoster);
+        img.addEventListener("pointerdown", function (e) {
+          if (e && (e.pointerType === "touch" || e.pointerType === "pen")) { renkDegisRenkliGoster(); }
+        });
+        img.addEventListener("pointerup", renkDegisCizimGoster);
+        img.addEventListener("pointercancel", renkDegisCizimGoster);
+        img.addEventListener("focus", renkDegisRenkliGoster);
+        img.addEventListener("blur", renkDegisCizimGoster);
+        S.alan.appendChild(el("p", "foto-uretim-ayrinti foto-uretim-renk-ipucu", RENK_IPUCU));
       }
     }
 
