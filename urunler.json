@@ -1,5 +1,386 @@
 [
   {
+    "id": "c3d-yayli-kapakli-mekanik-kutu",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Yaylı Kapaklı Mekanik Kutu (Dişli Kilitli)",
+    "aciklama": "Ön yüzündeki dişli ve spiral kilit mekanizmasıyla kapağı yay gücüyle açılan küçük saklama kutusu. Montaj gerektirmez; kutu, kapak ve mekanizma birbirine bağlı yapıdadır. Takı, bozuk para ve ufak parçaları düzenli tutmak ya da hediye olarak vermek için uygundur. Fotoğraflarda kutu kapalı, açık ve elde tutulurken görülür.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dprint-in-place-spring-loaded-box-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dprint-in-place-spring-loaded-box-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dprint-in-place-spring-loaded-box-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "SunShine",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "c3d-hizli-kavrama-mekanizmali-telefon-standi",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Hızlı Kavrama Mekanizmalı Telefon Standı (Çok Açılı)",
+    "aciklama": "Telefonu bıraktığınızda kavrayıp kilitleyen, telefonu kaldırdığınızda serbest bırakan mekanik masaüstü stand. Birden fazla izleme açısı sunar; büyük ekranlı telefonlara uygundur. Fotoğraflarda stand boş halde, telefonla yatay ve dik konumda ve arkadan görülür; telefon ürüne dahil değildir.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dmechanical-quick-grab-release-phone-stand-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dmechanical-quick-grab-release-phone-stand-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dmechanical-quick-grab-release-phone-stand-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dmechanical-quick-grab-release-phone-stand-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "arron_mollet22",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "c3d-dislikremayer-mekanizmali-telefon-tutucu",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Dişli-Kremayer Mekanizmalı Telefon Tutucu (Masa ve Araç İçi)",
+    "aciklama": "Dişli ve kremayer kollarıyla telefonu iki yandan saran mekanik tutucu. Montaj ya da ek vida gerektirmez; masa üstünde ayaklı stand olarak ya da araçta havalandırma ızgarasına takılarak kullanılır. Fotoğraflarda farklı renklerde tutucu, telefonla birlikte ve araç içinde görülür; telefon ürüne dahil değildir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dprint-in-place-phone-holder-for-space-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dprint-in-place-phone-holder-for-space-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dprint-in-place-phone-holder-for-space-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dprint-in-place-phone-holder-for-space-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "SunShine",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "c3d-moduler-telefon-ve-kamera-baglanti-sistemi",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Modüler Telefon ve Kamera Bağlantı Sistemi (Masa Kıskaçlı)",
+    "aciklama": "Telefon ve hafif kameraları masa kenarına ya da düz yüzeye sabitlemek için modüler parçalardan oluşan sistem: katlanır kol, masa kıskacı, tabanlı ayak ve telefon tutucu. Telefon kıskacı yaklaşık 55-85 mm genişliğindeki telefonlara uyar; eklemler GoPro uyumlu ekipmanla kullanılabilir. Cıvata ve somunlar M5 ölçüsündedir. Fotoğraflarda kıskaçla masa kenarında ve tabanlı ayakla masa üstünde görülür; telefon ve kamera ürüne dahil değildir.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dmodular-mounting-system-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dmodular-mounting-system-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dmodular-mounting-system-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dmodular-mounting-system-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "HeyVye",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "c3d-sekil-yilani-fidget-oyuncagi",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Şekil Yılanı Fidget Oyuncağı (Menteşeli Küp Modüller)",
+    "aciklama": "Menteşeli kare modüllerden oluşan, küp, çerçeve ve farklı şekillere katlanabilen el oyuncağı. Elde oynamak ya da iki adet yapıp arkadaşlarla şekil yarışması yapmak için uygundur. Montaj gerektirmez. Fotoğraflarda küp ve açık çerçeve halinde, farklı renklerde görülür.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dshape-snake-print-in-place-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dshape-snake-print-in-place-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dshape-snake-print-in-place-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dshape-snake-print-in-place-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "virtubob",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "c3d-burgulu-dalgali-vazo-kutu",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Burgulu Dalgalı Vazo (Saklama Kabı Olarak da Kullanılır)",
+    "aciklama": "Burgulu, dalgalı yüzey dokusuna sahip, tek cidarlı vazo. Ölçeklenerek büyütülebilir; büyük ölçüde çöp kutusu ya da saklama kabı olarak da kullanılabilir. Parlak yüzeyli malzemeyle daha gösterişli durur. Fotoğraflarda siyah vazo yan ve üstten görülür.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dgmax-twisted-ripple-vase-bin-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dgmax-twisted-ripple-vase-bin-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "gCreate",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "c3d-egimli-evrensel-telefon-standi",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Eğimli Evrensel Telefon Standı",
+    "aciklama": "Eğimli yüzeyiyle telefonu dik ve rahat okunur konumda tutan sade, tek parça masaüstü stand. Çoğu telefon boyutuna uyar. Fotoğraflarda stand telefonla yandan ve karşıdan görülür; telefon ürüne dahil değildir.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3duniversal-phone-stand-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3duniversal-phone-stand-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "BCN3D",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "c3d-yuruyen-at-biblosu",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Yürüyen At Biblosu (Kabartmalı Zeminli)",
+    "aciklama": "Yürüyüş duruşunda, doğal dokulu zemin üzerinde duran detaylı at biblosu. Yele, kuyruk ve kas hatları ayrıntılı işlenmiştir. Raf, komodin ya da çalışma masasında dekoratif nesne olarak kullanılır. Fotoğraflarda gri renkli biblo iki farklı açıdan ve model görünümüyle yer alır.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dhorse-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dhorse-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dhorse-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "stronghero3d",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "c3d-sade-telefon-ve-tablet-standi",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Sade Telefon ve Tablet Standı (Farklı Konumlarda Kullanılır)",
+    "aciklama": "Telefon ve tabletler için sade, sağlam stand. Farklı konumlarda yerleştirilebilir; kablo geçişi için açıklığı vardır. Kılıflı telefonlar için uygun boyut seçilmelidir. Fotoğraflarda stand şarj kablosuyla, telefon ve tabletle ve farklı renklerde görülür; cihazlar ürüne dahil değildir.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dcell-phone-and-tablet-stand-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dcell-phone-and-tablet-stand-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dcell-phone-and-tablet-stand-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dcell-phone-and-tablet-stand-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "BQ_3D",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "c3d-anahtarlikli-cok-acili-telefon-standi",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Anahtarlıklı Çok Açılı Telefon Standı (Üç Parçalı)",
+    "aciklama": "Üç parçadan oluşan, anahtarlığa takılabilen çok açılı cep telefonu standı. Farklı eğimlerde kullanılarak ekran yansımasını azaltır ve cebe sığacak kadar küçüktür. Fotoğraflarda stand anahtarlığıyla masa üstünde, telefonla ve parçaları ayrı halde görülür; telefon ürüne dahil değildir.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dmulti-angle-phone-stand-chienline-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dmulti-angle-phone-stand-chienline-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "chienline",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "c3d-tost-makinesi-bicimli-sd-kart-tutucu",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Tost Makinesi Biçimli SD Kart Tutucu",
+    "aciklama": "Ekmek kızartma makinesi şeklinde, SD kartı saklamak için tasarlanmış masaüstü tutucu. Yan tarafında hareketli kol bulunur; montaj gerektirmez. Fotoğraflarda gri renkli tutucu farklı açılardan görülür; SD kart ürüne dahil değildir.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dsd-card-toaster-print-in-place-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dsd-card-toaster-print-in-place-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Dehapro",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "c3d-gizli-bolmeli-duvar-rafi",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Gizli Bölmeli Duvar Rafı",
+    "aciklama": "Üst yüzeyi yana kaydırıldığında altında gizli bir bölme açılan küçük duvar rafı. Banknot, anahtar ya da küçük değerli eşyaları göze çarpmadan saklamak için uygundur; kapalıyken sade bir dekoratif raf gibi görünür. Fotoğraflarda raf kapalı, açık bölmeli ve üzerinde süs nesnesiyle görülür.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dsecret-shelf-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dsecret-shelf-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dsecret-shelf-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "walltosh",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "c3d-kalp-seklinde-kapakli-kutu",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kalp Şeklinde Kapaklı Kutu",
+    "aciklama": "Kalp biçiminde, oturan kapaklı saklama kutusu. Takı, küçük hediye ya da anı parçaları için sevgililer günü ve doğum günü hediyesi olarak uygundur. Fotoğraflarda kırmızı kutu kapalı, açık ve yanında küçük kalp süsleriyle görülür.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dheart-box-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dheart-box-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dheart-box-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Zortrax",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "c3d-enginar-bicimli-sarkit-abajur",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Enginar Biçimli Sarkıt Abajur",
+    "aciklama": "Enginar geometrisinden esinlenilmiş, üst üste binen yapraklardan oluşan sarkıt abajur. Standart sarkıt ampul askısı ve düşük ısılı ampul (CFL tipi) ile ev ya da ofis ortamında kullanılır. Fotoğraflarda abajur yanarken ve beyaz renkli halde görülür; ampul ve askı ürüne dahil değildir.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dartichoke-lamp-shade-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dartichoke-lamp-shade-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "gCreate",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "c3d-eklemli-yilbasi-figur-seti",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Eklemli Yılbaşı Süsü Seti (Noel Baba, Elf, Ren Geyiği)",
+    "aciklama": "Noel Baba, elf ve ren geyiği karakterlerinden oluşan, eklemleri hareket eden yılbaşı seti. Üst kısımlarındaki halkayla ağaç süsü olarak asılabilir ya da raf ve masada sergilenebilir. Boyanmaya uygundur. Fotoğraflarda karakterler tek tek ve grup halinde boyalı olarak görülür.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3darticulated-christmas-toys-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3darticulated-christmas-toys-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3darticulated-christmas-toys-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3darticulated-christmas-toys-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "BQ_3D",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "c3d-bolmeli-boncuk-ayirma-kutusu",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Bölmeli Boncuk Ayırma Kutusu (Menteşeli Kapaklı)",
+    "aciklama": "Çok küçük boncukları kutu sallansa bile karışmadan ayrı tutan bölmeli kutu. Yuvarlatılmış alt köşeleri küçük boncukları kolayca toplamayı sağlar. Menteşeli kapaklıdır. Fotoğraflarda kutu açık haliyle farklı renk boncuklarla ve kapalı halde görülür.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dmiyuka-beads-sorting-box-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dmiyuka-beads-sorting-box-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dmiyuka-beads-sorting-box-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dmiyuka-beads-sorting-box-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "3DED",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "c3d-menteseli-katlanir-telefon-standi",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Menteşeli Katlanır Telefon Standı (Üç Parçalı)",
+    "aciklama": "Üç parçası farklı açılarda dönebilen menteşeli, katlanıp cebe ya da çantaya sığan telefon standı. Yolculukta ve masa üstünde telefonu dik tutmak için uygundur. Fotoğraflarda stand açık ve kapalı halde, telefonla görülür; telefon ürüne dahil değildir.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dparametric-folding-phone-stand-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dparametric-folding-phone-stand-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dparametric-folding-phone-stand-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Zippityboomba",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "c3d-masa-kenari-takilabilir-alet-tepsisi",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Masa Kenarı Takılabilir Alet Tepsisi",
+    "aciklama": "Düz tablası masa ya da tezgâh kenarına oturan, tepsisi kenardan aşağı sarkan küçük parça ve alet tepsisi. Vida, kalem, dikiş malzemesi ve elektronik parçaları elinizin altında tutar; takıp çıkarması hızlıdır. Fotoğraflarda tepsi boş halde, vidalarla ve elektronik parçalarla dolu olarak görülür.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dtools-tray-iguigui-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dtools-tray-iguigui-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dtools-tray-iguigui-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dtools-tray-iguigui-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "iguigui",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "c3d-priz-ustu-sarj-rafi",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Priz Üstü Şarj Rafı (Telefon ve Müzik Çalar İçin)",
+    "aciklama": "Duvar prizindeki şarj adaptörünün üzerine yerleştirilen ince raf. Şarj olurken telefon ya da müzik çaları yatay ya da dik konumda taşır, kabloyu düzenli tutar. Fotoğraflarda raf priz üzerinde boş halde, yatay ve dik duran cihazla görülür; cihaz ve şarj adaptörü ürüne dahil değildir.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dwall-outlet-shelf-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dwall-outlet-shelf-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dwall-outlet-shelf-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "walltosh",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "c3d-parmaga-takilan-mekanik-kalem-tutucu",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Parmağa Takılan Mekanik Kalem Tutucu",
+    "aciklama": "Parmağa geçirilen, eklemleri parmakla birlikte hareket eden mekanik kalem tutucu. Standart esnek bir kalem ucu yerleştirilir ve dört adet M3 x 10 mm vida ile bağlanır; vida ve kalem ucu ürüne dahil değildir. Fotoğraflarda tutucu elde, kâğıt üzerinde yazarken ve farklı açılardan görülür.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dsolo-finger-pen-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dsolo-finger-pen-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dsolo-finger-pen-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "WorksBySolo",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "c3d-kuru-kafalar-uzerinde-karga-biblosu",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kuru Kafalar Üzerinde Karga Biblosu (Çatlak Zeminli)",
+    "aciklama": "İki kuru kafa üzerine tünemiş bir kargayı, yuvarlak ve çatlak dokulu bir zemin üzerinde gösteren koleksiyon biblosu. Gotik temalı raf ve masa dekorasyonu için uygundur. Fotoğraflarda biblo koyu renkli model görünümüyle ve boyalı halde görülür.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3draven-with-skulls-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3draven-with-skulls-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3draven-with-skulls-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Nello",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "tamirat-tek-parca-donen-rulman-seti-607-608-609-6000-6001-6002-6004-6902-pr541192",
     "kategori": "Tamirat",
     "marka": [],
