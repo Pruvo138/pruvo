@@ -177,6 +177,10 @@ FAIL_CLOSED = {
     ("pre-push", "tools/gecmis-geri-donus-kapisi.py"):
         "temizlenmis sizintiyi geri getiren itmeyi DURDURUR; yutulursa gecmis "
         "temizligi ucuncu kez geri doner ve hicbir yerde alarm calmaz.",
+    ("pre-push", "tools/kisisel-veri-test.py"):
+        "gecmis ekseni ic rapor nobeti: ic rapor EKLEYEN commit public'e gidince "
+        "anonim cekilebilir ve geri alinamaz (blok `.git/hooks`ta OLU kaldigi "
+        "4 Agu -> 14 Eki penceresinde 5 rapor sizdi); yutulursa ONLEME degeri sifirlanir.",
 }
 
 FAIL_OPEN = {

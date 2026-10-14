@@ -1,15 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""pre-push hook'una GECMIS NOBETI BLOGUNU kurar (idempotent, tekrar-kosulabilir).
+"""pre-push GECMIS NOBETI BLOGUNUN tanimi + `.git/hooks` kurucusu (hooksPath'te REDDEDER).
 
-🖥️ YENI MAKINEDE / GOCTEN SONRA TEK YAPILACAK SEY:
-        python3 tools/gecmis-nobeti-hook-kur.py
-    Hook'lar `.git/hooks` altinda yasar ve GIT'E GIRMEZ -> her makinede yeniden kurulur.
-    Kurulu mu diye bakmak icin: `python3 tools/kisisel-veri-test.py` son satirlarina
-    ("Canli aralik taramasi pre-push kancasinda: KURULU / KURULU DEGIL") ya da
-    `python3 tools/gecmis-nobeti-hook-kur.py --dogrula`.
+🔴 14 Eki 2026 YENIDEN HEDEFLENDI: bu depoda `core.hooksPath` 4 Agu'tan (c2b1292e) beri
+   `.git/pruvo-kancalar`dir (tools/kanca-kur.py, izlenen kaynak tools/kancalar/). Bu
+   betik blogu hala `<git-common-dir>/hooks/pre-push`a yaziyordu -> git o dosyayi HIC
+   okumuyordu, nobet ~10 hafta HICBIR push'ta kosmadi (o pencerede 5 ic rapor PUBLIC'e
+   cikti: `python3 tools/kisisel-veri-test.py --gecmis`). Simdi:
+     * BLOK izlenen kaynakta, tools/kancalar/pre-push icinde BAYT-ESIT durur
+       (tools/kanca-kablolama-test.py olcer); kurulum = `python3 tools/kanca-kur.py`.
+     * Git BASKA bir yolu okuyorsa (core.hooksPath) kurma/kaldirma REDDEDILIR (rc 3,
+       hicbir sey yazilmaz) — olu dosyaya "yazildi" demek kapatilan hatanin ta kendisi.
+     * `--dogrula` git'in FIILEN okudugu kancaya bakar.
+   `.git/hooks` yolu yalniz core.hooksPath'siz depolarda (sentetik/test) yazilir.
 
-NE YAPAR: `.git/hooks/pre-push` icine isaretli bir blok ekler. Blok her push'ta
+Kurulu mu: `python3 tools/gecmis-nobeti-hook-kur.py --dogrula` ya da
+`python3 tools/kisisel-veri-test.py` son satirlari ("Canli aralik taramasi pre-push
+kancasinda: KURULU / KURULU DEGIL").
+
+NE YAPAR: pre-push icine isaretli bir blok ekler. Blok her push'ta
 `tools/kisisel-veri-test.py --pre-push` cagirir; kapi kirmizi yanarsa PUSH DURUR.
 
 NEDEN VAR (olculdu 30 Tem — AYNI HATA DORDUNCU KEZ):
@@ -42,18 +51,29 @@ Bu blok stdin'i gecici bir dosyaya alir, kapiyi onunla besler, sonra `exec 0<` i
 dosyanin BASINDAN geri baglar -> ayni hook'taki D1 senkron blogunun `while read`
 dongusu girdiyi eksiksiz gorur. Blok bu yuzden D1 blogundan ONCE yerlestirilir
 (D1 blogu `exit 0` ile cikabiliyor; sona eklenen blok cogu push'ta hic kosmazdi).
+tools/kancalar/pre-push'ta GERI-DONUS blogunun ARDINA, KANARYA SONRASI'ndan ONCE durur:
+blogun gercek-git fiksturu (gecici depo) kanarya once/sonra olcumunun ICINDE kalir.
 
 Kullanim:
-    python3 tools/gecmis-nobeti-hook-kur.py            # kur / guncelle
+    python3 tools/gecmis-nobeti-hook-kur.py            # kur / guncelle (hooksPath'te RET)
     python3 tools/gecmis-nobeti-hook-kur.py --kuru     # ne yapacagini goster, YAZMA
-    python3 tools/gecmis-nobeti-hook-kur.py --dogrula  # kurulu mu (cikis 0/1)
-    python3 tools/gecmis-nobeti-hook-kur.py --kaldir   # yalniz bu blogu cikar
+    python3 tools/gecmis-nobeti-hook-kur.py --dogrula  # git'in OKUDUGU kancada kurulu mu (0/1)
+    python3 tools/gecmis-nobeti-hook-kur.py --kaldir   # yalniz bu blogu cikar (hooksPath'te RET)
+    python3 tools/gecmis-nobeti-hook-kur.py --repo YOL # baska bir depoya (test: K384-V5/V6)
 """
 import os
 import shutil
 import stat
 import subprocess
 import sys
+
+TOOLS = os.path.dirname(os.path.abspath(__file__))
+if TOOLS not in sys.path:
+    sys.path.insert(0, TOOLS)
+from git_ortami import kanca_hedef_reddi, kanca_yollari  # noqa: E402
+
+# Kurulum REDDEDILDI: git bu kurucunun yazdigi yolu OKUMUYOR (core.hooksPath).
+RC_RET = 3
 
 BAS = ("# >>> PRUVO GECMIS NOBETI BLOGU "
        "(tools/gecmis-nobeti-hook-kur.py uretir — ELLE DUZENLEME) >>>")
@@ -65,17 +85,21 @@ BLOK = BAS + """
 # stdin BIR KEZ okunur -> gecici dosyaya alinip 'exec 0<' ile geri baglanir ki
 # asagidaki D1 senkron blogunun 'while read' dongusu ref satirlarini gorebilsin.
 pruvo_gn_kok=$(git rev-parse --show-toplevel 2>/dev/null)
-pruvo_gn_tmp=$(mktemp -t pruvo-prepush) || exit 1
+pruvo_gn_tmp=$(mktemp 2>/dev/null)
+if [ -z "$pruvo_gn_tmp" ] || [ ! -f "$pruvo_gn_tmp" ]; then
+  echo "!! PUSH DURDURULDU — gecmis nobeti girdisi icin gecici dosya acilamadi." >&2
+  exit 1
+fi
 cat > "$pruvo_gn_tmp"
 if [ -z "$pruvo_gn_kok" ] || [ ! -f "$pruvo_gn_kok/tools/kisisel-veri-test.py" ]; then
-  echo "!! GECMIS NOBETI KOSULAMADI (tools/kisisel-veri-test.py yok) — PUSH DURDURULDU."
-  echo "!! Sizinti kapisi fail-closed'dir. Kasten atlamak icin: git push --no-verify"
+  echo "!! GECMIS NOBETI KOSULAMADI (tools/kisisel-veri-test.py yok) — PUSH DURDURULDU." >&2
+  echo "!! Sizinti kapisi fail-closed'dir. Kasten atlamak icin: git push --no-verify" >&2
   rm -f "$pruvo_gn_tmp"
   exit 1
 fi
 if ! python3 "$pruvo_gn_kok/tools/kisisel-veri-test.py" --pre-push < "$pruvo_gn_tmp"; then
-  echo "!! PUSH DURDURULDU — ic rapor sizintisi (gecmis ekseni)."
-  echo "!! Envanter: python3 tools/kisisel-veri-test.py --gecmis"
+  echo "!! PUSH DURDURULDU — ic rapor sizintisi ya da OLCULEMEDI (gecmis ekseni)." >&2
+  echo "!! Envanter: python3 tools/kisisel-veri-test.py --gecmis" >&2
   rm -f "$pruvo_gn_tmp"
   exit 1
 fi
@@ -139,29 +163,48 @@ def kurulu_mu(yol):
     return BAS in metin and "--pre-push" in metin
 
 
-def main():
-    if "-h" in sys.argv or "--help" in sys.argv:
+def main(argv=None):
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if "-h" in argv or "--help" in argv:
         print(__doc__.strip())
         return 0
-    kuru = "--kuru" in sys.argv
-    kaldir = "--kaldir" in sys.argv
-    dogrula = "--dogrula" in sys.argv
-    bilinmeyen = [a for a in sys.argv[1:]
-                  if a not in ("--kuru", "--kaldir", "--dogrula")]
+    repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if "--repo" in argv:
+        i = argv.index("--repo")
+        if i + 1 >= len(argv):
+            print("HATA: --repo bir yol ister", file=sys.stderr)
+            return 2
+        repo = argv[i + 1]
+        del argv[i:i + 2]
+    kuru = "--kuru" in argv
+    kaldir = "--kaldir" in argv
+    dogrula = "--dogrula" in argv
+    bilinmeyen = [a for a in argv if a not in ("--kuru", "--kaldir", "--dogrula")]
     if bilinmeyen:
         print("HATA: bilinmeyen arguman: " + ", ".join(bilinmeyen), file=sys.stderr)
         return 2
 
-    repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     yol = hook_yolu(repo)
     if not yol:
         print("HATA: git deposu bulunamadi: " + repo, file=sys.stderr)
         return 1
 
     if dogrula:
-        var = kurulu_mu(yol)
-        print("hook: %s\ngecmis nobeti blogu: %s" % (yol, "KURULU" if var else "YOK"))
+        # Git'in FIILEN okudugu kanca (core.hooksPath dahil) — `yol` degil.
+        okunan, _eski = kanca_yollari(repo, "pre-push")
+        if not okunan:
+            print("HATA: git'in okudugu pre-push yolu OLCULEMEDI: " + repo, file=sys.stderr)
+            return 1
+        var = kurulu_mu(okunan)
+        print("hook (git'in okudugu): %s\ngecmis nobeti blogu: %s"
+              % (okunan, "KURULU" if var else "YOK"))
         return 0 if var else 1
+
+    ret = kanca_hedef_reddi(repo, "pre-push")
+    if ret:
+        print("🔴 KURULUM REDDEDILDI (rc=%d, hicbir sey yazilmadi): %s" % (RC_RET, ret),
+              file=sys.stderr)
+        return RC_RET
 
     mevcut = None
     if os.path.isfile(yol):
