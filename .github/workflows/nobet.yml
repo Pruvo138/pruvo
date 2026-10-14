@@ -326,6 +326,15 @@ jobs:
       # tekrarini kabul bataryasinin K1 iddiasi engeller.
       - name: "Commit mesaji sizinti nobetcisi: kendini test (gercek git; sayi ciktida)"
         run: python3 tools/commit-mesaji-kapisi.py --kendini-test
+      # KABULUN KENDISININ CANLILIGI: kabul YESIL != nobetci CANLI. Mutasyon bataryasi
+      # kopyada nobetciyi bilerek bozar; her oldurucu mutant KIRMIZI, her ilgisiz
+      # kontrol YESIL olmali. OLCULEN ARIZA (14 Eki 2026): elle kopya listesi 9 Agu'dan
+      # (c09b5d37) beri eksikti -> her mutant ImportError ile COKUYOR ve "OLDU"
+      # sayiliyordu; batarya 2 ay KOR kaldi cunku hicbir CI adimi onu kosmuyordu.
+      # Cikis 3 = TABAN olculemedi (kirmizi ile AYRI). Maliyet ~5 dk, paralel joblarin
+      # yaninda duvar saatine eklenmez; yayini DURDURMAZ (SERIT B).
+      - name: "Commit mesaji nobetcisi: mutasyon bataryasi (kabulun canliligi)"
+        run: python3 tools/commit-mesaji-mutasyon.py
       - name: "Commit mesaji sizintisi: bu itmenin GETIRDIGI mesajlar (ALARM — yayini DURDURMAZ)"
         run: python3 tools/commit-mesaji-kapisi.py --ci
       # UCUNCU YUZEY: nobetcinin KENDI izlenen kaynaklarinda DUZ METIN yasakli ad.

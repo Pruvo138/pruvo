@@ -3592,13 +3592,11 @@ IZIN_LISTESI = {
         "`tools/r2-onek-gelenek-kapisi.py` nobet.yml `r2-onek-nobeti` job'unda. "
         "ONARIM AYRI IS: M15 capasi r2_anahtar.py'nin cari metninden yeniden turetilmeli."),
     # --- SURE ESIGI (>40 s) — hepsi rc=0, yani SAGLAM; yalniz PAHALI --------------
-    "tools/commit-mesaji-mutasyon.py": (
-        "SURE. OLCULDU (8 Agu 2026, temiz klon): rc=0, 233,9 s, `oldurucu mutant 28/28 "
-        "OLDU · ilgisiz kontrol 3/3 YESIL`. Her mutant GERCEK bir git deposu kurup "
-        "commit ürettiği icin sure mutant sayisiyla dogrusal buyur. 40 s esiginin ~6 "
-        "kati; TEK BASINA `serit-b`yi %31 uzatirdi. Olctugu kapinin CI kolu ZATEN "
-        "kosuyor: `tools/commit-mesaji-kapisi.py --kendini-test` nobet.yml "
-        "`mesaj-nobeti` job'unda (SERIT_B'de beyanli)."),
+    # `tools/commit-mesaji-mutasyon.py` 14 Eki 2026'da izinden CIKTI: SURE izniyle
+    # CI disinda kalirken 9 Agu'dan (c09b5d37) beri kopya agacinda ImportError ile
+    # COKUYORDU (K1-K3 sahte-kirmizi, oldurucu mutantlar cokme yuzunden "OLDU") ve
+    # kimse gormedi. Artik nobet.yml `mesaj-nobeti` job'unda kosar (serit-b DEGIL ->
+    # serit-b'yi uzatmaz; paralel job).
     "tools/cron-teslim-mutasyon.py": (
         "SURE. OLCULDU (8 Agu 2026, temiz klon): rc=0, 177,3 s, `CURUTME GECTI — her "
         "oldurucu mutant KIRMIZI yandi, beyanli mutantlarin kirmizi eksen kumesi "
