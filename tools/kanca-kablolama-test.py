@@ -63,6 +63,12 @@ gercek `~/.gitconfig`e DOKUNULMAZ):
       (f) KIRLI damga (stage'li degisiklikten serim; HEAD yalniz taban): ayni
           tabandaki ve ilgisiz commit'lerle ilerlemis temiz agac EZMEZ; KONTROL:
           kanca kaynagini degistiren ana hat kazanir (takilma yok).
+      (g..o) 14 Eki bagimsiz curutucu bulgulari: sahipsiz (detached/amend) damga
+          ve agaci silinmis kirli damga eski agaca kapi ACMAZ · kirli damga
+          commit'le kesinlesir · derlenmeyen kanca-kur SERILMEZ · git_ortami
+          ping-pong YOK · catismada ana hat disi dal ezemez · post-checkout /
+          post-merge / pre-push da kurulu araci cagirir · acik kurulum damgalar ·
+          miras GIT_DIR silinir.
 
 Kullanim:
     python3 tools/kanca-kablolama-test.py
@@ -71,6 +77,7 @@ Kullanim:
 """
 import hashlib
 import importlib.util
+import json
 import os
 import re
 import shutil
@@ -898,7 +905,22 @@ def kos_vakalar(tools_dizini, ayrintili=True):
         rc10k, c10k = kur_kos(ana10, env=o10)
         if rc10k != 0:
             print("    ⚠️ v10 kurulum basarisiz: %s" % c10k[-200:])
-        pp10 = os.path.join(kurulu_yolu(ana10), "pre-push")
+        _r, c0_10, _e = g(ana10, "rev-parse", "HEAD", env=o10)
+        kurulu10 = kurulu_yolu(ana10)
+        pp10 = os.path.join(kurulu10, "pre-push")
+
+        def damga10():
+            try:
+                with open(os.path.join(kurulu10, ".kaynak-damgasi.json"),
+                          encoding="utf-8") as f:
+                    return json.load(f)
+            except (OSError, ValueError):
+                return {}
+
+        # (n) acik kurulum da damgalar (yoksa ilk --tazele eskiyi taniyamaz)
+        s.bekle("V10.kur-damgalar", damga10().get("commit") == c0_10,
+                "acik kurulum kaynak damgasini (commit=%s) yazmali; damga=%r"
+                % (c0_10[:12], damga10()))
         wt10 = os.path.join(kok, "v10-wt-eski")
         g(ana10, "worktree", "add", "-q", wt10, "-b", "eski", env=o10, zorunlu=True)
         # ana hatta kanca kaynagi ILERLER: pre-push'a YENI blok
@@ -937,6 +959,16 @@ def kos_vakalar(tools_dizini, ayrintili=True):
         s.bekle("V10.ayrisik-agac-korur", rc10c == 0 and sha256(pp10) == sha_yeni,
                 "ayrisik ESKI dal YENI kopyayi EZMEMELI; rc=%d cikti=%r"
                 % (rc10c, c10c[-200:]))
+        # (o) MIRAS GIT BAGLAMI: linked worktree kancasi GIT_DIR ihrac eder; scrub
+        # olmasa aday commit'i YANLIS depodan (yeni HEAD) okunur ve eski icerik
+        # "ayni commit" sanilip serilirdi.
+        o10g = dict(o10)
+        o10g["GIT_DIR"] = os.path.join(ana10, ".git")
+        rc10o, c10o = kur_kos(wt10, "--tazele", env=o10g)
+        s.bekle("V10.git-baglam-mirasi-silinir",
+                rc10o == 0 and sha256(pp10) == sha_yeni,
+                "miras GIT_DIR ile kosan eski agac da YENI kopyayi EZMEMELI; rc=%d "
+                "cikti=%r" % (rc10o, c10o[-200:]))
         # (d) UCTAN UCA: eski agacin kanca-kur.py'si KAPISIZ eski surum (taklit:
         # kopyayi bozar + rc 3). Kanca yanina serilmis araci cagirmali.
         eski_kur = os.path.join(wt10, "tools", "kanca-kur.py")
@@ -1005,6 +1037,177 @@ def kos_vakalar(tools_dizini, ayrintili=True):
                 "yeniden serebilmeli (takilma yok); rc=%d cikti=%r"
                 % (rc10f4, c10f4[-200:]))
 
+        def ilgisiz_commit(agac, ad):
+            yaz(os.path.join(agac, ad), ad + "\n")
+            g(agac, "add", "-A", env=o10)
+            g(agac, "-c", "core.hooksPath=/dev/null", "commit", "-q", "-m", ad,
+              env=o10, zorunlu=True)
+
+        def head(agac):
+            return g(agac, "rev-parse", "HEAD", env=o10)[1]
+
+        # ESKI ATA agac: ilk kurulum commit'inde (c0) duran detached worktree
+        wt10a = os.path.join(kok, "v10-wt-ata")
+        g(ana10, "worktree", "add", "-q", "--detach", wt10a, c0_10, env=o10,
+          zorunlu=True)
+
+        # (g) SAHIPSIZ DAMGA (curutme BLOCKER 1): damga HICBIR dalda olmayan bir
+        # commit'e (detached worktree; amend de ayni) ilerleyince eski agac --
+        # ata da ayrisik da -- yeni kopyayi EZMEMELI.
+        wt10d = os.path.join(kok, "v10-wt-detached")
+        g(ana10, "worktree", "add", "-q", "--detach", wt10d, "HEAD", env=o10,
+          zorunlu=True)
+        ilgisiz_commit(wt10d, "det1.txt")
+        ilgisiz_commit(wt10d, "det2.txt")
+        kur_kos(wt10d, "--tazele", env=o10)            # damga -> detached commit
+        sahipsiz = damga10().get("commit") == head(wt10d)
+        sha_g = sha256(pp10)
+        rc10g1, c10g1 = kur_kos(wt10a, "--tazele", env=o10)
+        rc10g2, c10g2 = kur_kos(wt10, "--tazele", env=o10)
+        s.bekle("V10.sahipsiz-damga-eski-korur",
+                sahipsiz and rc10g1 == 0 and rc10g2 == 0 and sha256(pp10) == sha_g,
+                "damga sahipsiz (detached) commit'teyken ATA ve AYRISIK eski agac "
+                "kopyayi EZMEMELI; sahipsiz=%s rc=%d/%d cikti=%r"
+                % (sahipsiz, rc10g1, rc10g2, (c10g1 + c10g2)[-300:]))
+
+        # (h) KIRLI DAMGA + agaci SILINMIS (curutme BLOCKER 2): dal commit'i atip
+        # worktree'si kapanan kirli damga, eski agaca kapi ACMAMALI.
+        rc10h00, _c = kur_kos(ana10, env=o10)          # operator: damga -> ana hat
+        wt10r = os.path.join(kok, "v10-wt-silinen")
+        g(ana10, "worktree", "add", "-q", wt10r, "-b", "silinen", env=o10, zorunlu=True)
+        rpp = os.path.join(wt10r, "tools", "kancalar", "pre-push")
+        yaz(rpp, open(rpp, encoding="utf-8").read().replace(
+            "#!/bin/sh\n", "#!/bin/sh\n# SILINEN-BLOK-V10\n", 1), True)
+        g(wt10r, "add", "-A", env=o10)
+        rc10h0, _c = kur_kos(wt10r, "--tazele", env=o10)
+        g(wt10r, "-c", "core.hooksPath=/dev/null", "commit", "-q", "-m", "silinen",
+          env=o10, zorunlu=True)
+        g(ana10, "worktree", "remove", "--force", wt10r, env=o10, zorunlu=True)
+        kirli_kaldi = damga10().get("kirli") is True
+        sha_h = sha256(pp10)
+        rc10h1, c10h1 = kur_kos(wt10a, "--tazele", env=o10)
+        rc10h2, c10h2 = kur_kos(wt10, "--tazele", env=o10)
+        s.bekle("V10.kirli-agac-silinince-eski-korur",
+                rc10h00 == 0 and rc10h0 == 3 and kirli_kaldi and rc10h1 == 0
+                and rc10h2 == 0
+                and sha256(pp10) == sha_h,
+                "agaci silinmis KIRLI damga eski agaca kapi acmamali; serim=%d "
+                "kirli=%s rc=%d/%d cikti=%r" % (rc10h0, kirli_kaldi, rc10h1, rc10h2,
+                                                (c10h1 + c10h2)[-300:]))
+
+        # (i) kirli damga, degisiklik commit'lenince KESINLESIR (damga temizlenir)
+        # terk edilmis kirli kopyadan cikis = OPERATOR'un acik kurulumu (UYARI'da
+        # yazan care); --tazele bunu kendiliginden yapmaz.
+        rc10i0, _c = kur_kos(ana10, env=o10)
+        wt10f = os.path.join(kok, "v10-wt-kesin")
+        g(ana10, "worktree", "add", "-q", wt10f, "-b", "kesin", env=o10, zorunlu=True)
+        fpp = os.path.join(wt10f, "tools", "kancalar", "pre-push")
+        yaz(fpp, open(fpp, encoding="utf-8").read().replace(
+            "#!/bin/sh\n", "#!/bin/sh\n# KESIN-BLOK-V10\n", 1), True)
+        g(wt10f, "add", "-A", env=o10)
+        kur_kos(wt10f, "--tazele", env=o10)
+        kirli_once = damga10().get("kirli")
+        g(wt10f, "-c", "core.hooksPath=/dev/null", "commit", "-q", "-m", "kesin",
+          env=o10, zorunlu=True)
+        kur_kos(wt10f, "--tazele", env=o10)
+        d_i = damga10()
+        s.bekle("V10.kirli-damga-commitle-kesinlesir",
+                rc10i0 == 0 and kirli_once is True and d_i.get("kirli") is False
+                and d_i.get("commit") == head(wt10f),
+                "stage'li serim kirli damgalanmali, commit'ten sonraki tazele damgayi "
+                "TEMIZ + yeni commit'e cekmeli; once=%r sonra=%r" % (kirli_once, d_i))
+
+        # (j) BOZUK kanca-kur.py (curutme #3) kurulu araclarin yanina SERILMEZ:
+        # serilseydi TUM agaclarda commit/push rc=1 ile dururdu.
+        g(ana10, "-c", "core.hooksPath=/dev/null", "merge", "-q", "--ff-only",
+          "kesin", env=o10)
+        kur_kos(ana10, "--tazele", env=o10)
+        wt10b = os.path.join(kok, "v10-wt-bozuk")
+        g(ana10, "worktree", "add", "-q", wt10b, "-b", "bozuk", env=o10, zorunlu=True)
+        with open(os.path.join(wt10b, "tools", "kanca-kur.py"), "a",
+                  encoding="utf-8") as f:
+            f.write("\ndef bozuk(:\n")
+        kur_kos(wt10b, "--tazele", env=o10)
+        kurulu_kur = os.path.join(kurulu10, "kanca-kur.py")
+        p10j = subprocess.run([sys.executable, kurulu_kur, "--tazele", "--depo", ana10],
+                              capture_output=True, text=True, timeout=120, env=o10)
+        s.bekle("V10.bozuk-arac-serilmez",
+                "def bozuk(" not in (open(kurulu_kur, encoding="utf-8").read()
+                                     if os.path.isfile(kurulu_kur) else "def bozuk(")
+                and p10j.returncode == 0,
+                "derlenmeyen kanca-kur.py kurulu kopyaya SERILMEMELI; kurulu arac "
+                "rc=%d cikti=%r" % (p10j.returncode, (p10j.stdout + p10j.stderr)[-200:]))
+
+        # (k) serilen her dosya surumde SAYILIR (curutme #4): yalniz git_ortami.py'yi
+        # degistiren ana hat ile ayrisik dal arasinda rc 3 PING-PONG olmamali.
+        wt10p = os.path.join(kok, "v10-wt-pingpong")
+        g(ana10, "worktree", "add", "-q", wt10p, "-b", "pingpong", env=o10,
+          zorunlu=True)
+        ilgisiz_commit(wt10p, "pp.txt")
+        with open(os.path.join(ana10, "tools", "git_ortami.py"), "a",
+                  encoding="utf-8") as f:
+            f.write("\n# ana hat degisikligi (V10-k)\n")
+        g(ana10, "add", "-A", env=o10)
+        g(ana10, "-c", "core.hooksPath=/dev/null", "commit", "-q", "-m", "git_ortami",
+          env=o10, zorunlu=True)
+        rcs_k = [kur_kos(a, "--tazele", env=o10)[0]
+                 for a in (ana10, wt10p, ana10, wt10p)]
+        s.bekle("V10.git-ortami-ping-pong-yok", rcs_k == [3, 0, 0, 0],
+                "git_ortami.py-only ana hat degisikligi: ana 3, dal 0 (korur), sonra "
+                "hep 0 olmali (ping-pong yok); rc dizisi=%r" % rcs_k)
+
+        # (l) CATISMA: iki ayrisik taraf da kanca kaynagini degistirmis -> ana
+        # hatta OLMAYAN dal ana hattin kopyasini EZEMEZ.
+        wt10t = os.path.join(kok, "v10-wt-catisma")
+        g(ana10, "worktree", "add", "-q", wt10t, "-b", "catisma", env=o10,
+          zorunlu=True)
+        tpp = os.path.join(wt10t, "tools", "kancalar", "pre-push")
+        yaz(tpp, open(tpp, encoding="utf-8").read().replace(
+            "#!/bin/sh\n", "#!/bin/sh\n# DAL-CATISMA-V10\n", 1), True)
+        g(wt10t, "add", "-A", env=o10)
+        g(wt10t, "-c", "core.hooksPath=/dev/null", "commit", "-q", "-m", "dal kanca",
+          env=o10, zorunlu=True)
+        yaz(apl, open(apl, encoding="utf-8").read().replace(
+            "#!/bin/sh\n", "#!/bin/sh\n# ANA-CATISMA-V10\n", 1), True)
+        g(ana10, "add", "-A", env=o10)
+        g(ana10, "-c", "core.hooksPath=/dev/null", "commit", "-q", "-m", "ana kanca 2",
+          env=o10, zorunlu=True)
+        rc10l1, _c = kur_kos(ana10, "--tazele", env=o10)
+        rc10l2, c10l2 = kur_kos(wt10t, "--tazele", env=o10)
+        s.bekle("V10.catisma-dal-ana-hatti-ezmez",
+                rc10l1 == 3 and rc10l2 == 0 and "ANA-CATISMA-V10" in kurulu_pp()
+                and "DAL-CATISMA-V10" not in kurulu_pp(),
+                "catismada ana hatta OLMAYAN dal ana hattin kopyasini ezmemeli; "
+                "rc=%d/%d cikti=%r" % (rc10l1, rc10l2, c10l2[-200:]))
+
+        # (m) UCTAN UCA diger uc kanca da KURULU araci cagirir: eski agacin KAPISIZ
+        # kanca-kur.py'si (taklit: her kosumda isaret ekler) KOSMAMALI.
+        yaz(eski_kur, "#!/usr/bin/env python3\nimport sys\n"
+                      "open(%r, 'a').write('\\n# ESKI-KUR-EZDI\\n')\nsys.exit(3)\n" % pp10,
+            True)
+
+        def isaret():
+            return kurulu_pp().count("ESKI-KUR-EZDI")
+
+        n0 = isaret()
+        g(wt10, "checkout", "-q", "-b", "v10-pc", env=o10)            # post-checkout
+        n1 = isaret()
+        ilgisiz_commit(wt10, "pm.txt")
+        g(wt10, "-c", "core.hooksPath=/dev/null", "checkout", "-q", "eski", env=o10)
+        g(wt10, "merge", "-q", "--ff-only", "v10-pc", env=o10)         # post-merge
+        n2 = isaret()
+        uzak = os.path.join(kok, "v10-uzak.git")
+        g(kok, "init", "-q", "--bare", uzak, env=o10, zorunlu=True)
+        g(wt10, "push", "-q", uzak, "eski", env=o10)                   # pre-push
+        n3 = isaret()
+        g(wt10, "checkout", "--", "tools/kanca-kur.py", env=o10)
+        for etiket, once, sonra in (("V10.post-checkout-kurulu-arac", n0, n1),
+                                    ("V10.post-merge-kurulu-arac", n1, n2),
+                                    ("V10.pre-push-kurulu-arac", n2, n3)):
+            s.bekle(etiket, sonra == once,
+                    "%s eski agacin KAPISIZ kanca-kur.py'sini DEGIL kurulu araci "
+                    "cagirmali; isaret %d -> %d" % (etiket.split(".")[1], once, sonra))
+
     finally:
         shutil.rmtree(kok, ignore_errors=True)
     return s
@@ -1060,7 +1263,9 @@ MUTANTLAR = (
                 # (14 Eki olculdu) kopya agacin icindeyse damga/indirme ekseni de duser
                 "V10.elle-duzenleme-serer", "V10.eski-agac-rc0-uyari",
                 "V10.kanca-kurulu-araci-kosar", "V10.yeni-agac-serer",
-                "V10.kirli-ayni-agac-serer", "V10.kirli-catisma-ana-kazanir"})),
+                "V10.kirli-ayni-agac-serer", "V10.kirli-catisma-ana-kazanir",
+                "V10.catisma-dal-ana-hatti-ezmez", "V10.kirli-agac-silinince-eski-korur",
+                "V10.kirli-damga-commitle-kesinlesir", "V10.sahipsiz-damga-eski-korur"})),
 
     ("MU5 kur: idempotens kirilir (her kosum config'i YENIDEN yazar)",
      "kanca-kur.py",
@@ -1155,7 +1360,10 @@ MUTANTLAR = (
                 "V8.once-sessiz", "V9.devnull-golge-rc0", "V9.golge-yok-rc0",
                 # (14 Eki olculdu) goreli kanca dizininde kurulu kanca-kur YOK ->
                 # kanca agacin araciyla duser
-                "V10.kanca-kurulu-araci-kosar"})),
+                "V10.kanca-kurulu-araci-kosar", "V10.post-checkout-kurulu-arac",
+                "V10.post-merge-kurulu-arac", "V10.pre-push-kurulu-arac",
+                "V10.kirli-agac-silinince-eski-korur",
+                "V10.kirli-damga-commitle-kesinlesir"})),
 
     # 🔴 MU16a DELIK 1: tazele BAYATSA yeniden SERMEZ -> kopya bayat kalir,
     # commit sonsuza dek bloklanir, YENI mantik hic kosmaz.
@@ -1168,7 +1376,8 @@ MUTANTLAR = (
      # (14 Eki olculdu) yeni agac da SERILEMEZ -> V10 kontrol + elle kolu duser
      frozenset({"V8.sonra-yakalandi", "V10.elle-duzenleme-serer",
                 "V10.eski-agac-rc0-uyari", "V10.yeni-agac-serer",
-                "V10.kirli-ayni-agac-serer", "V10.kirli-catisma-ana-kazanir"})),
+                "V10.kirli-ayni-agac-serer", "V10.kirli-catisma-ana-kazanir",
+                "V10.catisma-dal-ana-hatti-ezmez", "V10.git-ortami-ping-pong-yok"})),
 
     # 🔴 MU16b DELIK 1: tazele bayat kopyayi YENIDEN SERER ama BAYATTI kodunu
     # bildirmez -> commit DURMAZ, BAYAT wiring o commit'te sessizce kosar.
@@ -1178,7 +1387,8 @@ MUTANTLAR = (
      '    return 0, ("kurulu kopya BAYATTI',
      frozenset({"V8.sonra-A-durdu", "V10.elle-duzenleme-serer",
                 "V10.yeni-agac-serer", "V10.kirli-ayni-agac-serer",
-                "V10.kirli-catisma-ana-kazanir"})),
+                "V10.kirli-catisma-ana-kazanir", "V10.catisma-dal-ana-hatti-ezmez",
+                "V10.git-ortami-ping-pong-yok", "V10.kirli-agac-silinince-eski-korur"})),
 
     # 🔴 MU17 DELIK 2: golge kontrolu gercek-yol golgeyi GORMEZDEN gelir.
     ("MU17 kur: golge worktree kontrolu devrilir (DELIK 2)",
@@ -1203,7 +1413,11 @@ MUTANTLAR = (
      "    if False:\n        return 0, (",
      frozenset({"V10.eski-agac-korur", "V10.eski-agac-rc0-uyari",
                 "V10.ayrisik-agac-korur", "V10.kanca-kurulu-araci-kosar",
-                "V10.kirli-ayni-taban-korur", "V10.kirli-ilerlemis-ana-korur"})),
+                "V10.kirli-ayni-taban-korur", "V10.kirli-ilerlemis-ana-korur",
+                "V10.catisma-dal-ana-hatti-ezmez", "V10.git-baglam-mirasi-silinir",
+                "V10.git-ortami-ping-pong-yok", "V10.kirli-agac-silinince-eski-korur",
+                "V10.post-merge-kurulu-arac", "V10.pre-push-kurulu-arac",
+                "V10.sahipsiz-damga-eski-korur"})),
 
     # 🔴 MU20 elle duzenleme algisi kalkar -> damgadan sapmis kopya, ESKI agactan
     # bakilinca "eski aday" sayilip KORUNUR (gercek sapma fail-closed degil).
@@ -1223,7 +1437,11 @@ MUTANTLAR = (
      "        return 1, \"kopya yeniden serildi ama DAMGALANAMADI",
      frozenset({"V10.eski-agac-korur", "V10.eski-agac-rc0-uyari",
                 "V10.ayrisik-agac-korur", "V10.kanca-kurulu-araci-kosar",
-                "V10.kirli-ayni-taban-korur", "V10.kirli-ilerlemis-ana-korur"})),
+                "V10.kirli-ayni-taban-korur", "V10.kirli-ilerlemis-ana-korur",
+                "V10.catisma-dal-ana-hatti-ezmez", "V10.git-baglam-mirasi-silinir",
+                "V10.git-ortami-ping-pong-yok", "V10.kirli-agac-silinince-eski-korur",
+                "V10.kirli-damga-commitle-kesinlesir", "V10.post-merge-kurulu-arac",
+                "V10.pre-push-kurulu-arac"})),
 
     # 🔴 MU23 KIRLI damga yok sayilir -> stage'li degisiklikten serilen kopya,
     # ayni tabandaki / ilgisiz commit'lerle ilerlemis temiz agacca ezilir.
@@ -1232,6 +1450,84 @@ MUTANTLAR = (
      '    kirli = damga.get("kirli") is not False\n',
      '    kirli = False\n',
      frozenset({"V10.kirli-ayni-taban-korur", "V10.kirli-ilerlemis-ana-korur"})),
+
+    # 🔴 MU24..MU31 + MU22b..d: 14 Eki bagimsiz curutucunun HAYATTA KALAN
+    # zararli mutantlari ve iki BLOCKER'in yeniden kurulmasi.
+    ("MU24 kur: catisma kolu ana hat sartini birakir (dal her zaman kazanir)",
+     "kanca-kur.py",
+     "        if aday_ana and not kurulu_ana:",
+     "        if True:",
+     frozenset({"V10.catisma-dal-ana-hatti-ezmez", "V10.pre-push-kurulu-arac"})),
+
+    ("MU25 kur: git_ortami.py surum yollarindan cikar (ping-pong)",
+     "kanca-kur.py",
+     'SURUM_YOLLARI = (KANCA_DIZINI,) + tuple("tools/" + a for a in KURULU_ARACLAR)',
+     'SURUM_YOLLARI = (KANCA_DIZINI, "tools/kanca-kur.py")',
+     frozenset({"V10.git-ortami-ping-pong-yok"})),
+
+    ("MU26 kur: kurulu araclarin derleme sarti kalkar (bozuk arac serilir)",
+     "kanca-kur.py",
+     "    if all(os.path.isfile(y) and _derlenir_mi(y) for _a, y in araclar):",
+     "    if all(os.path.isfile(y) for _a, y in araclar):",
+     frozenset({"V10.bozuk-arac-serilmez"})),
+
+    ("MU27 kur: _git miras GIT_* baglamini SILMEZ",
+     "kanca-kur.py",
+     "                           env=git_ortami())",
+     "                           env=None)",
+     frozenset({"V10.git-baglam-mirasi-silinir", "V10.kanca-kurulu-araci-kosar"})),
+
+    ("MU28 kur: BLOCKER 1 geri gelir (sahipsiz damga kacisi eski-reddinden ONCE)",
+     "kanca-kur.py",
+     "    if aday == kurulu_c or _ata_mi(agac, aday, kurulu_c):\n"
+     "        return False, neden_eski\n",
+     "    if not kirli and not _ata_mi(agac, kurulu_c, ANA_DAL):\n"
+     "        return True, \"sahipsiz\"\n"
+     "    if aday == kurulu_c or _ata_mi(agac, aday, kurulu_c):\n"
+     "        return False, neden_eski\n",
+     frozenset({"V10.sahipsiz-damga-eski-korur"})),
+
+    # (MU29 "kirli damga KESINLESMEZ" OLCULEREK listeden cikarildi: _damga_ilerlet'in
+    # genel "aday damgadan yeni -> yaz" kolu commit sonrasi damgayi zaten TEMIZ
+    # yazar; kesinlestirme kolu yalniz "ayni commit, kirlilik geri alinmis" kenar
+    # halinde fark eder -> davranissal olarak ESDEGER mutant, delik sayilmaz.)
+
+    ("MU30 kur: acik kurulum damga YAZMAZ",
+     "kanca-kur.py",
+     "    if not kuru:\n        damga_yaz(kaynak_dizin, kurulu)",
+     "    if not kuru:\n        pass",
+     frozenset({"V10.kirli-agac-silinince-eski-korur",
+                "V10.kirli-damga-commitle-kesinlesir", "V10.kur-damgalar"})),
+
+    ("MU31 kur: BLOCKER 2 geri gelir (kirli+silinmis agac kacisi)",
+     "kanca-kur.py",
+     "    if aday == kurulu_c or _ata_mi(agac, aday, kurulu_c):\n"
+     "        return False, neden_eski\n",
+     "    if kirli and not os.path.isdir(damga_kaynak):\n"
+     "        return True, \"silinmis\"\n"
+     "    if aday == kurulu_c or _ata_mi(agac, aday, kurulu_c):\n"
+     "        return False, neden_eski\n",
+     frozenset({"V10.kirli-agac-silinince-eski-korur"})),
+
+    ("MU22b post-checkout: kurulu kanca-kur yerine AGACINKI cagrilir",
+     "kancalar/post-checkout",
+     '[ -f "$(dirname "$0")/kanca-kur.py" ] && pruvo_kur="$(dirname "$0")/kanca-kur.py"\n',
+     "",
+     # isaret sayaci kumulatif: post-checkout'ta sizan isaret sonraki iki kolu da yakar
+     frozenset({"V10.post-checkout-kurulu-arac", "V10.post-merge-kurulu-arac",
+                "V10.pre-push-kurulu-arac"})),
+
+    ("MU22c post-merge: kurulu kanca-kur yerine AGACINKI cagrilir",
+     "kancalar/post-merge",
+     '[ -f "$(dirname "$0")/kanca-kur.py" ] && pruvo_kur="$(dirname "$0")/kanca-kur.py"\n',
+     "",
+     frozenset({"V10.post-merge-kurulu-arac", "V10.pre-push-kurulu-arac"})),
+
+    ("MU22d pre-push: kurulu kanca-kur yerine AGACINKI cagrilir",
+     "kancalar/pre-push",
+     '[ -f "$(dirname "$0")/kanca-kur.py" ] && pruvo_pp_kur="$(dirname "$0")/kanca-kur.py"\n',
+     "",
+     frozenset({"V10.pre-push-kurulu-arac"})),
 
     # 🔴 MU22 kanca yine AGACIN kanca-kur.py'sini cagirir -> eski agacin KAPISIZ
     # araci paylasilan kopyayi bozar (gecis donemi deligi).
