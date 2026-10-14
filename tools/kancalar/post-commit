@@ -6,6 +6,17 @@
 # (fail-safe: izin yasar, guard deger-bagli okur).
 # post-commit `--no-verify` ile ATLANMAZ.
 root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+
+# KANCA DAMGASI KESINLESTIRME (14 Eki, curutme 2. tur): pre-commit'teki --tazele
+# kopyayi STAGE'li icerikten serip "kirli" damgalar; kirli kopya ayni/yeni
+# tabandaki her agaca YENILIR. Commit'lenen kanca degisikligi burada damgaya
+# HEMEN islenir -> commit'li dal icerigi eski agaclara karsi korunur.
+# FAIL-OPEN (bilincli): post-commit hicbir seyi bloklamaz; cikti susturulur.
+pruvo_pc_kur="$(dirname "$0")/kanca-kur.py"
+if [ -f "$pruvo_pc_kur" ]; then
+  python3 "$pruvo_pc_kur" --tazele --depo "$root" >/dev/null 2>&1
+fi
+
 tuket="$root/tools/izin-manifest-tuket.py"
 [ -f "$tuket" ] || exit 0
 python3 "$tuket" --kok "$root" || true

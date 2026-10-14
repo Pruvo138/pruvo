@@ -15,6 +15,14 @@ pruvo_pp_kur="$pruvo_pp_kok/tools/kanca-kur.py"
 if [ -n "$pruvo_pp_kok" ] && [ -f "$pruvo_pp_kur" ]; then
   python3 "$pruvo_pp_kur" --tazele --depo "$pruvo_pp_kok" </dev/null
   pruvo_pp_tazele_rc=$?
+  # Kurulu arac KOSAMADIYSA agacin KENDI araciyla bir kez daha dene (curutme N1).
+  if [ "$pruvo_pp_tazele_rc" != "0" ] && [ "$pruvo_pp_tazele_rc" != "3" ] \
+     && [ "$pruvo_pp_kur" != "$pruvo_pp_kok/tools/kanca-kur.py" ] \
+     && [ -f "$pruvo_pp_kok/tools/kanca-kur.py" ]; then
+    echo "!! kurulu kanca-kur.py kosamadi (rc=$pruvo_pp_tazele_rc) -> agacin kendi araciyla deneniyor" >&2
+    python3 "$pruvo_pp_kok/tools/kanca-kur.py" --tazele --depo "$pruvo_pp_kok" </dev/null
+    pruvo_pp_tazele_rc=$?
+  fi
   if [ "$pruvo_pp_tazele_rc" = "3" ]; then
     echo "!! PUSH DURDURULDU — kurulu kanca kopyasi BAYATTI ve tazelendi. Tekrar push et." >&2
     exit 1

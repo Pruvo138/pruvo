@@ -44,6 +44,15 @@ pruvo_kur="$pruvo_kok/tools/kanca-kur.py"
 if [ -f "$pruvo_kur" ]; then
   python3 "$pruvo_kur" --tazele --depo "$pruvo_kok"
   pruvo_tazele_rc=$?
+  # Kurulu arac KOSAMADIYSA (rc 0/3 disi) agacin KENDI araciyla bir kez daha dene:
+  # tek bir agacin bozuk araci TUM agaclarin commit'ini durdurmasin (curutme N1).
+  if [ "$pruvo_tazele_rc" != "0" ] && [ "$pruvo_tazele_rc" != "3" ] \
+     && [ "$pruvo_kur" != "$pruvo_kok/tools/kanca-kur.py" ] \
+     && [ -f "$pruvo_kok/tools/kanca-kur.py" ]; then
+    echo "!! kurulu kanca-kur.py kosamadi (rc=$pruvo_tazele_rc) -> agacin kendi araciyla deneniyor" >&2
+    python3 "$pruvo_kok/tools/kanca-kur.py" --tazele --depo "$pruvo_kok"
+    pruvo_tazele_rc=$?
+  fi
   if [ "$pruvo_tazele_rc" = "3" ]; then
     echo "!! COMMIT DURDURULDU — kurulu kanca kopyasi BAYATTI ve tazelendi." >&2
     echo "!! Commit'i TEKRAR dene (bu sefer guncel mantik kosar)." >&2
