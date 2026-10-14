@@ -90,6 +90,8 @@ if [ -z "$pruvo_gn_tmp" ] || [ ! -f "$pruvo_gn_tmp" ]; then
   echo "!! PUSH DURDURULDU — gecmis nobeti girdisi icin gecici dosya acilamadi." >&2
   exit 1
 fi
+# Sinyalle kesilse de ref satirlari $TMPDIR'de KALMAZ (curutucu D2, 14 Eki).
+trap 'rm -f "$pruvo_gn_tmp"' EXIT HUP INT TERM
 cat > "$pruvo_gn_tmp"
 if [ -z "$pruvo_gn_kok" ] || [ ! -f "$pruvo_gn_kok/tools/kisisel-veri-test.py" ]; then
   echo "!! GECMIS NOBETI KOSULAMADI (tools/kisisel-veri-test.py yok) — PUSH DURDURULDU." >&2
@@ -105,6 +107,7 @@ if ! python3 "$pruvo_gn_kok/tools/kisisel-veri-test.py" --pre-push < "$pruvo_gn_
 fi
 exec 0< "$pruvo_gn_tmp"
 rm -f "$pruvo_gn_tmp"
+trap - EXIT HUP INT TERM
 """ + SON
 
 

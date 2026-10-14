@@ -1258,16 +1258,26 @@ def gecmis_nobeti(kapsam, kosucu=None, fikstur=True, kok=None):
 _SIFIR = ("0" * 40, "0" * 64)
 
 
-def pre_push_araliklari(stdin_metni):
+def _commit_yerelde_mi(sha):
+    return subprocess.run(["git", "-C", ROOT, "cat-file", "-e", sha + "^{commit}"],
+                          capture_output=True, text=True, env=git_ortami()).returncode == 0
+
+
+def pre_push_araliklari(stdin_metni, yerelde_mi=None):
     """git pre-push stdin ('<local_ref> <local_sha> <remote_ref> <remote_sha>' satirlari)
-    -> taranacak `git rev-list` kapsam listeleri. SAF fonksiyon (test edilebilir).
+    -> taranacak `git rev-list` kapsam listeleri. <yerelde_mi> enjekte edilirse SAF (test).
 
     * local_sha sifir  -> dal SILINIYOR, taranacak yeni commit yok.
     * remote_sha sifir -> uzakta YENI dal: uzakta zaten olan her seyi disla
                           (`<sha> --not --remotes`), yoksa TUM gecmis taranir ve
                           bugunku eski kayitlar her yeni dal push'unu bloklardi.
+    * remote_sha YERELDE YOK (fetch edilmemis uzak uca force-push) -> ayni
+                          `--not --remotes` dususu (kardes gecmis-geri-donus-kapisi.py
+                          `eklenen_commitler` ile ayni kural). Olculdu 14 Eki (curutucu D1):
+                          `<uzak>..<yerel>` "Invalid revision range" ile OLCULEMEDI veriyordu.
     * aksi halde       -> `<remote_sha>..<local_sha>`
     """
+    yerelde_mi = yerelde_mi or _commit_yerelde_mi
     kapsamlar = []
     for satir in (stdin_metni or "").splitlines():
         alan = satir.split()
@@ -1276,7 +1286,7 @@ def pre_push_araliklari(stdin_metni):
         _yerel_ref, yerel_sha, _uzak_ref, uzak_sha = alan[0], alan[1], alan[2], alan[3]
         if yerel_sha in _SIFIR:
             continue
-        if uzak_sha in _SIFIR:
+        if uzak_sha in _SIFIR or not yerelde_mi(uzak_sha):
             kapsamlar.append([yerel_sha, "--not", "--remotes"])
         else:
             kapsamlar.append(["%s..%s" % (uzak_sha, yerel_sha)])
@@ -1405,7 +1415,8 @@ def k384_kurucu_vakalari():
     V5 RET: core.hooksPath ayarli depoda kurucu rc=3 verir ve `.git/hooks/pre-push`a
        HICBIR SEY yazmaz (olu dosyaya "yazildi" demek olayin ta kendisiydi).
     V6 KONTROL (tek degisken = hooksPath): ayarsiz depoda ayni kurucu rc=0 ile yazar.
-    V7 MIRAS GIT_DIR: kanca baglaminda --pre-push YESIL kalir (asagida)."""
+    V7 MIRAS GIT_DIR: kanca baglaminda --pre-push YESIL kalir (asagida).
+    V8 FETCH EDILMEMIS UZAK UC: force-push araligi `--not --remotes`a duser (asagida)."""
     kurucu = os.path.join(ROOT, "tools", "gecmis-nobeti-hook-kur.py")
     sonuc = []
     try:
@@ -1466,6 +1477,14 @@ def k384_kurucu_vakalari():
         sonuc.append(("K384-V7", False, "fikstur kurulamadi: %s" % e))
     finally:
         shutil.rmtree(d, ignore_errors=True)
+    # V8 FETCH EDILMEMIS UZAK UC (curutucu D1): uzak sha yerelde YOKSA `--not --remotes`a
+    # duser; KONTROL = ayni satir uzak sha yerelde VARKEN `<uzak>..<yerel>` araligi.
+    y, u = "1" * 40, "2" * 40
+    satir = "refs/heads/s %s refs/heads/s %s\n" % (y, u)
+    yok = pre_push_araliklari(satir, yerelde_mi=lambda _s: False)
+    var = pre_push_araliklari(satir, yerelde_mi=lambda _s: True)
+    sonuc.append(("K384-V8", yok == [[y, "--not", "--remotes"]] and var == [["%s..%s" % (u, y)]],
+                  "yerelde yok -> %r · yerelde var -> %r" % (yok, var)))
     return sonuc
 
 
