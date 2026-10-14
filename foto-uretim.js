@@ -2361,7 +2361,7 @@
       img.width = 300; img.height = 300;
       img.loading = "lazy"; img.decoding = "async";
       if (renkCiz) {
-        // ④ TEK RENK (Okan 14 Eki): modelin seçilen renkte tek malzemelyle çizimi (2D boyama YOK).
+        // ④ TEK RENK (Okan 14 Eki): modelin seçilen renkte tek malzemeyle çizimi (2D boyama YOK).
         img.alt = "Önizleme — " + S.renkSunucu.renk + " renkte çizim";
         // Hover/dokunma "renkli alternatif" VERİSİ (davranış KraL): aynı işin sağlayıcı görseli.
         if (S.renkSunucu.saglayici) img.setAttribute("data-onizleme-saglayici-url", S.renkSunucu.saglayici);
@@ -2385,7 +2385,8 @@
       // görseli. Yalnız renkCiz + S.gorsel doluyken kurulur; geri dönüş değeri KURULUM ANINDA YAKALANAN çizim
       // adresidir (S sonradan değişse bile o görsele döner). Renkli / üreteç kolu / çizim hazır değil → HİÇBİR.
       if (renkCiz && S.renkSunucu && S.gorsel) {
-        var renkDegisSaglayici = S.gorsel;
+        // Sözleşme alanı `onizleme_saglayici_url` (S.renkSunucu.saglayici) önce; yoksa aynı işin S.gorsel'i.
+        var renkDegisSaglayici = (S.renkSunucu && S.renkSunucu.saglayici) || S.gorsel;
         var renkDegisCizim = (S.renkSunucu && S.renkSunucu.gorsel) || "";
         img.classList.add("foto-uretim-renk-degis");
         img.tabIndex = 0;
