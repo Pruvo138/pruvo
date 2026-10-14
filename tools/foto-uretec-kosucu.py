@@ -2219,7 +2219,7 @@ def renk_isle(i, jeton, yaz):
         return {"hazir": "uretildi", "basarisiz": "red", "ariza": "ariza"}[karar]
     except Erisilemedi:
         try:
-            d1(geri_ver_sql(i, jeton))
+            d1(geri_ver_sql(i, jeton))  # renk kuyrugu: kira geri
         except Erisilemedi:
             pass
         raise
