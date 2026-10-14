@@ -1427,8 +1427,8 @@
   }
 
   /* ① KARTLAR — `KARTLAR` tablosundan; türü `/acik` listesinde olmayan ya da sayılan örneği olmayan kart
-     ÇİZİLMEZ. Kart = türün sayılan örneğinin görseli + ad (+ kanıt etiketi: render "Örnek görsel (bilgisayar çizimi)",
-     baskı "basılmış ürün" — hukuk kapısı 13:4x). Render örneği türün dürüstlük cümlesi alanı (ornek_notu)
+     ÇİZİLMEZ. Kart = türün sayılan örneğinin görseli + ad (kanıt etiketi kartta ÇİZİLMEZ — Okan 14 Eki 18:5x
+     "bunları sil"; veri alanı `kanit` durur, ② lightbox ornek_notu yazısı AYNEN). Render örneği türün dürüstlük cümlesi alanı (ornek_notu)
      olmadan çizilmez (fail-closed; "" = ② kutusunda tek cümle, `durustluk` kapsar). acikKodlar: /foto/acik türleri; null = henüz bilinmiyor (kart 0). */
   // Çeşit sabitleyen kart (anahtarlık yazı/figür) yalnız KENDİ çeşidinin örneğini gösterir (örneği yoksa yer tutucu).
   // Alt türlü kart (figür insan/pet/model) yalnız `o.alt === alt` örneğini gösterir (insan kartına kedi düşmez).
@@ -1489,17 +1489,18 @@
           d.appendChild(el("span", "foto-uretim-kart-yer"));
         } else {
           var im = el("img");
-          im.src = it.kanit === "render" ? it.ornek.render : it.kanit === "yakinda" ? "" : it.ornek.baski;
-          im.alt = ""; im.width = 240; im.height = 240; im.decoding = "async";
+          im.src = it.ornek.kart || (it.kanit === "render" ? it.ornek.render : it.kanit === "yakinda" ? "" : it.ornek.baski);
+          im.alt = it.ornek.kart_alt || ""; im.width = 240; im.height = 240; im.decoding = "async";
           if (sira > 0) im.loading = "lazy";
           d.appendChild(im);
         }
         d.appendChild(el("span", "foto-uretim-kart-ad",
           devreDisi ? (it.kart.yakinda || it.kart.ad) : it.kart.ad));
-        d.appendChild(el("span", "foto-uretim-kart-etiket",
-          devreDisi ? "yakında"
-          : it.kanit === "ornek-yok" ? "Örnek yakında"
-          : (it.kanit === "render" ? "Örnek görsel (bilgisayar çizimi)" : "basılmış ürün")));
+        // kanıt etiketi kartta ÇİZİLMEZ (Okan 14 Eki 18:5x "bunları sil"); ornegi olan kart için span YOK.
+        // "yakında" (devre dışı) ve "Örnek yakında" (ornek-yok) etiketleri AYNEN durur.
+        if (devreDisi || it.kanit === "ornek-yok") {
+          d.appendChild(el("span", "foto-uretim-kart-etiket", devreDisi ? "yakında" : "Örnek yakında"));
+        }
         if (!devreDisi) d.addEventListener("click", function () { galeriSec(it.kart.kod); });
         ornekBlok.appendChild(d);
       })(liste[n], n);
@@ -2276,19 +2277,24 @@
   /* ④ render kolu (sunucu renderKolu ile AYNI): figür türü (insan · pet · model) + anahtarlık–figür çeşidi. */
   function figurKoluMu() { return S.tur === "figur" || (cesitliTur() && seciliCesit() === "figur"); }
 
-  /* ④ TEK RENK ÖNİZLEMESİ (Okan 14 Eki 03:0x): sağlayıcı kolunda (plaket · figür · anahtarlık–figür) tek renk
-     (Siyah/Beyaz/Gri) seçiliyken ④ görseli = modelin O RENKTE çizimi (sunucu /durum `renk_durum` + `renk_gorsel`).
-     Renkli'de bugünkü gibi sağlayıcı görseli (renk isteği/alanı YOK). Çizim hazırlanırken S2 "Renk önizlemesi
-     hazırlanıyor…" + sağlayıcı görseli (sessiz boş görsel YOK); sunucu `yok` derse (tavan/hata/gecikme) eski davranış. */
+  /* ④ TEK RENK ÖNİZLEMESİ (Okan 14 Eki 12:58/12:59): sağlayıcı kolunda (plaket · figür · anahtarlık–figür) tek renk
+     (Siyah/Beyaz/Gri) seçiliyken ④ görseli = modelin GRİ örnek görseli (sunucu /durum onizleme_renk_gorunum "gri") ve
+     altında TEK cümle: GRI_CUMLESI (renk adı seçilen tek renk). Renk değişimi aynı görseli kullanır, yalnız cümledeki
+     ad değişir (bekleme ekranı yok). Renkli'de bugünkü gibi sağlayıcı görseli (renk isteği/alanı/cümlesi YOK). Görsel
+     hazırlanırken S2 "Renk önizlemesi hazırlanıyor…" + sağlayıcı görseli (sessiz boş görsel YOK); sunucu `yok` derse
+     (tavan/hata/gecikme/özellik kapalı) eski davranış. */
   // SÜRE KAPISI metni (④/③: geçerlilik geçmişse "Sepete ekle" pasif + bu satır; sepeteEkle de aynı metni basar).
   var SURE_DOLDU_METNI = "Önizlemenin süresi doldu; yeni önizleme gerekiyor.";
   var RENK_URL = "/api/shop/foto/renk";
   var RENK_HAZIRLANIYOR = "Renk önizlemesi hazırlanıyor…";
   var RENK_CUMLESI = "Önizleme seçtiğin renkte çizildi; ürün bu renkte üretilir.";
+  // ④ GRİ örnek görselin altındaki TEK cümle (tek yer); {renk} = müşterinin seçtiği tek renk (Siyah/Beyaz/Gri).
+  var GRI_CUMLESI = "Görsel örnektir — ürün seçtiğiniz tek renkte ({renk}) üretilir.";
+  function griCumlesi(renk) { return GRI_CUMLESI.replace("{renk}", renk); }
   // ④ HOVER ALTERNATİF (Okan 14 Eki 03:5x): görselin üstüne gelince / basılı tutunca sağlayıcının renkli
   // görseli gösterilir; cümlenin altında TEK satır ipucu (yalnız S.gorsel doluyken).
   var RENK_IPUCU = "Fotoğraftaki renkli hâlini görmek için görselin üstüne gel ya da basılı tut.";
-  var RENK_YOKLAMA_TAVAN_MS = 900000;   // sunucu RENK_RENDER_BEKLEME_SN (15 dk) ile AYNI; sonra eski davranış
+  var RENK_YOKLAMA_TAVAN_MS = 900000;   // sunucu RENK_GRI_BEKLEME_SN (15 dk) ile AYNI; sonra eski davranış
   function renkOnizlemeKolu() {
     return !!S.tur && (figurKoluMu() || !(F && F.kolu && F.kolu(S.tur) === "deterministik"));
   }
@@ -2312,6 +2318,14 @@
       return true;
     }
     if (S.renkSunucu && S.renkSunucu.renk === h) return false;
+    // GRİ görsel renkten bağımsız: aynı görsel, yalnız cümledeki renk adı değişir — bekleme ekranı YOK. Sunucuya yeni
+    // renk arka planda bildirilir (orada da yeni görsel üretilmez); yanıt beklenmez.
+    if (S.renkSunucu && S.renkSunucu.gorunum === "gri" && S.renkSunucu.durum === "hazir" && S.renkSunucu.gorsel) {
+      S.renkSunucu = { renk: h, durum: "hazir", gorsel: S.renkSunucu.gorsel, saglayici: S.renkSunucu.saglayici, gorunum: "gri" };
+      S.renkSonIstek = S.is + "|" + h;
+      jsonPost(RENK_URL, { is: S.is, renk: h }, function () {});
+      return false;
+    }
     S.renkSonIstek = "";
     renkIste(h);
     return true;
@@ -2365,14 +2379,18 @@
       img.width = 300; img.height = 300;
       img.loading = "lazy"; img.decoding = "async";
       if (renkCiz) {
-        // ④ TEK RENK (Okan 14 Eki): modelin seçilen renkte tek malzemeyle çizimi (2D boyama YOK).
-        // Üreteç kolunda sunucu renk ADI vermez (onizleme_renk ""): boş ad alt metne yazılmaz.
-        img.alt = S.renkSunucu.renk ? "Önizleme — " + S.renkSunucu.renk + " renkte çizim" : "Önizleme — seçilen renklerde çizim";
-        // Hover/dokunma "renkli alternatif" VERİSİ (davranış KraL): aynı işin sağlayıcı görseli.
+        // ④ TEK RENK: sağlayıcı kolunda modelin GRİ örnek görseli + GRI_CUMLESI (renk adı seçilen tek renk); üreteç
+        // kolunda modelin seçilen renk(ler)de çizimi + RENK_CUMLESI. Üreteç kolunda sunucu renk ADI vermez
+        // (onizleme_renk ""): boş ad alt metne yazılmaz.
+        var griGorunum = S.renkSunucu.gorunum === "gri" && !!S.renkSunucu.renk;
+        img.alt = griGorunum ? "Önizleme — tek renk örnek görsel" :
+          S.renkSunucu.renk ? "Önizleme — " + S.renkSunucu.renk + " renkte çizim" : "Önizleme — seçilen renklerde çizim";
+        // Hover/dokunma "renkli alternatif" VERİSİ: aynı işin sağlayıcı görseli.
         if (S.renkSunucu.saglayici) img.setAttribute("data-onizleme-saglayici-url", S.renkSunucu.saglayici);
         img.src = S.renkSunucu.gorsel;
         S.alan.appendChild(img);
-        S.alan.appendChild(el("p", "foto-uretim-ayrinti foto-uretim-renk-notu", RENK_CUMLESI));
+        S.alan.appendChild(el("p", "foto-uretim-ayrinti foto-uretim-renk-notu",
+          griGorunum ? griCumlesi(S.renkSunucu.renk) : RENK_CUMLESI));
       } else if (figurKol) {
         // ④ FİGÜR KOLU (Okan 12 Eki "birebir aynı çıktı"): render varsa basılacak dosyanın çizimi AYNEN; yoksa
         // sağlayıcı görseli AYNEN (yeniden boyama yok) — hangisinin gösterildiği görselin altında söylenir.
@@ -2717,12 +2735,13 @@
           // ④ TEK RENK: sunucunun bildiği renk + durum. Seçim başka bir tek renkse (③'te değişti ya da önizleme
           // Renkli alındı) /foto/renk TEK kez; çizim hazırlanıyorsa S2'de sağlayıcı görseliyle beklenir.
           // VERİ SÖZLEŞMESİ (sunucu foto.js renkYanitAlanlari): onizleme_renk · onizleme_renk_durum · onizleme_renk_url ·
-          // onizleme_saglayici_url (hover "renkli alternatif"; görünüm KraL).
+          // onizleme_renk_gorunum ("gri" = gri örnek görsel) · onizleme_saglayici_url (hover "renkli alternatif").
           // Üreteç türünde (büst · yapboz · anahtarlık–yazı) onizleme_renk "" (renkler önizlemenin kendi girdisi).
           S.renkSunucu = typeof veri.onizleme_renk_durum === "string" && veri.onizleme_renk_durum ? { renk: veri.onizleme_renk || "",
             durum: veri.onizleme_renk_durum || "",
             gorsel: typeof veri.onizleme_renk_url === "string" ? veri.onizleme_renk_url : "",
-            saglayici: typeof veri.onizleme_saglayici_url === "string" ? veri.onizleme_saglayici_url : "" } : null;
+            saglayici: typeof veri.onizleme_saglayici_url === "string" ? veri.onizleme_saglayici_url : "",
+            gorunum: veri.onizleme_renk_gorunum === "gri" ? "gri" : "" } : null;
           var h = renkHedefi();
           if (h && (!S.renkSunucu || S.renkSunucu.renk !== h) && S.renkSonIstek !== isNo + "|" + h) {
             renkIste(h);

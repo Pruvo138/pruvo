@@ -2657,11 +2657,13 @@ async function fotoYukle(){
    esc(t.hazir)+'</td><td>'+esc(t.elle)+'</td><td>'+esc(t.suruyor)+'</td></tr>';}).join("")+'</table>'+
   '<div class="kucuk">Kredi: bu ay '+esc(o.kredi&&o.kredi.bu_ay)+' · geçen ay '+esc(o.kredi&&o.kredi.gecen_ay)+
   ' · havuz: '+(o.bakiye?esc(o.bakiye.kredi):'okunmadı')+'</div>'+
-  // ④ TEK RENK (Okan 14 Eki): önizlemede kurulan 3D model sayısı + kredi tahmini (tavan foto_ayar renk_onizleme_tavan).
-  '<div class="kucuk">Tek renk önizleme (önizlemede 3D model): '+(o.renk_onizleme&&o.renk_onizleme.kurulu?
-   'son 24 sa '+esc(o.renk_onizleme.son_24s_build)+'/'+esc(o.renk_onizleme.tavan)+' build · tahmini kredi '+
-   esc(o.renk_onizleme.kredi_tahmini)+' ('+esc(o.renk_onizleme.son_24s_build)+'×30 build + '+
-   esc(o.renk_onizleme.son_24s_build)+'×6 prototip) · çizim bekleyen '+esc(o.renk_onizleme.render_bekleyen):
+  // ④ TEK RENK (Okan 14 Eki 12:58): gri model görseli çağrı sayısı + kredi tahmini (tavan foto_ayar renk_onizleme_tavan;
+  // model secret'i yoksa özellik KAPALI yazılır — sessiz sıfır yok).
+  '<div class="kucuk">Tek renk önizleme (gri model görseli): '+(o.renk_onizleme&&o.renk_onizleme.kurulu?
+   (o.renk_onizleme.gri_acik?'':'<span class="hata">model ayarı yok (özellik kapalı)</span> · ')+
+   'son 24 sa '+esc(o.renk_onizleme.son_24s_gri)+'/'+esc(o.renk_onizleme.tavan)+' çağrı · tahmini kredi '+
+   esc(o.renk_onizleme.kredi_tahmini)+' ('+esc(o.renk_onizleme.son_24s_gri)+'×5 gri + '+
+   esc(o.renk_onizleme.son_24s_gri)+'×6 prototip) · süren gri '+esc(o.renk_onizleme.gri_suren):
    '<span class="hata">tablo kurulu değil (özellik kapalı)</span>')+'</div></div>');
  if((o.elle||[]).length){
   h.push('<div class="kart"><b>Elle bakılacak</b>'+o.elle.map(function(e){return '<div class="kucuk">'+

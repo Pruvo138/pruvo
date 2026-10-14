@@ -1139,6 +1139,12 @@ async function kargoNotuSenaryolari(secenekKaynak) {
     r.V5 = s.el("cartKargoEsikRow").style.display === "none" &&
       s.el("cartKargoKalanRow").style.display === "none";
   }
+  // V6 — ESIK_METNI (kargo notu metni) iddiasinin yaninda: index.html'deki
+  // .cart-alt-row.kargo-not CSS kuralinin color degeri var(--red) (Okan 14 Eki,
+  // "bunu kirmizi yaz"). Mevcut V1..V5 iddialari ETKILENMEZ — bu yalniz CSS.
+  const kuralCss = INDEX.match(/\.cart-alt-row\.kargo-not\s*\{[^}]*\}/);
+  iz.V6 = kuralCss ? kuralCss[0] : "<kural yok>";
+  r.V6 = kuralCss !== null && /color\s*:\s*var\(--red\)/.test(kuralCss[0]);
   return { r, iz };
 }
 
@@ -1148,6 +1154,9 @@ async function test18KargoNotu() {
     rapor("18 " + ad + " ucretsiz gonderim notu", r[ad] ? [] : [JSON.stringify(iz[ad])],
       JSON.stringify(iz[ad]));
   }
+  rapor("18 V6 ucretsiz gonderim CSS rengi (color:var(--red))",
+    r.V6 ? [] : ["CSS kural bulunamadi ya da color farkli: " + iz.V6],
+    iz.V6);
   const MUTANTLAR = [
     ["M1 esik >= -> > (2.500'de ucret alinir)",
      "return urunToplamKurus >= KARGO_BEDAVA_ESIK_KURUS ? 0 : KARGO_UCRET_KURUS;",
@@ -1168,6 +1177,20 @@ async function test18KargoNotu() {
     rapor("18 " + ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]",
       ok ? [] : ["SURVIVOR/sapma: kirmizi=[" + kirmizi.join(",") + "]"],
       "kirmizi=[" + kirmizi.join(",") + "]");
+  }
+  // MK_R — Okan 14 Eki kirmizi istegi geri alininca V6 kirmizianir (CSS mutant).
+  // Yalniz INDEX uzerinde calisir; V1..V5 metin davranisi etkilenmedigi icin YESIL kalir.
+  const CSS_MUTANT_CAP = ".cart-alt-row.kargo-not{font-size:12px;color:var(--red);justify-content:flex-start}";
+  const CSS_MUTANT_YER = ".cart-alt-row.kargo-not{font-size:12px;color:var(--gray-text);justify-content:flex-start}";
+  if (INDEX.split(CSS_MUTANT_CAP).length - 1 !== 1) {
+    rapor("18 MK_R kargo-not rengi gray-text doner", ["capa kayip/coklu — mutant uygulanamadi"]);
+  } else {
+    const idxMutant = INDEX.replace(CSS_MUTANT_CAP, CSS_MUTANT_YER);
+    const kuralCssMut = idxMutant.match(/\.cart-alt-row\.kargo-not\s*\{[^}]*\}/);
+    const v6Kirmizi = kuralCssMut === null || !/color\s*:\s*var\(--red\)/.test(kuralCssMut[0]);
+    rapor("18 MK_R kargo-not rengi gray-text doner -> KIRMIZI tam olarak [V6]",
+      v6Kirmizi ? [] : ["SURVIVOR: V6 yesil kaldi (renk kapisi acildi, kapattigimizi gormedi)"],
+      "v6=" + (kuralCssMut ? kuralCssMut[0] : "<yok>"));
   }
 }
 

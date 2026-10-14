@@ -64,9 +64,10 @@
  *   RO-M1..RO-M3        : izin kontrolu silindi / izin varsayilani acik / render gorsel sarti
  *                         silindi -> ilgili RO senaryosu KIRMIZI; RO-MK (yalniz yorum) -> hicbiri
  *                         (mutant veri dosyasinin BELLEKTEKI kopyasina uygulanir)
- *   ES                  : bolumde render kaydi "Örnek görsel (bilgisayar çizimi)" etiketi + abarti cumlesiyle
- *                         cizilir, "gerçek fotoğraf" metni 0, ozgun foto gorseli 0; baski kaydi
- *                         eski etiketle (ES-M1/ES-M2 ekran mutantlari KIRMIZI)
+ *   ES                  : bolumde ① kart kanıt etiketi render/baski kartlarında ÇİZİLMEZ (Okan 14 Eki 18:5x
+ *                         "bunları sil"); "Örnek görsel (bilgisayar çizimi)" / "basılmış ürün" metinleri
+ *                         ① kart bölgesinde 0; "Örnek yakında" (ornek-yok) + "yakında" (devre dışı) etiketleri
+ *                         AYNEN durur; ② ornek_notu AYNEN, "gerçek fotoğraf" 0 (ES-M1 ekran mutantı KIRMIZI)
  *   AK                  : olceklenmis 3MF'in ALT KENAR kalinligi (Y en kucuk 10 mm serit, Z
  *                         yayilimi) analiz ozetine + panel kaydina `alt_kenar_mm`; sentetik
  *                         6,5 mm serit -> 6,5 ±0,1 (olceksiz ve 10x olcekli). AK-M1..AK-M4 KIRMIZI
@@ -160,6 +161,8 @@ function r2Kur() {
 
 const TABAN = "https://saglayici.test/openapi";
 const PNG = Uint8Array.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, ...new Array(64).fill(7)]);
+// ④ GRI: saglayicinin alfa kucuk resmi (konsept PNG'den AYIRT edilebilir bayt).
+const GRI_PNG = Uint8Array.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, ...new Array(64).fill(128)]);
 // ---- SENTETIK 3MF FIKSTURLERI (kucuk; gercek 8 MB dosya depoya GIRMEZ). Yapi gercek ornekle
 // ayni: ana model tek bilesen + tek build item (plaka ortasi), tepeler 3D/Objects altinda.
 function zipYaz(girdiler) {
@@ -295,6 +298,9 @@ const P = {
   //    { degenerate_faces: 316227 } → status 'warning' + metrik kusurlu.
   //    { noMetrics: true } → status 'warning' + metrics alani YOK.
   analizMetrik: null,
+  // ④ GRI: image-to-3d istek govdeleri · gorev yoklama sayaci · sonuc ('SUCCEEDED'|'FAILED') · POST hata kodu ·
+  // alfa kucuk resmi yok (gorselsiz bitti).
+  griGovde: [], griDurum: new Map(), griSonuc: "SUCCEEDED", griKod: 0, griAlfaYok: false,
 };
 let sayac = 0;
 const yeniId = () => "gorev-" + String(++sayac).padStart(4, "0") + "-aaaa";
@@ -365,8 +371,23 @@ globalThis.fetch = async function sahteFetch(hedef, init) {
     if (/^\/v1\/print\/multi-color\/.+$/.test(yol)) {
       return yanit({ status: "SUCCEEDED", consumed_credits: 10, model_urls: { "3mf": "https://dosya.test/model.3mf?Expires=1" } });
     }
+    // ④ GRI: dokusuz image-to-3d (taban + /v1/image-to-3d; tur oneki YOK). 2. yoklamada biter, 5 kredi.
+    if (yontem === "POST" && yol === "/v1/image-to-3d") {
+      P.griGovde.push(JSON.parse(init.body));
+      if (P.griKod) { return yanit({ message: "x" }, P.griKod); }
+      const id = yeniId(); P.griDurum.set(id, 0); return yanit({ result: id });
+    }
+    if ((m = /^\/v1\/image-to-3d\/(.+)$/.exec(yol))) {
+      const n = (P.griDurum.get(m[1]) || 0) + 1; P.griDurum.set(m[1], n);
+      if (n < 2) { return yanit({ id: m[1], status: "IN_PROGRESS", progress: 50 }); }
+      if (P.griSonuc === "FAILED") { return yanit({ id: m[1], status: "FAILED", consumed_credits: 0, task_error: { message: "x" } }); }
+      return yanit({ id: m[1], status: "SUCCEEDED", consumed_credits: 5, thumbnail_url: "https://dosya.test/kucuk.png?Expires=1",
+                     ...(P.griAlfaYok ? {} : { alpha_thumbnail_url: "https://dosya.test/gri.png?Expires=1" }),
+                     model_urls: { glb: "https://dosya.test/gri-model.glb?Expires=1" } });
+    }
     return yanit({ message: "bilinmeyen" }, 404);
   }
+  if (u.startsWith("https://dosya.test/gri.png")) { return new Response(GRI_PNG, { headers: { "Content-Type": "image/png", "Content-Length": String(GRI_PNG.length) } }); }
   if (u.startsWith("https://dosya.test/onizleme.png")) { return new Response(PNG, { headers: { "Content-Type": "image/png", "Content-Length": String(PNG.length) } }); }
   if (u.startsWith("https://dosya.test/model.3mf")) { return new Response(P.ucmf || UCMF, { headers: { "Content-Type": "application/octet-stream" } }); }
   if (u.startsWith("https://dosya.test/model-dokulu.glb")) { return new Response(GLB_DOKULU, { headers: { "Content-Type": "model/gltf-binary" } }); }
@@ -2078,28 +2099,41 @@ console.log("RO) RENDER ORNEGI — plaket gercek baski beklemeden acilir (Okan 7
   }
 }
 
-// 13:4x (kopru-15) MİMAR BULGUSU: dürüstlük testleri GERÇEK iddia: her render kartında "Örnek görsel (bilgisayar çizimi)"
-// etiketi VAR ve "gerçek fotoğraf"/"Gerçek örnekler" iddiası 0 · baskı kaydı kartı "basılmış ürün" der ·
-// türün ornek_notu (render dürüstlük cümlesi) AYNEN görünür. K3b: ızgara + büyütme penceresi KALKTI (Okan
-// 01:0x) → kart ① penceresinde, ornek_notu ② dürüstlük kutusunda (kart seçilince). C2 (10 Eki): gerçek plaket
-// ornek_notu "" (② TEK cümle, VM2) -> MEKANİZMA burada bellek yamasıyla (plaket ornek_notu = CUMLE_P) ölçülür.
-console.log("ES) EKRAN — ① kart: render 'Örnek görsel (bilgisayar çizimi)', baski 'basılmış ürün', 'gerçek fotoğraf'/'Gerçek örnekler' 0; ② ornek_notu AYNEN");
+// 14 Eki 18:5x (Okan, aynen "bunları sil"): ① kart kanıt etiketi kartta ÇİZİLMEZ; ornekli kart için span YOK,
+// "Örnek görsel (bilgisayar çizimi)" / "basılmış ürün" metinleri ① kart bölgesinde 0 · "yakında" (devre dışı)
+// + "Örnek yakında" (ornek-yok) etiketleri AYNEN durur · ② ornek_notu AYNEN, "gerçek fotoğraf" 0.
+// K3b: ızgara + büyütme penceresi KALKTI (Okan 01:0x) → kart ① penceresinde, ornek_notu ② dürüstlük
+// kutusunda (kart seçilince). C2 (10 Eki): gerçek plaket ornek_notu "" (② TEK cümle, VM2) -> MEKANİZMA burada
+// bellek yamasıyla (plaket ornek_notu = CUMLE_P) ölçülür.
+console.log("ES) EKRAN — ① kart: render/baski kanıt etiketi YOK, metin 0; ornek-yok/devre-dışı AYNEN; 'gerçek fotoğraf' 0; ② ornek_notu AYNEN");
 {
   const sinifli = (kok, c) => [...kok.agac()].filter((n) => n.classList.contains(c));
   const CUMLE_P = "TEST render notu: üretim dosyasının görüntüsüdür (bellek yaması; mekanizma ölçümü).";
   const notYama = (V) => { const t = V.turBul("plaket"); if (t) { t.ornek_notu = CUMLE_P; } return V; };
   const tur = (kod, ad) => ({ kod, ad, aciklama: "x", ornek_sayisi: 1, olculer: [{ mm: 120, fiyat_kurus: 44900 }] });
-  const yol = async (kaynak, V) => {
-    const e = await ekranKos(kaynak, V, { acik: true, turler: [tur("plaket", "Kabartma plaket")] });
-    const kart = sinifli(e.bolum, "foto-uretim-kart").find((k) => k.getAttribute("data-tur") === "plaket");
-    const etiket = kart && (sinifli(kart, "foto-uretim-kart-etiket")[0] || { textContent: null }).textContent;
+  // opts.turler: açık tür listesi (varsayılan: [plaket]); opts.hedefKart: tıklanacak kart kodu (data-kart).
+  const yol = async (kaynak, V, opts = {}) => {
+    const turler = opts.turler || [tur("plaket", "Kabartma plaket")];
+    const hedefKart = opts.hedefKart || null;
+    const e = await ekranKos(kaynak, V, { acik: true, turler });
+    const kartlar = [...sinifli(e.bolum, "foto-uretim-kart")];
+    const kart = hedefKart ? kartlar.find((k) => k.getAttribute("data-kart") === hedefKart) : kartlar[0];
+    const etiketSpan = kart ? sinifli(kart, "foto-uretim-kart-etiket")[0] : null;
+    const etiket = etiketSpan ? etiketSpan.textContent : null;
     const once = e.bolum.textContent;
     if (kart) { kart.tetikle("click"); }
     const d = sinifli(e.bolum, "foto-uretim-durustluk")[0];
     const not = d && d.childNodes[1] ? d.childNodes[1].textContent : null;
     const eski = ["foto-uretim-buyuk-kart", "foto-uretim-isik", "foto-uretim-galeri-kucuk", "foto-uretim-ornek-grup"]
       .some((c) => sinifli(e.bolum.parentNode, c).length > 0);
-    return { kart: !!kart, etiket, not, metin: once + " " + e.bolum.textContent, eski };
+    return {
+      kart: !!kart, etiket, etiketVar: !!etiketSpan, not,
+      metin: once + " " + e.bolum.textContent, eski,
+      kartlar: kartlar.map((k) => ({
+        kod: k.getAttribute("data-kart"),
+        etiket: (sinifli(k, "foto-uretim-kart-etiket")[0] || { textContent: null }).textContent,
+      })),
+    };
   };
   const esDene = async (kaynak) => {
     const Va = notYama(veriYukle(VERI_KAYNAK));
@@ -2109,26 +2143,50 @@ console.log("ES) EKRAN — ① kart: render 'Örnek görsel (bilgisayar çizimi)
     Vb.ornekler.splice(0, Vb.ornekler.length, { tur: "plaket", kanit: "baski", olcu_mm: 100, foto: "https://media.pruvo3d.com/b-f.webp",
       onizleme: "https://media.pruvo3d.com/b-o.webp", baski: "https://media.pruvo3d.com/b-b.webp", not: "t" });
     const B = await yol(kaynak, Vb);
+    // Y: anahtarlik tür açık; yalnız anahtarlik_yazi orneki var → anahtarlik_figur kart kanit="ornek-yok"
+    // ("Örnek yakında" etiketi). ① kart kanıt etiketi YOK iddiası burada da görünür (yazi kart render orneği).
+    const Vc = notYama(veriYukle(VERI_KAYNAK));
+    Vc.ornekler.splice(0, Vc.ornekler.length, ...Vc.ornekler.filter((o) => o.tur === "anahtarlik" && o.cesit === "yazi"));
+    const Y = await yol(kaynak, Vc, { turler: [tur("anahtarlik", "Anahtarlık")], hedefKart: "anahtarlik_yazi" });
     const kirmizi = [];
-    if (R.etiket !== "Örnek görsel (bilgisayar çizimi)") kirmizi.push("ETIKET_RENDER");
-    if (B.etiket !== "basılmış ürün") kirmizi.push("ETIKET_BASKI");
+    // ① kart kanıt etiketi: ornekli kartlarda span YOK (render, baski, ornekli kart dahil).
+    if (R.etiketVar) kirmizi.push("ETIKET_RENDER_VAR");
+    if (B.etiketVar) kirmizi.push("ETIKET_BASKI_VAR");
+    const yaziKart = Y.kartlar.find((k) => k.kod === "anahtarlik_yazi");      // ornekli (render)
+    const figurKart = Y.kartlar.find((k) => k.kod === "anahtarlik_figur");    // ornek-yok
+    if (yaziKart && yaziKart.etiket !== null) kirmizi.push("ETIKET_ANAHTARLIK_VAR");
+    // ① kart bölgesi metninde "Örnek görsel (bilgisayar çizimi)" / "basılmış ürün" 0.
+    if (/Örnek görsel \(bilgisayar çizimi\)/.test(R.metin)) kirmizi.push("METIN_RENDER");
+    if (/basılmış ürün/.test(B.metin)) kirmizi.push("METIN_BASKI");
+    if (/Örnek görsel \(bilgisayar çizimi\)/.test(Y.metin)) kirmizi.push("METIN_RENDER_Y");
+    if (/basılmış ürün/.test(Y.metin)) kirmizi.push("METIN_BASKI_Y");
+    // ornek-yok davranışı AYNEN: "Örnek yakında" etiketi VAR.
+    if (!figurKart || figurKart.etiket !== "Örnek yakında") kirmizi.push("ORNEK_YOK_ETIKET");
+    // eski iddialar korunur.
     if (/Gerçek örnek/.test(R.metin + B.metin)) kirmizi.push("BASLIK_GERCEK_ORNEK");
     if (/gerçek fotoğraf/i.test(R.metin)) kirmizi.push("RENDER_GERCEK_FOTOGRAF");
     if (/gerçek fotoğraf/i.test(B.metin) || /Basılmış ürün \(gerçek fotoğraf\)/.test(B.metin)) kirmizi.push("BASKI_GERCEK_FOTOGRAF");
     if (R.not !== CUMLE_P) kirmizi.push("ORNEK_NOTU");
-    // Render dürüstlük cümlesi baskı kaydına (basılmış ürünün kendisi) YAZILMAZ.
+    // Render dürüstlük cümlesi baskı kaydına YAZILMAZ.
     if (B.not !== "") kirmizi.push("BASKI_NOTU");
     if (R.eski || B.eski) kirmizi.push("BUYUK_KART");
-    return { kirmizi, R, B };
+    return { kirmizi, R, B, Y };
   };
   const s = await esDene(EKRAN_KAYNAK);
-  ol("ES1 render kaydi: kartta etiket 'Örnek görsel (bilgisayar çizimi)', 'gerçek fotoğraf' 0, 'Gerçek örnekler' 0; ②'de ornek_notu AYNEN; buyuk kart/isik/izgara 0",
+  ol("ES1 render kaydi: kartta kanit etiketi span YOK, 'Örnek görsel (bilgisayar çizimi)' metni 0, 'Gerçek örnekler' 0; ②'de ornek_notu AYNEN; buyuk kart/isik/izgara 0",
      s.kirmizi.length === 0, JSON.stringify(s));
-  ol("ES2 baski kaydi: kartta etiket 'basılmış ürün'; 'Basılmış ürün (gerçek fotoğraf)' 0; render cumlesi baskiya yazilmaz",
+  ol("ES2 baski kaydi: kartta kanit etiketi span YOK, 'basılmış ürün' metni 0; 'Basılmış ürün (gerçek fotoğraf)' 0; render cumlesi baskiya yazilmaz",
      s.kirmizi.length === 0, JSON.stringify(s));
+  ol("ES3 ornek-yok kart ('Örnek yakında') AYNEN + ornekli kart span YOK (anahtarlik yazi render, anahtarlik figur ornek-yok)",
+     s.Y.kartlar.some((k) => k.etiket === "Örnek yakında") && s.Y.kartlar.some((k) => k.etiket === null),
+     JSON.stringify(s.Y.kartlar));
   const ES_MUT = [
-    ["ES-M1 baski kart etiketi 'gerçek fotoğraf' yapildi", 'it.kanit === "render" ? "Örnek görsel (bilgisayar çizimi)" : "basılmış ürün"',
-     'it.kanit === "render" ? "Örnek görsel (bilgisayar çizimi)" : "gerçek fotoğraf"', ["BASKI_GERCEK_FOTOGRAF", "ETIKET_BASKI"]],
+    // ES-M1: ornekli kart için span geri konursa ETIKET_RENDER_VAR + ETIKET_BASKI_VAR + ETIKET_ANAHTARLIK_VAR
+    // tetiklenir (her devre'de span eklenir, render/baski/yazi kartlarında artık etiket VAR).
+    ["ES-M1 ① kart kanit etiketi geri kondu (ornekli kart icin span eklendi)",
+     'if (devreDisi || it.kanit === "ornek-yok") {',
+     'if (true) {',
+     ["ETIKET_RENDER_VAR", "ETIKET_BASKI_VAR", "ETIKET_ANAHTARLIK_VAR"]],
     ["ES-M2 ornek_notu ②'ye yazilmadi", 'S.ornekNotP.textContent = it && it.kanit === "render" ? it.tur.ornek_notu || "" : "";',
      'S.ornekNotP.textContent = "";', ["ORNEK_NOTU"]],
     ["ES-M3 render sarti kalkti (render cumlesi baskiya yazilir)", 'S.ornekNotP.textContent = it && it.kanit === "render" ? it.tur.ornek_notu || "" : "";',
@@ -2141,6 +2199,62 @@ console.log("ES) EKRAN — ① kart: render 'Örnek görsel (bilgisayar çizimi)
     ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]",
        JSON.stringify(m.kirmizi.slice().sort()) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(m.kirmizi));
   }
+}
+
+// KA) ① KART KUCUK RESMI (Okan 14 Eki 16:1x): anahtarlik_figur kartinda ornek.render yerine kart alani cizilir;
+// alt metni kart_alt; diger 5 kart bayt-esit ayni (degisiklik ONCESI deger).
+console.log("KA) KART KUCUK RESMI — anahtarlik_figur: kart URL + 'Anahtarlık – figür örneği' alt; diger 5 kart eski render/baski/''");
+{
+  const KART_URL = "https://media.pruvo3d.com/foto/ornek/anahtarlik-figur-kart.webp";
+  const KART_ALT = "Anahtarlık – figür örneği";
+  // Diger 5 kart icin ONCESI deger: ornek.render / ornek.baski + alt = "" — kayit VERI_KAYNAK'tan (degisiklik
+  // ONCESI = "hilal-2-render.webp" + ""). Bu degerler kart yapisinin (ornekCiz'in `kart ||` fallback'i) birebir
+  // davranmasinin kanitidir: figur_figur kartinda `kart` URL gorulurse yalniz bu kod yolu secmis demektir.
+  const DIGER_BEKLENEN = {
+    anahtarlik_yazi: { src: "https://media.pruvo3d.com/foto/ornek/anahtarlik-1-render.webp", alt: "" },
+    insan:           { src: "https://media.pruvo3d.com/foto/ornek/kart-insan-2.webp", alt: "" },
+    pet:             { src: "https://media.pruvo3d.com/foto/ornek/kart-pet-1.webp", alt: "" },
+    plaket:          { src: "https://media.pruvo3d.com/foto/ornek/kart-plaket-2.webp", alt: "" },
+    model:           { src: "https://media.pruvo3d.com/foto/ornek/kart-model-1.webp", alt: "" },
+  };
+  const kartBul = (bolum, kod) => [...bolum.agac()].filter((n) => n.tagName === "BUTTON" && n.getAttribute("data-kart") === kod)[0] || null;
+  const imgBul = (kart) => kart ? [...kart.agac()].find((n) => n.tagName === "IMG") || null : null;
+  const kartKos = async (kaynak) => {
+    const V = veriYukle(VERI_KAYNAK);
+    const tur = (kod, ad) => ({ kod, ad, aciklama: "x", ornek_sayisi: 1, olculer: [{ mm: 120, fiyat_kurus: 44900 }] });
+    const e = await ekranKos(kaynak, V, { acik: true, turler: [tur("plaket", "Plaket"), tur("figur", "Figür"), tur("anahtarlik", "Anahtarlık")] });
+    const figurKart = kartBul(e.bolum, "anahtarlik_figur");
+    const figurImg = imgBul(figurKart);
+    // foto-uretim.js `im.src = ...` / `im.alt = ...` ile PROPERTY atar (setAttribute değil); sahte DOM'da
+    // JS özelliği olarak okunmalı.
+    const figur = { kartVar: !!figurKart, src: figurImg && figurImg.src, alt: figurImg && figurImg.alt };
+    const diger = {};
+    for (const kod of Object.keys(DIGER_BEKLENEN)) {
+      const k = kartBul(e.bolum, kod);
+      const im = imgBul(k);
+      diger[kod] = { kartVar: !!k, src: im && im.src, alt: im && im.alt };
+    }
+    return { figur, diger };
+  };
+  const s = await kartKos(EKRAN_KAYNAK);
+  ol("KA1 anahtarlik_figur karti VAR, img.src = kart URL, img.alt = '" + KART_ALT + "'",
+     s.figur.kartVar && s.figur.src === KART_URL && s.figur.alt === KART_ALT,
+     JSON.stringify(s.figur));
+  const digerKirmizi = [];
+  for (const kod of Object.keys(DIGER_BEKLENEN)) {
+    const b = DIGER_BEKLENEN[kod];
+    const r = s.diger[kod];
+    if (!r.kartVar || r.src !== b.src || r.alt !== b.alt) { digerKirmizi.push(kod + ":" + JSON.stringify(r)); }
+  }
+  ol("KA2 diger 5 kart (yazi/insan/pet/plaket/model) src/alt bayt-esit ayni",
+     digerKirmizi.length === 0, digerKirmizi.join(" | "));
+  // MUTANT: `it.ornek.kart ||` fallback'i SILINIR -> anahtarlik_figur eski render URL'ine doner, KA1 KIRMIZI.
+  const kaCapa = "im.src = it.ornek.kart || (it.kanit === \"render\" ? it.ornek.render : it.kanit === \"yakinda\" ? \"\" : it.ornek.baski);";
+  const kaYerine = "im.src = (it.kanit === \"render\" ? it.ornek.render : it.kanit === \"yakinda\" ? \"\" : it.ornek.baski);";
+  const kaMu = EKRAN_KAYNAK.split(kaCapa).length === 2 ? await kartKos(EKRAN_KAYNAK.replace(kaCapa, kaYerine)) : null;
+  ol("KA-M1 mutant (it.ornek.kart || fallback kaldirildi) -> KA1 KIRMIZI (figur eski render'a doner)",
+     !!kaMu && (kaMu.figur.src !== KART_URL || kaMu.figur.alt !== KART_ALT),
+     JSON.stringify(kaMu && kaMu.figur));
 }
 
 console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (gercek bust kaydi: sayi + bool alanlari; ureteç kuyrugu)");
@@ -6037,10 +6151,11 @@ const C2_OLCU = "Anahtarlığın kulakçık dahil en uzun boyutudur; fiyat bu ö
 const C2_OLCU_FIGUR = "Anahtarlığın, başın arkasındaki halka dahil en uzun boyutudur; fiyat bu ölçüye göre canlı hesaplanır.";
 // VM4 beklenen ① kart listesi — 6 MODEL (Okan 10 Eki, sıra + kod): [data-kart, görsel dosyası | null, "Örnek yakında"].
 // Kart başına yalnız KENDİ örneği (11 Eki: TeKiN 3 render'ı; alt-duyarlı kartOrnegi): 6/6 kartta görsel,
-// "Örnek yakında" 0. Büst/yapboz /acik'te olsa da kart 0.
+// "Örnek yakında" 0. Büst/yapboz /acik'te olsa da kart 0. 14 Eki 16:1x: anahtarlik_figur kartında kart alanı
+// (renkli tasarım) öncelik alır — ornek.render YERINE kart URL'si gösterilir.
 const C2_KARTLAR = JSON.stringify([["anahtarlik_yazi", "anahtarlik-1-render.webp", false], ["insan", "kart-insan-2.webp", false],
   ["pet", "kart-pet-1.webp", false], ["plaket", "kart-plaket-2.webp", false],
-  ["anahtarlik_figur", "anahtarlik-figur-hilal-2-render.webp", false], ["model", "kart-model-1.webp", false]]);
+  ["anahtarlik_figur", "anahtarlik-figur-kart.webp", false], ["model", "kart-model-1.webp", false]]);
 async function c2Senaryo(ekranKaynak, veriKaynak) {
   const s = {}, iz = {};
   const kod6 = ["plaket", "figur", "yapboz", "bust", "anahtarlik"];
@@ -6113,7 +6228,7 @@ console.log("C2) ② TEK dürüstlük cümlesi (figür + plaket) + anahtarlık �
 // ArTisT 13. okuma BULGU 2: insan · model · anahtarlık–figür kartları boş kutu. TeKiN 3 render'ı (R2, sha kutuda) kartlara
 // bağlandı; kartOrnegi ALT türü ayırır (insan kartına kedi düşmez). Beklenen dosya adları BAĞIMSIZ yazılır.
 const FK_BEKLENEN = { anahtarlik_yazi: "anahtarlik-1-render.webp", insan: "kart-insan-2.webp", pet: "kart-pet-1.webp",
-  model: "kart-model-1.webp", anahtarlik_figur: "anahtarlik-figur-hilal-2-render.webp" };
+  model: "kart-model-1.webp", anahtarlik_figur: "anahtarlik-figur-kart.webp" };
 async function fkSenaryo(ekranKaynak, veriKaynak) {
   const s = {}, iz = {};
   const V = veriYukle(veriKaynak);
@@ -7732,135 +7847,176 @@ console.log("TPU) ANAHTARLIK TPU — +%55 (FILAMENT_FARK), tek renk Beyaz, TPU+R
   }
 }
 
-// ================================================================ RN) ④ TEK RENK ÖNİZLEMESİ (Okan 14 Eki 03:0x, Y1)
-// "beyaz seçince neden beyaz göster demem gerekiyor?" -> tek renk (Siyah/Beyaz/Gri) seçen müşteri ④'te ürünü O RENKTE
-// görür: sağlayıcı önizlemesi hazır olunca AYNI işin prototipinden 3D build ÖNİZLEMEDE kurulur, GLB R2'ye iner, Mac
-// koşucusu seçilen renkte çizer (`foto-onizleme/<is>-<renk>.png`). Renkli'de HER ŞEY AYNEN. Renk değişimi build'i
-// tekrarlamaz; sipariş önizleme build'ini YENİDEN SATIN ALMAZ; günlük tavan dolunca eski davranış + Okan e-postası.
-//   SUNUCU RN1-RN11 (gerçek SQLite + sahte sağlayıcı/R2) · İSTEMCİ RNE1-RNE7 (sahte DOM) · MUTANTLAR (kopyada).
-const RN_CUMLE = "Önizleme seçtiğin renkte çizildi; ürün bu renkte üretilir.";   // Okan 14 Eki — kaynaktan OKUNMAZ
+// ================================================================ RN) ④ TEK RENK ÖNİZLEMESİ — GRİ MODEL GÖRSELİ (Okan 14 Eki 12:58/12:59)
+// Tek renk (Siyah/Beyaz/Gri) seçen müşterinin önizlemesi hazır olunca Worker AYNI işin konsept görseliyle sağlayıcının
+// image-to-3d ucunu DOKUSUZ açar (gövde sabit, model ORTAMDAN, kalıp `-6-lite`), alfa küçük resmi R2 `<is>-gri.png`'ye
+// iner, ④ gri görsel + "Görsel örnektir" cümlesi. Renkli'de HER ŞEY AYNEN; renk değişimi yeni çağrı açmaz; secret yok /
+// kalıp dışı -> 0 çağrı + eski davranış; tavan dolu -> 0 çağrı + Okan e-postası; sipariş build'i KENDİSİ kurar
+// (14 Eki 03:0x önizleme build'i + Mac renk çizimi ④'ten ÇIKTI; eski RN1-RN10 vakaları GR'ye çevrildi).
+//   SUNUCU GR1-GR13 + RN11/RN12 (gerçek SQLite + sahte sağlayıcı/R2) · İSTEMCİ RNE/RNH (sahte DOM) · MUTANTLAR (kopyada).
+const RN_CUMLE = "Önizleme seçtiğin renkte çizildi; ürün bu renkte üretilir.";   // üreteç kolu — kaynaktan OKUNMAZ
 const RN_HAZIRLANIYOR = "Renk önizlemesi hazırlanıyor…";
-async function rnSunucu(fm, tablosuz) {
+const GRI_CUMLE = (renk) => "Görsel örnektir — ürün seçtiğiniz tek renkte (" + renk + ") üretilir.";   // Okan 14 Eki — kaynaktan OKUNMAZ
+const GRI_MODEL_TEST = "sahte-6-lite";   // kalıba uyan SAHTE ad (gerçek model adı repoda YOK)
+const GRI_ENV = { ...OKAN_EPOSTA_ENV, URETIM_GRI_MODEL: GRI_MODEL_TEST };
+const GRI_GOVDE_ANAHTAR = "ai_model,alpha_thumbnail,enable_pbr,image_url,should_texture,target_formats";
+const griPostSay = () => P.cagri.filter((c) => c === "POST /v1/image-to-3d").length;
+const rnBuildSay = () => P.cagri.filter((c) => /^POST .*\/v1\/build$/.test(c)).length;
+async function grSunucu(fm) {
   const asilOrnek = VERI.ornekSayisi;
   VERI.ornekSayisi = () => 1;
   const k = koprukur(); await k.hazir;
   const r2b = r2Kur();
-  const e2 = envKur(k.d1, r2b, OKAN_EPOSTA_ENV);
+  const e2 = envKur(k.d1, r2b, GRI_ENV);
   const s = {}, iz = {};
   try {
     await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('plaket', 1, 'x'), ('insan', 1, 'x')").run();
-    if (tablosuz) { await k.d1.prepare("DROP TABLE foto_renk_onizleme").run(); }
-    const tik = async (iso) => k.d1.prepare("INSERT INTO foto_ayar (anahtar, deger, guncel) VALUES ('kosucu_son_tik', ?, 0)" +
-      " ON CONFLICT(anahtar) DO UPDATE SET deger = excluded.deger").bind(iso).run();
-    await tik(new Date().toISOString());
     let ip = 0;
-    const cag = async (yol, govde) => fm.fotoUclari(new Request("https://pruvo3d.com/api/shop" + yol, {
+    const cagE = async (e, yol, govde) => fm.fotoUclari(new Request("https://pruvo3d.com/api/shop" + yol, {
       method: govde ? "POST" : "GET",
       headers: { "CF-Connecting-IP": "10.77.0." + (++ip), ...(govde ? { "Content-Type": "application/json" } : {}) },
-      body: govde ? JSON.stringify(govde) : undefined }), e2, new URL("https://pruvo3d.com/api/shop" + yol), yol.split("?")[0], null);
+      body: govde ? JSON.stringify(govde) : undefined }), e, new URL("https://pruvo3d.com/api/shop" + yol), yol.split("?")[0], null);
+    const cag = (yol, govde) => cagE(e2, yol, govde);
     const js = async (r) => { try { return { kod: r.status, ...(await r.json()) }; } catch (e) { return { kod: r.status }; } };
     const sifirla = async (no) => {
       await k.d1.prepare("UPDATE foto_isler SET son_kontrol = 0 WHERE is_no = ?").bind(no).run();
-      if (!tablosuz) { await k.d1.prepare("UPDATE foto_renk_onizleme SET son_kontrol = 0 WHERE is_no = ?").bind(no).run(); }
+      await k.d1.prepare("UPDATE foto_renk_onizleme SET son_kontrol = 0 WHERE is_no = ?").bind(no).run();
     };
-    const durum = async (no) => { await sifirla(no); return js(await cag("/foto/durum?is=" + no)); };
+    const durumE = async (e, no) => { await sifirla(no); return js(await cagE(e, "/foto/durum?is=" + no)); };
+    const durum = (no) => durumE(e2, no);
     const renkPost = async (no, renk) => js(await cag("/foto/renk", { is: no, renk }));
-    const buildSay = () => P.cagri.filter((c) => /^POST .*\/v1\/build$/.test(c)).length;
-    const satir = async (no) => (tablosuz ? null : k.d1.prepare("SELECT renk, asama, build_gorev, build_olcu, hata FROM foto_renk_onizleme" +
-      " WHERE is_no = ?").bind(no).first());
-    const onizle = async (ek) => js(await cag("/foto/onizleme", onizlemeGovde(ek)));
-    // Hazira kadar (prototip 2. yoklamada SUCCEEDED; build ayni turda baslar, sonraki turda GLB iner).
-    const hazirla = async (no, n) => { let d = null; for (let i = 0; i < (n || 3); i++) { d = await durum(no); } return d; };
-    const cizildi = async (no, renk) => r2b.put("foto-onizleme/" + no + "-" + renk + ".png", PNG, { httpMetadata: { contentType: "image/png" } });
+    const satir = async (no) => k.d1.prepare("SELECT renk, asama, build_gorev, build_olcu, hata FROM foto_renk_onizleme" +
+      " WHERE is_no = ?").bind(no).first();
+    const onizleE = async (e, ek) => js(await cagE(e, "/foto/onizleme", onizlemeGovde(ek)));
+    const onizle = (ek) => onizleE(e2, ek);
+    // Hazıra kadar: 1 prototip sürüyor · 2 prototip hazır + gri çağrısı · 3 gri sürüyor · 4 gri bitti.
+    const hazirlaE = async (e, no, n) => { let d = null; for (let i = 0; i < (n || 4); i++) { d = await durumE(e, no); } return d; };
+    const hazirla = (no, n) => hazirlaE(e2, no, n);
+    const kredi = async (no, adim) => (await k.d1.prepare("SELECT adim, siparis_no, gorev, kredi FROM foto_kredi WHERE is_no = ? AND adim = ?")
+      .bind(no, adim).all()).results;
+    const renderBekleyen = async () => (await k.d1.prepare("SELECT COUNT(*) AS n FROM foto_renk_onizleme WHERE asama = 'render-bekliyor'").first()).n;
+    const KONSEPT_URI = "data:image/png;base64," + Buffer.from(PNG).toString("base64");
 
-    // RN1/RN2: tek renk Beyaz -> build ÖNİZLEMEDE (bir kez, aynı işin prototipi) -> GLB R2 -> çizim -> hazir + görsel 200.
-    const b0 = buildSay(), p0 = P.protoGovde.length;
+    // GR1: tek renk Beyaz -> prototip hazır olunca TAM 1 image-to-3d POST · gövde SABİT (dokusuz, model ortamdan,
+    // texture_prompt YOK, giriş = R2 konsept görseli data URI) · build 0 · satır 'gri' (gri: önekli görev).
+    const g0 = griPostSay(), b0 = rnBuildSay(), pg0 = P.griGovde.length, p0 = P.protoGovde.length;
     const o1 = await onizle({ renk: "Beyaz" });
-    const ilkDurum = await durum(o1.is);
+    const ilk = await durum(o1.is);
     const d1b = await durum(o1.is);
-    const sonBuild1 = P.sonBuild;
-    const d1c = await durum(o1.is);
     const r1 = await satir(o1.is);
-    const gorev1 = (await k.d1.prepare("SELECT gorev FROM foto_isler WHERE is_no = ?").bind(o1.is).first() || {}).gorev;
-    const kr1 = await k.d1.prepare("SELECT adim, siparis_no, kredi FROM foto_kredi WHERE is_no = ? AND adim = 'build'").bind(o1.is).all();
-    iz.RN1 = { b: buildSay() - b0, sonBuild1, gorev1, d1b, r1, kr1: kr1.results, glb: !!r2b.m.get("foto-onizleme/" + (o1.is || "") + "-model.glb"),
-               proto: P.protoGovde.slice(p0).map((g) => Object.keys(g).sort().join(",")) };
-    s.RN1 = o1.kod === 200 && ilkDurum.asama === "onizleme" && d1b.asama === "hazir" && d1b.onizleme_renk === "Beyaz" &&
-      d1b.onizleme_renk_durum === "hazirlaniyor" && buildSay() - b0 === 1 && !!sonBuild1 && sonBuild1.input_task_id === gorev1 &&
-      sonBuild1.options && sonBuild1.options.size_mm === 100 && iz.RN1.glb &&
-      r1 && r1.asama === "render-bekliyor" && r1.build_olcu === 100 &&
-      kr1.results.length === 1 && kr1.results[0].siparis_no === "" && kr1.results[0].kredi === 30 &&
-      // Prototip isteği renkten BAĞIMSIZ (sağlayıcıya renk/istem GİTMEZ): anahtarlar Renkli ile aynı.
-      iz.RN1.proto.length === 1 && iz.RN1.proto[0] === "image_url,name,remove_background";
-    await cizildi(o1.is, "Beyaz");
-    const d1d = await durum(o1.is);
-    const g1 = await cag("/foto/gorsel?is=" + o1.is + "&renk=Beyaz");
-    const gX = await cag("/foto/gorsel?is=" + o1.is + "&renk=Renkli");
-    iz.RN2 = { d1c, d1d, g: g1.status, tip: g1.headers.get("Content-Type"), gX: gX.status, r: await satir(o1.is) };
-    s.RN2 = d1c.onizleme_renk_durum === "hazirlaniyor" && d1d.asama === "hazir" && d1d.onizleme_renk_durum === "hazir" &&
-      d1d.onizleme_renk_url === "/api/shop/foto/gorsel?is=" + o1.is + "&renk=Beyaz" &&
-      d1d.onizleme_saglayici_url === "/api/shop/foto/gorsel?is=" + o1.is && !("onizleme_saglayici_url" in d1c) &&
-      d1d.gorsel === "/api/shop/foto/gorsel?is=" + o1.is && g1.status === 200 && g1.headers.get("Content-Type") === "image/png" &&
-      gX.status === 404 && iz.RN2.r.asama === "hazir" && buildSay() - b0 === 1;
+    const gv = P.griGovde.slice(pg0);
+    const gorev1 = ((await k.d1.prepare("SELECT gorev FROM foto_isler WHERE is_no = ?").bind(o1.is).first()) || {}).gorev;
+    const g1 = gv[0] || {};
+    iz.GR1 = { o1: o1.kod, ilk: ilk.asama, d1b, r1, post: griPostSay() - g0, build: rnBuildSay() - b0,
+      govde: gv.map((g) => ({ ...g, image_url: String(g.image_url).slice(0, 40) })),
+      proto: P.protoGovde.slice(p0).map((g) => Object.keys(g).sort().join(",")) };
+    s.GR1 = o1.kod === 200 && ilk.asama === "onizleme" && d1b.asama === "hazir" && d1b.onizleme_renk === "Beyaz" &&
+      d1b.onizleme_renk_durum === "hazirlaniyor" && !("onizleme_renk_url" in d1b) &&
+      iz.GR1.post === 1 && gv.length === 1 && iz.GR1.build === 0 &&
+      Object.keys(g1).sort().join(",") === GRI_GOVDE_ANAHTAR && g1.should_texture === false && g1.enable_pbr === false &&
+      g1.alpha_thumbnail === true && JSON.stringify(g1.target_formats) === '["glb"]' && g1.ai_model === GRI_MODEL_TEST &&
+      !("texture_prompt" in g1) && g1.image_url === KONSEPT_URI &&
+      !!r1 && r1.asama === "gri" && r1.build_gorev.startsWith("gri:") && r1.build_gorev.length > 4 &&
+      // Prototip isteği renkten BAĞIMSIZ (sağlayıcıya renk/istem GİTMEZ).
+      iz.GR1.proto.length === 1 && iz.GR1.proto[0] === "image_url,name,remove_background";
 
-    // RN3: Renkli (renk alanı YOK) -> eski yol: satır 0, build 0, yanıtta renk alanı 0, prototip gövdesi AYNI.
-    const b3 = buildSay(), p3 = P.protoGovde.length;
+    // GR2: görev biter -> alfa küçük resmi R2 `<is>-gri.png` · durum hazir + gorunum=gri url + gorunum alanı + sağlayıcı
+    // url · görsel 200 (gri bayt) · kredi 'gri' 5 (siparişsiz) · çağrı hâlâ 1 · Mac kuyruğu 0 · GLB yok · eski ?renk= 404.
+    const d1c = await durum(o1.is);
+    const d1d = await durum(o1.is);
+    const d1e = await durum(o1.is);
+    const gg = await cag("/foto/gorsel?is=" + o1.is + "&gorunum=gri");
+    const ggBayt = gg.status === 200 ? new Uint8Array(await gg.arrayBuffer()) : null;
+    const gEski = await cag("/foto/gorsel?is=" + o1.is + "&renk=Beyaz");
+    const kr1 = await kredi(o1.is, "gri");
+    const GU1 = "/api/shop/foto/gorsel?is=" + o1.is + "&gorunum=gri";
+    iz.GR2 = { d1c, d1d, gg: gg.status, tip: gg.headers.get("Content-Type"), gEski: gEski.status, kr1, r: await satir(o1.is),
+      post: griPostSay() - g0, render: await renderBekleyen(), glb: r2b.m.has("foto-onizleme/" + o1.is + "-model.glb") };
+    s.GR2 = d1c.onizleme_renk_durum === "hazirlaniyor" && d1d.asama === "hazir" && d1d.onizleme_renk_durum === "hazir" &&
+      d1d.onizleme_renk === "Beyaz" && d1d.onizleme_renk_url === GU1 && d1d.onizleme_renk_gorunum === "gri" &&
+      d1d.onizleme_saglayici_url === "/api/shop/foto/gorsel?is=" + o1.is && d1d.gorsel === "/api/shop/foto/gorsel?is=" + o1.is &&
+      d1e.onizleme_renk_durum === "hazir" && d1e.onizleme_renk_url === GU1 &&
+      gg.status === 200 && gg.headers.get("Content-Type") === "image/png" && !!ggBayt && Buffer.from(ggBayt).equals(Buffer.from(GRI_PNG)) &&
+      gEski.status === 404 && kr1.length === 1 && kr1[0].kredi === 5 && kr1[0].siparis_no === "" &&
+      !!iz.GR2.r && iz.GR2.r.asama === "gri-hazir" && iz.GR2.post === 1 && iz.GR2.render === 0 && iz.GR2.glb === false;
+
+    // GR8 (panel): 24 sa'te 1 gri çağrı -> kredi tahmini 11 (5 gri + 6 prototip) · tavan 30 · gri açık · süren 0 ·
+    // build alanı YOK; secret'siz ortamda gri_acik false (özellik kapalı panelde görünür).
+    const oz = await (await fm.panelFotoOzet(e2, Date.now())).json();
+    const ozKapali = await (await fm.panelFotoOzet(envKur(k.d1, r2b), Date.now())).json();
+    iz.GR8 = { ro: oz.renk_onizleme, kapali: ozKapali.renk_onizleme };
+    s.GR8 = !!oz.renk_onizleme && oz.renk_onizleme.kurulu === true && oz.renk_onizleme.gri_acik === true &&
+      oz.renk_onizleme.son_24s_gri === 1 && oz.renk_onizleme.kredi_tahmini === 11 && oz.renk_onizleme.kredi_gri === 5 &&
+      oz.renk_onizleme.kredi_prototip === 6 && oz.renk_onizleme.tavan === 30 && oz.renk_onizleme.gri_suren === 0 &&
+      !("kredi_build" in oz.renk_onizleme) && !!ozKapali.renk_onizleme && ozKapali.renk_onizleme.gri_acik === false;
+
+    // GR3: Renkli (renk alanı YOK) -> satır 0 · image-to-3d 0 · build 0 · yanıtta renk alanı 0 · prototip gövdesi AYNI.
+    const g3 = griPostSay(), b3 = rnBuildSay(), p3 = P.protoGovde.length;
     const o2 = await onizle();
     const d2 = await hazirla(o2.is);
-    iz.RN3 = { d2, r: await satir(o2.is), b: buildSay() - b3, proto: P.protoGovde.slice(p3).map((g) => Object.keys(g).sort().join(",")) };
-    s.RN3 = d2.asama === "hazir" && !("onizleme_renk" in d2) && !("onizleme_renk_durum" in d2) && !("onizleme_renk_url" in d2) &&
-      iz.RN3.r === null && iz.RN3.b === 0 && iz.RN3.proto[0] === iz.RN1.proto[0];
+    iz.GR3 = { d2, r: await satir(o2.is), post: griPostSay() - g3, b: rnBuildSay() - b3,
+      proto: P.protoGovde.slice(p3).map((g) => Object.keys(g).sort().join(",")) };
+    s.GR3 = d2.asama === "hazir" && !("onizleme_renk" in d2) && !("onizleme_renk_durum" in d2) && !("onizleme_renk_url" in d2) &&
+      !("onizleme_renk_gorunum" in d2) && iz.GR3.r === null && iz.GR3.post === 0 && iz.GR3.b === 0 &&
+      iz.GR3.proto[0] === iz.GR1.proto[0];
 
-    // RN4: render yok -> geri düşüş: koşucu damgası bayat -> 'yok' (sağlayıcı görseli yanıtta) · tazelenince
-    // 'hazirlaniyor' · render 900 sn'den uzun beklerse 'yok'.
-    const o3 = await onizle({ renk: "Gri" });
-    await hazirla(o3.is);
-    await tik(new Date(Date.now() - 2 * 3600 * 1000).toISOString());
-    const d3a = await durum(o3.is);
-    await tik(new Date().toISOString());
-    const d3b = await durum(o3.is);
-    await k.d1.prepare("UPDATE foto_renk_onizleme SET guncel = ? WHERE is_no = ?").bind(Date.now() - 1000 * 1000, o3.is).run();
-    const d3c = await durum(o3.is);
-    iz.RN4 = { d3a, d3b, d3c };
-    s.RN4 = d3a.asama === "hazir" && d3a.onizleme_renk_durum === "yok" && d3a.gorsel === "/api/shop/foto/gorsel?is=" + o3.is &&
-      !("onizleme_renk_url" in d3a) && d3b.onizleme_renk_durum === "hazirlaniyor" && d3c.onizleme_renk_durum === "yok";
-
-    // RN9 (panel): 24 sa'te 2 önizleme build'i (o1 + o3) -> sayı + kredi tahmini (2 x 36 = 2x30 build + 2x6 prototip) + tavan (30).
-    const oz = await (await fm.panelFotoOzet(e2, Date.now())).json();
-    iz.RN9 = oz.renk_onizleme;
-    s.RN9 = !!oz.renk_onizleme && oz.renk_onizleme.kurulu === true && oz.renk_onizleme.son_24s_build === 2 &&
-      oz.renk_onizleme.kredi_tahmini === 72 && oz.renk_onizleme.kredi_build === 60 && oz.renk_onizleme.kredi_prototip === 12 &&
-      oz.renk_onizleme.tavan === 30 &&
-      oz.renk_onizleme.render_bekleyen === 1;
-
-    // RN5: tavan dolu (foto_ayar renk_onizleme_tavan = 2) -> build 0, 'yok', Okan'a E-POSTA bir kez (gün başına tek).
-    await k.d1.prepare("INSERT INTO foto_ayar (anahtar, deger, guncel) VALUES ('renk_onizleme_tavan', '2', 0)").run();
-    const b5 = buildSay(), e5 = P.eposta.length;
-    const o4 = await onizle({ renk: "Siyah" });
-    const d4 = await hazirla(o4.is);
-    const o5 = await onizle({ renk: "Beyaz" });
-    const d5 = await hazirla(o5.is);
-    const ep = P.eposta.slice(e5).filter((x) => /tavanı doldu/.test(x.subject || ""));
-    iz.RN5 = { d4, d5, r4: await satir(o4.is), b: buildSay() - b5, ep: ep.map((x) => [x.to, x.subject]) };
-    s.RN5 = d4.asama === "hazir" && d4.onizleme_renk_durum === "yok" && d5.onizleme_renk_durum === "yok" && iz.RN5.b === 0 &&
-      iz.RN5.r4 && iz.RN5.r4.asama === "tavan" && iz.RN5.r4.hata === "tavan" && iz.RN5.r4.build_gorev === "" &&
-      ep.length === 1 && JSON.stringify(ep[0].to).includes(OKAN_EPOSTA);
-    await k.d1.prepare("DELETE FROM foto_ayar WHERE anahtar = 'renk_onizleme_tavan'").run();
-
-    // RN6: renk değişimi (Beyaz -> Gri): build TEKRAR YOK, yalnız yeni çizim (render-bekliyor); Beyaz'a dönüş anında
-    // hazir (çizim R2'de). /foto/renk: Renkli 400 · bilinmeyen iş 404.
-    const b6 = buildSay();
-    const c1 = await renkPost(o1.is, "Gri");
-    const r6 = await satir(o1.is);
-    const c2 = await renkPost(o1.is, "Beyaz");
+    // GR4: renk değişimi (Beyaz -> Siyah -> Gri) -> YENİ ÇAĞRI 0 · aynı gri görsel · renk adı değişir · satır gri-hazir ·
+    // /foto/renk Renkli 400 · bilinmeyen iş 404.
+    const g4 = griPostSay();
+    const c1 = await renkPost(o1.is, "Siyah");
+    const d4a = await durum(o1.is);
+    const c2 = await renkPost(o1.is, "Gri");
+    const d4b = await durum(o1.is);
+    const r4 = await satir(o1.is);
     const c3 = await renkPost(o1.is, "Renkli");
     const c4 = await renkPost("9".repeat(32), "Beyaz");
-    iz.RN6 = { c1, r6, c2, c3: c3.kod, c4: c4.kod, b: buildSay() - b6 };
-    s.RN6 = c1.kod === 200 && c1.onizleme_renk === "Gri" && c1.onizleme_renk_durum === "hazirlaniyor" && r6.asama === "render-bekliyor" &&
-      r6.renk === "Gri" && c2.onizleme_renk === "Beyaz" && c2.onizleme_renk_durum === "hazir" && iz.RN6.b === 0 && c3.kod === 400 && c4.kod === 404;
+    iz.GR4 = { c1, d4a, c2, d4b, r4, c3: c3.kod, c4: c4.kod, post: griPostSay() - g4 };
+    s.GR4 = c1.kod === 200 && c1.onizleme_renk === "Siyah" && c1.onizleme_renk_durum === "hazir" && c1.onizleme_renk_url === GU1 &&
+      d4a.onizleme_renk === "Siyah" && d4a.onizleme_renk_durum === "hazir" && d4a.onizleme_renk_url === GU1 &&
+      c2.onizleme_renk === "Gri" && c2.onizleme_renk_url === GU1 && d4b.onizleme_renk === "Gri" && d4b.onizleme_renk_durum === "hazir" &&
+      !!r4 && r4.asama === "gri-hazir" && r4.renk === "Gri" && iz.GR4.post === 0 && c3.kod === 400 && c4.kod === 404;
 
-    // RN7/RN8: sipariş -> önizleme build'i YENİDEN SATIN ALINMAZ (aynı görev kimliği zincirin başında; kredi defterinde
-    // 'build' TEK satır). Plaket ölçüsü önizlemeden farklıysa (o3: 100 -> 120 mm) yeni build (kabartma/taban mm korunur).
+    // GR5: model secret YOK / kalıp DIŞI (tam sürüm `-6` = 30 kr · büyük harf · ek · kısa ad · başka sürüm) ->
+    // image-to-3d 0 · build 0 · satır 0 · yanıt eski (renk alanı YOK) · /foto/renk 503 kapali.
+    const KAPALI_MODELLER = [undefined, "", "abcdef-6", "ABCDEF-6-lite", "abcdef-6-lite-x", "ab-6-lite", "abcdef-5-lite"];
+    iz.GR5 = [];
+    let gr5 = true;
+    for (const m of KAPALI_MODELLER) {
+      const e5 = envKur(k.d1, r2b, { ...OKAN_EPOSTA_ENV, URETIM_GRI_MODEL: m });
+      const g5 = griPostSay(), b5 = rnBuildSay();
+      const o = await onizleE(e5, { renk: "Beyaz" });
+      const d = await hazirlaE(e5, o.is);
+      const rp = await cagE(e5, "/foto/renk", { is: o.is, renk: "Gri" });
+      const r = await satir(o.is);
+      const x = { m: m === undefined ? "YOK" : m, kod: o.kod, d: d.asama, alan: "onizleme_renk" in d, post: griPostSay() - g5,
+        b: rnBuildSay() - b5, r: r && r.asama, rp: rp.status };
+      iz.GR5.push(x);
+      gr5 = gr5 && x.kod === 200 && x.d === "hazir" && !x.alan && x.post === 0 && x.b === 0 && r === null && x.rp === 503;
+    }
+    s.GR5 = gr5;
+
+    // GR6: tavan dolu (foto_ayar renk_onizleme_tavan = mevcut sayı) -> image-to-3d 0 · asama 'tavan' · 'yok' · Okan'a
+    // E-POSTA 1 (ikinci istekte ve renk değişiminden sonraki denemede tekrar YOK) · e-posta "~11 kredi (6 prototip + 5 gri model)".
+    const n6 = (await (await fm.panelFotoOzet(e2, Date.now())).json()).renk_onizleme.son_24s_gri;
+    await k.d1.prepare("INSERT INTO foto_ayar (anahtar, deger, guncel) VALUES ('renk_onizleme_tavan', ?, 0)").bind(String(n6)).run();
+    const g6 = griPostSay(), e6 = P.eposta.length;
+    const o4 = await onizle({ renk: "Siyah" });
+    const d6a = await hazirla(o4.is);
+    const o5 = await onizle({ renk: "Beyaz" });
+    const d6b = await hazirla(o5.is);
+    await renkPost(o4.is, "Gri");
+    const d6c = await durum(o4.is);
+    const ep = P.eposta.slice(e6).filter((x) => /tavanı doldu/.test(x.subject || ""));
+    iz.GR6 = { n6, d6a, d6b, d6c, r4: await satir(o4.is), post: griPostSay() - g6, ep: ep.map((x) => [x.to, x.subject]),
+      metin: ep.length ? JSON.stringify(ep[0]).includes("~11 kredi (6 prototip + 5 gri model)") : false };
+    s.GR6 = n6 >= 1 && d6a.asama === "hazir" && d6a.onizleme_renk_durum === "yok" && d6b.onizleme_renk_durum === "yok" &&
+      d6c.onizleme_renk_durum === "yok" && iz.GR6.post === 0 &&
+      !!iz.GR6.r4 && iz.GR6.r4.asama === "tavan" && iz.GR6.r4.hata === "tavan" && iz.GR6.r4.build_gorev === "" &&
+      ep.length === 1 && JSON.stringify(ep[0].to).includes(OKAN_EPOSTA) && iz.GR6.metin === true;
+    await k.d1.prepare("DELETE FROM foto_ayar WHERE anahtar = 'renk_onizleme_tavan'").run();
+
+    // GR7: sipariş -> gri önizleme BUILD DEĞİLDİR: zincir build'i KENDİSİ kurar (POST build 1, input = aynı prototip,
+    // zincir başı gri görevi DEĞİL) · sipariş başına kredi + build sayısı = önizlemesi Renkli alınmış siparişle AYNI.
     const siparis = async (no, olcu, renk) => {
       const b = await istek(e2, "/baslat", { govde: { sozlesme_onay: true, aydinlatma_onay: true, onay_surum: VERI.onay_surum,
         odeme: "kart", musteri, turnstile_token: "j", sepet: [{ foto_is: no, olcu_mm: olcu, adet: 1, renkler: [renk] }] } });
@@ -7876,57 +8032,116 @@ async function rnSunucu(fm, tablosuz) {
       }
       return k.d1.prepare("SELECT asama, sebep, build_gorev FROM foto_uretim WHERE siparis_no = ?").bind(no).first();
     };
-    const b7 = buildSay();
-    const s7 = await siparis(o1.is, 100, "Beyaz");
+    const sipKredi = async (no) => k.d1.prepare("SELECT COALESCE(SUM(kredi), 0) AS n, COUNT(*) AS c FROM foto_kredi WHERE siparis_no = ?")
+      .bind(no).first();
+    const b7 = rnBuildSay();
+    const s7 = await siparis(o1.is, 100, "Gri");
     const u7 = s7 ? await zincirSur(s7) : null;
-    const kr7 = await k.d1.prepare("SELECT COUNT(*) AS n FROM foto_kredi WHERE adim = 'build' AND gorev = ?").bind(r1 && r1.build_gorev).first();
-    iz.RN7 = { s7, u7, b: buildSay() - b7, kr7, onb: r1 && r1.build_gorev };
-    s.RN7 = !!s7 && !!u7 && u7.asama === "onarim-bekliyor" && iz.RN7.b === 0 && !!r1 &&
-      u7.build_gorev.split("~")[0] === r1.build_gorev && kr7.n === 1;
-    const b8 = buildSay();
-    const s8 = await siparis(o3.is, 120, "Gri");
+    const b7d = rnBuildSay() - b7, sb7 = P.sonBuild;
+    const b8 = rnBuildSay();
+    const s8 = await siparis(o2.is, 100, "Gri");
     const u8 = s8 ? await zincirSur(s8) : null;
-    const r3 = await satir(o3.is);
-    iz.RN8 = { s8, u8, b: buildSay() - b8, onb: r3 && r3.build_gorev, sonBuild: P.sonBuild };
-    s.RN8 = !!u8 && u8.asama === "onarim-bekliyor" && iz.RN8.b === 1 && !!r3 && u8.build_gorev.split("~")[0] !== r3.build_gorev &&
-      P.sonBuild.options && P.sonBuild.options.size_mm === 120;
+    const b8d = rnBuildSay() - b8;
+    const kr7 = await sipKredi(s7), kr8 = await sipKredi(s8);
+    const r7 = await satir(o1.is);
+    // Figür build'i ölçüsüzdür (plaket ölçü kapısı gri satırı ZATEN eler): gri görev figür siparişinde de build SAYILMAZ.
+    const onbFigur = await fm.onizlemeBuildi(e2, { is_no: o1.is, tur: "figur", olcu_mm: 100 });
+    const onbPlaket = await fm.onizlemeBuildi(e2, { is_no: o1.is, tur: "plaket", olcu_mm: 0 });
+    iz.GR7 = { s7, u7, b7d, s8, u8, b8d, kr7, kr8, inp: sb7 && sb7.input_task_id, gorev1, gri: r7 && r7.build_gorev, onbFigur, onbPlaket };
+    s.GR7 = !!s7 && !!s8 && !!u7 && !!u8 && u7.asama === u8.asama && b7d === 1 && b8d === 1 && !!sb7 &&
+      sb7.input_task_id === gorev1 && !u7.build_gorev.startsWith("gri:") && !!r7 && u7.build_gorev.split("~")[0] !== r7.build_gorev &&
+      !!kr7 && !!kr8 && kr7.n === kr8.n && kr7.c === kr8.c && kr7.n > 0 && onbFigur === "" && onbPlaket === "";
 
-    // RN10: 3 gün temizliği tek renk önizlemesinin GLB'si + renk çizimlerini önizlemeyle BİRLİKTE siler.
+    // GR9: 3 gün temizliği gri görseli (+ eski yol GLB + renk çizimleri) önizlemeyle BİRLİKTE siler (taze iş kalır).
     const eski = "e".repeat(32), eskiIso = new Date(Date.now() - 100 * 3600 * 1000).toISOString();
     await k.d1.prepare("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, gorev, hazir_tarih) VALUES (?, 'plaket', 100, 'z', ?, 'hazir', 'g', ?)")
       .bind(eski, eskiIso, eskiIso).run();
-    for (const a of ["-model.glb", "-Beyaz.png", "-Gri.png", ".png"]) { await r2b.put("foto-onizleme/" + eski + a, PNG, {}); }
+    const EKLER = ["-gri.png", "-model.glb", "-Beyaz.png", "-Gri.png", ".png"];
+    for (const a of EKLER) { await r2b.put("foto-onizleme/" + eski + a, PNG, {}); }
     await fm.fotoUretimTuru(envKur(k.d1, r2b, { URETIM_API_ANAHTAR: "" }), Date.now(), null);
-    iz.RN10 = ["-model.glb", "-Beyaz.png", "-Gri.png", ".png"].map((a) => r2b.m.has("foto-onizleme/" + eski + a));
-    s.RN10 = iz.RN10.every((x) => x === false) && r2b.m.has("foto-onizleme/" + o1.is + "-Beyaz.png");
-  } finally { VERI.ornekSayisi = asilOrnek; k.kapat(); }
+    iz.GR9 = EKLER.map((a) => r2b.m.has("foto-onizleme/" + eski + a));
+    s.GR9 = iz.GR9.every((x) => x === false) && r2b.m.has("foto-onizleme/" + o1.is + "-gri.png");
+
+    // GR10 (cron): müşteri ayrıldı — başlamış gri görevini cron yoklar (görsel iner, kredi deftere; YENİ çağrı yok) ·
+    // eski yol 'build' satırı: kredi 'build' deftere + 'build-bitti' (GLB inmez, Mac kuyruğu 0) · ④'te eski satır 'yok'.
+    const g10 = griPostSay(), b10 = rnBuildSay();
+    const o6 = await onizle({ renk: "Gri" });
+    await durum(o6.is); await durum(o6.is);
+    const r10a = await satir(o6.is);
+    await k.d1.prepare("UPDATE foto_renk_onizleme SET asama = 'build', build_gorev = 'gorev-eski-build-aaaa', build_olcu = 100," +
+      " hata = '' WHERE is_no = ?").bind(o5.is).run();
+    for (let i = 0; i < 3; i++) {
+      await k.d1.prepare("UPDATE foto_renk_onizleme SET son_kontrol = 0").run();
+      await fm.fotoUretimTuru(e2, Date.now(), null);
+    }
+    const r10b = await satir(o6.is), r10e = await satir(o5.is);
+    const kr10 = await kredi(o6.is, "gri"), kre = await kredi(o5.is, "build");
+    const dE = await durum(o5.is);
+    iz.GR10 = { r10a, r10b, r10e, kr10, kre, post: griPostSay() - g10, b: rnBuildSay() - b10, dE,
+      gri: r2b.m.has("foto-onizleme/" + o6.is + "-gri.png"), glb: r2b.m.has("foto-onizleme/" + o5.is + "-model.glb"),
+      render: await renderBekleyen() };
+    s.GR10 = !!r10a && r10a.asama === "gri" && !!r10b && r10b.asama === "gri-hazir" && iz.GR10.gri &&
+      kr10.length === 1 && kr10[0].kredi === 5 && iz.GR10.post === 1 && iz.GR10.b === 0 &&
+      !!r10e && r10e.asama === "build-bitti" && kre.length === 1 && kre[0].kredi === 30 && iz.GR10.glb === false &&
+      iz.GR10.render === 0 && dE.asama === "hazir" && dE.onizleme_renk_durum === "yok" && !("onizleme_renk_url" in dE);
+
+    // GR13: eski yolun GERÇEK build'i (o5, 100 mm) siparişte YENİDEN SATIN ALINMAZ (POST build 0, zincir başı aynı
+    // görev, kredi 'build' tek satır) — gri satırdan farklı olarak.
+    const b13 = rnBuildSay();
+    const s13 = await siparis(o5.is, 100, "Beyaz");
+    const u13 = s13 ? await zincirSur(s13) : null;
+    const kr13 = await k.d1.prepare("SELECT COUNT(*) AS n FROM foto_kredi WHERE adim = 'build' AND gorev = 'gorev-eski-build-aaaa'").first();
+    iz.GR13 = { s13, u13, b: rnBuildSay() - b13, kr13 };
+    s.GR13 = !!u13 && iz.GR13.b === 0 && u13.build_gorev.split("~")[0] === "gorev-eski-build-aaaa" && kr13.n === 1;
+
+    // GR11: gri görevi DÜŞTÜ -> 'basarisiz' gri-basarisiz · ④ 'yok' · kredi deftere · renk değişimi YENİDEN DENEMEZ.
+    // Görselsiz bitti (alfa yok) -> 'basarisiz' gri-gorsel-yok (sonsuz yoklama YOK). Çağrı toplam 2 (iş başına 1).
+    P.griSonuc = "FAILED";
+    const g11 = griPostSay();
+    const o7 = await onizle({ renk: "Beyaz" });
+    const d11a = await hazirla(o7.is);
+    const r11a = await satir(o7.is);
+    await renkPost(o7.is, "Siyah");
+    const d11b = await durum(o7.is);
+    const kr11 = await kredi(o7.is, "gri");
+    P.griSonuc = "SUCCEEDED"; P.griAlfaYok = true;
+    const o8 = await onizle({ renk: "Gri" });
+    const d11c = await hazirla(o8.is);
+    const r11c = await satir(o8.is);
+    P.griAlfaYok = false;
+    iz.GR11 = { d11a, r11a, d11b, kr11, d11c, r11c, post: griPostSay() - g11 };
+    s.GR11 = d11a.asama === "hazir" && d11a.onizleme_renk_durum === "yok" && !!r11a && r11a.asama === "basarisiz" &&
+      r11a.hata === "gri-basarisiz" && d11b.onizleme_renk_durum === "yok" && d11b.onizleme_renk === "Siyah" && kr11.length === 1 &&
+      d11c.onizleme_renk_durum === "yok" && !!r11c && r11c.asama === "basarisiz" && r11c.hata === "gri-gorsel-yok" &&
+      iz.GR11.post === 2;
+  } finally { P.griSonuc = "SUCCEEDED"; P.griAlfaYok = false; VERI.ornekSayisi = asilOrnek; k.kapat(); }
   return { s, iz };
 }
-// RN11: tablo YOK (göç uygulanmadı) -> fail-closed eski davranış: tek renk isteği 200, yanıtta renk alanı 0, build 0,
-// /foto/renk 503 kapali, panel kurulu:false.
+// RN11: tablo YOK (göç uygulanmadı; model secret'i VAR) -> fail-closed eski davranış: tek renk isteği 200, yanıtta renk
+// alanı 0, image-to-3d 0, build 0, /foto/renk 503 kapali, panel kurulu:false.
 async function rnTablosuz(fm) {
   const asilOrnek = VERI.ornekSayisi;
   VERI.ornekSayisi = () => 1;
   const k = koprukur(); await k.hazir;
-  const e2 = envKur(k.d1, r2Kur());
+  const e2 = envKur(k.d1, r2Kur(), GRI_ENV);
   try {
     await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('plaket', 1, 'x')").run();
     await k.d1.prepare("DROP TABLE foto_renk_onizleme").run();
     const cag = async (yol, govde) => fm.fotoUclari(new Request("https://pruvo3d.com/api/shop" + yol, {
       method: govde ? "POST" : "GET", headers: { "CF-Connecting-IP": "10.78.0.1", ...(govde ? { "Content-Type": "application/json" } : {}) },
       body: govde ? JSON.stringify(govde) : undefined }), e2, new URL("https://pruvo3d.com/api/shop" + yol), yol.split("?")[0], null);
-    const b0 = P.cagri.filter((c) => /^POST .*\/v1\/build$/.test(c)).length;
+    const b0 = rnBuildSay(), g0 = griPostSay();
     const o = await (await cag("/foto/onizleme", onizlemeGovde({ renk: "Beyaz" }))).json();
     let d = null;
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 4; i++) {
       await k.d1.prepare("UPDATE foto_isler SET son_kontrol = 0 WHERE is_no = ?").bind(o.is).run();
       d = await (await cag("/foto/durum?is=" + o.is)).json();
     }
     const rp = await cag("/foto/renk", { is: o.is, renk: "Gri" });
     const oz = await (await fm.panelFotoOzet(e2, Date.now())).json();
-    const b = P.cagri.filter((c) => /^POST .*\/v1\/build$/.test(c)).length - b0;
-    return { ok: !!o.is && d.asama === "hazir" && !("onizleme_renk" in d) && b === 0 && rp.status === 503 &&
-      oz.renk_onizleme && oz.renk_onizleme.kurulu === false, iz: { d, b, rp: rp.status, oz: oz.renk_onizleme } };
+    const b = rnBuildSay() - b0, g = griPostSay() - g0;
+    return { ok: !!o.is && d.asama === "hazir" && !("onizleme_renk" in d) && b === 0 && g === 0 && rp.status === 503 &&
+      oz.renk_onizleme && oz.renk_onizleme.kurulu === false, iz: { d, b, g, rp: rp.status, oz: oz.renk_onizleme } };
   } finally { VERI.ornekSayisi = asilOrnek; k.kapat(); }
 }
 // RN12: ÜRETEÇ TÜRÜ (büst · yapboz · anahtarlık–yazı; Okan 14 Eki 03:5x "tüm 6 modülde"): koşucu önizleme modelini
@@ -7955,77 +8170,88 @@ async function rnUretec(fm) {
       ga.status === 200 && gc.status === 404, iz };
   } finally { k.kapat(); }
 }
-console.log("RN) ④ TEK RENK ÖNİZLEMESİ — build önizlemede, seçilen renkte çizim, Renkli AYNEN, tavan, sipariş build'i yeniden almaz (Okan 14 Eki)");
-const RN_ADLAR = {
-  RN1: "RN1 tek renk -> önizleme hazır olunca build BİR kez (input_task_id = aynı prototip, plaket size_mm 100) · GLB R2 · kredi 'build' 30 (siparişsiz) · prototip gövdesi renkten bağımsız",
-  RN2: "RN2 çizim R2'de -> onizleme_renk_durum hazir + onizleme_renk_url (?renk=Beyaz) + onizleme_saglayici_url (hover alternatifi) · görsel 200 image/png · gorsel alanı AYNEN · renk=Renkli 404",
-  RN3: "RN3 Renkli (renk alanı yok) -> satır 0 · build 0 · yanıtta renk alanı 0 · prototip gövdesi tek renkle AYNI",
-  RN4: "RN4 render yok -> koşucu damgası bayat 'yok' (sağlayıcı görseli) · tazelenince 'hazirlaniyor' · 900 sn+ bekleyen 'yok'",
-  RN9: "RN9 panel foto-ozet: son 24 sa build 2 · kredi tahmini 72 (60 build + 12 prototip) · tavan 30 · çizim bekleyen 1",
-  RN5: "RN5 tavan dolu (2) -> build 0 · asama 'tavan' · onizleme_renk_durum 'yok' · Okan'a E-POSTA 1 (ikinci istekte tekrar YOK)",
-  RN6: "RN6 renk değişimi Beyaz->Gri build 0 + render-bekliyor · Beyaz'a dönüş anında hazir · /foto/renk Renkli 400 · bilinmeyen iş 404",
-  RN7: "RN7 sipariş (100 mm) -> önizleme build'i YENİDEN SATIN ALINMAZ (POST build 0, zincir başı aynı görev, kredi 'build' tek satır)",
-  RN8: "RN8 plaket sipariş ölçüsü önizlemeden farklı (100->120) -> yeni build (size_mm 120)",
-  RN10: "RN10 3 gün temizliği GLB + renk çizimlerini önizlemeyle birlikte siler (taze iş kalır)",
+console.log("RN) ④ TEK RENK ÖNİZLEMESİ — gri model görseli (dokusuz, 5 kr), Renkli AYNEN, renk değişimi çağrısız, secret/kalıp kapısı, tavan, sipariş build'i kendisi kurar (Okan 14 Eki 12:58)");
+const GR_ADLAR = {
+  GR1: "GR1 tek renk -> prototip hazır olunca TAM 1 image-to-3d POST · gövde sabit (should_texture false · enable_pbr false · alpha_thumbnail · glb · model ortamdan · texture_prompt YOK · giriş = konsept data URI) · build 0",
+  GR2: "GR2 görev bitti -> R2 <is>-gri.png · durum hazir + gorunum=gri url + onizleme_renk_gorunum gri + sağlayıcı url · görsel 200 · kredi 'gri' 5 · çağrı hâlâ 1 · Mac kuyruğu 0 · GLB yok · ?renk= 404",
+  GR8: "GR8 panel foto-ozet: son 24 sa 1 çağrı · kredi tahmini 11 (5 gri + 6 prototip) · tavan 30 · gri açık · build alanı yok · secret'siz ortamda gri_acik false",
+  GR3: "GR3 Renkli (renk alanı yok) -> satır 0 · image-to-3d 0 · build 0 · yanıtta renk alanı 0 · prototip gövdesi tek renkle AYNI",
+  GR4: "GR4 renk değişimi Beyaz->Siyah->Gri -> YENİ ÇAĞRI 0 · aynı gri görsel · renk adı değişir · /foto/renk Renkli 400 · bilinmeyen iş 404",
+  GR5: "GR5 model secret yok / kalıp dışı (abcdef-6 = 30 kr · büyük harf · ek · kısa · -5-lite) -> image-to-3d 0 · build 0 · satır 0 · ④ eski (renk alanı 0) · /foto/renk 503",
+  GR6: "GR6 tavan dolu -> image-to-3d 0 · asama 'tavan' · 'yok' · Okan'a E-POSTA 1 (tekrar YOK) · metin ~11 kredi (6 prototip + 5 gri model)",
+  GR7: "GR7 sipariş -> gri önizleme build DEĞİL: zincir build'i kendisi kurar (POST build 1, input = aynı prototip) · sipariş kredisi = Renkli önizlemeli siparişle AYNI",
+  GR9: "GR9 3 gün temizliği gri görseli (+ eski GLB + renk çizimleri) önizlemeyle birlikte siler (taze iş kalır)",
+  GR10: "GR10 cron: müşteri ayrılınca gri görevi yoklanır (görsel + kredi 'gri', yeni çağrı 0) · eski 'build' satırı kredi 'build' + build-bitti (GLB yok, Mac kuyruğu 0) · ④ 'yok'",
+  GR13: "GR13 eski yolun gerçek build'i siparişte YENİDEN SATIN ALINMAZ (POST build 0, zincir başı aynı görev, kredi 'build' tek satır)",
+  GR11: "GR11 gri DÜŞTÜ -> basarisiz + 'yok' + kredi deftere · renk değişimi yeniden denemez · görselsiz bitti -> basarisiz gri-gorsel-yok · çağrı iş başına 1",
 };
 {
-  const { s, iz } = await rnSunucu(foto);
-  for (const a of Object.keys(RN_ADLAR)) { ol(RN_ADLAR[a], s[a] === true, JSON.stringify(iz[a]).slice(0, 900)); }
+  const { s, iz } = await grSunucu(foto);
+  for (const a of Object.keys(GR_ADLAR)) { ol(GR_ADLAR[a], s[a] === true, JSON.stringify(iz[a]).slice(0, 900)); }
   const t = await rnTablosuz(foto);
-  ol("RN11 tablo YOK (göç öncesi) -> eski davranış: renk alanı 0 · build 0 · /foto/renk 503 · panel kurulu:false", t.ok, JSON.stringify(t.iz));
+  ol("RN11 tablo YOK (göç öncesi, secret VAR) -> eski davranış: renk alanı 0 · image-to-3d 0 · build 0 · /foto/renk 503 · panel kurulu:false", t.ok, JSON.stringify(t.iz));
   const u12 = await rnUretec(foto);
   ol("RN12 üreteç türü renk.png -> /durum onizleme_renk_durum hazir + gorunum=renk url + alternatif · görsel 200 · çizimsiz alan 0 · plaket gorunum=renk 404",
      u12.ok, JSON.stringify(u12.iz).slice(0, 700));
-  // MUTANTLAR (gecici foto.js kopyasi): ikinci build · Renkli'de build · tavan aşımı -> KIRMIZI.
-  const RN_MUT = [
-    ["M-RN-IKINCI-BUILD sipariş önizleme build'ini yeniden satın alır",
-     "    if (onb) { return asamaYaz(env, u, \"build\", { build_gorev: onb }, simdi); }\n", "", ["RN7"]],
-    ["M-RN-RENKLI-BUILD Renkli önizlemede de build kurulur",
-     "  if (g.renk !== undefined && renkOnizlemeIsi({ tur: tur.kod, cesit, ziyaretci })) {\n    try { await renkIste(env, isNo, g.renk, simdi); }",
-     "  if (renkOnizlemeIsi({ tur: tur.kod, cesit, ziyaretci })) {\n    try { await renkIste(env, isNo, g.renk || \"Beyaz\", simdi); }",
-     ["RN3", "RN9"]],
-    ["M-RN-TAVAN tavan kontrolü kalkar", "  if (sayi >= tavan) {\n", "  if (false) {\n", ["RN5"]],
-    ["M-RN-K0 KONTROL (yorum)", "/** Tek renk onizlemesinin R2 anahtari", "/**  Tek renk onizlemesinin R2 anahtari", []],
+  // MUTANTLAR (gecici foto.js kopyasi; calisma agaci DEGISMEZ): her biri TAM OLARAK beklenen vakayi KIRMIZI yakar.
+  const GR_MUT = [
+    ["M-GR-DOKU gri gövdede doku AÇIK (should_texture true)",
+     "export const GRI_GOVDE = Object.freeze({ should_texture: false,", "export const GRI_GOVDE = Object.freeze({ should_texture: true,", ["GR1"]],
+    ["M-GR-KALIP model kalıbı gevşek (tam sürüm -6 = 30 kr da kabul)",
+     "const GRI_MODEL_KALIBI = /^[a-z]{3,12}-6-lite$/;", "const GRI_MODEL_KALIBI = /^[a-z]{3,12}-6(-lite)?$/;", ["GR5"]],
+    ["M-GR-RENKLI Renkli önizlemede de gri çağrı açılır",
+     "  if (g.renk !== undefined && renkOnizlemeIsi({ tur: tur.kod, cesit, ziyaretci }) && griModel(env)) {\n    try { await renkIste(env, isNo, g.renk, simdi); }",
+     "  if (renkOnizlemeIsi({ tur: tur.kod, cesit, ziyaretci }) && griModel(env)) {\n    try { await renkIste(env, isNo, g.renk || \"Beyaz\", simdi); }",
+     ["GR3"]],
+    ["M-GR-RENK-DEGISIM renk değişiminde yeniden gri çağrı",
+     "  const yeni = s.asama === \"tavan\" ? \"bekliyor\" : s.asama;", "  const yeni = \"bekliyor\";", ["GR4", "GR11"]],
+    ["M-GR-ONB sipariş gri görevini build sanar (zincir build kurmaz)",
+     "!s.build_gorev || griGorevi(s.build_gorev) ||", "!s.build_gorev ||", ["GR7"]],
+    ["M-GR-IKINCI-BUILD sipariş eski yolun build'ini yeniden satın alır",
+     "    if (onb) { return asamaYaz(env, u, \"build\", { build_gorev: onb }, simdi); }\n", "", ["GR13"]],
+    ["M-GR-TAVAN tavan kontrolü kalkar", "  if (sayi >= tavan) {\n", "  if (false) {\n", ["GR6"]],
+    ["M-GR-K0 KONTROL (yorum)", "/** Gri model gorselinin R2 anahtari", "/**  Gri model gorselinin R2 anahtari", []],
   ];
-  for (const [ad, capa, yerine, olmeli] of RN_MUT) {
+  for (const [ad, capa, yerine, olmeli] of GR_MUT) {
     const fm = await mutantModul(capa, yerine);
     if (!fm) { ol(ad + " capa bulundu", false, "capa kayip/coklu: " + capa.slice(0, 80)); continue; }
-    const m = (await rnSunucu(fm)).s;
-    const kir = Object.keys(RN_ADLAR).filter((x) => m[x] !== true).sort();
+    const m = (await grSunucu(fm)).s;
+    const kir = Object.keys(GR_ADLAR).filter((x) => m[x] !== true).sort();
     ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(kir));
   }
 }
 
-// ---- KR) KREDİ 36 (BaBa 14 Eki 04:2x): tek renk önizleme = 6 prototip + 30 build; panel tahmini n x 36.
+// ---- KR) KREDİ 11 (Okan 14 Eki 12:58): tek renk önizleme = 6 prototip + 5 gri model; panel tahmini n x 11.
 async function krSenaryo(fm) {
   const k = koprukur(); await k.hazir;
-  const e2 = envKur(k.d1, r2Kur());
+  const e2 = envKur(k.d1, r2Kur(), GRI_ENV);
   try {
     const oku = async () => (await (await fm.panelFotoOzet(e2, Date.now())).json()).renk_onizleme;
     const o0 = await oku();
     const t = new Date().toISOString();
     for (const [no, renk] of [["1", "Siyah"], ["2", "Beyaz"], ["3", "Gri"]]) {
       await k.d1.prepare("INSERT INTO foto_renk_onizleme (is_no, renk, asama, build_gorev, build_olcu, tarih, son_kontrol, hata, guncel)" +
-        " VALUES (?, ?, 'build', ?, 100, ?, 0, '', 0)").bind(no.repeat(32), renk, "gorev-kr-" + no, t).run();
+        " VALUES (?, ?, 'gri-hazir', ?, 0, ?, 0, '', 0)").bind(no.repeat(32), renk, "gri:gorev-kr-" + no, t).run();
     }
     const o3 = await oku();
-    return { KR0: o0.kurulu === true && o0.son_24s_build === 0 && o0.kredi_tahmini === 0 && o0.kredi_build === 0 && o0.kredi_prototip === 0,
-             KR3: o3.son_24s_build === 3 && o3.kredi_tahmini === 108 && o3.kredi_build === 90 && o3.kredi_prototip === 18 &&
+    return { KR0: o0.kurulu === true && o0.son_24s_gri === 0 && o0.kredi_tahmini === 0 && o0.kredi_gri === 0 && o0.kredi_prototip === 0,
+             KR3: o3.son_24s_gri === 3 && o3.kredi_tahmini === 33 && o3.kredi_gri === 15 && o3.kredi_prototip === 18 &&
                o3.tavan === 30,
              iz: { o0, o3 } };
   } finally { k.kapat(); }
 }
 {
   const kr = await krSenaryo(foto);
-  ol("KR0 panel: n=0 önizleme build'i -> kredi tahmini 0 (build 0 + prototip 0)", kr.KR0, JSON.stringify(kr.iz.o0));
-  ol("KR3 panel: n=3 -> kredi tahmini 108 (build 90 + prototip 18) · tavan 30 DEĞİŞMEZ", kr.KR3, JSON.stringify(kr.iz.o3));
-  ol("KR-SABIT RENK_ONIZLEME_KREDI_TAHMINI 36 = 6 prototip + 30 build", foto.RENK_ONIZLEME_KREDI_TAHMINI === 36 &&
-     foto.RENK_PROTOTIP_KREDI_TAHMINI === 6 && foto.RENK_BUILD_KREDI_TAHMINI === 30 && foto.RENK_ONIZLEME_TAVAN_VARSAYILAN === 30,
-     [foto.RENK_ONIZLEME_KREDI_TAHMINI, foto.RENK_PROTOTIP_KREDI_TAHMINI, foto.RENK_BUILD_KREDI_TAHMINI].join(","));
+  ol("KR0 panel: n=0 gri çağrı -> kredi tahmini 0 (gri 0 + prototip 0)", kr.KR0, JSON.stringify(kr.iz.o0));
+  ol("KR3 panel: n=3 -> kredi tahmini 33 (gri 15 + prototip 18) · tavan 30 DEĞİŞMEZ", kr.KR3, JSON.stringify(kr.iz.o3));
+  ol("KR-SABIT RENK_ONIZLEME_KREDI_TAHMINI 11 = 6 prototip + 5 gri · build sabiti YOK · tavan 30", foto.RENK_ONIZLEME_KREDI_TAHMINI === 11 &&
+     foto.RENK_PROTOTIP_KREDI_TAHMINI === 6 && foto.RENK_GRI_KREDI_TAHMINI === 5 && foto.RENK_BUILD_KREDI_TAHMINI === undefined &&
+     foto.RENK_ONIZLEME_TAVAN_VARSAYILAN === 30,
+     [foto.RENK_ONIZLEME_KREDI_TAHMINI, foto.RENK_PROTOTIP_KREDI_TAHMINI, foto.RENK_GRI_KREDI_TAHMINI, foto.RENK_BUILD_KREDI_TAHMINI].join(","));
   const KR_MUT = [
-    ["M-KR-36-30 önizleme kredisi 36 -> 30 (prototip payı düşer)",
-     "export const RENK_ONIZLEME_KREDI_TAHMINI = RENK_PROTOTIP_KREDI_TAHMINI + RENK_BUILD_KREDI_TAHMINI;",
-     "export const RENK_ONIZLEME_KREDI_TAHMINI = RENK_BUILD_KREDI_TAHMINI;", ["KR3"]],
+    ["M-KR-11-6 önizleme kredisi 11 -> 6 (gri payı düşer)",
+     "export const RENK_ONIZLEME_KREDI_TAHMINI = RENK_PROTOTIP_KREDI_TAHMINI + RENK_GRI_KREDI_TAHMINI;",
+     "export const RENK_ONIZLEME_KREDI_TAHMINI = RENK_PROTOTIP_KREDI_TAHMINI;", ["KR3"]],
     ["M-KR-K0 KONTROL (yorum)", "/** Tek renk onizlemesi basina toplam kredi tahmini", "/**  Tek renk onizlemesi basina toplam kredi tahmini", []],
   ];
   for (const [ad, capa, yerine, olmeli] of KR_MUT) {
@@ -8044,7 +8270,10 @@ function rnOku(e) {
   const d = [...e.bolum.agac()];
   const img = d.filter((n) => n.classList.contains("foto-uretim-onizleme-img"));
   return { src: img.map((n) => n.src), alt: img.map((n) => n.getAttribute("data-onizleme-saglayici-url")),
+    altMetin: img.map((n) => n.alt),
     cumle: d.filter((n) => n.tagName === "P" && n.textContent === RN_CUMLE).length,
+    // ④ GRİ cümlesi: "Görsel örnektir" ile başlayan HER paragraf (metin birebir ayrıca ölçülür).
+    gri: d.filter((n) => n.tagName === "P" && /^Görsel örnektir/.test(n.textContent || "")).map((n) => n.textContent),
     hazirlaniyor: d.filter((n) => n.tagName === "P" && n.textContent === RN_HAZIRLANIYOR).length,
     ust: d.filter((n) => n.tagName === "P" && n.textContent === FR_UST).length,
     sepet: d.filter((n) => n.id === "foto-sip-btn").length,
@@ -8089,14 +8318,18 @@ async function rnIstek(kaynak, V, kart, renk) {
 async function rnIstemci(kaynak, V) {
   const s = {}, iz = {};
   const kayit = (tur, renk, ek) => ({ is: RN_IS, tur, olcu: 100, renk_secim: renk, malzeme: "PLA", ...(ek || {}) });
-  const RG = (renk) => RN_GORSEL + "&renk=" + renk;
-  // RNE1: tek renk + çizim hazır -> img = çizim · RN_CUMLE altında · üst 'Önizleme —' cümlesi YOK · /foto/renk 0.
-  const e1 = await ekranKos(kaynak, V, acikGercek(V, V6_TUM), kayit("plaket", "Beyaz"),
-    rnHazir("plaket", { onizleme_renk: "Beyaz", onizleme_renk_durum: "hazir", onizleme_renk_url: RG("Beyaz"), onizleme_saglayici_url: RN_GORSEL }), { zamanlayici: true });
+  // Sunucunun gri sözleşmesi (foto.js renkYanitAlanlari): gorunum=gri adresi + onizleme_renk_gorunum "gri".
+  const GU = RN_GORSEL + "&gorunum=gri";
+  const griHazir = (renk, ek) => rnHazir("plaket", { onizleme_renk: renk, onizleme_renk_durum: "hazir", onizleme_renk_url: GU,
+    onizleme_renk_gorunum: "gri", onizleme_saglayici_url: RN_GORSEL, ...(ek || {}) });
+  // RNE1: tek renk + gri hazır -> img = gri görsel · GRİ cümle BİREBİR "(Beyaz)" · eski renk cümlesi 0 · üst 'Önizleme —'
+  // cümlesi YOK · /foto/renk 0 · sepet 1 · hover verisi = sağlayıcı görseli.
+  const e1 = await ekranKos(kaynak, V, acikGercek(V, V6_TUM), kayit("plaket", "Beyaz"), griHazir("Beyaz"), { zamanlayici: true });
   iz.RNE1 = rnOku(e1);
-  s.RNE1 = JSON.stringify(iz.RNE1.src) === JSON.stringify([RG("Beyaz")]) && iz.RNE1.cumle === 1 && iz.RNE1.ust === 0 &&
-    iz.RNE1.renkPost.length === 0 && iz.RNE1.sepet === 1 &&
-    // hover "renkli alternatif" VERİSİ: img data-onizleme-saglayici-url = sağlayıcı görseli (davranış KraL)
+  s.RNE1 = JSON.stringify(iz.RNE1.src) === JSON.stringify([GU]) &&
+    JSON.stringify(iz.RNE1.gri) === JSON.stringify([GRI_CUMLE("Beyaz")]) && iz.RNE1.gri[0] === "Görsel örnektir — ürün seçtiğiniz tek renkte (Beyaz) üretilir." &&
+    iz.RNE1.cumle === 0 && iz.RNE1.ust === 0 && iz.RNE1.renkPost.length === 0 && iz.RNE1.sepet === 1 &&
+    JSON.stringify(iz.RNE1.altMetin) === JSON.stringify(["Önizleme — tek renk örnek görsel"]) &&
     JSON.stringify(iz.RNE1.alt) === JSON.stringify([RN_GORSEL]);
   // RNE2: çizim hazırlanıyor -> S2 "Renk önizlemesi hazırlanıyor…" + SAĞLAYICI görseli (boş görsel YOK) · sepet 0 · yoklama.
   const e2 = await ekranKos(kaynak, V, acikGercek(V, V6_TUM), kayit("plaket", "Beyaz"),
@@ -8109,28 +8342,43 @@ async function rnIstemci(kaynak, V) {
     kayit("plaket", "Renkli", { renkler: ["Kırmızı", "Beyaz"], renk_kaynak: "foto" }), rnHazir("plaket"), { zamanlayici: true });
   iz.RNE3 = rnOku(e3);
   s.RNE3 = JSON.stringify(iz.RNE3.src) === JSON.stringify([RN_GORSEL]) && iz.RNE3.ust === 1 && iz.RNE3.cumle === 0 &&
-    iz.RNE3.renkPost.length === 0;
+    iz.RNE3.gri.length === 0 && iz.RNE3.renkPost.length === 0;
   // RNE4: sunucu 'yok' (tavan/hata/gecikme) -> eski davranış: sağlayıcı görseli + üst cümle, RN_CUMLE 0, istek 0.
   const e4 = await ekranKos(kaynak, V, acikGercek(V, V6_TUM), kayit("plaket", "Gri"),
     rnHazir("plaket", { onizleme_renk: "Gri", onizleme_renk_durum: "yok" }), { zamanlayici: true });
   iz.RNE4 = rnOku(e4);
   s.RNE4 = JSON.stringify(iz.RNE4.src) === JSON.stringify([RN_GORSEL]) && iz.RNE4.ust === 1 && iz.RNE4.cumle === 0 &&
-    iz.RNE4.renkPost.length === 0;
-  // RNE5: ④'te Beyaz çizimi varken ③'e dönüp Gri seç, ④'e gel -> /foto/renk {is, renk: Gri} TEK istek + S2 bekleme.
-  const e5 = await ekranKos(kaynak, V, acikGercek(V, V6_TUM), kayit("plaket", "Beyaz"),
-    rnHazir("plaket", { onizleme_renk: "Beyaz", onizleme_renk_durum: "hazir", onizleme_renk_url: RG("Beyaz"), onizleme_saglayici_url: RN_GORSEL }),
+    iz.RNE4.gri.length === 0 && iz.RNE4.renkPost.length === 0;
+  // ③'e dönüp başka tek renk seç, ④'e gel (RNE5 · RNE9 ortak).
+  const renkDegistir = async (e, renk) => {
+    const d = () => [...e.bolum.agac()];
+    const geri = d().find((n) => n.id === "foto-geri");
+    if (geri) { geri.tetikle("click"); }
+    const r = d().find((n) => n.tagName === "INPUT" && n.name === "foto-renk" && n.value === renk);
+    if (r) { r.checked = true; r.tetikle("change"); }
+    const ileri = d().find((n) => n.id === "foto-ileri");
+    if (ileri) { ileri.tetikle("click"); }
+    await rnBekle();
+    return { geri: !!geri, secildi: !!r };
+  };
+  // RNE5: ④'te Beyaz GRİ görseli varken ③'e dönüp Gri seç, ④'e gel -> AYNI gri görsel + cümlede "(Gri)" ANINDA (bekleme
+  // ekranı YOK) · sunucuya /foto/renk {is, Gri} TEK bildirim (arka planda; yanıtı BEKLENMEZ — sahte yanıt bilerek
+  // 'hazirlaniyor': kısa yol yanıtı yok sayar, bekleme ekranına düşen sürüm KIRMIZI yanar).
+  const e5 = await ekranKos(kaynak, V, acikGercek(V, V6_TUM), kayit("plaket", "Beyaz"), griHazir("Beyaz"),
     { zamanlayici: true, postYanit: rnHazir("plaket", { onizleme_renk: "Gri", onizleme_renk_durum: "hazirlaniyor" }) });
-  const d5 = () => [...e5.bolum.agac()];
-  const geri = d5().find((n) => n.id === "foto-geri");
-  if (geri) { geri.tetikle("click"); }
-  const gri = d5().find((n) => n.tagName === "INPUT" && n.name === "foto-renk" && n.value === "Gri");
-  if (gri) { gri.checked = true; gri.tetikle("change"); }
-  const ileri5 = d5().find((n) => n.id === "foto-ileri");
-  if (ileri5) { ileri5.tetikle("click"); }
-  await rnBekle();
-  iz.RNE5 = { ...rnOku(e5), geri: !!geri, gri: !!gri };
+  const k5 = await renkDegistir(e5, "Gri");
+  iz.RNE5 = { ...rnOku(e5), ...k5 };
   s.RNE5 = iz.RNE5.renkPost.length === 1 && iz.RNE5.renkPost[0].is === RN_IS && iz.RNE5.renkPost[0].renk === "Gri" &&
-    iz.RNE5.hazirlaniyor === 1 && iz.RNE5.cumle === 0;
+    iz.RNE5.hazirlaniyor === 0 && JSON.stringify(iz.RNE5.src) === JSON.stringify([GU]) &&
+    JSON.stringify(iz.RNE5.gri) === JSON.stringify([GRI_CUMLE("Gri")]) && iz.RNE5.cumle === 0;
+  // RNE9: gri görsel henüz HAZIRLANIRKEN renk değişirse -> /foto/renk {is, Siyah} TEK istek + S2 bekleme (cümle 0).
+  const e9 = await ekranKos(kaynak, V, acikGercek(V, V6_TUM), kayit("plaket", "Beyaz"),
+    rnHazir("plaket", { onizleme_renk: "Beyaz", onizleme_renk_durum: "hazirlaniyor" }),
+    { zamanlayici: true, postYanit: rnHazir("plaket", { onizleme_renk: "Siyah", onizleme_renk_durum: "hazirlaniyor" }) });
+  const k9 = await renkDegistir(e9, "Siyah");
+  iz.RNE9 = { ...rnOku(e9), ...k9 };
+  s.RNE9 = iz.RNE9.renkPost.length === 1 && iz.RNE9.renkPost[0].renk === "Siyah" && iz.RNE9.hazirlaniyor === 1 &&
+    iz.RNE9.gri.length === 0 && iz.RNE9.cumle === 0;
   // RNE6: istek gövdesi -> tek renk plaket {renk: Beyaz} · insan figürü {renk: Gri} · Renkli'de alan YOK.
   iz.RNE6 = { beyaz: await rnIstek(kaynak, V, "plaket", "Beyaz"), insan: await rnIstek(kaynak, V, "insan", "Gri"),
     renkli: await rnIstek(kaynak, V, "plaket", "Renkli") };
@@ -8143,7 +8391,7 @@ async function rnIstemci(kaynak, V) {
   await rnBekle();
   iz.RNE7 = rnOku(e7);
   s.RNE7 = iz.RNE7.renkPost.length === 1 && iz.RNE7.renkPost[0].renk === "Siyah" &&
-    JSON.stringify(iz.RNE7.src) === JSON.stringify([RN_GORSEL]) && iz.RNE7.cumle === 0;
+    JSON.stringify(iz.RNE7.src) === JSON.stringify([RN_GORSEL]) && iz.RNE7.cumle === 0 && iz.RNE7.gri.length === 0;
   // RNE8: üreteç türü (anahtarlık–yazı) çizim hazır -> ④ = gorunum=renk çizimi + renk cümlesi · /foto/renk 0 (renk
   // önizlemenin kendi girdisi).
   const UR = RN_GORSEL + "&gorunum=renk";
@@ -8152,7 +8400,7 @@ async function rnIstemci(kaynak, V) {
       onizleme_saglayici_url: RN_GORSEL }), { zamanlayici: true });
   iz.RNE8 = rnOku(e8);
   s.RNE8 = JSON.stringify(iz.RNE8.src) === JSON.stringify([UR]) && iz.RNE8.cumle === 1 && iz.RNE8.renkPost.length === 0 &&
-    JSON.stringify(iz.RNE8.alt) === JSON.stringify([RN_GORSEL]);
+    iz.RNE8.gri.length === 0 && JSON.stringify(iz.RNE8.alt) === JSON.stringify([RN_GORSEL]);
   // === RNH (14 Eki 03:5x): fare/dokunma/klavye ile sağlayıcının renkli görseline geçiş (sade cep 3 kolu) ===
   const nhImg = (e) => [...e.bolum.agac()].find((n) => n.classList.contains("foto-uretim-onizleme-img"));
   const nhIpucu = (e) => [...e.bolum.agac()].filter((n) => n.classList.contains("foto-uretim-renk-ipucu"));
@@ -8163,7 +8411,7 @@ async function rnIstemci(kaynak, V) {
   // RNH1: fare pointerenter (mouse) → src = S.gorsel · alt = "Önizleme — fotoğraftaki renkli hâli"; pointerleave →
   // src = renk çizimi · alt = kuruluş alt'ı; sınıf foto-uretim-renk-degis + tabIndex=0 + 8 dinleyici.
   const nh1 = await nhKos(kaynak, V, kayit("plaket", "Beyaz"),
-    rnHazir("plaket", { onizleme_renk: "Beyaz", onizleme_renk_durum: "hazir", onizleme_renk_url: RG("Beyaz"), onizleme_saglayici_url: RN_GORSEL }));
+    griHazir("Beyaz"));
   const nh1Img = nhImg(nh1);
   const nh1Alt0 = nh1Img.alt;
   nh1Img.tetikle("pointerenter", { pointerType: "mouse" });
@@ -8175,9 +8423,9 @@ async function rnIstemci(kaynak, V) {
     ipucu: nhIpucu(nh1).map((n) => n.textContent) };
   iz.RNH1 = iz.RNH;
   s.RNH1 = iz.RNH.hasClass === true && iz.RNH.tabIndex === 0 &&
-    iz.RNH.src0 === RG("Beyaz") &&
+    iz.RNH.src0 === GU &&
     iz.RNH.enter.src === RN_GORSEL && iz.RNH.enter.alt === "Önizleme — fotoğraftaki renkli hâli" &&
-    iz.RNH.leave.src === RG("Beyaz") && iz.RNH.leave.alt === iz.RNH.alt0 &&
+    iz.RNH.leave.src === GU && iz.RNH.leave.alt === iz.RNH.alt0 &&
     iz.RNH.dinle === 8 && iz.RNH.ipucu.length === 1 &&
     iz.RNH.ipucu[0] === "Fotoğraftaki renkli hâlini görmek için görselin üstüne gel ya da basılı tut.";
 
@@ -8185,7 +8433,7 @@ async function rnIstemci(kaynak, V) {
   // pointercancel → src = renk çizimi. (mouse pointerenter aynı dinleyiciyi ateşler ama pointerType filtresi
   // nedeniyle renkliGoster tetiklenmez — fare için RNH1'e bırakıldı.)
   const nh2 = await nhKos(kaynak, V, kayit("plaket", "Beyaz"),
-    rnHazir("plaket", { onizleme_renk: "Beyaz", onizleme_renk_durum: "hazir", onizleme_renk_url: RG("Beyaz"), onizleme_saglayici_url: RN_GORSEL }));
+    griHazir("Beyaz"));
   const nh2Img = nhImg(nh2);
   nh2Img.tetikle("pointerdown", { pointerType: "touch" });
   const nh2Down = { src: nh2Img.src, alt: nh2Img.alt };
@@ -8199,13 +8447,13 @@ async function rnIstemci(kaynak, V) {
   nh2Img.tetikle("pointerdown", { pointerType: "mouse" });
   const nh2Mouse = { src: nh2Img.src, alt: nh2Img.alt };
   iz.RNH2 = { down: nh2Down, up: nh2Up, pen: nh2Pen, cancel: nh2Cancel, mouse: nh2Mouse };
-  s.RNH2 = nh2Down.src === RN_GORSEL && nh2Up.src === RG("Beyaz") &&
-    nh2Pen.src === RN_GORSEL && nh2Cancel.src === RG("Beyaz") &&
-    nh2Mouse.src === RG("Beyaz");
+  s.RNH2 = nh2Down.src === RN_GORSEL && nh2Up.src === GU &&
+    nh2Pen.src === RN_GORSEL && nh2Cancel.src === GU &&
+    nh2Mouse.src === GU;
 
   // RNH3: focus → src = S.gorsel; blur → src = renk çizimi.
   const nh3 = await nhKos(kaynak, V, kayit("plaket", "Beyaz"),
-    rnHazir("plaket", { onizleme_renk: "Beyaz", onizleme_renk_durum: "hazir", onizleme_renk_url: RG("Beyaz"), onizleme_saglayici_url: RN_GORSEL }));
+    griHazir("Beyaz"));
   const nh3Img = nhImg(nh3);
   nh3Img.tetikle("focus");
   const nh3F = { src: nh3Img.src, alt: nh3Img.alt };
@@ -8213,17 +8461,17 @@ async function rnIstemci(kaynak, V) {
   const nh3B = { src: nh3Img.src, alt: nh3Img.alt };
   iz.RNH3 = { focus: nh3F, blur: nh3B };
   s.RNH3 = nh3F.src === RN_GORSEL && nh3F.alt === "Önizleme — fotoğraftaki renkli hâli" &&
-    nh3B.src === RG("Beyaz") && nh3B.alt !== "Önizleme — fotoğraftaki renkli hâli";
+    nh3B.src === GU && nh3B.alt !== "Önizleme — fotoğraftaki renkli hâli";
 
   // RNH4: S.gorsel boşuken → dinleyici 0, ipucu yok, src = renk çizimi (RN_GORSEL boş, onizleme_saglayici_url YOK).
   const nh4 = await nhKos(kaynak, V, kayit("plaket", "Beyaz"),
-    rnHazir("plaket", { gorsel: "", onizleme_renk: "Beyaz", onizleme_renk_durum: "hazir", onizleme_renk_url: RG("Beyaz") }));
+    rnHazir("plaket", { gorsel: "", onizleme_renk: "Beyaz", onizleme_renk_durum: "hazir", onizleme_renk_url: GU, onizleme_renk_gorunum: "gri" }));
   const nh4Img = nhImg(nh4);
   iz.RNH4 = { src: nh4Img.src, hasClass: nh4Img.classList.contains("foto-uretim-renk-degis"),
     tabIndex: nh4Img.tabIndex, dinle: nhDinle(nh4Img), ipucu: nhIpucu(nh4).length };
   // S.gorsel boş: listener yok, ipucu yok, sınıf yok, tabIndex atanmadı (sahte DOM'da undefined). Görsel hâlâ
   // renk çizimi (S.renkSunucu.gorsel — server tek renkli çizimi vermiş).
-  s.RNH4 = nh4Img.src === RG("Beyaz") && nh4Img.classList.contains("foto-uretim-renk-degis") === false &&
+  s.RNH4 = nh4Img.src === GU && nh4Img.classList.contains("foto-uretim-renk-degis") === false &&
     nhDinle(nh4Img) === 0 && nhIpucu(nh4).length === 0;
 
   // RNH5: Renkli seçili (renkCiz = false) → dinleyici 0, ipucu yok; src = sağlayıcı görseli (RN_GORSEL).
@@ -8248,15 +8496,15 @@ async function rnIstemci(kaynak, V) {
 
   // RNH6: ipucu metni birebir + RENK_CUMLESI birebir + sıra (cümle önce, ipucu sonra; aynı).
   const nh6 = await nhKos(kaynak, V, kayit("plaket", "Beyaz"),
-    rnHazir("plaket", { onizleme_renk: "Beyaz", onizleme_renk_durum: "hazir", onizleme_renk_url: RG("Beyaz"), onizleme_saglayici_url: RN_GORSEL }));
+    griHazir("Beyaz"));
   const nh6D = [...nh6.bolum.agac()];
-  const nh6CumleP = nh6D.find((n) => n.tagName === "P" && n.textContent === RN_CUMLE);
+  const nh6CumleP = nh6D.find((n) => n.tagName === "P" && n.textContent === GRI_CUMLE("Beyaz"));
   const nh6IpucuP = nh6D.find((n) => n.classList.contains("foto-uretim-renk-ipucu"));
   iz.RNH6 = { cumleMetni: nh6CumleP && nh6CumleP.textContent, ipucuMetni: nh6IpucuP && nh6IpucuP.textContent,
     cumleOnce: nh6CumleP && nh6IpucuP ? nh6CumleP.parentNode.childNodes.indexOf(nh6CumleP) : -1,
     ipucuSonra: nh6CumleP && nh6IpucuP ? nh6CumleP.parentNode.childNodes.indexOf(nh6IpucuP) : -1 };
   s.RNH6 = nh6CumleP && nh6IpucuP &&
-    iz.RNH6.cumleMetni === RN_CUMLE && iz.RNH6.ipucuMetni === "Fotoğraftaki renkli hâlini görmek için görselin üstüne gel ya da basılı tut." &&
+    iz.RNH6.cumleMetni === GRI_CUMLE("Beyaz") && iz.RNH6.ipucuMetni === "Fotoğraftaki renkli hâlini görmek için görselin üstüne gel ya da basılı tut." &&
     nh6CumleP.parentNode.childNodes.indexOf(nh6CumleP) < nh6CumleP.parentNode.childNodes.indexOf(nh6IpucuP);
   // Yukarıdaki "cümle önce, ipucu sonra" DOM kardeş sırasıdır; ek olarak ipucu tag'i <p> olmalı.
   if (s.RNH6 && nh6IpucuP.tagName !== "P") { s.RNH6 = false; iz.RNH6.tagHatasi = nh6IpucuP.tagName; }
@@ -8268,11 +8516,12 @@ async function rnIstemci(kaynak, V) {
   const V = veriYukle(VERI_KAYNAK);
   const s = await rnIstemci(EKRAN_KAYNAK, V);
   const ADLAR = {
-    RNE1: "RNE1 tek renk + çizim hazır -> ④ görseli = seçilen renkte çizim · '" + RN_CUMLE + "' · üst cümle 0 · /foto/renk 0",
-    RNE2: "RNE2 çizim hazırlanıyor -> S2 '" + RN_HAZIRLANIYOR + "' + sağlayıcı görseli (boş görsel yok) · Sepete ekle 0 · yoklama",
-    RNE3: "RNE3 Renkli -> sağlayıcı görseli AYNEN + bugünkü cümle · renk cümlesi 0 · /foto/renk 0",
-    RNE4: "RNE4 sunucu 'yok' (tavan/hata/gecikme) -> eski davranış (sağlayıcı görseli + bugünkü cümle)",
-    RNE5: "RNE5 ④'ten ③'e dönüp Gri -> /foto/renk {is, Gri} TEK istek + S2 bekleme",
+    RNE1: "RNE1 tek renk + gri hazır -> ④ görseli = gri görsel · '" + GRI_CUMLE("Beyaz") + "' BİREBİR · eski renk cümlesi 0 · üst cümle 0 · /foto/renk 0",
+    RNE2: "RNE2 gri hazırlanıyor -> S2 '" + RN_HAZIRLANIYOR + "' + sağlayıcı görseli (boş görsel yok) · Sepete ekle 0 · yoklama",
+    RNE3: "RNE3 Renkli -> sağlayıcı görseli AYNEN + bugünkü cümle · gri cümle 0 · renk cümlesi 0 · /foto/renk 0",
+    RNE4: "RNE4 sunucu 'yok' (tavan/hata/gecikme/özellik kapalı) -> eski davranış (sağlayıcı görseli + bugünkü cümle) · gri cümle 0",
+    RNE5: "RNE5 gri hazırken ③'e dönüp Gri -> aynı gri görsel + '(Gri)' cümlesi ANINDA (bekleme 0) · /foto/renk {is, Gri} TEK bildirim",
+    RNE9: "RNE9 gri hazırlanırken ③'e dönüp Siyah -> /foto/renk {is, Siyah} TEK istek + S2 bekleme · cümle 0",
     RNE6: "RNE6 önizleme gövdesi: tek renk plaket renk=Beyaz · insan renk=Gri · Renkli'de renk alanı YOK",
     RNE7: "RNE7 Renkli alınmış önizleme + oturumda Siyah -> /foto/renk TEK kez, kabul edilmezse eski davranış (döngü yok)",
     RNE8: "RNE8 üreteç türü (anahtarlık–yazı) çizim hazır -> ④ gorunum=renk çizimi + renk cümlesi + alternatif verisi · /foto/renk 0",
@@ -8281,16 +8530,25 @@ async function rnIstemci(kaynak, V) {
     RNH3: "RNH3 focus → S.gorsel; blur → cizim",
     RNH4: "RNH4 S.gorsel boş → dinleyici 0 · ipucu yok · sınıf yok · src = renk çizimi",
     RNH5: "RNH5 Renkli seçili (renkCiz=false) → dinleyici 0 · ipucu yok · src = sağlayıcı görseli",
-    RNH6: "RNH6 ipucu metni birebir + RENK_CUMLESI birebir + DOM sırası (cümle önce, ipucu sonra)",
+    RNH6: "RNH6 ipucu metni birebir + GRİ cümle birebir + DOM sırası (cümle önce, ipucu sonra)",
     RNH7: "RNH7 üreteç türü (fotoğraf yok) → 'fotoğraftaki' ipucu 0 · alt 'seçilen renklerde çizim' · üstünde düz görünüm → geri",
   };
   for (const a of Object.keys(ADLAR)) { ol(ADLAR[a], s[a] === true, JSON.stringify(s.iz[a]).slice(0, 700)); }
   const RNE_MUT = [
     ["M-RNE-RENKLI Renkli'de de renk istenir", "  function renkHedefi() { return renkOnizlemeKolu() && !renkliMi() ? anaRenk() : \"\"; }",
      "  function renkHedefi() { return renkOnizlemeKolu() ? anaRenk() : \"\"; }", ["RNE3", "RNE6"]],
-    ["M-RNE-CIZIM-YOK çizim adresi yok sayılır", "        img.src = S.renkSunucu.gorsel;\n", "        img.src = S.gorsel;\n", ["RNE1", "RNE8", "RNH4"]],
-    ["M-RNE-CUMLE renk cümlesi basılmaz",
-     "        S.alan.appendChild(el(\"p\", \"foto-uretim-ayrinti foto-uretim-renk-notu\", RENK_CUMLESI));\n", "", ["RNE1", "RNE8", "RNH6"]],
+    ["M-RNE-CIZIM-YOK çizim adresi yok sayılır", "        img.src = S.renkSunucu.gorsel;\n", "        img.src = S.gorsel;\n", ["RNE1", "RNE5", "RNE8", "RNH4"]],
+    ["M-RNE-CUMLE görsel altı cümle hiç basılmaz",
+     "        S.alan.appendChild(el(\"p\", \"foto-uretim-ayrinti foto-uretim-renk-notu\",\n          griGorunum ? griCumlesi(S.renkSunucu.renk) : RENK_CUMLESI));\n",
+     "", ["RNE1", "RNE5", "RNE8", "RNH6"]],
+    ["M-RNE-GRI-CUMLE gri cümlesi silindi (eski çizim cümlesi basılır)",
+     "          griGorunum ? griCumlesi(S.renkSunucu.renk) : RENK_CUMLESI));", "          RENK_CUMLESI));", ["RNE1", "RNE5", "RNH6"]],
+    ["M-RNE-GRI-RENKADI cümlede renk adı sabit (seçilen renk yazılmaz)",
+     "  function griCumlesi(renk) { return GRI_CUMLESI.replace(\"{renk}\", renk); }",
+     "  function griCumlesi(renk) { return GRI_CUMLESI.replace(\"{renk}\", \"Beyaz\"); }", ["RNE5"]],
+    ["M-RNE-GRI-BEKLE gri hazırken renk değişiminde bekleme ekranı + yeni istek",
+     "    if (S.renkSunucu && S.renkSunucu.gorunum === \"gri\" && S.renkSunucu.durum === \"hazir\" && S.renkSunucu.gorsel) {",
+     "    if (false) {", ["RNE5"]],
     ["M-RNE-K0 KONTROL (aynı gövde)", "  var RENK_URL = \"/api/shop/foto/renk\";\n", "  var RENK_URL = \"/api/shop/foto/renk\";\n", []],
   ];
   for (const [ad, capa, yerine, olmeli] of RNE_MUT) {
