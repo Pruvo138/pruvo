@@ -4,6 +4,9 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## 📍 DURUM — 14 Eki 20:2x, KraL halef-34
+**CANLI:** main `9db050b3` → Pages `38598657755` deploy+yayin success · shop `34e00de3` @100% (e-posta, URETIM_GRI_MODEL VAR). Kargo kırmızı canlı (ekran görüntüsü Okan'da). Kart görseli + kart altı etiket silme canlı KODDA ama prod `foto_acik` 0 satır → foto bölümü kapalı ("Şu an fotoğraftan sipariş alınamıyor"); açmak Okan kararı (sipariş açar). Okan "hızlandır" ile toplu + etiket dalları dal SERİT B'siz merge edildi (testler + DAL_PROVA YEŞİL). Merge edilen 5 worktree + dal silindi. **SIRADAKİ:** ③ ad-özeti `e0d30871` (main'le tazelendi, push'lu) → MaCiT Pages `38604004786` bitince `gh workflow run nobet.yml --ref kral/ad-ozeti-14eki` → SERIT_UC=ESIT → merge. ⑤ 15 Eki ~13:3x doku-deneme alias+dal temizliği. kanıt: /private/tmp/claude-501/-Users-okan-dev-pruvo/3425942a-cce2-4787-a2bc-2d99b628ee29/scratchpad/kanit/2026-10-14-2010-canli-sepet-kirmizi.jpg
+
 ## 📍 DURUM — 14 Eki 17:4x, KraL halef-34
 **W-H CANLI:** main `361e8cb9` → Pages `38577707398` deploy+yayin success · shop `3b3387fa` @100% (main `130ddba6`), `URETIM_GRI_MODEL` sürümde VAR; canlı ④ tek renk ölçümü kredi harcar → yapılmadı. **TOPLU DAL** `kral/toplu-14eki-17` `3f76d22f` (kart + e-posta + kargo kırmızı, Okan 16:3x "bunu kırmızı yaz"): 3 test rc=0 · ci-kapsam rc=0 · `DAL_PROVA=YESIL 11/11` → Pages `38583449174` bitince TEK SERİT B → merge → Pages → shop deploy → canlı kargo ekran görüntüsü Okan'a. ③ ad-özeti `6857176d` origin'de, SERİT B bekliyor. kanıt: /private/tmp/claude-501/-Users-okan-dev-pruvo/3425942a-cce2-4787-a2bc-2d99b628ee29/scratchpad/kanit/2026-10-14-1740-wh-canli.txt
 
