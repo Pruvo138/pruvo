@@ -12,11 +12,28 @@ batarya "her seye kirmizi yanan" gurultulu bir alarma donusmus demektir.
 🔴 Bu arac bir CI adimi DEGILDIR (yavas, kasitli-bozuk kopyalar uretir); elde kosulan
    KANIT aracidir — tools/commit-mesaji-mutasyon.py ile ayni desen.
 
+🔴 KOPYA LISTESI ELLE TUTULMAZ (14 Eki 2026): kapi `git_ortami`'yi KOSULSUZ import
+   ediyor ve `bilinen_public_shalar` icin `gecmis-geri-donus-bilinen.json`'i okuyor;
+   elle kopya listesi uzamadi -> her mutant kopyasi ImportError ile COKTU. Sonuc:
+   K1-K3 "sahte-kirmizi" yandi ve DAHA KOTUSU her oldurucu mutant olcum yuzunden
+   degil COKME yuzunden "OLDU" sayildi (batarya KOR). Onarim: (1) bagimliliklar
+   kapi+kurucunun import ve dosya adi dizgelerinden TURETILIR; (2) TABAN — mutasyonsuz
+   kopya once SONUC N/N yesil vermeli, yoksa arac hukum KURMAZ (cikis 3 = OLCULEMEDI,
+   KIRMIZI'dan ayri); (3) mutant ancak batarya HUKME ULASIP kirmizi derse OLDU sayilir;
+   cokme OLDU DEGILDIR. Ilgisiz kontrol de taban ile AYNI iddia sayisina ulasmalidir.
+   🔴 14 Eki olculen ariza (mimar, 16:3x): K1/K2/K3 (ilgisiz) "YANLIS ALARM",
+   M12 capa bayat (`exit 1` satirini kapisi `pruvo_gd_mesaj` fonksiyonuna refactor
+   etmisti) — M12 OLCULEMEDI; o satir da onarildi.
+
 Kullanim: python3 tools/gecmis-geri-donus-mutasyon.py
 Cikis 0 = her oldurucu mutant KIRMIZI + her ilgisiz mutant YESIL + canli dosyalar temiz.
+Cikis 1 = KIRMIZI (mutant sag kaldi/coktu · ilgisiz kontrol kirmizi · canli dosya degisti).
+Cikis 3 = OLCULEMEDI (taban kopyasi hukme ulasamadi; mutant hukmu KURULMADI).
 """
+import ast
 import hashlib
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -28,7 +45,58 @@ KAPI = os.path.join(TOOLS, "gecmis-geri-donus-kapisi.py")
 KUR = os.path.join(TOOLS, "gecmis-geri-donus-hook-kur.py")
 KARDES = os.path.join(TOOLS, "commit-mesaji-kapisi.py")
 OZET = os.path.join(TOOLS, "sizinti-desen-ozetleri.json")
+# 14 Eki: `bilinen_public_shalar` env/PRUVO_GD_BILINEN_DOSYA yoksa bu dosyaya geri
+# duşer; kopyada YOKSA muafiyet suser ve VAKA 13b'de TABAN dahil HER kosum kirmizi
+# doner. Dosya ismi kapinin govdesinde dizge sabiti olarak duruyor -> turetim onu
+# yakalar; yine de acik listeye aldik (ciktinin "kopya kumesi" satirinda gorunur).
+BILINEN = os.path.join(TOOLS, "gecmis-geri-donus-bilinen.json")
+# Kabul bataryasinin J bolumu katalog markalarini `urunler.json`'dan turetir; K bolumu
+# `nobet.yml` adim adlarini okur -> mutant agacinda IKISI DE bulunmalidir, yoksa her
+# mutant (ilgisiz kontroller dahil) "olcemedim" yuzunden kirmizi yanar ve arac korlesir.
 URUNLER = os.path.join(ROOT, "urunler.json")
+
+
+# `--kendini-test` ciktisinin SONUC satiri: "53 vaka · 0 hata". Toplam vaka sayisi
+# taban ile mutant uzerinde AYNI olmali (ilgisiz kontrolun "tamam" diyebilmesi icin).
+SONUC_DESEN = re.compile(r"^(\d+) vaka . (\d+) hata\s*$", re.M)
+OK_DESEN = re.compile(r"^\s{2}ok\s+", re.M)
+FAIL_DESEN = re.compile(r"^\s{2}FAIL\s+", re.M)
+
+
+def turetilmis_bagimliliklar(kokler=(KAPI, KUR, KARDES)):
+    """Kapi + kurucu + kardes kapinin `tools/` icindeki yerel bagimliliklari (gecisli,
+    kokler dahil).
+
+    Iki kaynak: (a) `import X` / `from X import` -> `tools/X.py` varsa; (b) govdedeki
+    dizge sabiti `tools/` altinda bir DOSYA adiysa (ornek: `git_ortami.py`,
+    `gecmis-geri-donus-bilinen.json`, kendini testin sentetik depoya tasikladi modul,
+    desen ozet dosyasi).
+    """
+    gorulen = set()
+    kuyruk = [os.path.abspath(k) for k in kokler]
+    while kuyruk:
+        yol = kuyruk.pop()
+        if yol in gorulen:
+            continue
+        gorulen.add(yol)
+        if not yol.endswith(".py"):
+            continue
+        with open(yol, encoding="utf-8") as f:
+            agac = ast.parse(f.read(), filename=yol)
+        adaylar = set()
+        for d in ast.walk(agac):
+            if isinstance(d, ast.Import):
+                adaylar.update(a.name.split(".")[0] + ".py" for a in d.names)
+            elif isinstance(d, ast.ImportFrom) and d.module and not d.level:
+                adaylar.add(d.module.split(".")[0] + ".py")
+            elif isinstance(d, ast.Constant) and isinstance(d.value, str):
+                if d.value and "/" not in d.value and len(d.value) < 128:
+                    adaylar.add(d.value)
+        for ad in adaylar:
+            hedef = os.path.join(TOOLS, ad)
+            if os.path.isfile(hedef) and hedef not in gorulen:
+                kuyruk.append(hedef)
+    return sorted(gorulen)
 
 
 def _sha(yol):
@@ -37,6 +105,7 @@ def _sha(yol):
 
 
 # (ad, hedef_dosya, eski, yeni, oldurucu_mu)
+# "oldurucu" = nobetcinin HUKMUNU ya da KABLOSUNU olduren mutasyon -> batarya KIRMIZI.
 MUTANTLAR = (
     # --- MENZIL: KAPININ CEKIRDEGI -------------------------------------------
     # 🔴 M1 ARIZANIN TA KENDISIDIR: menzil "yalniz YENI YAZILAN commit'ler"e
@@ -107,11 +176,14 @@ MUTANTLAR = (
      '< "$pruvo_gd_girdi"',
      'echo python3 "$pruvo_gd_kok/tools/gecmis-geri-donus-kapisi.py" --pre-push '
      '< "$pruvo_gd_girdi"', True),
+    # 🔴 M12: capa 14 Eki'de bayatti (kapida inline echo vardi); refactor sonrasi
+    # `pruvo_gd_mesaj` fonksiyonu cagiriliyor ve `exit 1` ondan SONRA geliyor.
+    # Yeniden capa'lanan satir (yukarida, satir 95) kancanin fail-OPEN davranisini
+    # bozar: rc ne olursa olsun `exit 0` donerse `--no-verify` zorunlu olur ve
+    # pre-push kapsaminda sizintili merge sessizce gecmis olur.
     ("M12 KANCA `exit 1` -> `exit 0` (fail-open)", "kur",
-     '  echo "!! PUSH DURDURULDU — bu itme temizlenmis sizintiyi geri getiriyor '
-     '(rc=$pruvo_gd_rc)."\n  exit 1\nfi',
-     '  echo "!! PUSH DURDURULDU — bu itme temizlenmis sizintiyi geri getiriyor '
-     '(rc=$pruvo_gd_rc)."\n  exit 0\nfi', True),
+     '  pruvo_gd_mesaj "$pruvo_gd_rc"\n  exit 1\nfi',
+     '  pruvo_gd_mesaj "$pruvo_gd_rc"\n  exit 0\nfi', True),
     ("M13 KANCA fail-closed on-kosulu fail-OPEN yapildi (betik yoksa gec)", "kur",
      '  echo "!! Sizinti kapisi fail-closed\'dir. Kasten atlamak icin: '
      'git push --no-verify"\n  exit 1\nfi',
@@ -163,83 +235,135 @@ MUTANTLAR = (
 )
 
 
-def main():
-    canli_once = {y: _sha(y) for y in (KAPI, KUR, KARDES, OZET, URUNLER)}
-    sonuclar = []
-    for ad, hedef, eski, yeni, oldurucu in MUTANTLAR:
-        tmp = tempfile.mkdtemp(prefix="pruvo-gd-mut-")
-        try:
-            t_tools = os.path.join(tmp, "tools")
-            os.makedirs(t_tools)
-            for kaynak in (KAPI, KUR, KARDES, OZET):
-                shutil.copy2(kaynak, os.path.join(t_tools, os.path.basename(kaynak)))
-            # urunler.json 14 MB'dir ve HICBIR mutant onu degistirmez -> sembolik bag.
-            os.symlink(URUNLER, os.path.join(tmp, "urunler.json"))
+def _kos(mutasyon, kopyalar):
+    """Bir kopya agacinda kendini testi kosar. mutasyon=None -> TABAN (degismemis).
+
+    Donus: (rc|None, tani, yesil, toplam). rc=None -> mutasyon UYGULANAMADI.
+    yesil/toplam None -> batarya SONUC satirina ULASAMADI (cokme/zaman asimi).
+    """
+    tmp = tempfile.mkdtemp(prefix="pruvo-gd-mut-")
+    try:
+        t_tools = os.path.join(tmp, "tools")
+        os.makedirs(t_tools)
+        for kaynak in kopyalar:
+            shutil.copy2(kaynak, os.path.join(t_tools, os.path.basename(kaynak)))
+        # urunler.json 14,4 MB'dir ve HICBIR mutant onu degistirmez -> kopya yerine
+        # sembolik bag (her mutantta ~14 MB gereksiz I/O'dan kacinilir).
+        os.symlink(URUNLER, os.path.join(tmp, "urunler.json"))
+        if mutasyon is not None:
+            hedef, eski, yeni = mutasyon
             yol = {"kapi": os.path.join(t_tools, os.path.basename(KAPI)),
                    "kur": os.path.join(t_tools, os.path.basename(KUR))}[hedef]
             with open(yol, encoding="utf-8") as f:
                 metin = f.read()
             if eski not in metin:
-                sonuclar.append((ad, oldurucu, None,
-                                 "CAPA BULUNAMADI (mutasyon uygulanamadi — arac bayat)"))
-                continue
+                return (None, "CAPA BULUNAMADI (mutasyon uygulanamadi — arac bayat)",
+                        None, None)
             if metin.count(eski) != 1:
-                sonuclar.append((ad, oldurucu, None,
-                                 "capa %d kez gecti (tek olmali)" % metin.count(eski)))
-                continue
+                return (None, "capa %d kez gecti (tek olmali)" % metin.count(eski),
+                        None, None)
             with open(yol, "w", encoding="utf-8") as f:
                 f.write(metin.replace(eski, yeni, 1))
+        try:
             p = subprocess.run(
-                [sys.executable, os.path.join(t_tools,
-                                              "gecmis-geri-donus-kapisi.py"),
-                 "--kendini-test"], capture_output=True, text=True, timeout=1800)
-            kirmizi = [s.strip() for s in p.stdout.splitlines()
-                       if s.strip().startswith("FAIL")]
-            sonuclar.append((ad, oldurucu, p.returncode,
-                             "; ".join(kirmizi[:3]) or "(kirmizi iddia yok)"))
-        finally:
-            shutil.rmtree(tmp, ignore_errors=True)
+                [sys.executable, os.path.join(t_tools, os.path.basename(KAPI)),
+                 "--kendini-test"], capture_output=True, text=True, timeout=900)
+        except subprocess.TimeoutExpired:
+            return -1, "ZAMAN ASIMI (900 sn)", None, None
+        m = SONUC_DESEN.findall(p.stdout)
+        toplam, hata_say = (int(m[-1][0]), int(m[-1][1])) if m else (None, None)
+        ok_say = len(OK_DESEN.findall(p.stdout))
+        fail_say = len(FAIL_DESEN.findall(p.stdout))
+        # yesil sayisini toplamdan FAIL cikarak hesapla (ciktidaki `ok` satirlari
+        # BAZI vakalarda eksik basinabilir; SONUC satiri tek guvenilir kaynak).
+        yesil = toplam - hata_say if toplam is not None else None
+        if fail_say > 0 or (toplam is not None and hata_say > 0):
+            kirmizi_satirlar = [s.strip() for s in p.stdout.splitlines()
+                                if s.strip().startswith("FAIL")]
+            tani = "; ".join(kirmizi_satirlar[:3]) if kirmizi_satirlar else "(kirmizi var)"
+        elif toplam is None:
+            son = [s for s in (p.stderr or p.stdout).strip().splitlines() if s.strip()]
+            tani = "SONUC satiri yok; son satir: %s" % (son[-1][:160] if son else "-")
+        else:
+            tani = "(kirmizi iddia yok)"
+        return p.returncode, tani, yesil, toplam
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+def main():
+    # Turetim: kapinin govdesinde "git_ortami.py" + "gecmis-geri-donus-bilinen.json"
+    # dizgeleri + import'u gecişli olarak kapsanir; OZET acik listeye kalir cunku
+    # icinde desen listesi tasinir ve `ozet_kaydi_yukle` onu bir SHA esitlik kapisi
+    # olarak dogrudan acar.
+    kopyalar = sorted(set(turetilmis_bagimliliklar()) | {OZET, BILINEN})
+    izlenen = sorted(set(kopyalar) | {URUNLER})
+    canli_once = {y: _sha(y) for y in izlenen}
+    print("kopya kumesi (kaynaktan TURETILDI): %s"
+          % ", ".join(os.path.basename(k) for k in kopyalar))
+
+    # TABAN: mutasyonsuz kopya hukme ulasip YESIL demezse hicbir mutant hukmu
+    # anlamli degildir (cokme "OLDU" sayilir, kontrol "sahte-kirmizi" yanar).
+    t_rc, t_tani, t_yesil, t_toplam = _kos(None, kopyalar)
+    if t_rc != 0 or t_toplam is None or t_yesil != t_toplam:
+        print("⚪ OLCULEMEDI: TABAN kopyasi temiz DEGIL (rc=%s, SONUC=%s/%s): %s"
+              % (t_rc, t_yesil, t_toplam, t_tani))
+        print("   Kopya agacinda eksik bagimlilik/cevre var; mutant hukmu KURULMADI.")
+        return 3
+    print("TABAN: rc=0 · %d/%d iddia yesil (mutasyonsuz kopya)" % (t_yesil, t_toplam))
+
+    sonuclar = []
+    for ad, hedef, eski, yeni, oldurucu in MUTANTLAR:
+        rc, tani, yesil, toplam = _kos((hedef, eski, yeni), kopyalar)
+        sonuclar.append((ad, oldurucu, rc, tani, yesil, toplam))
 
     hatalar = []
-    print("%-64s %-9s %-3s %s" % ("MUTANT", "BEKLENEN", "RC", "HUKUM"))
+    print("MUTANT                                                        BEKLENEN  RC  HUKUM")
     print("-" * 100)
-    for ad, oldurucu, rc, not_ in sonuclar:
+    for ad, oldurucu, rc, tani, yesil, toplam in sonuclar:
         beklenen = "KIRMIZI" if oldurucu else "YESIL"
         if rc is None:
-            hukum, ok = "OLCULEMEDI", False
+            hukum = "OLCULEMEDI"
+            hatalar.append("%s -> %s" % (ad, tani))
+        elif toplam is None:
+            # Batarya SONUC satirina ulasmadi: cokme bir OLCUM degildir (taban
+            # temizdi, yani bu mutant kopyayi calisamaz hale getirdi).
+            hukum = "COKTU ❌"
+            hatalar.append("%s COKTU (hukme ulasilmadi; cokme OLDU sayilmaz): %s"
+                           % (ad, tani))
         elif oldurucu:
-            ok = rc != 0
-            hukum = "OLDU ✅" if ok else "SAG KALDI ❌"
+            hukum = "OLDU ✅" if rc != 0 else "SAG KALDI ❌"
+            if rc == 0:
+                hatalar.append("%s SAG KALDI (batarya bu mutasyonu GORMUYOR)" % ad)
         else:
-            ok = rc == 0
-            hukum = "YESIL ✅" if ok else "YANLIS ALARM ❌"
-        if not ok:
-            hatalar.append((ad, not_))
-        print("%-64s %-9s %-3s %s" % (ad[:64], beklenen,
-                                      "-" if rc is None else rc, hukum))
+            temiz = rc == 0 and yesil == toplam == t_toplam
+            hukum = "YESIL ✅" if temiz else "SAHTE-KIRMIZI ❌"
+            if not temiz:
+                hatalar.append("%s ilgisiz degisiklikte KIRMIZI yandi (SONUC %s/%s, "
+                               "taban %d): %s" % (ad, yesil, toplam, t_toplam, tani))
+        print("%-60s  %-8s  %-3s %s" % (ad[:60], beklenen,
+                                        "-" if rc is None else rc, hukum))
+    canli_sonra = {y: _sha(y) for y in izlenen}
+    for yol in canli_once:
+        if canli_once[yol] != canli_sonra[yol]:
+            hatalar.append("🔴 CANLI DOSYA DEGISTI (mutant sizdi): %s" % yol)
     print("-" * 100)
-
-    canli_sonra = {y: _sha(y) for y in canli_once}
-    bozuk = [y for y in canli_once if canli_once[y] != canli_sonra[y]]
-    if bozuk:
-        print("🔴 CANLI DOSYA DEGISTI (mutant sizdi): %s" % bozuk)
-        hatalar.append(("canli dosya butunlugu", str(bozuk)))
-    else:
-        print("canli dosya sha256 esitligi: TAM ✅")
-        for y in canli_once:
-            print("   %-44s %s" % (os.path.basename(y), canli_once[y][:16]))
-
-    oldurucu_sayi = sum(1 for _, o, _, _ in sonuclar if o)
-    olen = sum(1 for (ad, o, rc, _) in sonuclar
-               if o and rc is not None and rc != 0)
-    ilgisiz_sayi = sum(1 for _, o, _, _ in sonuclar if not o)
-    yesil = sum(1 for (ad, o, rc, _) in sonuclar if not o and rc == 0)
+    print("canli dosya sha256 esitligi: %s"
+          % ("TAM ✅" if canli_once == canli_sonra else "BOZUK ❌"))
+    for yol, ozet in sorted(canli_once.items()):
+        print("   %-44s %s" % (os.path.basename(yol), ozet[:16]))
+    oldu = sum(1 for _a, o, rc, _t, _y, top in sonuclar
+               if o and rc not in (None, 0) and top is not None)
+    oldurucu_sayi = sum(1 for s in sonuclar if s[1])
+    yesil_k = sum(1 for _a, o, rc, _t, y, top in sonuclar
+                  if not o and rc == 0 and y == top == t_toplam)
+    kontrol_sayi = sum(1 for s in sonuclar if not s[1])
     print("SONUC: oldurucu mutant %d/%d OLDU · ilgisiz kontrol %d/%d YESIL"
-          % (olen, oldurucu_sayi, yesil, ilgisiz_sayi))
+          % (oldu, oldurucu_sayi, yesil_k, kontrol_sayi))
     if hatalar:
         print("\nKIRMIZI:")
-        for ad, not_ in hatalar:
-            print("  * %s -> %s" % (ad, not_))
+        for h in hatalar:
+            print("  * " + h)
         return 1
     return 0
 
