@@ -2081,8 +2081,10 @@ def renk_render_uret(glb, hx, cikti, hx2="", bolge2=""):
     py = os.environ.get("FOTO_KOSUCU_PYTHON") or sys.executable
     bas = time.time()
     ek = ["--renk2", hx2.lstrip("#"), "--bolge2", bolge2] if hx2 and bolge2 else []
+    arac = renk_render_araci()
+    # TeKiN ortak araci sozlesmeyi `sablon` alt komutuyla tasir (foto_kart_render.py sablon --model ...); kopru de kabul eder.
     try:
-        p = subprocess.run([py, renk_render_araci(), "--model", glb, "--renk", hx.lstrip("#")] + ek +
+        p = subprocess.run([py, arac, "sablon", "--model", glb, "--renk", hx.lstrip("#")] + ek +
                            ["--arkaplan", "studyo", "--cikti", cikti], capture_output=True, text=True,
                            timeout=RENDER_SURE_SN, env=SALT_OKUMA_ENV)
     except subprocess.TimeoutExpired:
@@ -2102,7 +2104,39 @@ def renk_render_uret(glb, hx, cikti, hx2="", bolge2=""):
     return True, "", sure
 
 
-def uretec_renk_cizimi(i, t, girdi_dizin, model, gecici, yaz):
+def renk_cizim_cli(is_no, uygula, yaz, kaydet=""):
+    """`--renk-cizim IS_NO`: R2'de hazir uretec onizlemesinin (foto-uretec-onizleme/<is>/{girdi.json, model.3mf,
+    onizleme.png}) secilen renk(ler)de cizimi — kredi 0, D1'e YAZMAZ. KURU: yalniz cizer (+ --kaydet); --uygula
+    R2 <dizin>/renk.png yazar (④ /durum cizimi o anda verir)."""
+    if not IS_KALIBI.match(is_no or ""):
+        return "HAL=RED sebep=girdi rc=2", 2
+    gecici = tempfile.mkdtemp(prefix="foto-renk-cizim-")
+    try:
+        gd, cd = os.path.join(gecici, "girdi"), os.path.join(gecici, "cikti")
+        os.makedirs(gd)
+        os.makedirs(cd)
+        try:
+            for ad, hedef in (("girdi.json", gd), ("model.3mf", cd), ("onizleme.png", cd)):
+                if not r2_al(ONIZLEME_DIZIN % is_no + ad, os.path.join(hedef, ad)):
+                    return "HAL=RED sebep=%s-yok rc=2" % ad, 2
+            with open(os.path.join(gd, "girdi.json"), encoding="utf-8") as f:
+                tur = (json.load(f) or {}).get("kategori")
+            i = {"kuyruk": "onizleme", "is_no": is_no, "tur": tur}
+            ok = uretec_renk_cizimi(i, manifest_oku().get(tur) or {}, gd, os.path.join(cd, "model.3mf"), gecici, yaz,
+                                    koy=uygula)
+        except Erisilemedi as e:
+            return "HAL=OLCULEMEDI sebep=%s rc=4" % e, 4
+        png = os.path.join(gecici, "renk.png")
+        if ok and kaydet:
+            shutil.copyfile(png, kaydet)
+        if not ok:
+            return "HAL=RENK-CIZIM-YOK rc=1", 1
+        return "HAL=RENK-CIZIM-%s bayt=%d rc=0" % ("OK" if uygula else "KURU", os.path.getsize(png)), 0
+    finally:
+        shutil.rmtree(gecici, ignore_errors=True)
+
+
+def uretec_renk_cizimi(i, t, girdi_dizin, model, gecici, yaz, koy=True):
     """④ URETEC TURU (Okan 14 Eki 03:5x: tum 6 modulde secilen renk): onizleme modeli (model.3mf) girdinin SECILEN
     renk(ler)iyle ortak studyo sablonunda cizilir -> R2 foto-uretec-onizleme/<is>/renk.png (sunucu ayni veri
     sozlesmesini verir). Tek renk -> --renk; iki bolge iki renk (anahtarlik-yazi plaka + yazi) -> --renk ilk bolge
@@ -2131,8 +2165,13 @@ def uretec_renk_cizimi(i, t, girdi_dizin, model, gecici, yaz):
         hx2 = tablo[farkli[1]]
     png = os.path.join(gecici, "renk.png")
     if renk_render_araci() == os.path.join(KOK, RENK_RENDER_BETIK):
-        # TeKiN ortak araci henuz yok -> MEVCUT TeKiN 3MF araci (render_uret: 3MF bolge renkleri SECILEN adlara eslenir,
-        # Cycles; gecici olarak duz zemin). Arac da yoksa cizim YOK (onizleme yine hazir).
+        # TeKiN ortak araci henuz yok -> MEVCUT TeKiN 3MF araci (render_uret; Cycles; gecici olarak duz zemin) YALNIZ
+        # TEK RENKTE. 14 Eki olcumu: uretec 3MF'inde bolgeler PART duzeyinde (model_settings part extruder 1/2); eski
+        # arac yalniz nesne extruder'ini okuyup iki renkli anahtarligi (Siyah plaka + Beyaz yazi) TUMDEN Siyah cizdi ->
+        # yanlis renk SESSIZCE gosterilirdi. Iki renk yalniz ortak arac (--renk2/--bolge2) ile; yoksa cizim YOK.
+        if len(farkli) != 1:
+            yaz("RENK-CIZIM=YOK %s sebep=iki-renk-ortak-arac-yok" % is_adi(i))
+            return False
         onz = os.path.join(os.path.dirname(model), "onizleme.png")
         webp, sebep, sure = render_uret(model, onz, farkli, gecici) if render_betigi() else (None, "render-araci-yok", 0)
         ok = bool(webp) and os.path.isfile(webp[:-len(".webp")] + ".png")
@@ -2143,7 +2182,8 @@ def uretec_renk_cizimi(i, t, girdi_dizin, model, gecici, yaz):
     if not ok:
         yaz("RENK-CIZIM=YOK %s sebep=%s sure_sn=%d" % (is_adi(i), sebep, sure))
         return False
-    r2_koy(ONIZLEME_DIZIN % i["is_no"] + "renk.png", png, "image/png")
+    if koy:
+        r2_koy(ONIZLEME_DIZIN % i["is_no"] + "renk.png", png, "image/png")
     yaz("RENK-CIZIM=OK %s renk=%s bayt=%d sure_sn=%d" % (is_adi(i), "+".join(farkli), os.path.getsize(png), sure))
     return True
 
@@ -2307,6 +2347,8 @@ def is_isle(i, manifest, yaz):
                         uretec_renk_cizimi(i, t, girdi_dizin, os.path.join(cikti, "model.3mf"), gecici, yaz)
                     except Erisilemedi as e:
                         yaz("RENK-CIZIM=YOK %s sebep=r2 (%s)" % (is_adi(i), e))
+                    except Exception as e:  # noqa: BLE001 — cizim ASLA onizlemeyi dusurmez (bozuk 3MF, arac istisnasi)
+                        yaz("RENK-CIZIM=YOK %s sebep=istisna %s" % (is_adi(i), type(e).__name__))
                 karar = "hazir"
                 if satirli(i):
                     renk = uc_mf_extruder_sayisi(os.path.join(cikti, "model.3mf"))
@@ -2438,6 +2480,8 @@ def main(argv=None):
     ap.add_argument("--kaydet", default="", help="--render webp'inin yerel kopyasi")
     ap.add_argument("--kuyruk", choices=["hepsi", "renk"], default="hepsi",
                     help="yalniz bu kuyruk (renk: ④ tek renk cizimleri; launchd varsayilani hepsi)")
+    ap.add_argument("--renk-cizim", metavar="IS_NO", default="",
+                    help="hazir uretec onizlemesinin secilen renk(ler)de cizimi (kredi 0; --uygula R2 renk.png, --kaydet)")
     a = ap.parse_args(argv)
     global KUYRUK
     KUYRUK = a.kuyruk
@@ -2446,6 +2490,10 @@ def main(argv=None):
     if a.donustur_tekin:
         return donustur_tekin(*a.donustur_tekin)
     hedef_kur(a.hedef)
+    if a.renk_cizim:
+        satir, rc = renk_cizim_cli(a.renk_cizim, a.uygula, print, a.kaydet)
+        print(satir)
+        return rc
     if a.render:
         satir, rc = render_cli(a.render, a.uc_mf, a.onizleme, a.renkler, a.uygula, print, a.kaydet)
         print(satir)
