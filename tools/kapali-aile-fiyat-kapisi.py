@@ -131,9 +131,15 @@ const TABAN = 100, DEV_HACIM = 1e12;
    Kural BURAYA KOPYALANMAZ; dort YAPISAL nokta olculur:
      taban hacimde taban fiyat · iki kat hacimde iki kat · yari hacimde ZEMIN ·
      dev hacimde tavan (tavan carpani = kurus / (taban*100)).            */
-const capasiz = {};
+const capasiz = {}, kurali = {};
 for (const aile of Object.keys(S.HACIM_DOGRULANMIS_AILELER || {})) {
   if (S.capCapasi && S.capCapasi(aile)) { continue; }
+  // AILE FIYAT KURALI (AILE_FIYAT_KURALI, 13 Eki saksi): hacim-orani DEGIL, ek parca
+  // baglama bagli -> baglamsiz cagri FAIL-CLOSED null olmali (H6d), H6'ya girmez.
+  if (S.aileFiyatKurali && S.aileFiyatKurali(aile)) {
+    kurali[aile] = S.parametrikFiyatKurus(aile, TABAN, 1000, 1000, "PLA", "Siyah");
+    continue;
+  }
   const f = (h) => S.parametrikFiyatKurus(aile, TABAN, 1000, h, "PLA", "Siyah");
   capasiz[aile] = { taban: f(1000), iki_kat: f(2000), yari: f(500),
                     tavan_carpani: (f(DEV_HACIM) == null) ? null : f(DEV_HACIM) / (TABAN * 100) };
@@ -185,7 +191,7 @@ try {
     taban_fiyat_tl: sema.tabanFiyatTL,
   };
 } catch (e) { hata = String(e && e.message || e); }
-console.log(JSON.stringify({ capasiz: capasiz, egri: egri, varyant: varyant,
+console.log(JSON.stringify({ capasiz: capasiz, kurali: kurali, egri: egri, varyant: varyant,
                              capa: capa, hata: hata }));
 """
 
@@ -519,6 +525,7 @@ def olc(kok):
                      % tavan_veri["hata"])
     else:
         capasiz = tavan_veri.get("capasiz") or {}
+        kurali = tavan_veri.get("kurali") or {}
         varyant = tavan_veri.get("varyant") or {}
         capa = tavan_veri.get("capa") or {}
         egri = {int(k): v for k, v in (tavan_veri.get("egri") or {}).items()}
@@ -620,6 +627,13 @@ def olc(kok):
         if "rulman" in capasiz:
             ihlal.append("H6c: rulman CAPASIZ olculdu — cap capasi tablosu bosalmis, "
                          "10 TL/mm kurali yururlukte degil")
+        # H6d — AILE FIYAT KURALI (ek parca baglama bagli, ör. saksi tabagi): baglamsiz
+        # cagri FAIL-CLOSED null — tutar uretilirse ek parca kademesi atlanmis demektir.
+        for aile in sorted(kurali):
+            iddia += 1
+            if kurali[aile] is not None:
+                ihlal.append("H6d: %s aile kurali baglamsiz %r kurus uretti (beklenen None "
+                             "= fail-closed) — ek parca kademesi atlaniyor" % (aile, kurali[aile]))
 
     ozet = {"acik_aile": len(acik_kume), "kapali_sayfa": len(kapali_olculen),
             "acik_sayfa": len(acik_olculen), "kapali": kapali_olculen,
@@ -704,6 +718,11 @@ MUTANTLAR = [
     ("j-modulasyon-olu (flans/eleman bedava)", "KIRMIZI",
      _CAPA_MODULASYON_CAPASI,
      "      temel: capa.kurusMm * deger,",
+     "secenekler.js"),
+    # l: AILE KURALI FAIL-CLOSED OLUR (saksi tabagi baglamsiz 0 sayilir) -> H6d TEK BASINA yakar.
+    ("l-aile-kurali-failopen (ek parca baglamsiz bedava)", "KIRMIZI",
+     "      if (kademe == null) { return null; }            // FAIL-CLOSED (bkz. AILE_FIYAT_KURALI)",
+     "      if (kademe == null) { kademe = { kurus: 0 }; }",
      "secenekler.js"),
     # k: KONTROL — zemin ayni sayilardan turer, davranis KORUNUR.
     ("k-capa-kontrol (zemin argumanlari yer degistirir)", "YESIL",

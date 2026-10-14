@@ -590,9 +590,11 @@
         kanit: "render",
         // 130 = 3MF bbox (model aralığı 60–300 içinde). Girdi SENTETİK çizim (11 Eki render teslimi).
         olcu_mm: 130,
-        onizleme: "https://media.pruvo3d.com/foto/ornek/model-onizleme.webp",
-        render: "https://media.pruvo3d.com/foto/ornek/model-1-render.webp",
-        not: "130 mm, 4 renk, kaideli araç modeli"
+        // Okan 13 Eki 20:4x kararı: tür kartı görseli (kaynak pruvo-ozel/foto-uretim/tur-kart-kaynak-13eki/7-logosuz.png;
+        // Okan 20:3x: marka logosu silindi)
+        onizleme: "https://media.pruvo3d.com/foto/ornek/kart-model-1.webp",
+        render: "https://media.pruvo3d.com/foto/ornek/kart-model-1.webp",
+        not: "130 mm, araç modeli"
       },
       {
         tur: "anahtarlik",
