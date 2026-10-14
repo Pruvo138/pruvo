@@ -1266,7 +1266,7 @@ export const URETEC_YOKLAMA = { aralik_sn: 5, tavan_sn: 180 };
 /** Girdi fotografinin sozlesme §2 adi (koşucu ad kalibi `[a-z_]+.(png|jpg|svg|wav)`; webp YOK). */
 const URETEC_FOTO_UZANTI = { "image/png": "png", "image/jpeg": "jpg" };
 /** Dizinde olabilecek her ad (temizlik bunlari siler). */
-const URETEC_DIZIN_ADLARI = ["girdi.json", "olcu.json", "model.3mf", "onizleme.png", "foto.png", "foto.jpg", "svg.svg"];
+const URETEC_DIZIN_ADLARI = ["girdi.json", "olcu.json", "model.3mf", "onizleme.png", "foto.png", "foto.jpg", "svg.svg", "renk.png"];
 
 /**
  * POST /foto/onizleme (uretec kolu) — girdi + parametreler (VERI.parametreDogrula) + secim dogrulanir;
@@ -1395,7 +1395,20 @@ async function uretecDurumYaniti(env, is, simdi) {
   // TURETILMIS eksen: fiyat onizlemeyle BIRLIKTE, koşucunun KAYITLI olcusunden (D1 olcu_mm; istemci degil).
   v.olcu_kaynagi = olcuKaynagi(is.tur);
   if (v.olcu_kaynagi === "turetilmis") { v.fiyat_kurus = VERI.fiyatKurus(is.tur, is.olcu_mm); }
+  // ④ TEK RENK / IKI RENK (Okan 14 Eki 03:5x "tum 6 modulde secilen renk"): koşucu uretec modelini onizlemede SECILEN
+  // renk(ler)le studyoda cizdiyse (R2 <dizin>/renk.png) ayni veri sozlesmesi; cizim yoksa alan YOK (bugunku yanit).
+  if (await uretecRenkVar(env, is.is_no)) { Object.assign(v, uretecRenkAlanlari(is.is_no)); }
   return fjson(v, 200);
+}
+
+async function uretecRenkVar(env, isNo) {
+  try { return !!(env.OZEL_DOSYA && await env.OZEL_DOSYA.head(uretecOnizlemeAnahtari(isNo, "renk.png"))); } catch (e) { return false; }
+}
+/** Uretec turunde renk(ler) girdinin kendisi (onizleme o renklerle uretildi): onizleme_renk "" + cizim hazir. */
+export function uretecRenkAlanlari(isNo) {
+  return { onizleme_renk: "", onizleme_renk_durum: "hazir",
+           onizleme_renk_url: "/api/shop/foto/gorsel?is=" + isNo + "&gorunum=renk",
+           onizleme_saglayici_url: "/api/shop/foto/gorsel?is=" + isNo };
 }
 
 // ---------------------------------------------------------------- uc: /foto/litofan (deterministik)
@@ -1499,8 +1512,8 @@ async function renderVar(env, is) {
 //           tavan (tavan ya da havuz kapali) · basarisiz (build/render dustu, onizleme eski).
 export const RENK_ONIZLEME_TAVAN_VARSAYILAN = 30;
 export const RENK_ONIZLEME_TAVAN_ANAHTARI = "renk_onizleme_tavan";
-/** Panel tahmini: onizleme build'i basina kredi (saglayici dokumani ornek tuketimi; gercek tuketim defterde). */
-export const RENK_BUILD_KREDI_TAHMINI = 20;
+/** Panel tahmini: onizleme build'i basina kredi (14 Eki olcumu: gercek build consumed_credits 30; gercek tuketim defterde). */
+export const RENK_BUILD_KREDI_TAHMINI = 30;
 /** Render bu kadar sn bekledikten sonra ④ eski davranisa duser (satir kuyrukta kalir; cizilince gelir). */
 export const RENK_RENDER_BEKLEME_SN = 900;
 /** Koşucu damgasi bundan eskiyse (Mac kapali) render beklenmez, ④ eski davranis (istemci HAZIRLAYICI tavaniyla AYNI). */
@@ -1871,6 +1884,10 @@ async function gorselUcu(env, url) {
   // ④ render'i yalniz render kolunda (figur); baska iste `gorunum=render` YOK sayilir.
   if (url.searchParams.get("gorunum") === "render") {
     return renderKolu(is) ? onizlemeGorseli(env, isNo, onizlemeRenderAnahtari(isNo)) : fjson({ hata: "bulunamadi" }, 404);
+  }
+  // ④ uretec turunun secilen renk(ler)de studyo cizimi (koşucu <dizin>/renk.png); baska iste YOK sayilir.
+  if (url.searchParams.get("gorunum") === "renk") {
+    return uretecOnizlemeIsi(is) ? onizlemeGorseli(env, isNo, uretecOnizlemeAnahtari(isNo, "renk.png")) : fjson({ hata: "bulunamadi" }, 404);
   }
   // ④ TEK RENK cizimi: yalniz ANA_RENKLER ve saglayici kolu (anahtar uydurulamaz: renk kapali kumeden).
   if (url.searchParams.has("renk")) {

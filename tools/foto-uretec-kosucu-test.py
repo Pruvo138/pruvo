@@ -218,6 +218,17 @@ os.makedirs(out, exist_ok=True)
 open(os.path.join(out, i["kod"] + "-1-render.webp"), "w").write(json.dumps({"filament_colour": fc}))
 '''
 
+# ④ ORTAK RENDER SOZLESMESI (TeKiN, 14 Eki): sahte arac — `--model M --renk HEX [--renk2 HEX --bolge2 ad] --arkaplan
+# studyo --cikti PNG`; cagriyi FAKE_LOG'a ["render-yeni", renk, renk2, bolge2, model uzantisi, arkaplan] yazar.
+SAHTE_RENDER_YENI = r'''
+import json, os, sys
+a = sys.argv[1:]
+g = lambda k: a[a.index(k) + 1] if k in a else ""
+open(os.environ["FAKE_LOG"], "a").write(json.dumps(["render-yeni", g("--renk"), g("--renk2"), g("--bolge2"),
+    os.path.splitext(g("--model"))[1], g("--arkaplan")]) + "\n")
+open(g("--cikti"), "wb").write(b"\x89PNG\r\n\x1a\n" + g("--renk").encode())
+'''
+
 # ④ TEK RENK (Okan 14 Eki): sahte Blender — tools/foto-renk-render.py'nin cagirdigi `Blender -b ... -- blender-ic --glb
 # --renk HEX --cikti PNG` arayuzu. Cagriyi FAKE_LOG'a ["blender", hex] yazar, --cikti'ya PNG imzali bayt + hex yazar.
 # FAKE_BLENDER=rc1 -> rc 1, dosya YOK.
@@ -586,12 +597,13 @@ class Ortam:
         """Sahte uretec deposu; kopru=False -> uc_mf_onar.py YOK; zincir=False -> figur_duzelt/figur_denge YOK;
         render=True -> tools/foto_kart_render.py (sahte; ④ render kolu)."""
         d = os.path.join(self.d, ("jen" if kopru else "jen-bos") + ("" if zincir else "-zincirsiz") +
-                         ("-render" if render else ""))
+                         ("-render" if render is True else ("-render-" + render if render else "")))
         os.makedirs(os.path.join(d, "jeneratorler", "foto"), exist_ok=True)
         if render:
             os.makedirs(os.path.join(d, "tools"), exist_ok=True)
             with open(os.path.join(d, "tools", "foto_kart_render.py"), "w") as f:
-                f.write(SAHTE_RENDER)
+                # render="yeni": TeKiN ORTAK render sozlesmesi (--model --renk [--renk2 --bolge2] --arkaplan --cikti)
+                f.write(SAHTE_RENDER_YENI if render == "yeni" else SAHTE_RENDER)
         if kopru:
             with open(os.path.join(d, "jeneratorler", "foto", "uc_mf_onar.py"), "w") as f:
                 f.write(SAHTE_KOPRU)
@@ -1535,11 +1547,42 @@ def vakalar(kosucu):
         return (son == "HAL=ISLEDI uretildi=1 red=0 ariza=0 rc=0" and o.renk_satiri()["asama"] == "hazir" and
                 u and u[0]["asama"] == "uretec-onizleme" and o.uretec_sayisi() == 0), "%s %s" % (son, u)
 
+    # ④ URETEC TURU (Okan 14 Eki 03:5x "tum 6 modulde"): onizleme modeli girdinin SECILEN renk(ler)iyle ortak studyo
+    # sablonunda cizilir -> R2 foto-uretec-onizleme/<is>/renk.png, D1 'onizleme-hazir'dan ONCE. TeKiN ortak araci
+    # (sozlesme --arkaplan) varsa o; 3+ renk (Renkli palet) cizilmez; arac yoksa onizleme yine hazir (cizim YOK).
+    RENK_URETEC = os.path.join("foto-uretec-onizleme", IS2, "renk.png")
+
+    def rr_uretec(o, renkler):
+        o.uretec_onizleme(CEKIRDEK_TUR, 120, renkler, {}, {"gri_harita": ("gri_harita.png", png_gri(200, 140))})
+        rc, son, c = o.kos("--uygula", FOTO_KOSUCU_JENERATOR=o.jen(render="yeni"))
+        cagri = [json.loads(x) for x in open(o.log) if json.loads(x)[0] == "render-yeni"]
+        r = o.sql("SELECT asama FROM foto_isler WHERE is_no = ?", IS2)[0]
+        return son, c, cagri, r["asama"], os.path.isfile(os.path.join(o.r2, RENK_URETEC))
+
+    def rr6(o):
+        son, c, cagri, asama, var = rr_uretec(o, {"govde": "Gri"})
+        return (son == "HAL=ISLEDI uretildi=1 red=0 ariza=0 rc=0" and asama == "onizleme-hazir" and var and
+                cagri == [["render-yeni", RENK_HEX_KARAR["Gri"].lstrip("#"), "", "", ".3mf", "studyo"]] and
+                "RENK-CIZIM=OK" in c), "%s %s %s" % (son, cagri, var)
+
+    def rr7(o):
+        son, c, cagri, asama, var = rr_uretec(o, {"plaka": "Siyah", "yazi": "Beyaz"})
+        return (asama == "onizleme-hazir" and var and
+                cagri == [["render-yeni", RENK_HEX_KARAR["Siyah"].lstrip("#"), RENK_HEX_KARAR["Beyaz"].lstrip("#"),
+                           "yazi", ".3mf", "studyo"]]), "%s %s" % (son, cagri)
+
+    def rr8(o):
+        son, c, cagri, asama, var = rr_uretec(o, {"renk1": "Siyah", "renk2": "Beyaz", "renk3": "Gri"})
+        return (asama == "onizleme-hazir" and not var and cagri == [] and "sebep=renkli" in c), "%s %s" % (son, cagri)
+
     vaka("RR1", rr1)
     vaka("RR2", rr2)
     vaka("RR3", rr3)
     vaka("RR4", rr4)
     vaka("RR5", rr5)
+    vaka("RR6", rr6)
+    vaka("RR7", rr7)
+    vaka("RR8", rr8)
     vaka("T67", t67)
     vaka("T68", t68)
     vaka("T69", t69)
@@ -1994,6 +2037,10 @@ MUTANTLAR = {
     "M-RR-ANAHTAR": ('    return "foto-onizleme/%s-%s.png" % (is_no, renk)', '    return "foto-onizleme/%s-Beyaz.png" % is_no',
                      {"RR1"}),
     "M-RR-TABLO": ("    except TabloYok:\n        return []\n", "    except KeyError:\n        return []\n", {"RR4"}),
+    # ④ uretec cizimi: kanca kalkarsa cizim YOK -> RR6/RR7 · ikinci renk dusurulurse iki renkli anahtarlik tek renk -> RR7.
+    "M-RR-URETEC-KANCA": ('                if i["kuyruk"] == "onizleme":\n                    try:\n',
+                          '                if False:\n                    try:\n', {"RR6", "RR7"}),
+    "M-RR-IKINCI-RENK": ("    if len(farkli) == 2:\n        bolge2", "    if False:\n        bolge2", {"RR7"}),
     "M0": ("import argparse\n", "import argparse  # kontrol mutanti\n", set()),
 }
 
