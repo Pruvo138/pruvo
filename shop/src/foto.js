@@ -1514,6 +1514,10 @@ export const RENK_ONIZLEME_TAVAN_VARSAYILAN = 30;
 export const RENK_ONIZLEME_TAVAN_ANAHTARI = "renk_onizleme_tavan";
 /** Panel tahmini: onizleme build'i basina kredi (14 Eki olcumu: gercek build consumed_credits 30; gercek tuketim defterde). */
 export const RENK_BUILD_KREDI_TAHMINI = 30;
+/** Panel tahmini: onizleme basina prototip (2D gorsel) kredisi (BaBa 14 Eki 04:2x: tek renk onizleme = 6 prototip + 30 build). */
+export const RENK_PROTOTIP_KREDI_TAHMINI = 6;
+/** Tek renk onizlemesi basina toplam kredi tahmini (prototip + build; elle yazilmaz, toplamdan turer). */
+export const RENK_ONIZLEME_KREDI_TAHMINI = RENK_PROTOTIP_KREDI_TAHMINI + RENK_BUILD_KREDI_TAHMINI;
 /** Render bu kadar sn bekledikten sonra ④ eski davranisa duser (satir kuyrukta kalir; cizilince gelir). */
 export const RENK_RENDER_BEKLEME_SN = 900;
 /** Koşucu damgasi bundan eskiyse (Mac kapali) render beklenmez, ④ eski davranis (istemci HAZIRLAYICI tavaniyla AYNI). */
@@ -1600,7 +1604,8 @@ async function renkBuildBaslat(env, is, s, simdi, telegram) {
     await okanaBildir(env, null, "EYLEM", "Fotoğraftan üretim: tek renk önizleme tavanı doldu",
       "📸 Tek renk önizleme (önizlemede 3D model + seçilen renkte çizim) son 24 saatte " + sayi + "/" + tavan +
       " build ile tavana ulaştı. Yeni tek renk önizlemeler şu an sağlayıcının 2D görseliyle gösteriliyor (eski davranış)." +
-      " Tavan foto_ayar '" + RENK_ONIZLEME_TAVAN_ANAHTARI + "' ile değişir (build başına ~" + RENK_BUILD_KREDI_TAHMINI + " kredi).",
+      " Tavan foto_ayar '" + RENK_ONIZLEME_TAVAN_ANAHTARI + "' ile değişir (önizleme başına ~" + RENK_ONIZLEME_KREDI_TAHMINI + " kredi (" + RENK_PROTOTIP_KREDI_TAHMINI +
+      " prototip + " + RENK_BUILD_KREDI_TAHMINI + " build)).",
       "renk-tavan:" + simdiIso(simdi).slice(0, 10));
     return renkAsamaYaz(env, s, "tavan", { hata: "tavan" }, simdi);
   }
@@ -3221,7 +3226,7 @@ export async function panelFotoOzet(env, simdi) {
 }
 
 /**
- * Panel satiri (④ tek renk): son 24 saatte baslatilan onizleme build'i · tavan · tahmini kredi (build x ~20) ·
+ * Panel satiri (④ tek renk): son 24 saatte baslatilan onizleme build'i · tavan · tahmini kredi (onizleme x ~36 = n x 6 prototip + n x 30 build) ·
  * render bekleyen. Tablo yoksa {kurulu: false} (ozellik kapali; sessiz sifir YOK).
  */
 async function renkOnizlemeOzeti(env, simdi) {
@@ -3230,7 +3235,8 @@ async function renkOnizlemeOzeti(env, simdi) {
     const b = await env.KATALOG.prepare(
       "SELECT COUNT(*) AS n FROM foto_renk_onizleme WHERE asama = 'render-bekliyor'").first();
     return { kurulu: true, son_24s_build: n, tavan: await renkTavani(env),
-             kredi_tahmini: n * RENK_BUILD_KREDI_TAHMINI, render_bekleyen: (b && b.n) || 0 };
+             kredi_tahmini: n * RENK_ONIZLEME_KREDI_TAHMINI, kredi_build: n * RENK_BUILD_KREDI_TAHMINI,
+             kredi_prototip: n * RENK_PROTOTIP_KREDI_TAHMINI, render_bekleyen: (b && b.n) || 0 };
   } catch (e) {
     if (tabloYok(e)) { return { kurulu: false }; }
     throw e;
