@@ -122,8 +122,8 @@
   },
   "merge-kapisi/SKILL.md": {
     "tur": "tek-seferlik",
-    "kaynak_bayt": 7930,
-    "gerekce": "Okan emri 14 Eki 2026 (acilis <=60K, B3 <=8 KB). OLCULDU: 27974 B -> 7930 B; tasinan satirlar ayni dizinde REFERANS.md'ye BAYT-ESIT (cmp esit; kalan+tasinan = orijinal, sort cmp esit). KONU-CAPALARI SKILL.md'de kaldi."
+    "kaynak_bayt": [7930, 7918],
+    "gerekce": "Okan emri 14 Eki 2026 (acilis <=60K, B3 <=8 KB). OLCULDU: 27974 B -> 7930 B (15:29 ortak tanim kisalmasiyla 7918 B); tasinan satirlar ayni dizinde REFERANS.md'ye BAYT-ESIT (cmp esit; kalan+tasinan = orijinal, sort cmp esit). KONU-CAPALARI SKILL.md'de kaldi."
   },
   "isci-devri/SKILL.md": {
     "tur": "tek-seferlik",
