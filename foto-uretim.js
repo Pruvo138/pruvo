@@ -2364,7 +2364,8 @@
       img.loading = "lazy"; img.decoding = "async";
       if (renkCiz) {
         // ④ TEK RENK (Okan 14 Eki): modelin seçilen renkte tek malzemeyle çizimi (2D boyama YOK).
-        img.alt = "Önizleme — " + S.renkSunucu.renk + " renkte çizim";
+        // Üreteç kolunda sunucu renk ADI vermez (onizleme_renk ""): boş ad alt metne yazılmaz.
+        img.alt = S.renkSunucu.renk ? "Önizleme — " + S.renkSunucu.renk + " renkte çizim" : "Önizleme — seçilen renklerde çizim";
         // Hover/dokunma "renkli alternatif" VERİSİ (davranış KraL): aynı işin sağlayıcı görseli.
         if (S.renkSunucu.saglayici) img.setAttribute("data-onizleme-saglayici-url", S.renkSunucu.saglayici);
         img.src = S.renkSunucu.gorsel;
@@ -2393,7 +2394,9 @@
         img.classList.add("foto-uretim-renk-degis");
         img.tabIndex = 0;
         var renkDegisAltCizim = img.alt;
-        var renkDegisAltRenkli = "Önizleme — fotoğraftaki renkli hâli";
+        // Üreteç kolunda alternatif fotoğraf değil üretecin düz görünümüdür: "fotoğraftaki" denmez, ipucu çizilmez.
+        var renkDegisFotoKolu = renkOnizlemeKolu();
+        var renkDegisAltRenkli = renkDegisFotoKolu ? "Önizleme — fotoğraftaki renkli hâli" : "Önizleme — düz görünüm";
         // Titreme olmasın: ön yükle (Image yoksa atla — test ortamı sahte DOM'da yoksay).
         if (typeof Image === "function") { try { var __prv = new Image(); __prv.src = renkDegisSaglayici; } catch (__prve) {} }
         var renkDegisRenkliGoster = function () { img.src = renkDegisSaglayici; img.alt = renkDegisAltRenkli; };
@@ -2412,7 +2415,7 @@
         img.addEventListener("pointercancel", renkDegisCizimGoster);
         img.addEventListener("focus", renkDegisRenkliGoster);
         img.addEventListener("blur", renkDegisCizimGoster);
-        S.alan.appendChild(el("p", "foto-uretim-ayrinti foto-uretim-renk-ipucu", RENK_IPUCU));
+        if (renkDegisFotoKolu) S.alan.appendChild(el("p", "foto-uretim-ayrinti foto-uretim-renk-ipucu", RENK_IPUCU));
       }
     }
 
