@@ -130,6 +130,28 @@ MUTANTLAR = (
      "\ndef push_satirlari(metin):", "\n\ndef push_satirlari(metin):", False),
     ("K3  ilgisiz: kurulum betigine yorum satiri eklendi", "kur",
      "def kurulu_mu(yol):", "# ilgisiz yorum\ndef kurulu_mu(yol):", False),
+    # --- BILINEN PUBLIC MUAFIYETI (Okan 14 Eki) -----------------------------
+    # 🔴 M18: muafiyet filtresi DEVRE DISI kalirsa bilinen listedeki SHA'lar da
+    # taranir -> VAKA 13a'da "temiz" beklenirken sizintili SHA rapor edilir ve
+    # "13a" iddiasi KIRMIZI yanar. Mevcut muafiyet toptan kalkar; bu da asil
+    # hedef: bilinmeyen adli commit'leri de muaf gostermek (fail-open).
+    ("M18 BILINEN PUBLIC MUAFIYETI DEVRE DISI (filtre filtrelemez)",
+     "kapi",
+     '    bilinen = bilinen_public_shalar(bilinen_yolu)\n'
+     '    girdi_uzunluk = len(shalar)\n'
+     '    # 🔴 BILINEN PUBLIC MUAF: SHA esitlik kumesinden CIKARILIR (Okan 14 Eki). SHA\n'
+     '    # disinda hicbir alana bakilmaz; ad/desen/aciklama bilinen dosyada olsa bile\n'
+     '    # bu fonksiyon onlara ERISEMIYOR.\n'
+     '    shalar = [s for s in shalar if s not in bilinen]\n'
+     '    muaf_bilinen_public = girdi_uzunluk - len(shalar)',
+     '    bilinen = bilinen_public_shalar(bilinen_yolu)\n'
+     '    girdi_uzunluk = len(shalar)\n'
+     '    # 🔴 BILINEN PUBLIC MUAF: SHA esitlik kumesinden CIKARILIR (Okan 14 Eki). SHA\n'
+     '    # disinda hicbir alana bakilmaz; ad/desen/aciklama bilinen dosyada olsa bile\n'
+     '    # bu fonksiyon onlara ERISEMIYOR.\n'
+     '    shalar = list(shalar)\n'
+     '    muaf_bilinen_public = 0',
+     True),
 )
 
 
