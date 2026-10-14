@@ -2143,7 +2143,7 @@
   // Okan 10 Eki 12:5x "not yazma zorunluluğunu kaldır": "Nasıl olsun?" notu HİÇBİR türde düğmeyi kapatmaz.
   var S1_SEBEP = {
     foto: "Önce fotoğrafını yükle.",
-    yazi: "Önce anahtarlığa yazılacak yazıyı gir.",
+    yazi: "Önce yazılacak yazıyı gir.",
     onay: "Aydınlatma metnini okuyup onay kutusunu işaretle.",
     dogrulama: "Güvenlik doğrulaması bekleniyor.",
     hak: "Önizleme hakkın doldu; ilk hakkın 24 saat içinde yeniden açılır.",
