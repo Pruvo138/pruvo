@@ -7872,6 +7872,32 @@ async function rnTablosuz(fm) {
       oz.renk_onizleme && oz.renk_onizleme.kurulu === false, iz: { d, b, rp: rp.status, oz: oz.renk_onizleme } };
   } finally { VERI.ornekSayisi = asilOrnek; k.kapat(); }
 }
+// RN12: ÜRETEÇ TÜRÜ (büst · yapboz · anahtarlık–yazı; Okan 14 Eki 03:5x "tüm 6 modülde"): koşucu önizleme modelini
+// seçilen renk(ler)de çizdiyse (<dizin>/renk.png) /durum aynı veri sözleşmesi (onizleme_renk "" · hazir · gorunum=renk ·
+// sağlayıcı/üreteç görseli alternatif) + görsel 200; çizim yoksa alan 0; sağlayıcı işinde gorunum=renk 404.
+async function rnUretec(fm) {
+  const k = koprukur(); await k.hazir;
+  const r2b = r2Kur();
+  const e2 = envKur(k.d1, r2b);
+  try {
+    const iso = new Date().toISOString(), A = "a1".repeat(16), B = "b1".repeat(16), C = "c1".repeat(16);
+    for (const [no, tur] of [[A, "bust"], [B, "bust"], [C, "plaket"]]) {
+      await k.d1.prepare("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, gorev, hazir_tarih) VALUES (?, ?, 120, 'z', ?, ?, 'g', ?)")
+        .bind(no, tur, iso, tur === "plaket" ? "hazir" : "onizleme-hazir", iso).run();
+    }
+    await r2b.put("foto-uretec-onizleme/" + A + "/renk.png", PNG, { httpMetadata: { contentType: "image/png" } });
+    await r2b.put("foto-uretec-onizleme/" + A + "/onizleme.png", PNG, {});
+    const cag = async (yol) => fm.fotoUclari(new Request("https://pruvo3d.com/api/shop" + yol, { method: "GET",
+      headers: { "CF-Connecting-IP": "10.79.0.1" } }), e2, new URL("https://pruvo3d.com/api/shop" + yol), yol.split("?")[0], null);
+    const da = await (await cag("/foto/durum?is=" + A)).json(), db = await (await cag("/foto/durum?is=" + B)).json();
+    const ga = await cag("/foto/gorsel?is=" + A + "&gorunum=renk"), gc = await cag("/foto/gorsel?is=" + C + "&gorunum=renk");
+    const iz = { da, db, ga: ga.status, gc: gc.status };
+    return { ok: da.asama === "hazir" && da.onizleme_renk === "" && da.onizleme_renk_durum === "hazir" &&
+      da.onizleme_renk_url === "/api/shop/foto/gorsel?is=" + A + "&gorunum=renk" &&
+      da.onizleme_saglayici_url === "/api/shop/foto/gorsel?is=" + A && db.asama === "hazir" && !("onizleme_renk_durum" in db) &&
+      ga.status === 200 && gc.status === 404, iz };
+  } finally { k.kapat(); }
+}
 console.log("RN) ④ TEK RENK ÖNİZLEMESİ — build önizlemede, seçilen renkte çizim, Renkli AYNEN, tavan, sipariş build'i yeniden almaz (Okan 14 Eki)");
 const RN_ADLAR = {
   RN1: "RN1 tek renk -> önizleme hazır olunca build BİR kez (input_task_id = aynı prototip, plaket size_mm 100) · GLB R2 · kredi 'build' 30 (siparişsiz) · prototip gövdesi renkten bağımsız",
@@ -7890,6 +7916,9 @@ const RN_ADLAR = {
   for (const a of Object.keys(RN_ADLAR)) { ol(RN_ADLAR[a], s[a] === true, JSON.stringify(iz[a]).slice(0, 900)); }
   const t = await rnTablosuz(foto);
   ol("RN11 tablo YOK (göç öncesi) -> eski davranış: renk alanı 0 · build 0 · /foto/renk 503 · panel kurulu:false", t.ok, JSON.stringify(t.iz));
+  const u12 = await rnUretec(foto);
+  ol("RN12 üreteç türü renk.png -> /durum onizleme_renk_durum hazir + gorunum=renk url + alternatif · görsel 200 · çizimsiz alan 0 · plaket gorunum=renk 404",
+     u12.ok, JSON.stringify(u12.iz).slice(0, 700));
   // MUTANTLAR (gecici foto.js kopyasi): ikinci build · Renkli'de build · tavan aşımı -> KIRMIZI.
   const RN_MUT = [
     ["M-RN-IKINCI-BUILD sipariş önizleme build'ini yeniden satın alır",
@@ -8017,6 +8046,15 @@ async function rnIstemci(kaynak, V) {
   iz.RNE7 = rnOku(e7);
   s.RNE7 = iz.RNE7.renkPost.length === 1 && iz.RNE7.renkPost[0].renk === "Siyah" &&
     JSON.stringify(iz.RNE7.src) === JSON.stringify([RN_GORSEL]) && iz.RNE7.cumle === 0;
+  // RNE8: üreteç türü (anahtarlık–yazı) çizim hazır -> ④ = gorunum=renk çizimi + renk cümlesi · /foto/renk 0 (renk
+  // önizlemenin kendi girdisi).
+  const UR = RN_GORSEL + "&gorunum=renk";
+  const e8 = await ekranKos(kaynak, V, acikGercek(V, V6_TUM), { is: RN_IS, tur: "anahtarlik", cesit: "yazi", olcu: 60 },
+    rnHazir("anahtarlik", { olcu_mm: 60, onizleme_renk: "", onizleme_renk_durum: "hazir", onizleme_renk_url: UR,
+      onizleme_saglayici_url: RN_GORSEL }), { zamanlayici: true });
+  iz.RNE8 = rnOku(e8);
+  s.RNE8 = JSON.stringify(iz.RNE8.src) === JSON.stringify([UR]) && iz.RNE8.cumle === 1 && iz.RNE8.renkPost.length === 0 &&
+    JSON.stringify(iz.RNE8.alt) === JSON.stringify([RN_GORSEL]);
   // === RNH (14 Eki 03:5x): fare/dokunma/klavye ile sağlayıcının renkli görseline geçiş (sade cep 3 kolu) ===
   const nhImg = (e) => [...e.bolum.agac()].find((n) => n.classList.contains("foto-uretim-onizleme-img"));
   const nhIpucu = (e) => [...e.bolum.agac()].filter((n) => n.classList.contains("foto-uretim-renk-ipucu"));
@@ -8128,6 +8166,7 @@ async function rnIstemci(kaynak, V) {
     RNE5: "RNE5 ④'ten ③'e dönüp Gri -> /foto/renk {is, Gri} TEK istek + S2 bekleme",
     RNE6: "RNE6 önizleme gövdesi: tek renk plaket renk=Beyaz · insan renk=Gri · Renkli'de renk alanı YOK",
     RNE7: "RNE7 Renkli alınmış önizleme + oturumda Siyah -> /foto/renk TEK kez, kabul edilmezse eski davranış (döngü yok)",
+    RNE8: "RNE8 üreteç türü (anahtarlık–yazı) çizim hazır -> ④ gorunum=renk çizimi + renk cümlesi + alternatif verisi · /foto/renk 0",
     RNH1: "RNH1 fare pointerenter(mouse) → src = S.gorsel · alt = 'fotoğraftaki renkli hâli'; pointerleave → renk çizimi (KIRMIZ); sınıf + tabIndex=0 + 8 dinleyici + 1 ipucu",
     RNH2: "RNH2 dokunmatik/kalem pointerdown → S.gorsel; pointerup · pointercancel → cizim; mouse pointerdown filtreye takılır (dokunmatik akış)",
     RNH3: "RNH3 focus → S.gorsel; blur → cizim",
@@ -8139,9 +8178,9 @@ async function rnIstemci(kaynak, V) {
   const RNE_MUT = [
     ["M-RNE-RENKLI Renkli'de de renk istenir", "  function renkHedefi() { return renkOnizlemeKolu() && !renkliMi() ? anaRenk() : \"\"; }",
      "  function renkHedefi() { return renkOnizlemeKolu() ? anaRenk() : \"\"; }", ["RNE3", "RNE6"]],
-    ["M-RNE-CIZIM-YOK çizim adresi yok sayılır", "        img.src = S.renkSunucu.gorsel;\n", "        img.src = S.gorsel;\n", ["RNE1", "RNH4"]],
+    ["M-RNE-CIZIM-YOK çizim adresi yok sayılır", "        img.src = S.renkSunucu.gorsel;\n", "        img.src = S.gorsel;\n", ["RNE1", "RNE8", "RNH4"]],
     ["M-RNE-CUMLE renk cümlesi basılmaz",
-     "        S.alan.appendChild(el(\"p\", \"foto-uretim-ayrinti foto-uretim-renk-notu\", RENK_CUMLESI));\n", "", ["RNE1", "RNH6"]],
+     "        S.alan.appendChild(el(\"p\", \"foto-uretim-ayrinti foto-uretim-renk-notu\", RENK_CUMLESI));\n", "", ["RNE1", "RNE8", "RNH6"]],
     ["M-RNE-K0 KONTROL (aynı gövde)", "  var RENK_URL = \"/api/shop/foto/renk\";\n", "  var RENK_URL = \"/api/shop/foto/renk\";\n", []],
   ];
   for (const [ad, capa, yerine, olmeli] of RNE_MUT) {

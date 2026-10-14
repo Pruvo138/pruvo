@@ -2076,13 +2076,14 @@ def renk_render_araci():
     return os.path.join(KOK, RENK_RENDER_BETIK)
 
 
-def renk_render_uret(glb, hx, cikti):
-    """Model -> secilen renkte PNG (ortak render sozlesmesi). Donus (ok, sebep, sure_sn)."""
+def renk_render_uret(glb, hx, cikti, hx2="", bolge2=""):
+    """Model -> secilen renk(ler)de PNG (ortak render sozlesmesi; iki malzeme: --renk2 + --bolge2). (ok, sebep, sure_sn)."""
     py = os.environ.get("FOTO_KOSUCU_PYTHON") or sys.executable
     bas = time.time()
+    ek = ["--renk2", hx2.lstrip("#"), "--bolge2", bolge2] if hx2 and bolge2 else []
     try:
-        p = subprocess.run([py, renk_render_araci(), "--model", glb, "--renk", hx.lstrip("#"), "--arkaplan", "studyo",
-                            "--cikti", cikti], capture_output=True, text=True,
+        p = subprocess.run([py, renk_render_araci(), "--model", glb, "--renk", hx.lstrip("#")] + ek +
+                           ["--arkaplan", "studyo", "--cikti", cikti], capture_output=True, text=True,
                            timeout=RENDER_SURE_SN, env=SALT_OKUMA_ENV)
     except subprocess.TimeoutExpired:
         return False, "sure-asimi", int(time.time() - bas)
@@ -2099,6 +2100,52 @@ def renk_render_uret(glb, hx, cikti):
         m = re.search(r"sebep=(\S+)", son)
         return False, (m.group(1) if m else "render-rc-%d" % p.returncode), sure
     return True, "", sure
+
+
+def uretec_renk_cizimi(i, t, girdi_dizin, model, gecici, yaz):
+    """④ URETEC TURU (Okan 14 Eki 03:5x: tum 6 modulde secilen renk): onizleme modeli (model.3mf) girdinin SECILEN
+    renk(ler)iyle ortak studyo sablonunda cizilir -> R2 foto-uretec-onizleme/<is>/renk.png (sunucu ayni veri
+    sozlesmesini verir). Tek renk -> --renk; iki bolge iki renk (anahtarlik-yazi plaka + yazi) -> --renk ilk bolge
+    + --renk2/--bolge2 ikinci bolge; 3+ renk (Renkli palet) cizilmez (④ uretec gorseli AYNEN). Karar DEGISMEZ:
+    cizim dusse de onizleme hazir olur (log satiri her durumda)."""
+    try:
+        with open(os.path.join(girdi_dizin, "girdi.json"), encoding="utf-8") as f:
+            renkler = (json.load(f) or {}).get("renkler") or {}
+    except (OSError, ValueError):
+        renkler = {}
+    sira = [b.get("kod") for b in (t.get("renk_bolgeleri") or []) if isinstance(b, dict)]
+    bolgeler = [(b, renkler[b]) for b in sira if b in renkler] + \
+        [(b, r) for b, r in renkler.items() if b not in sira]
+    tablo = renk_tablosu()
+    farkli = []
+    for _, r in bolgeler:
+        if r not in farkli:
+            farkli.append(r)
+    if not bolgeler or len(farkli) > 2 or any(r not in tablo for r in farkli):
+        yaz("RENK-CIZIM=YOK %s sebep=%s" % (is_adi(i), "renk-yok" if not bolgeler else
+                                            ("renkli" if len(farkli) > 2 else "renk-tabloda-yok")))
+        return False
+    hx2, bolge2 = "", ""
+    if len(farkli) == 2:
+        bolge2 = next(b for b, r in bolgeler if r == farkli[1])
+        hx2 = tablo[farkli[1]]
+    png = os.path.join(gecici, "renk.png")
+    if renk_render_araci() == os.path.join(KOK, RENK_RENDER_BETIK):
+        # TeKiN ortak araci henuz yok -> MEVCUT TeKiN 3MF araci (render_uret: 3MF bolge renkleri SECILEN adlara eslenir,
+        # Cycles; gecici olarak duz zemin). Arac da yoksa cizim YOK (onizleme yine hazir).
+        onz = os.path.join(os.path.dirname(model), "onizleme.png")
+        webp, sebep, sure = render_uret(model, onz, farkli, gecici) if render_betigi() else (None, "render-araci-yok", 0)
+        ok = bool(webp) and os.path.isfile(webp[:-len(".webp")] + ".png")
+        if ok:
+            shutil.copyfile(webp[:-len(".webp")] + ".png", png)
+    else:
+        ok, sebep, sure = renk_render_uret(model, tablo[farkli[0]], png, hx2, bolge2)
+    if not ok:
+        yaz("RENK-CIZIM=YOK %s sebep=%s sure_sn=%d" % (is_adi(i), sebep, sure))
+        return False
+    r2_koy(ONIZLEME_DIZIN % i["is_no"] + "renk.png", png, "image/png")
+    yaz("RENK-CIZIM=OK %s renk=%s bayt=%d sure_sn=%d" % (is_adi(i), "+".join(farkli), os.path.getsize(png), sure))
+    return True
 
 
 def renk_isle(i, jeton, yaz):
@@ -2253,6 +2300,13 @@ def is_isle(i, manifest, yaz):
                 tur = {"model.3mf": "model/3mf", "olcu.json": "application/json", "onizleme.png": "image/png"}
                 for ad in CIKTI_DOSYALARI:
                     r2_koy(a[ad], os.path.join(cikti, ad), tur[ad])
+                # ④ secilen renk(ler)de studyo cizimi D1 'onizleme-hazir'dan ONCE (ilk hazir yaniti cizimi tasir);
+                # cizim/R2 dusmesi karari DEGISTIRMEZ.
+                if i["kuyruk"] == "onizleme":
+                    try:
+                        uretec_renk_cizimi(i, t, girdi_dizin, os.path.join(cikti, "model.3mf"), gecici, yaz)
+                    except Erisilemedi as e:
+                        yaz("RENK-CIZIM=YOK %s sebep=r2 (%s)" % (is_adi(i), e))
                 karar = "hazir"
                 if satirli(i):
                     renk = uc_mf_extruder_sayisi(os.path.join(cikti, "model.3mf"))

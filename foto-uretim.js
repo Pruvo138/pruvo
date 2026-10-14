@@ -2293,6 +2293,8 @@
   // Seçimin istediği tek renk ("" = renk çizimi yok: Renkli ya da üreteç kolu).
   function renkHedefi() { return renkOnizlemeKolu() && !renkliMi() ? anaRenk() : ""; }
   function renkCizimiHazir() {
+    // Üreteç kolu: model önizlemede seçilen renk(ler)le üretildi; sunucu çizimi verdiyse O gösterilir.
+    if (!renkOnizlemeKolu()) return !!S.renkSunucu && S.renkSunucu.durum === "hazir" && !!S.renkSunucu.gorsel;
     var h = renkHedefi();
     return !!h && !!S.renkSunucu && S.renkSunucu.renk === h && S.renkSunucu.durum === "hazir" && !!S.renkSunucu.gorsel;
   }
@@ -2697,7 +2699,8 @@
           // Renkli alındı) /foto/renk TEK kez; çizim hazırlanıyorsa S2'de sağlayıcı görseliyle beklenir.
           // VERİ SÖZLEŞMESİ (sunucu foto.js renkYanitAlanlari): onizleme_renk · onizleme_renk_durum · onizleme_renk_url ·
           // onizleme_saglayici_url (hover "renkli alternatif"; görünüm KraL).
-          S.renkSunucu = typeof veri.onizleme_renk === "string" && veri.onizleme_renk ? { renk: veri.onizleme_renk,
+          // Üreteç türünde (büst · yapboz · anahtarlık–yazı) onizleme_renk "" (renkler önizlemenin kendi girdisi).
+          S.renkSunucu = typeof veri.onizleme_renk_durum === "string" && veri.onizleme_renk_durum ? { renk: veri.onizleme_renk || "",
             durum: veri.onizleme_renk_durum || "",
             gorsel: typeof veri.onizleme_renk_url === "string" ? veri.onizleme_renk_url : "",
             saglayici: typeof veri.onizleme_saglayici_url === "string" ? veri.onizleme_saglayici_url : "" } : null;
