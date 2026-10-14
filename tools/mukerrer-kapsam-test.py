@@ -186,17 +186,23 @@ def _a5():
 KAYNAK_URL = "https://example.invalid/paylasilan-kaynak"
 
 
-def _paylasilan_kaynak_deposu(istisna=None):
+def _paylasilan_kaynak_deposu(istisna=None, eski_cift=False):
     """(gecici, ana_kok, worktree_kok) — ayni kaynagi paylasan IKI urun + worktree.
 
     `.urun-kaynaklari.json` COMMIT'LENIR (fikstur onu izlenen tutar),
     `.mukerrer-istisna.json` ise YALNIZ ana agaca IZLENMEDEN yazilir (gercekte
     .gitignore'da). Worktree'de urunler.json'a bir EK STAGE'LENIR: K143 kapsam
     on-elemesi urun dosyasina dokunmayan commit'i eler, bu iddialarin konusu ise
-    kapsam DEGIL istisna COZUMLEMESIDIR — o yuzden tarama kapsam ICINE alinir."""
+    kapsam DEGIL istisna COZUMLEMESIDIR — o yuzden tarama kapsam ICINE alinir.
+
+    Kaynagi paylasan cift VARSAYILAN olarak commit'in EKLEDIGI `urun-c`yi icerir
+    (14 Eki: HEAD'de zaten duran cift artik bloklamaz — istisna ekseni ancak YENI
+    bir ciftte olculebilir). `eski_cift=True` cifti HEAD'deki iki kayda kurar
+    (cgtrader vakasi, A15)."""
     gecici, kok = _depo()
+    ikinci = "urun-b" if eski_cift else "urun-c"
     _yaz(os.path.join(kok, ".urun-kaynaklari.json"),
-         {"urun-a": {"link": KAYNAK_URL}, "urun-b": {"link": KAYNAK_URL}})
+         {"urun-a": {"link": KAYNAK_URL}, ikinci: {"link": KAYNAK_URL}})
     _git(kok, "add", ".urun-kaynaklari.json")
     _git(kok, "commit", "-q", "--no-verify", "-m", "kaynaklar")
     if istisna is not None:
@@ -286,14 +292,20 @@ def _a9():
 
 
 def _a10():
-    """AYNI HEAD, ama urunler.json STAGE'LENMIS -> tarama AYNEN kosar, rc=1."""
+    """AYNI HEAD, ama urunler.json STAGE'LENMIS -> tarama AYNEN kosar.
+
+    14 Eki 2026: HEAD'deki cift artik BLOKLAMAZ (BaBa 20:1x sinif hukmu) ama
+    tarama KOSMUS olmali — kanit, onceden-var NOT satirinin basilmasidir (A9'un
+    ATLANDI satirindan ayirt edici)."""
     gecici, kok = _depo(MUKERRER)
     try:
         _yaz(os.path.join(kok, "urunler.json"),
              MUKERRER + [{"id": "urun-c", "baslik": "Baslik C"}])
         _git(kok, "add", "urunler.json")
         sonuc = _kos(kok, "--pre-commit")
-        return sonuc.returncode != 0 and "MUKERRER BASLIK" in sonuc.stdout, sonuc
+        return (sonuc.returncode == 0
+                and "NOT onceden-var MUKERRER BASLIK" in sonuc.stdout
+                and "ATLANDI" not in sonuc.stdout), sonuc
     finally:
         gecici.cleanup()
 
@@ -344,6 +356,36 @@ def _a14():
         gecici.cleanup()
 
 
+# A15-A16 — 14 Eki 2026 (BaBa 20:1x): HEAD'de ZATEN duran 14 cgtrader kaynak cifti
+# MaCiT'in yalniz yeni urun ekleyen commit'ini kilitledi. Kapi artik commit'in
+# YARATTIGI bulguyla bloklar; onceden-var cift gorunur NOT satiri olur.
+def _a15():
+    """HEAD'de onceden-var KAYNAK cifti + ilgisiz yeni urun -> rc=0 + NOT satiri."""
+    gecici, ana, wt = _paylasilan_kaynak_deposu(None, eski_cift=True)
+    try:
+        sonuc = _kos(wt, "--pre-commit", veri=ana)
+        return (sonuc.returncode == 0
+                and "NOT onceden-var MUKERRER KAYNAK" in sonuc.stdout
+                and "onceden-var 1" in sonuc.stdout), sonuc
+    finally:
+        gecici.cleanup()
+
+
+def _a16():
+    """Yeni kayit HEAD'deki cifte KATILIR (2 -> 3) -> yeni bulgu, rc=1."""
+    gecici, kok = _depo(MUKERRER)
+    try:
+        _yaz(os.path.join(kok, "urunler.json"),
+             MUKERRER + [{"id": "urun-c", "baslik": "Ayni Baslik"}])
+        _git(kok, "add", "urunler.json")
+        sonuc = _kos(kok, "--pre-commit")
+        return (sonuc.returncode != 0
+                and "MUKERRER BASLIK: Ayni Baslik -> urun-a, urun-b, urun-c" in sonuc.stdout
+                and "NOT onceden-var" not in sonuc.stdout), sonuc
+    finally:
+        gecici.cleanup()
+
+
 IDDIALAR = [
     ("A1 yabanci veri bloklamaz", _a1),
     ("A2 staged mukerrer yakalanir", _a2),
@@ -359,6 +401,8 @@ IDDIALAR = [
     ("A12 baslik istisnasi UCUNCU kayda GENISLEMEZ", _a12),
     ("A13 idler'siz baslik istisnasi GECERSIZ (joker yok)", _a13),
     ("A14 ilk commit'te (HEAD yok) tarama kosar", _a14),
+    ("A15 HEAD'de onceden-var cift yeni urun commit'ini bloklamaz (NOT satiri)", _a15),
+    ("A16 yeni kayit onceden-var cifte katilinca bloklar", _a16),
 ]
 
 # ── MUTASYON KANITI ───────────────────────────────────────────────────────────
@@ -367,6 +411,8 @@ IDDIALAR = [
 # ([[test-hatali-davranisi-kutsar]]). Calisma agaci KIRLENMEZ: mutasyon yalniz
 # gecici depoya serilen kopyaya uygulanir ve depo is bitince silinir.
 ESLESTIRICI = "            if (baslik, frozenset(ilgili_idler)) in baslik_muaf:"
+SINIFLAYICI = ("        if head_bulgu is None or (b[0], b[1], tuple(sorted(b[2])))"
+               " not in head_bulgu:")
 OKUYUCU_GUARDI = ("        if not isinstance(idler, list) or len(idler) < 2:\n"
                   "            continue")
 
@@ -418,6 +464,27 @@ MUTANTLAR = [
           "            if any(baslik == b and (not s or s == frozenset(ilgili_idler))"
           " for b, s in baslik_muaf):")],
         ["A13"],
+    ),
+    (
+        "M7 HEAD okunabildikce HER bulgu onceden-var sayilirsa",
+        [(SINIFLAYICI, "        if head_bulgu is None:")],
+        ["A2", "A3", "A7", "A8", "A16"],
+    ),
+    (
+        # 14 Eki WIP'in ilk hali buydu: id'lerin hepsi HEAD'deyse onceden-var. Mevcut
+        # iki kaydin basligini esitleyen commit'i GECIRIR — A2 olcer.
+        "M8 siniflama bulgu kumesi yerine id-uyeligine bakarsa",
+        [(SINIFLAYICI,
+          "        if head_bulgu is None or any(i not in {u.get('id') for u in head}"
+          " for i in b[2]):")],
+        ["A2"],
+    ),
+    (
+        "M9 HEAD okunamazsa bulgular onceden-var sayilirsa (fail-open)",
+        [(SINIFLAYICI,
+          "        if head_bulgu is not None and (b[0], b[1], tuple(sorted(b[2])))"
+          " not in head_bulgu:")],
+        ["A14"],
     ),
 ]
 
