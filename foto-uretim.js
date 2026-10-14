@@ -1660,13 +1660,9 @@
      `malzemeler`; boşsa satır YOK) + form parametreleri + CANLI FİYAT (F.fiyatKurus). */
   // Madde 6: ham değer kodu AYNI kalır (köprü manifest şemasını kirletmemek için), kullanıcıya UI'da
   // gösterilecek Türkçe etiket bu sabitten türetilir (tekilko kutucuk KUBAR_ETIKET_MAP).
-  // Anahtarlık ③ (TUR-C2b): pazarlama sayfa metni "Anahtarlık ③ seçenek etiketleri" tablosu AYNEN (figür `tepe`/`sirt` dahil).
-  // Harita ALAN KAVRAMIYLA tutulur: tür önekli alan (`<tür>_kulak_konum`) önek atılarak da aranır (etiketHaritasi).
+  // Harita ALAN KAVRAMIYLA tutulur: tür önekli alan (`<tür>_<alan>`) önek atılarak da aranır (etiketHaritasi).
   var KUBAR_ETIKET_MAP = {
-    kabartma_yon: { "acik_yuksek": "Açık tonlar yüksek", "koyu_yuksek": "Koyu tonlar yüksek" },
-    yazi_tipi: { "sans-kalin": "Kalın düz harfler", "script": "El yazısı" },
-    hizalama: { "sol": "Sol", "orta": "Orta", "sag": "Sağ" },
-    kulak_konum: { "sol-ust": "Sol üst", "sag-ust": "Sağ üst", "ust-orta": "Üst orta", "tepe": "Başın arkası (üst)", "sirt": "Başın arkası (ense)" }
+    kabartma_yon: { "acik_yuksek": "Açık tonlar yüksek", "koyu_yuksek": "Koyu tonlar yüksek" }
   };
   function etiketHaritasi(a) {
     if (Object.prototype.hasOwnProperty.call(KUBAR_ETIKET_MAP, a)) return KUBAR_ETIKET_MAP[a];

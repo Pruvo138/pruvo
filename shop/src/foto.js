@@ -2129,7 +2129,7 @@ function secimDetay(renkli, malzeme) {
 }
 
 const RENK_HATASI = { hata: { hata: "gecersiz-renk", mesaj: "Renk seçimi geçersiz (Siyah, Beyaz, Gri ya da Renkli)." }, kod: 400 };
-const MALZEME_HATASI = { hata: { hata: "gecersiz-malzeme", mesaj: "Malzeme seçimi geçersiz (PLA, PETG ya da TPU)." }, kod: 400 };
+const MALZEME_HATASI = { hata: { hata: "gecersiz-malzeme", mesaj: "Malzeme seçimi geçersiz (PLA ya da PETG)." }, kod: 400 };
 
 /**
  * Sepetin gosterdigi renk sayisi sunucu sayimiyla AYNI degilse 400 (fail-closed): musteri sepette N renkli fiyat
