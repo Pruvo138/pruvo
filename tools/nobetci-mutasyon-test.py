@@ -493,9 +493,16 @@ def genis_ayna_kur(hedef_kok, mutasyonlar=None, sizintili=False):
     os.makedirs(tools_h, exist_ok=True)
     for ad in os.listdir(HERE):
         kaynak = os.path.join(HERE, ad)
+        hedef = os.path.join(tools_h, ad)
+        if os.path.isdir(kaynak) and not os.path.islink(kaynak):
+            # tools/ ALT DIZINLERI de aynalanir (14 Eki 2026): kisisel-veri-test K384-V4
+            # izlenen kanca kaynagini (tools/kancalar/pre-push) okur; dizinsiz aynada D0
+            # haksiz kirmizi yanar ve D2..D7 mutantlarini V4 oldururdu (ayirt edicilik biter).
+            # Alt dizin yollari git indeksine GIRMEZ (eklenecek suzgeci asagida).
+            os.symlink(kaynak, hedef)
+            continue
         if not os.path.isfile(kaynak):
             continue
-        hedef = os.path.join(tools_h, ad)
         if ad in mutasyonlar:
             with open(kaynak, encoding="utf-8") as f:
                 metin = f.read()

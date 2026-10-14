@@ -158,6 +158,41 @@ def git_kok(dizin, ortam=None):
     return p.stdout.strip() if p.returncode == 0 else ""
 
 
+def kanca_yollari(repo, ad, ortam=None):
+    """(okunan, eski) — git'in <ad> kancasini FIILEN aradigi mutlak yol ve
+    `<git-common-dir>/hooks/<ad>`. "" = olculemedi (fail-closed sozlesme)."""
+    def _yol(*args):
+        p = subprocess.run(["git", "-C", repo, "rev-parse", "--path-format=absolute"]
+                           + list(args), capture_output=True, text=True, errors="replace",
+                           env=git_ortami() if ortam is None else ortam)
+        return p.stdout.strip() if p.returncode == 0 else ""
+    okunan = _yol("--git-path", "hooks/" + ad)
+    ortak = _yol("--git-common-dir")
+    return okunan, (os.path.join(ortak, "hooks", ad) if ortak else "")
+
+
+def kanca_hedef_reddi(repo, ad, ortam=None):
+    """None = git <ad> kancasini `<git-common-dir>/hooks/<ad>`den OKUR (kurucu yazabilir);
+    metin = git BASKA bir yolu okur -> oraya yazilan blok OLU dosyadir, kurucu REDDETMELI.
+
+    🔴 OLCULEN OLAY (14 Eki 2026): `core.hooksPath` 4 Agu'tan beri `.git/pruvo-kancalar`
+    (tools/kanca-kur.py) iken `tools/gecmis-nobeti-hook-kur.py` blogunu hala
+    `.git/hooks/pre-push`a yaziyordu (rc=0, "yazildi") -> ic rapor gecmis nobeti ~10 hafta
+    HICBIR push'ta kosmadi; o pencerede 5 ic rapor PUBLIC'e cikti. Git'in OKUDUGU yol
+    `rev-parse --git-path hooks/<ad>` ile olculur (core.hooksPath + config.worktree
+    override'i + goreli deger dahil, git 2.50.1'de olculdu). Olculemezse de RET (fail-closed).
+    """
+    okunan, eski = kanca_yollari(repo, ad, ortam)
+    if not okunan or not eski:
+        return ("git'in %s kancasini OKUDUGU yol OLCULEMEDI (%s) -> yazilmadi "
+                "(fail-closed)" % (ad, repo))
+    if os.path.normpath(okunan) == os.path.normpath(eski):
+        return None
+    return ("git %s kancasini %s yolundan OKUR (core.hooksPath), %s'den DEGIL -> oraya "
+            "yazilan blok HIC KOSMAZ. Blok izlenen kaynaga (tools/kancalar/%s) girer ve "
+            "`python3 tools/kanca-kur.py` ile serilir." % (ad, okunan, eski, ad))
+
+
 def _kos(depo, *args):
     return subprocess.run(["git", "-C", depo, *args], capture_output=True, text=True,
                           errors="replace", env=git_ortami())

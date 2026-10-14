@@ -187,6 +187,24 @@ fi
 exec < "$pruvo_gd_girdi"
 rm -f "$pruvo_gd_girdi"
 # <<< PRUVO GECMIS GERI-DONUS NOBETI BLOGU <<<
+# >>> PRUVO GECMIS NOBETI BLOGU (tools/gecmis-nobeti-hook-kur.py uretir — ELLE DUZENLEME) >>>
+# 14 Eki 2026: GERCEK kancadaki blogun SEKLI (stdin yakala -> `if !` ile kapiyi besle
+# -> `exec 0<` ile geri ver) ([[nobetci-fikstur-sekli]]).
+pruvo_gn_kok=$(git rev-parse --show-toplevel 2>/dev/null)
+pruvo_gn_tmp=$(mktemp 2>/dev/null)
+if [ -z "$pruvo_gn_tmp" ] || [ ! -f "$pruvo_gn_tmp" ]; then
+  echo "!! PUSH DURDURULDU — gecmis nobeti girdisi icin gecici dosya acilamadi." >&2
+  exit 1
+fi
+cat > "$pruvo_gn_tmp"
+if ! python3 "$pruvo_gn_kok/tools/kisisel-veri-test.py" --pre-push < "$pruvo_gn_tmp"; then
+  echo "!! PUSH DURDURULDU — ic rapor sizintisi ya da OLCULEMEDI (gecmis ekseni)." >&2
+  rm -f "$pruvo_gn_tmp"
+  exit 1
+fi
+exec 0< "$pruvo_gn_tmp"
+rm -f "$pruvo_gn_tmp"
+# <<< PRUVO GECMIS NOBETI BLOGU <<<
 # >>> PRUVO YEDEK BLOGU (tools/yedek-hook-kur.py uretir — ELLE DUZENLEME) >>>
 pruvo_kok=$(git rev-parse --show-toplevel 2>/dev/null)
 if [ -n "$pruvo_kok" ] && [ -f "$pruvo_kok/tools/yedekle.py" ]; then
