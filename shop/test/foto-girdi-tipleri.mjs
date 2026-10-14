@@ -7,13 +7,14 @@
  *
  * K3c (sayfa-3adim, 9 Eki 2026): K3a ses/konum/tarih türlerini ve parametreDogrula dallarını sildi → bu
  * kapının S/K/T/TS vakaları ve M-SES/M-KON/M-TRH/M-SAAT mutantları ölü koda bakıyordu (dosya TypeError ile
- * düşüyordu); SİLİNDİ. Yerine METİN dalı (anahtarlık `satirlar`: liste, 1..satir_max satır, ≤ max karakter).
+ * düşüyordu); SİLİNDİ. Yerine METİN dalı (`liste:true`: 1..satir_max satır, ≤ max karakter; 14 Eki manifestte metin girdili tür kalmadı,
+ * dal sentetik türle ölçülür).
  *
  * Test fikstürü: KENDİ sahte türlerini tanımlar (manifest DEĞİŞMEZ); her türde tek form alanı vardır,
  * böylece "bu alan için bu parametre" izole doğrulanır. Gerçek manifest satırları ayrıca ölçülür.
  *
  * OLCULEN KURALLAR:
- *   G  GIRDI_TURLERI.metin `acik:true` · FORM_TIPLERI.metin true · anahtarlık girdisi ["metin"]
+ *   G  GIRDI_TURLERI.metin `acik:true` · FORM_TIPLERI.metin true · manifestte silinmiş anahtarlık türü YOK
  *   MT metin (liste:true, satir_max 3, max 40, zorunlu):
  *      ✓ 1 / 2 / 3 satır · 40 karakter
  *      ✗ 4 satır · 41 karakter · boş dizi · boşluk öğe · alan yok · kontrol karakteri (BEL, \n, U+202E)
@@ -23,7 +24,7 @@
  *      bilinmeyen tip → parametre-yakinda · şema dışı anahtar → sema-disi-parametre
  *   B  bool: YALNIZ true/false
  *   KS koşullu alan + adım ızgarası
- *   GY girdi yeterli mi (anahtarlık 9 Eki: foto VEYA yazı) — VERI.girdiYeterli: türün girdi listesinden EN AZ
+ *   GY girdi yeterli mi (9 Eki: foto VEYA yazı) — VERI.girdiYeterli: türün girdi listesinden EN AZ
  *      BİRİ dolu; ② "İleri" (foto-uretim.js) ve sunucu girdiGovdeDogrula AYNI fonksiyonu çağırır.
  *      M-GY1 metin dalı düştü · M-GY2 foto dalı düştü -> hedef vakalar KIRMIZI
  *
@@ -78,11 +79,8 @@ console.log("G) GIRDI_TURLERI.metin + FORM_TIPLERI.metin");
 ol("G1 GIRDI_TURLERI.metin.acik === true", !!VERI.GIRDI_TURLERI.metin && VERI.GIRDI_TURLERI.metin.acik === true,
    JSON.stringify(VERI.GIRDI_TURLERI));
 ol("G2 FORM_TIPLERI.metin === true", VERI.FORM_TIPLERI.metin === true, JSON.stringify(VERI.FORM_TIPLERI));
-const an = VERI.turBul("anahtarlik");
-ol("G3 manifest anahtarlik girdi [\"metin\"] + satirlar {metin, liste, satir_max 3, max 40, zorunlu}",
-   !!an && JSON.stringify(an.girdi) === '["metin"]' && an.form.satirlar.tip === "metin" && an.form.satirlar.liste === true &&
-   an.form.satirlar.satir_max === 3 && an.form.satirlar.max === 40 && an.form.satirlar.zorunlu === true,
-   JSON.stringify(an && an.form.satirlar));
+// Okan 14 Eki "Anahtarlık sil": tür manifestten TAMAMEN çıktı (negatif iddia; geri gelirse KIRMIZI).
+ol("G3 manifestte anahtarlik turu YOK", VERI.turBul("anahtarlik") === null, JSON.stringify(VERI.turler.map((t) => t.kod)));
 
 // ------------------------------------------------------------- MT: metin vakaları
 // Her vaka: [kimlik, form-alanı-şeması, gönderilen parametreler (alan anahtarı "a"), beklenen]
@@ -142,13 +140,6 @@ console.log("MT) METİN (liste: 1..satir_max satır, ≤ max karakter, kontrol k
   const g = ["Ayşe"], r = VERI.parametreDogrula(kod, { a: g });
   g.push("x", "y", "z");
   ol("MT14 çıktı dizisi girdinin kopyası", r.ok && r.deger.a.length === 1, JSON.stringify(r));
-  // Gerçek manifest: anahtarlık örnek girdisi (köprü kaydı ornek.girdi) sunucudan geçer.
-  const ornek = {};
-  for (const [a, s] of Object.entries(an.form)) { ornek[a] = s.ornek !== undefined ? s.ornek : s.varsayilan; }
-  const ro = VERI.parametreDogrula("anahtarlik", ornek);
-  ol("MT15 manifest anahtarlik örnek parametreleri → ok", ro.ok === true, JSON.stringify(ro));
-  const r4 = VERI.parametreDogrula("anahtarlik", { ...ornek, satirlar: ["a", "b", "c", "d"] });
-  ol("MT16 manifest anahtarlik 4 satır → parametre-metin", r4.ok === false && r4.hata === "parametre-metin", JSON.stringify(r4));
 }
 
 // ------------------------------------------------------------- B: bool
@@ -244,9 +235,7 @@ function girdiKos(v) {
     try { r = v.girdiYeterli(kod, g); } catch (e) { kotu.push(id); continue; }
     if (r !== b) { kotu.push(id); }
   }
-  // Gerçek manifest: anahtarlık yazıyla yeterli, yazısız eksik; plaket fotoğrafla yeterli.
-  if (v.girdiYeterli("anahtarlik", { parametreler: { satirlar: ["Ayşe"] } }) !== "") { kotu.push("GY14"); }
-  if (v.girdiYeterli("anahtarlik", { parametreler: {} }) !== "girdi-eksik") { kotu.push("GY15"); }
+  // Gerçek manifest: plaket fotoğrafla yeterli.
   if (v.girdiYeterli("plaket", { foto: true }) !== "") { kotu.push("GY16"); }
   return kotu;
 }
@@ -254,8 +243,6 @@ console.log("GY) GİRDİ YETERLİ (türün girdisinden EN AZ BİRİ: foto VEYA y
 {
   const kotu = girdiKos(VERI);
   for (const [id, ad] of GY_VAKA) { ol(id + " " + ad, !kotu.includes(id)); }
-  ol("GY14 manifest anahtarlık + satirlar [\"Ayşe\"] -> yeterli", !kotu.includes("GY14"));
-  ol("GY15 manifest anahtarlık + yazı yok -> eksik", !kotu.includes("GY15"));
   ol("GY16 manifest plaket + foto -> yeterli", !kotu.includes("GY16"));
   // AYNI FONKSİYON: sunucu girdi kapısı ve bölümün ② "İleri"si VERI.girdiYeterli'yi çağırır (ikinci kopya yok).
   const sunucu = fs.readFileSync(path.join(KOK, "shop", "src", "foto.js"), "utf8");
@@ -306,7 +293,7 @@ mutant("M-KOSUL3 gonderilen kosulsuz alan sessizce yutulur",
   "        if (Object.prototype.hasOwnProperty.call(p, a)) { return { ok: false, hata: \"sema-disi-parametre\" }; }\n", "", kosulKos, ["KS2", "KS5"]);
 mutant("M-ADIM1 tolerans 1e-9 (enlem kayan nokta)", "Math.abs(k - Math.round(k)) > 1e-6", "Math.abs(k - Math.round(k)) > 1e-9", kosulKos, ["KS1"]);
 mutant("M-ADIM2 tolerans 0.5 (izgara disi kabul)", "Math.abs(k - Math.round(k)) > 1e-6", "Math.abs(k - Math.round(k)) > 0.5", kosulKos, ["KS7", "KS8"]);
-mutant("M-GY1 girdiYeterli metin dalı düştü", '      if (x === "metin") {', "      if (false) {", girdiKos, ["GY1", "GY8", "GY14"]);
+mutant("M-GY1 girdiYeterli metin dalı düştü", '      if (x === "metin") {', "      if (false) {", girdiKos, ["GY1", "GY8"]);
 mutant("M-GY2 girdiYeterli foto dalı düştü", "FOTO_GIRDILERI[x] === true && g.foto === true", "false", girdiKos,
   ["GY5", "GY7", "GY11", "GY16"]);
 mutant("M0 KONTROL (yalnız yorum)", "  VERI.parametreDogrula = function (kod, p) {", "  // kontrol\n  VERI.parametreDogrula = function (kod, p) {",

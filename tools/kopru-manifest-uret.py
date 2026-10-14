@@ -10,12 +10,10 @@ SOZLUK (eşleme YALNIZ burada; manifest yorumu bu dosyayi isaret eder):
   girdi   : olcu -> "form" · foto -> "foto-1" · plaket-3mf / figur-3mf -> "foto-1" (saglayici plaketi/figuru FOTODAN
             cikarir) ·
             ses/metin/konum/tarih aynen · baska -> KIRMIZI
-  FOTO KOLU (anahtarlik-foto 9 Eki): KOL_KAYDI'ndaki kayit AYRI tur satiri URETMEZ; ana turun ikinci girdi koludur:
-            ana satira `foto_kolu: {girdi: [<eslenmis>], uretec: <kol uretec'i>}` yazilir. Form/renk/olcu ANA kayittan
-            (kulak konumu ortak `anahtarlik_kulak_konum`). Ana `girdi` DEGISMEZ: foto kolu ② cesit secimiyle
-            ("Figur olarak" -> saglayici figur -> kosucu figur_kulak, 10 Eki) acilir; ana girdiye katilirsa ② cesitsiz
-            foto alir, isimlik fotoyu yok sayar = sessiz hata. Ana kayit yoksa KIRMIZI `kol-ana-yok`.
-  SUNULMAYAN (10 Eki): kopruda AYRI kayit olarak duran ama UI'da SUNULMAYAN kayit (anahtarlik-plaket) manifest
+  FOTO KOLU: KOL_KAYDI'nda kayit varsa AYRI tur satiri URETMEZ; ana turun ikinci girdi koludur:
+            ana satira `foto_kolu: {girdi: [<eslenmis>], uretec: <kol uretec'i>}` yazilir. Form/renk/olcu ANA kayittan.
+            Ana `girdi` DEGISMEZ. Ana kayit yoksa KIRMIZI `kol-ana-yok`.
+  SUNULMAYAN: kopruda AYRI kayit olarak duran ama UI'da SUNULMAYAN kayit (bust-kaide) manifest
             satiri URETMEZ ve kontrol edilmez.
   tip     : sayi -> sayi + adim (kayittaki `adim`, yoksa 0.01; enlem/boylam 0.000001)
             tam (ya da sayi + `tam:true`) -> sayi + adim 1
@@ -26,7 +24,7 @@ SOZLUK (eşleme YALNIZ burada; manifest yorumu bu dosyayi isaret eder):
             dosyasi/alani yok -> KIRMIZI) + `zorunlu:true` degilse `zorunlu:false` (bos/yok = uretec
             varsayilani). NEDEN (kopru-15 ESLE): max'siz metin alanini VERI.parametreDogrula her degerde
             `parametre-metin` ile reddediyordu (braille ⑤ 400).
-            metin + `liste:true` (K3c anahtarlik) -> {tip:"metin", etiket, liste:true, satir_max, max:karakter_max,
+            metin + `liste:true` (K3c) -> {tip:"metin", etiket, liste:true, satir_max, max:karakter_max,
             zorunlu}: deger satir DIZISI (1..satir_max oge, her oge <= max); `satir_max` pozitif tam sayi degilse
             ya da `liste` true/false degilse KIRMIZI (VERI.parametreDogrula metin dali bu alanlari FAIL-CLOSED olcer)
             renk_liste (K3c yapboz) -> form DEGIL, manifestin PALET mekanizmasi: renk_secimi "palet" +
@@ -44,7 +42,7 @@ SOZLUK (eşleme YALNIZ burada; manifest yorumu bu dosyayi isaret eder):
   olcu_ekseni : olcek.belirleyen_parametre DOLU -> "sabit" (surgu = hedef) · bos/null -> "turetilmis"
             (kopru-15 dilim-3: surgu YOK, fiyat onizlemede OLCULEN uzun kenardan; sunucu kaydindan)
   sema_adi: kayit `sema_adi` doluysa uretec dosyasinin o adli literal sozlugu SEMA'nin USTUNE (alan alan) yazilir
-            (anahtarlik: isimlik_uret ANAHTARLIK_SEMA genislik/kontur araligini daraltir); ad dosyada yoksa KIRMIZI
+            (kayitta belirtilen isimlik_uret SEMA genislik/kontur araligini daraltir); ad dosyada yoksa KIRMIZI
   bust    : rolyef `tur_tanimi_teklifi` (alanlar rolyef parametresinin ustune yazilir, sonra ayni sozluk)
 Editoryal alanlar (ad, aciklama, motor, fiyat.formul, ornek_kanit_izni, durustluk, ornek_notu) manifestte
 elle kalir; arac yalniz TURETILEN alanlari yazar/denetler. Form alaninin `aciklama`si da editoryaldir (alan
@@ -93,10 +91,10 @@ RENK_LISTE_TAVAN = 4  # AMS 4 yuva (VERI.renkTavani 1..4)
 # Okan 9 Eki "malzeme seçiminde sadece pla ve petg": foto-uretim-veri.js VERI.MALZEMELER kodlariyla AYNI (sapma
 # tools/kopru-manifest-uret-test.py + --denetle ile olculur: kopru ASA/ABS izinli olsa da manifeste girmez).
 FOTO_MALZEMELERI = ("PLA", "PETG")
-# PRUVO MALZEME EKI (Okan 13 Eki 23:1x "anahtarliklara tpu da ekle"; 23:2x yazi + figur ikisi de): kopru izinli
+# PRUVO MALZEME EKI (Okan 13 Eki 23:1x, 14 Eki silindi): kopru izinli
 # listesinden suzulen govdeye tur bazinda EKLENIR (kopru kaydi TPU tasimiyor; esik TeKiN isimlik_uret'te girdi.json
 # `malzeme`den). Yalniz burada adi gecen turde; VERI.MALZEMELER'deki `yalniz_tur_listesinde` malzeme baska ture girmez.
-PRUVO_EK_MALZEME = {"anahtarlik": ("TPU",)}
+PRUVO_EK_MALZEME = {}
 KONUM_ADIM = {"enlem": 0.000001, "boylam": 0.000001}
 VARSAYILAN_ADIM = 0.01
 # Bolge renk listeleri (sunum kurali, kayitta YOK): cift sirali bolge acik-once, tek sirali koyu-once ->
@@ -107,15 +105,15 @@ TEKLIF_KOD = {"rolyef": "bust"}  # tur_tanimi_teklifi -> manifest tur kodu
 TURETILEN = ("girdi", "uretec", "olcu_mm", "renk_bolgeleri", "malzemeler", "form", "olcu_ekseni", "renk_secimi",
              "palet_bolgeleri", "foto_kolu")
 # Ikinci girdi kolu kayitlari: kayit kodu -> ana tur kodu (yukaridaki FOTO KOLU).
-KOL_KAYDI = {"anahtarlik-foto": "anahtarlik"}
+KOL_KAYDI = {}
 # UI'da sunulmayan kayitlar (yukaridaki SUNULMAYAN): satir yok.
 #   bust-kaide: TeKiN 2950833 yeni kaideli bust ureteci; vitrin `bust` turu rolyef teklifinden — baglama ayri is.
-SUNULMAYAN = {"anahtarlik-plaket", "bust-kaide"}
+SUNULMAYAN = {"bust-kaide"}
 # PRUVO OLCU ARALIGI (Okan 10 Eki ~15:2x "min 30mm - max 300mm", netlestirme "60'tan baslasin, 30–300 aralik"):
 # kopru araligi yalniz DARALTILIR, asla genisletilmez: olcu_mm.en_az = max(kopru, en_az), en_cok = min(kopru, en_cok);
 # olcegi belirleyen form alaninin min/max'i ayni sinira kirpilir. `baslangic` = surgu ACILISI: olcu_mm.baslangic +
 # belirleyen alanin varsayilan/ornek'i (aralik disina duserse en_az). Foto kolu (figur cesidi) tavani: kol_tavani().
-PRUVO_ARALIK = {"anahtarlik": {"en_az": 30, "en_cok": 300, "baslangic": 60}}
+PRUVO_ARALIK = {}
 # Yalniz renk_liste kaydinda DOLU; None -> manifestte alan YAZILMAZ (varsa silinir), --denetle alan yok bekler.
 OPSIYONEL = ("renk_secimi", "palet_bolgeleri", "foto_kolu")
 
@@ -133,7 +131,7 @@ class KayitHatasi(Exception):
 def uretec_semasi(jen, betik, sema_adi=None):
     """Uretec dosyasindaki ust duzey `SEMA = {...}` -> {alan: {anahtar: deger}} (ast; YALNIZ literal degerler,
     `float(ARALIK_MAX_MM)` gibi literal olmayanlar atlanir). Dosya/SEMA yok -> None. Uretec import EDILMEZ.
-    `sema_adi` (kayit alani, or. ANAHTARLIK_SEMA) verilirse o sozluk SEMA'nin ustune alan alan yazilir; yoksa None."""
+    `sema_adi` (kayit alani, or. PLAKA_SEMA) verilirse o sozluk SEMA'nin ustune alan alan yazilir; yoksa None."""
     if isinstance(jen, dict):  # sabit kayit: uretec_semalari.json (betik -> {sozluk_adi: sozluk})
         ent = jen.get(betik) if betik else None
         if not isinstance(ent, dict):

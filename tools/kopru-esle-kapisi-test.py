@@ -18,29 +18,24 @@ IKI KATMAN
   E (sinif-r-k80 9 Eki: repodaki SABIT kayit jenerator/kopru/ + uretec_semalari.json -> CI'da da KOSAR;
      kayit yoksa `ESLE=KIRMIZI kayit-yok` + MA/MS2 SURVIVOR — ATLANDI YOK; `KOPRU_KAYIT` env elle karsilastirma):
      her kopru kaydi (+ teklif turu bust) icin S1'in DOGRULANMIS parametresi + ornek dosya/renk -> esle_<kod>:
-     E1 ALAN  cikti anahtarlari ⊆ kayit `parametreler` adlari ∪ cagri bayrak adlari ∪ cagri `sabit` anahtarlari
+     E1 ALAN  cikti anahtarlari ⊆ kayit `parametreler` adlari ∪ cagri bayrak adlari
      E2 TIP   her deger uretecin `SEMA[alan]` kuralina uyar (uretec dosyasindan ast; kayit `sema_adi` doluysa o
-              sozluk SEMA'nin ustune — anahtarlik ANAHTARLIK_SEMA; uretec_ortak._deger_dogrula aynasi; SEMA'da
+              sozluk SEMA'nin ustune; uretec_ortak._deger_dogrula aynasi; SEMA'da
               olmayan alan = uretec `bilinmeyen alan` RET'i)
      E3 EKSEN `olcek.belirleyen_parametre` dolu -> cikti[belirleyen] == zarfin olcu_mm'i (surgu = hedef olcu)
      E4 RENK  donen bolgeler ⊆ manifest renk_bolgeleri ∪ palet_bolgeleri (bust, yapboz); zarfa palet
               bolgelerinin renkleri de konur (odenen palet rengi esleyiciye ULASIR)
               + PALET-EKSIK: palet turunde palet_bolgeleri < fiyat.renk_tavani · RENK-DUSTU: renkli palet bolgesi
               esleme donusunde yok
-     E5 SABIT kayit `cagri.sabit` (anahtarlik: true) ciktida AYNEN (eksikse uretec plaka modunda basar)
-MUTANTLAR (gecici kopyada; calisma agacina YAZMAZ). K3c: kalan kopru turleri yapboz + anahtarlik; silinen
-braille/topo/yildiz/koordinat capali mutantlar bu iki turun capalarina tasindi (null/no-op YASAK). On adimli
-(G5 veri_cek) ve "0 = uretec varsayilani" (G5_SIFIR_VARSAYILAN) turu kalmadi -> O1/Z katmanlari bos kosar,
-eski MA6/MA7 SILINDI (capasi olan tur yok).
-  MA1 esle_anahtarlik'e uzun_kenar_mm eklendi -> E1 ALAN-DISI anahtarlik.uzun_kenar_mm
-  MA2 anahtarlik satirlar listesi tek dizeye birlestirildi -> E2 TIP anahtarlik.satirlar
-  MA3 G5 surgu olcusu belirleyen alana yazilmiyor -> E3 EKSEN anahtarlik.genislik_mm
+MUTANTLAR (gecici kopyada; calisma agacina YAZMAZ). 14 Eki: anahtarlik kaydi silindi -> kalan kopru turu yapboz
+(+ bust teklif); anahtarlik capali E1/E2 mutantlari yapboza TASINDI. G5 (_esle_gelen_renkli: surgu alani + renk_
+on eki) ve E5 SABIT kullanan kayit kalmadi -> eski MA3/MA4/MA5 + metin manifest mutantlari MS1/MS2 SILINDI
+(capasi olan acik tur yok; null/no-op YASAK). On adimli (G5 veri_cek) ve "0 = uretec varsayilani"
+(G5_SIFIR_VARSAYILAN) turu kalmadi -> O1/Z katmanlari bos kosar, eski MA6/MA7 SILINDI.
+  MA1 yapboz eslemesine kayitta olmayan alan eklendi -> E1 ALAN-DISI yapboz.kenar_mm
+  MA2 yapboz surgu olcusu dizeye cevrildi -> E2 TIP yapboz.uzun_kenar_mm
   MA3b yapboz surgu olcusu yazilmiyor -> E3 EKSEN yapboz.uzun_kenar_mm
-  MA4 renk on eki bozuk -> E1 ALAN-DISI anahtarlik.renk-
-  MA5 anahtarlik sabiti (anahtarlik:true) silindi -> E5 SABIT anahtarlik.anahtarlik
   MA6 yapboz palet listesi baska alana yaziliyor -> E1 ALAN-DISI yapboz.renk_listesi
-  MS1 manifestte anahtarlik satirlar `max` silindi -> S1 SUNUCU-RED anahtarlik=parametre-metin
-  MS2 manifestte anahtarlik satirlar `liste:true` silindi -> SUNUCU-RED anahtarlik / E2 TIP anahtarlik.satirlar
   MS3 manifestte yapboz palet_bolgeleri silindi -> E4 PALET-EKSIK yapboz
   MA0 kontrol: yorum eklendi -> 0 kirmizi
 Cikti son satiri: VAKA_KIRMIZI=<n> SURVIVOR=<n>   (rc 0 yalniz ikisi de 0)
@@ -205,8 +200,7 @@ def e_katmani(kosucu, kayitlar, jen, turler, deger):
             continue
         n += 1
         cagri = k.get("cagri") or {}
-        sabit = cagri.get("sabit") if isinstance(cagri.get("sabit"), dict) else {}
-        kabul = {p.get("ad") for p in k.get("parametreler") or []} | set(sabit)
+        kabul = {p.get("ad") for p in k.get("parametreler") or []}
         kabul |= {b[2:] for b in list(cagri.get("bayraklar") or []) +
                   [cagri.get(x) for x in ("girdi_bayragi", "cikti_bayragi", "veri_bayragi")]
                   if isinstance(b, str) and b.startswith("--")}
@@ -246,9 +240,6 @@ def e_katmani(kosucu, kayitlar, jen, turler, deger):
                 r = deger_dogrula(a, u[a], sema[a])
                 if r:
                     kirmizi.append("TIP %s.%s %s" % (kod, a, r))
-        for a, v in sorted(sabit.items()):
-            if u.get(a) != v:
-                kirmizi.append("SABIT %s.%s beklenen=%r gelen=%r" % (kod, a, v, u.get(a)))
         if bel and u.get(bel) != float(olcu):
             kirmizi.append("EKSEN %s.%s beklenen=%s gelen=%s" % (kod, bel, float(olcu), u.get(bel)))
         # Palet turu (bust) bolgeleri manifest palet_bolgeleri'nden (renkler[i] -> palet_bolgeleri[i]).
@@ -345,35 +336,27 @@ def _degistir(metin, eski, yeni):
 
 
 MUTANT_KOSUCU = {
-    "MA1 esle_anahtarlik'e uzun_kenar_mm eklendi": (
-        '    u["anahtarlik"] = True\n', '    u["anahtarlik"] = True\n    u["uzun_kenar_mm"] = float(g["olcu_mm"])\n',
-        r"ALAN-DISI anahtarlik\.uzun_kenar_mm"),
-    "MA2 anahtarlik satirlar tek dizeye birlestirildi": (
-        '    u["anahtarlik"] = True\n', '    u["anahtarlik"] = True\n    u["satirlar"] = "\\n".join(u["satirlar"])\n',
-        r"TIP anahtarlik\.satirlar"),
-    "MA3 G5 surgu olcusu belirleyen alana yazilmiyor": (
-        '    u[G5_OLCU_ALANI[kod]] = float(g["olcu_mm"])\n', "", r"EKSEN anahtarlik\.genislik_mm"),
+    "MA1 yapboz eslemesine kayit disi alan eklendi": (
+        '    u["uzun_kenar_mm"] = float(g["olcu_mm"])\n',
+        '    u["uzun_kenar_mm"] = float(g["olcu_mm"])\n    u["kenar_mm"] = float(g["olcu_mm"])\n',
+        r"ALAN-DISI yapboz\.kenar_mm"),
+    "MA2 yapboz surgu olcusu dizeye cevrildi": (
+        '    u["uzun_kenar_mm"] = float(g["olcu_mm"])\n', '    u["uzun_kenar_mm"] = str(float(g["olcu_mm"]))\n',
+        r"TIP yapboz\.uzun_kenar_mm"),
     "MA3b yapboz surgu olcusu yazilmiyor": (
         '    u["uzun_kenar_mm"] = float(g["olcu_mm"])\n', "", r"EKSEN yapboz\.uzun_kenar_mm"),
-    "MA4 renk on eki bozuk": ('u["renk_" + b] = h', 'u["renk-" + b] = h', r"ALAN-DISI anahtarlik\.renk-"),
-    "MA5 anahtarlik sabiti silindi": ('    u["anahtarlik"] = True\n', "", r"SABIT anahtarlik\.anahtarlik"),
     "MA6 yapboz palet listesi baska alana": ('        u["renkler"] = renkler\n', '        u["renk_listesi"] = renkler\n',
                                             r"ALAN-DISI yapboz\.renk_listesi"),
-    "MA0 kontrol: yorum eklendi -> 0 kirmizi": ("def esle_anahtarlik(", "# kontrol\ndef esle_anahtarlik(", None),
+    "MA0 kontrol: yorum eklendi -> 0 kirmizi": ("def esle_yapboz(", "# kontrol\ndef esle_yapboz(", None),
 }
 MUTANT_MANIFEST = {
-    "MS1 manifestte anahtarlik satirlar max silindi": (
-        "            satir_max: 3,\n            max: 40,\n", "            satir_max: 3,\n",
-        r"SUNUCU-RED anahtarlik=parametre-metin"),
-    "MS2 manifestte anahtarlik satirlar liste:true silindi": (
-        "            liste: true,\n", "", r"SUNUCU-RED anahtarlik|TIP anahtarlik\.satirlar"),
     "MS3 manifestte yapboz palet_bolgeleri silindi": (
         '        palet_bolgeleri: ["renk1", "renk2", "renk3", "renk4"]\n', "", r"PALET-EKSIK yapboz"),
 }
 # Manifest mutantlarindan kalibi YALNIZ E katmaninda yakalananlar (9 Eki olcum: kayitsiz kosumda S `liste:true`
 # silinince REDDETMIYOR -> kalip TIP'ten gelir). Kayit yoksa (sinif-r-k80: sabit kayit repoda, olmamasi ariza)
 # MA'lar gibi SURVIVOR sayilir — ATLANDI YOK.
-E_GEREKEN_MS = {"MS2 manifestte anahtarlik satirlar liste:true silindi"}
+E_GEREKEN_MS = set()  # 14 Eki: tek ornegi (MS2 anahtarlik metin) silindi
 
 
 def mutant(ad, kayitlar):

@@ -34,26 +34,21 @@
   var MESAFELI_URL = "/mesafeli-satis/";
   var ANA_BOLUM_ID = "fotoUretim";
   var STIL_ID = "fotoUretimStil";
-  // ① KARTLAR — TEK tablo, YALNIZ Okan'ın 6 modeli, Okan'ın SIRASIYLA ve ADLARIYLA (Okan 10 Eki ~16:3x: "1- Anahtarlık –
-  // yazı 2- insan ayakta duran figür 3- pet ayakta duran figür 4- Kabartma plaket 5- Anahtarlık – figür 6- Model figür.
+  // ① KARTLAR — TEK tablo, YALNIZ Okan'ın 4 modeli, Okan'ın SIRASIYLA ve ADLARIYLA (Okan 10 Eki ~16:3x, 14 Eki anahtarlık
+  // çıkarılmış: "1- insan ayakta duran figür 2- pet ayakta duran figür 3- Kabartma plaket 4- Model figür.
   // sadece bunları yapalım."). kod = kart · tur = üretim türü (manifest/`/acik` kodu) · alt = figür alt türü (S.altTur;
-  // önizleme isteğine `alt_tur` olarak gider, sağlayıcı istemi SUNUCUDA) · cesit = kartın sabitlediği çeşit (anahtarlık
-  // iki AYRI kart; ② çeşit düğmesi çizilmez) · ad + ret = sayfa metni. Büst/yapboz bu tabloda YOK: hiçbir durumda çizilmez.
+  // önizleme isteğine `alt_tur` olarak gider, sağlayıcı istemi SUNUCUDA) · ad + ret = sayfa metni. Büst/yapboz bu tabloda YOK: hiçbir durumda çizilmez.
   // Türü `/acik` listesinde olmayan, KENDİ kodu `/acik` `modeller` listesinde olmayan (ya da çeşidi açık olmayan) kart
   // ÇİZİLMEZ ("Yakında" etiketi YOK).
   // `ornek:false` ile işaretlenen kartın örneği ÇİZİLMEZ; ornekCiz nötr yer tutucu + "Örnek yakında" etiketi basar
   // (kart aktif/tıklanabilir kalır, gizleme YOK). Yeni görsel/URL UYDURMA.
   var KARTLAR = [
-    { kod: "anahtarlik_yazi", tur: "anahtarlik", alt: null, cesit: "yazi", ad: "Anahtarlık – yazı",
-      ret: "Anahtarlık için kısa bir yazı gerekir." },
     { kod: "insan", tur: "figur", alt: "insan", ad: "İnsan figürü (ayakta)",
       ret: "İnsan figürü için tek kişinin ayakta, baştan ayağa tam boy görünen net fotoğrafı gerekir." },
     { kod: "pet", tur: "figur", alt: "pet", ad: "Pet figürü (ayakta)",
       ret: "Pet figürü için tek hayvanın ayakta, tam boy görünen net fotoğrafı gerekir." },
     { kod: "plaket", tur: "plaket", alt: null, ad: "Kabartma plaket",
       ret: "Kabartma plaket için yüksek çözünürlüklü, iyi aydınlatılmış fotoğraf gerekir." },
-    { kod: "anahtarlik_figur", tur: "anahtarlik", alt: null, cesit: "figur", ad: "Anahtarlık – figür",
-      ret: "Anahtarlık için net bir fotoğraf gerekir." },
     { kod: "model", tur: "figur", alt: "model", ad: "Model figür",
       ret: "Model figür için tek nesne, araç ya da modelin net fotoğrafı gerekir." }
   ];
@@ -1665,13 +1660,9 @@
      `malzemeler`; boşsa satır YOK) + form parametreleri + CANLI FİYAT (F.fiyatKurus). */
   // Madde 6: ham değer kodu AYNI kalır (köprü manifest şemasını kirletmemek için), kullanıcıya UI'da
   // gösterilecek Türkçe etiket bu sabitten türetilir (tekilko kutucuk KUBAR_ETIKET_MAP).
-  // Anahtarlık ③ (TUR-C2b): pazarlama sayfa metni "Anahtarlık ③ seçenek etiketleri" tablosu AYNEN (figür `tepe`/`sirt` dahil).
-  // Harita ALAN KAVRAMIYLA tutulur: tür önekli alan (`<tür>_kulak_konum`) önek atılarak da aranır (etiketHaritasi).
+  // Harita ALAN KAVRAMIYLA tutulur: tür önekli alan (`<tür>_<alan>`) önek atılarak da aranır (etiketHaritasi).
   var KUBAR_ETIKET_MAP = {
-    kabartma_yon: { "acik_yuksek": "Açık tonlar yüksek", "koyu_yuksek": "Koyu tonlar yüksek" },
-    yazi_tipi: { "sans-kalin": "Kalın düz harfler", "script": "El yazısı" },
-    hizalama: { "sol": "Sol", "orta": "Orta", "sag": "Sağ" },
-    kulak_konum: { "sol-ust": "Sol üst", "sag-ust": "Sağ üst", "ust-orta": "Üst orta", "tepe": "Başın arkası (üst)", "sirt": "Başın arkası (ense)" }
+    kabartma_yon: { "acik_yuksek": "Açık tonlar yüksek", "koyu_yuksek": "Koyu tonlar yüksek" }
   };
   function etiketHaritasi(a) {
     if (Object.prototype.hasOwnProperty.call(KUBAR_ETIKET_MAP, a)) return KUBAR_ETIKET_MAP[a];
@@ -2148,7 +2139,7 @@
   // Okan 10 Eki 12:5x "not yazma zorunluluğunu kaldır": "Nasıl olsun?" notu HİÇBİR türde düğmeyi kapatmaz.
   var S1_SEBEP = {
     foto: "Önce fotoğrafını yükle.",
-    yazi: "Önce anahtarlığa yazılacak yazıyı gir.",
+    yazi: "Önce yazılacak yazıyı gir.",
     onay: "Aydınlatma metnini okuyup onay kutusunu işaretle.",
     dogrulama: "Güvenlik doğrulaması bekleniyor.",
     hak: "Önizleme hakkın doldu; ilk hakkın 24 saat içinde yeniden açılır.",

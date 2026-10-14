@@ -18,10 +18,10 @@ SÖZLEŞMESİNİ ölçer:
   Y5 SEPET    : ödeme dönüşünde sepeti koruyan oturum anahtarı iki dosyada AYNI dize
   Y6 GÜVENLİK : bölüm DOM'a innerHTML ile veri basmaz; yalnız aynı köken /api/shop uçları
   Y7 SÖZDİZİMİ: node --check (node yoksa OLCULEMEDI, yeşil sayılmaz)
-  Y8 PLAKET   : veri dosyasında plaket + figür + anahtarlık tür KAYDI VAR, magnet KAYDI 0; anahtarlığın
-                örnek kaydı 0 (örneksiz tür /acik'te YOK — sunucu davranışı foto-uretim.mjs P1/P5/P7); magnet
-                ekranda 0; anahtarlık ekranda YALNIZ ① KARTLAR satırı olarak (Okan 8 Eki 22:5x + 9 Eki 01:4x)
-  Y14 KARTLAR : ① kart tablosu 6 satır (kod · tur · alt · ad) — sayfa metni tablosu BİREBİR (K3b)
+  Y8 PLAKET   : veri dosyasında plaket + figür tür KAYDI VAR, magnet + anahtarlık KAYDI 0 (Okan 14 Eki "sil");
+                plaketin örnek kaydı VAR (örneksiz tür /acik'te YOK — sunucu davranışı foto-uretim.mjs P1/P5/P7);
+                magnet ekranda 0; anahtarlık ekranda 0 (KARTLAR dahil)
+  Y14 KARTLAR : ① kart tablosu 4 satır (kod · tur · alt · ad) — sayfa metni tablosu BİREBİR (K3b)
   Y9 TEK TÜR  : tek türde tür grubu gizlenir, adım çubuğu "Ölçü" der (DAVRANIŞ ölçümü sahte
                 DOM'da: shop/test/foto-uretim.mjs S bölümü; bu dosya sözleşmeyi tutar)
   Y10 RENDER  : (Okan 7 Eki: plaket gerçek baskı beklemeden açılır) türe göre `ornek_kanit_izni`
@@ -163,42 +163,35 @@ def kontroller(index, bolum, veri, build):
     s.append(("Y6 harici adres yalniz bot dogrulayici + WhatsApp", set(harici) <= izinli, str(harici)))
     # Y8 PLAKET (BaBa 5 Eki 21:4x(b)): veri dosyasinin `turler` dizisinde plaket + figur VAR (saglayici
     # kolunda IKINCI tur, 24 kategori programi #8). Magnet SUNULMAZ (5 Eki kurali AYNEN). Anahtarlik
-    # (K3d, Okan 8 Eki 22:5x + 9 Eki 01:4x + 9 Eki TeKiN: programin 5. turu) KAYDI VAR + sayilan
-    # ornegi 1 -> /acik'te VAR, kart cizilir (sunucu davranisi: shop/test/foto-uretim.mjs P1/P5/P7).
+    # Okan 14 Eki "sil" -> tur kaydi 0. Ornek sarti plaketle olculur (ornegi olan tur acilir; sunucu: foto-uretim.mjs).
     tb = re.search(r"\bturler:\s*\[(.*?)\n\s*\],", veri, re.S)
     kodlar = re.findall(r'\bkod:\s*"([^"]+)"', tb.group(1)) if tb else []
-    s.append(("Y8 plaket + figur + anahtarlik tur kaydi VAR, magnet turu 0",
-              all(k in kodlar for k in ("plaket", "figur", "anahtarlik")) and "magnet" not in kodlar, str(kodlar)))
+    s.append(("Y8 plaket + figur tur kaydi VAR, magnet + anahtarlik turu 0",
+              all(k in kodlar for k in ("plaket", "figur")) and "magnet" not in kodlar
+              and not [k for k in kodlar if k.startswith("anahtarlik")], str(kodlar)))
     ob = re.search(r"\bornekler:\s*\[(.*?)\n\s*\],", veri, re.S)
     ornek_turleri = re.findall(r'\btur:\s*"([^"]+)"', ob.group(1)) if ob else None
-    s.append(("Y8 anahtarligin ornek kaydi 1 (ornekler dizisi okundu; ornegi olan tur acilir)",
-              ornek_turleri is not None and "anahtarlik" in ornek_turleri, str(ornek_turleri)))
+    s.append(("Y8 plaketin ornek kaydi VAR, anahtarlik ornegi 0 (ornekler dizisi okundu; ornegi olan tur acilir)",
+              ornek_turleri is not None and "plaket" in ornek_turleri and "anahtarlik" not in ornek_turleri,
+              str(ornek_turleri)))
     eski = [k for k in ("magnet", "mıknatıs", "miknatis")
             if k in bolum.lower() or k in (tb.group(1).lower() if tb else "")]
-    # K3b (Okan 9 Eki 01:4x "5-anahtarlık"): anahtarlık yalnız sayfa metni tablolarında (① KARTLAR satırı +
-    # PENCERELER ① açıklaması, ArTisT metni birebir); bölümün başka yerinde 0.
-    # TUR-A2 (10 Eki): S1_SEBEP kayıtları ArTisT kaynak metni birebir — "anahtarlığa yazılacak" cümlesi
-    # kullanıcıya gösterilen TÜR ADI değil, talimat cümlesi; bölümde başka tür adı geçmemeli.
-    kb = re.search(r"var KARTLAR = \[(.*?)\n  \];", bolum, re.S)
-    pb = re.search(r"var PENCERELER = \[(.*?)\n  \];", bolum, re.S)
-    sb = re.search(r"var S1_SEBEP = \{.*?\};", bolum, re.S)
+    # Okan 14 Eki "Anahtarlık sil": anahtarlık bölümün HİÇBİR yerinde (KARTLAR · PENCERELER · S1_SEBEP dahil) ekrana
+    # çıkmaz; yorum ekrana çıkmaz (Okan alıntısı yorumda kalabilir).
     disari = bolum
-    for blk in (kb, pb, sb):
-        disari = disari.replace(blk.group(0), "") if blk else disari
     if "anahtarl" in yorumsuz(disari).lower():  # yorum ekrana çıkmaz (Okan alıntısı yorumda)
-        eski.append("anahtarl(KARTLAR disi)")
-    s.append(("Y8 magnet ekranda + tur listesinde 0; anahtarlik bolumde yalniz sayfa metni tablolari (KARTLAR + PENCERELER)", not eski, ",".join(eski)))
-    # 6 MODEL (Okan 10 Eki ~16:3x): Okan'ın sırası + adları; anahtarlık iki AYRI kart (çeşidi kart sabitler);
+        eski.append("anahtarl(ekranda)")
+    s.append(("Y8 magnet ekranda + tur listesinde 0; anahtarlik bolumde ekrana cikan HICBIR metinde yok", not eski, ",".join(eski)))
+    kb = re.search(r"var KARTLAR = \[(.*?)\n  \];", bolum, re.S)
+    # 4 MODEL (Okan 10 Eki ~16:3x; 14 Eki anahtarlık iki kartı silindi): Okan'ın sırası + adları;
     # figür alt türleri insan · pet · model; büst/yapboz satırı YOK.
     satirlar = re.findall(r'\{ kod: "([a-z_]+)", tur: "([a-z]+)", alt: (null|"[a-z_]+"),(?: cesit: "([a-z]+)",)? ad: "([^"]+)"',
                           kb.group(1)) if kb else []
-    beklenen = [("anahtarlik_yazi", "anahtarlik", "null", "yazi", "Anahtarlık – yazı"),
-                ("insan", "figur", '"insan"', "", "İnsan figürü (ayakta)"),
+    beklenen = [("insan", "figur", '"insan"', "", "İnsan figürü (ayakta)"),
                 ("pet", "figur", '"pet"', "", "Pet figürü (ayakta)"),
                 ("plaket", "plaket", "null", "", "Kabartma plaket"),
-                ("anahtarlik_figur", "anahtarlik", "null", "figur", "Anahtarlık – figür"),
                 ("model", "figur", '"model"', "", "Model figür")]
-    s.append(("Y14 KARTLAR 6 satir (6 MODEL): kod · tur · alt · cesit · ad (Okan sirasi/adlari birebir; bust/yapboz 0)",
+    s.append(("Y14 KARTLAR 4 satir (4 MODEL): kod · tur · alt · cesit · ad (Okan sirasi/adlari birebir; bust/yapboz 0)",
               satirlar == beklenen, str(satirlar)))
     # Y9 13:5x (Okan 13:5x: tek tur dali kaldirildi — tur secimi GALERIDEN, 24 kucuk resim izgarasi).
     # Ayri radyo grubu yok; tiklanan kart = secim (function galeriSec).
@@ -310,14 +303,12 @@ def main():
         ("M4 beyaz listeden dustu", (index, bolum, veri, build.replace('"foto-uretim.js", ', "", 1).replace(', "foto-uretim.js"', "", 1)), True),
         ("M5 oturum anahtari ayristi", (index.replace('setItem("%s"' % OTURUM_ANAHTARI, 'setItem("pruvo_foto_sip"'),
                                         bolum, veri, build), True),
-        # K3d (9 Eki TeKiN): anahtarlik artik sayilan ornegi 1 (gercek eklenmis). M6 = ornek SARTI
-        # YINE KALKAR mutant kurali AYNI ama yonu tersine: ornek listeden CIKARILIR -> ornekSayisi 0 ->
-        # nobetcideki "ornek 0" iddiasi geri gelir ve KIRMIZI yanar. M6b = kayit silinir · M6c = magnet
-        # tur listesine girer.
-        ("M6 anahtarlik ornegi kaldirildi (ornek sarti geri gelir)",
-         (index, bolum, re.sub(r'\s*\{\s*tur:\s*"anahtarlik",\s*(?://[^\n]*\n\s*)?(?:cesit:\s*"yazi",\s*)?kanit:\s*"render",\s*olcu_mm:\s*45,.*?\}\n', "\n", veri, count=1, flags=re.S), build), True),
-        ("M6b anahtarlik tur kaydi silindi",
-         (index, bolum, veri.replace('kod: "anahtarlik",', 'kod: "anahtarlikYOK",', 1), build), True),
+        # M6 = ornek SARTI: plaketin ornegi listeden CIKARILIR -> Y8 ornek iddiasi KIRMIZI. M6b = figur tur kaydi
+        # silinir (14 Eki: silinen anahtarlik kaydindan TASINDI) · M6c = magnet tur listesine girer.
+        ("M6 plaket ornegi kaldirildi (ornek sarti geri gelir)",
+         (index, bolum, re.sub(r'\s*\{\s*tur:\s*"plaket",\s*kanit:\s*"render",\s*olcu_mm:\s*120,.*?\},?\n', "\n", veri, count=1, flags=re.S), build), True),
+        ("M6b figur tur kaydi silindi",
+         (index, bolum, veri.replace('kod: "figur",', 'kod: "figurYOK",', 1), build), True),
         ("M6c magnet tur listesine eklendi",
          (index, bolum, veri.replace('kod: "plaket",', 'kod: "plaket",\n      },\n      {\n        kod: "magnet",', 1), build), True),
         ("M7 galeri tur secici kaldirildi (tek tur dali yerine)",

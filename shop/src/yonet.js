@@ -2039,6 +2039,13 @@ function makineAnahtariGecerli(request, env, altYol) {
 export function onizlemeMakinesiMi(request, env) {
   return makineAnahtariGecerli(request, env, "/foto/ornek-onizleme");
 }
+// SAHIP (Okan 15 Eki 01:0x: "ön izleme hakkını bizim browser için yükselt, biz platform sahibiyiz"): GECERLI yonetim
+// anahtari (panel cerezi `pruvo_yonet` ya da X-Yonet-Anahtar) tasiyan istek CANLIDA da ziyaretci 24 sa / N hak
+// sinirindan MUAF. Karsilastirma panel girisiyle AYNI kapidan (anahtarGecerli, sabit zamanli). Gecersiz/bos = siradan
+// ziyaretci. Kalan masraf kapilari (Turnstile · GUNLUK_ONIZLEME_TAVANI · havuz/kredi) muafiyete DAHIL DEGIL.
+export function yonetimSahibiMi(request, env) {
+  return anahtarGecerli(request, null, env);
+}
 
 export async function yonet(request, env, url, ctx, altYol, telegram) {
   if (!env.YONET_ANAHTAR) { return yon404(); }
@@ -2671,7 +2678,7 @@ async function fotoYukle(){
  }
  // ACILIS ANAHTARI — fiyat tablosu YOK (Okan 7 Eki): fiyat = max(600 TL, en uzun boyut (mm) × 10 TL), tek formül.
  // Tür yalnız anahtarı AÇIK + gerçek örneği varsa satılır; varsayılan KAPALI.
- // 6 MODEL: anahtarlık/figür MODEL satırlarıyla açılır (anahtarlik_yazi … model); eski tür satırı hiçbirini açmaz.
+ // 4 MODEL: figür MODEL satırlarıyla açılır (insan … model); eski tür satırı hiçbirini açmaz.
  var acikK={};(o.acik||[]).forEach(function(k){acikK[k]=true;});
  h.push('<div class="kart"><b>Satışa açık türler</b> (fiyat: '+esc(o.fiyat_formulu||"")+'; KDV dahil, kargo ayrı)'+
   '<table class="kucuk"><tr><th>Tür</th><th>Ölçü (mm)</th><th>En düşük</th><th>Durum</th><th></th></tr>'+

@@ -17,10 +17,10 @@ MUTANTLAR (gecici kopyalarda; calisma agacina YAZMAZ):
   govde adi parametre sonekinden sapti · MK9 renk_ parametresi silindi (tavan iner); F15 parametresiz govde = BILGI.
   K3c SOZLUK (F16-F21, hermetik): renk_liste -> palet (renk_secimi/palet_bolgeleri/renk_tavani) + bozuk bicim
   KIRMIZI · metin liste -> {liste, satir_max, max:karakter_max} + bozuk bicim KIRMIZI · sema_adi uste yazimi.
-  R katmani (K3c: gercek kayit = yapboz + anahtarlik; silinen sehir/yildiz/kosul capali MR'ler bu iki kayda
-  tasindi): MR1 renk_liste -> bilinmeyen tip · MR2 palet tavani 4->3 · MR3 adim dusuruldu · MR4 anahtarlik
-  satirlar max silindi · MR5 liste:true silindi · MR6 kayitta satir_max silindi · MR7 renk_liste oge bozuk ·
-  MR8 yapboz renk_secimi silindi · MR9 sema_adi dosyada yok · MR0 kontrol: anahtarlik durustluk metni degisti.
+  R katmani (gercek kayit = yapboz; 14 Eki anahtarlik kaydi silindi -> metin/sema_adi/foto kolu/PRUVO araligi
+  gercek kayitta YOK, sozluk dallari hermetik F16-F21'de): MR1 renk_liste -> bilinmeyen tip · MR2 palet tavani
+  4->3 · MR3 adim dusuruldu · MR7 renk_liste oge bozuk · MR8 yapboz renk_secimi silindi · MR14 SUNULMAYAN disi
+  kayit tur-yok · MR15 yapboz satir min · MR0 kontrol: yapboz durustluk metni degisti.
 Cikti son satiri: VAKA_KIRMIZI=<n> SURVIVOR=<n>   (rc 0 yalniz ikisi de 0)
 """
 import importlib.util
@@ -168,14 +168,11 @@ def hermetik():
     vaka("F7 olcek -> olcu_mm + fiyat adim · izinli_malzeme -> govde",
          h["olcu_mm"] == {"en_az": 60, "en_cok": 250} and h["fiyat_adim_mm"] == 5 and
          h["malzemeler"] == {"govde": ["PLA", "PETG"]})
-    # TPU (Okan 13 Eki): PRUVO eki YALNIZ anahtarlik govdesine; kopru TPU/ASA izinli olsa da baska ture GIRMEZ.
-    ah, _ = u.satir_uret({"kod": "anahtarlik", "uretec": "isimlik_uret", "girdi_tipi": ["metin"], "parametreler": [],
-                          "olcek": {"min_mm": 30, "max_mm": 300, "adim_mm": 5}, "izinli_malzeme": ["PLA", "PETG", "ASA"]})
+    # TPU (Okan 13 Eki; 14 Eki tasiyan tur silindi): PRUVO eki BOS; kopru TPU/ASA izinli olsa da HICBIR ture GIRMEZ.
     yb, _ = u.satir_uret({"kod": "yapboz", "uretec": "x_uret", "girdi_tipi": ["metin"], "parametreler": [],
                           "olcek": {"min_mm": 30, "max_mm": 300, "adim_mm": 5}, "izinli_malzeme": ["PLA", "PETG", "TPU"]})
-    vaka("F7b anahtarlik govde PLA·PETG·TPU (PRUVO eki) · baska tur kopruden TPU alsa da govdede TPU YOK",
-         ah["malzemeler"] == {"govde": ["PLA", "PETG", "TPU"]} and yb["malzemeler"] == {"govde": ["PLA", "PETG"]},
-         json.dumps([ah["malzemeler"], yb["malzemeler"]]))
+    vaka("F7b kopruden TPU alan turun govdesinde TPU YOK (PRUVO eki bos)",
+         yb["malzemeler"] == {"govde": ["PLA", "PETG"]} and u.PRUVO_EK_MALZEME == {}, json.dumps(yb["malzemeler"]))
     b = satirlar["bust"]["form"]
     vaka("F8 teklif turu (bust): ana parametre + teklif alani ustune, ayni sozluk",
          b["uzun_kenar_mm"]["etiket"] == "Boyut" and b["uzun_kenar_mm"]["max"] == 200 and
@@ -344,7 +341,7 @@ def gercek():
     finally:
         shutil.rmtree(d, ignore_errors=True)
     print("R-MUTANT")
-    # K3c: gercek kayit yapboz (renk_liste) + anahtarlik (metin liste); eski bool/kosul/sehir/yildiz capalari yok.
+    # Gercek kayit yapboz (renk_liste); anahtarlik (metin liste, sema_adi, foto kolu) 14 Eki silindi.
     mutant("MR1 gercek kayitta renk_liste -> renk_dizi (sozlukte yok) -> KIRMIZI", GERCEK_KAYIT, man,
            r"bilinmeyen-tip:yapboz\.renkler=renk_dizi",
            lambda kk, mm: degistir(kk, r'"tip":\s*"renk_liste"', '"tip": "renk_dizi"', regex=True))
@@ -353,57 +350,20 @@ def gercek():
            lambda kk, mm: degistir(kk, r'"uzunluk_max":\s*4,(\s*"oge")', r'"uzunluk_max": 3,\1', regex=True))
     mutant("MR3 gercek manifestte adim dusuruldu -> KIRMIZI", GERCEK_KAYIT, man, r"sapma:\w+\.form\.\w+\.adim",
            lambda kk, mm: degistir(mm, "adim: 0.01,", "adim: 0.001,"))
-    mutant("MR4 gercek manifestte anahtarlik satirlar max silindi -> KIRMIZI", GERCEK_KAYIT, man,
-           r"sapma:anahtarlik\.form\.satirlar\.max",
-           lambda kk, mm: degistir(mm, "            satir_max: 3,\n            max: 40,\n", "            satir_max: 3,\n"))
-    mutant("MR5 gercek manifestte anahtarlik liste:true silindi -> KIRMIZI", GERCEK_KAYIT, man,
-           r"sapma:anahtarlik\.form\.satirlar\.liste",
-           lambda kk, mm: degistir(mm, "            liste: true,\n", ""))
-    mutant("MR6 gercek kayitta satir_max silindi -> KIRMIZI", GERCEK_KAYIT, man, r"metin-satir-max:anahtarlik\.satirlar",
-           lambda kk, mm: degistir(kk, r'"satir_max":\s*3,\s*', "", regex=True))
     mutant("MR7 gercek kayitta renk_liste oge bozuk -> KIRMIZI", GERCEK_KAYIT, man, r"renk-liste-oge:yapboz\.renkler",
            lambda kk, mm: degistir(kk, r'"oge":\s*"#RRGGBB"', '"oge": "#RGB"', regex=True))
     mutant("MR8 gercek manifestte yapboz renk_secimi silindi -> KIRMIZI", GERCEK_KAYIT, man, r"sapma:yapboz\.renk_secimi",
            lambda kk, mm: degistir(mm, '        renk_secimi: "palet",\n        palet_bolgeleri: ["renk1"',
                                    '        palet_bolgeleri: ["renk1"'))
-    # MR9: kayit kopyasi gecici dizinde uretec dosyasini bulamaz -> gercek jenerator koku ile bellekte olculur.
-    u = arac_yukle()
-    kayit = json.load(open(GERCEK_KAYIT, encoding="utf-8"))
-    ak = [k for k in kayit["kayitlar"] if k.get("sema_adi") == "ANAHTARLIK_SEMA"]
-    for k in ak:
-        k["sema_adi"] = "YOK_SEMA"
-    _, h9 = u.hepsini_uret(kayit, u.jenerator_kok(GERCEK_KAYIT))
-    vaka("MR9 gercek kayitta sema_adi uretec dosyasinda yok -> KIRMIZI", len(ak) == 1 and
-         "sema-adi-yok:anahtarlik=YOK_SEMA" in h9, "uygulandi=%d %s" % (len(ak), h9))
-    # FOTO KOLU (anahtarlik-foto, 9 Eki; 10 Eki figur_kulak): kol kaydi ayri satir URETMEZ; ana satira foto_kolu,
-    # ana girdi AYNEN. anahtarlik-plaket kopruda ayri kayit, UI'da SUNULMAZ -> satir yok.
-    # foto_kolu.olcu_en_cok (kol_tavani) + renk_bolgesi kol uretecinin SEMA'sindan/kaydindan TURER (Okan 10 Eki 15:2x).
+    # SUNULMAYAN (bust-kaide): kopruda ayri kayit, UI'da sunulmaz -> satir yok; silinen anahtarlik satiri da yok.
     gs, gh = arac_yukle().hepsini_uret(json.load(open(GERCEK_KAYIT, encoding="utf-8")), u0.jenerator_kok(GERCEK_KAYIT))
-    vaka("R-FK1 gercek kayit: anahtarlik-foto satiri YOK + anahtarlik.foto_kolu {foto-1, figur_kulak, taban 30, tavan 291, bolge 0, renk_modlari tek|palet} + girdi [metin]",
-         "anahtarlik-foto" not in gs and gs["anahtarlik"].get("foto_kolu") == {"girdi": ["foto-1"], "uretec": "figur_kulak",
-                                                                               "olcu_en_az": 30, "olcu_en_cok": 291,
-                                                                               "renk_bolgesi": 0,
-                                                                               "renk_modlari": ["tek", "palet"]}
-         and gs["anahtarlik"]["girdi"] == ["metin"] and not gh,
-         "%s %s %s" % (sorted(gs), gs["anahtarlik"].get("foto_kolu"), gh))
-    vaka("R-FK2 gercek kayit: anahtarlik-plaket (SUNULMAYAN) satiri YOK, manifestte de YOK",
-         "anahtarlik-plaket" not in gs and 'kod: "anahtarlik-plaket"' not in open(man, encoding="utf-8").read(),
-         "%s" % sorted(gs))
-    mutant("MR10 gercek manifestte anahtarlik foto_kolu silindi -> KIRMIZI", GERCEK_KAYIT, man,
-           r"sapma:anahtarlik\.foto_kolu",
-           lambda kk, mm: degistir(mm, ',\n        foto_kolu: {\n          girdi: ["foto-1"],\n          uretec: "figur_kulak",\n'
-                                   '          olcu_en_az: 30,\n          olcu_en_cok: 291,\n          renk_bolgesi: 0,\n'
-                                   '          renk_modlari: ["tek", "palet"]\n        }', ""))
-    mutant("MR11 gercek kayitta figur-3mf -> figur-stl (sozlukte yok) -> KIRMIZI", GERCEK_KAYIT, man,
-           r"bilinmeyen-girdi:anahtarlik-foto=figur-stl",
-           lambda kk, mm: degistir(kk, '"figur-3mf"', '"figur-stl"'))
-    mutant("MR13 manifestte foto kolu eski plaket_kulak'a doner -> KIRMIZI", GERCEK_KAYIT, man,
-           r"sapma:anahtarlik\.foto_kolu",
-           lambda kk, mm: degistir(mm, 'uretec: "figur_kulak",\n          olcu_en_az',
-                                   'uretec: "plaket_kulak",\n          olcu_en_az'))
+    mt = open(man, encoding="utf-8").read()
+    vaka("R-FK2 gercek kayit: bust-kaide (SUNULMAYAN) satiri YOK; anahtarlik satiri ne kayitta ne manifestte",
+         "bust-kaide" not in gs and not [k for k in gs if k.startswith("anahtarlik")] and 'kod: "anahtarlik' not in mt
+         and not gh, "%s %s" % (sorted(gs), gh))
     mutant("MR14 SUNULMAYAN disi yeni kayit -> tur-yok KIRMIZI (gizleme listesi genis degil)", GERCEK_KAYIT, man,
-           r"tur-yok:anahtarlik-plaketx",
-           lambda kk, mm: degistir(kk, '"kod": "anahtarlik-plaket"', '"kod": "anahtarlik-plaketx"'))
+           r"tur-yok:bust-kaidex",
+           lambda kk, mm: degistir(kk, '"kod": "bust-kaide"', '"kod": "bust-kaidex"'))
     # Form alani `aciklama` editoryal (ArTisT cumlesi): kopru uretmiyorsa tasinir, uretiyorsa kopru kazanir.
     ft = arac_yukle().form_aciklama_tasi
     vaka("R-AC1 form aciklama: eksikse manifestten tasinir, uretilen varsa ezilmez, yeni alana uydurulmaz",
@@ -414,60 +374,8 @@ def gercek():
            r"sapma:yapboz\.form",
            lambda kk, mm: degistir(mm, 'aciklama: "Yapbozun dikey kaç parçaya bölüneceği.",\n            min: 3,',
                                    'aciklama: "Yapbozun dikey kaç parçaya bölüneceği.",\n            min: 2,'))
-    mutant("MR12 gercek kayitta foto kolunun ana turu yok -> KIRMIZI", GERCEK_KAYIT, man,
-           r"kol-ana-yok:anahtarlik-foto->anahtarlik",
-           lambda kk, mm: degistir(kk, '"kod": "anahtarlik",', '"kod": "anahtarlikx",'))
-    # OKAN 10 Eki 15:2x — anahtarlik 30–300 (kopru yalniz DARALTILIR), acilis 60; figur cesidi tavani KOPRUDEN.
-    jen = u0.jenerator_kok(GERCEK_KAYIT)
-    jen = jen if isinstance(jen, dict) else u0.jenerator_kok(u0.SABIT_KAYIT)
-
-    def aralik(kayit, sm):
-        a = kayit["anahtarlik"]
-        g = a["form"]["genislik_mm"]
-        return [a["olcu_mm"], g.get("min"), g.get("max"), g.get("varsayilan"), g.get("ornek"),
-                (a.get("foto_kolu") or {}).get("olcu_en_cok")]
-
-    def sahte(mm):
-        k3, j3 = json.load(open(GERCEK_KAYIT, encoding="utf-8")), json.loads(json.dumps(jen))
-        for k in k3["kayitlar"]:
-            if k.get("kod") in ("anahtarlik", "anahtarlik-foto"):
-                k["olcek"]["max_mm"] = mm
-                for p in k.get("parametreler") or []:
-                    if p.get("ad") == "genislik_mm":
-                        p["max"] = float(mm)
-        j3["jeneratorler/foto/isimlik_uret.py"]["ANAHTARLIK_SEMA"]["genislik_mm"]["max"] = float(mm)
-        fs = j3["jeneratorler/foto/figur_kulak.py"]["FIGUR_KULAK_SEMA"]
-        fs["figur_uzun_kenar_mm"]["max"] = fs["kulak_dahil_uzun_kenar_mm"]["max"] = float(mm)
-        return u0.hepsini_uret(k3, j3)
-    r1 = aralik(gs, None)
-    vaka("R-OK1 gercek kopru (2f13d23): olcu_mm {30, 300=min(300,kopru), baslangic 60} · genislik 30/300/60/60 · figur tavani 291",
-         r1 == [{"en_az": 30, "en_cok": 300, "baslangic": 60}, 30, 300, 60, 60, 291], json.dumps(r1))
-    s3, h3 = sahte(300)
-    r3 = aralik(s3, None)
-    vaka("R-OK2 (VO5S) sahte kopru 300: olcu_mm en_cok 300 · genislik max 300 · figur tavani 300 (elle sabit yok)",
-         r3 == [{"en_az": 30, "en_cok": 300, "baslangic": 60}, 30, 300, 60, 60, 300] and not h3, json.dumps([r3, h3]))
-    s4, h4 = sahte(400)
-    r4 = aralik(s4, None)
-    vaka("R-OK3 sahte kopru 400: Okan tavani 300'e KIRPAR (olcu 300 · genislik 300 · figur 300)",
-         r4 == [{"en_az": 30, "en_cok": 300, "baslangic": 60}, 30, 300, 60, 60, 300] and not h4, json.dumps([r4, h4]))
-    # MUTANTLAR (bellekte): Okan alt siniri 60'a geri -> R-OK1 olcutu KIRMIZI · baslangic yok sayilir -> acilis 30 ·
-    # kol tavani SEMA'yi okumaz (yalniz olcek 80) -> figur 80.
-    eski_ar, eski_kt = u0.PRUVO_ARALIK, u0.kol_tavani
-    try:
-        u0.PRUVO_ARALIK = {"anahtarlik": dict(eski_ar["anahtarlik"], en_az=60)}
-        m1 = aralik(u0.hepsini_uret(json.load(open(GERCEK_KAYIT, encoding="utf-8")), jen)[0], None)
-        u0.PRUVO_ARALIK = {"anahtarlik": {k: v for k, v in eski_ar["anahtarlik"].items() if k != "baslangic"} | {"baslangic": 0}}
-        m2 = aralik(u0.hepsini_uret(json.load(open(GERCEK_KAYIT, encoding="utf-8")), jen)[0], None)
-        u0.PRUVO_ARALIK = eski_ar
-        u0.kol_tavani = lambda kol, sema, ana: eski_kt(kol, {}, ana)
-        m3 = aralik(u0.hepsini_uret(json.load(open(GERCEK_KAYIT, encoding="utf-8")), jen)[0], None)
-    finally:
-        u0.PRUVO_ARALIK, u0.kol_tavani = eski_ar, eski_kt
-    vaka("M-OK1 mutant Okan alt siniri 60 -> R-OK1 olcutu KIRMIZI", m1 != r1, json.dumps(m1))
-    vaka("M-OK2 mutant acilis yok sayilir -> baslangic/varsayilan 60 DEGIL (KIRMIZI)", m2 != r1, json.dumps(m2))
-    vaka("M-OK3 mutant kol tavani SEMA'yi okumaz -> figur tavani 72 DEGIL (KIRMIZI)", m3 != r1, json.dumps(m3))
-    mutant("MR0 kontrol: anahtarlik durustluk metni degisti -> YESIL kalir", GERCEK_KAYIT, man, None,
-           lambda kk, mm: degistir(mm, 'durustluk: "Metal halka ve zincir', 'durustluk: "Metal halka ya da zincir'))
+    mutant("MR0 kontrol: yapboz durustluk metni degisti -> YESIL kalir", GERCEK_KAYIT, man, None,
+           lambda kk, mm: degistir(mm, 'durustluk: "Her yapboz parçası tek renktir.', 'durustluk: "Her yapboz parçası tek renkli.'))
 
 
 def main():
