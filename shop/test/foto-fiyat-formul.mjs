@@ -171,7 +171,7 @@ const SPEC_ORNEKLERI = [
   [100, { renkli: true, malzeme: "PETG" }, 149500], [60, {}, 60000], [60, { renkli: true, malzeme: "PETG" }, 89700],
 ];
 const MALZEME_KARTLARI = [["PLA", "~55-60°C", "Ev içi"], ["PETG", "~70-75°C", "Dış mekân / genel amaçlı"],
-  ["TPU", "~60-70°C", "Esnek, kırılmaz"]];
+  ["TPU", "~60-70°C", "Esnek"]];
 // K3d: palet türleri MANIFESTTEN (`renk_secimi: "palet"` ham alanı); VERI.renkPaleti fonksiyonu buna uymalı.
 const paletTurleri = (V) => V.turler.filter((t) => t.renk_secimi === "palet").map((t) => t.kod);
 function renkSenaryo(V, kaynak) {
@@ -326,7 +326,7 @@ const VERI_MUTANTLAR = [
    'kullanim: "Dış mekân / genel amaçlı", ek_yuzde: 30 },\n    { kod: "ASA", sicaklik: "~95°C", kullanim: "Dış", ek_yuzde: 0 }', ["F9"]],
   // TPU (Okan 13 Eki): M1 TPU'ya %30 uygulanir (ikiz tanim katalogdan ayrisir) -> F10 KIRMIZI · TPU listede adsiz
   // turlere (plaket/figur) de sizarsa -> F10 KIRMIZI.
-  ["FM13 TPU'YA %30 (ikiz tanim ayrisir)", 'kullanim: "Esnek, kırılmaz", ek_yuzde: 55,', 'kullanim: "Esnek, kırılmaz", ek_yuzde: 30,', ["F10"]],
+  ["FM13 TPU'YA %30 (ikiz tanim ayrisir)", 'kullanim: "Esnek", ek_yuzde: 55,', 'kullanim: "Esnek", ek_yuzde: 30,', ["F10"]],
   ["FM14 TPU HER TURDE", "        : !m.yalniz_tur_listesinde;", "        : true;", ["F10"]],
   // Eski ek renk modeli geri gelirse (sayi = renk adedi kabul edilir, adet basi +100 TL) F9 KIRMIZI.
   ["FM12 RENK ADEDI UCRETLENIR", "    if (s === undefined) { return { renkli: false, malzeme: VERI.VARSAYILAN_MALZEME }; }",

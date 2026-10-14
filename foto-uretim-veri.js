@@ -392,7 +392,7 @@
         alan_aciklamalari: {
           olcu: "Anahtarlığın kulakçık dahil en uzun boyutudur; fiyat bu ölçüye göre canlı hesaplanır.",
           renk: "Yazı için bir, taban için bir renk seç; ikisi birbirinden belirgin olmalı ki yazı net okunsun.",
-          malzeme: "PLA ev içi kullanım içindir; PETG dış mekân ve genel amaçlı kullanım için daha yüksek sıcaklığa dayanır (+%30). TPU esnek ve kırılmaz; tek renk (beyaz), yazı kabartmayla okunur."
+          malzeme: "PLA ev içi kullanım içindir; PETG dış mekân ve genel amaçlı kullanım için daha yüksek sıcaklığa dayanır (+%30). TPU esnektir; tek renk (beyaz), yazı kabartmayla okunur."
         },
         bolge_renk_secimi: {
           cesit: "yazi",
@@ -1103,7 +1103,7 @@
     // (secenekler.js FILAMENT_FARK.TPU, tek kaynak). Bu dosya vm'de secenekler.js'siz de yüklendiği için (koşucu,
     // kapılar, testler) türetilemez; ikiz-tanım testi shop/test/foto-tpu.mjs iki sayının eşitliğini ölçer.
     // yalniz_tur_listesinde: türün `malzemeler` listesi TPU'yu ADIYLA taşımıyorsa sunulmaz (yalnız anahtarlık).
-    { kod: "TPU", sicaklik: "~60-70°C", kullanim: "Esnek, kırılmaz", ek_yuzde: 55, yalniz_tur_listesinde: true }
+    { kod: "TPU", sicaklik: "~60-70°C", kullanim: "Esnek", ek_yuzde: 55, yalniz_tur_listesinde: true }
   ];
   VERI.VARSAYILAN_MALZEME = "PLA";
   VERI.malzemeBul = function (kod) {
