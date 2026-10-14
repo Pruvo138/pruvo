@@ -1174,7 +1174,9 @@ function sahteBelge() {
     getAttribute(k) { return k in this.ozn ? this.ozn[k] : null; }
     removeAttribute(k) { delete this.ozn[k]; if (k === "hidden") { this.hidden = false; } }
     addEventListener(tip, fn) { (this.dinle = this.dinle || {})[tip] = ((this.dinle || {})[tip] || []).concat([fn]); }
-    tetikle(tip) { for (const fn of ((this.dinle || {})[tip] || [])) { fn({ target: this }); } }
+    // ek.evt (14 Eki RNH): dinleyiciye iletkeninici özellikler (pointerType vb.) — mevcut çağrılar
+    // (ek.evt olmadan) bayt-aynı ({target: this}) çalışır; geriye uyumlu.
+    tetikle(tip, evt) { for (const fn of ((this.dinle || {})[tip] || [])) { fn(Object.assign({ target: this }, evt || {})); } }
     set textContent(v) { this.childNodes = [new Metin(v)]; }
     get textContent() { return this.childNodes.map((c) => c.textContent).join(""); }
     *agac() { for (const c of this.childNodes) { if (c.nodeType === 1) { yield c; yield* c.agac(); } } }
@@ -8015,6 +8017,103 @@ async function rnIstemci(kaynak, V) {
   iz.RNE7 = rnOku(e7);
   s.RNE7 = iz.RNE7.renkPost.length === 1 && iz.RNE7.renkPost[0].renk === "Siyah" &&
     JSON.stringify(iz.RNE7.src) === JSON.stringify([RN_GORSEL]) && iz.RNE7.cumle === 0;
+  // === RNH (14 Eki 03:5x): fare/dokunma/klavye ile sağlayıcının renkli görseline geçiş (sade cep 3 kolu) ===
+  const nhImg = (e) => [...e.bolum.agac()].find((n) => n.classList.contains("foto-uretim-onizleme-img"));
+  const nhIpucu = (e) => [...e.bolum.agac()].filter((n) => n.classList.contains("foto-uretim-renk-ipucu"));
+  const nhDinle = (img) => ["contextmenu", "pointerenter", "pointerleave", "pointerdown", "pointerup", "pointercancel", "focus", "blur"]
+    .reduce((t, tip) => t + ((img.dinle || {})[tip] || []).length, 0);
+  const nhKos = (kaynak, V, kayitArg, durumArg, ek) => ekranKos(kaynak, V, acikGercek(V, V6_TUM), kayitArg, durumArg, Object.assign({ zamanlayici: true }, ek || {}));
+
+  // RNH1: fare pointerenter (mouse) → src = S.gorsel · alt = "Önizleme — fotoğraftaki renkli hâli"; pointerleave →
+  // src = renk çizimi · alt = kuruluş alt'ı; sınıf foto-uretim-renk-degis + tabIndex=0 + 8 dinleyici.
+  const nh1 = await nhKos(kaynak, V, kayit("plaket", "Beyaz"),
+    rnHazir("plaket", { onizleme_renk: "Beyaz", onizleme_renk_durum: "hazir", onizleme_renk_url: RG("Beyaz"), onizleme_saglayici_url: RN_GORSEL }));
+  const nh1Img = nhImg(nh1);
+  const nh1Alt0 = nh1Img.alt;
+  nh1Img.tetikle("pointerenter", { pointerType: "mouse" });
+  const nh1Enter = { src: nh1Img.src, alt: nh1Img.alt };
+  nh1Img.tetikle("pointerleave");
+  const nh1Leave = { src: nh1Img.src, alt: nh1Img.alt };
+  iz.RNH = { hasClass: nh1Img.classList.contains("foto-uretim-renk-degis"), tabIndex: nh1Img.tabIndex,
+    src0: nh1Img.src, alt0: nh1Alt0, enter: nh1Enter, leave: nh1Leave, dinle: nhDinle(nh1Img),
+    ipucu: nhIpucu(nh1).map((n) => n.textContent) };
+  iz.RNH1 = iz.RNH;
+  s.RNH1 = iz.RNH.hasClass === true && iz.RNH.tabIndex === 0 &&
+    iz.RNH.src0 === RG("Beyaz") &&
+    iz.RNH.enter.src === RN_GORSEL && iz.RNH.enter.alt === "Önizleme — fotoğraftaki renkli hâli" &&
+    iz.RNH.leave.src === RG("Beyaz") && iz.RNH.leave.alt === iz.RNH.alt0 &&
+    iz.RNH.dinle === 8 && iz.RNH.ipucu.length === 1 &&
+    iz.RNH.ipucu[0] === "Fotoğraftaki renkli hâlini görmek için görselin üstüne gel ya da basılı tut.";
+
+  // RNH2: dokunmatik/kalem pointerdown (touch) → src = S.gorsel; pointerup → src = renk çizimi;
+  // pointercancel → src = renk çizimi. (mouse pointerenter aynı dinleyiciyi ateşler ama pointerType filtresi
+  // nedeniyle renkliGoster tetiklenmez — fare için RNH1'e bırakıldı.)
+  const nh2 = await nhKos(kaynak, V, kayit("plaket", "Beyaz"),
+    rnHazir("plaket", { onizleme_renk: "Beyaz", onizleme_renk_durum: "hazir", onizleme_renk_url: RG("Beyaz"), onizleme_saglayici_url: RN_GORSEL }));
+  const nh2Img = nhImg(nh2);
+  nh2Img.tetikle("pointerdown", { pointerType: "touch" });
+  const nh2Down = { src: nh2Img.src, alt: nh2Img.alt };
+  nh2Img.tetikle("pointerup");
+  const nh2Up = { src: nh2Img.src, alt: nh2Img.alt };
+  nh2Img.tetikle("pointerdown", { pointerType: "pen" });
+  const nh2Pen = { src: nh2Img.src, alt: nh2Img.alt };
+  nh2Img.tetikle("pointercancel");
+  const nh2Cancel = { src: nh2Img.src, alt: nh2Img.alt };
+  // mouse pointerdown filtreye takılır — renkliGoster tetiklenmez (görsel cizim adresinde).
+  nh2Img.tetikle("pointerdown", { pointerType: "mouse" });
+  const nh2Mouse = { src: nh2Img.src, alt: nh2Img.alt };
+  iz.RNH2 = { down: nh2Down, up: nh2Up, pen: nh2Pen, cancel: nh2Cancel, mouse: nh2Mouse };
+  s.RNH2 = nh2Down.src === RN_GORSEL && nh2Up.src === RG("Beyaz") &&
+    nh2Pen.src === RN_GORSEL && nh2Cancel.src === RG("Beyaz") &&
+    nh2Mouse.src === RG("Beyaz");
+
+  // RNH3: focus → src = S.gorsel; blur → src = renk çizimi.
+  const nh3 = await nhKos(kaynak, V, kayit("plaket", "Beyaz"),
+    rnHazir("plaket", { onizleme_renk: "Beyaz", onizleme_renk_durum: "hazir", onizleme_renk_url: RG("Beyaz"), onizleme_saglayici_url: RN_GORSEL }));
+  const nh3Img = nhImg(nh3);
+  nh3Img.tetikle("focus");
+  const nh3F = { src: nh3Img.src, alt: nh3Img.alt };
+  nh3Img.tetikle("blur");
+  const nh3B = { src: nh3Img.src, alt: nh3Img.alt };
+  iz.RNH3 = { focus: nh3F, blur: nh3B };
+  s.RNH3 = nh3F.src === RN_GORSEL && nh3F.alt === "Önizleme — fotoğraftaki renkli hâli" &&
+    nh3B.src === RG("Beyaz") && nh3B.alt !== "Önizleme — fotoğraftaki renkli hâli";
+
+  // RNH4: S.gorsel boşuken → dinleyici 0, ipucu yok, src = renk çizimi (RN_GORSEL boş, onizleme_saglayici_url YOK).
+  const nh4 = await nhKos(kaynak, V, kayit("plaket", "Beyaz"),
+    rnHazir("plaket", { gorsel: "", onizleme_renk: "Beyaz", onizleme_renk_durum: "hazir", onizleme_renk_url: RG("Beyaz") }));
+  const nh4Img = nhImg(nh4);
+  iz.RNH4 = { src: nh4Img.src, hasClass: nh4Img.classList.contains("foto-uretim-renk-degis"),
+    tabIndex: nh4Img.tabIndex, dinle: nhDinle(nh4Img), ipucu: nhIpucu(nh4).length };
+  // S.gorsel boş: listener yok, ipucu yok, sınıf yok, tabIndex atanmadı (sahte DOM'da undefined). Görsel hâlâ
+  // renk çizimi (S.renkSunucu.gorsel — server tek renkli çizimi vermiş).
+  s.RNH4 = nh4Img.src === RG("Beyaz") && nh4Img.classList.contains("foto-uretim-renk-degis") === false &&
+    nhDinle(nh4Img) === 0 && nhIpucu(nh4).length === 0;
+
+  // RNH5: Renkli seçili (renkCiz = false) → dinleyici 0, ipucu yok; src = sağlayıcı görseli (RN_GORSEL).
+  const nh5 = await nhKos(kaynak, V,
+    kayit("plaket", "Renkli", { renkler: ["Kırmızı", "Beyaz"], renk_kaynak: "foto" }), rnHazir("plaket"));
+  const nh5Img = nhImg(nh5);
+  iz.RNH5 = { src: nh5Img.src, dinle: nhDinle(nh5Img), ipucu: nhIpucu(nh5).length,
+    hasClass: nh5Img.classList.contains("foto-uretim-renk-degis") };
+  s.RNH5 = nh5Img.src === RN_GORSEL && nhDinle(nh5Img) === 0 && nhIpucu(nh5).length === 0 &&
+    nh5Img.classList.contains("foto-uretim-renk-degis") === false;
+
+  // RNH6: ipucu metni birebir + RENK_CUMLESI birebir + sıra (cümle önce, ipucu sonra; aynı).
+  const nh6 = await nhKos(kaynak, V, kayit("plaket", "Beyaz"),
+    rnHazir("plaket", { onizleme_renk: "Beyaz", onizleme_renk_durum: "hazir", onizleme_renk_url: RG("Beyaz"), onizleme_saglayici_url: RN_GORSEL }));
+  const nh6D = [...nh6.bolum.agac()];
+  const nh6CumleP = nh6D.find((n) => n.tagName === "P" && n.textContent === RN_CUMLE);
+  const nh6IpucuP = nh6D.find((n) => n.classList.contains("foto-uretim-renk-ipucu"));
+  iz.RNH6 = { cumleMetni: nh6CumleP && nh6CumleP.textContent, ipucuMetni: nh6IpucuP && nh6IpucuP.textContent,
+    cumleOnce: nh6CumleP && nh6IpucuP ? nh6CumleP.parentNode.childNodes.indexOf(nh6CumleP) : -1,
+    ipucuSonra: nh6CumleP && nh6IpucuP ? nh6CumleP.parentNode.childNodes.indexOf(nh6IpucuP) : -1 };
+  s.RNH6 = nh6CumleP && nh6IpucuP &&
+    iz.RNH6.cumleMetni === RN_CUMLE && iz.RNH6.ipucuMetni === "Fotoğraftaki renkli hâlini görmek için görselin üstüne gel ya da basılı tut." &&
+    nh6CumleP.parentNode.childNodes.indexOf(nh6CumleP) < nh6CumleP.parentNode.childNodes.indexOf(nh6IpucuP);
+  // Yukarıdaki "cümle önce, ipucu sonra" DOM kardeş sırasıdır; ek olarak ipucu tag'i <p> olmalı.
+  if (s.RNH6 && nh6IpucuP.tagName !== "P") { s.RNH6 = false; iz.RNH6.tagHatasi = nh6IpucuP.tagName; }
+
   Object.defineProperty(s, "iz", { value: iz, enumerable: false });
   return s;
 }
@@ -8029,17 +8128,44 @@ async function rnIstemci(kaynak, V) {
     RNE5: "RNE5 ④'ten ③'e dönüp Gri -> /foto/renk {is, Gri} TEK istek + S2 bekleme",
     RNE6: "RNE6 önizleme gövdesi: tek renk plaket renk=Beyaz · insan renk=Gri · Renkli'de renk alanı YOK",
     RNE7: "RNE7 Renkli alınmış önizleme + oturumda Siyah -> /foto/renk TEK kez, kabul edilmezse eski davranış (döngü yok)",
+    RNH1: "RNH1 fare pointerenter(mouse) → src = S.gorsel · alt = 'fotoğraftaki renkli hâli'; pointerleave → renk çizimi (KIRMIZ); sınıf + tabIndex=0 + 8 dinleyici + 1 ipucu",
+    RNH2: "RNH2 dokunmatik/kalem pointerdown → S.gorsel; pointerup · pointercancel → cizim; mouse pointerdown filtreye takılır (dokunmatik akış)",
+    RNH3: "RNH3 focus → S.gorsel; blur → cizim",
+    RNH4: "RNH4 S.gorsel boş → dinleyici 0 · ipucu yok · sınıf yok · src = renk çizimi",
+    RNH5: "RNH5 Renkli seçili (renkCiz=false) → dinleyici 0 · ipucu yok · src = sağlayıcı görseli",
+    RNH6: "RNH6 ipucu metni birebir + RENK_CUMLESI birebir + DOM sırası (cümle önce, ipucu sonra)",
   };
   for (const a of Object.keys(ADLAR)) { ol(ADLAR[a], s[a] === true, JSON.stringify(s.iz[a]).slice(0, 700)); }
   const RNE_MUT = [
     ["M-RNE-RENKLI Renkli'de de renk istenir", "  function renkHedefi() { return renkOnizlemeKolu() && !renkliMi() ? anaRenk() : \"\"; }",
      "  function renkHedefi() { return renkOnizlemeKolu() ? anaRenk() : \"\"; }", ["RNE3", "RNE6"]],
-    ["M-RNE-CIZIM-YOK çizim adresi yok sayılır", "        img.src = S.renkSunucu.gorsel;\n", "        img.src = S.gorsel;\n", ["RNE1"]],
+    ["M-RNE-CIZIM-YOK çizim adresi yok sayılır", "        img.src = S.renkSunucu.gorsel;\n", "        img.src = S.gorsel;\n", ["RNE1", "RNH4"]],
     ["M-RNE-CUMLE renk cümlesi basılmaz",
-     "        S.alan.appendChild(el(\"p\", \"foto-uretim-ayrinti foto-uretim-renk-notu\", RENK_CUMLESI));\n", "", ["RNE1"]],
+     "        S.alan.appendChild(el(\"p\", \"foto-uretim-ayrinti foto-uretim-renk-notu\", RENK_CUMLESI));\n", "", ["RNE1", "RNH6"]],
     ["M-RNE-K0 KONTROL (aynı gövde)", "  var RENK_URL = \"/api/shop/foto/renk\";\n", "  var RENK_URL = \"/api/shop/foto/renk\";\n", []],
   ];
   for (const [ad, capa, yerine, olmeli] of RNE_MUT) {
+    if (EKRAN_KAYNAK.split(capa).length - 1 !== 1) { ol(ad + " capa bulundu", false, capa); continue; }
+    const m = await rnIstemci(EKRAN_KAYNAK.replace(capa, yerine), V);
+    const kir = Object.keys(ADLAR).filter((x) => m[x] !== true).sort();
+    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli), JSON.stringify(kir));
+  }
+  const RNH_MUT = [
+    ["M-RNH-LEAVE pointerleave geri döndürmüyor (cizimGoster no-op) -> RNH1+RNH2+RNH3 KIRMIZI (hepsi cizimGoster'ı paylaşır)",
+     "var renkDegisCizimGoster = function () { img.src = renkDegisCizim; img.alt = renkDegisAltCizim; };",
+     "var renkDegisCizimGoster = function () {};",
+     ["RNH1", "RNH2", "RNH3"]],
+    ["M-RNH-BOSKEN-DINLE S.gorsel boşken de dinleyici kuruluyor -> RNH4 KIRMIZI",
+     "if (renkCiz && S.renkSunucu && S.gorsel) {",
+     "if (renkCiz && S.renkSunucu) {",
+     ["RNH4"]],
+    ["M-RNH-RENKLI-DINLE dinleyiciler renkCiz dışında da kuruluyor -> RNH5 KIRMIZI",
+     "if (renkCiz && S.renkSunucu && S.gorsel) {",
+     "if (S.gorsel) {",
+     ["RNH5"]],
+    ["M-RNH-K0 KONTROL (yorum)", "  // ④ HOVER ALTERNATİF (Okan 14 Eki 03:5x): fareyle", "  // ④ HOVER ALTERNATİF (Okan 14 Eki 03:5x): fareyle", []],
+  ];
+  for (const [ad, capa, yerine, olmeli] of RNH_MUT) {
     if (EKRAN_KAYNAK.split(capa).length - 1 !== 1) { ol(ad + " capa bulundu", false, capa); continue; }
     const m = await rnIstemci(EKRAN_KAYNAK.replace(capa, yerine), V);
     const kir = Object.keys(ADLAR).filter((x) => m[x] !== true).sort();
