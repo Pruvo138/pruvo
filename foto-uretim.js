@@ -2280,6 +2280,8 @@
      (Siyah/Beyaz/Gri) seçiliyken ④ görseli = modelin O RENKTE çizimi (sunucu /durum `renk_durum` + `renk_gorsel`).
      Renkli'de bugünkü gibi sağlayıcı görseli (renk isteği/alanı YOK). Çizim hazırlanırken S2 "Renk önizlemesi
      hazırlanıyor…" + sağlayıcı görseli (sessiz boş görsel YOK); sunucu `yok` derse (tavan/hata/gecikme) eski davranış. */
+  // SÜRE KAPISI metni (④/③: geçerlilik geçmişse "Sepete ekle" pasif + bu satır; sepeteEkle de aynı metni basar).
+  var SURE_DOLDU_METNI = "Önizlemenin süresi doldu; yeni önizleme gerekiyor.";
   var RENK_URL = "/api/shop/foto/renk";
   var RENK_HAZIRLANIYOR = "Renk önizlemesi hazırlanıyor…";
   var RENK_CUMLESI = "Önizleme seçtiğin renkte çizildi; ürün bu renkte üretilir.";
@@ -2446,7 +2448,9 @@
       S.alan.appendChild(ozet);
     }
 
-    if (S.gecerlilik) {
+    if (onizlemeSuresiDoldu()) {
+      S.alan.appendChild(el("p", "foto-uretim-ayrinti foto-uretim-sure-doldu", SURE_DOLDU_METNI));
+    } else if (S.gecerlilik) {
       S.alan.appendChild(el("p", "foto-uretim-ayrinti",
         "Bu önizleme " + yerelSaat(S.gecerlilik) +
         " saatine kadar siparişe dönüşebilir."));
@@ -2523,7 +2527,15 @@
   // NOT: aynı formül cizS3'te zaten yazılı; burada B2 değişiminde yeniden hesaplanır (tek kapı).
   // K2b-fin: B2/aydinlatma/fiyat kapı formülü TEK yerde (cizS3 + guncelleSipButonu çağırır).
   function sipBtnKapaliMi(nt) {
-    return !S.aydinlatmaOnay || !S.b2Onay || !!(nt && F.olcuTuretilmis(nt.kod) && S.fiyatKurus == null);
+    return !S.aydinlatmaOnay || !S.b2Onay || !!(nt && F.olcuTuretilmis(nt.kod) && S.fiyatKurus == null) ||
+      onizlemeSuresiDoldu();
+  }
+  // SÜRE KAPISI (BaBa 14 Eki): geçerlilik (sunucunun gecerlilik_bitis'i) geçmişse "Sepete ekle" açılmaz; sunucu da
+  // aynı kalemi 400 foto-onizleme-suresi-doldu ile reddeder — istemci kapısı müşteriyi oraya hiç göndermez.
+  function onizlemeSuresiDoldu() {
+    if (!S.gecerlilik) return false;
+    var bitis = Date.parse(S.gecerlilik);
+    return isFinite(bitis) && Date.now() > bitis;
   }
   function guncelleSipButonu() {
     if (!S.alan) return;
@@ -2572,6 +2584,10 @@
     return satir;
   }
   function sepeteEkle(nt, fiyat, rs) {
+    // Çift kapı: buton açık kalmışken süre dolduysa (ekran açık bekledi) kalem sepete GİRMEZ.
+    if (onizlemeSuresiDoldu()) {
+      adimKoy("S3", SURE_DOLDU_METNI, true); return;
+    }
     if (!S.is || !S.olcu || !nt || fiyat == null || !S.aydinlatmaOnay) {
       adimKoy("S3", "Sepete eklemek için önizleme ve onay gerekli.", true); return;
     }

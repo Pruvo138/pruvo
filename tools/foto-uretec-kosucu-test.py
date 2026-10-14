@@ -1889,7 +1889,7 @@ MUTANTLAR = {
     # SAGLIK DAMGASI: damga yazimi kalkarsa onizleme hazirlayicisi hep "cevrimdisi" gorunur (K1; T1 tek yazim).
     "MK1": ("            damga_yaz(yaz)\n", "            pass\n", {"K1", "T1"}),
     "M3": ('    if n != 1:\n        yaz("CAS %s kiralanamadi', '    if False:\n        yaz("CAS %s kiralanamadi', {"T6"}),
-    "M4": ("DENEME_TAVANI = 3\n", "DENEME_TAVANI = 99\n", {"T4"}),
+    "M4": ("DENEME_TAVANI = 3\n", "DENEME_TAVANI = 99\n", {"T4", "RR3"}),
     "M5": ("            d1(geri_ver_sql(i, jeton))\n", "            pass\n", {"T7", "T34"}),
     "M6": ("    if onceki != sha:\n", "    if False:\n", {"T12b"}),
     "M7": ('    if i["kuyruk"] != "siparis" or not i.get("onizleme_kaynakli"):\n        return None\n    os.makedirs',

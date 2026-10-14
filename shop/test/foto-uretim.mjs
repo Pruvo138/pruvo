@@ -4362,8 +4362,8 @@ const acikGercek = (V, kodlar) => ({ acik: true, turler: kodlar.map((k) => acikG
      mSeritUyg ? "bulundu=" + !!mSeritEtiket : "MUTANT_UYGULANMADI");
 
   // M-B2: sipBtnKapaliMi'den `!S.b2Onay ||` silinir ⇒ B2 yokken sipBtn AÇIK.
-  const mB2Capa = "function sipBtnKapaliMi(nt) {\n    return !S.aydinlatmaOnay || !S.b2Onay || !!(nt && F.olcuTuretilmis(nt.kod) && S.fiyatKurus == null);\n  }";
-  const mB2Yerine = "function sipBtnKapaliMi(nt) {\n    return !S.aydinlatmaOnay || !!(nt && F.olcuTuretilmis(nt.kod) && S.fiyatKurus == null);\n  }";
+  const mB2Capa = "function sipBtnKapaliMi(nt) {\n    return !S.aydinlatmaOnay || !S.b2Onay || !!(nt && F.olcuTuretilmis(nt.kod) && S.fiyatKurus == null) ||\n      onizlemeSuresiDoldu();\n  }";
+  const mB2Yerine = "function sipBtnKapaliMi(nt) {\n    return !S.aydinlatmaOnay || !!(nt && F.olcuTuretilmis(nt.kod) && S.fiyatKurus == null) ||\n      onizlemeSuresiDoldu();\n  }";
   const mB2SplitCount = EKRAN_KAYNAK.split(mB2Capa).length - 1;
   const _onaySurum = veriYukle(VERI_KAYNAK).onay_surum;
   const sepetDene = async (kaynak, b2) => {
@@ -4379,6 +4379,62 @@ const acikGercek = (V, kodlar) => ({ acik: true, turler: kodlar.map((k) => acikG
   const mB2 = mB2SplitCount === 1 ? await sepetDene(EKRAN_KAYNAK.split(mB2Capa).join(mB2Yerine), false) : null;
   ol("M-B2 disabled formülünden '!S.b2Onay ||' silinir ⇒ B2 yokken sipBtn AÇIK (KIRMIZI)", mB2 === false,
      mB2SplitCount === 1 ? "disabled=" + mB2 : "MUTANT_UYGULANMADI capa_sayisi=" + mB2SplitCount);
+
+  // SÜRE KAPISI (BaBa 14 Eki): geçerlilik geçmişse "Sepete ekle" disabled + metin birebir; tik kapısı açamaz;
+  // sepeteEkle girişinde ikinci kapı (buton zorla açılıp tıklansa da sepet 0). Gelecekte: buton tik kapısına bağlı.
+  const SURE_METIN = "Önizlemenin süresi doldu; yeni önizleme gerekiyor.";
+  const sureDene = async (kaynak, bitis, b2, zorlaTikla) => {
+    const sepet = [];
+    const e = await ekranKos(kaynak, VERI, fotoAcik,
+      { is: "9".repeat(32), tur: "plaket", olcu: 100, onay: _onaySurum },
+      { asama: "hazir", tur: "plaket", olcu_mm: 100, fiyat_kurus: 100000, gecerlilik_bitis: bitis },
+      { turnstileOto: true, zamanlayici: true, sepet });
+    const d = () => [...e.bolum.agac()];
+    const inp = d().find((n) => n.id === "foto-b2-onay");
+    if (inp) { inp.checked = b2; inp.tetikle("change"); }
+    const sip = d().find((n) => n.id === "foto-sip-btn");
+    const r = { sip: !!sip, disabled: sip ? sip.disabled : null,
+                metin: d().filter((n) => n.tagName === "P" && n.textContent === SURE_METIN).length };
+    if (zorlaTikla && sip) { sip.disabled = false; sip.tetikle("click"); }
+    r.sepet = sepet.length;
+    return r;
+  };
+  const GECMIS = "2020-01-01T00:00:00.000Z", GELECEK = "2099-01-01T00:00:00.000Z";
+  const sureHepsi = async (kaynak) => {
+    const a = await sureDene(kaynak, GECMIS, true, false);
+    const b0 = await sureDene(kaynak, GELECEK, false, false);
+    const b1 = await sureDene(kaynak, GELECEK, true, false);
+    const c = await sureDene(kaynak, GECMIS, true, true);
+    const c0 = await sureDene(kaynak, GELECEK, true, true);
+    const v = {
+      SD1: a.sip && a.disabled === true && a.metin === 1,
+      SD2: b0.disabled === true && b1.disabled === false && b0.metin === 0 && b1.metin === 0,
+      SD3: c.sepet === 0 && c0.sepet === 1,
+    };
+    Object.defineProperty(v, "iz", { value: { a, b0, b1, c, c0 }, enumerable: false });
+    return v;
+  };
+  const sd = await sureHepsi(EKRAN_KAYNAK);
+  ol("SD1 geçerlilik geçmiş + B2 tikli -> 'Sepete ekle' disabled + metin birebir 1× (tik kapısı AÇAMAZ)", sd.SD1, JSON.stringify(sd.iz.a));
+  ol("SD2 geçerlilik gelecekte -> buton tik kapısına bağlı (B2 yok: disabled · B2 tikli: açık) · süre metni 0", sd.SD2,
+     JSON.stringify([sd.iz.b0, sd.iz.b1]));
+  ol("SD3 çift kapı: süre geçmişken buton zorla açılıp tıklansa da sepet 0 (gelecekte kontrol: sepet 1)", sd.SD3,
+     JSON.stringify([sd.iz.c, sd.iz.c0]));
+  const SD_MUT = [
+    ["M-SURE-YOK süre kontrolü silinir (onizlemeSuresiDoldu hep false)",
+     "    if (!S.gecerlilik) return false;\n    var bitis = Date.parse(S.gecerlilik);\n    return isFinite(bitis) && Date.now() > bitis;\n",
+     "    return false;\n", ["SD1", "SD3"]],
+    ["M-SURE-BUTON süre kapısı buton formülünden silinir", " ||\n      onizlemeSuresiDoldu();\n  }", ";\n  }", ["SD1"]],
+    ["M-SURE-SEPET sepeteEkle girişindeki ikinci kapı silinir",
+     "    if (onizlemeSuresiDoldu()) {\n      adimKoy(\"S3\", SURE_DOLDU_METNI, true); return;\n    }\n", "", ["SD3"]],
+    ["M-SURE-K0 KONTROL (yorum)", "  // Çift kapı: buton açık kalmışken", "  // Çift  kapı: buton açık kalmışken", []],
+  ];
+  for (const [ad, capa, yerine, olmeli] of SD_MUT) {
+    if (EKRAN_KAYNAK.split(capa).length - 1 !== 1) { ol(ad + " capa bulundu", false, capa); continue; }
+    const m = await sureHepsi(EKRAN_KAYNAK.replace(capa, yerine));
+    const kir = ["SD1", "SD2", "SD3"].filter((x) => m[x] !== true);
+    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli), JSON.stringify(kir));
+  }
 
   // M-KAPI-B: kelime listesi boşaltılır ⇒ parça kelimesi geçer (DUR olmaz).
   const mKBCapa = 'var UYUM_KOKLER = ["parca", "parcas", "parcasi", "parcay", "parcayi", "parcam", "parcan", "parcalar", "parcalari", "parcalarin", "parcasin", "parcasini", "yedek", "yedegi", "yedekle", "yedekleri", "yedeklerin", "yedekten", "kirik", "kirigi", "kirdi", "kirildi", "kirilmis", "kirilir", "kiriklar", "kiriklari", "kayip", "kaybi", "kaybol", "kayboldu", "kaybolan", "kayipoldu", "kayipolmus", "mekanizma", "mekanizmasi", "mekanizmayi", "mekanizmalar", "mekanizmalari", "mekanizmada", "mekanizmadan", "disli", "dislisi", "disliyi", "disliler", "dislileri", "dislilerin", "dislide", "disliden", "kilit", "kilidi", "kilide", "kilitler", "kilitleri", "kilitlerin", "kilitten", "klips", "klipsi", "klipsler", "klipsleri", "klipslerin", "klipsten", "yuva", "yuvasi", "yuvayi", "yuvalar", "yuvalari", "yuvalarin", "yuvada", "yuvadan", "orijinal", "orijinali", "orijinale", "orijinalden", "orijinalinde", "aynisi", "aynisini", "aynilar", "aynilari", "aynisindan"];';
@@ -7769,11 +7825,12 @@ async function rnSunucu(fm, tablosuz) {
     s.RN4 = d3a.asama === "hazir" && d3a.onizleme_renk_durum === "yok" && d3a.gorsel === "/api/shop/foto/gorsel?is=" + o3.is &&
       !("onizleme_renk_url" in d3a) && d3b.onizleme_renk_durum === "hazirlaniyor" && d3c.onizleme_renk_durum === "yok";
 
-    // RN9 (panel): 24 sa'te 2 önizleme build'i (o1 + o3) -> sayı + kredi tahmini (2 x 20) + tavan (varsayılan 30).
+    // RN9 (panel): 24 sa'te 2 önizleme build'i (o1 + o3) -> sayı + kredi tahmini (2 x 36 = 2x30 build + 2x6 prototip) + tavan (30).
     const oz = await (await fm.panelFotoOzet(e2, Date.now())).json();
     iz.RN9 = oz.renk_onizleme;
     s.RN9 = !!oz.renk_onizleme && oz.renk_onizleme.kurulu === true && oz.renk_onizleme.son_24s_build === 2 &&
-      oz.renk_onizleme.kredi_tahmini === 2 * fm.RENK_BUILD_KREDI_TAHMINI && oz.renk_onizleme.tavan === 30 &&
+      oz.renk_onizleme.kredi_tahmini === 72 && oz.renk_onizleme.kredi_build === 60 && oz.renk_onizleme.kredi_prototip === 12 &&
+      oz.renk_onizleme.tavan === 30 &&
       oz.renk_onizleme.render_bekleyen === 1;
 
     // RN5: tavan dolu (foto_ayar renk_onizleme_tavan = 2) -> build 0, 'yok', Okan'a E-POSTA bir kez (gün başına tek).
@@ -7904,7 +7961,7 @@ const RN_ADLAR = {
   RN2: "RN2 çizim R2'de -> onizleme_renk_durum hazir + onizleme_renk_url (?renk=Beyaz) + onizleme_saglayici_url (hover alternatifi) · görsel 200 image/png · gorsel alanı AYNEN · renk=Renkli 404",
   RN3: "RN3 Renkli (renk alanı yok) -> satır 0 · build 0 · yanıtta renk alanı 0 · prototip gövdesi tek renkle AYNI",
   RN4: "RN4 render yok -> koşucu damgası bayat 'yok' (sağlayıcı görseli) · tazelenince 'hazirlaniyor' · 900 sn+ bekleyen 'yok'",
-  RN9: "RN9 panel foto-ozet: son 24 sa build 2 · kredi tahmini 40 · tavan 30 · çizim bekleyen 1",
+  RN9: "RN9 panel foto-ozet: son 24 sa build 2 · kredi tahmini 72 (60 build + 12 prototip) · tavan 30 · çizim bekleyen 1",
   RN5: "RN5 tavan dolu (2) -> build 0 · asama 'tavan' · onizleme_renk_durum 'yok' · Okan'a E-POSTA 1 (ikinci istekte tekrar YOK)",
   RN6: "RN6 renk değişimi Beyaz->Gri build 0 + render-bekliyor · Beyaz'a dönüş anında hazir · /foto/renk Renkli 400 · bilinmeyen iş 404",
   RN7: "RN7 sipariş (100 mm) -> önizleme build'i YENİDEN SATIN ALINMAZ (POST build 0, zincir başı aynı görev, kredi 'build' tek satır)",
@@ -7936,6 +7993,47 @@ const RN_ADLAR = {
     const m = (await rnSunucu(fm)).s;
     const kir = Object.keys(RN_ADLAR).filter((x) => m[x] !== true).sort();
     ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(kir));
+  }
+}
+
+// ---- KR) KREDİ 36 (BaBa 14 Eki 04:2x): tek renk önizleme = 6 prototip + 30 build; panel tahmini n x 36.
+async function krSenaryo(fm) {
+  const k = koprukur(); await k.hazir;
+  const e2 = envKur(k.d1, r2Kur());
+  try {
+    const oku = async () => (await (await fm.panelFotoOzet(e2, Date.now())).json()).renk_onizleme;
+    const o0 = await oku();
+    const t = new Date().toISOString();
+    for (const [no, renk] of [["1", "Siyah"], ["2", "Beyaz"], ["3", "Gri"]]) {
+      await k.d1.prepare("INSERT INTO foto_renk_onizleme (is_no, renk, asama, build_gorev, build_olcu, tarih, son_kontrol, hata, guncel)" +
+        " VALUES (?, ?, 'build', ?, 100, ?, 0, '', 0)").bind(no.repeat(32), renk, "gorev-kr-" + no, t).run();
+    }
+    const o3 = await oku();
+    return { KR0: o0.kurulu === true && o0.son_24s_build === 0 && o0.kredi_tahmini === 0 && o0.kredi_build === 0 && o0.kredi_prototip === 0,
+             KR3: o3.son_24s_build === 3 && o3.kredi_tahmini === 108 && o3.kredi_build === 90 && o3.kredi_prototip === 18 &&
+               o3.tavan === 30,
+             iz: { o0, o3 } };
+  } finally { k.kapat(); }
+}
+{
+  const kr = await krSenaryo(foto);
+  ol("KR0 panel: n=0 önizleme build'i -> kredi tahmini 0 (build 0 + prototip 0)", kr.KR0, JSON.stringify(kr.iz.o0));
+  ol("KR3 panel: n=3 -> kredi tahmini 108 (build 90 + prototip 18) · tavan 30 DEĞİŞMEZ", kr.KR3, JSON.stringify(kr.iz.o3));
+  ol("KR-SABIT RENK_ONIZLEME_KREDI_TAHMINI 36 = 6 prototip + 30 build", foto.RENK_ONIZLEME_KREDI_TAHMINI === 36 &&
+     foto.RENK_PROTOTIP_KREDI_TAHMINI === 6 && foto.RENK_BUILD_KREDI_TAHMINI === 30 && foto.RENK_ONIZLEME_TAVAN_VARSAYILAN === 30,
+     [foto.RENK_ONIZLEME_KREDI_TAHMINI, foto.RENK_PROTOTIP_KREDI_TAHMINI, foto.RENK_BUILD_KREDI_TAHMINI].join(","));
+  const KR_MUT = [
+    ["M-KR-36-30 önizleme kredisi 36 -> 30 (prototip payı düşer)",
+     "export const RENK_ONIZLEME_KREDI_TAHMINI = RENK_PROTOTIP_KREDI_TAHMINI + RENK_BUILD_KREDI_TAHMINI;",
+     "export const RENK_ONIZLEME_KREDI_TAHMINI = RENK_BUILD_KREDI_TAHMINI;", ["KR3"]],
+    ["M-KR-K0 KONTROL (yorum)", "/** Tek renk onizlemesi basina toplam kredi tahmini", "/**  Tek renk onizlemesi basina toplam kredi tahmini", []],
+  ];
+  for (const [ad, capa, yerine, olmeli] of KR_MUT) {
+    const fm = await mutantModul(capa, yerine);
+    if (!fm) { ol(ad + " capa bulundu", false, "capa kayip/coklu: " + capa.slice(0, 80)); continue; }
+    const m = await krSenaryo(fm);
+    const kir = ["KR0", "KR3"].filter((x) => m[x] !== true);
+    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli), JSON.stringify(kir));
   }
 }
 
