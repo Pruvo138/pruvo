@@ -2879,7 +2879,7 @@ for (const [ad, capa, yerine, olmeli] of NOT_MUTANTLAR) {
 }
 
 const MUTANTLAR = [
-  ["M1 SINIR", "if (!makine && ziyaretciSiniriVar(env) && sayi.kisi >= VERI.sinir_ziyaretci_24s) {", "if (false) {", "D"],
+  ["M1 SINIR", "if (!muaf && ziyaretciSiniriVar(env) && sayi.kisi >= VERI.sinir_ziyaretci_24s) {", "if (false) {", "D"],
   ["M2 BOT", "if (!(await botDogrula(request, env, g.turnstile_token))) {", "if (false) {", "E"],
   ["M3 ANALIZ", "if (onarimGerekli(p)) {", "if (false) {", "J"],
   // Tur uyeligi MANIFESTTEN (motor M + ortam eslemesi); kapi silinince manifestte olmayan tur acilir.
@@ -5350,6 +5350,61 @@ console.log("TB) TUR-B ② MAKINE ANAHTARI ziyaretci sayacina yazilmaz");
     const fm = await mutantModul(capa, yerine);
     if (!fm) { ol(ad + " capa bulundu", false, "capa kayip/coklu: " + capa); continue; }
     const m = await makineSenaryolar(fm);
+    const kir = Object.keys(m).filter((x) => m[x] !== true).sort();
+    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli), JSON.stringify(kir));
+  }
+}
+
+// ---------------------------------------------------------------- SAHİP (Okan 15 Eki 01:0x) yönetim anahtarlı tarayıcı
+// "ön izleme hakkını bizim browser için yükselt, biz platform sahibiyiz": CANLI env'de (ONIZLEME yok) geçerli panel
+// çerezi (`pruvo_yonet`) ya da X-Yonet-Anahtar taşıyan istek ziyaretçi 24 sa / N hak sınırından MUAF; yanıtta `kalan`
+// alanı YOK (istemci düğmeyi kilitlemez). Geçersiz çerez = sıradan ziyaretçi (sinir+1'inci istek 429).
+async function sahipSenaryolar(fm) {
+  const k = koprukur(); await k.hazir;
+  const e2 = envKur(k.d1, r2Kur());
+  await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('plaket', 1, 'x')").run();
+  const cag = async (ip, ek) => {
+    const h = { "CF-Connecting-IP": ip, "Content-Type": "application/json", ...(ek || {}) };
+    const r = await fm.fotoUclari(new Request("https://pruvo3d.com/api/shop/foto/onizleme", { method: "POST", headers: h,
+      body: JSON.stringify(onizlemeGovde()) }), e2, new URL("https://pruvo3d.com/api/shop/foto/onizleme"), "/foto/onizleme", null);
+    return { kod: r.status, v: await r.json() };
+  };
+  const sayac = async (ip) => ((await k.d1.prepare("SELECT COUNT(*) AS n FROM foto_isler WHERE ziyaretci = ?")
+    .bind(await fm.ziyaretciOzeti(e2, ip)).first()) || {}).n;
+  const sinir = VERI.sinir_ziyaretci_24s;
+  const s = {}, iz = {};
+  const c1 = [];
+  for (let i = 0; i < sinir + 2; i++) { c1.push(await cag("10.0.7.1", { Cookie: "a=1; pruvo_yonet=yonet-test-anahtari" })); }
+  iz.S1 = { kod: c1.map((x) => x.kod), kalan: c1.map((x) => x.v.kalan), ip: await sayac("10.0.7.1") };
+  s.S1 = c1.every((x) => x.kod === 200 && !("kalan" in x.v)) && iz.S1.ip === 0;
+  const c2 = [];
+  for (let i = 0; i <= sinir; i++) { c2.push((await cag("10.0.7.2", { Cookie: "pruvo_yonet=yanlis" })).kod); }
+  iz.S2 = c2;
+  s.S2 = c2.slice(0, sinir).every((x) => x === 200) && c2[sinir] === 429;
+  const c3 = [];
+  for (let i = 0; i < sinir + 1; i++) { c3.push((await cag("10.0.7.3", { "X-Yonet-Anahtar": "yonet-test-anahtari" })).kod); }
+  iz.S3 = c3;
+  s.S3 = c3.every((x) => x === 200);
+  k.kapat();
+  Object.defineProperty(s, "iz", { value: iz, enumerable: false });
+  return s;
+}
+console.log("SA) SAHİP — yönetim anahtarlı tarayıcı ziyaretçi sınırından muaf (canlı env)");
+{
+  const s = await sahipSenaryolar(foto);
+  ol("S1 geçerli panel çerezi -> sinir+2 istek hepsi 200, yanıtta kalan YOK, IP sayacı 0", s.S1, JSON.stringify(s.iz.S1));
+  ol("S2 geçersiz çerez -> sıradan ziyaretçi, sinir+1'inci istek 429", s.S2, JSON.stringify(s.iz.S2));
+  ol("S3 geçerli X-Yonet-Anahtar -> sinir+1 istek hepsi 200", s.S3, JSON.stringify(s.iz.S3));
+  const SA_MUT = [
+    ["SM1 anahtar kontrolü atlandı (her çerez muaf)", "  return yonetimSahibiMi(request, env);\n", "  return true;\n", ["S2"]],
+    ["SM2 sahip muafiyeti kaldırıldı", "  if (await sahipIstegi(request, env)) { return SAHIP_ZIYARETCI; }\n", "", ["S1", "S3"]],
+    ["SM3 muaf yanıtta kalan hak basılır", "return ziyaretciSiniriVar(env) && !muaf ? {", "return ziyaretciSiniriVar(env) ? {", ["S1"]],
+    ["SA-K0 KONTROL (yorum)", "async function sahipIstegi(request, env) {\n", "// kontrol\nasync function sahipIstegi(request, env) {\n", []],
+  ];
+  for (const [ad, capa, yerine, olmeli] of SA_MUT) {
+    const fm = await mutantModul(capa, yerine);
+    if (!fm) { ol(ad + " capa bulundu", false, "capa kayip/coklu: " + capa); continue; }
+    const m = await sahipSenaryolar(fm);
     const kir = Object.keys(m).filter((x) => m[x] !== true).sort();
     ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli), JSON.stringify(kir));
   }

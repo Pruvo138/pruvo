@@ -352,6 +352,21 @@ async function makineIstegi(request, env) {
   const { onizlemeMakinesiMi } = await import("../src/yonet.js");
   return onizlemeMakinesiMi(request, env);
 }
+/** SAHIP (Okan 15 Eki): gecerli yonetim anahtarli (panel cerezi / X-Yonet-Anahtar) istek bu ziyaretci adina yazilir;
+ *  ziyaretci 24 sa / N hak sinirindan MUAF, GUNLUK_ONIZLEME_TAVANI + Turnstile + havuz AYNEN gecerli. */
+export const SAHIP_ZIYARETCI = "sahip";
+async function sahipIstegi(request, env) {
+  const cerez = request.headers.get("Cookie") || "";
+  if (!request.headers.get("X-Yonet-Anahtar") && !cerez.includes("pruvo_yonet=")) { return false; }
+  const { yonetimSahibiMi } = await import("../src/yonet.js");
+  return yonetimSahibiMi(request, env);
+}
+/** Ziyaretci sinirindan MUAF istegin ziyaretci adi ("makine" | "sahip") ya da "" (siradan ziyaretci, sayilir). */
+async function muafZiyaretci(request, env) {
+  if (await makineIstegi(request, env)) { return MAKINE_ZIYARETCI; }
+  if (await sahipIstegi(request, env)) { return SAHIP_ZIYARETCI; }
+  return "";
+}
 
 // ---------------------------------------------------------------- yardimcilar
 
@@ -983,9 +998,10 @@ export async function havuzHukmu(env, simdi, telegram) {
 function ziyaretciSiniriVar(env) {
   return !onizlemeMi(env);
 }
-/** Yanita giren kalan hak: onizleme ortaminda alan YOK (istemci sayi uydurmaz, "0/N" basip dugmeyi kilitlemez). */
-function kalanHak(env, sayi) {
-  return ziyaretciSiniriVar(env) ? { kalan: Math.max(0, VERI.sinir_ziyaretci_24s - sayi.kisi - 1) } : {};
+/** Yanita giren kalan hak: onizleme ortaminda ve MUAF istekte (makine/sahip) alan YOK (istemci sayi uydurmaz,
+ *  "0/N" basip dugmeyi kilitlemez). */
+function kalanHak(env, sayi, muaf) {
+  return ziyaretciSiniriVar(env) && !muaf ? { kalan: Math.max(0, VERI.sinir_ziyaretci_24s - sayi.kisi - 1) } : {};
 }
 
 async function acikUcu(env, simdi, telegram) {
@@ -1155,10 +1171,10 @@ async function onizlemeUcu(request, env, simdi, telegram) {
 
   if (await hizSiniriAsildi(request, env)) { return fjson({ hata: "cok-istek" }, 429); }
   const ip = request.headers.get("CF-Connecting-IP") || "yok";
-  const makine = await makineIstegi(request, env);
-  const ziyaretci = makine ? MAKINE_ZIYARETCI : await ziyaretciOzeti(env, ip);
+  const muaf = await muafZiyaretci(request, env);
+  const ziyaretci = muaf || await ziyaretciOzeti(env, ip);
   const sayi = await onizlemeSayisi(env, ziyaretci, simdi);
-  if (!makine && ziyaretciSiniriVar(env) && sayi.kisi >= VERI.sinir_ziyaretci_24s) {
+  if (!muaf && ziyaretciSiniriVar(env) && sayi.kisi >= VERI.sinir_ziyaretci_24s) {
     return fjson({ hata: "onizleme-siniri", sinir: VERI.sinir_ziyaretci_24s }, 429);
   }
   if (sayi.genel >= GUNLUK_ONIZLEME_TAVANI) { return fjson({ hata: "kapali" }, 503); }
@@ -1177,7 +1193,7 @@ async function onizlemeUcu(request, env, simdi, telegram) {
   if (g.renk !== undefined && renkOnizlemeIsi({ tur: tur.kod, cesit, ziyaretci }) && griModel(env)) {
     try { await renkIste(env, isNo, g.renk, simdi); } catch (e) { if (!tabloYok(e)) { throw e; } }
   }
-  return fjson({ is: isNo, ...kalanHak(env, sayi) }, 200);
+  return fjson({ is: isNo, ...kalanHak(env, sayi, muaf) }, 200);
 }
 
 /** Onay kaydi: surum doluysa {tarih: onay ani (ISO), surum}; bos surum (ornek kolu) -> iki alan da bos. */
@@ -1325,11 +1341,11 @@ async function uretecOnizlemeUcu(request, env, simdi, g) {
 
   if (await hizSiniriAsildi(request, env)) { return fjson({ hata: "cok-istek" }, 429); }
   const ip = request.headers.get("CF-Connecting-IP") || "yok";
-  const makine = await makineIstegi(request, env);
-  const ziyaretci = makine ? MAKINE_ZIYARETCI : await ziyaretciOzeti(env, ip);
+  const muaf = await muafZiyaretci(request, env);
+  const ziyaretci = muaf || await ziyaretciOzeti(env, ip);
   const sayi = await onizlemeSayisi(env, ziyaretci, simdi);
   const sinir = VERI.sinir_ziyaretci_24s;
-  if (!makine && ziyaretciSiniriVar(env) && sayi.kisi >= sinir) { return fjson({ hata: "onizleme-siniri", sinir }, 429); }
+  if (!muaf && ziyaretciSiniriVar(env) && sayi.kisi >= sinir) { return fjson({ hata: "onizleme-siniri", sinir }, 429); }
   if (sayi.genel >= GUNLUK_ONIZLEME_TAVANI) { return fjson({ hata: "kapali" }, 503); }
   const bot = await botDogrula(request, env, g.turnstile_token);
   if (!bot) { return fjson({ hata: "bot-dogrulama" }, 403); }
@@ -1357,7 +1373,7 @@ async function uretecOnizlemeUcu(request, env, simdi, g) {
       " VALUES (?, ?, ?, ?, ?, 'uretec-onizleme', 0, '', ?, ?, ?)"
     ).bind(isNo, tur.kod, olcu, ziyaretci, simdiIso(simdi), onay.tarih, onay.surum, cesit).run();
   }
-  return fjson({ is: isNo, ...kalanHak(env, sayi),
+  return fjson({ is: isNo, ...kalanHak(env, sayi, muaf),
                  yoklama: URETEC_YOKLAMA }, 200);
 }
 
@@ -1461,11 +1477,11 @@ async function litofanUcu(request, env, simdi) {
 
   if (await hizSiniriAsildi(request, env)) { return fjson({ hata: "cok-istek" }, 429); }
   const ip = request.headers.get("CF-Connecting-IP") || "yok";
-  const makine = await makineIstegi(request, env);
-  const ziyaretci = makine ? MAKINE_ZIYARETCI : await ziyaretciOzeti(env, ip);
+  const muaf = await muafZiyaretci(request, env);
+  const ziyaretci = muaf || await ziyaretciOzeti(env, ip);
   const sayi = await onizlemeSayisi(env, ziyaretci, simdi);
   // Plaketle AYNI sayac (foto_isler): litofan haritasi da ziyaretcinin gunluk hakkindan duser.
-  if (!makine && ziyaretciSiniriVar(env) && VERI.sinir_ziyaretci_24s <= sayi.kisi) {
+  if (!muaf && ziyaretciSiniriVar(env) && VERI.sinir_ziyaretci_24s <= sayi.kisi) {
     return fjson({ hata: "onizleme-siniri", sinir: VERI.sinir_ziyaretci_24s }, 429);
   }
   if (sayi.genel >= GUNLUK_ONIZLEME_TAVANI) { return fjson({ hata: "kapali" }, 503); }
@@ -1479,7 +1495,7 @@ async function litofanUcu(request, env, simdi) {
     "INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, hazir_tarih, kredi, onay_tarih, onay_surum)" +
     " VALUES (?, ?, ?, ?, ?, 'hazir', ?, 0, ?, ?)"
   ).bind(isNo, tur.kod, olcu, ziyaretci, simdiIso(simdi), simdiIso(simdi), onay.tarih, onay.surum).run();
-  return fjson({ is: isNo, ...kalanHak(env, sayi),
+  return fjson({ is: isNo, ...kalanHak(env, sayi, muaf),
                  gecerlilik_bitis: new Date(simdi + VERI.gecerlilik_saat * 3600 * 1000).toISOString() }, 200);
 }
 

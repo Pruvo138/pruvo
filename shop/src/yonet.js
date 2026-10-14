@@ -2039,6 +2039,13 @@ function makineAnahtariGecerli(request, env, altYol) {
 export function onizlemeMakinesiMi(request, env) {
   return makineAnahtariGecerli(request, env, "/foto/ornek-onizleme");
 }
+// SAHIP (Okan 15 Eki 01:0x: "ön izleme hakkını bizim browser için yükselt, biz platform sahibiyiz"): GECERLI yonetim
+// anahtari (panel cerezi `pruvo_yonet` ya da X-Yonet-Anahtar) tasiyan istek CANLIDA da ziyaretci 24 sa / N hak
+// sinirindan MUAF. Karsilastirma panel girisiyle AYNI kapidan (anahtarGecerli, sabit zamanli). Gecersiz/bos = siradan
+// ziyaretci. Kalan masraf kapilari (Turnstile · GUNLUK_ONIZLEME_TAVANI · havuz/kredi) muafiyete DAHIL DEGIL.
+export function yonetimSahibiMi(request, env) {
+  return anahtarGecerli(request, null, env);
+}
 
 export async function yonet(request, env, url, ctx, altYol, telegram) {
   if (!env.YONET_ANAHTAR) { return yon404(); }
