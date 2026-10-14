@@ -48,7 +48,10 @@ fi
 # idempotent tazele -> checkout ile gelen guncel mantik aninda devreye girer.
 # FAIL-OPEN: checkout'u bloklamak yanlis olurdu (hijyen). Bayat kalirsa bir
 # sonraki commit/push'taki `--tazele` kolu FAIL-CLOSED yakalar.
-if [ -n "$HEDEF" ] && [ -f "$HEDEF/tools/kanca-kur.py" ]; then
-  python3 "$HEDEF/tools/kanca-kur.py" --tazele >/dev/null 2>&1 || true
+# INDIRME KAPISI (14 Eki): ONCE kancanin yanina serilmis kanca-kur.py kosar.
+pruvo_kur="$HEDEF/tools/kanca-kur.py"
+[ -f "$(dirname "$0")/kanca-kur.py" ] && pruvo_kur="$(dirname "$0")/kanca-kur.py"
+if [ -n "$HEDEF" ] && [ -f "$pruvo_kur" ]; then
+  python3 "$pruvo_kur" --tazele --depo "$HEDEF" >/dev/null 2>&1 || true
 fi
 exit 0

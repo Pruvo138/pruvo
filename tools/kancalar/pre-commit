@@ -36,9 +36,13 @@ fi
 # kosan) SESSIZCE eski mantigi calistirir. `--tazele` kopya bayatsa yeniden
 # serer; rc 3 = "bayatti+tazelendi" -> commit'i DURDUR, sonraki commit taze
 # mantikla kosar. (Kaynak yoksa/guncelse rc 0 -> devam.)
+# 🔴 INDIRME KAPISI (14 Eki): ONCE kancanin YANINA serilmis kanca-kur.py kosar —
+# eski agacin kapisiz kanca-kur'u paylasilan kopyayi eskiye saramaz. Eski agac
+# YENI kopyayi EZMEZ (rc 0 + UYARI satiri).
 pruvo_kur="$pruvo_kok/tools/kanca-kur.py"
+[ -f "$(dirname "$0")/kanca-kur.py" ] && pruvo_kur="$(dirname "$0")/kanca-kur.py"
 if [ -f "$pruvo_kur" ]; then
-  python3 "$pruvo_kur" --tazele
+  python3 "$pruvo_kur" --tazele --depo "$pruvo_kok"
   pruvo_tazele_rc=$?
   if [ "$pruvo_tazele_rc" = "3" ]; then
     echo "!! COMMIT DURDURULDU — kurulu kanca kopyasi BAYATTI ve tazelendi." >&2

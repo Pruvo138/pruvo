@@ -99,12 +99,28 @@ kalir. `--tazele` (kanca govdelerinden + post-merge/post-checkout'tan cagrilir)
 kopya bayatsa yeniden serer ve TAZELE_BAYATTI (3) doner; kanca bunu gorunce
 commit/push'u DURDURUR -> bayat mantik ASLA sessizce kosmaz.
 
+🔴 INDIRME KAPISI (14 Eki 2026, olculdu): `--tazele` kaynagi BULUNDUGU agactan
+alir. ESKI tabanli bir agacin commit'i, baska bir dalin serdigi YENI kopyayi
+eski kaynakla EZIYORDU ("BAYATTI -> yeniden serildi"): yeni eklenen kanca
+bloklari TUM evler icin sessizce siliniyordu
+([[bayat-agactan-commit-paylasilan-kancayi-eskiye-sarar]]). Onarim iki halkadir:
+  (1) Her serimde kopyanin yanina KAYNAK DAMGASI yazilir (kaynak agacin HEAD
+      commit'i + serilen her dosyanin sha256'si). `--tazele` aday kaynak,
+      damgadaki commit'ten ESKIYSE (ata; ya da ayrisik ve kanca kaynagini
+      degistiren yalniz damga tarafi) USTUNE YAZMAZ: rc 0 + gorunur UYARI.
+      Aday YENIYSE, damga yoksa/okunamiyorsa ya da kopya ELLE DUZENLENMISSE
+      (damgadaki sha256'dan sapmis) eskisi gibi yeniden serer (fail-closed).
+  (2) `kanca-kur.py` + `git_ortami.py` de kopyanin yanina serilir ve kancalar
+      ONCE o kurulu araci cagirir: eski agacin ESKI (kapisiz) kanca-kur.py'si
+      paylasilan kopyaya hic dokunamaz.
+
 Kullanim:
     python3 tools/kanca-kur.py            # kur/tazele + DOGRULA (rc 0/1)
     python3 tools/kanca-kur.py --kuru     # hicbir sey yazma, ne yapacagini yaz
     python3 tools/kanca-kur.py --dogrula  # yalniz dogrula (kurma)
     python3 tools/kanca-kur.py --tazele   # kopya bayatsa yeniden ser (kanca ici;
-                                          # rc 3 = bayatti+tazelendi, 0 = guncel)
+                                          # rc 3 = bayatti+tazelendi, 0 = guncel
+                                          # ya da eski agac -> kopya korundu+UYARI)
     python3 tools/kanca-kur.py --depo X   # baska bir checkout'u hedefle (test/tani)
 """
 import os
@@ -112,7 +128,11 @@ import shutil
 import stat
 import subprocess
 import sys
+import hashlib
+import json
 import time
+
+from git_ortami import git_ortami
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 
@@ -123,6 +143,27 @@ KANCA_DIZINI = "tools/kancalar"
 # KURULAN kopyanin ORTAK `.git` dizini altindaki adi. `.git/hooks` DEGIL:
 # oradaki (elle duzenlenmis, fail-open) kancalarin uzerine yazilmaz.
 KURULU_DIZIN_ADI = "pruvo-kancalar"
+
+# Kancalarin YANINA serilen araclar (kaynak: agacin `tools/` dizini). Kancalar
+# `--tazele`yi ONCE bu kurulu kopyadan cagirir; eski agacin kapisiz kanca-kur'u
+# paylasilan kopyayi geri saramaz. HEP-YA-HIC: biri eksikse hicbiri serilmez
+# (git_ortami'siz kanca-kur import'ta coker).
+KURULU_ARACLAR = ("kanca-kur.py", "git_ortami.py")
+
+# Serilen kopyanin KAYNAK DAMGASI (kopya dizini icinde; git bu adi kanca sanmaz).
+DAMGA_ADI = ".kaynak-damgasi.json"
+
+# Surum karsilastirmasinda "kanca kaynagi degisti mi" sorusunun yollari.
+# `git_ortami.py` BILEREK disarida: ortak kutuphanedir; onu saymak ilgisiz bir
+# main commit'ini "kanca degisikligi" sanip yeni kopyayi ezdirirdi.
+SURUM_YOLLARI = (KANCA_DIZINI, "tools/kanca-kur.py")
+
+# Ana hat dali: iki taraf da kanca kaynagini degistirmisse (gercek catisma)
+# yalniz BU dala ait aday, bu dala ait OLMAYAN damgayi ezebilir.
+ANA_DAL = "refs/heads/main"
+
+# Indirme reddi mesajinin oneki: rc 0 olsa da main() bunu stderr'e BASAR.
+UYARI_ONEKI = "UYARI:"
 
 AYAR = "core.hooksPath"
 KAPSAM = "--local"
@@ -142,9 +183,13 @@ class Hata(Exception):
 
 def _git(cwd, *args):
     """(rc, stdout, stderr) — git yoksa/donarsa fail-closed tani doner."""
+    # 🔴 Miras git baglami SILINIR: linked worktree kancasi GIT_DIR'i ihrac eder
+    # ve ACIK `-C` hedefini ezer (or. ana checkout'un HEAD'i yerine worktree'nin
+    # HEAD'i okunurdu). Tek tanim: git_ortami.
     try:
         p = subprocess.run(["git", "-C", cwd] + list(args),
-                           capture_output=True, text=True, timeout=30)
+                           capture_output=True, text=True, timeout=30,
+                           env=git_ortami())
     except FileNotFoundError:
         return 127, "", "git binary'si PATH'te YOK"
     except subprocess.TimeoutExpired:
@@ -194,15 +239,27 @@ def kanca_kaynagi(kok):
     return yol
 
 
+def dagitim(kaynak_dizin):
+    """[(ad, kaynak_yolu), ...] — kurulu dizine serilecek dosyalar.
+
+    Kancalar HER ZAMAN; KURULU_ARACLAR yalniz HEPSI agacin `tools/`unda varsa
+    (hep-ya-hic)."""
+    ciftler = [(ad, os.path.join(kaynak_dizin, ad)) for ad in BEKLENEN_KANCALAR]
+    araclar = [(ad, os.path.join(os.path.dirname(kaynak_dizin), ad))
+               for ad in KURULU_ARACLAR]
+    if all(os.path.isfile(y) for _a, y in araclar):
+        ciftler.extend(araclar)
+    return ciftler
+
+
 def sapma(kaynak_dizin, kurulu):
-    """[ad, ...] — kurulan kopyanin kaynaktan BAYT olarak saptigi kancalar.
+    """[ad, ...] — kurulan kopyanin kaynaktan BAYT olarak saptigi dosyalar.
 
     🔴 SECILEN TASARIMIN BEDELI: kopya, izlenen kaynagin bir SURETIDIR ve elle
     duzenlenebilir. Sapma sessiz kalirsa "depoda fail-closed, makinede
     fail-open" hali geri doner — o yuzden sapma bir KAPI eksenidir."""
     sapanlar = []
-    for ad in BEKLENEN_KANCALAR:
-        k = os.path.join(kaynak_dizin, ad)
+    for ad, k in dagitim(kaynak_dizin):
         h = os.path.join(kurulu, ad)
         if not os.path.isfile(h):
             sapanlar.append("%s (kurulu kopyada YOK)" % ad)
@@ -241,6 +298,185 @@ def en_iyi_kaynak(baslangic, ana_kok):
     return None
 
 
+def _sha(yol):
+    """sha256 hex ya da None (dosya yok/okunamiyor)."""
+    try:
+        with open(yol, "rb") as f:
+            return hashlib.sha256(f.read()).hexdigest()
+    except OSError:
+        return None
+
+
+def _kaynak_agaci(kaynak_dizin):
+    """`<agac>/tools/kancalar` -> `<agac>`."""
+    return os.path.dirname(os.path.dirname(os.path.normpath(kaynak_dizin)))
+
+
+def _agac_commit(agac):
+    """(sha|None) — agacin HEAD commit'i."""
+    rc, cikti, _h = _git(agac, "rev-parse", "--verify", "-q", "HEAD^{commit}")
+    return cikti if rc == 0 and cikti else None
+
+
+def _kirli_mi(kaynak_dizin):
+    """Agacin SURUM dosyalari HEAD'den farkli mi (stage'li/islenmemis)? None=olculemedi.
+
+    🔴 NEDEN: `--tazele` pre-commit'ten kosar -> serilen icerik cogu zaman HENUZ
+    COMMIT'LENMEMIS degisikliktir ve HEAD yalniz TABANIDIR. Damga yalniz commit'i
+    kaydederse ayni tabandaki (ya da tabandan ilgisiz commit'lerle ilerlemis)
+    her agac kendini 'esit/yeni' sanip yeni bloklari EZER."""
+    yollar = ["%s/%s" % (KANCA_DIZINI, ad) for ad in BEKLENEN_KANCALAR]
+    yollar.append("tools/kanca-kur.py")
+    rc, cikti, _h = _git(_kaynak_agaci(kaynak_dizin), "--no-optional-locks", "status",
+                         "--porcelain", "--untracked-files=all", "--", *yollar)
+    return bool(cikti) if rc == 0 else None
+
+
+def damga_oku(kurulu):
+    """(dict|None) — kaynak damgasi; yoksa/bozuksa None."""
+    try:
+        with open(os.path.join(kurulu, DAMGA_ADI), encoding="utf-8") as f:
+            d = json.load(f)
+    except (OSError, ValueError):
+        return None
+    if not isinstance(d, dict) or not isinstance(d.get("ozet"), dict):
+        return None
+    return d
+
+
+def damga_yaz(kaynak_dizin, kurulu):
+    """Kurulu kopyanin KAYNAK DAMGASINI yaz (atomik). Hata -> Hata."""
+    ozet = {}
+    for ad, _k in dagitim(kaynak_dizin):
+        h = _sha(os.path.join(kurulu, ad))
+        if h is not None:
+            ozet[ad] = h
+    d = {"commit": _agac_commit(_kaynak_agaci(kaynak_dizin)),
+         "kirli": _kirli_mi(kaynak_dizin),
+         "kaynak": os.path.normpath(kaynak_dizin),
+         "zaman": time.strftime("%Y-%m-%dT%H:%M:%S"), "ozet": ozet}
+    yol = os.path.join(kurulu, DAMGA_ADI)
+    gecici = yol + ".pruvo-tmp"
+    try:
+        with open(gecici, "w", encoding="utf-8") as f:
+            json.dump(d, f, indent=1, sort_keys=True)
+        os.replace(gecici, yol)
+    except OSError as e:
+        raise Hata("kaynak damgasi yazilamadi (%s): %s" % (yol, e))
+
+
+def elle_duzenlenmis(damga, kurulu):
+    """[ad, ...] — kurulu kopyada damgadaki sha256'dan sapan dosyalar."""
+    return sorted(ad for ad, h in damga["ozet"].items()
+                  if _sha(os.path.join(kurulu, ad)) != h)
+
+
+def _ata_mi(agac, ata, torun):
+    """True/False; git olcemezse None."""
+    rc, _o, _h = _git(agac, "merge-base", "--is-ancestor", ata, torun)
+    return {0: True, 1: False}.get(rc)
+
+
+def _degisti_mi(agac, taban, uc):
+    """SURUM_YOLLARI taban..uc arasinda degisti mi? True/False/None."""
+    rc, _o, _h = _git(agac, "diff", "--quiet", taban, uc, "--", *SURUM_YOLLARI)
+    return {0: False, 1: True}.get(rc)
+
+
+def _sahipsiz_mi(agac, commit):
+    """Damga commit'i HICBIR dal/uzak ref'ten erisilemiyor mu? (silinmis dal)"""
+    rc, cikti, _h = _git(agac, "for-each-ref", "--count=1", "--contains", commit,
+                         "--format=%(refname)", "refs/heads", "refs/remotes")
+    return rc == 0 and not cikti
+
+
+def surum_karari(kaynak_dizin, kurulu):
+    """(ser_mi, neden) — kopya SAPMISKEN aday kaynak USTUNE serilebilir mi?
+
+    🔴 INDIRME KAPISI: aday, damgadaki kaynaktan ESKIYSE serilmez. Karar
+    olculemiyorsa (damga yok/bozuk, commit cozulmuyor, git hatasi) eski davranis
+    korunur: SERILIR (fail-closed — bayat mantik sessizce kosmaz)."""
+    damga = damga_oku(kurulu)
+    if damga is None:
+        return True, "kaynak damgasi yok/okunamadi"
+    elle = elle_duzenlenmis(damga, kurulu)
+    if elle:
+        return True, "kurulu kopya ELLE DUZENLENMIS (%s)" % ", ".join(elle)
+    agac = _kaynak_agaci(kaynak_dizin)
+    aday = _agac_commit(agac)
+    kurulu_c = damga.get("commit")
+    if not aday or not kurulu_c:
+        return True, "commit cozulemedi (aday=%s, damga=%s)" % (aday, kurulu_c)
+    rc, _o, _h = _git(agac, "cat-file", "-e", "%s^{commit}" % kurulu_c)
+    if rc != 0:
+        return True, "damga commit'i depoda yok (%s)" % kurulu_c[:12]
+    # 🔴 KIRLI DAMGA: kopya `kurulu_c` + ISLENMEMIS degisiklikten serildi. Bu
+    # icerik hicbir commit'te yok -> SANAL bir "kurulu_c'nin ana hatta olmayan
+    # cocugu" gibi yargilanir. Olculemeyen (None) kirlilik de kirli sayilir.
+    kirli = damga.get("kirli") is not False
+    damga_kaynak = damga.get("kaynak") or ""
+    if kirli:
+        if (os.path.normpath(damga_kaynak) == os.path.normpath(kaynak_dizin)
+                and (aday == kurulu_c or _ata_mi(agac, kurulu_c, aday))):
+            return True, "ayni agac kendi kanca degisikligini yeniden seriyor"
+        if not os.path.isdir(damga_kaynak):
+            return True, "kirli damganin kaynak agaci artik yok"
+    else:
+        if aday == kurulu_c:
+            return True, "ayni commit, agacta islenmemis kanca degisikligi"
+        yeni = _ata_mi(agac, kurulu_c, aday)
+        if yeni is None:
+            return True, "ata iliskisi olculemedi"
+        if yeni:
+            return True, "aday kaynak damgadan YENI"
+        if _sahipsiz_mi(agac, kurulu_c):
+            return True, "damga commit'i hicbir dalda yok (dal silinmis)"
+    neden_eski = ("bu agacin HEAD'i (%s) kurulu kopyanin kaynagindan (%s%s) ESKI"
+                  % (aday[:12], kurulu_c[:12],
+                     " + islenmemis degisiklik" if kirli else ""))
+    if aday == kurulu_c or _ata_mi(agac, aday, kurulu_c):
+        return False, neden_eski
+    rc, taban, _h = _git(agac, "merge-base", aday, kurulu_c)
+    if rc != 0 or not taban:
+        return True, "ortak ata yok"
+    aday_degisti = _degisti_mi(agac, taban, aday)
+    kurulu_degisti = True if kirli else _degisti_mi(agac, taban, kurulu_c)
+    if aday_degisti is None or kurulu_degisti is None:
+        return True, "kanca kaynagi farki olculemedi"
+    if kurulu_degisti and not aday_degisti:
+        return False, ("%s (kanca kaynagini yalniz kurulu taraf degistirmis)"
+                       % neden_eski.replace(" ESKI", " geride"))
+    if aday_degisti and kurulu_degisti:
+        aday_ana = _ata_mi(agac, aday, ANA_DAL)
+        kurulu_ana = False if kirli else _ata_mi(agac, kurulu_c, ANA_DAL)
+        if aday_ana and not kurulu_ana:
+            return True, "catisma: aday ana hatta, kurulu kaynak degil"
+        return False, ("catisma: iki ayrisik dal da kanca kaynagini degistirmis "
+                       "(aday %s, kurulu %s)" % (aday[:12], kurulu_c[:12]))
+    return True, "ayrisik dal, kanca kaynagini aday taraf degistirmis"
+
+
+def _damga_ilerlet(kaynak_dizin, kurulu):
+    """Kopya kaynakla ESITKEN damgayi tazele (yoksa / ozet bayatsa / aday
+    yeniyse). Sessiz en-iyi-caba: bu yolda karar yoktur, yalniz kayit."""
+    damga = damga_oku(kurulu)
+    try:
+        if damga is None or elle_duzenlenmis(damga, kurulu):
+            damga_yaz(kaynak_dizin, kurulu)
+            return
+        # kirli damga + BAYT-ESIT temiz aday: icerik artik bir commit'te -> kesinles
+        if damga.get("kirli") is not False and _kirli_mi(kaynak_dizin) is False:
+            damga_yaz(kaynak_dizin, kurulu)
+            return
+        aday = _agac_commit(_kaynak_agaci(kaynak_dizin))
+        kurulu_c = damga.get("commit")
+        if aday and aday != kurulu_c and (
+                not kurulu_c or _ata_mi(_kaynak_agaci(kaynak_dizin), kurulu_c, aday)):
+            damga_yaz(kaynak_dizin, kurulu)
+    except Hata:
+        pass
+
+
 def tazele(baslangic):
     """(rc, mesaj) — kurulu kopya izlenen kaynaktan BAYATSA yeniden ser.
 
@@ -252,6 +488,8 @@ def tazele(baslangic):
     Cikis:
       0             -> kopya zaten GUNCEL, ya da karsilastirilacak kaynak YOK
                        (agac eski commit'te) -> yapacak sey yok, commit devam.
+                       Ya da aday kaynak kurulu kopyadan ESKI -> kopya KORUNUR,
+                       mesaj UYARI_ONEKI ile baslar ve stderr'e basilir.
       TAZELE_BAYATTI-> kopya BAYATTI, YENIDEN SERILDI. Cagiran kanca commit'i
                        DURDURUR (sonraki commit taze mantikla kosar).
       1             -> tazeleme HATASI (fail-closed: cagiran kanca durdurur)."""
@@ -265,11 +503,22 @@ def tazele(baslangic):
         return 0, "karsilastirilacak izlenen kaynak yok (agac eski commit'te olabilir)"
     sapanlar = sapma(kaynak_dizin, kurulu)
     if not sapanlar:
+        _damga_ilerlet(kaynak_dizin, kurulu)
         return 0, "kurulu kopya guncel"
+    # 🔴 INDIRME KAPISI: ESKI agac YENI kopyayi EZMEZ (rc 0 + gorunur UYARI).
+    ser_mi, neden = surum_karari(kaynak_dizin, kurulu)
+    if not ser_mi:
+        return 0, ("%s kurulu kanca kopyasi KORUNDU, eskiye SARILMADI — %s. "
+                   "Agacini guncelle (git merge main) ki kendi kanca degisikligin "
+                   "de serilebilsin." % (UYARI_ONEKI, neden))
     try:
         _ser(kaynak_dizin, kurulu, kuru=False)
     except Hata as e:
         return 1, "kopya bayatti ama YENIDEN SERILEMEDI: %s" % e
+    try:
+        damga_yaz(kaynak_dizin, kurulu)
+    except Hata as e:
+        return 1, "kopya yeniden serildi ama DAMGALANAMADI: %s" % e
     return TAZELE_BAYATTI, ("kurulu kopya BAYATTI (%s) -> yeniden serildi (kaynak: %s)"
                             % (", ".join(sapanlar), kaynak_dizin))
 
@@ -334,8 +583,7 @@ def _ser(kaynak_dizin, kurulu, kuru):
             os.makedirs(kurulu, exist_ok=True)
         except OSError as e:
             raise Hata("kurulu kanca dizini olusturulamadi (%s): %s" % (kurulu, e))
-    for ad in BEKLENEN_KANCALAR:
-        k = os.path.join(kaynak_dizin, ad)
+    for ad, k in dagitim(kaynak_dizin):
         h = os.path.join(kurulu, ad)
         try:
             ayni = (os.path.isfile(h) and open(k, "rb").read() == open(h, "rb").read()
@@ -494,6 +742,13 @@ def kur(kok, kuru=False):
               % (len(serilen), "SERILECEK" if kuru else "SERILDI", ", ".join(serilen)))
     else:
         print("  kurulu kopya zaten GUNCEL (%s)" % kurulu)
+    # Acik kurulum OPERATOR KARARIDIR (indirme kapisi yok); damga her halde
+    # serilen kaynagi kaydeder ki sonraki `--tazele` eskiyi taniyabilsin.
+    if not kuru:
+        if serilen:
+            damga_yaz(kaynak_dizin, kurulu)
+        else:
+            _damga_ilerlet(kaynak_dizin, kurulu)
 
     mevcut, kaynak = etkin_deger(kok)
     if mevcut is not None:
@@ -554,7 +809,7 @@ def main(argv=None):
     # cikis koduyla bildirir.
     if yalniz_tazele:
         rc, mesaj = tazele(baslangic)
-        if rc != 0:
+        if rc != 0 or mesaj.startswith(UYARI_ONEKI):
             print("kanca-kur --tazele: %s" % mesaj, file=sys.stderr)
         return rc
 

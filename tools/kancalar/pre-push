@@ -8,9 +8,12 @@
 # (kopyadan kosan) SESSIZCE eski mantigi calistirir. `--tazele` kopya bayatsa
 # yeniden serer; rc 3 -> PUSH'u DURDUR, sonraki push taze mantikla kosar.
 # stdin'e DOKUNMAZ (asagidaki geri-donus blogu ref listesini okur).
+# 🔴 INDIRME KAPISI (14 Eki): ONCE kancanin yanina serilmis kanca-kur.py kosar.
 pruvo_pp_kok=$(git rev-parse --show-toplevel 2>/dev/null)
-if [ -n "$pruvo_pp_kok" ] && [ -f "$pruvo_pp_kok/tools/kanca-kur.py" ]; then
-  python3 "$pruvo_pp_kok/tools/kanca-kur.py" --tazele </dev/null
+pruvo_pp_kur="$pruvo_pp_kok/tools/kanca-kur.py"
+[ -f "$(dirname "$0")/kanca-kur.py" ] && pruvo_pp_kur="$(dirname "$0")/kanca-kur.py"
+if [ -n "$pruvo_pp_kok" ] && [ -f "$pruvo_pp_kur" ]; then
+  python3 "$pruvo_pp_kur" --tazele --depo "$pruvo_pp_kok" </dev/null
   pruvo_pp_tazele_rc=$?
   if [ "$pruvo_pp_tazele_rc" = "3" ]; then
     echo "!! PUSH DURDURULDU — kurulu kanca kopyasi BAYATTI ve tazelendi. Tekrar push et." >&2

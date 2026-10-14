@@ -14,8 +14,11 @@
 # bir sonraki commit/push'taki pre-commit/pre-push `--tazele` kolu onu FAIL-CLOSED
 # yakalar (ikinci savunma hatti). Blokta 'exit 1' YOK.
 pruvo_kok=$(git rev-parse --show-toplevel 2>/dev/null)
-if [ -n "$pruvo_kok" ] && [ -f "$pruvo_kok/tools/kanca-kur.py" ]; then
-  if python3 "$pruvo_kok/tools/kanca-kur.py" --tazele >/dev/null 2>&1; then
+# INDIRME KAPISI (14 Eki): ONCE kancanin yanina serilmis kanca-kur.py kosar.
+pruvo_kur="$pruvo_kok/tools/kanca-kur.py"
+[ -f "$(dirname "$0")/kanca-kur.py" ] && pruvo_kur="$(dirname "$0")/kanca-kur.py"
+if [ -n "$pruvo_kok" ] && [ -f "$pruvo_kur" ]; then
+  if python3 "$pruvo_kur" --tazele --depo "$pruvo_kok" >/dev/null 2>&1; then
     :
   else
     pruvo_rc=$?
