@@ -575,7 +575,8 @@
 
   /* ============== GÖSTERGE + PENCERE ==============
      Kutu başlığındaki ①②③④ göstergesi aktif pencereyi işaretler; aynı anda TEK pencere görünür
-     (diğerleri `hidden`). "İleri" pencerenin şartı tutmadıkça pasif; ①'de "Geri", ④'te "İleri" çizilmez. */
+     (diğerleri `hidden`). "İleri" pencerenin şartı tutmadıkça pasif; ①'de "Geri" ve "İleri", ④'te "İleri" çizilmez
+     (Okan 14 Eki 20:4x "ileri butonunu sil": ①'de kart tıklaması zaten galeriSec sonunda ②'ye geçer). */
   function pencereGit(n) {
     if (!(n >= 1 && n <= 4)) n = 1;
     if (n > 1 && !S.tur) n = 1;
@@ -612,7 +613,7 @@
   function gezintiGuncelle() {
     if (S.geriBtn) S.geriBtn.hidden = S.pencere === 1;
     if (S.ileriBtn) {
-      S.ileriBtn.hidden = S.pencere === 4;
+      S.ileriBtn.hidden = S.pencere === 1 || S.pencere === 4;
       S.ileriBtn.disabled = !ileriAcikMi();
     }
   }

@@ -2257,6 +2257,37 @@ console.log("KA) KART KUCUK RESMI — anahtarlik_figur: kart URL + 'Anahtarlık 
      JSON.stringify(kaMu && kaMu.figur));
 }
 
+console.log("IL) ① 'İleri' YOK (Okan 14 Eki 20:4x 'ileri butonunu sil'): ①'de foto-ileri gizli; kart tıklaması ②'ye geçer, ②'de İleri görünür");
+{
+  const ilKos = async (kaynak) => {
+    const V = veriYukle(VERI_KAYNAK);
+    const tur = (kod, ad) => ({ kod, ad, aciklama: "x", ornek_sayisi: 1, olculer: [{ mm: 120, fiyat_kurus: 44900 }] });
+    const e = await ekranKos(kaynak, V, { acik: true, turler: [tur("plaket", "Plaket"), tur("figur", "Figür"), tur("anahtarlik", "Anahtarlık")] });
+    const d = () => [...e.bolum.agac()];
+    const id = (x) => d().find((n) => n.id === x) || null;
+    const ileri = id("foto-ileri"), p1 = id("foto-pencere-1"), p2 = id("foto-pencere-2");
+    const r = { ileriVar: !!ileri, ileriGizli1: !!ileri && ileri.hidden === true, p1Acik1: !!p1 && p1.hidden === false };
+    const kart = d().filter((n) => n.tagName === "BUTTON" && n.getAttribute("data-kart") === "plaket")[0] || null;
+    r.kartVar = !!kart;
+    if (kart) kart.tetikle("click");
+    r.p1Gizli2 = !!p1 && p1.hidden === true;
+    r.p2Acik2 = !!p2 && p2.hidden === false;
+    r.ileriGorunur2 = !!ileri && ileri.hidden === false;
+    return r;
+  };
+  const s = await ilKos(EKRAN_KAYNAK);
+  ol("IL1 ①'de foto-ileri GİZLİ (buton DOM'da durur, ②/③ için)", s.ileriVar && s.ileriGizli1 && s.p1Acik1, JSON.stringify(s));
+  ol("IL2 kart tıklaması ②'ye geçer (① gizli, ② açık) ve ②'de İleri GÖRÜNÜR", s.kartVar && s.p1Gizli2 && s.p2Acik2 && s.ileriGorunur2, JSON.stringify(s));
+  // MUTANT 1: ①'de gizleme geri alınır -> IL1 KIRMIZI.
+  const c1 = "S.ileriBtn.hidden = S.pencere === 1 || S.pencere === 4;";
+  const m1 = EKRAN_KAYNAK.split(c1).length === 2 ? await ilKos(EKRAN_KAYNAK.replace(c1, "S.ileriBtn.hidden = S.pencere === 4;")) : null;
+  ol("IL-M1 mutant (① gizleme kaldırıldı) -> IL1 KIRMIZI", !!m1 && !m1.ileriGizli1, JSON.stringify(m1));
+  // MUTANT 2: galeriSec sonundaki ②'ye geçiş silinir -> müşteri ①'de kalır (İleri de yok) -> IL2 KIRMIZI.
+  const c2 = "if (S.adim === \"S1\") cizS1();\n    pencereGit(2);";
+  const m2 = EKRAN_KAYNAK.split(c2).length === 2 ? await ilKos(EKRAN_KAYNAK.replace(c2, "if (S.adim === \"S1\") cizS1();")) : null;
+  ol("IL-M2 mutant (kart tıklaması ②'ye geçmiyor) -> IL2 KIRMIZI", !!m2 && !(m2.p1Gizli2 && m2.p2Acik2), JSON.stringify(m2));
+}
+
 console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (gercek bust kaydi: sayi + bool alanlari; ureteç kuyrugu)");
 {
   const SONRA = "Önizleme, üretim dosyasıyla birlikte hazırlanır; birkaç dakika sürebilir.";
