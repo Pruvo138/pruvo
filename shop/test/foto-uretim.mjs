@@ -4772,14 +4772,13 @@ console.log("K3b) TEK KUTU 4 PENCERE — kartlar · tek pencere · Geri/İleri �
     const e = await yeniEkran(kaynak, ["plaket"], { is: "f".repeat(32), tur: "plaket", olcu: 100 }, hazir, { turnstileOto: true, zamanlayici: true });
     const b = e.bolum;
     const sip = () => byId(b, "foto-sip-btn");
-    // Akış ④'e aydınlatma onayıyla gelir (Okan 15 Eki: oturumdan dönüş yok); "yalnız B2" kolu için onay geri alınır.
-    const on = byId(b, "foto-aydinlatma-onay");
-    if (on) { on.checked = false; on.tetikle("change"); }
+    // Okan 15 Eki: ④'e yalnız akışla gelinir (oturumdan dönüş yok) -> aydınlatma onayı ④'ten önce verilmiştir; eski
+    // "aydınlatmasız ④ + yalnız B2" durumu (eski/yok oturum onayı) artık oluşamaz. ④'te kapı = B2 tıkı.
     const tiksiz = !!sip() && sip().disabled === true && aktif(b) === "4";
     const b2 = byId(b, "foto-b2-onay");
     if (b2) { b2.checked = true; b2.tetikle("change"); }
-    const yalnizB2 = !!sip() && sip().disabled === true;   // aydınlatma onayı yok (oturum onayı eski/yok)
-    s.SEPET = tiksiz && yalnizB2;
+    const b2Acar = !!sip() && sip().disabled === false;
+    s.SEPET = tiksiz && b2Acar;
     e.dugme("foto-iptal-btn");
     const ileri = byId(b, "foto-ileri");
     s.IPTAL = aktif(b) === "1" && sinifli(b, "foto-uretim-kart").filter((k) => k.classList.contains("secili")).length === 0 &&
@@ -4839,7 +4838,7 @@ console.log("K3b) TEK KUTU 4 PENCERE — kartlar · tek pencere · Geri/İleri �
   ol("K3b-10 ③ renk: fotografsiz ekranda tam 3 ana renk radyo (Siyah,Beyaz,Gri; Renkli YOK), varsayilan Beyaz, tek secim; ek renk metni 0", u0.RENK, JSON.stringify(u0.iz));
   ol("K3b-11 ③ surgu tabani 2 vaka: plaket ilk deger '60 mm → 600 TL' · bust '60 mm → 600 TL'", u0.TABAN, JSON.stringify(u0.iz));
   ol("K3b-12 ③ malzeme kartlari HER turde [PLA,PETG] (yapboz · bust · plaket; ASA/ABS 0); kart metni 2. resim AYNEN + canli fiyat 1.000/1.300 TL; varsayilan PLA; PETG tiki ×1,30", u0.MALZEME, JSON.stringify(u0.iz));
-  ol("K3b-13 ④ tiksiz 'Sepete ekle' disabled (yalniz B2 ile de kapali)", c0.SEPET, JSON.stringify(c0));
+  ol("K3b-13 ④ tiksiz 'Sepete ekle' disabled · B2 tiki acar (aydinlatma onayi akista ④'ten once verildi)", c0.SEPET, JSON.stringify(c0));
   ol("K3b-14 İptal → ① (secili kart 0, İleri pasif, sepet paneli yok, tek pencere)", c0.IPTAL, JSON.stringify(c0));
   ol("K3b-15 REGRESYON taze bolum, plaket DISI kartin ilk tiki (insan · pet · model) → istisna 0 + ② dolu + durustluk o turun (3/3)", r0.REGRESYON, JSON.stringify(r0.iz));
   ol("K3b-16 kart tiklarinda istisna 0", d0.ISTISNA_YOK, JSON.stringify(d0));
@@ -7443,7 +7442,9 @@ async function rnIstemci(kaynak, V) {
   for (const a of Object.keys(ADLAR)) { ol(ADLAR[a], s[a] === true, JSON.stringify(s.iz[a]).slice(0, 700)); }
   const RNE_MUT = [
     ["M-RNE-RENKLI Renkli'de de renk istenir", "  function renkHedefi() { return renkOnizlemeKolu() && !renkliMi() ? anaRenk() : \"\"; }",
-     "  function renkHedefi() { return renkOnizlemeKolu() ? anaRenk() : \"\"; }", ["RNE3", "RNE6"]],
+     // Okan 15 Eki: RNE3 artık akışla kurulur — önizleme isteği hedef rengi zaten taşır (renkSonIstek), ayrı /foto/renk
+     // doğmaz; mutantın izi istek gövdesindedir (RNE6). Eski RNE3 kırılması yalnız oturumdan dönüş kolundandı.
+     "  function renkHedefi() { return renkOnizlemeKolu() ? anaRenk() : \"\"; }", ["RNE6"]],
     ["M-RNE-CIZIM-YOK çizim adresi yok sayılır", "        img.src = S.renkSunucu.gorsel;\n", "        img.src = S.gorsel;\n", ["RNE1", "RNE5", "RNE8", "RNH4"]],
     ["M-RNE-CUMLE görsel altı cümle hiç basılmaz",
      "        S.alan.appendChild(el(\"p\", \"foto-uretim-ayrinti foto-uretim-renk-notu\",\n          griGorunum ? griCumlesi(S.renkSunucu.renk) : RENK_CUMLESI));\n",
