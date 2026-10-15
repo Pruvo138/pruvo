@@ -4882,6 +4882,15 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/stl-r2-anahtar-test.py
 
+      # R2 CANLI DOGRULAMA ARACI (kova-genel): yerel STL yalniz R2'de canli sha1+boyut
+      # esitligi olculunce silinir; silme sonrasi kanit canli not-found ister. Bloklayici:
+      # rc/not-found ayrimi, kova on-kapisi ya da --sil sinif kontrolu kayarsa yerel STL
+      # R2'de olmadan SILINIR veya silinmeyen nesne "silindi" sayilir. Hermetik (sahte npx,
+      # gercek R2'ye cikmaz), 16 vaka + 6 mutant, olculdu ~22 s.
+      - name: R2 canli dogrulama kabul testi
+        if: ${{ !cancelled() }}
+        run: python3 tools/r2-canli-dogrula-test.py
+
       # DRIVE-ARSIVLE: Drive'a yaz -> sha256 dogrula -> yerel sil -> evict (evict+sha256 tek
       # kaynak drive_birak.py). Bloklayici: sha kontrolu/--kuru/--yerel-tut kayarsa yerel dosya
       # Drive kopyasi dogrulanmadan SILINIR (geri gelmez). Hermetik (gecici kaynak + sahte Drive
