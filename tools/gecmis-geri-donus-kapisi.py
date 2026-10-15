@@ -142,6 +142,7 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import os
+import re as _re
 import subprocess
 import sys
 import time
@@ -149,6 +150,14 @@ import time
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
 KAPI_YOLU = os.path.join(TOOLS, "commit-mesaji-kapisi.py")
+# 🔴 OLCULEN OLAY (14 Eki 2026): `kral/ad-ozeti-14eki` dal kosumunda `--ci` tabani
+# cozulemez ve "son 50 commit" yedegine dustu; main'de ZATEN public olan iki commit
+# (halef-32 DEVIR + foto ④ onizleme) her kosumda KIRMIZI yakti. Cozum: gecmisi
+# yeniden yazmak YASAK (Okan), ama bu iki SHA'yi tarama DISINDA tutan muafiyet
+# listenesi -- muaf listede yoksa fail-closed: dosya yok/bozuk -> BOS kume (muafiyet YOK).
+BILINEN_DOSYA = os.path.join(TOOLS, "gecmis-geri-donus-bilinen.json")
+_HEX40 = _re.compile(r"^[0-9a-f]{40}$")
+_BILINEN_ORTAM = "PRUVO_GD_BILINEN_DOSYA"
 from git_ortami import git_ortami, sentetik_git  # noqa: E402
 
 RC_TEMIZ = 0
@@ -336,7 +345,7 @@ class Bulgu(object):
 
 
 def commitleri_tara(shalar, kayit, modul, kok=None, maskeli=True,
-                    butce=ADAY_BUTCESI, kirp=False):
+                    butce=ADAY_BUTCESI, kirp=False, bilinen_yolu=None):
     """(bulgular, olcum, hata) — mesaj + icerik ekseni.
 
     Adaylar TUM commit'ler boyunca TEK kumede toplanip BIR KEZ ozetlenir (commit'ler
@@ -344,6 +353,13 @@ def commitleri_tara(shalar, kayit, modul, kok=None, maskeli=True,
 
     MESAJ ekseni HER ZAMAN TUM commit'leri kapsar (mesajlar ucuzdur). Butce YALNIZ
     ICERIK eksenini baglar.
+
+    Bilinen public muafiyeti: `bilinen_yolu` (yoksa `PRUVO_GD_BILINEN_DOSYA`, yoksa
+    varsayilan) ile verilen dosyadaki SHA kumesi `shalar`'dan CIKARILIR (Okan
+    14 Eki — gecmisi yeniden yazamayiz ama zaten public olan commit'lerin
+    KIRMIZI olmasini da durduramayiz; listede tutmak KAPIYI muaf tutmaz, sadece
+    bilinen bu az sayida commit'i tarama DISINDA birakir). `muaf_bilinen_public`
+    olcum alaninda sayisi raporlanir (`olcum["girdi"]` = orijinal input).
 
     `kirp=False` (ONLEYICI kollar): butce asilirsa hata doner -> rc 2, push DURUR.
     `kirp=True`  (GORUNURLUK kolu): butce dolunca TARAMA DURUR, kapsanan/atlanan
@@ -357,7 +373,16 @@ def commitleri_tara(shalar, kayit, modul, kok=None, maskeli=True,
         Cagiran, kirpma modunda commit'leri YENIDEN ESKIYE siralı vermelidir.
     """
     bulgular = []
-    olcum = {"commit": len(shalar), "aday": 0, "ozet_ms": 0.0, "eklenen_bayt": 0,
+    bilinen = bilinen_public_shalar(bilinen_yolu)
+    girdi_uzunluk = len(shalar)
+    # 🔴 BILINEN PUBLIC MUAF: SHA esitlik kumesinden CIKARILIR (Okan 14 Eki). SHA
+    # disinda hicbir alana bakilmaz; ad/desen/aciklama bilinen dosyada olsa bile
+    # bu fonksiyon onlara ERISEMIYOR.
+    shalar = [s for s in shalar if s not in bilinen]
+    muaf_bilinen_public = girdi_uzunluk - len(shalar)
+    olcum = {"commit": len(shalar), "girdi": girdi_uzunluk,
+             "muaf_bilinen_public": muaf_bilinen_public,
+             "aday": 0, "ozet_ms": 0.0, "eklenen_bayt": 0,
              "icerik_kapsanan": 0, "icerik_atlanan": 0, "atlanan_aday_alt_siniri": 0}
 
     # --- MESAJ EKSENI ---
@@ -423,13 +448,44 @@ def _kayit_ya_da_hata(modul, ozet_yolu=None):
     return kayit, hata
 
 
+def bilinen_public_shalar(yol=None):
+    """Zaten public olan, gecmisi yeniden yazilmayan commit SHA'larinin kumesi.
+
+    `yol` verilirse onu okur; verilmezse once `PRUVO_GD_BILINEN_DOSYA` ortam
+    degiskenine, sonra varsayilan `gecmis-geri-donus-bilinen.json`'a bakar. Dosya
+    yok/okunamaz/bozuksa BOS kume doner (= muafiyet YOK, eski KATI davranis;
+    fail-closed). Yalniz TAM 40 hane hex SHA kabul edilir; olmayan her girdi
+    ATILIR. Ad/desen/aciklama metni bu fonksiyonun ERISIM ALANINA GIRMEZ --
+    dosyada olsa bile SHA listesinin DISINDAKI alanlar okunmaz.
+    """
+    if yol is None:
+        yol = os.environ.get(_BILINEN_ORTAM) or BILINEN_DOSYA
+    try:
+        with open(yol, encoding="utf-8") as f:
+            veri = _json.load(f)
+    except Exception:
+        return set()
+    if not isinstance(veri, dict):
+        return set()
+    liste = veri.get("sha", None)
+    if not isinstance(liste, list):
+        return set()
+    return {s for s in liste if isinstance(s, str) and _HEX40.match(s)}
+
+
 def _rapor(bulgular, olcum, baslik, kanca_kolu):
+    girdi = olcum.get("girdi", olcum["commit"])
+    muaf = olcum.get("muaf_bilinen_public", 0)
     print("%s: %d commit · %d benzersiz aday · ozetleme %.0f ms · eklenen %.1f KB"
-          % (baslik, olcum["commit"], olcum["aday"], olcum["ozet_ms"],
+          % (baslik, girdi, olcum["aday"], olcum["ozet_ms"],
              olcum["eklenen_bayt"] / 1024.0))
     print("  eksen kapsami: MESAJ %d/%d commit · ICERIK %d/%d commit"
-          % (olcum["commit"], olcum["commit"],
-             olcum.get("icerik_kapsanan", olcum["commit"]), olcum["commit"]))
+          % (olcum["commit"], girdi,
+             olcum.get("icerik_kapsanan", olcum["commit"]), girdi))
+    if muaf:
+        # SHA yazmak serbest, ad YASAK -- sadece kume boyutu basilir.
+        print("  muaf (bilinen public): %d sha · Okan 14 Eki listesinden"
+              % muaf)
     if olcum.get("icerik_atlanan"):
         # 🔴 SESSIZ DEGIL: kirpma HER ZAMAN sayiyla basilir — kac commit VE kac aday
         # TARANMADI. Eslesen metin/ad BASILMAZ (teshis sizdirmaz).
@@ -1144,6 +1200,61 @@ def kendini_test():
                 and ">=" in cikti_kirp, "(rc=%d)" % rc_kirp)
         kontrol("12i kirpilmis 'temiz' hukmu EKSIK OLCUMLU oldugunu SOYLER",
                 "EKSIK OLCUMLUDUR" in cikti_kirp)
+
+        # ---------------------------------------------------------------
+        # VAKA 13 — BILINEN PUBLIC MUAFIYETI (Okan 14 Eki)
+        # ---------------------------------------------------------------
+        # 🔴 OLCULEN OLAY: `--ci` tabani cozulemez -> "son 50 commit" yedeginde main'de
+        # ZATEN public olan iki commit her dal kosumunda KIRMIZI yakti. Cozum: bu sha'lar
+        # tarama DISINDA tutulur (Okan, gecmis yeniden yazma YASAK). Muaf liste YOLU
+        # ortam uzerinden GECICI olarak verilir; gercek dosyaya yazilmaz.
+        print("\nVAKA 13 — bilinen public muafiyeti (Okan 14 Eki)")
+        bilinen_dosya = os.path.join(tmp, "bilinen.json")
+        eski_env = os.environ.get(_BILINEN_ORTAM)
+
+        def _yakala_rc(girdi, depo):
+            tampon = _io.StringIO()
+            with _ctx.redirect_stdout(tampon):
+                rc_ = kol_pre_push(girdi=girdi, kok=depo, ozet_yolu=artefakt)
+            return rc_, tampon.getvalue()
+
+        try:
+            depo13 = os.path.join(tmp, "v13")
+            os.makedirs(depo13)
+            _depo_kur(depo13)
+            _yaz(depo13, "a.txt", "temiz\n")
+            _commit(depo13, "taban")
+            uzak13 = _kos(["git", "rev-parse", "HEAD"], depo13).stdout.strip()
+            _yaz(depo13, "b.txt", "tedarikci %s ile anlasma\n" % _UYDURMA[0])
+            siz_sha, _ = _commit(depo13, "%s partisi" % _UYDURMA[0])
+            assert _HEX40.match(siz_sha), "sentetik SHA 40 hex olmali"
+
+            # 13a: sizintili SHA'yi bilinen listesine KOY -> temiz sayilmali.
+            with open(bilinen_dosya, "w", encoding="utf-8") as f:
+                _json.dump({"surum": 1, "sha": [siz_sha]}, f)
+            os.environ[_BILINEN_ORTAM] = bilinen_dosya
+            rc, cikti = _yakala_rc(_push_girdisi(siz_sha, uzak13), depo13)
+            kontrol("13a listeye konmus sizintili SHA MUAF -> rc=0 (TEMIZ)",
+                    rc == RC_TEMIZ, "(rc=%d)" % rc)
+            kontrol("13a' _rapor 'muaf (bilinen public): 1 sha' satirini basar",
+                    "muaf (bilinen public): 1 sha" in cikti)
+
+            # 13b: ayni depoda YENI sizintili SHA listede DEGIL -> engellenmeli.
+            _yaz(depo13, "c.txt", "%s ikinci parti\n" % _UYDURMA[1])
+            yeni_sha, _ = _commit(depo13, "%s ikinci" % _UYDURMA[1])
+            assert yeni_sha not in {siz_sha}, "yeni sha listede olmamali"
+            assert _HEX40.match(yeni_sha), "sentetik SHA 40 hex olmali"
+            uzak13b = _kos(["git", "rev-parse", "HEAD^"], depo13).stdout.strip()
+            rc, cikti = _yakala_rc(_push_girdisi(yeni_sha, uzak13b), depo13)
+            kontrol("13b listede OLMAYAN yeni sizintili SHA ENGELLENDI (rc=1)",
+                    rc == RC_SIZINTI, "(rc=%d)" % rc)
+            kontrol("13b' listede olmayan sha raporda muaf DEGIL",
+                    "muaf (bilinen public)" not in cikti)
+        finally:
+            if eski_env is None:
+                os.environ.pop(_BILINEN_ORTAM, None)
+            else:
+                os.environ[_BILINEN_ORTAM] = eski_env
 
     finally:
         _shutil.rmtree(tmp, ignore_errors=True)
