@@ -168,11 +168,11 @@ def hermetik():
     vaka("F7 olcek -> olcu_mm + fiyat adim · izinli_malzeme -> govde",
          h["olcu_mm"] == {"en_az": 60, "en_cok": 250} and h["fiyat_adim_mm"] == 5 and
          h["malzemeler"] == {"govde": ["PLA", "PETG"]})
-    # TPU (Okan 13 Eki; 14 Eki tasiyan tur silindi): PRUVO eki BOS; kopru TPU/ASA izinli olsa da HICBIR ture GIRMEZ.
+    # Okan 9 Eki "sadece pla ve petg": kopru PLA/PETG disini (ASA) izinli saysa da govdeye GIRMEZ (FOTO_MALZEMELERI).
     yb, _ = u.satir_uret({"kod": "yapboz", "uretec": "x_uret", "girdi_tipi": ["metin"], "parametreler": [],
-                          "olcek": {"min_mm": 30, "max_mm": 300, "adim_mm": 5}, "izinli_malzeme": ["PLA", "PETG", "TPU"]})
-    vaka("F7b kopruden TPU alan turun govdesinde TPU YOK (PRUVO eki bos)",
-         yb["malzemeler"] == {"govde": ["PLA", "PETG"]} and u.PRUVO_EK_MALZEME == {}, json.dumps(yb["malzemeler"]))
+                          "olcek": {"min_mm": 30, "max_mm": 300, "adim_mm": 5}, "izinli_malzeme": ["PLA", "PETG", "ASA"]})
+    vaka("F7b kopru izinli listesi FOTO_MALZEMELERI'ne suzulur (ASA govdede YOK)",
+         yb["malzemeler"] == {"govde": ["PLA", "PETG"]}, json.dumps(yb["malzemeler"]))
     b = satirlar["bust"]["form"]
     vaka("F8 teklif turu (bust): ana parametre + teklif alani ustune, ayni sozluk",
          b["uzun_kenar_mm"]["etiket"] == "Boyut" and b["uzun_kenar_mm"]["max"] == 200 and
