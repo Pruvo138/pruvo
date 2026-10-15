@@ -304,128 +304,6 @@
         renk_secimi: "palet",
         palet_bolgeleri: ["renk1", "renk2", "renk3", "renk4"]
       },
-      // ANAHTARLIK (K3c; Okan 22:5x/23:0x: kulakçık, metal halka YOK, taban ₺600) — TeKiN köprü kaydı
-      // (isimlik_uret, anahtarlik:true sabiti). Metinler ArTisT tür #5 + tür notu #5 BİREBİR. Örnek kaydı VAR
-      // (TeKiN 9 Eki 10:58, render): sayılan örnek 1, tür /acik'e girer, kart normal çizilir. C2 (10 Eki):
-      // alan_aciklamalari.olcu = ③ Ölçü cümlesi (iki çeşit ortak; ArTisT "③ Ölçü cümlesi — anahtarlık" AYNEN).
-      {
-        kod: "anahtarlik",
-        ad: "Anahtarlık",
-        aciklama: "Fotoğraf ya da metin/logodan anahtarlık. Metal halka ve zincir dahil değildir; zincir ya da halka takılan kulakçıklı plastik gövde (delik Ø 3,5–4 mm).",
-        girdi: ["metin"],
-        motor: "D",
-        uretec: "isimlik_uret",
-        olcu_mm: { en_az: 30, en_cok: 300, baslangic: 60 },
-        renk_bolgeleri: [
-          {
-            kod: "plaka",
-            ad: "Taban",
-            renkler: ["Beyaz", "Gri", "Ahşap", "Sarı", "Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi"]
-          },
-          {
-            kod: "yazi",
-            ad: "Yazı",
-            renkler: ["Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi", "Gri", "Beyaz", "Sarı", "Ahşap"]
-          }
-        ],
-        malzemeler: { govde: ["PLA", "PETG", "TPU"] },
-        malzeme_renkleri: { TPU: ["Beyaz"] },
-        form: {
-          satirlar: {
-            tip: "metin",
-            etiket: "Yazı (tek satır önerilir; en çok 3 satır)",
-            liste: true,
-            satir_max: 3,
-            max: 40,
-            zorunlu: true,
-            ornek: ["Ayşe"]
-          },
-          yazi_tipi: {
-            tip: "secim",
-            etiket: "Yazı tipi",
-            secenekler: ["sans-kalin", "script"],
-            varsayilan: "script",
-            ornek: "script"
-          },
-          hizalama: {
-            tip: "secim",
-            etiket: "Hizalama (çok satır)",
-            secenekler: ["sol", "orta", "sag"],
-            varsayilan: "orta"
-          },
-          genislik_mm: {
-            tip: "sayi",
-            etiket: "Uzun kenar (kulak dahil)",
-            min: 30,
-            max: 300,
-            adim: 0.01,
-            varsayilan: 60,
-            birim: "mm",
-            zorunlu: true,
-            ornek: 60
-          },
-          anahtarlik_kulak_konum: {
-            tip: "secim",
-            etiket: "Kulak konumu",
-            secenekler: ["sol-ust", "sag-ust", "ust-orta"],
-            varsayilan: "sol-ust",
-            ornek: "sol-ust"
-          },
-          kontur_tasma_mm: {
-            tip: "sayi",
-            etiket: "Taban taşma (yazı çevresi)",
-            min: 1,
-            max: 3,
-            adim: 0.01,
-            varsayilan: 1.5,
-            birim: "mm",
-            ornek: 1.5
-          }
-        },
-        fiyat: {
-          formul: "mm_x_10tl",
-          adim_mm: 5,
-          taban_tl: 600,
-          renk_tavani: 2
-        },
-        ornek_kanit_izni: ["render"],
-        alan_aciklamalari: {
-          olcu: "Anahtarlığın kulakçık dahil en uzun boyutudur; fiyat bu ölçüye göre canlı hesaplanır.",
-          renk: "Yazı için bir, taban için bir renk seç; ikisi birbirinden belirgin olmalı ki yazı net okunsun.",
-          malzeme: "PLA ev içi kullanım içindir; PETG dış mekân ve genel amaçlı kullanım için daha yüksek sıcaklığa dayanır (+%30). TPU esnek ve kırılmaz; tek renk (beyaz), yazı kabartmayla okunur."
-        },
-        bolge_renk_secimi: {
-          cesit: "yazi",
-          bolgeler: ["yazi", "plaka"],
-          etiketler: { yazi: "Yazı rengi", plaka: "Taban rengi" },
-          varsayilan: { yazi: "Beyaz", plaka: "Siyah" },
-          kontrast_esigi: 3
-        },
-        form_sunum: {
-          genislik_mm: { deger: "olcu", surgu_etiketi: true },
-          anahtarlik_kulak_konum: { deger: "varsayilan" }
-        },
-        durustluk: "Metal halka ve zincir dahil değildir; zincir ya da halka takılan kulakçıklı plastik gövde (delik Ø 3,5–4 mm).",
-        ornek_notu: "Üretim dosyasının görüntüsüdür; yazı ve renk seçimine göre üretilir.",
-        olcu_ekseni: "sabit",
-        foto_kolu: {
-          girdi: ["foto-1"],
-          uretec: "figur_kulak",
-          olcu_en_az: 30,
-          olcu_en_cok: 291,
-          renk_bolgesi: 0,
-          renk_modlari: ["tek", "palet"]
-        }
-      },
-      
-      
-      
-      
-      
-      
-      
-      
-      
       {
         kod: "bust",
         ad: "Bust/madalyon (rolyef)",
@@ -511,12 +389,7 @@
       "gorsel": "Görsel okunamadı ya da içinde belirgin bir şekil bulunamadı; net, koyu bir şekil içeren PNG ya da JPEG dene.",
       "oran": "Görselin en/boy oranı bu ürün için çok uzun; daha dengeli bir kırpım dene.",
       "parca": "Bu ölçüde seçtiğin parça sayısı çok küçük parçalar çıkarıyor; ölçüyü büyüt ya da daha az parça seç.",
-      "kopru": "Görseldeki iç adalar şablona bağlanamadı; daha sade bir silüet dene.",
-      // Anahtarlık FOTO kolu (plaket_kulak rc 2: plaket uzun kenarı >50 mm ya da kulak yerleşmedi) — BİREBİR.
-      "anahtarlik-boyut": "Bu fotoğraftan anahtarlık boyutunda bir parça çıkmadı; daha sade bir fotoğraf ya da kısa bir yazı deneyin.",
-      // Anahtarlık–figür tabla ankrajı reddi (figur_kulak 1.1) — ArTisT 18. okuma revize (11:5x): TeKiN 11:4x ölçümü,
-      // figür BÜYÜDÜKÇE F_TEPE DÜŞER (K2b 60=32,8 · 66=30,7 · 72=29,0 N RED) -> geçiren yön KÜÇÜLTMEK; "ölçüyü büyüt" yanlış yöndü.
-      "ankraj": "Bu fotoğraftan çıkan figür bu ölçüde sağlam bir anahtarlık olarak üretilemiyor; daha küçük bir ölçü ya da daha sade bir fotoğraf dene."
+      "kopru": "Görseldeki iç adalar şablona bağlanamadı; daha sade bir silüet dene."
     },
 
     // ÖRNEKLER — boşsa bölüm görünmez. Kaynak: TeKiN'in işleri (kanıtı kayıtta yazılı).
@@ -598,29 +471,6 @@
         onizleme: "https://media.pruvo3d.com/foto/ornek/kart-model-1.webp",
         render: "https://media.pruvo3d.com/foto/ornek/kart-model-1.webp",
         not: "130 mm, araç modeli"
-      },
-      {
-        tur: "anahtarlik",
-        // Çeşit (Okan 10 Eki): ② "Önizlemeden sonra" Örnek'i yalnız bu çeşitte çizilir (yazı örneği figürde ÇIKMAZ).
-        cesit: "yazi",
-        kanit: "render",
-        olcu_mm: 45,
-        onizleme: "https://media.pruvo3d.com/foto/ornek/anahtarlik-1-render.webp",
-        render: "https://media.pruvo3d.com/foto/ornek/anahtarlik-1-render.webp",
-        not: "45 mm, kulakçıklı, metin: Ayşe"
-      },
-      {
-        tur: "anahtarlik",
-        cesit: "figur",
-        kanit: "render",
-        // 60 mm (3MF bbox, halka dahil). Tek renk dosya -> notta renk iddiası YOK. Girdi SENTETİK çizim (TeKiN ed7c152, figur_kulak 1.1 hilal).
-        olcu_mm: 60,
-        onizleme: "https://media.pruvo3d.com/foto/ornek/anahtarlik-figur-hilal-onizleme.webp",
-        render: "https://media.pruvo3d.com/foto/ornek/anahtarlik-figur-hilal-2-render.webp",
-        // ① kart küçük resmi: render yerine bu görsel kullanılır (Okan 14 Eki 16:1x renkli tasarım).
-        kart: "https://media.pruvo3d.com/foto/ornek/anahtarlik-figur-kart.webp",
-        kart_alt: "Anahtarlık – figür örneği",
-        not: "60 mm, başın arkasına gömülü yarım halkalı figür anahtarlık"
       }
     ],
 
@@ -698,7 +548,7 @@
   };
   VERI.FORM_TIPLERI = { sayi: true, secim: true, metin: true, bool: true };
   var FOTO_GIRDILERI = { "foto-1": true, "foto-1-3": true };
-  // ÇEŞİTLER (Okan 22:0x anahtarlık "a yazı ile, b figür olarak"; TUR-C2a 10 Eki): türün ② başındaki çeşit seçimi.
+  // ÇEŞİTLER (TUR-C2a 10 Eki): türün ② başındaki çeşit seçimi.
   // Kalıcı yer D1 `foto_isler.cesit` ('' = türün varsayılan kolu). Metinler pazarlama sayfa metni satır 16–17 AYNEN.
   //   acik    : false = çeşit sunulmaz; sunucu müşteri isteğini `cesit-yakinda` ile AÇIKÇA reddeder (sessiz değil)
   //   girdi   : çeşidin girdi listesi (yoksa türün `girdi`si); figür = fotoğraf, yazı formu YOK (parametre 0)
@@ -717,28 +567,7 @@
     var t = VERI.turBul(kod), fk = t && t.foto_kolu;
     return fk && Number.isInteger(fk[alan]) && fk[alan] > 0 ? fk[alan] : 0;
   }
-  VERI.cesitler = {
-    anahtarlik: {
-      varsayilan: "yazi",
-      secenekler: [
-        { kod: "yazi", ad: "Yazı ile", aciklama: "Kısa bir isim ya da yazı, kabartma harflerle.", acik: true },
-        { kod: "figur", ad: "Figür olarak", aciklama: "Yüklediğin fotoğraftan küçük bir figür; anahtarlık halkası başın arkasında, gömülü yarım halka olarak.",
-          acik: true, girdi: ["foto-1"], olcu_en_az: kolSiniri("anahtarlik", "olcu_en_az"),
-          olcu_en_cok: kolSiniri("anahtarlik", "olcu_en_cok"), saglayici_tur: "figur", uretec: "figur_kulak",
-          // ② dürüstlük cümlesi (ArTisT 874b2a85 pazarlama metni ② "Anahtarlık – figür" AYNEN; figür/plaket'in TEK
-          // stilize-yorum cümlesi). Bölüm türün `durustluk`unun altına çeşidinkini basar; yazı çeşidinde alan YOK.
-          durustluk: "Önizleme fotoğrafının stilize bir yorumudur; basılmış anahtarlık en çok 4 renkli, sadeleştirilmiş bir hâlidir ve tam kopyası değildir (küçük ayrıntılar sadeleşir).",
-          // ③ renk + ölçü cümleleri (ArTisT 17. okuma, KraL 12 Eki): Renkli yalnız köprü kolu `renk_modu` palet sunarken
-          // çizilir. Ölçü çeşide ÖZEL: tür düzeyindeki "kulakçık dahil" cümlesi yazı çeşidi içindir (kulakçık DURUR); figür
-          // çeşidinde halka gömülü olduğundan "halka dahil" ayrı cümle (tür cümlesinin YERİNE basılır, foto-uretim.js
-          // alanAciklamasi çeşit alanına öncelik verir).
-          alan_aciklamalari: {
-            renk: "Siyah, Beyaz ya da Gri seçersen anahtarlık tek renk olur; Renkli seçersen renkler fotoğrafından otomatik seçilir (en çok 4 renk).",
-            olcu: "Anahtarlığın, başın arkasındaki halka dahil en uzun boyutudur; fiyat bu ölçüye göre canlı hesaplanır."
-          } }
-      ]
-    }
-  };
+  VERI.cesitler = {};
   // Çeşidin kaydı (tür + kod; yoksa null).
   VERI.cesitKaydi = function (kod, c) {
     var k = Object.prototype.hasOwnProperty.call(VERI.cesitler, kod) ? VERI.cesitler[kod] : null;
@@ -1103,7 +932,7 @@
     // (secenekler.js FILAMENT_FARK.TPU, tek kaynak). Bu dosya vm'de secenekler.js'siz de yüklendiği için (koşucu,
     // kapılar, testler) türetilemez; ikiz-tanım testi shop/test/foto-tpu.mjs iki sayının eşitliğini ölçer.
     // yalniz_tur_listesinde: türün `malzemeler` listesi TPU'yu ADIYLA taşımıyorsa sunulmaz (yalnız anahtarlık).
-    { kod: "TPU", sicaklik: "~60-70°C", kullanim: "Esnek, kırılmaz", ek_yuzde: 55, yalniz_tur_listesinde: true }
+    { kod: "TPU", sicaklik: "~60-70°C", kullanim: "Esnek", ek_yuzde: 55, yalniz_tur_listesinde: true }
   ];
   VERI.VARSAYILAN_MALZEME = "PLA";
   VERI.malzemeBul = function (kod) {

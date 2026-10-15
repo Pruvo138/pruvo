@@ -8,17 +8,19 @@ VAKALAR
   V1 --kuru: tur basina 4 adim (render/r2/d1/olcum) + D1 = pruvo-katalog-onizleme -c onizleme toml, canli ad YOK
   V2 mutlu yol: RENDER=ok R2=200 D1=ok HAZIR=evet, adim sirasi render<r2<d1<olcum, KOPRU_GRUP 2/2 rc=0,
      gecici dizin kalmadi
-  V3 anahtarlik uretec (isimlik_uret) rc 2 -> RENDER=uretec-rc2 + R2/D1 kosmaz + yapboz yine ok (DEVAM) + rc 1
+  V3 bust uretec (rolyef_uret) rc 2 -> RENDER=uretec-rc2 + R2/D1 kosmaz + yapboz yine ok (DEVAM) + rc 1
      + gecici dizin kalmadi
   V4 HTTP 404 -> R2=404, D1 KOSMAZ (acilmaz), rc 1
   V5 D1 rc 1 -> D1=rc1:..., rc 1
   V8 gecici kok adinda "d1"/"r2" (kopru-grup-test-d1r2-): V5 yine D1=rc1 — sahte uretec hata eslesmesi
      argv alt dizgesine degil betik ADINA bagli (12 Eki: rastgele mkdtemp son eki "d1" tasiyinca serit-a3 yandi)
-  V6 yer tutucu: dosya (yapboz `gorsel`) -> gecerli PNG; anahtarlik -> anahtarlik kaydi + isimlik_uret.py
-     (kayit URETEC adiyla bulunur, tur adi != uretec adi); kopru kaydi olmayan tur (bust, plaket) ->
+  V6 yer tutucu: dosya (yapboz `gorsel`) -> gecerli PNG; bust -> rolyef kaydi + rolyef_uret.py
+     (kayit URETEC adiyla bulunur, tur adi != uretec adi); kopru kaydi
+     olmayan tur (plaket, figur) ->
      uretec-ya-da-kayit-yok (fail-closed)
-EVREN (sayfa-3adim K3d): manifest foto-uretim-veri.js TEK KAYNAK; kopru kayitlari yapboz + anahtarlik.
-  Silinen tur grup vakalari yapboz/anahtarlik'a cevrildi; ses'e bagli V7 (dizi yer tutucusu) + MG1 SILINDI
+EVREN (sayfa-3adim K3d): manifest foto-uretim-veri.js TEK KAYNAK; sahte kopru kayitlari yapboz + rolyef (bust).
+  14 Eki anahtarlik silindi: ikinci tur bust'a TASINDI; foto kolu (anahtarlik-foto) V7 + MPB SILINDI (kolu
+  olan acik tur yok). Silinen tur grup vakalari yapboz/bust'a cevrildi; ses'e bagli V7 (dizi yer tutucusu) + MG1 SILINDI
   (kalan kopru kaydinda `dizi` yer tutucusu yok, tasinamaz).
 MUTANTLAR (KIRMIZI yakmali): MD1 D1 adi canliya · MD2 d1 komutu canli adla kurulur (koruma) ·
   MR2 R2 200 denetimi silindi · MTMP gecici dizin silme kaldirildi ·
@@ -75,9 +77,9 @@ KAYIT = {"surum": 1, "kayitlar": [
                       {"ad": "renkler", "tip": "renk_liste"}],
      "ornek": {"girdi": {"gorsel": "<PNG YOLU> (gri gradyan, oran <= 4:1)", "uzun_kenar_mm": 150,
                          "renkler": ["#C8B89A"]}}},
-    {"kod": "anahtarlik", "uretec": "isimlik_uret", "cikti": {"onizleme_png": "onizleme.png"},
-     "parametreler": [{"ad": "satirlar", "tip": "metin", "liste": True}, {"ad": "genislik_mm", "tip": "sayi"}],
-     "ornek": {"girdi": {"satirlar": ["Ayşe"], "genislik_mm": 45.0}}},
+    {"kod": "rolyef", "uretec": "rolyef_uret", "cikti": {"onizleme_png": "onizleme.png"},
+     "parametreler": [{"ad": "yukseklik_mm", "tip": "sayi"}],
+     "ornek": {"girdi": {"yukseklik_mm": 45.0}}},
 ]}
 
 sonuc = {}
@@ -135,13 +137,13 @@ def vakalar(o, kaynak, sus=False):
         r[ad] = bool(gecti)
         if not sus:
             vaka(ad, gecti, ac)
-    turler = ["--tur", "yapboz", "--tur", "anahtarlik"]
+    turler = ["--tur", "yapboz", "--tur", "bust"]
 
     rc, out, _ = o.kos(kaynak, turler + ["--kuru"])
     k = satir(out, "KURU ")
     adimlar = {(s.split()[1], s.split()[2]) for s in k}
     d1 = [s for s in k if "ADIM=d1" in s]
-    yaz("V1 kuru: tur basina 4 adim", rc == 0 and adimlar == {("tur=%s" % t, "ADIM=%s" % a) for t in ("yapboz", "anahtarlik")
+    yaz("V1 kuru: tur basina 4 adim", rc == 0 and adimlar == {("tur=%s" % t, "ADIM=%s" % a) for t in ("yapboz", "bust")
                                                             for a in ("render", "r2", "d1", "olcum")}, "rc=%d" % rc)
     yaz("V1 kuru: D1 onizleme adi + toml, canli ad yok",
         len(d1) == 2 and all("d1 execute pruvo-katalog-onizleme --remote -c shop/wrangler.onizleme.toml" in s
@@ -161,10 +163,10 @@ def vakalar(o, kaynak, sus=False):
         "pruvo-katalog-onizleme" in a and "pruvo-katalog" not in a for a in d1c))
     yaz("V2 gecici dizin silindi", o.artik() == [], str(o.artik()))
 
-    rc, out, c = o.kos(kaynak, turler, SAHTE_HATA="isimlik_uret.py")
+    rc, out, c = o.kos(kaynak, turler, SAHTE_HATA="rolyef_uret.py")
     ks = satir(out, "KOSU ")
     yaz("V3 uretec hatasi -> rc1 + adim adi + diger tur devam",
-        rc == 1 and any(s.startswith("KOSU tur=anahtarlik RENDER=uretec-rc2:") and "R2=- D1=-" in s for s in ks)
+        rc == 1 and any(s.startswith("KOSU tur=bust RENDER=uretec-rc2:") and "R2=- D1=-" in s for s in ks)
         and any(s.startswith("KOSU tur=yapboz RENDER=ok R2=200 D1=ok") for s in ks)
         and satir(out, "KOPRU_GRUP")[-1:] == ["KOPRU_GRUP turler=2 hazir=2/2 rc=1"], str(ks))
     yaz("V3 hatada gecici dizin silindi", o.artik() == [], str(o.artik()))
@@ -202,53 +204,13 @@ def yer_tutucu_vakasi(o):
     u = m.ornek_girdisi(KAYIT["kayitlar"][0], d)
     png = open(u["gorsel"], "rb").read() if os.path.isfile(u.get("gorsel", "")) else b""
     vaka("V6 dosya yer tutucusu -> gecerli PNG", png.startswith(b"\x89PNG\r\n\x1a\n") and b"IEND" in png[-12:])
-    p = m.plan_kur(["anahtarlik"])[0]
-    vaka("V6 anahtarlik -> anahtarlik kaydi + isimlik_uret.py", p.get("kayit", {}).get("kod") == "anahtarlik"
-         and p.get("g", {}).get("betik", "").endswith("isimlik_uret.py"), str(p.get("hata")))
-    ua = m.ornek_girdisi({"ornek": {"girdi": {"satirlar": ["A"]}}, "cagri": {"sabit": {"anahtarlik": True}}}, d)
-    vaka("V6 anahtarlik ornek girdisi kopru cagri.sabit'i tasir (anahtarlik=true)", ua.get("anahtarlik") is True,
-         str(sorted(ua)))
-    yok = {q["kod"]: q.get("hata") for q in m.plan_kur(["bust", "plaket"])}
-    vaka("V6 kopru kaydi olmayan tur (bust, plaket) -> uretec-ya-da-kayit-yok",
-         yok == {"bust": "uretec-ya-da-kayit-yok", "plaket": "uretec-ya-da-kayit-yok"}, str(yok))
+    p = m.plan_kur(["bust"])[0]
+    vaka("V6 bust -> rolyef kaydi + rolyef_uret.py", p.get("kayit", {}).get("kod") == "rolyef"
+         and p.get("g", {}).get("betik", "").endswith("rolyef_uret.py"), str(p.get("hata")))
+    yok = {q["kod"]: q.get("hata") for q in m.plan_kur(["plaket", "figur"])}
+    vaka("V6 kopru kaydi olmayan tur (plaket, figur) -> uretec-ya-da-kayit-yok",
+         yok == {"plaket": "uretec-ya-da-kayit-yok", "figur": "uretec-ya-da-kayit-yok"}, str(yok))
     shutil.rmtree(d, ignore_errors=True)
-
-
-def pb_vakasi(o, kaynak):
-    """FOTO KOLU (anahtarlik-foto; 10 Eki figur_kulak): GERCEK sabit kopru kaydiyla render komutu
-    `cagri.parametre_bayraklari` (--konum, varsayilan tepe) + dosya girdisini (--girdi <figur 3MF>) tasir; plan_kur kol kaydini ana turun
-    `foto_kolu`ndan bulur. Donus (gecti, aciklama). `kaynak` = arac kaynagi (mutant MPB bunu bozar)."""
-    d = tempfile.mkdtemp(dir=o.tmp, prefix="pb-")
-    eski = os.environ.get("KOPRU_ORNEK_PLAKET")
-    try:
-        yol = os.path.join(d, "kgk.py")
-        with open(yol, "w", encoding="utf-8") as f:
-            f.write(kaynak)
-        plaket = os.path.join(d, "ornek.3mf")
-        with open(plaket, "wb") as f:
-            f.write(b"PK\x03\x04")
-        os.environ["KOPRU_ORNEK_PLAKET"] = plaket
-        sp = importlib.util.spec_from_file_location("kgk_pb_%d" % id(d), yol)
-        m = importlib.util.module_from_spec(sp)
-        sp.loader.exec_module(m)
-        with open(os.path.join(KOK, "jenerator", "kopru", "kopru_kayitlari.json"), encoding="utf-8") as f:
-            kk = next(k for k in json.load(f)["kayitlar"] if k.get("kod") == "anahtarlik-foto")
-        p = {"kod": "anahtarlik-foto", "g": {"betik": "jeneratorler/foto/figur_kulak.py"}, "kayit": kk,
-             "jen": "/JEN", "py": "PY"}
-        with open(os.path.join(d, "girdi.json"), "w", encoding="utf-8") as f:
-            json.dump(m.ornek_girdisi(kk, d), f)
-        uretec = dict(m.render_komutlari(p, d)[0]).get("uretec")
-        bek = ["PY", "/JEN/jeneratorler/foto/figur_kulak.py", "--konum", "tepe", "--girdi", plaket,
-               "--cikti", os.path.join(d, "cikti")]
-        return uretec == bek, str(uretec)
-    except Exception as e:  # cokerse KIRMIZI
-        return False, "istisna %s: %s" % (type(e).__name__, e)
-    finally:
-        if eski is None:
-            os.environ.pop("KOPRU_ORNEK_PLAKET", None)
-        else:
-            os.environ["KOPRU_ORNEK_PLAKET"] = eski
-        shutil.rmtree(d, ignore_errors=True)
 
 
 MUTANTLAR = [
@@ -269,8 +231,6 @@ def main():
         g, ac = d1r2_koku_vakasi(kaynak)
         vaka("V8 gecici kok adinda d1/r2 -> V5 yine D1=rc1 (uretec eslesmesi betik adina bagli)", g, ac)
         yer_tutucu_vakasi(o)
-        g, ac = pb_vakasi(o, kaynak)
-        vaka("V7 anahtarlik-foto render komutu parametre_bayraklari (--konum tepe) + --girdi figur 3MF", g, ac)
         vk = sum(1 for v in sonuc.values() if not v)
         print("MUTANTLAR")
         sv = 0
@@ -286,11 +246,6 @@ def main():
                     shutil.rmtree(os.path.join(o.tmp, d), ignore_errors=True)
             print(("✅ %s KIRMIZI (%s)" % (ad, ", ".join(kirmizi))) if kirmizi else "❌ %s SURVIVOR" % ad)
             sv += 0 if kirmizi else 1
-        # MPB (foto kolu): parametre bayraklari okunmazsa (konum uretece gitmez) V7 KIRMIZI olmali.
-        eski, yeni = "            uretec += [pb[ad], str(u[ad])]\n", "            pass\n"
-        g = kaynak.count(eski) == 1 and not pb_vakasi(o, kaynak.replace(eski, yeni))[0]
-        print(("✅ %s KIRMIZI (V7)" % "MPB parametre_bayraklari okunmaz") if g else "❌ MPB SURVIVOR")
-        sv += 0 if g else 1
         # MSAHTE: sahte uretec eslesmesi eski alt dizge bicimine donerse V8 KIRMIZI olmali.
         eski, yeni = "    if hata and hata in adlar:\n", '    if hata and hata in " ".join(a):\n'
         g = SAHTE.count(eski) == 1 and not d1r2_koku_vakasi(kaynak, SAHTE.replace(eski, yeni))[0]

@@ -422,11 +422,38 @@ def _pre_commit_tarama():
         print("calisma agaci tarandi: %d urun, %d mukerrer" % (len(calisma), len(bulgular)))
         return 1
     bulgular = _tara(urunler, kaynaklar, istisnalar, baslik_istisnalari)
-    if bulgular:
-        for tur, deger, ilgili_idler in bulgular:
+    # --- YALNIZ BU COMMIT'IN YARATTIGI BULGU BLOKLAR (14 Eki 2026, BaBa 20:1x sinif hukmu) ---------------
+    # 🔴 OLCULEN ARIZA: HEAD'de ZATEN duran 14 kaynak cifti (cgtrader) MaCiT'in yalniz yeni urun ekleyen
+    #   commit'ini kilitledi; bir bozuk durum herkesin commit'ini durduruyordu. Artik: AYNI tarama HEAD
+    #   katalogunda da kosar; bulgu (tur, deger, id coklu-kumesi) HEAD'de BIREBIR varsa onceden-var = NOT
+    #   satiri (gorunur, kuyruk hijyeni), commit gecer. HEAD'de yoksa (yeni kayit cifte katildi YA DA mevcut
+    #   kayit DEGISTIRILIP yeni cift yaratildi) BLOKLAR.
+    # Neden id-uyeligi DEGIL bulgu kumesi: "id'lerin hepsi HEAD'de mi" sorusu mevcut iki kaydin basligini
+    #   esitleyen commit'i GECIRIR (A2 olcer, M8 o deligi acar).
+    # FAIL-CLOSED: HEAD okunamazsa (ilk commit dahil) her bulgu bloklar (A14 / M9).
+    # SINIR: `.urun-kaynaklari.json` git'te DEGIL (.gitignore) — HEAD taramasi da calisma agacindaki kaynak
+    #   haritasini kullanir; yalniz haritayi degistirip mevcut iki kaydi ayni linke baglayan degisiklik bu
+    #   kancada gorunmez (o dosyanin HEAD surumu yoktur).
+    head = _head_urunler()
+    head_bulgu = None
+    if head is not None:
+        head_bulgu = {(t, d, tuple(sorted(i)))
+                      for t, d, i in _tara(head, kaynaklar, istisnalar, baslik_istisnalari)}
+    yeni_bulgu, eski_bulgu = [], []
+    for b in bulgular:
+        if head_bulgu is None or (b[0], b[1], tuple(sorted(b[2]))) not in head_bulgu:
+            yeni_bulgu.append(b)
+        else:
+            eski_bulgu.append(b)
+    for tur, deger, ilgili_idler in eski_bulgu:
+        print("NOT onceden-var MUKERRER %s: %s -> %s (bloklamaz; kuyruk hijyeni)"
+              % (tur, deger, ", ".join(ilgili_idler)))
+    if yeni_bulgu:
+        for tur, deger, ilgili_idler in yeni_bulgu:
             print("MUKERRER %s: %s -> %s" % (tur, deger, ", ".join(ilgili_idler)))
         return 1
-    print("mukerrer yok: %d urun tarandi (commit icerigi)" % len(urunler))
+    print("mukerrer yok (bu commit'in ekledikleri): %d urun tarandi (commit icerigi), onceden-var %d"
+          % (len(urunler), len(eski_bulgu)))
     return 0
 
 

@@ -622,7 +622,7 @@ CREATE TABLE IF NOT EXISTS foto_isler (
   onay_tarih   TEXT NOT NULL DEFAULT '',   -- aydinlatma onayi ani (ISO 8601 UTC); ornek (panel) kolunda bos
   onay_surum   TEXT NOT NULL DEFAULT '',   -- musterinin onayladigi metin surumu (VERI.onay_surum). Var olan
                                            -- tabloya: tools/d1-goc/2026-10-07-foto-onay-kaydi.sql
-  cesit        TEXT NOT NULL DEFAULT '',   -- turun cesidi (VERI.cesitler; anahtarlik 'yazi'|'figur'); '' = turun
+  cesit        TEXT NOT NULL DEFAULT '',   -- turun cesidi; '' = turun
                                            -- varsayilan kolu (eski satir). Var olan tabloya: tools/d1-goc/2026-10-10-foto-cesit.sql
   alt_tur      TEXT NOT NULL DEFAULT ''    -- figur alt turu ('insan'|'pet'|'model'); siparis model kapisi bundan cozer.
                                            -- '' = alt tursuz/eski satir -> figur modeli KAPALI. Var olan tabloya:
@@ -664,9 +664,9 @@ CREATE TABLE IF NOT EXISTS foto_kredi (
   UNIQUE (gorev, adim)
 );
 CREATE TABLE IF NOT EXISTS foto_acik (
-  tur          TEXT PRIMARY KEY,           -- MODEL kodu (anahtarlik_yazi|insan|pet|plaket|anahtarlik_figur|model) ya da
+  tur          TEXT PRIMARY KEY,           -- MODEL kodu (insan|pet|plaket|model) ya da
                                            -- modelsiz tur kodu (foto-uretim-veri.js turler[].kod). Modelli turun eski
-                                           -- satiri ('anahtarlik'/'figur') hicbir modeli ACMAZ. Goc: 2026-10-10-foto-model-acik.sql
+                                           -- satiri ('figur') hicbir modeli ACMAZ. Goc: 2026-10-10-foto-model-acik.sql
   acik         INTEGER NOT NULL DEFAULT 0, -- 1 = satista; baska her deger KAPALI
   guncel       TEXT NOT NULL
 );

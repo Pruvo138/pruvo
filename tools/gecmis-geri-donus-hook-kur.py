@@ -2,10 +2,11 @@
 # -*- coding: utf-8 -*-
 """`pre-push` kancasina GECMIS GERI-DONUS NOBETI BLOGUNU kurar (idempotent).
 
-🖥️ YENI MAKINEDE / GOCTEN SONRA TEK YAPILACAK SEY:
-        python3 tools/gecmis-geri-donus-hook-kur.py
-    Kancalar `.git/hooks` altinda yasar ve GIT'E GIRMEZ -> her makinede yeniden kurulur.
-    Kurulu mu: `python3 tools/gecmis-geri-donus-hook-kur.py --dogrula`.
+🔴 14 Eki 2026: bu depoda kancalar izlenen tools/kancalar/ kaynagindan
+   `python3 tools/kanca-kur.py` ile kurulur (core.hooksPath = .git/pruvo-kancalar);
+   blok tools/kancalar/pre-push icinde durur. core.hooksPath baska yeri gosteriyorsa
+   bu kurucu `.git/hooks`a YAZMAZ, rc 3 ile REDDEDER (olu dosyaya "yazildi" demez).
+   Kurulu mu: `python3 tools/gecmis-geri-donus-hook-kur.py --dogrula` (git'in OKUDUGU kanca).
     Nobetci: `python3 tools/kanca-nobeti.py` (bu blogu da yargilar).
 
 NE YAPAR: `<git-common-dir>/hooks/pre-push` icine isaretli bir blok ekler. Blok
@@ -46,6 +47,14 @@ import shutil
 import stat
 import subprocess
 import sys
+
+TOOLS = os.path.dirname(os.path.abspath(__file__))
+if TOOLS not in sys.path:
+    sys.path.insert(0, TOOLS)
+from git_ortami import kanca_hedef_reddi, kanca_yollari  # noqa: E402
+
+# Kurulum REDDEDILDI: git bu kurucunun yazdigi yolu OKUMUYOR (core.hooksPath).
+RC_RET = 3
 
 BAS = ("# >>> PRUVO GECMIS GERI-DONUS NOBETI BLOGU "
        "(tools/gecmis-geri-donus-hook-kur.py uretir — ELLE DUZENLEME) >>>")
@@ -149,6 +158,14 @@ def kur(repo, kuru=False, kaldir=False, sessiz=False):
         if not sessiz:
             print("HATA: git deposu bulunamadi: " + repo, file=sys.stderr)
         return 1, None
+    # 🔴 14 Eki 2026: core.hooksPath baska yeri gosteriyorsa `yol` OLU dosyadir
+    # (kardes gecmis-nobeti-hook-kur.py ~10 hafta oraya "yazildi" dedi) -> RET.
+    ret = kanca_hedef_reddi(repo, "pre-push")
+    if ret:
+        if not sessiz:
+            print("🔴 KURULUM REDDEDILDI (rc=%d, hicbir sey yazilmadi): %s"
+                  % (RC_RET, ret), file=sys.stderr)
+        return RC_RET, None
     mevcut = None
     if os.path.isfile(yol):
         with open(yol, encoding="utf-8", errors="replace") as f:
@@ -197,7 +214,8 @@ def main(argv=None):
         print("HATA: bilinmeyen arguman: " + ", ".join(bilinmeyen), file=sys.stderr)
         return 2
     if "--dogrula" in argv:
-        yol = hook_yolu(repo)
+        # Git'in FIILEN okudugu kanca (core.hooksPath dahil).
+        yol, _eski = kanca_yollari(repo, "pre-push")
         var = kurulu_mu(yol)
         print("hook: %s\ngecmis geri-donus nobeti blogu: %s"
               % (yol, "KURULU" if var else "YOK"))

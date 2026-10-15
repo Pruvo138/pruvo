@@ -172,6 +172,15 @@ BEKLENEN = (
          "YENI CI ADIMI HUKUM KAPISI (K80): workflow'a eklenen `run` komutu push EDILEN "
          "commit agacinda FIILEN rc=0 vermeli; kosmazsa 'kapi VAR' beyani olculmeden "
          "gecer ve yayin seridi commit'ler sonra kirmizi konusur"),
+        # 14 Eki 2026 eklendi. GEREKCE: blok yalniz tools/gecmis-nobeti-hook-kur.py ile
+        # `.git/hooks/pre-push`a yaziliyordu; core.hooksPath 4 Agu'ta (c2b1292e)
+        # `.git/pruvo-kancalar`a gecince git o dosyayi HIC okumadi ve bu envanterde
+        # kaydi olmadigi icin ~10 hafta hicbir nobetci kirmizi yakmadi — o pencerede
+        # 5 ic rapor PUBLIC'e cikti ([[nobetci-cagri-satiri-nobetsiz]]).
+        ("tools/kisisel-veri-test.py",
+         "GECMIS NOBETI (ic rapor): itmenin GETIRDIGI commit'lerde EKLENMIS ic rapor "
+         "(sonradan silinse bile) -> PUSH DURUR (fail-closed); commit public'e gidince "
+         "geri alinamaz, tek onleyici yuzey push anidir"),
     )),
     # 1 Agu 2026 eklendi (kurucu: tools/commit-mesaji-hook-kur.py).
     # GEREKCE: depo PUBLIC ve commit MESAJI yazildiktan sonra DEGISTIRILEMEZ —

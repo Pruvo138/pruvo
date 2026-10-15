@@ -23,7 +23,7 @@
  *                    tur fiyatsiz. (Eski F9 "ek renk +100 TL" Okan 9 Eki emriyle KALKTI.)
  * MUTANTLAR (veri dosyasinin BELLEKTEKI kopyasi / foto.js'in GECICI kopyasi; agaca yazim YOK):
  *   FM1 formul ×100 · FM2 en_az yerine en_cok · FM3 adim izgarasi silindi · FM4 anahtar fail-open ·
- *   FM6 taban kalkti (F1,F3,F6,F9; anahtarlik 30..55 tabani gorur) · FM7 tabansiz tur fail-open (F7) · FM9 Renkli carpani dustu · FM10 PETG carpani
+ *   FM6 taban kalkti (F1,F3,F6,F8,F9) · FM7 tabansiz tur fail-open (F7) · FM9 Renkli carpani dustu · FM10 PETG carpani
  *   dustu · FM11 ASA secilebilir · FM12 renk adedi yeniden ucretlenir (F9)
  *   -> hedef grup KIRMIZI; FM0 (yalniz yorum) -> hicbiri. Olcu EKSENI (X/Y'ye bakan olcum) mutanti
  *   shop/test/foto-uretim.mjs OZ-M1'de (sentetik 3MF orada).
@@ -64,17 +64,17 @@ function secenekYukle() {
   vm.runInNewContext(fs.readFileSync(path.join(KOK, "secenekler.js"), "utf8"), k, { filename: "secenekler.js" });
   return k.PRUVO_SECENEK;
 }
-/** F10 TPU: ikiz tanim (foto VERI TPU ek_yuzde == katalog FILAMENT_FARK.TPU) + bagimsiz carpim + tur kisiti. */
+/** F10 TPU: ikiz tanim (foto VERI TPU ek_yuzde == katalog FILAMENT_FARK.TPU) + bagimsiz carpim (secimliKurus, plaket
+ * fiyatiyla olculur) + tur kisiti (yalniz_tur_listesinde: TPU'yu ADIYLA tasiyan tur kalmadi -> HICBIR turde sunulmaz). */
 function tpuSenaryo(V) {
   const FF = (secenekYukle() || {}).FILAMENT_FARK || {}, tpu = V.malzemeBul("TPU");
-  const iz = { katalog: FF.TPU, veri: tpu ? tpu.ek_yuzde : null, f60: V.fiyatKurus("anahtarlik", 60, { malzeme: "TPU" }),
-    f120: V.fiyatKurus("anahtarlik", 120, { malzeme: "TPU" }), fr: V.fiyatKurus("anahtarlik", 60, { renkli: true, malzeme: "TPU" }),
+  const iz = { katalog: FF.TPU, veri: tpu ? tpu.ek_yuzde : null, f60: V.fiyatKurus("plaket", 60, { malzeme: "TPU" }),
+    f120: V.fiyatKurus("plaket", 120, { malzeme: "TPU" }), fr: V.fiyatKurus("plaket", 60, { renkli: true, malzeme: "TPU" }),
     turler: V.turler.map((t) => t.kod + ":" + V.turMalzemeleri(t.kod).join("/")) };
   const ikiz = Number.isInteger(FF.TPU) && !!tpu && tpu.ek_yuzde === FF.TPU;
   const fiyat = iz.f60 === Math.round(60000 * 1.55) && iz.f120 === Math.round(120000 * 1.55) &&
     iz.fr === Math.round(60000 * 1.15 * 1.55) && iz.f60 === Math.round(beklenenKurus(60) * (100 + FF.TPU) / 100);
-  const tur = JSON.stringify(V.turMalzemeleri("anahtarlik")) === '["PLA","PETG","TPU"]' &&
-    V.turler.filter((t) => t.kod !== "anahtarlik").every((t) => V.turMalzemeleri(t.kod).indexOf("TPU") < 0 &&
+  const tur = V.turler.length > 0 && V.turler.every((t) => V.turMalzemeleri(t.kod).indexOf("TPU") < 0 &&
       V.turMalzemeleri(t.kod).indexOf("PLA") >= 0);
   return { F10: ikiz && fiyat && tur, iz };
 }
@@ -118,7 +118,7 @@ function formulSenaryolar(V, kaynak) {
   }
   if (s.sayi === 0 || s.enDusuk.length === 0) { s.F1 = false; s.F6 = false; }
   // Kontrol kolu: tabanin GERCEKTEN bastigi tur yoksa F6 hicbir seyi olcmuyor demektir. Okan 10 Eki ~13:4x
-  // (anahtarlik 60, plaket 60) sonrasi gercek veride HER turun alt siniri >= 60 (60 mm × 10 TL = taban): taban
+  // (plaket 60) sonrasi gercek veride HER turun alt siniri >= 60 (60 mm × 10 TL = taban): taban
   // hicbir durakta basmayabilir -> kol KOPYADA olculur (plaket alt siniri 10'a cekilir; 10/50 mm = 600 TL, 70 mm = 700 TL).
   s.tabanKopya = s.tabanli.length === 0 ? tabanKopyadaBasar(kaynak) : null;
   if (s.tabanli.length === 0 && s.tabanKopya !== true) { s.F6 = false; }
@@ -171,7 +171,7 @@ const SPEC_ORNEKLERI = [
   [100, { renkli: true, malzeme: "PETG" }, 149500], [60, {}, 60000], [60, { renkli: true, malzeme: "PETG" }, 89700],
 ];
 const MALZEME_KARTLARI = [["PLA", "~55-60°C", "Ev içi"], ["PETG", "~70-75°C", "Dış mekân / genel amaçlı"],
-  ["TPU", "~60-70°C", "Esnek, kırılmaz"]];
+  ["TPU", "~60-70°C", "Esnek"]];
 // K3d: palet türleri MANIFESTTEN (`renk_secimi: "palet"` ham alanı); VERI.renkPaleti fonksiyonu buna uymalı.
 const paletTurleri = (V) => V.turler.filter((t) => t.renk_secimi === "palet").map((t) => t.kod);
 function renkSenaryo(V, kaynak) {
@@ -189,13 +189,12 @@ function renkSenaryo(V, kaynak) {
     { renkli: 1 }, 1, 2, 4, null, []].every((sc) => p(sc) === null);
   const malz = JSON.stringify((V.MALZEMELER || []).map((m) => [m.kod, m.sicaklik, m.kullanim])) === JSON.stringify(MALZEME_KARTLARI) &&
     V.VARSAYILAN_MALZEME === "PLA" &&
-    V.turler.every((t) => Object.values(t.malzemeler || {}).every((l) => l.every((m) => m === "PLA" || m === "PETG" ||
-      (t.kod === "anahtarlik" && m === "TPU"))));
+    V.turler.every((t) => Object.values(t.malzemeler || {}).every((l) => l.every((m) => m === "PLA" || m === "PETG")));
   const anaRenk = JSON.stringify(V.ANA_RENKLER) === JSON.stringify(["Siyah", "Beyaz", "Gri"]) && V.VARSAYILAN_RENK === "Beyaz" &&
     V.RENKLI_ETIKET === "Renkli (+%15)";
-  // Renkli YALNIZ fotografli turde (yazili anahtarlik "metin" girdisi -> Renkli yok).
+  // Renkli YALNIZ fotografli turde (bilinmeyen/fotografsiz tur -> Renkli yok).
   const renkliTur = V.turler.every((t) => V.renkliSecilebilir(t.kod) === (t.girdi || []).some((g) => /^foto-/.test(g))) &&
-    V.renkliSecilebilir("anahtarlik") === false && V.renkliSecilebilir("plaket") === true;
+    V.renkliSecilebilir("yok-tur") === false && V.renkliSecilebilir("plaket") === true;
   const palet = PALET_TURLERI.length > 0 && PALET_TURLERI.includes("plaket") && PALET_TURLERI.every((k) => V.renkPaleti(k)) &&
     V.turler.filter((t) => V.renkPaleti(t.kod)).length === PALET_TURLERI.length && V.PLA_RENKLERI.length === 9;
   let eksik = false;
@@ -283,11 +282,11 @@ const tabloAtfi = [...fs.readdirSync(path.join(SHOP, "src")).filter((d) => d.end
   path.join(KOK, "foto-uretim.js"), VERI_YOL].map((y) => ({ y: path.relative(KOK, y), n: (fs.readFileSync(y, "utf8").match(/foto_fiyat/g) || []).length }))
   .filter((x) => x.n > 0);
 ol("F4c `foto_fiyat` tablo atfi shop/src/*.js + foto-uretim*.js'te 0", tabloAtfi.length === 0, JSON.stringify(tabloAtfi));
-console.log("F10) TPU (Okan 13 Eki) — anahtarlik TPU +%55 = katalog FILAMENT_FARK.TPU (ikiz tanim), yalniz anahtarlikta");
+console.log("F10) TPU (Okan 13 Eki; 14 Eki tasiyan tur silindi) — TPU +%55 = katalog FILAMENT_FARK.TPU (ikiz tanim), hicbir turde sunulmaz");
 {
   const t = tpuSenaryo(VERI);
-  ol("F10 TPU ek_yuzde === secenekler.js FILAMENT_FARK.TPU (" + t.iz.katalog + ") · anahtarlik 60 mm TPU = round(60000 × 1,55) = 93000, " +
-     "120 mm 186000 · Renkli+TPU 106950 · turMalzemeleri anahtarlik [PLA,PETG,TPU], diger 4 turde TPU YOK", t.F10, JSON.stringify(t.iz));
+  ol("F10 TPU ek_yuzde === secenekler.js FILAMENT_FARK.TPU (" + t.iz.katalog + ") · plaket 60 mm TPU carpimi = round(60000 × 1,55) = 93000, " +
+     "120 mm 186000 · Renkli+TPU 106950 · HICBIR turun turMalzemeleri'nde TPU YOK", t.F10, JSON.stringify(t.iz));
 }
 console.log("F5) ACILIS ANAHTARI — okunamaz / bos -> acik tur 0 (fail-closed)");
 ol("F5 anahtar okunamaz ya da bos -> acik tur 0", ss.ANAHTAR, "");
@@ -304,9 +303,8 @@ const VERI_MUTANTLAR = [
    "return true;", ["F2"]],
   // K3a: FM5 (TURETILMIS DE IZGARAYA BAGLI) SİLİNDİ. Kalan 4 türün TAMAMI foto, hiçbiri türetilmiş değil.
   // VERI.olcuTuretilmis(kod) her zaman false → mutant no-op olurdu. null/no-op mutant YASAK.
-  // Okan 8 Eki tabani: taban kalkinca 60 mm alti olculer 600 TL'nin altina iner. Okan 10 Eki 15:2x anahtarlik 30–300
-  // (acilis 60) sonrasi gercek veride 60 mm alti durak YENIDEN VAR (anahtarlik 30..55) -> F1/F3/F9 tabani GORUR +
-  // F6 kopya kontrol kolu (plaket 10 mm) KIRMIZI.
+  // Okan 8 Eki tabani: taban kalkinca 60 mm alti olculer 600 TL'nin altina iner. Gercek veride 60 mm alti
+  // durak yoksa F1/F3/F9 tabani kopyada GORUR + F6 kopya kontrol kolu (plaket 10 mm) KIRMIZI.
   // F8: figur zarfinin alt siniri 41 mm (22:3x) tabansiz 410 TL olur -> 600 TL alt sinir kolu da KIRMIZI.
   ["FM6 TABAN KALKTI", "return VERI.secimliKurus(Math.max(mm * f, taban), secim);", "return VERI.secimliKurus(mm * f, secim);",
    ["F1", "F3", "F6", "F8", "F9"]],
@@ -326,7 +324,7 @@ const VERI_MUTANTLAR = [
    'kullanim: "Dış mekân / genel amaçlı", ek_yuzde: 30 },\n    { kod: "ASA", sicaklik: "~95°C", kullanim: "Dış", ek_yuzde: 0 }', ["F9"]],
   // TPU (Okan 13 Eki): M1 TPU'ya %30 uygulanir (ikiz tanim katalogdan ayrisir) -> F10 KIRMIZI · TPU listede adsiz
   // turlere (plaket/figur) de sizarsa -> F10 KIRMIZI.
-  ["FM13 TPU'YA %30 (ikiz tanim ayrisir)", 'kullanim: "Esnek, kırılmaz", ek_yuzde: 55,', 'kullanim: "Esnek, kırılmaz", ek_yuzde: 30,', ["F10"]],
+  ["FM13 TPU'YA %30 (ikiz tanim ayrisir)", 'kullanim: "Esnek", ek_yuzde: 55,', 'kullanim: "Esnek", ek_yuzde: 30,', ["F10"]],
   ["FM14 TPU HER TURDE", "        : !m.yalniz_tur_listesinde;", "        : true;", ["F10"]],
   // Eski ek renk modeli geri gelirse (sayi = renk adedi kabul edilir, adet basi +100 TL) F9 KIRMIZI.
   ["FM12 RENK ADEDI UCRETLENIR", "    if (s === undefined) { return { renkli: false, malzeme: VERI.VARSAYILAN_MALZEME }; }",
