@@ -333,7 +333,7 @@ def main():
         ("M22 insan karti figur yerine plaket secer",
          (index, bolum.replace('{ kod: "insan", tur: "figur"', '{ kod: "insan", tur: "plaket"', 1), veri, build), True),
         ("M23 anahtarlik KARTLAR disinda ekrana yazildi",
-         (index, bolum.replace('var ESKI_KART = ', 'var ANAHTARLIK_NOTU = "Anahtarlık";\n  var ESKI_KART = ', 1), veri, build), True),
+         (index, bolum.replace('var PENCERELER = ', 'var ANAHTARLIK_NOTU = "Anahtarlık";\n  var PENCERELER = ', 1), veri, build), True),
         # Y15 mutantlari: cizim kolu <-> FORM_TIPLERI esitlik kapisi (anahtarlik-metin-ui).
         ("M24 metin cizim dali silindi (sema.tip === 'metin' kolu YOK)",
          (index, bolum.replace('sema.tip === "metin"', 'sema.tip === "metinYOK"', 1), veri, build), True),
