@@ -1229,7 +1229,7 @@ def kendini_test():
             siz_sha, _ = _commit(depo13, "%s partisi" % _UYDURMA[0])
             assert _HEX40.match(siz_sha), "sentetik SHA 40 hex olmali"
 
-            # 13a: sizintili SHA'yi bilinen listesine KOY -> temiz sayilmali.
+            # 13a: sentetik ihlalli SHA'yi muaf listeye KOY -> temiz sayilmali.
             with open(bilinen_dosya, "w", encoding="utf-8") as f:
                 _json.dump({"surum": 1, "sha": [siz_sha]}, f)
             os.environ[_BILINEN_ORTAM] = bilinen_dosya
