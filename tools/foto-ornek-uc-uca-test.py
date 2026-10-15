@@ -45,6 +45,10 @@ model-kapali, HAZIR · V-MK3 sunucu kapali modele yanlis kod (400 tur-kapali) ->
 V-AT2 --alt-tur figur disi -> HATA rc 2 (panel 0) · DENGE KAPISI (sahte figur_denge.py, FOTO_KOSUCU_JENERATOR):
 V-AT1 OK -> DENGE=HAZIR (girdi = onarilmis model.3mf, sha esit) · V-DG2 RED devrilme -> kart EKSIK · V-DG3 rc 1
 -> OLCULEMEDI + EKSIK · V-DG4 ham `model.ham.3mf` kapiya GITMEZ (cagri 0).
+TURETILMIS ③ PROVA AKISI (Okan 15 Eki: yenilemede bolum ①'den acilir, oturum kaydi okunmaz): V-S3OLC (saf) ③ hukmu
+akis kanitina bagli (akissiz S3 yazisi / 2 istek / baska tur / yarim akis EKSIK) · V-S3AKIS GERCEK foto-uretim.js
+(kopyada plaket turetilmis) bassiz Chrome'da: betigin tarayici_olc'u kart -> ② foto -> ③ -> ④ -> onizleme ile S3'e
+varir, fiyat sahte /foto/durum'dan, onizleme POST'u sunucuya 0 (Chrome yoksa KIRMIZI; FOTO_UU_TEST_CHROME).
 Mutantlar (betik kopyasinda capa degisir; capa != 1 kez -> SURVIVOR): MUTANTLAR sozlugu yorumlari.
 """
 import base64
@@ -70,6 +74,8 @@ SEMA = os.path.join(KOK, "tools", "d1-sema.sql")
 # okur; test ortaminda `_red_metni_onizleme()` acabilsin diye KOPYA'ya eklenir.
 KOPYA_DOSYALAR = ["foto-uretim-veri.js", "shop/wrangler.toml", "shop/wrangler.onizleme.toml",
                   "shop/src/foto.js", "tools/foto-onizleme.py", "tools/saglayici-ornek.py",
+                  # V-S3AKIS: GERCEK bolum (foto-uretim.js + secenekler.js) sahte sunucudan bassiz Chrome'a sunulur.
+                  "foto-uretim.js", "secenekler.js",
                   "tools/d1-goc/2026-10-10-foto-kredi-dilim.sql"]
 
 SAHTE_WRANGLER = r'''
@@ -290,7 +296,10 @@ class Sunucu:
                      "durum_carpan": 1000, "r2": "", "yonet": {}, "gorsel_400_yabanci": False,
                      # MODEL KAPISI: D1'de kapali model kodlari; kapali modele donen hata (V-MK3 yanlis kod);
                      # /acik `modeller` alanini dusur (V-MK4 eski sunucu).
-                     "d1_kapali_model": set(), "model_hata": "model-kapali", "modeller_yok": False}
+                     "d1_kapali_model": set(), "model_hata": "model-kapali", "modeller_yok": False,
+                     # V-S3AKIS: statik = kopya agac (sayfa + bolum betikleri sunulur); onizleme_post = musteri
+                     # /foto/onizleme POST sayaci (prova akisinda sayfada taklit edilir -> sunucuya 0).
+                     "statik": "", "onizleme_post": 0}
         ayar = self.ayar
 
         def panel(h, yontem, g):
@@ -400,6 +409,12 @@ class Sunucu:
                         return self.yanit(404, {"hata": "bulunamadi"})
                     return self.yanit(200, {"asama": "hazir", "tur": r[0], "olcu_mm": r[1], "olcu_kaynagi": "turetilmis",
                                             "fiyat_kurus": max(r[1] * ayar["durum_carpan"], TABAN_KURUS)})
+                yol = self.path.split("?", 1)[0]
+                if ayar["statik"] and yol in STATIK:
+                    if yol == "/":
+                        return self.yanit(200, SAYFA_HTML.encode(), "text/html; charset=utf-8")
+                    with open(os.path.join(ayar["statik"], yol[1:]), "rb") as f:
+                        return self.yanit(200, f.read(), "application/javascript; charset=utf-8")
                 if self.path.startswith("/medya/"):
                     return self.yanit(200, b"RIFF0000WEBP", "image/webp")
                 self.yanit(404, {"hata": "yok"})
@@ -409,6 +424,8 @@ class Sunucu:
                 g = json.loads(self.rfile.read(n) or b"{}")
                 if self.path.startswith("/api/shop/yonet/"):
                     return panel(self, "POST", g)
+                if self.path.split("?", 1)[0] == "/api/shop/foto/onizleme":
+                    ayar["onizleme_post"] += 1
                 t = TUR.get(g.get("tur")) or {}
                 if g.get("tur") in MODELLI:
                     # foto.js onizlemeUcu MODEL KAPISI: uretec + saglayici kolundan ONCE; D1 (acikAnahtari) model
@@ -447,6 +464,43 @@ class Sunucu:
 
 # Sahte sunucu/tarayici gercek formulu taklit eder: max(600 TL, mm × 10 TL) (Okan 8 Eki tabani).
 TABAN_KURUS = 60000
+
+# V-S3AKIS turu: ① kartlari yalniz foto-uretim.js KARTLAR'daki turler (insan/pet/model=figur, plaket) — bust/yapboz
+# kartsiz, akisla SECILEMEZ. Tek modelli (alt tursuz) kartli tur = plaket.
+S3_TUR = "plaket"
+# V-S3AKIS: index.html'in bolum iskeleti (bolum + uc betik, ayni sira). Bolum GERCEK kopya dosyalardan cizilir.
+STATIK = ("/", "/secenekler.js", "/foto-uretim-veri.js", "/foto-uretim.js")
+SAYFA_HTML = """<!doctype html><html lang="tr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>uu</title></head><body>
+<section id="fotoUretim" class="foto-uretim" hidden aria-label="uu"></section>
+<script src="/secenekler.js"></script>
+<script src="/foto-uretim-veri.js" defer></script>
+<script src="/foto-uretim.js" defer></script>
+</body></html>"""
+# Betigin tarayici_olc'unu (mutant kopyasi dahil) ayri surecte kosar + ③ TURETILMIS hukmunu GERCEK /foto/durum ile verir.
+SURUCU = r'''
+import importlib.util, json, sys
+sp = importlib.util.spec_from_file_location("uu", sys.argv[1])
+m = importlib.util.module_from_spec(sp)
+sp.loader.exec_module(m)
+kod, prova = sys.argv[2], sys.argv[3]
+v = m.tarayici_olc([kod], {kod: prova}).get(kod) or {}
+tr = m.Tur(kod, {"formul": "mm_x_10tl", "formul_kurus_mm": 1000})
+k, _, b = m.http("GET", m.taban() + "/api/shop/foto/durum?is=" + prova)
+tr.uk, tr.olcu, tr.durum = 123.4, 123, (m.json_coz(b) if k == 200 else {"kod": k})
+m.olc_3_turetilmis(tr, {}, v)
+print(json.dumps({"v": v, "olcut3": list(tr.s["3"])}, ensure_ascii=False))
+'''
+
+
+def test_chrome():
+    """Bassiz Chrome yolu: FOTO_UU_TEST_CHROME · macOS uygulamasi · PATH (CI ubuntu: google-chrome). Yoksa ''."""
+    for y in (os.environ.get("FOTO_UU_TEST_CHROME", ""), "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+              shutil.which("google-chrome") or "", shutil.which("google-chrome-stable") or "",
+              shutil.which("chromium") or "", shutil.which("chromium-browser") or ""):
+        if y and os.path.isfile(y):
+            return y
+    return ""
 
 
 def tarayici_iyi(kod, olculen=123):
@@ -1255,6 +1309,72 @@ def vakalar(kaynak, sadece=None):
         return r == [60000, 60000, 60000, 70000], "beklenen_kurus 30/59/60/70 = %s" % r
     saf("U14b", u14b)
 
+    # ---- TURETILMIS ③ PROVA AKISI (Okan 15 Eki: yenilemede bolum ①'den acilir, oturum kaydi okunmaz).
+    def vs3olc(ns):
+        # ③ TURETILMIS hukmu AKIS kanitina bagli: S3 fiyat yazisi dogru olsa da akis/istek alani olmayan sonuc (eski
+        # "oturum deposu + yenile" yolunun bicimi) EKSIK · 2 onizleme istegi / baska tur / S3'e varmayan akis EKSIK.
+        def hukum(v):
+            tr = ns["Tur"](D_TUR, {"formul": "mm_x_10tl", "formul_kurus_mm": 1000})
+            tr.uk, tr.olcu, tr.durum = 123.4, 123, {"fiyat_kurus": 123000, "olcu_kaynagi": "turetilmis"}
+            ns["olc_3_turetilmis"](tr, {}, v)
+            return tr.s["3"][0]
+        eski = {"surgu": False, "olculen_not": True, "s3_surgu": False, "olculen_fiyat": "123 mm → 1.230 TL"}
+        akis = dict(eski, s3_akis="kart>2>foto>3>4>istek>S3", s3_hata="", s3_istek=[{"tur": D_TUR, "gorsel": True}])
+        r = {"akis": hukum(akis), "eski": hukum(eski), "iki_istek": hukum(dict(akis, s3_istek=akis["s3_istek"] * 2)),
+             "baska_tur": hukum(dict(akis, s3_istek=[{"tur": KAPALI_M, "gorsel": True}])),
+             "yarim": hukum(dict(akis, s3_akis="kart>2>foto>3>4>istek", s3_hata="S3-yok"))}
+        return r == {"akis": True, "eski": False, "iki_istek": False, "baska_tur": False, "yarim": False}, str(r)
+    saf("V-S3OLC", vs3olc)
+
+    def vs3akis(o):
+        # GERCEK foto-uretim.js (kopya; S3_TUR olcu_ekseni -> turetilmis) bassiz Chrome'da sahte sunucudan acilir. Betigin
+        # tarayici_olc'u bolumu kart -> ② foto -> ③ -> ④ -> "Onizleme olustur" ile S3'e surmeli: fiyat GERCEK
+        # /foto/durum'dan (D1 olcu 123 -> "123 mm → 1.230 TL"), onizleme POST'u sayfada TAM 1 kez taklit (sunucuya 0),
+        # ③ hukmu HAZIR. Chrome yoksa KIRMIZI (fail-closed; CI ubuntu'da google-chrome var).
+        chrome = test_chrome()
+        if not chrome:
+            return False, "chrome yok (FOTO_UU_TEST_CHROME ile ver)"
+        veri = os.path.join(o.agac, "foto-uretim-veri.js")
+        with open(veri, encoding="utf-8") as f:
+            m = f.read()
+        capa = 'kod: "%s",' % S3_TUR
+        if m.count(capa) != 1:
+            return False, "manifestte %r %d kez" % (capa, m.count(capa))
+        with open(veri, "w", encoding="utf-8") as f:
+            f.write(m.replace(capa, capa + ' olcu_ekseni: "turetilmis",'))
+        o.sunucu.ayar["acik"] = list(ACIK_EVREN)
+        o.sunucu.ayar["statik"] = o.agac
+        prova = "b" * 32
+        c = sqlite3.connect(o.db)
+        c.execute("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama) VALUES (?, ?, 123, 'uu-prova', "
+                  "'2026-10-15T00:00:00Z', 'onizleme-hazir')", (prova, S3_TUR))
+        c.commit()
+        c.close()
+        surucu = os.path.join(o.d, "surucu.py")
+        with open(surucu, "w", encoding="utf-8") as f:
+            f.write(SURUCU)
+        env = dict(o.env, FOTO_UU_CHROME=chrome)
+        env.pop("FOTO_UU_TARAYICI_SAHTE", None)
+        if sys.platform != "darwin":
+            env["FOTO_UU_CHROME_EK"] = "--no-sandbox"
+        p = subprocess.run([sys.executable, surucu, os.path.join(o.agac, "tools", "foto-ornek-uc-uca.py"), S3_TUR, prova],
+                           capture_output=True, text=True, env=env, timeout=240)
+        try:
+            r = json.loads((p.stdout.strip().splitlines() or ["{}"])[-1])
+        except ValueError:
+            return False, "surucu rc=%d %s" % (p.returncode, (p.stdout + p.stderr)[-600:])
+        v = r.get("v") or {}
+        ist = v.get("s3_istek") or []
+        ok = (v.get("s3_hata") == "" and v.get("s3_akis") == "kart>2>foto>3>4>istek>S3" and len(ist) == 1 and
+              ist[0].get("tur") == S3_TUR and ist[0].get("gorsel") is True and
+              v.get("olculen_fiyat") == "123 mm → 1.230 TL" and o.sunucu.ayar["onizleme_post"] == 0 and
+              r.get("olcut3", [False])[0] is True)
+        return ok, "akis=%s hata=%r bolum=%s kartlar=%s istek=%s fiyat=%r sunucu_post=%d olcut3=%s konsol=%s" % (
+            v.get("s3_akis"), v.get("s3_hata"), v.get("s3_bolum"), v.get("s3_kartlar"), ist, v.get("olculen_fiyat"),
+            o.sunucu.ayar["onizleme_post"],
+            r.get("olcut3"), (v.get("konsol") or [])[:2])
+    vaka("V-S3AKIS", vs3akis)
+
     # ---- 3MF cok-dosya (p:path, BambuStudio Production): saf vakalar P1/P2/P3. Sentetik 3MF yazici (yalniz
     # test, disk izi YOK): kok = object id="2" + build item <item objectid="2" scale=olcek>, alt =
     # 12-ucgenli kapali kutu alt_L x alt_W x alt_H. P3: alt dosya zip'e yazilmaz (p:path hedefi YOK).
@@ -1461,6 +1581,16 @@ MUTANTLAR = {
     "M-MK-BEK": ("    bek = _red_metni_model()\n", "    bek = _red_metni_onizleme()\n", {"U1", "V-MK1", "V-MK2"}),
     "M-MK-TUR": ('              t["kod"] not in modelli]', '              True]', {"V-MK2"}),
     "M-MK-YOK": ("        if not mm:\n", "        if False:\n", {"V-MK3", "V-MK4"}),
+    # TURETILMIS ③ PROVA AKISI (15 Eki): M-S3-ESKI eski yolu geri getirir (kanca yerine oturum deposuna is yazilir,
+    # yenilenen bolum onu artik OKUMAZ -> ①'de kalir, S3'e varilmaz) · M-S3-TIK "Onizleme olustur" tiklanmaz ->
+    # S3 yok · M-S3-AKIS ③ hukmu akis kanitini yok sayar -> eski bicim (akissiz S3 yazisi) HAZIR sayilir.
+    "M-S3-ESKI": ('                    c.gonder("Page.addScriptToEvaluateOnNewDocument",\n'
+                  '                             source=TARAYICI_PROVA_KANCA_JS % {"is": json.dumps(prova[kod])})\n',
+                  '                    c.js("sessionStorage.setItem(\'pruvo_foto_is\', %s); 1" % json.dumps(json.dumps(\n'
+                  '                        {"is": prova[kod], "tur": kod})))\n', {"V-S3AKIS"}),
+    "M-S3-TIK": ("  btn.click(); adim.push('istek');", "  adim.push('istek');", {"V-S3AKIS"}),
+    "M-S3-AKIS": ('    tr.koy("3", api_ok and esit and surgusuz and akis and kaynak == "turetilmis",',
+                  '    tr.koy("3", api_ok and esit and surgusuz and kaynak == "turetilmis",', {"V-S3OLC"}),
     "MB0": ("# ------------------------------------------------------------------ HTTP",
             "# ------------------------------------------------------------------ HTTP (mutant yorum)", set()),
 }
@@ -1484,12 +1614,18 @@ def main():
     with open(BETIK, encoding="utf-8") as f:
         kaynak = f.read()
     kirmizi = 0
-    for ad, (g, ac) in vakalar(kaynak).items():
+    # --sadece A,B: yalniz bu vakalar (gelistirme; mutantlar da yalniz hedefi bu kumeyle kesisenler).
+    sadece = None
+    if "--sadece" in sys.argv:
+        sadece = set(sys.argv[sys.argv.index("--sadece") + 1].split(","))
+    for ad, (g, ac) in vakalar(kaynak, sadece).items():
         print("%s %s — %s" % ("✅" if g else "❌", ad, ac[:900]))
         kirmizi += 0 if g else 1
     survivor = 0
     if "--mutantsiz" not in sys.argv:
         for ad in MUTANTLAR:
+            if sadece is not None and not (MUTANTLAR[ad][2] & sadece):
+                continue
             g, ac = mutant_kos(ad, kaynak)
             print("%s %s — %s" % ("✅" if g else "❌ SURVIVOR", ad, ac))
             survivor += 0 if g else 1
