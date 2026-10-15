@@ -7,15 +7,19 @@ OLCULEN VAKA (8 Eki 00:5x): ortak kutu 544 > 500 -> `defter-kota-kapisi` KUTU_AS
 blok tasidi, 524'te kaldi (kalan bloklar KORUMALI/genc) -> elle sikistirma gerekti.
 
 HUKUM (olculen kollar):
-  (a) 600 satirlik sahte kutu -> kapi rotasyonu KENDISI kosar, KUTU kolu rc 0.
+  (a) 600 satirlik sahte kutu -> kapi rotasyonu YALNIZ KURU kosar (14 Eki), kutu bayt-ESIT,
+      plan `KUTU_ROTASYON_KURU sonra_satir=<n>` basilir, KUTU kolu rc 0.
   (b) tum bloklar KORUMALI 600 satir -> `🟠 KUTU_TEFTIS` RAPOR, rc yine 0.
   (c) 49 saatlik KORUMALI blok tasinir, 47 saatlik tasinmaz (uc koruma sinifinda).
   (d) `Kapatan` satirinda `✔︎ KAPANDI` olan blok tasinir (yalniz govdede gecmesi YETMEZ).
   (e) tarihsiz KORUMALI blok tasinmaz (fail-safe = TASIMA).
   (f) UZUN_BLOK raporu sinirda: mimar 6/7, BaBa ⚖️ 10/11.
   (g) rotasyon kilidi baskasindayken commit yine gecer, `KUTU_TEFTIS=OLCULEMEDI`.
+  (h) KANCA KOSUMU (pre-commit'in cagirdigi tam `main`): tavan asilmis sahte kutu bayt-ESIT
+      kalir, `KUTU_ROTASYON_KURU` basilir (BaBa 14 Eki 10:4x: dal kodu + yazan kip = RED).
 MUTANTLAR (izole kopyada; her biri HEDEF vakada KIRMIZI olmali, SURVIVOR 0):
-  M1 KUTU rc'yi 1'e geri ceken · M2 48 saat kuralini silen · M3 KAPANDI kuralini silen.
+  M1 KUTU rc'yi 1'e geri ceken · M2 48 saat kuralini silen · M3 KAPANDI kuralini silen ·
+  M4 kancaya YAZAN kipi geri koyan (`--kuru` silinir) -> hedef (h) KIRMIZI.
 
 IZOLASYON: her kosum `tempfile.mkdtemp` altinda <kok>/tools/ kopyasi kurar (kapi + taban +
 serbest_cagrilar + kutu-arsivle). Kutu/arsiv/kilit o dizindedir; gercek kutuya, arsive ya
@@ -35,6 +39,10 @@ TOOLS = os.path.dirname(os.path.abspath(__file__))
 KOPYA = ("defter-kota-kapisi.py", "defter-kota-taban.py", "serbest_cagrilar.py",
          "kutu-arsivle.py")
 SIMDI = "2026-10-08 12:00"
+# Dolgu (2026-10-08 11:00) bu anda 49 sa yasli: en az yas tabani (24 sa) onu TUTMAZ, yani
+# kuru plan kutuyu tavan altina INDIREBILIR — kutunun yine de bayt-ESIT kalmasi tam olarak
+# "kanca yazmadi" demektir (plan bos oldugu icin degismemis olamaz).
+SIMDI_YASLI = "2026-10-10 12:00"
 KUTU_ADI = "sahte-kutu.md"           # gercek kutunun adi DEGIL (beyan anahtari eslesmez)
 TAVAN = 500                          # kutu-arsivle.py::VARSAYILAN_TAVAN (degisirse b3 KIRMIZI)
 KAPANDI = "✔︎ KAPANDI"
@@ -55,6 +63,9 @@ MUTANTLAR = (
     ("M3 KAPANDI-SIL", "kutu-arsivle.py",
      (("        if KAPATAN_JETON in satirlar[x] and KAPANDI_ISARETI_RE.search(satirlar[x]):\n",
        "        if False:\n"),), "d"),
+    ("M4 KANCA-YAZAN-KIP", "defter-kota-kapisi.py",
+     (('    komut.append("--kuru")      # \U0001f534 dal kodu + yazan kip = RED (BaBa 14 Eki 10:4x)\n',
+       "    pass  # MUTANT: yazan kip geri\n"),), "h"),
 )
 
 
@@ -122,6 +133,26 @@ def kapi_kos(kok, kutu, simdi=SIMDI):
     return r.returncode, (r.stdout or "") + (r.stderr or "")
 
 
+def kanca_kos(kok, kutu, simdi):
+    """pre-commit'in cagirdigi TAM `main` (`defter-kota-kapisi.py <kok>`), sahte kutuyla."""
+    env = dict(os.environ)
+    env.pop("PRUVO_KUTU_YOLU", None)
+    r = subprocess.run([sys.executable, os.path.join(kok, "tools", "defter-kota-kapisi.py"),
+                        "--kutu", kutu, "--simdi", simdi, kok],
+                       capture_output=True, text=True, env=env, timeout=300)
+    return r.returncode, (r.stdout or "") + (r.stderr or "")
+
+
+def kuru_plan_satir(c):
+    """`KUTU_ROTASYON_KURU ... sonra_satir=<n>` -> int ya da None (okunamadi)."""
+    for satir in c.splitlines():
+        if satir.startswith("KUTU_ROTASYON_KURU "):
+            for parca in satir.split():
+                if parca.startswith("sonra_satir=") and parca[12:].isdigit():
+                    return int(parca[12:])
+    return None
+
+
 def arac_kos(kok, kutu, ekler):
     r = subprocess.run([sys.executable, os.path.join(kok, "tools", "kutu-arsivle.py"),
                         "--kutu", kutu] + list(ekler),
@@ -143,19 +174,18 @@ def v_a(kok, d):
     metin = FM + dolgu(100, govde=4)
     yaz(kutu, metin)
     once = len(metin.splitlines())
-    rc, c = kapi_kos(kok, kutu)
-    sonra = oku(kutu)
-    ars = oku(arsiv_yolu(kutu))
+    rc, c = kapi_kos(kok, kutu, simdi=SIMDI_YASLI)
+    plan = kuru_plan_satir(c)
     d("a1 sahte kutu %d satir > tavan %d (fikstur)" % (once, TAVAN), once >= 600, "")
-    d("a2 KUTU kolu rc=0 (rotasyon sonrasi)", rc == 0, "rc=%d" % rc)
-    d("a3 kapi rotasyonu KENDISI kostu (KUTU_ROTASYON rc=0)",
-      "KUTU_ROTASYON rc=0" in c, c[-400:])
-    d("a4 rotasyon sonrasi kutu <= tavan", len(sonra.splitlines()) <= TAVAN,
-      "sonra=%d" % len(sonra.splitlines()))
-    d("a5 lossless: kutu + arsiv basliklari = 100 ozgun baslik",
-      sorted(basliklar(sonra) + basliklar(ars)) == sorted(basliklar(metin)),
-      "%d + %d" % (len(basliklar(sonra)), len(basliklar(ars))))
-    d("a6 KUTU_TEFTIS basilmadi (tavan altina indi)", "KUTU_TEFTIS" not in c, c[-300:])
+    d("a2 KUTU kolu rc=0 (kuru rotasyon sonrasi)", rc == 0, "rc=%d" % rc)
+    d("a3 kapi rotasyonu YALNIZ KURU kostu (`KUTU_ROTASYON_KURU rc=0`, yazan jeton YOK)",
+      "KUTU_ROTASYON_KURU rc=0 " in c and "KUTU_ROTASYON rc=" not in c, c[-400:])
+    d("a4 kuru plan tavan altina iner (`sonra_satir=<n>` <= tavan)",
+      plan is not None and plan <= TAVAN, "plan=%s" % plan)
+    d("a5 kutu bayt-ESIT + arsiv OLUSMADI (kanca yazmadi)",
+      oku(kutu) == metin and not os.path.exists(arsiv_yolu(kutu)), "")
+    d("a6 `KUTU_TEFTIS` RAPOR basildi (kutu tavan ustunde kaldi, commit gecer)",
+      ("\U0001f7e0 KUTU_TEFTIS satir=%d tavan=%d" % (once, TAVAN)) in c, c[-300:])
 
 
 def v_b(kok, d):
@@ -170,6 +200,8 @@ def v_b(kok, d):
     d("b3 `🟠 KUTU_TEFTIS satir=<n> tavan=500 korumali=100` RAPOR basildi",
       ("\U0001f7e0 KUTU_TEFTIS satir=%d tavan=%d korumali=100" % (once, TAVAN)) in c, c[-500:])
     d("b4 kutu DEGISMEDI (korunan bloklar tasinmadi)", oku(kutu) == metin, "")
+    d("b5 tasinabilir blok YOKKEN de plan basildi (`KUTU_ROTASYON_KURU ... sonra_satir=%d`)"
+      % once, kuru_plan_satir(c) == once, c[-500:])
 
 
 def v_c(kok, d):
@@ -213,8 +245,10 @@ def v_d(kok, d):
              + blok(kalir2, ek="- not: %s ifadesi yalniz govdede" % KAPANDI)
              + blok(gider2, ek=kapatan, kuyruk="✅ IS BITTI — %s" % BEKLEYEN))
     yaz(kutu, metin)
+    # 1 saatlik bloklar en az yas tabaninin (24 sa) ALTINDA: bu vaka KAPANDI eksenini
+    # olcer, taban ekseni kutu-arsivle-test.py `EAY` suitinde -> taban burada KAPALI.
     rc, c = arac_kos(kok, kutu, ["--tavan", "10", "--koru", "3", "--su-seviye-orani", "0.1",
-                                 "--simdi", SIMDI])
+                                 "--simdi", SIMDI, "--en-az-yas-sa", "0"])
     kalan, ars = oku(kutu), oku(arsiv_yolu(kutu))
     d("d0 arac rc=0", rc == 0, c[-400:])
     d("d1 `Kapatan ... ✔︎ KAPANDI` KORUMALI etiketli blok tasindi",
@@ -280,8 +314,22 @@ def v_g(kok, d):
     d("g3 kutu DEGISMEDI", oku(kutu) == metin, "")
 
 
+def v_h(kok, d):
+    kutu = alan(kok, "h")
+    metin = FM + dolgu(100, govde=4)
+    yaz(kutu, metin)
+    ham_once = open(kutu, "rb").read()
+    _rc, c = kanca_kos(kok, kutu, SIMDI_YASLI)
+    plan = kuru_plan_satir(c)
+    d("h1 kanca kosumu `KUTU_ROTASYON_KURU sonra_satir=<n>` basti (n <= tavan: plan VARDI)",
+      plan is not None and plan <= TAVAN, c[-500:])
+    d("h2 kutu bayt-ESIT (dal kodu + yazan kip = RED)",
+      open(kutu, "rb").read() == ham_once, "")
+    d("h3 arsiv OLUSMADI", not os.path.exists(arsiv_yolu(kutu)), "")
+
+
 VAKALAR = (("a", v_a), ("b", v_b), ("c", v_c), ("d", v_d), ("e", v_e), ("f", v_f),
-           ("g", v_g))
+           ("g", v_g), ("h", v_h))
 
 
 def batarya(mutant=None, sessiz=False):

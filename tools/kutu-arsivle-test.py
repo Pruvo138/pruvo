@@ -156,6 +156,10 @@ MUTASYON (cift yonlu, KOPYA uzerinde — canli dosyaya DOKUNMAZ):
   (cc) MP0 ESDEGER yeniden yazim     -> suite YESIL kalmali (imza taramasi ters yonde)
   (w) MP0 ESDEGER yeniden yazim      -> suite YESIL kalmali (hicbir sey oldurmemeli)
   (c) ilgisiz metin degisikligi      -> suite YESIL kalmali
+  KY-M1/M2/M3 (BaBa 14 Eki, ayri tur, IZOLE kopya): yas kontrolu / kalici sinif /
+      tarihsiz fail-closed silinir -> sirasiyla KY3 / KY4 / KY8 KIRMIZI; `SURVIVOR=0`
+  EAY-M1 (BaBa 14 Eki 10:4x, ayri tur, IZOLE kopya): en az yas tabani silinir -> EAY1
+      (23 sa etiketsiz blok KALIR) KIRMIZI; `EAY_MUTANT=1 SURVIVOR=0`
   Mutasyon oncesi/sonrasi canli aracin sha256'si BASILIR ve ESITLIGI iddia edilir.
 
 Kullanim:
@@ -321,7 +325,10 @@ def kos(arac, kutu, arsiv, kilit, tavan=300, koru=3, kuru=False, ortam=None,
              # koldan degil) tasinirdi. Saat fiksturlerin ONCESINE CIVILENIR -> bu
              # vakalar omursuz eski semantigi olcmeye devam eder; omur ekseni AYRI
              # dosyada (tools/kutu-kilidi-test.py) olculur.
-             "--simdi", KOS_SIMDI]
+             "--simdi", KOS_SIMDI,
+             # 🔴 EN AZ YAS TABANI (14 Eki): ayni sebep — civili saat fiksturlerin ONCESI,
+             # tum bloklar "genc" sayilirdi. Taban ekseni AYRI suitte (`eay_suiti`) olculur.
+             "--en-az-yas-sa", "0"]
     if kuru:
         komut.append("--kuru")
     if kapanislari_isle:
@@ -5189,6 +5196,270 @@ def baslik_jeton_suiti(arac):
         shutil.rmtree(kok, ignore_errors=True)
 
 
+# ------------------------------------------- KORUMALI ETIKETI YASI (BaBa 14 Eki 10:1x)
+# KORUMALI etiketi blogu yalniz `--korumali-yas-sa` saatten GENC iken ya da baslikta kalici
+# sinif (Okan emri · OKAN KARARI · ILKE · DOKTRIN) varken kilitler; tarihsiz baslik KILITLI.
+# Bilerek VAKALAR'in DISINDA (`saat_suiti` emsali): K182 hedef-kol atif kumelerini
+# kaydirmaz. Mutantlari `--mutasyon` turunda IZOLE kopyada kosar ve ADIYLA basilir.
+KY_SIMDI = "2026-10-14 12:00"
+KY_BASLIKLAR = {
+    "genc47": "## 2026-10-12 13:00 — 📊 MimarA → MimarB (KORUMALI) bilgi, 47 sa",
+    "yasli49": "## 2026-10-12 11:00 — 📊 MimarA → MimarB (KORUMALI) bilgi, 49 sa",
+    "karar": "## 2026-10-10 08:00 — ⚖️ BaBa → MimarA (KORUMALI) OKAN KARARI: 100 sa",
+    "ilke": "## 2026-10-10 08:00 — ⚖️ BaBa → MimarA (KORUMALI) İLKE: 100 sa",
+    "doktrin": "## 2026-10-10 08:00 — ⚖️ BaBa → MimarA (KORUMALI) kutu doktrini, 100 sa",
+    "emir": "## 2026-10-10 08:00 — 🔴 Okan emri [aktarım] (KORUMALI) 100 sa",
+    "tarihsiz": "## akşam — 📊 MimarA → MimarB (KORUMALI) tarihsiz",
+    "duz": "## 2026-10-09 08:00 — 📊 MimarA → MimarB etiketsiz eski blok",
+}
+KY_SIRA = ("genc47", "yasli49", "karar", "ilke", "doktrin", "emir", "tarihsiz", "duz")
+# (mutant adi, capa, yeni, hedef iddia oneki)
+KY_MUTANTLARI = [
+    ("KY-M1 yas kontrolu silindi", "    if simdi_dk - blok_dk >= yas_sa * 60:\n",
+     "    if True:  # MUTANT\n", "KY3"),
+    ("KY-M2 kalici sinif kontrolu silindi", "    if kalici_sinif_mi(baslik):\n",
+     "    if False:  # MUTANT\n", "KY4"),
+    ("KY-M3 tarihsiz baslik acik sayildi", '        return "TARIH_YOK"\n    try:\n',
+     '        return "ACIK"  # MUTANT\n    try:\n', "KY8"),
+]
+
+
+def _ky_kutu(adlar):
+    return "# kutu\n\n" + "".join("%s\n\ngovde %s\n\n" % (KY_BASLIKLAR[a], a) for a in adlar)
+
+
+def _ky_kos(arac, kok, metin, simdi=KY_SIMDI, ek=(), kuru=False):
+    """(rc, cikti, kutu_satirlari, arsiv_satirlari) — koru=0, tavan=1: acik olan HER sey tasinir."""
+    if os.path.isdir(kok):
+        shutil.rmtree(kok)
+    os.makedirs(kok)
+    kutu, arsiv = os.path.join(kok, "kutu.md"), os.path.join(kok, "kutu-arsiv.md")
+    yaz(kutu, metin)
+    komut = [sys.executable, "-B", arac, "--kutu", kutu, "--arsiv", arsiv,
+             "--kilit", os.path.join(kok, ".kutu.lock"), "--tavan", "1", "--koru", "0",
+             "--simdi", simdi] + list(ek)
+    if kuru:
+        komut.append("--kuru")
+    env = dict(os.environ)
+    env.pop("PRUVO_KUTU_ARSIVLE_ARIZA", None)
+    env["PYTHONDONTWRITEBYTECODE"] = "1"
+    r = subprocess.run(komut, capture_output=True, text=True, env=env)
+    k = oku(kutu).splitlines()
+    a = oku(arsiv).splitlines() if os.path.exists(arsiv) else []
+    return r.returncode, (r.stdout or "") + (r.stderr or ""), k, a
+
+
+def _ky_vakalari(arac, kok, iddia_fn):
+    rc, c, k, a = _ky_kos(arac, os.path.join(kok, "ana"), _ky_kutu(KY_SIRA))
+
+    def kaldi(ad):
+        return KY_BASLIKLAR[ad] in k and KY_BASLIKLAR[ad] not in a
+
+    def tasindi(ad):
+        return KY_BASLIKLAR[ad] in a and KY_BASLIKLAR[ad] not in k
+
+    iddia_fn("KY1 rc=0 + lossless GECTI", rc == 0 and "lossless_dogrulama=GECTI" in c,
+             "rc=%d\n%s" % (rc, c[-900:]))
+    iddia_fn("KY2 49 sa KORUMALI 📊 blok TASINDI", tasindi("yasli49"), c[-900:])
+    iddia_fn("KY3 47 sa KORUMALI 📊 blok KALDI", kaldi("genc47"), c[-900:])
+    iddia_fn("KY4 100 sa `OKAN KARARI` blogu KALDI", kaldi("karar"), c[-900:])
+    iddia_fn("KY5 100 sa `İLKE` blogu KALDI", kaldi("ilke"), c[-900:])
+    iddia_fn("KY6 100 sa `doktrini` (kucuk harf) blogu KALDI", kaldi("doktrin"), c[-900:])
+    iddia_fn("KY7 100 sa `Okan emri` blogu KALDI", kaldi("emir"), c[-900:])
+    iddia_fn("KY8 tarihsiz KORUMALI baslik KALDI + `KORUMALI_TARIH_YOK=1`",
+             kaldi("tarihsiz") and "KORUMALI_TARIH_YOK=1 " in c, c[-900:])
+    iddia_fn("KY9 sayaclar ayrik jetonla: ACILAN=1 KALICI=4 GENC=1 TARIH_YOK=1",
+             "KORUMALI_YAS_ACILAN=1 KORUMALI_KALICI_SINIF=4 KORUMALI_GENC=1 "
+             "KORUMALI_TARIH_YOK=1 korumali_yas_sa=48 " in c, c[-900:])
+    iddia_fn("KY10 KAYIPSIZLIK blok/bayt + SHA satirlari basildi",
+             "KAYIPSIZLIK blok: once=8 " in c and "KAYIPSIZLIK bayt:" in c
+             and "SHA blok: esit=2/2 eksik=0" in c, c[-900:])
+    # ---- `--korumali-yas-sa 0` = eski davranis: 30 sa'lik bloklar KALIR, sayaclar 0 ----
+    otuz = ("# kutu\n\n## 2026-10-13 06:00 — 📊 MimarA (KORUMALI) 30 sa\n\ngovde\n\n"
+            "## akşam — 📊 MimarA (KORUMALI) tarihsiz\n\ngovde\n")
+    rc0, c0, k0, a0 = _ky_kos(arac, os.path.join(kok, "sifir"), otuz,
+                              ek=("--korumali-yas-sa", "0"))
+    iddia_fn("KY11 `--korumali-yas-sa 0` -> hepsi KALDI, sayaclar 0, korumali_yas_sa=0",
+             rc0 == 0 and len([s for s in k0 if s.startswith("## ")]) == 2 and not a0
+             and "KORUMALI_YAS_ACILAN=0 KORUMALI_KALICI_SINIF=0 KORUMALI_GENC=0 "
+                 "KORUMALI_TARIH_YOK=0 korumali_yas_sa=0 " in c0, c0[-900:])
+    rc24, c24, k24, a24 = _ky_kos(arac, os.path.join(kok, "yirmidort"), otuz,
+                                  ek=("--korumali-yas-sa", "24"))
+    iddia_fn("KY12 ayni kutu `--korumali-yas-sa 24` -> 30 sa blok TASINDI, tarihsiz KALDI",
+             rc24 == 0 and "## 2026-10-13 06:00 — 📊 MimarA (KORUMALI) 30 sa" in a24
+             and "## akşam — 📊 MimarA (KORUMALI) tarihsiz" in k24, c24[-900:])
+    # 0 = eski davranis BIREBIR: kalici sinif muafiyeti YOK, eski 48 sa omru isler.
+    _rc, _c, k0b, a0b = _ky_kos(arac, os.path.join(kok, "sifir-omur"), _ky_kutu(KY_SIRA),
+                                ek=("--korumali-yas-sa", "0"))
+    iddia_fn("KY13 `0` eski omur (48 sa) BIREBIR: 100 sa OKAN KARARI tasinir, 47 sa kalir",
+             KY_BASLIKLAR["karar"] in a0b and KY_BASLIKLAR["genc47"] in k0b, _c[-900:])
+    # ---- `x`li / ekli saat bicimleri: tam 48 sa'te ACIK, 1 dk once GENC ----
+    for no, (baslik, esik) in enumerate((
+            ("## 2026-10-12 07:4x — 📊 A (KORUMALI) bicim", "2026-10-14 07:40"),
+            ("## 2026-10-11 23:3x — 📊 A (KORUMALI) bicim", "2026-10-13 23:30"),
+            ("## 2026-10-12 18:1x(c) — 📊 A (KORUMALI) bicim", "2026-10-14 18:10"))):
+        once = esik[:-2] + "%02d" % (int(esik[-2:]) - 1)   # esik dakikasi daima >= 10
+        metin = "# kutu\n\n%s\n\ngovde\n" % baslik
+        _r1, c1, _k1, _a1 = _ky_kos(arac, os.path.join(kok, "b%d" % no), metin,
+                                    simdi=esik, kuru=True)
+        _r2, c2, _k2, _a2 = _ky_kos(arac, os.path.join(kok, "b%d" % no), metin,
+                                    simdi=once, kuru=True)
+        iddia_fn("KY%d `%s` @%s -> ACILAN=1, @%s -> ACILAN=0 (x -> 0)"
+                 % (14 + no, baslik[14:].split(" —")[0], esik[11:], once[11:]),
+                 "KORUMALI_YAS_ACILAN=1 " in c1 and "KORUMALI_YAS_ACILAN=0 " in c2
+                 and "KORUMALI_GENC=1 " in c2, c1[-500:] + c2[-500:])
+
+
+def korumali_yas_suiti(arac):
+    print("\n[KORUMALI YASI] etiket kilidi %s'te deterministik vakalar" % KY_SIMDI)
+    kok = tempfile.mkdtemp(prefix="kutu-ky-test-")
+    try:
+        _ky_vakalari(arac, kok, iddia)
+    finally:
+        shutil.rmtree(kok, ignore_errors=True)
+
+
+def korumali_yas_mutasyon():
+    """3 mutant, IZOLE kopyada; her biri HEDEF iddiasini KIRMIZI yakmali. rc 0 = SURVIVOR=0."""
+    print("\n" + "=" * 78)
+    print("KORUMALI YASI MUTANTLARI — IZOLE kopya, canli arac DEGISMEZ")
+    canli_once = sha(ARAC)
+    kaynak = oku(ARAC)
+    kok = tempfile.mkdtemp(prefix="kutu-ky-mutant-")
+    survivor = 0
+    try:
+        for i, (ad, capa, yeni, hedef) in enumerate(KY_MUTANTLARI):
+            n = kaynak.count(capa)
+            if n != 1:
+                print("  ❌ %s -> CAPA TEK kez tutmadi (bulunan=%d) = SURVIVOR" % (ad, n))
+                survivor += 1
+                continue
+            mutant = os.path.join(kok, "mutant-ky-%d.py" % i)
+            yaz(mutant, kaynak.replace(capa, yeni, 1))
+            kirmizi = []
+            _ky_vakalari(mutant, os.path.join(kok, "m%d" % i), lambda a, kosul, tani="": (
+                None if kosul else kirmizi.append(a)))
+            vurdu = any(x.startswith(hedef + " ") for x in kirmizi)
+            if not vurdu:
+                survivor += 1
+            print("  %s %s -> %s (hedef %s %s; dusen %d: %s)"
+                  % ("✅" if vurdu else "❌", ad, "KIRMIZI" if kirmizi else "YESIL", hedef,
+                     "DUSTU" if vurdu else "DUSMEDI", len(kirmizi),
+                     ",".join(x.split()[0] for x in kirmizi)))
+    finally:
+        shutil.rmtree(kok, ignore_errors=True)
+    esit = sha(ARAC) == canli_once
+    print("KY_MUTANT=%d SURVIVOR=%d canli_sha=%s" % (len(KY_MUTANTLARI), survivor,
+                                                    "ESIT" if esit else "DEGISTI"))
+    return 0 if survivor == 0 and esit else 1
+
+
+# ------------------------------------------- EN AZ YAS TABANI (BaBa 14 Eki 10:4x)
+# Basligi `--en-az-yas-sa` (24) saatten GENC olan HICBIR blok tasinmaz; tarihsiz etiketsiz
+# blok eski davranisla tasinir ama `EN_AZ_YAS_TARIH_YOK` ile SAYILIR. KORUMALI 48 sa katmani
+# ayrica durur. `KY_SIMDI` + `_ky_kos` (tavan=1, koru=0) paylasilir.
+EAY_BASLIKLAR = {
+    "genc23": "## 2026-10-13 13:00 — 📊 MimarA → MimarB etiketsiz, 23 sa",
+    "yasli25": "## 2026-10-13 11:00 — 📊 MimarA → MimarB etiketsiz, 25 sa",
+    "tarihsiz": "## akşam — 📊 MimarA → MimarB etiketsiz tarihsiz",
+    "korumali30": "## 2026-10-13 06:00 — 📊 MimarA → MimarB (KORUMALI) 30 sa",
+}
+EAY_SIRA = ("genc23", "yasli25", "tarihsiz", "korumali30")
+EAY_MUTANTLARI = [
+    ("EAY-M1 en az yas tabani silindi",
+     '    if simdi_dk - blok_dk < yas_sa * 60:\n        return "GENC"\n',
+     '    if False:  # MUTANT\n        return "GENC"\n', "EAY1"),
+]
+
+
+def _eay_vakalari(arac, kok, iddia_fn):
+    metin = "# kutu\n\n" + "".join("%s\n\ngovde %s\n\n" % (EAY_BASLIKLAR[a], a)
+                                    for a in EAY_SIRA)
+    rc, c, k, a = _ky_kos(arac, os.path.join(kok, "ana"), metin)
+
+    def kaldi(ad, kk=k, aa=a):
+        return EAY_BASLIKLAR[ad] in kk and EAY_BASLIKLAR[ad] not in aa
+
+    def tasindi(ad, kk=k, aa=a):
+        return EAY_BASLIKLAR[ad] in aa and EAY_BASLIKLAR[ad] not in kk
+
+    iddia_fn("EAY1 23 sa etiketsiz blok KALDI (varsayilan taban 24 sa)", kaldi("genc23"),
+             c[-900:])
+    iddia_fn("EAY2 25 sa etiketsiz blok TASINDI", rc == 0 and tasindi("yasli25"), c[-900:])
+    iddia_fn("EAY3 tarihsiz etiketsiz blok TASINDI (eski davranis) + SAYILDI",
+             tasindi("tarihsiz") and "EN_AZ_YAS_TARIH_YOK=1 " in c, c[-900:])
+    iddia_fn("EAY4 30 sa KORUMALI blok KALDI (48 sa katmani taban USTUNDE durur)",
+             kaldi("korumali30"), c[-900:])
+    iddia_fn("EAY5 ozet jetonu `EN_AZ_YAS_TUTULAN=1 ... en_az_yas_sa=24`",
+             "EN_AZ_YAS_TUTULAN=1 EN_AZ_YAS_TARIH_YOK=1 en_az_yas_sa=24 " in c, c[-900:])
+    iddia_fn("EAY6 KAYIPSIZLIK + SHA (2 blok tasindi) GECTI",
+             "lossless_dogrulama=GECTI" in c and "SHA blok: esit=2/2 eksik=0" in c, c[-900:])
+    # ---- `--en-az-yas-sa 0` = eski davranis: 23 sa blok TASINIR, sayaclar 0 ----
+    rc0, c0, k0, a0 = _ky_kos(arac, os.path.join(kok, "sifir"), metin,
+                              ek=("--en-az-yas-sa", "0"))
+    iddia_fn("EAY7 `--en-az-yas-sa 0` -> 23 sa blok TASINDI, jeton 0/0/0",
+             rc0 == 0 and tasindi("genc23", k0, a0)
+             and "EN_AZ_YAS_TUTULAN=0 EN_AZ_YAS_TARIH_YOK=0 en_az_yas_sa=0 " in c0,
+             c0[-900:])
+    # ---- sinir: tam 24 sa'te YASLI, 1 dk once GENC (`x` -> 0) ----
+    sinir = "# kutu\n\n## 2026-10-13 11:4x — 📊 A etiketsiz sinir\n\ngovde\n"
+    _r1, c1, _k1, _a1 = _ky_kos(arac, os.path.join(kok, "s1"), sinir,
+                                simdi="2026-10-14 11:40", kuru=True)
+    _r2, c2, _k2, _a2 = _ky_kos(arac, os.path.join(kok, "s2"), sinir,
+                                simdi="2026-10-14 11:39", kuru=True)
+    iddia_fn("EAY8 `11:4x` @24 sa -> TUTULAN=0, @1 dk once -> TUTULAN=1",
+             "EN_AZ_YAS_TUTULAN=0 " in c1 and "EN_AZ_YAS_TUTULAN=1 " in c2,
+             c1[-400:] + c2[-400:])
+    rcn, cn, _kn, _an = _ky_kos(arac, os.path.join(kok, "neg"), sinir,
+                                ek=("--en-az-yas-sa", "-1"), kuru=True)
+    iddia_fn("EAY9 `--en-az-yas-sa -1` -> KIRMIZI (rc!=0)",
+             rcn != 0 and "--en-az-yas-sa >= 0" in cn, cn[-400:])
+
+
+def eay_suiti(arac):
+    print("\n[EN AZ YAS] taban %s'te deterministik vakalar" % KY_SIMDI)
+    kok = tempfile.mkdtemp(prefix="kutu-eay-test-")
+    try:
+        _eay_vakalari(arac, kok, iddia)
+    finally:
+        shutil.rmtree(kok, ignore_errors=True)
+
+
+def eay_mutasyon():
+    """EAY mutantlari IZOLE kopyada; her biri HEDEF iddiasini KIRMIZI yakmali."""
+    print("\n" + "=" * 78)
+    print("EN AZ YAS MUTANTLARI — IZOLE kopya, canli arac DEGISMEZ")
+    canli_once = sha(ARAC)
+    kaynak = oku(ARAC)
+    kok = tempfile.mkdtemp(prefix="kutu-eay-mutant-")
+    survivor = 0
+    try:
+        for i, (ad, capa, yeni, hedef) in enumerate(EAY_MUTANTLARI):
+            n = kaynak.count(capa)
+            if n != 1:
+                print("  ❌ %s -> CAPA TEK kez tutmadi (bulunan=%d) = SURVIVOR" % (ad, n))
+                survivor += 1
+                continue
+            mutant = os.path.join(kok, "mutant-eay-%d.py" % i)
+            yaz(mutant, kaynak.replace(capa, yeni, 1))
+            kirmizi = []
+            _eay_vakalari(mutant, os.path.join(kok, "m%d" % i), lambda a, kosul, tani="": (
+                None if kosul else kirmizi.append(a)))
+            vurdu = any(x.startswith(hedef + " ") for x in kirmizi)
+            if not vurdu:
+                survivor += 1
+            print("  %s %s -> %s (hedef %s %s; dusen %d: %s)"
+                  % ("✅" if vurdu else "❌", ad, "KIRMIZI" if kirmizi else "YESIL", hedef,
+                     "DUSTU" if vurdu else "DUSMEDI", len(kirmizi),
+                     ",".join(x.split()[0] for x in kirmizi)))
+    finally:
+        shutil.rmtree(kok, ignore_errors=True)
+    esit = sha(ARAC) == canli_once
+    print("EAY_MUTANT=%d SURVIVOR=%d canli_sha=%s" % (len(EAY_MUTANTLARI), survivor,
+                                                     "ESIT" if esit else "DEGISTI"))
+    return 0 if survivor == 0 and esit else 1
+
+
 def main():
     ap = argparse.ArgumentParser(description="tools/kutu-arsivle.py kabul testi")
     ap.add_argument("--arac", default=ARAC, help="test edilecek arac yolu (mutant icin)")
@@ -5196,7 +5467,10 @@ def main():
                     help="cift yonlu mutasyon turu (kopyaya uygulanir)")
     a = ap.parse_args()
     if a.mutasyon:
-        return mutasyon_turu()
+        rc_m = mutasyon_turu()
+        rc_ky = korumali_yas_mutasyon()
+        rc_eay = eay_mutasyon()
+        return 1 if (rc_m or rc_ky or rc_eay) else 0
     if not os.path.exists(a.arac):
         print("KIRMIZI: arac yok -> %s" % a.arac)
         return 1
@@ -5206,6 +5480,8 @@ def main():
     g, k = suite(a.arac)
     saat_suiti(a.arac)
     baslik_jeton_suiti(a.arac)
+    korumali_yas_suiti(a.arac)
+    eay_suiti(a.arac)
     g, k = g + GECTI, k + KIRMIZI
     print("\n" + "=" * 78)
     print("VAKA=%d  IDDIA=%d  GECTI=%d  KIRMIZI=%d" % (len(VAKALAR), len(g) + len(k),
