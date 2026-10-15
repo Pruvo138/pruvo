@@ -281,6 +281,27 @@ MUTANTLAR = (
      'IKINCI_SEVIYE_EK = frozenset(("com", "co", "net", "org", "gov", "edu", "ac"))',
      'IKINCI_SEVIYE_EK = frozenset(("com", "co", "net", "org", "gov", "edu", "ac",\n'
      '                              "www", "shop", "store", "web"))', True),
+    # --- CI MENZILI = origin/main..after (15 Eki 2026) ---
+    # M30: ayirt edici kosul (c) silinir -> main itmesinde menzil BOS, yeni gelen
+    # bozuk commit HIC taranmaz (V4 yakalar). M31: fallback kaldirilir -> origin/main
+    # cozulemeyince tarama bos doner (V3 yakalar). M32: menzil `after^..after`'a
+    # daraltilir -> merge'de main tarafi yine yargilanir (V1) / dalin onceki commit'i
+    # kacar (V2).
+    ("M30 menzil HER ZAMAN origin/main..after (main itmesi BOS kalir)", "kapi",
+     "    ata = _git([\"merge-base\", \"--is-ancestor\", sonra, ana], kok=kok)"
+     ".returncode\n"
+     "    if ata == 0:\n"
+     "        return None, \"after zaten %s icinde (main itmesi)\" % ANA_REF\n"
+     "    if ata != 1:\n"
+     "        return None, \"ata sinamasi rc=%d\" % ata\n", "", True),
+    ("M31 before..after FALLBACK'i kaldirildi (origin/main yoksa bos tarama)",
+     "kapi",
+     "        sebep = \"%s menzili okunamadi: %s\" % (ANA_REF, hata)\n",
+     "        sebep = \"%s menzili okunamadi: %s\" % (ANA_REF, hata)\n"
+     "    return [], \"%s..yok (%s)\" % (ANA_REF, sebep), None\n", True),
+    ("M32 menzil after^..after'a DARALTILDI", "kapi",
+     "    return \"%s..%s\" % (ana, sonra), None",
+     "    return \"%s^..%s\" % (sonra, sonra), None", True),
     # --- ILGISIZ (kontrol): batarya YESIL kalmali ---
     ("K1  ilgisiz: baslik yorumunda kelime degisti", "kapi",
      "IKI KOL — biri ONLER, digeri GORUNUR KILAR",

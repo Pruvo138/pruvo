@@ -718,33 +718,79 @@ def _olay_yuku():
         return None
 
 
+# 🔴 MENZIL = `origin/main..after` (15 Eki 2026, OLCULEN ARIZA). Bir dal main'i MERGE
+# commit'iyle tazeleyince `before..after` menzili merge'le gelen ve ZATEN main'de olan
+# commit'leri de yeniden yargiladi: tarihce yeniden yazilmayacagi icin (yukaridaki
+# KAPSAM notu) public gecmisteki bir mesaj, main'i alan HER dalin nobet kosumunu
+# kirmiziya boyadi. Sinif karari MUAFIYET LISTESI DEGIL MENZIL: main'deki commit, main'e
+# itildigi kosumda zaten yargilandi; dal kosumu yalniz dalin KENDI commit'lerini tarar.
+# FAIL-CLOSED YON: bu kol yalniz asagidaki ucu birden saglanirsa devreye girer; biri
+# saglanmazsa mevcut `before..after` yolu AYNEN kosar (daha genis, asla daha dar degil):
+#   (a) `origin/main` commit'e cozulur,  (b) `after` ile ortak atasi VARDIR,
+#   (c) `after` origin/main'in atasi DEGILDIR. (c) MAIN ITMESINI ayirir: main'e itilen
+#       `after` main'in kendisidir -> `origin/main..after` BOS olurdu ve yeni gelen
+#       commit'ler HIC taranmazdi; o kosumda `before..after` yeni gelenleri tarar.
+ANA_REF = "origin/main"
+
+
+def ana_menzili(sonra, kok=None):
+    """(menzil|None, sebep|None) — dal kosumunda `<origin/main>..<after>`.
+
+    None donerse sebep yazilidir ve cagiran mevcut `before..after` yoluna duser."""
+    if not sonra:
+        return None, "after YOK"
+    if _git(["cat-file", "-e", sonra + "^{commit}"], kok=kok).returncode != 0:
+        return None, "after commit'i yerelde YOK"
+    p = _git(["rev-parse", "--verify", "--quiet", ANA_REF + "^{commit}"], kok=kok)
+    ana = (p.stdout or "").strip()
+    if p.returncode != 0 or not ana:
+        return None, "%s COZULEMEDI" % ANA_REF
+    if _git(["merge-base", ana, sonra], kok=kok).returncode != 0:
+        return None, "%s ile after arasinda ortak ata YOK" % ANA_REF
+    ata = _git(["merge-base", "--is-ancestor", sonra, ana], kok=kok).returncode
+    if ata == 0:
+        return None, "after zaten %s icinde (main itmesi)" % ANA_REF
+    if ata != 1:
+        return None, "ata sinamasi rc=%d" % ata
+    return "%s..%s" % (ana, sonra), None
+
+
 def ci_mesajlari(kok=None, ortam=None, yuk=None):
     """(mesajlar, kaynak, hata) — BU ITMENIN getirdigi commit mesajlari.
 
-    Sira: (1) git menzili `before..after` (tam gecmis varsa EN DOGRUSU),
+    Sira: (0) dal kosumunda `origin/main..after` (main'deki commit yeniden YARGILANMAZ;
+              kosullar `ana_menzili`de, biri tutmazsa sebebiyle (1)'e duser),
+          (1) git menzili `before..after` (tam gecmis varsa EN DOGRUSU),
           (2) olay yukundeki `commits[].message` (checkout SIG olsa bile calisir),
           (3) HICBIRI -> FAIL-CLOSED hata (sessizce 'hicbir sey taramadim' YOK)."""
     ortam = os.environ if ortam is None else ortam
     yuk = _olay_yuku() if yuk is None else yuk
     once = (yuk or {}).get("before") or ortam.get("GITHUB_EVENT_BEFORE") or ""
     sonra = ((yuk or {}).get("after") or ortam.get("GITHUB_SHA") or "")
+    menzil, sebep = ana_menzili(sonra, kok=kok)
+    if menzil:
+        mesajlar, hata = menzil_mesajlari(menzil, kok=kok)
+        if mesajlar is not None:
+            return mesajlar, "%s..%s" % (ANA_REF, sonra[:12]), None
+        sebep = "%s menzili okunamadi: %s" % (ANA_REF, hata)
     if once and sonra and once != SIFIR_SHA:
         p = _git(["cat-file", "-e", once + "^{commit}"], kok=kok)
         q = _git(["cat-file", "-e", sonra + "^{commit}"], kok=kok)
         if p.returncode == 0 and q.returncode == 0:
             mesajlar, hata = menzil_mesajlari("%s..%s" % (once, sonra), kok=kok)
             if mesajlar is not None:
-                return mesajlar, "git menzili %s..%s" % (once[:8], sonra[:8]), None
+                return mesajlar, "before..after %s..%s (%s)" % (
+                    once[:8], sonra[:8], sebep), None
             return None, None, hata
     commits = (yuk or {}).get("commits")
     if isinstance(commits, list) and commits:
         mesajlar = [c.get("message", "") for c in commits if isinstance(c, dict)]
         return ([m for m in mesajlar if m.strip()],
-                "olay yuku (commits[], %d kayit)" % len(mesajlar), None)
+                "olay yuku (commits[], %d kayit) (%s)" % (len(mesajlar), sebep), None)
     if sonra:
         mesajlar, hata = menzil_mesajlari("%s~1..%s" % (sonra, sonra), kok=kok)
         if mesajlar is not None:
-            return mesajlar, "tek commit %s" % sonra[:8], None
+            return mesajlar, "tek commit %s (%s)" % (sonra[:8], sebep), None
     return None, None, ("bu itmenin GETIRDIGI commit'ler COZULEMEDI (ne git menzili ne "
                         "olay yuku) -> fail-closed KIRMIZI. 'Olcemedim' YESIL degildir.")
 
@@ -845,7 +891,8 @@ def kol_ci(kok=None, ozet_yolu=None):
     if mesajlar is None:
         print("OLCULEMEDI (fail-closed KIRMIZI): %s" % hata, file=sys.stderr)
         return RC_OLCULEMEDI
-    print("taranan commit mesaji: %d (kaynak: %s)" % (len(mesajlar), kaynak))
+    print("kaynak: %s" % kaynak)
+    print("taranan commit mesaji: %d" % len(mesajlar))
     toplam = 0
     for i, mesaj in enumerate(mesajlar):
         kusurlar = mesaj_kusurlari(mesaj_govdesi(mesaj), kayit, maskeli=True)
@@ -1365,6 +1412,76 @@ def kendini_test():
         m3, _, hata3 = ci_mesajlari(kok=depo, ortam={}, yuk={})
         kontrol("H3 hicbir kaynak yokken FAIL-CLOSED (mesaj YOK + hata VAR)",
                 m3 is None and bool(hata3))
+
+        # ---- V) MENZIL = origin/main..after (15 Eki 2026) -------------------
+        # Ayri sentetik depo, kanca YOK. Sekil:
+        #   main: c0 (temiz) - c1 (BOZUK, "zaten public") - m2 (BOZUK, yeni main itmesi)
+        #   dal : c0 - d1 (temiz) - mrg (main'i MERGE'le aldi: c1 gelir) - d2 (BOZUK) - d3
+        # `origin/main` uzak izleme ref'i vaka basina `update-ref` ile kurulur/silinir.
+        vdepo = os.path.join(tmp, "vdepo")
+        sentetik_git(tmp, "init", "-q", "-b", "main", vdepo, check=True)
+
+        def vgit(*args):
+            return sentetik_git(vdepo, *args, capture_output=True, text=True,
+                                kimlik_ad="Test", kimlik_eposta="t@example.invalid")
+
+        def vcommit(mesaj, ad):
+            with open(os.path.join(vdepo, ad), "w", encoding="utf-8") as f:
+                f.write(ad + "\n")
+            vgit("add", "-A")
+            vgit("commit", "-q", "-m", mesaj)
+            return vgit("rev-parse", "HEAD").stdout.strip()
+
+        def bulgu(mesajlar):
+            return sum(len(mesaj_kusurlari(mesaj_govdesi(x), kayit, maskeli=True))
+                       for x in (mesajlar or []))
+
+        def vci(once, sonra):
+            return ci_mesajlari(kok=vdepo, ortam={},
+                                yuk={"before": once, "after": sonra})
+
+        c0 = vcommit("temiz taban", "v0.txt")
+        c1 = vcommit("%s partisi (eski, zaten public)" % kirmizi, "v1.txt")
+        vgit("checkout", "-q", "-b", "dal", c0)
+        d1 = vcommit("dal: temiz is", "vd1.txt")
+        vgit("merge", "-q", "--no-ff", "-m", "dal: main'i aldi", "main")
+        mrg = vgit("rev-parse", "HEAD").stdout.strip()
+        d2 = vcommit("%s partisi (dalin kendi sizintisi)" % kirmizi, "vd2.txt")
+        d3 = vcommit("dal: temiz devam", "vd3.txt")
+        vgit("checkout", "-q", "main")
+        m2 = vcommit("%s partisi (yeni main itmesi)" % kirmizi, "vm2.txt")
+        kontrol("V0 sentetik depo kuruldu (7 commit)",
+                all(len(s) == 40 for s in (c0, c1, d1, mrg, d2, d3, m2)))
+        kontrol("V0b negatif kontrol: eski `before..after` menzili merge'le gelen "
+                "main commit'ini YARGILIYORDU (olculen ariza)",
+                bulgu(menzil_mesajlari("%s..%s" % (d1, mrg), kok=vdepo)[0]) == 1)
+
+        vgit("update-ref", "refs/remotes/origin/main", c1)
+        m_v1, k_v1, h_v1 = vci(d1, mrg)
+        kontrol("V1 main'i MERGE'le alan dal: main'deki bozuk commit YARGILANMAZ "
+                "(bulgu 0)", m_v1 is not None and bulgu(m_v1) == 0
+                and (k_v1 or "").startswith("origin/main.."),
+                "kaynak=%s bulgu=%s hata=%s" % (k_v1, bulgu(m_v1), h_v1))
+        m_v2, k_v2, _ = vci(mrg, d3)
+        kontrol("V2 dalin KENDI bozuk commit'i YAKALANIR (bulgu 1)",
+                bulgu(m_v2) == 1 and (k_v2 or "").startswith("origin/main.."),
+                "kaynak=%s bulgu=%s" % (k_v2, bulgu(m_v2)))
+
+        vgit("update-ref", "-d", "refs/remotes/origin/main")
+        m_v3, k_v3, _ = vci(d1, d3)
+        kontrol("V3 origin/main COZULEMEZ -> before..after'a duser, bozuk mesaj "
+                "yakalanir", bulgu(m_v3) >= 1
+                and (k_v3 or "").startswith("before..after")
+                and "COZULEMEDI" in (k_v3 or ""),
+                "kaynak=%s bulgu=%s" % (k_v3, bulgu(m_v3)))
+
+        vgit("update-ref", "refs/remotes/origin/main", m2)
+        m_v4, k_v4, _ = vci(c1, m2)
+        kontrol("V4 main itmesi (after = origin/main): yeni gelen bozuk commit "
+                "yakalanir", bulgu(m_v4) == 1
+                and (k_v4 or "").startswith("before..after")
+                and "main itmesi" in (k_v4 or ""),
+                "kaynak=%s bulgu=%s" % (k_v4, bulgu(m_v4)))
 
         # ---- I) SURE OLCUMU (kanca kullanici bekletmemeli) -----------------
         # 🔴 ESIK MUTLAK MS DEGIL, "REFERANS MAKINE MS"IDIR — OLCUMLE DUZELTILDI
