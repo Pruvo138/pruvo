@@ -2029,11 +2029,6 @@ function secimDogrula(turKod, secim) {
     if (!(t.malzemeler[bolge] || []).includes(d)) { return null; }
     malzeme[bolge] = d;
   }
-  // TEK RENK MALZEME (TPU, VERI.malzemeRenkleri): her bolge rengi o malzemenin listesinden (fail-closed).
-  for (const m of new Set(Object.values(malzeme))) {
-    const mr = VERI.malzemeRenkleri(turKod, m);
-    if (mr && !Object.values(renk).every((x) => mr.includes(x))) { return null; }
-  }
   return { renk, malzeme };
 }
 
@@ -2090,19 +2085,15 @@ export function fotoKalemCoz(k) {
  * Renkli yalniz fotografli turde (VERI.renkliSecilebilir). Renk ADEDI fiyata GIRMEZ. Kural bozuksa null (400, fail-closed).
  * IKI RENK (bolgeler icin, 12 Eki): turun VERI.bolgeRenkSecimi kaydi cesitte gecerliyse ana renkte kayittaki
  * HER bolge ANA_RENKLER'de ve VERI.bolgeRenkHukmu "" (uretec kontrast esigi) olmali -> n=2 serbest; aksi null.
- * TEK RENK MALZEME (TPU, Okan 13 Eki): `malzeme`nin VERI.malzemeRenkleri listesi varsa Renkli RED, renkler (bolge +
- * kalem) YALNIZ o listeden, urun tek renk (kontrast kaydi uygulanmaz: yazi kabartmayla okunur).
  */
-function renkSayimi(turKod, k, sc, p, cesit, malzeme) {
+function renkSayimi(turKod, k, sc, p, cesit) {
   const renkli = k.renkli === true;
-  const mr = malzeme === undefined ? null : VERI.malzemeRenkleri(turKod, malzeme);
-  if (mr && (renkli || (Array.isArray(k.renkler) && !k.renkler.every((x) => mr.includes(x))))) { return null; }
   // CESIT PALETI (figur renk_modu palet): Renkli'de renkler kalemden, tavan cesidin (4); tek renkte bugunku yol.
   const cesitPalet = renkli && cesit !== undefined && VERI.cesitPaleti(turKod, cesit);
   const tavan = cesitPalet ? VERI.cesitRenkTavani(turKod, cesit) : VERI.renkTavani(turKod);
   if (tavan === null) { return null; }
   if (renkli && !VERI.renkliSecilebilir(turKod, cesit)) { return null; }
-  const izinli = mr || (renkli ? VERI.PLA_RENKLERI : VERI.ANA_RENKLER);
+  const izinli = renkli ? VERI.PLA_RENKLERI : VERI.ANA_RENKLER;
   let renkler, aktif = null;
   if (VERI.renkPaleti(turKod) || cesitPalet) {
     const r = Array.isArray(k.renkler) ? k.renkler : [];
@@ -2114,7 +2105,7 @@ function renkSayimi(turKod, k, sc, p, cesit, malzeme) {
     if (!renkler.every((x) => izinli.includes(x))) { return null; }
   }
   const n = Math.max(1, renkler.length);
-  if (!renkli && aktif && !mr && VERI.bolgeRenkSecimi(turKod, cesit)) {
+  if (!renkli && aktif && VERI.bolgeRenkSecimi(turKod, cesit)) {
     return VERI.bolgeRenkHukmu(turKod, aktif, cesit) === "" && n <= tavan ? { n, renkler, renkli } : null;
   }
   if (!renkli && n !== 1) { return null; }
@@ -2124,7 +2115,7 @@ function renkSayimi(turKod, k, sc, p, cesit, malzeme) {
 /**
  * Kalemin MALZEMESI (Okan 9 Eki: PLA ya da PETG): kalemin `malzeme`si; yoksa deterministik
  * secimin `<bolge>_malzeme`si; o da yoksa PLA. Ikisi birden varsa AYNI olmali; deger turde sunulan malzemelerde
- * (VERI.turMalzemeleri: bolge listeleri; bolgesiz turde TPU YOK) olmali. Gecersizse null.
+ * (VERI.turMalzemeleri: bolge listeleri) olmali. Gecersizse null.
  */
 function kalemMalzemesi(turKod, k) {
   const t = VERI.turBul(turKod) || {};
@@ -2218,7 +2209,7 @@ export async function fotoKalemFiyatla(env, k, simdi) {
   // Figur kolunda cesit (D1 foto_isler.cesit) renk kuralina girer: Renkli yalniz palet cesidinde (VERI.cesitPaleti).
   const malz = kalemMalzemesi(tur.kod, k);
   if (!malz) { return MALZEME_HATASI; }
-  const rs = renkSayimi(tur.kod, k, null, undefined, figurKolu(is) ? is.cesit : undefined, malz);
+  const rs = renkSayimi(tur.kod, k, null, undefined, figurKolu(is) ? is.cesit : undefined);
   if (!rs) { return RENK_HATASI; }
   const birim = VERI.fiyatKurus(tur.kod, mm, { renkli: rs.renkli, malzeme: malz });
   if (!(birim > 0)) { return RENK_HATASI; }
@@ -2300,7 +2291,7 @@ async function deterministikSatir(env, tur, olcu, k, is) {
     if (renk[b]) { secim[b + "_renk"] = renk[b]; }
   }
   // Renkler: palet turunde kalemin renkleri, bolge turunde AKTIF bolgelerin renkleri (ana renkte hepsi ayni).
-  const rs = renkSayimi(tur.kod, k, sc, p, undefined, malz);
+  const rs = renkSayimi(tur.kod, k, sc, p);
   const birim = rs ? VERI.fiyatKurus(tur.kod, olcu.mm, { renkli: rs.renkli, malzeme: malz }) : null;
   if (!(birim > 0)) { return RENK_HATASI; }
   const ru = renkSayisiUyusmaz(k, rs);
@@ -3102,8 +3093,8 @@ async function uretecKalemi(env, url) {
 export function uretecAnahtari(siparisNo, kalem, ad) { return "foto/" + siparisNo + "/" + kalem + "/" + ad; }
 
 /**
- * girdi.json `malzeme` (TPU, Okan 13 Eki): bolge malzemeleri TEK degerse {malzeme} — uretec esigi (isimlik_uret
- * TPU cizgi/harf) buradan okunur; bolgesiz/karisik {} (alan yok). tools/foto-uretec-kosucu.py siparis_girdisi AYNASI.
+ * girdi.json `malzeme`: bolge malzemeleri TEK degerse {malzeme} (uretec malzemeye bagli esigi buradan okur);
+ * bolgesiz/karisik {} (alan yok). tools/foto-uretec-kosucu.py siparis_girdisi AYNASI.
  */
 function tekMalzeme(malzemeler) {
   const d = [...new Set(Object.values(malzemeler || {}))];

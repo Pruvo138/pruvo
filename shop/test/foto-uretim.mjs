@@ -2520,7 +2520,7 @@ console.log("RKU) BOLGELI TUR EKRANDA — tek renk secicisi (3 ana renk), bolge 
   };
   const s = await rku(EKRAN_KAYNAK);
   ol("RKU1 bolgeli tur: bolge basina renk secicisi 0 · tek renk secicisi [Siyah,Beyaz,Gri] · form alanlari (taban/baslik) yerinde", s.ILK === true, JSON.stringify(s));
-  const m = await rku(EKRAN_KAYNAK.replace("    var secenek = (mr || F.ANA_RENKLER).slice();", "    var secenek = (mr || F.PLA_RENKLERI).slice();"));
+  const m = await rku(EKRAN_KAYNAK.replace("    var secenek = F.ANA_RENKLER.slice();", "    var secenek = F.PLA_RENKLERI.slice();"));
   ol("RKU-M1 ana renk yerine 9 renk listesi -> RKU KIRMIZI", m.ILK === false, JSON.stringify(m));
 }
 
@@ -4798,7 +4798,7 @@ console.log("K3b) TEK KUTU 4 PENCERE — kartlar · tek pencere · Geri/İleri �
     ["M-FORMKORUMA kart seciciden form-cizilmedi korumasi kalkti", "      if (S.alanOlcu) {\n        doldurS1Olcu();",
      "      {\n        doldurS1Olcu();", regresyon, ["REGRESYON"]],
     // Okan 9 Eki: Renkli fotoğrafsız akışta görünürse RENK KIRMIZI · PETG kartı fiyatı çarpansız okursa MALZEME KIRMIZI.
-    ["M-RENKLI-FOTOSUZ Renkli fotografsiz akista gorunur", "return !!renkliTurde(kod) && !!(S.fotoRenkleri && S.fotoRenkleri.length) && !malzemeRenkListesi(kod);",
+    ["M-RENKLI-FOTOSUZ Renkli fotografsiz akista gorunur", "return !!renkliTurde(kod) && !!(S.fotoRenkleri && S.fotoRenkleri.length);",
      "return true;", ucuncu, ["RENK"]],
     ["M-MALZEME-KART kart fiyati malzemesiz", "var sec = { renkli: renkliMi(), malzeme: kod };", "var sec = { renkli: renkliMi() };", ucuncu, ["MALZEME"]],
     ["K3b-MK KONTROL (yorum)", "  function kartVurgula() {", "  // kontrol\n  function kartVurgula() {", hepsi, []],

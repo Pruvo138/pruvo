@@ -109,7 +109,6 @@
     //                    renk_tavani = 1–4 (AMS 4 yuva) = "Renkli"de fotoğraftan seçilen en çok renk — yoksa/bozuksa
     //                    fiyat yok, tür sunulmaz. Renk ADEDİ fiyata GİRMEZ (Okan 9 Eki): renk 3 ana renkten biri
     //                    (tek renk) ya da "Renkli" (+%15); malzeme PLA ya da PETG (+%30) — VERI.RENK_SECENEKLERI/MALZEMELER.
-    //                    Anahtarlıkta TPU (+%55) da var (VERI.turMalzemeleri); TPU tek renk (malzeme_renkleri).
     //   renk_secimi    : "palet" = renkler VERI.PLA_RENKLERI'nden 1..renk_tavani (ana renkte tek renk, Renkli'de
     //                    fotoğraftan otomatik); alan yoksa renkler renk_bolgeleri'nde (ana renkte tüm bölgeler o renk)
     //                    RENK TAVANI (BaBa 8 Eki 15:4x): renk_tavani = üretecin BOYANABİLİR renk_* parametre sayısı
@@ -927,12 +926,7 @@
   // 2. resimdeki iki kart (metinler AYNEN); ek_yuzde fiyata çarpan olarak girer (PETG ×1,30).
   VERI.MALZEMELER = [
     { kod: "PLA", sicaklik: "~55-60°C", kullanim: "Ev içi", ek_yuzde: 0 },
-    { kod: "PETG", sicaklik: "~70-75°C", kullanim: "Dış mekân / genel amaçlı", ek_yuzde: 30 },
-    // TPU (Okan 13 Eki 23:1x "anahtarlıklara tpu da ekle fiyatını ayarla"): yüzde katalog tablosuyla AYNI sayı
-    // (secenekler.js FILAMENT_FARK.TPU, tek kaynak). Bu dosya vm'de secenekler.js'siz de yüklendiği için (koşucu,
-    // kapılar, testler) türetilemez; ikiz-tanım testi shop/test/foto-tpu.mjs iki sayının eşitliğini ölçer.
-    // yalniz_tur_listesinde: türün `malzemeler` listesi TPU'yu ADIYLA taşımıyorsa sunulmaz (yalnız anahtarlık).
-    { kod: "TPU", sicaklik: "~60-70°C", kullanim: "Esnek", ek_yuzde: 55, yalniz_tur_listesinde: true }
+    { kod: "PETG", sicaklik: "~70-75°C", kullanim: "Dış mekân / genel amaçlı", ek_yuzde: 30 }
   ];
   VERI.VARSAYILAN_MALZEME = "PLA";
   VERI.malzemeBul = function (kod) {
@@ -940,23 +934,14 @@
     return null;
   };
   // Türde sunulan malzeme kodları (VERI.MALZEMELER sırasıyla): türün malzeme bölgeleri varsa HER bölge listesinde
-  // olanlar; bölgesiz türde (plaket, figür) `yalniz_tur_listesinde` taşımayanlar. İstemci kartları + sunucu RED ORTAK.
+  // olanlar; bölgesiz türde (plaket, figür) hepsi. İstemci kartları + sunucu RED ORTAK.
   VERI.turMalzemeleri = function (kod) {
     var t = VERI.turBul(kod);
     if (!t) { return []; }
     var ml = t.malzemeler && typeof t.malzemeler === "object" ? t.malzemeler : {}, b = Object.keys(ml);
     return VERI.MALZEMELER.filter(function (m) {
-      return b.length ? b.every(function (x) { return Array.isArray(ml[x]) && ml[x].indexOf(m.kod) >= 0; })
-        : !m.yalniz_tur_listesinde;
+      return !b.length || b.every(function (x) { return Array.isArray(ml[x]) && ml[x].indexOf(m.kod) >= 0; });
     }).map(function (m) { return m.kod; });
-  };
-  // MALZEME RENGİ (Okan 13 Eki TPU "tek renk"; liste TeKiN stoğu, VERİ — kod sabiti değil): türün
-  // `malzeme_renkleri[malzeme]` listesi varsa o malzemede ürün TEK renk, renk YALNIZ listeden, "Renkli" seçilemez
-  // (AMS TPU beslemez). Liste yoksa null (kısıt yok). İstemci ③ + sunucu renkSayimi/secimDogrula ORTAK.
-  VERI.malzemeRenkleri = function (kod, malzeme) {
-    var t = VERI.turBul(kod), mr = t && t.malzeme_renkleri;
-    var l = mr && typeof mr === "object" && Object.prototype.hasOwnProperty.call(mr, malzeme) ? mr[malzeme] : null;
-    return Array.isArray(l) && l.length ? l.slice() : null;
   };
   // Fiyatı etkileyen seçim {renkli, malzeme}: verilmezse ana renk + PLA; alan verilip bilinmiyorsa null (RED).
   VERI.fiyatSecimi = function (s) {

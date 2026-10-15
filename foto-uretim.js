@@ -664,11 +664,8 @@
   // Malzeme PLA ya da PETG (+%30) kartı. Fiyat F.fiyatKurus(kod, mm, fiyatSecimi()) — sunucu AYNI fonksiyonu çağırır.
   var RENKLI = "Renkli";
   function renkliSunulur(kod) {
-    return !!renkliTurde(kod) && !!(S.fotoRenkleri && S.fotoRenkleri.length) && !malzemeRenkListesi(kod);
+    return !!renkliTurde(kod) && !!(S.fotoRenkleri && S.fotoRenkleri.length);
   }
-  // TEK RENK MALZEME (TPU, Okan 13 Eki): seçili malzemenin F.malzemeRenkleri listesi (yoksa null) — varken Renkli
-  // kapanır, renk seçici yalnız listeyi sunar, iki renk (bölge) seçici çizilmez (ürün tek renk; sunucu AYNI kural).
-  function malzemeRenkListesi(kod) { return F.malzemeRenkleri ? F.malzemeRenkleri(kod, seciliMalzeme()) : null; }
   // Tür + SEÇİLİ çeşitte Renkli sunulabilir mi (F.renkliSecilebilir — çeşit kolu: figür anahtarlık TEK gövde -> hayır).
   function renkliTurde(kod) {
     return !!F.renkliSecilebilir(kod, kod === S.tur && cesitliTur() ? seciliCesit() : undefined);
@@ -677,8 +674,7 @@
   // (fotoğrafsız yazı anahtarlık; tek gövde figür anahtarlık) cümle Renkli'yi ANMAZ — ekranda yanlış vaat yok.
   var RENK_CUMLESI_RENKLI = "Renk: Siyah, Beyaz, Gri ya da Renkli (+%15; renkler fotoğrafından otomatik seçilir). ";
   var RENK_CUMLESI_TEK = "Renk: Siyah, Beyaz ya da Gri. ";
-  // ③ malzeme cümlesi türün malzemelerinden (F.turMalzemeleri + ek_yuzde): PLA/PETG türünde metin AYNEN kalır,
-  // anahtarlıkta "PLA, PETG (+%30) ya da TPU (+%55)".
+  // ③ malzeme cümlesi türün malzemelerinden (F.turMalzemeleri + ek_yuzde): PLA/PETG türünde metin AYNEN kalır.
   var MALZEME_CUMLESI_TEMEL = "Malzeme: PLA ya da PETG (+%30). ";
   function malzemeCumlesi(kod) {
     var p = (F.turMalzemeleri ? F.turMalzemeleri(kod) : []).map(function (m) {
@@ -708,11 +704,9 @@
   // Renkler paletten mi: palet türü ya da palet çeşidinde Renkli (tek renkte figür bugünkü yol — renkler gönderilmez).
   function paletTuru(kod) { return F.renkPaleti(kod) || (cesitPaletMi(kod) && renkliMi()); }
   function anaRenk() {
-    var mr = malzemeRenkListesi(S.tur);
-    if (mr) return mr.indexOf(S.renkSecim) >= 0 ? S.renkSecim : mr[0];
     return F.ANA_RENKLER.indexOf(S.renkSecim) >= 0 ? S.renkSecim : F.VARSAYILAN_RENK;
   }
-  // Seçili malzeme türde sunuluyorsa o (F.turMalzemeleri: TPU yalnız anahtarlıkta), değilse PLA.
+  // Seçili malzeme türde sunuluyorsa o (F.turMalzemeleri), değilse PLA.
   function seciliMalzeme() {
     return F.malzemeBul(S.malzeme) && (!F.turMalzemeleri || F.turMalzemeleri(S.tur).indexOf(S.malzeme) >= 0)
       ? S.malzeme : F.VARSAYILAN_MALZEME;
@@ -731,7 +725,7 @@
   // İKİ RENK (anahtarlık–yazı, Okan 12 Eki): türün F.bolgeRenkSecimi kaydı seçili çeşide uyuyorsa ana renkte her
   // bölgenin AYRI rengi (S.bolgeRenk; yoksa kaydın varsayılanı), değilse null (tek seçici yolu).
   function bolgeRenkKaydi(kod) {
-    return kod && !renkliMi() && !malzemeRenkListesi(kod)
+    return kod && !renkliMi()
       ? F.bolgeRenkSecimi(kod, cesitliTur() && kod === S.tur ? seciliCesit() : undefined) : null;
   }
   function bolgeRenkleri(k) {
@@ -828,10 +822,9 @@
   function renkSecici(nt, degisti) {
     var bk = bolgeRenkKaydi(nt.kod);
     if (bk && !renkliSunulur(nt.kod)) return bolgeRenkSecici(nt, bk, degisti);
-    var mr = malzemeRenkListesi(nt.kod);
-    var secenek = (mr || F.ANA_RENKLER).slice();
+    var secenek = F.ANA_RENKLER.slice();
     if (renkliSunulur(nt.kod)) secenek.push(RENKLI);
-    if (secenek.indexOf(S.renkSecim) < 0) S.renkSecim = mr ? mr[0] : F.VARSAYILAN_RENK;
+    if (secenek.indexOf(S.renkSecim) < 0) S.renkSecim = F.VARSAYILAN_RENK;
     var g = el("div", "foto-uretim-form-grup");
     var fs_ = el("fieldset", "foto-uretim-renk-secim");
     fs_.appendChild(el("legend", "foto-uretim-form-etiket", "Renk"));
