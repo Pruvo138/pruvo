@@ -1,5 +1,427 @@
 [
   {
+    "id": "evcil-surungen-kabi-kayalik-gorunumlu-pr37473",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Sürüngen Kabı (Kayalık Görünümlü, Eğimli Kenarlı)",
+    "aciklama": "Teraryumda küçük sürüngenler için yem ya da su koymaya uygun, tek parça geniş ağızlı kap. Dış yüzeyi kaya katmanlarını andıran dokuludur; bir köşesi eğimli yükselerek hayvanın kabın içine tırmanmasını kolaylaştırır. Fotoğraflarda kap küçük bir gekonla, cetvel ve masa yanında görülür.\nYaklaşık dış ölçüler: 140 × 138 × 43 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr37473-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr37473-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr37473-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr37473-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Star Labs 3D, LLC",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "evcil-odul-bulmaca-plakasi-kayar-kapakli-pr807060",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Ödül Bulmaca Plakası (Kayar Kapaklı, Kedi ve Köpek İçin)",
+    "aciklama": "Yuvalara ödül mama konarak kullanılan, kedi ya da köpeğin kaydırıcıları açıp ödüle ulaşmaya çalıştığı yuvarlak bulmaca plakası. Taban, kapak, üst plaka ve 7–9 adet kaydırıcıdan oluşur; parçalar vida ya da yapıştırıcı olmadan geçmelidir, kaydırıcı sayısı bulmacanın zorluğuna göre seçilir. Ödül mama dahil değildir. Fotoğraflarda mor plaka tek başına, mavi plaka ise yerde kedinin önünde görülür.\nYaklaşık dış ölçüler (üst plaka): 135 × 135 × 7 mm; taban 130 × 130 × 15 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr807060-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr807060-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Gustavio101",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "evcil-kedi-odul-kulesi-bes-tuplu-genis-tabanli-pr409456",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kedi Ödül Kulesi (Beş Farklı Boyda Tüplü, Geniş Tabanlı)",
+    "aciklama": "Kuru kedi ödüllerinin tüplere bırakıldığı, kedinin patisini sokarak çıkarmaya çalıştığı zeka oyuncağı. Beş tüp farklı yükseklikte olduğu için zorluk kademelidir; geniş taban kulenin devrilmesini zorlaştırır. Tüplere mama konarak yavaş besleme kabı olarak da kullanılabilir. Ödül ve mama dahil değildir. Fotoğraflarda gri kule siyah beyaz bir kedinin önünde farklı açılardan görülür.\nYaklaşık dış ölçüler: 190 × 190 × 82 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr409456-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr409456-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr409456-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr409456-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "TheSheDM",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dekor-eklemli-masa-lambasi-kolu-serit-baslikli-kelepceli-pr845096",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Eklemli Masa Lambası Kolu (Şerit Başlıklı, Kelepçeli)",
+    "aciklama": "Masa kenarına kelepçeyle sabitlenen, eklemli kollardan oluşan masa lambası iskeleti. Kol parçalarının bir ucu erkek, bir ucu dişi olduğu için istenen sayıda kol arka arkaya eklenebilir; alt bağlantı serbestçe döner, birlikte gelen ince pulla sıkılaştırılabilir. Uçtaki uzun başlık, her biri 8 mm genişliğinde ve 200 mm uzunluğunda üç sıra ışık şeridi yerleştirmek için hazırlanmıştır; ışık şeridi ürüne dahil değildir. Fotoğraflarda lamba masa kenarına bağlı, kollar farklı açılarda ve başlık şeritle birlikte görülür.\nYaklaşık dış ölçüler (en uzun parça, şerit başlığı): 212 × 61 × 6 mm.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr845096-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr845096-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr845096-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr845096-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Aleksandre Chigladze",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dekor-kabuk-desenli-abajur-e27-ve-e14-duylu-surumler-pr310060",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kabuk Desenli Abajur (E27 ve E14 Duylu Sürümler)",
+    "aciklama": "Üst yarısı birbirine geçen kabuk şeritlerinden oluşan, duyun üzerine takılan abajur. Şeritlerin üst kısımdaki kalınlığı sabit tutulduğu için ışık yüzeyde eşit yayılır. E27 duylu büyük sürüm ile E14 duylu küçük sürüm için ayrı dosyalar hazırdır. Ampul ve duy ürüne dahil değildir. Fotoğraflarda abajur karanlık ortamda yanık halde, tavan ucunda ve duvar yanında görülür; bir görsel bilgisayar çizimidir.\nYaklaşık dış ölçüler: E27 sürümü 186 × 146 × 146 mm, E14 sürümü 166 × 126 × 126 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr310060-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr310060-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr310060-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr310060-4.jpg"
+    ]
+  },
+  {
+    "id": "dekor-art-deco-palmiye-desenli-sarkit-abajur-yaka-parcali-pr160847",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Art Deco Palmiye Desenli Sarkıt Abajur (Yaka Parçalı)",
+    "aciklama": "Sarkıt aydınlatma yakasına bağlanan, silindirik gövdeli abajur. Yüzeyi Art Deco palmiye (yelpaze) deseniyle kabartmalıdır; ışık altta ve yan yüzeyde bu desenden geçerek dağılır. Üst kısımdaki yaka parçası abajurla birlikte verilir. Ampul ve duy ürüne dahil değildir. Fotoğraflarda abajur sönük, yanık ve alttan bakışla görülür.\nYaklaşık dış ölçüler (abajur): 165 × 156 × 156 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr160847-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr160847-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr160847-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Charles_Lambert",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "dekor-tek-parca-sarkit-abajur-elmas-kesitli-e27-duylu-pr302847",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Tek Parça Sarkıt Abajur (Elmas Kesitli, E27 Duylu)",
+    "aciklama": "E27 duylu sarkıt aydınlatma için tek parça abajur. Yüzeyi eğik şeritlerle bölünmüş elmas kesitli gövde, ışığı katmanlı bir desenle dağıtır. Ampul ve duy ürüne dahil değildir. Fotoğraflarda abajur tavandan sarkan kabloda yanık halde görülür; iki görsel bilgisayar çizimidir.\nYaklaşık dış ölçüler: 210 × 210 × 180 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr302847-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr302847-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr302847-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr302847-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Lnnrd",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "dekor-masa-lambasi-kelepcesi-derin-masalar-icin-vidali-pr126758",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Masa Lambası Kelepçesi (Derin Masalar İçin, Vidalı)",
+    "aciklama": "Masa lambasını masaya kalıcı olarak vidalamadan, kenara kelepçeleyerek tutturmak için geniş ağızlı C biçimli kelepçe. Gövde, sıkma vidası ve serbestçe dönen kapak parçasından oluşur; vida ucuna yapışkan keçe eklenirse masa yüzeyi çizilmez. Kapak için M4 vida ve dişli ek ayrıca alınır. Fotoğraflarda kelepçe masa kenarında lamba ayağını taşırken ve elde tek başına görülür.\nYaklaşık dış ölçüler (kelepçe gövdesi): 218 × 106 × 50 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr126758-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr126758-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr126758-3.jpg"
+    ]
+  },
+  {
+    "id": "ev-ampul-saklama-tepsisi-delikli-iki-yukseklik-secenekli-pr194507",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Ampul Saklama Tepsisi (Delikli, İki Yükseklik Seçenekli)",
+    "aciklama": "Ampulleri kutudan çıkarıp rafta ya da çekmecede yuvarlanmadan düzenli tutmak ve toplu taşımak için delikli tepsi. Farklı çaplardaki ampuller deliklere oturur; tepsi köşelerindeki ayaklarla yüzeyden yükselir. İki sürümü vardır: ikincisi daha büyük ampuller için yaklaşık 12,7 mm daha yüksektir. Fotoğraflarda mavi ve siyah tepsiler çeşitli boylarda ampullerle dolu görülür; iki görsel bilgisayar çizimidir.\nYaklaşık dış ölçüler: 279 × 127 × 57 mm (yüksek sürüm 279 × 127 × 70 mm).",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr194507-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr194507-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr194507-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr194507-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "SledScott (özgün tasarım: sgish)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dekor-uc-secenekli-basamakli-sergileme-rafi-altigen-delikli-duz-ve-oluklu-pr1072390",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Üç Seçenekli Basamaklı Sergileme Rafı (Altıgen Delikli, Düz ve Oluklu Raf)",
+    "aciklama": "Küçük koleksiyon parçalarını basamak basamak sergilemek için iki taban ile üç raftan oluşan, parçaları birbirine yapıştırılarak kurulan sergileme rafı. Raflar altıgen delikli, düz ya da oluklu yüzey seçeneğiyle hazırlanır; kısa ve uzun iki raf boyu vardır. Fotoğraflarda düz raflı ve altıgen delikli raflı kurulum ile ayrı raf parçaları görülür.\nYaklaşık dış ölçüler: 186 × 152 × 7 mm (taban parçası); raflar 200 × 45 ve 200 × 70 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1072390-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1072390-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1072390-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1072390-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "PenguinPrototypes (özgün tasarım: elden.designs)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ev-karyola-orta-kirisi-icin-ayarlanabilir-yukseklikli-ayak-vidali-govde-pr286935",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Karyola Orta Kirişi İçin Ayarlanabilir Yükseklikli Ayak (Vidalı Gövde)",
+    "aciklama": "Karyolanın orta kirişinin altına yerleştirilen, vidalı gövdesiyle yüksekliği ayarlanabilen ayak. İki parçadan oluşur: yuvarlak ayarlı alt parça ve üst gövde. Zemine basan ucuna kauçuk bir parça yapıştırılırsa kayma ve ses azalır. Fotoğraflarda ayak, karyola kirişinin altına takılı hâlde görülür.\nYaklaşık dış ölçüler: 122 × 56 × 56 mm (gövde); vidalı parça 103 × 58 × 58 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr286935-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr286935-2.jpg"
+    ]
+  },
+  {
+    "id": "ev-voronoi-desenli-ceyrek-daire-kose-rafi-iki-baglanti-parcali-pr719794",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Voronoi Desenli Çeyrek Daire Köşe Rafı (İki Bağlantı Parçalı)",
+    "aciklama": "Duvar köşesine iki bağlantı parçasıyla takılan, Voronoi hücre desenli çeyrek daire biçimli raf. Bağlantı parçaları sol ve sağ olarak gelir; iki farklı tolerans seçeneği vardır. Fotoğrafta raf köşeye monte hâlde, çizimlerde bağlantı parçalarıyla birlikte görülür.\nYaklaşık dış ölçüler: 150 × 150 × 12 mm (raf); bağlantı parçaları 50 × 31 × 17 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr719794-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr719794-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr719794-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "CJ",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ev-voronoi-desenli-dus-kose-rafi-yapistirilir-veya-vidalanir-pr280831",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Voronoi Desenli Duş Köşe Rafı (Yapıştırılır ya da Vidalanır)",
+    "aciklama": "Duş köşesine yapıştırılarak ya da delinip vidalanarak takılan, Voronoi desenli üçgen köşe rafı. Şişe ve benzeri banyo malzemeleri için ek yüzey açar; kenarı yüksek, tabanı delikli ve hafiftir. Fotoğraflarda raf elde ve köşeye takılı hâlde görülür.\nYaklaşık dış ölçüler: 201 × 200 × 50 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr280831-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr280831-2.jpg"
+    ]
+  },
+  {
+    "id": "dekor-4x6-fotograf-cercevesi-icin-dort-parcali-gecmeli-stand-pr290540",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "4×6 Fotoğraf Çerçevesi İçin Dört Parçalı Geçmeli Stand",
+    "aciklama": "10 × 15 cm (4 × 6 inç) çerçeveleri dik ya da yatay tutan, geçmeli dört parçalı stand: arka ayak, ön ayak ve iki yan kol. Arka ayak ön ayağın yuvasına, yan kollar ise kırlangıç kuyruğu biçimli çıkıntılara kayarak oturur. Arka yüksekliği yaklaşık 15 cm'dir. Fotoğraflarda stand tek başına ve çerçeveyle birlikte görülür.\nYaklaşık dış ölçüler: 151 × 124 × 8 mm (en büyük parça).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr290540-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr290540-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr290540-3.jpg"
+    ]
+  },
+  {
+    "id": "dekor-kare-ve-altigen-gozlu-moduler-mini-raf-sistemi-gecmeli-baglantili-pr48380",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Kare ve Altıgen Gözlü Modüler Mini Raf Sistemi (Geçmeli Bağlantılı)",
+    "aciklama": "Duvar panelleri ile bağlantı parçalarının tıklanarak birbirine geçtiği, kare ya da altıgen gözlü modüler mini raf sistemi. Parçalar sökülüp yeniden kurulabilir; yükseklik ve uzunluklar bir arada karıştırılabilir. Fotoğraflarda kare gözlü piramit kurulum, altıgen kurulum ve vidalı bağlantı parçaları görülür.\nYaklaşık dış ölçüler: 69 × 60 × 4 mm (duvar paneli); bağlantı parçası 60 × 20 × 20 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr48380-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr48380-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr48380-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JohnOldman",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "dekor-katlanir-cerceve-arka-standi-a4-ve-a5-cerceveler-icin-iki-boy-pr38725",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Katlanır Çerçeve Arka Standı (A4 ve A5 Çerçeveler İçin İki Boy)",
+    "aciklama": "Standı kopmuş ya da bozulmuş fotoğraf çerçeveleri için çerçevenin arkasına yapıştırılan katlanır stand. Menteşeli ana stand ile çerçeveye tutturulan ara parçadan oluşur; dikey ya da yatay kullanıma uyar. Yaklaşık A4 ve A5 çerçeveler için iki boy vardır. Görseller bilgisayar çizimidir.\nYaklaşık dış ölçüler: 206 × 74 × 6 mm (büyük boy ana stand).",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr38725-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr38725-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr38725-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "3DOM Engineering (özgün tasarım: DTManning)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dekor-olceklenebilir-fotograf-cercevesi-uc-kenar-desenli-ayakli-pr149459",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Ölçeklenebilir Fotoğraf Çerçevesi (Üç Kenar Desenli, Ayaklı)",
+    "aciklama": "Resim ya da fotoğrafın ölçüsüne göre büyütülüp küçültülebilen, dış çerçeve, arka plaka ve iki ayaktan oluşan masa çerçevesi. Üç farklı kenar deseni seçeneği vardır; iç boşluk standart olarak 100 × 100 mm'dir ve oransal olarak ölçeklenir. Görseller bilgisayar çizimidir.\nYaklaşık dış ölçüler: 120 × 120 × 7 mm (çerçeve).",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr149459-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr149459-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr149459-3.jpg"
+    ]
+  },
+  {
+    "id": "dekor-gecmeli-moduler-fotograf-cercevesi-2-8-inc-parcalarla-her-olcude-pr150138",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Geçmeli Modüler Fotoğraf Çerçevesi (2–8 İnç Parçalarla Her Ölçüde)",
+    "aciklama": "Köşe parçaları ile 2 ila 8 inç arası düz parçaların birbirine geçmesiyle istenen resim ölçüsünde kurulan modüler çerçeve; vida ya da yapıştırıcı gerekmez. Kenar klipsleri, çivi tutucular, askı kancası ve masa ayağı gibi tamamlayıcı parçalarla birlikte gelir. Fotoğraflarda çerçeve arkadan ve köşe yakın planda, renkli çizimde ise parçaların dizilişi görülür.\nYaklaşık dış ölçüler: 214 × 30 × 18 mm (en uzun düz parça); köşe parçası 57 × 52 × 18 mm.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr150138-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr150138-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr150138-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "YBlood - Tony Youngblood",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "dekor-suslu-oval-duvar-cercevesi-dantel-desenli-ayrilabilir-ic-plakali-pr147325",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Süslü Oval Duvar Çerçevesi (Dantel Desenli, Ayrılabilir İç Plakalı)",
+    "aciklama": "Dantel desenli kenarı olan oval çerçeve ile çerçeveye oturan ayrı bir iç plakadan oluşur; resim ya da fotoğraf iç plaka ile çerçeve arasında durur. Fotoğraflarda çerçeve bir fotoğrafla birlikte ve parçalar ayrı ayrı görülür.\nYaklaşık dış ölçüler: 163 × 128 × 4 mm (çerçeve); iç plaka 118 × 89 × 3 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr147325-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr147325-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr147325-3.jpg"
+    ]
+  },
+  {
+    "id": "dekor-katlanarak-kurulan-on-iki-yuzlu-geometrik-cerceve-tek-parca-pr213243",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Katlanarak Kurulan On İki Yüzlü Geometrik Çerçeve (Tek Parça)",
+    "aciklama": "Düz hâlde tek parça hazırlanıp kenarlarından katlanarak on iki yüzlü bir çerçeve oluşturan geometrik obje. İç kenarlar birbirine tıklanarak yerine oturur; ek bağlantı parçası gerekmez. Yüzleri açık yapısıyla masa ya da raf üzerinde dekoratif obje olarak durur. Fotoğrafta katlanmış hâli, çizimde düz serimi görülür.\nYaklaşık dış ölçüler: 130 × 95 × 6 mm (düz serim).",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr213243-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr213243-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "GeekMomProjects",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ofis-kucuk-masa-kancasi-24-mm-tablaya-gecen-canta-ve-ceket-icin-pr1187986",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Küçük Masa Kancası (En Fazla 24 mm Tablaya Geçen, Çanta ve Ceket İçin)",
+    "aciklama": "Masanın kenarına geçirilip ceket, çanta ve benzeri hafif eşyaları asmak için küçük, yuvarlak hatlı kanca. En fazla 24 mm kalınlıktaki masa tablasına oturur; tabla daha kalınsa kanca iki yönde büyütülerek hazırlanabilir. Fotoğraflarda kanca masa kenarında bir çanta askısıyla ve farklı renklerdeki birkaç kanca bir arada görülür.\nYaklaşık dış ölçüler: 65 × 61 × 12 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1187986-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1187986-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "schiko",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ofis-beyaz-tahta-kalem-ve-silgi-tutucu-12-kalemlik-kafes-gozlu-pr157262",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Beyaz Tahta Kalem ve Silgi Tutucu (12 Kalemlik, Kafes Gözlü)",
+    "aciklama": "Beyaz tahta kalemlerini ve silgiyi tek yerde toplayan, gövdesi kafes (ızgara) gözlü tutucu. On iki kalem alır; yanındaki ayrı yuva silgiyi tutar. Fotoğrafta tutucu beyaz tahtanın kenarında kalem ve silgiyle dolu görülür; ikinci görsel bilgisayar çizimidir.\nYaklaşık dış ölçüler: 122 × 93 × 65 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr157262-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr157262-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "mrusse",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ofis-masa-alti-canta-kancasi-vidayla-sabitlenen-okul-cantasi-icin-pr306333",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Masa Altı Çanta Kancası (Vidayla Sabitlenen, Okul Çantası İçin)",
+    "aciklama": "Masanın alt yüzüne vidayla sabitlenen, okul çantası gibi hafif çantaları asmak için J biçimli kanca. Vida delikleri 4 mm çapında düz başlı vidaya göredir. Fotoğraflarda yeşil kanca tek başına, masa altında ve vida yerleştirilirken görülür.\nYaklaşık dış ölçüler: 80 × 59 × 20 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr306333-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr306333-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr306333-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Kubste",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ofis-beyaz-tahta-kenarina-dikey-takilan-dar-kalem-tutucu-uc-kalemlik-pr36572",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Beyaz Tahta Kenarına Dikey Takılan Dar Kalem Tutucu (Üç Kalemlik, Vidalı)",
+    "aciklama": "Beyaz tahtanın kenarına dikey olarak monte edilen, üç kalem için basamaklı dar tutucu. Dört vidayla sabitlenir ve tahtanın kenarında az yer kaplar. Fotoğrafta tutucu tahta kenarındaki ahşap çıtaya takılı görülür; ikinci görsel bilgisayar çizimidir.\nYaklaşık dış ölçüler: 154 × 39 × 24 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr36572-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr36572-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Tyler Bletsch",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ofis-masa-kenari-sirt-cantasi-kancasi-masa-altina-sarkan-aski-tutan-pr171263",
+    "kategori": "Ofis",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Masa Kenarı Sırt Çantası Kancası (Masa Altına Sarkan, Askı Tutan)",
+    "aciklama": "Sırt çantasını yerde ya da sandalyede bırakmak yerine masanın kenarından sarkıtmak için köşeli, kıvrımlı kanca. Masa tablasının kenarına üstten geçer; altta sarkan ucu çantanın askısını tutar. Fotoğraflarda altın renkli kanca masa kenarında çanta ve kulaklıkla birlikte görülür; bir karede de düz zeminde tek başına durur.\nYaklaşık dış ölçüler: 84 × 69 × 35 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr171263-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr171263-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr171263-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "PrintingStuffs",
+      "tur": "GPL"
+    }
+  },
+  {
     "id": "mutfak-sprey-sisesi-duvar-askisi-yapiskanli-iki-surum-pr245126",
     "kategori": "Ev",
     "marka": [],

@@ -117,17 +117,62 @@
   },
   "-Users-okan-dev-pruvo/memory/MEMORY.md": {
     "tur": "tek-seferlik",
-    "kaynak_bayt": {"en_az": 4096, "en_cok": 5120},
+    "kaynak_bayt": {
+      "en_az": 4096,
+      "en_cok": 5120
+    },
     "gerekce": "Okan emri 14 Eki 2026 (acilis <=60K, C2 MEMORY.md <=5000 B). OLCULDU: 19400 B -> 4639 B; tam indeks MEMORY-ARSIV.md sonuna BAYT-ESIT eklendi (tail -c 19400 cmp esit). Govde dosyalari degismedi. Aralik yeni 5000 B tavanini kapsar."
   },
   "merge-kapisi/SKILL.md": {
     "tur": "tek-seferlik",
-    "kaynak_bayt": [7930, 7918],
+    "kaynak_bayt": [
+      7930,
+      7918
+    ],
     "gerekce": "Okan emri 14 Eki 2026 (acilis <=60K, B3 <=8 KB). OLCULDU: 27974 B -> 7930 B (15:29 ortak tanim kisalmasiyla 7918 B); tasinan satirlar ayni dizinde REFERANS.md'ye BAYT-ESIT (cmp esit; kalan+tasinan = orijinal, sort cmp esit). KONU-CAPALARI SKILL.md'de kaldi."
   },
   "isci-devri/SKILL.md": {
     "tur": "tek-seferlik",
     "kaynak_bayt": 4882,
     "gerekce": "Okan emri 14 Eki 2026 (acilis <=60K, B3 <=5 KB). OLCULDU: 10420 B -> 4882 B; tasinan satirlar ayni dizinde REFERANS.md'ye BAYT-ESIT (cmp esit; comm 0 fark)."
+  },
+  "-Users-okan-dev-otel-advisor/memory/MEMORY.md": {
+    "tur": "tek-seferlik",
+    "kaynak_bayt": {
+      "en_az": 4096,
+      "en_cok": 5120
+    },
+    "gerekce": "Okan emri 14 Eki 2026 (acilis <=60K, C2 MEMORY.md <=5000 B; ev ev uygulandi). OLCULDU 15 Eki 02:5x wc -c: 20843 -> 4919 B. Yedek karantina ARDISIK=66 kaydinin bir kalemi; aralik ev tavanini kapsar."
+  },
+  "-Users-okan-dev-pruvo-advisor/memory/MEMORY.md": {
+    "tur": "tek-seferlik",
+    "kaynak_bayt": {
+      "en_az": 4096,
+      "en_cok": 5120
+    },
+    "gerekce": "Okan emri 14 Eki 2026 (acilis <=60K, C2 MEMORY.md <=5000 B; ev ev uygulandi). OLCULDU 15 Eki 02:5x wc -c: 12555 -> 4783 B."
+  },
+  "-Users-okan-dev-pruvo-jenerator/memory/MEMORY.md": {
+    "tur": "tek-seferlik",
+    "kaynak_bayt": {
+      "en_az": 4096,
+      "en_cok": 5120
+    },
+    "gerekce": "Okan emri 14 Eki 2026 (acilis <=60K, C2 MEMORY.md <=5000 B; ev ev uygulandi). OLCULDU 15 Eki 02:5x wc -c: 13547 -> 4941 B."
+  },
+  "-Users-okan-dev-pruvo-pazarlama/memory/MEMORY.md": {
+    "tur": "tek-seferlik",
+    "kaynak_bayt": {
+      "en_az": 4096,
+      "en_cok": 5120
+    },
+    "gerekce": "Okan emri 14 Eki 2026 (acilis <=60K, C2 MEMORY.md <=5000 B; ev ev uygulandi). OLCULDU 15 Eki 02:5x wc -c: 13449 -> 5031 B."
+  },
+  "devir/SKILL.md": {
+    "tur": "tek-seferlik",
+    "kaynak_bayt": [
+      6476
+    ],
+    "gerekce": "Okan emri 14 Eki 2026 (acilis <=60K, B3 skill <=8 KB). OLCULDU 15 Eki 02:5x: 25072 -> 6476 B; govde ayni dizinde REFERANS.md (25391 B, ayni dakika 15:18/15:27) — tasima, silme degil."
   }
 }
