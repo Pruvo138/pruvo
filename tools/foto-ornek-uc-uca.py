@@ -13,7 +13,9 @@ Bir kategoride (foto turu) zinciri ONIZLEMEDE olcer; her olcut HAZIR/EKSIK + say
                      olcude "<mm> mm → <TL> TL" yaziyor.
                      TURETILMIS eksen (manifest olcu_ekseni): surgu YOK (S1 not var) ve
                      onizleme olcusu (olcu.json uzun kenar, yarim yukari) == D1 olcu_mm · x 1000 == sunucu
-                     /foto/durum fiyat_kurus == bolumun gosterdigi "<mm> mm → <TL> TL" (S3, prova isiyle)
+                     /foto/durum fiyat_kurus == bolumun gosterdigi "<mm> mm → <TL> TL" (S3, prova isiyle;
+                     bolum AKISLA surulur: kart -> ② -> ③ -> ④ -> onizleme; Turnstile + onizleme POST'u
+                     sayfada taklit, yoklama gercek /foto/durum — TARAYICI_S3_JS)
   (4) ORNEK siparis: odemesiz `ORNEK-<is ilk 12>` uretim satiri (kalem 0) -> kopru -> uretec -> 3MF ->
                      asama 'hazir' + panel listesi (panelOrnekListe sorgusu) kaydi; 3MF BAGIMSIZ olculur:
                      her nesne su gecirmez (her yonlu kenar tam 1 kez + tersi var) + dunya kutusunun en uzun
@@ -42,7 +44,8 @@ manifeste girince ayni betik kosar.
 YAZIM SINIRI: yalniz ONIZLEME D1/kovasi (shop/wrangler.onizleme.toml; canli adlarla ayniysa DUR). Canli
 D1'e, odemeye, urunler.json'a yazim YOK. Yerel iz: tempfile dizinleri (try/finally silinir).
 Test kancalari: FOTO_UU_TABAN · FOTO_UU_WRANGLER · FOTO_UU_KOSUCU · FOTO_UU_MEDYA_ESLE (onek=onek) ·
-FOTO_UU_CHROME ("0" = tarayici yok -> (3)(5)(6) OLCULEMEDI) · FOTO_UU_BEKLE_SN (429 bekleme) ·
+FOTO_UU_CHROME ("0" = tarayici yok -> (3)(5)(6) OLCULEMEDI) · FOTO_UU_CHROME_EK (ek Chrome bayraklari; CI linux
+--no-sandbox) · FOTO_UU_BEKLE_SN (429 bekleme) ·
 FOTO_UU_TARAYICI_SAHTE (tarayici sonucu JSON dosyasi; yalniz hermetik test).
 Kabul: tools/foto-ornek-uc-uca-test.py (sahte sunucu + sahte wrangler; mutantlar izole kopyada).
 """
@@ -850,25 +853,89 @@ TARAYICI_JS = r"""
 """
 
 
-# TURETILMIS ③ (S3): prova isi oturum deposuna yazilir, sayfa yenilenir -> bolum durumu sorar ve S3'te
-# onizleme olcusunun fiyatini yazar (surgu YOK).
+# TURETILMIS ③ (S3) PROVA AKISI (Okan 15 Eki: yenilemede bolum HER ZAMAN ①'den acilir, oturum kaydi okunmaz
+# -> eski "oturum deposuna yaz + yenile" yolu S3'e ULASAMAZ). Bolum musterinin yolundan surulur: ① kart tiki ->
+# ② foto (sayfada cizilen PNG; foto istemeyen turde atlanir) -> Ileri ③ -> Ileri ④ -> aydinlatma onayi ->
+# "Onizleme olustur" -> S2 yoklamasi GERCEK /foto/durum'a gider -> S3'te sunucu fiyati okunur. Yalniz IKI dis uc
+# sayfa betiklerinden ONCE (Page.addScriptToEvaluateOnNewDocument) yerinde taklit edilir: Turnstile (bassiz tarayici
+# bot dogrulamasini gecemez) ve POST /api/shop/foto/onizleme (yeni is + kredi YAZILMAZ; yanit prova isinin numarasi).
+TARAYICI_PROVA_KANCA_JS = r"""
+(() => {
+  const IS = %(is)s;
+  window.__uuProva = {istek: []};
+  window.turnstile = {
+    render: (kutu, o) => { setTimeout(() => { if (o && o.callback) o.callback('uu-prova'); }, 0); return 'uu-prova'; },
+    remove: () => {}, reset: () => {}
+  };
+  const asil = window.fetch.bind(window);
+  window.fetch = (u, o) => {
+    if (o && String(o.method || '').toUpperCase() === 'POST' &&
+        String(u).split('?')[0].endsWith('/api/shop/foto/onizleme')) {
+      let g = null;
+      try { g = JSON.parse(o.body); } catch (e) { }
+      window.__uuProva.istek.push({tur: g && g.tur || '', gorsel: !!(g && g.gorsel)});
+      return Promise.resolve(new Response(JSON.stringify({is: IS}),
+        {status: 200, headers: {'Content-Type': 'application/json'}}));
+    }
+    return asil(u, o);
+  };
+})();
+"""
 TARAYICI_S3_JS = r"""
 (async () => {
-  const bekle = (ms) => new Promise((r) => setTimeout(r, ms));
-  let y = null;
-  for (let i = 0; i < 80; i++) {
-    y = document.querySelector('#fotoUretim .foto-uretim-olculen-fiyat');
-    if (y) break;
-    await bekle(250);
+  const kod = %(kod)s, bekle = (ms) => new Promise((r) => setTimeout(r, ms));
+  const bul = (s) => document.querySelector(s);
+  const bekleBul = async (f, n) => { for (let i = 0; i < n; i++) { const x = f(); if (x) return x; await bekle(250); } return null; };
+  const acik = (n) => { const p = document.getElementById('foto-pencere-' + n); return p && !p.hidden ? p : null; };
+  const adim = [];
+  const bitir = (hata) => {
+    const y = bul('#foto-pencere-4 .foto-uretim-olculen-fiyat');
+    const k = window.__uuProva;
+    const b = document.getElementById('fotoUretim');
+    const kartlar = [...document.querySelectorAll('#fotoUretim button.foto-uretim-kart')].map((x) => x.getAttribute('data-tur'));
+    return {s3_akis: adim.join('>'), s3_hata: hata, s3_kanca: !!k, s3_istek: k ? k.istek : [],
+            s3_bolum: !b ? 'yok' : b.hidden ? 'gizli' : 'acik', s3_kartlar: kartlar,
+            olculen_fiyat: hata === '' && y ? y.textContent : '', s3_surgu: !!document.getElementById('foto-olcu-s3')};
+  };
+  if (!window.__uuProva) return bitir('kanca-yok');
+  const kart = await bekleBul(() => bul('#fotoUretim button.foto-uretim-kart[data-tur="' + kod + '"]'), 60);
+  if (!kart) return bitir('kart-yok');
+  kart.click(); adim.push('kart');
+  if (!await bekleBul(() => acik(2), 20)) return bitir('pencere-2');
+  adim.push('2');
+  const inp = bul('#foto-dosya');
+  if (inp && !inp.disabled) {
+    const cv = document.createElement('canvas'); cv.width = 256; cv.height = 256;
+    const x = cv.getContext('2d'); x.fillStyle = '#9a9a9a'; x.fillRect(0, 0, 256, 256);
+    x.fillStyle = '#303030'; x.beginPath(); x.arc(128, 128, 80, 0, 7); x.fill();
+    const blob = await new Promise((r) => cv.toBlob(r, 'image/png'));
+    const dt = new DataTransfer(); dt.items.add(new File([blob], 'uu-prova.png', {type: 'image/png'}));
+    inp.files = dt.files; inp.dispatchEvent(new Event('change', {bubbles: true}));
+    adim.push('foto');
   }
-  return {olculen_fiyat: y ? y.textContent : '', s3_surgu: !!document.getElementById('foto-olcu-s3')};
+  const ileri = bul('#foto-ileri');
+  for (const n of [3, 4]) {
+    if (!await bekleBul(() => ileri && !ileri.disabled && !ileri.hidden, 20)) return bitir('ileri-kapali-' + (n - 1));
+    ileri.click();
+    if (!await bekleBul(() => acik(n), 20)) return bitir('pencere-' + n);
+    adim.push(String(n));
+  }
+  const onay = await bekleBul(() => bul('#foto-aydinlatma-onay'), 20);
+  if (!onay) return bitir('onay-yok');
+  if (!onay.checked) onay.click();
+  const btn = await bekleBul(() => { const b = bul('#foto-onizle-buton'); return b && !b.disabled ? b : null; }, 20);
+  if (!btn) { const s = bul('#foto-onizle-sebep'); return bitir('onizle-kapali:' + (s ? s.textContent : '')); }
+  btn.click(); adim.push('istek');
+  if (!await bekleBul(() => bul('#foto-sip-btn'), 80)) return bitir('S3-yok');
+  adim.push('S3');
+  return bitir('');
 })()
 """
 
 
 def tarayici_olc(kodlar, prova=None):
-    """{kod: sonuc dict | {'hata': ...}}. Chrome yoksa {} (olcutler OLCULEMEDI). prova: {kod: ss kaydi}
-    (TURETILMIS ③: S3 olcusu + fiyat yazisi ayni sekmede okunur)."""
+    """{kod: sonuc dict | {'hata': ...}}. Chrome yoksa {} (olcutler OLCULEMEDI). prova: {kod: prova is_no}
+    (TURETILMIS ③: ayni sekme yenilenir, bolum akisla S3'e surulur; olcu + fiyat yazisi orada okunur)."""
     prova = prova or {}
     sahte = os.environ.get("FOTO_UU_TARAYICI_SAHTE", "")
     if sahte:  # yalniz hermetik test: tarayici sonucu dosyadan
@@ -882,8 +949,9 @@ def tarayici_olc(kodlar, prova=None):
     sonuc = {}
     try:
         p = subprocess.Popen([yol, "--headless=new", "--remote-debugging-port=0", "--user-data-dir=" + veri,
-                              "--no-first-run", "--no-default-browser-check", "--disable-extensions",
-                              "about:blank"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                              "--no-first-run", "--no-default-browser-check", "--disable-extensions"] +
+                             shlex.split(os.environ.get("FOTO_UU_CHROME_EK", "")) + ["about:blank"],
+                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         port_dosya = os.path.join(veri, "DevToolsActivePort")
         for _ in range(100):
             if os.path.isfile(port_dosya) and open(port_dosya).read().strip():
@@ -909,14 +977,16 @@ def tarayici_olc(kodlar, prova=None):
                     time.sleep(0.25)
                 v = c.js(TARAYICI_JS % {"kod": json.dumps(kod)}) or {"hata": "js-sonuc-yok"}
                 if kod in prova:
-                    c.js("sessionStorage.setItem('pruvo_foto_is', %s); 1" % json.dumps(json.dumps(prova[kod])))
+                    # Kanca bundan sonraki her belgede sayfa betiklerinden ONCE kosar; yenilenen sayfa ①'den acilir.
+                    c.gonder("Page.addScriptToEvaluateOnNewDocument",
+                             source=TARAYICI_PROVA_KANCA_JS % {"is": json.dumps(prova[kod])})
                     c.gonder("Page.reload")
                     time.sleep(0.5)
                     for _ in range(80):
                         if c.js("document.readyState") == "complete":
                             break
                         time.sleep(0.25)
-                    v.update(c.js(TARAYICI_S3_JS) or {"s3_hata": "js-sonuc-yok"})
+                    v.update(c.js(TARAYICI_S3_JS % {"kod": json.dumps(kod)}) or {"s3_hata": "js-sonuc-yok"})
                 time.sleep(0.5)
                 c.js("1")  # bekleyen olaylari topla
                 v["konsol"] = c.hatalar()
@@ -1356,11 +1426,16 @@ def olc_3_turetilmis(tr, a, v):
         tr.koy("3", False, "api=%d onizleme_olcu=%s sunucu=%s tarayici=OLCULEMEDI" % (1 if api_ok else 0, olculen, sunucu))
         return
     surgusuz = not v.get("surgu") and v.get("olculen_not") is True and v.get("s3_surgu") is False
-    tr.koy("3", api_ok and esit and surgusuz and kaynak == "turetilmis",
+    # Akis kaniti: S3'e kart tikindan baslayan yol ulasti VE taklit onizleme ucuna TAM 1 istek bu turle gitti.
+    istek = v.get("s3_istek") if isinstance(v.get("s3_istek"), list) else []
+    akis = (str(v.get("s3_akis") or "").startswith("kart>2>") and str(v.get("s3_akis")).endswith(">3>4>istek>S3") and
+            v.get("s3_hata") == "" and len(istek) == 1 and (istek[0] or {}).get("tur") == tr.kod)
+    tr.koy("3", api_ok and esit and surgusuz and akis and kaynak == "turetilmis",
            "api=%d uk=%s onizleme_olcu=%s D1=%s beklenen_kurus=%s sunucu_kurus=%s kaynak=%s gosterilen=%r beklenen=%r "
-           "surgu=%d not=%d s3_surgu=%s" % (
+           "surgu=%d not=%d s3_surgu=%s akis=%s istek=%d%s" % (
                1 if api_ok else 0, uk, olculen, tr.olcu, bek, sunucu, kaynak, gos, yazi, 1 if v.get("surgu") else 0,
-               1 if v.get("olculen_not") else 0, v.get("s3_surgu")))
+               1 if v.get("olculen_not") else 0, v.get("s3_surgu"), v.get("s3_akis"), len(istek),
+               (" s3_hata=%s" % v.get("s3_hata")) if v.get("s3_hata") else ""))
 
 
 def olc_3_5_6(tr, acik, tar):
@@ -1678,7 +1753,7 @@ def main(argv=None):
                 tr.koy("4", False, "onizleme yok -> ORNEK uretim acilmadi")
         try:
             tar = tarayici_olc([tr.kod for tr in calisan],
-                               {tr.kod: {"is": tr.prova, "tur": tr.kod, "olcu": tr.olcu} for tr in provalar})
+                               {tr.kod: tr.prova for tr in provalar})
             for tr in calisan:
                 olc_3_5_6(tr, acik, tar)
         finally:
