@@ -217,13 +217,15 @@ WA_BAGLAM_RE = re.compile(r"whatsapp|wa\.me", re.I)
 MESAJ_FIIL_RE = re.compile(r"gönderin|gonderin|yazın|yazin|iletin|at[ıi]n", re.I)
 GORUNUR_PENCERE = 140          # literalin SOLUNDA bakılan karakter (bağlam cümlesi)
 
-# Sayfada GEÇERLİ numara taşıyan EN AZ bu kadar WhatsApp linki bulunmalı (bugün ölçülen:
-# 4 — help-cta, malzeme-not, orderAlt statik href, orderAlt'ı JS'te yeniden kuran satır).
+# Sayfada GEÇERLİ numara taşıyan EN AZ bu kadar WhatsApp linki bulunmalı (ölçülen: 4 —
+# help-cta, malzeme-not, orderAlt statik href, orderAlt'ı JS'te yeniden kuran satır).
+# 🔴 Okan 16 Eki: kompakt sayfada orderAlt ikonu KALKTI -> normal + lisanslı sayfada
+# ölçülen 2 (help-cta + malzeme-not); taban 3 -> 2. Boş-küme nöbeti AYNEN durur (>=1 değil).
 # TABAN'dır, çapa DEĞİL: yeni buton eklenince kırmızı yanmaz, ama linkler toptan
 # kaybolup küme kontrolü BOŞ kümeye bakarak sahte-yeşil yanamaz.
 # ⚠️ TABAN ARTIK "YUTMAZ": ayrıştırılamayan numara sayıyı düşürüp tabanın altına saklanmak
 # yerine DOĞRUDAN kırmızı yakar (aşağıda fail-closed), yani taban bir mazeret yolu değil.
-WA_URL_TABAN = 3
+WA_URL_TABAN = 2
 
 # help-cta prefill'inde BULUNMAMASI gereken "bu ürünü istiyorum" niyet kalıpları.
 # (Buton "aradığını bulamayan" müşteri içindir — sayfadaki ürünü talep ETMEZ.)
@@ -1194,7 +1196,12 @@ def main():
     # ------------------------------------------------ REGRESYON: REF butonu (orderAlt)
     mo = re.search(r'id="orderAlt"[^>]*\shref="(https://wa\.me/[^"]+)"', html_doc)
     if not mo:
-        fails.append("orderAlt (REF butonu) wa.me href bulunamadı — regresyon")
+        # Okan 16 Eki ("whatsapp butonunu burdan kaldır"): kompakt (kart-secim) sayfada
+        # Sepete Ekle yanindaki WhatsApp ikonu BILEREK yok. Buton VARSA href'siz olamaz.
+        if 'id="orderAlt"' in html_doc:
+            fails.append("orderAlt (REF butonu) var ama wa.me href bulunamadı — regresyon")
+        else:
+            print("REF (orderAlt): kompakt sayfada YOK — Okan 16 Eki kaldırdı (beklenen)")
     else:
         ref_text = _wa_text(mo.group(1))
         print("REF (orderAlt) decoded text=:")

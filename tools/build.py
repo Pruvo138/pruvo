@@ -1979,7 +1979,7 @@ ADET_HTML = """
 
 # Adet + eylem İKONLARI (Okan madde 7, 16 Tem) — YALNIZ kart-seçim (normal fonksiyonel) sayfa:
 # sayfa altındaki iki büyük buton kalkar, Adet satırının SAĞINA yazısız iki küçük ikon gelir
-# (sepet = lacivert, WhatsApp = yeşil; 44×44 dokunma alanı, aria-label + title zorunlu).
+# (sepet = lacivert; WhatsApp ikonu Okan 16 Eki ile KALKTI — IKON_BUTONLAR_HTML notu).
 # id'ler (cartBtn/orderAlt) AYNEN korunur — sayfa scripti (seçim şartı + titreme + WA mesajı)
 # değişmeden çalışır. Parametrik/şemasız/panelsiz sayfalarda büyük butonlar YERİNDE kalır.
 # %s sırası: min, max, ikon bloğu (pid + wa href ile üretilir).
@@ -2320,11 +2320,13 @@ CART_ICON = ('<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18c-1.1 0-
              '0-.25-.11-.25-.25l.03-.12L8.1 15h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 20 6H5.21l-.94-2H1zm16 '
              '16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>')
 
-# Eylem butonlari (kart-secim sayfasi, Adet satirinin sagi) — %s sirasi: pid, wa href.
-# 🔴 CTA DENGESI (Okan, 11 Agu): birincil eylem SEPETE EKLE'dir. Once ikisi de yazisiz
-# 44x44 ikondu; yanlarindaki sticky WhatsApp bandi butonu ise 231x44 idi -> WhatsApp
-# dokunma alaninda 5,22 KAT buyuk gorunuyordu. Artik sepet butonu ETIKETLI ve genis
-# (tools/cta-denge-kapisi.py olcer), WhatsApp KALIR ama ikincil ikon boyunda durur.
+# Eylem butonu (kart-secim sayfasi, Adet satirinin sagi) — %s: pid.
+# 🔴 CTA DENGESI (Okan, 11 Agu): birincil eylem SEPETE EKLE'dir; sepet butonu ETIKETLI
+# ve genis (tools/cta-denge-kapisi.py olcer).
+# 🔴 OKAN 16 Eki 2026 (ekran goruntusu, aynen "whatsapp butonunu burdan kaldır"): Sepete
+# Ekle'nin YANINDAKI yesil WhatsApp ikonu (`ikon-wa`/`orderAlt`) bu satirdan KALKTI.
+# Sayfa scripti `orderAlt`'i `if(orderAlt)` ile korur (eleman yoksa sessiz atlar);
+# buyuk-buton duzeni (BUYUK_BUTONLAR_HTML) ve diger WhatsApp yuzeyleri DEGISMEDI.
 # `.cart-label` sinifi ZORUNLU: sayfa scripti sepetteki/sepette-degil durumunu O spanin
 # metninden bildirir (buyuk buton kalibiyla AYNI kanca — ikinci kopya yok).
 IKON_BUTONLAR_HTML = (
@@ -2332,8 +2334,6 @@ IKON_BUTONLAR_HTML = (
     '<button class="ikon-btn ikon-sepet" id="cartBtn" data-id="%s" '
     'aria-label="Sepete Ekle" title="Sepete Ekle">' + CART_ICON +
     '<span class="cart-label">Sepete Ekle</span></button>'
-    '<a class="ikon-btn ikon-wa" id="orderAlt" href="%s" target="_blank" rel="noopener" '
-    'aria-label="WhatsApp\'tan Sor" title="WhatsApp\'tan Sor">' + WA_ICON + '</a>'
     '</div>')
 
 # BÜYÜK butonlar (eski düzen) — parametrik + şemasız-fonksiyonel + panelsiz (Dekorasyon/
@@ -3899,7 +3899,7 @@ def render_product(p, all_products, chip_map=None):
     if fiziksel:
         # FIZIKSEL URUN paneli — 3D baski secimi YOK: renk butonlari, malzeme cipleri ve
         # "…'den başlayan" fiyat BASILMAZ (malzeme bloğu da aşağıda boş geçilir). KALAN:
-        # adet seçici + sepet ikonu + WhatsApp ikonu (aynı ADET_IKON_HTML/IKON_BUTONLAR_HTML
+        # adet seçici + sepet ikonu (aynı ADET_IKON_HTML/IKON_BUTONLAR_HTML
         # bileşenleri — ikinci kopya yok). Fiyat SABIT: liste fiyatı aynen, "başlayan" YOK.
         # 🔴 SINIF BEYANI (tüketici hukuku, 1 Ağu): hazır ticari malda cayma hakkı
         # İŞLER (Mesafeli Sözleşmeler Yönetmeliği m.15 istisnası ölçüye/kişiye özel
@@ -3918,7 +3918,7 @@ def render_product(p, all_products, chip_map=None):
     </div>
     """).format(adet=ADET_IKON_HTML % (
                     ADET_EN_AZ, ADET_EN_COK,
-                    IKON_BUTONLAR_HTML % (esc(pid), esc(wa_href(p, url)))),
+                    IKON_BUTONLAR_HTML % esc(pid)),
                 fiyat_blok=fiyat_satiri(
                     eski_html,
                     '<div class="opsiyon-fiyat" id="opsiyonFiyat">%s</div>' % esc(price_text)),
@@ -3980,7 +3980,7 @@ def render_product(p, all_products, chip_map=None):
                 hata=SECIM_HATA_HTML,
                 adet=ADET_IKON_HTML % (
                     ADET_EN_AZ, ADET_EN_COK,
-                    IKON_BUTONLAR_HTML % (esc(pid), esc(wa_href(p, url)))))
+                    IKON_BUTONLAR_HTML % esc(pid)))
         price_html = ""
     elif konfigur:
         # KONFIGUR (dekor konfigüratörü): (opsiyonel malzeme seçici) + renk butonları
@@ -4029,7 +4029,7 @@ def render_product(p, all_products, chip_map=None):
                 boy=_konfigur_boy_html(konfigur),
                 adet=ADET_IKON_HTML % (
                     ADET_EN_AZ, ADET_EN_COK,
-                    IKON_BUTONLAR_HTML % (esc(pid), esc(wa_href(p, url)))),
+                    IKON_BUTONLAR_HTML % esc(pid)),
                 fiyat_metni=taban_fiyat_metni(_varsayilan_kurus / 100.0),
                 boy_not=esc(_boy_not))
         price_html = ""
@@ -4071,7 +4071,7 @@ def render_product(p, all_products, chip_map=None):
                 hata=SECIM_HATA_HTML,
                 adet=ADET_IKON_HTML % (
                     ADET_EN_AZ, ADET_EN_COK,
-                    IKON_BUTONLAR_HTML % (esc(pid), esc(wa_href(p, url)))),
+                    IKON_BUTONLAR_HTML % esc(pid)),
                 fiyat_blok=fiyat_satiri(
                     eski_html,
                     '<div class="opsiyon-fiyat" id="opsiyonFiyat">%s</div>' % baslangic_fiyat))
