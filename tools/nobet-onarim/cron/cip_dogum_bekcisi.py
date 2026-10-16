@@ -397,6 +397,38 @@ def dogum_olc(anahtar, log_yolu=None):
             "sebep": "TESLIM_SATIRI_YOK"}
 
 
+# ============================================================================
+# KAPANDI DAMGASI — BaBa 15 Eki 23:1x (2), cip `KraL-BekciDamga`
+# ----------------------------------------------------------------------------
+# 🔴 OLCULEN SAHTE KIRMIZI (15 Eki): KraL o gunun Tamirci kirmizilarini CANLI
+# 3->0 ile 09:4x'te KAPATTI (BaBa: kapanis GECERLI, ikinci cip ACILMAZ). Bekci
+# ise yalniz CIP DOGUMUNU kapanis sayiyordu -> `KANIT_VAR_CIP_DOGMADI` KIRMIZI.
+# Kapanis kaniti spec dosyasinin BASLIGINA elle yazilan TAM SATIRDIR:
+#     KAPANDI: CANLI=0 HH:MM (BaBa hükmü HH:MM)
+# · YALNIZ ilk `KAPANDI_DAMGA_SATIR_SINIRI` satir sayilir: govdede/alintida
+#   gecen ayni metin kapanis DEGILDIR.
+# · `CANLI=0` disi (ör. `CANLI=1`) SAYILMAZ.
+# · Okunamayan spec -> None -> cagiran mevcut KIRMIZI'da kalir (fail-closed).
+# Spec gunde BIR KEZ (06:20, `kral-sabah.py`) yazilir; damga gun icinde ezilmez.
+KAPANDI_DAMGA_SATIR_SINIRI = 5
+_KAPANDI_DAMGA_DESENI = re.compile(
+    r"^KAPANDI: CANLI=0 \d{2}:\d{2} \(BaBa hükmü \d{2}:\d{2}\)$")
+
+
+def kapandi_damgasi_olc(yol):
+    """Spec BASLIGINDA kapanis damgasi var mi. True/False; okunamadiysa None."""
+    try:
+        with open(yol, encoding="utf-8") as dosya:
+            for sira, satir in enumerate(dosya):
+                if sira >= KAPANDI_DAMGA_SATIR_SINIRI:
+                    break
+                if _KAPANDI_DAMGA_DESENI.match(satir.rstrip("\r\n")):
+                    return True
+    except (OSError, UnicodeDecodeError):
+        return None
+    return False
+
+
 def karar(simdi=None, dizin=None, esik_saat=None, yerel_cozucu=None,
           teslim_kollari=None, teslim_kalp_yolu=None, teslim_bayatlik_saat=None,
           log_yolu=None, anahtar_oneki=""):
@@ -481,6 +513,10 @@ def karar(simdi=None, dizin=None, esik_saat=None, yerel_cozucu=None,
             return _don("OLCULEMEDI", "DOGUM_%s" % dogum["sebep"], teslim, dogum)
         if dogum["dogdu"]:
             return _don("YESIL", "KANIT_VAR_CIP_DOGDU", teslim, dogum)
+        # Cip dogmadi ama gun BASLIKTAKI damgayla KAPANDI (BaBa 15 Eki).
+        # `None` (okunamadi) YESIL'e DUSMEZ: asagidaki KIRMIZI'ya gider.
+        if kapandi_damgasi_olc(yol) is True:
+            return _don("YESIL", "KANIT_VAR_KAPANDI_DAMGASI", teslim, dogum)
         # Spec URETILDI ama cip KOSULMADI — K331'in gorunmez kildigi TAM HAL.
         return _don("KIRMIZI", "KANIT_VAR_CIP_DOGMADI", teslim, dogum)
 
