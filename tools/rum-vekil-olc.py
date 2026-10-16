@@ -110,15 +110,20 @@ def graphql_yukle(gun, token, account_id):
     """Canli kol — CF GraphQL'den `refererHost` boyutunda sayfa yuklemesini okur.
     accountTag `variables` ile gider; sorgu dizesine elle BIRLESMEZ (enjeksiyon riski)."""
     sorgu = (
-        "query RumGunluk($accountTag: String!, $gun: Date!) {\n"
-        "  viewer.accounts(filter: {accountTag: $accountTag}) {\n"
-        "    rumPageloadEventsAdaptiveGroups(\n"
-        "      limit: 500\n"
-        "      filter: {date: $gun, bot: 0}\n"
-        "      orderBy: [count_DESC]\n"
-        "    ) {\n"
-        "      count\n"
-        "      dimensions { refererHost }\n"
+        # Bicim 16 Eki tek olcum kosumunun (CI run 38933700908, HTTP 200) sorgusuyla AYNI:
+        # `viewer { accounts(...) }` ic ice (nokta YOK), CF skaleri kucuk harf `string`,
+        # bot suzgeci YOK. Bicim `rum-vekil-test.py::V7` ile olculur.
+        "query RumGunluk($accountTag: string!, $gun: Date!) {\n"
+        "  viewer {\n"
+        "    accounts(filter: {accountTag: $accountTag}) {\n"
+        "      rumPageloadEventsAdaptiveGroups(\n"
+        "        limit: 500\n"
+        "        filter: {date: $gun}\n"
+        "        orderBy: [count_DESC]\n"
+        "      ) {\n"
+        "        count\n"
+        "        dimensions { refererHost }\n"
+        "      }\n"
         "    }\n"
         "  }\n"
         "}"

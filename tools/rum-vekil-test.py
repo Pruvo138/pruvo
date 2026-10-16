@@ -270,6 +270,49 @@ def v6_token_sizmaz(arac, hata):
                 pass
 
 
+def v7_sorgu_bicimi(arac, hata):
+    """V7 — canli kolun GONDERDIGI GraphQL govdesi kanitli bicimde mi (ag YOK: urlopen
+    sahtesi govdeyi yakalar ve ag hatasi firlatir). Fikstur vakalari sorgu metnini HIC
+    olcmez; 17 Eki'de `viewer.accounts(` (gecersiz) + `String!` bu boslukta yasadi."""
+    import importlib.util
+    import urllib.error
+    yakala = {}
+    sp = importlib.util.spec_from_file_location("rum_vekil_v7", arac)
+    m = importlib.util.module_from_spec(sp)
+    sp.loader.exec_module(m)
+
+    def sahte(req, timeout=None):
+        yakala["govde"] = req.data
+        raise urllib.error.URLError("V7 sahte ag")
+
+    eski = m.urllib.request.urlopen
+    m.urllib.request.urlopen = sahte
+    try:
+        m.graphql_yukle(GUN, "T", "ACCT")
+    except Exception:
+        pass
+    finally:
+        m.urllib.request.urlopen = eski
+    if "govde" not in yakala:
+        hata.append("V7 canli kol ag cagrisi yapmadi (govde yakalanamadi)")
+        return
+    g = json.loads(yakala["govde"].decode("utf-8"))
+    q = g.get("query", "")
+    tek = re.sub(r"\s+", " ", q)
+    sartlar = [
+        ("viewer { accounts(filter: {accountTag: $accountTag})" in tek, "viewer{accounts} ic ice degil"),
+        ("viewer." not in q, "noktali alan yolu (gecersiz GraphQL)"),
+        ("$accountTag: string!" in q, "accountTag skaleri kucuk harf `string!` degil"),
+        ("$gun: Date!" in q, "gun skaleri `Date!` degil"),
+        ("dimensions { refererHost }" in tek, "refererHost boyutu yok"),
+        (q.count("{") == q.count("}"), "suslu parantez dengesiz"),
+        (g.get("variables") == {"accountTag": "ACCT", "gun": GUN}, "variables beklenen degil"),
+    ]
+    for ok, neden in sartlar:
+        if not ok:
+            hata.append("V7 sorgu bicimi: %s" % neden)
+
+
 MUTANTLAR = [
     ("M1 DELETE kaldirildi -> V2 cift sayar",
      'DELETE FROM rum_vekil WHERE gun=',
@@ -286,6 +329,11 @@ MUTANTLAR = [
      'print("RUM_VEKIL=YAZILDI gun=%s n=%d" % (gun, 999))',
      "V5_stdout_sayi_yok",
      "toplam stdout'a basildiginde 'dijital iz' olarak CI loguna sizar"),
+    ("M4 noktali alan yolu geri geldi -> V7 gecersiz sorgu",
+     '        "  viewer {\\n"\n        "    accounts(filter: {accountTag: $accountTag}) {\\n"',
+     '        "  viewer.accounts(filter: {accountTag: $accountTag}) {\\n"\n        "    {\\n"',
+     "V7_sorgu_bicimi",
+     "17 Eki m3 cikisi `viewer.accounts(` idi: fikstur vakalari yesil kaldi, canlida her gun OLCULEMEDI olurdu"),
 ]
 
 
@@ -296,12 +344,13 @@ VAKA_FONKS = {
     "V4_errors_dolu": v4_errors_dolu,
     "V5_stdout_sayi_yok": v5_stdout_sayi_yok,
     "V6_token_sizmaz": v6_token_sizmaz,
+    "V7_sorgu_bicimi": v7_sorgu_bicimi,
 }
 
 
 def main():
     gecen = 0
-    toplam_vaka = 6
+    toplam_vaka = 7
     hata = []
 
     v1_birebir(ARAC, hata)
@@ -310,6 +359,7 @@ def main():
     v4_errors_dolu(ARAC, hata)
     v5_stdout_sayi_yok(ARAC, hata)
     v6_token_sizmaz(ARAC, hata)
+    v7_sorgu_bicimi(ARAC, hata)
     gecen = toplam_vaka - len(hata)
 
     mutant_puan = 0
