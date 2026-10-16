@@ -2774,6 +2774,13 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/varlik-referans-mutasyon.py
 
+      # 🔴 16 Eki 2026 (Okan "whatsapp butonunu burdan kaldır"): varlik kapisinin kompakt
+      # WhatsApp ikonu DAR istisnasi — yalniz yenide ikon yokken eski ikon <a>'si kiyas disi;
+      # diger WhatsApp/siparis baglantilari beyan edilemez kalir. 5 vaka + 3 mutant.
+      - name: "Varlik kapisi WhatsApp ikonu dar istisnasi (5 vaka + 3 mutant)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/varlik-wa-ikon-test.py
+
       - name: "Vitrin kabul kapisi mutasyon bataryasi"
         if: ${{ !cancelled() }}
         run: python3 tools/vitrin-kabul-mutasyon.py

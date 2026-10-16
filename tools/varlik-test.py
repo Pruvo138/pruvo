@@ -1008,6 +1008,23 @@ def _ilan_araligi_beyani(p):
     return tuple(metin), tuple(deger)
 
 
+# 🔴 OKAN 16 Eki 2026 (ekran goruntusu, aynen "whatsapp butonunu burdan kaldır"): kompakt eylem
+# satirindaki WhatsApp ikonu (`<a class="ikon-btn ikon-wa" id="orderAlt" …>`) BILEREK kalkti. Eski
+# referans o ikonu tasidigi icin ikonun `wa.me?text=…` baglantisi "sorgu parametresi KAYIP" dogurur;
+# bu sinif BEYAN EDILEMEZ ve `--referans-tazele` kapi kirmiziyken calismaz -> KILITLI DONGU.
+# DAR ISTISNA: YENI sayfada ikon YOKSA eski sayfanin YALNIZ bu ikon <a>'si baglanti kiyasindan
+# cikarilir. Sayfada kalan diger WhatsApp/siparis baglantilari (bant, malzeme notu) AYNEN beyan
+# edilemez kalir; yeni sayfada ikon VARSA hicbir sey ayiklanmaz. Referans tazelenince istisna bosa duser.
+# Olcen batarya: tools/varlik-wa-ikon-test.py (vaka + mutant).
+_WA_IKON_RE = re.compile(r'<a class="ikon-btn ikon-wa"[^>]*>.*?</a>', re.S)
+
+
+def _wa_ikonu_ayikla(eski_html, yeni_html):
+    if _WA_IKON_RE.search(yeni_html):
+        return eski_html
+    return _WA_IKON_RE.sub("", eski_html)
+
+
 def cikarim_kaybi(eski_html, yeni_html, beyan_tablosu=None, eslesen_kovasi=None,
                   deger_beyani=(), dalga1_beyani=None):
     """🔴 EKSEN 1'IN IDDIASI (3 Agu'da DARALTILDI, gevsetilmedi):
@@ -1088,7 +1105,7 @@ def cikarim_kaybi(eski_html, yeni_html, beyan_tablosu=None, eslesen_kovasi=None,
             bulgu.append("<img src> KAYIP: %s" % u[:80])
 
     y_bag = _baglantilar(yeni_html)
-    for yol, par in _baglantilar(eski_html):
+    for yol, par in _baglantilar(_wa_ikonu_ayikla(eski_html, yeni_html)):
         eslesen = [p for (y, p) in y_bag if y == yol]
         if not eslesen:
             bulgu.append("<a href> YOLU KAYIP: %s" % yol[:80])
