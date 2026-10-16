@@ -116,7 +116,6 @@ BASKI_KANCALARI = BASKI_SECIM_KANCALARI + [FIYAT_METNI_KANCASI]
 KALAN_OGELER = [
     ("adet secici", 'id="adetSec"'),
     ("sepete ekle butonu", 'id="cartBtn"'),
-    ("WhatsApp butonu", 'id="orderAlt"'),
     ("fiyat ogesi (#opsiyonFiyat)", 'id="opsiyonFiyat"'),
 ]
 

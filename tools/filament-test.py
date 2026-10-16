@@ -762,11 +762,13 @@ def main():
         kayit(13, "(e) alt paragraf ('Sepete ekleyip…') hicbir urun sayfasinda yok",
               g13.stdout.strip() == "", g13.stdout.strip().splitlines()[:3])
 
-        # ---- 14 (f) WhatsApp'tan Sor secim SARTI ARAMAZ
-        #   (madde 7 sonrasi: kart-secim sayfasinda link IKON olarak Adet satirinda; hala <a href>)
+        # ---- 14 (f) Adet satirinda WhatsApp ikonu YOK (Okan 16 Eki: "whatsapp butonunu
+        #   burdan kaldır") — sayfa scripti orderAlt'i `if(orderAlt)` ile korur, kilit de YOK
         h14 = []
-        if 'id="orderAlt"' not in fs or '<a class="ikon-btn ikon-wa" id="orderAlt"' not in fs:
-            h14.append("orderAlt (WhatsApp'tan Sor) ikon linki yok")
+        if 'id="orderAlt"' in fs or 'ikon-wa" id="orderAlt"' in fs:
+            h14.append("kart-secim sayfasinda WhatsApp ikonu (orderAlt) hala var")
+        if "if(orderAlt)" not in fs:
+            h14.append("sayfa scripti orderAlt yokluguna korumasiz (if(orderAlt) yok)")
         # titret/gate yalniz cartBtn tiklamasinda; orderAlt bir <a href> ve kilitlenmiyor
         if "orderAlt.disabled" in fs or "orderAlt.classList.add(\"kilitli\")" in fs:
             h14.append("orderAlt secime kilitlenmis")
@@ -907,9 +909,10 @@ def main():
         if 'class="cart-btn"' in fs or 'class="order-wa"' in fs:
             h21.append("kart-secim sayfasinda buyuk buton hala var")
         if not re.search(r'opsiyon-adet-eylem.*?id="adetArti".*?eylem-ikonlar.*?'
-                         r'ikon-sepet" id="cartBtn"[^>]*aria-label="Sepete Ekle" title="Sepete Ekle".*?'
-                         r'ikon-wa" id="orderAlt"[^>]*aria-label="WhatsApp\'tan Sor"[^>]*title="WhatsApp\'tan Sor"', fs, re.S):
-            h21.append("Adet satirinda aria-label+title'li ikon cifti eksik/sirasiz")
+                         r'ikon-sepet" id="cartBtn"[^>]*aria-label="Sepete Ekle" title="Sepete Ekle"', fs, re.S):
+            h21.append("Adet satirinda aria-label+title'li sepet butonu eksik/sirasiz")
+        if re.search(r'<a class="ikon-btn ikon-wa"', fs):
+            h21.append("Adet satirinda WhatsApp ikonu hala var (Okan 16 Eki kaldirdi)")
         if ".ikon-btn{width:44px;height:44px" not in fs:
             h21.append("44x44 dokunma alani CSS'i yok")
         # SEMALI PARAMETRIK (sari) SAYFA DA KART-SECIM MODUNDA — F kalemi (Okan, 16 Tem gece;

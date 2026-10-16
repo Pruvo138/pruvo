@@ -1467,8 +1467,9 @@ def uretim_hatti_olc():
             return sayfa, f.read(), None
 
 
-KOMPAKT = ['class="eylem-ikonlar"', 'ikon-btn ikon-sepet', 'ikon-btn ikon-wa', 'opsiyon-adet-eylem']
-FALLBACK = ['<span class="cart-label">Sepete Ekle</span>', 'class="order-wa"']
+KOMPAKT = ['class="eylem-ikonlar"', 'ikon-btn ikon-sepet', 'opsiyon-adet-eylem']
+FALLBACK = ['<span class="cart-label">Sepete Ekle</span>', 'class="order-wa"',
+            'class="ikon-btn ikon-wa"']  # WhatsApp ikonu Okan 16 Eki ile KALKTI
 
 u_sayfa, u_sitemap, u_hata = uretim_hatti_olc()
 kontrol(u_hata is None,

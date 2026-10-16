@@ -1194,7 +1194,12 @@ def main():
     # ------------------------------------------------ REGRESYON: REF butonu (orderAlt)
     mo = re.search(r'id="orderAlt"[^>]*\shref="(https://wa\.me/[^"]+)"', html_doc)
     if not mo:
-        fails.append("orderAlt (REF butonu) wa.me href bulunamadı — regresyon")
+        # Okan 16 Eki ("whatsapp butonunu burdan kaldır"): kompakt (kart-secim) sayfada
+        # Sepete Ekle yanindaki WhatsApp ikonu BILEREK yok. Buton VARSA href'siz olamaz.
+        if 'id="orderAlt"' in html_doc:
+            fails.append("orderAlt (REF butonu) var ama wa.me href bulunamadı — regresyon")
+        else:
+            print("REF (orderAlt): kompakt sayfada YOK — Okan 16 Eki kaldırdı (beklenen)")
     else:
         ref_text = _wa_text(mo.group(1))
         print("REF (orderAlt) decoded text=:")

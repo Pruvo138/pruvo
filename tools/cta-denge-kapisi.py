@@ -604,6 +604,7 @@ def bolum_urun(kurallar, sayfa, wa_no):
         olculemedi("uretilen sayfada .help-cta-btn baglantisi yok")
         return None
     bant_btn_ham = m.group(1)
+    ikon_var = 'class="ikon-btn ikon-wa"' in sayfa
 
     oranlar, bant_payi, dokunmalar, sarmalar = {}, {}, [], []
     for ad, vw in (("mobil", MOBIL_EN), ("masaustu", MASAUSTU_EN)):
@@ -620,6 +621,10 @@ def bolum_urun(kurallar, sayfa, wa_no):
                        ".opsiyonlar padding capasi yok) — %s" % ad)
             return None
         k_wa = olc_kutu(d_wa, "", ikon_olcusu(kurallar, [".ikon-btn"], vw))
+        # Okan 16 Eki: Adet satirindaki WhatsApp ikonu KALKTI -> sayfada yoksa satirda
+        # yer KAPLAMAZ (0x0) ve dokunma hedefi sayilmaz; CSS kurali olcum DISI kalir.
+        if k_wa is not None and not ikon_var:
+            k_wa = (0.0, 0.0)
         if k_wa is None:
             olculemedi("urun sayfasi WhatsApp ikonu olculemedi (%s)" % ad)
             return None
@@ -666,7 +671,8 @@ def bolum_urun(kurallar, sayfa, wa_no):
               "%.0f px² · oran %.2f"
               % (ad, k_sepet[0], k_sepet[1], alan_sepet, wa_en_buyuk, oranlar[ad]))
         dokunmalar.append(("%s Sepete Ekle" % ad, k_sepet[1]))
-        dokunmalar.append(("%s WhatsApp ikonu" % ad, k_wa[1]))
+        if ikon_var:
+            dokunmalar.append(("%s WhatsApp ikonu" % ad, k_wa[1]))
         # 🔴 TABANI KAPI YAZAR, INSAN DEGIL: CSS'teki `min-width` bir tasarim degeri
         # degil, bu satirin TURETTIGI dengeleme tabanidir. Sayiyi burada basmak, taban
         # bandin hapi degistiginde kaydiginda gerekcenin izlenebilir kalmasini saglar.
@@ -697,7 +703,7 @@ def bolum_urun(kurallar, sayfa, wa_no):
             % (DOKUNMA_TABANI,
                "hepsi" if not kucuk else "ihlal: " + ", ".join(
                    "%s=%.1f" % (a, h) for a, h in kucuk)))
-    wa_saglam = (wa_no in sayfa) and ('id="orderAlt"' in sayfa) and \
+    wa_saglam = (wa_no in sayfa) and \
                 ("wa.me/" in sayfa) and bool(sepet_metni.strip())
     kontrol("CTA-A5-KANAL-WA", wa_saglam,
             "urun sayfasinda WhatsApp kanali + numara YERINDE ve sepet butonu "
