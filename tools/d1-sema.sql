@@ -691,3 +691,14 @@ CREATE TABLE IF NOT EXISTS foto_renk_onizleme (
   guncel       INTEGER NOT NULL DEFAULT 0  -- son asama degisimi (ms) — render bekleme suresi buradan
 );
 CREATE INDEX IF NOT EXISTS idx_foto_renk_onizleme_asama ON foto_renk_onizleme (asama, guncel);
+
+-- RUM VEKIL — CF RUM'dan gunluk "/ x referer kaynak" sayimi (rizadan BAGIMSIZ, GA4 rizasiz gormez).
+-- NEDEN: GA4 rizasiz oturumu GORMEZ; CF RUM ise bostan sayar. Gunluk tek DELETE + INSERT
+-- (ayni gun ikinci kez kosarsa cift sayim YOK). Yazici: tools/rum-vekil-olc.py
+-- (CF GraphQL -> sinif toplamlari -> D1). Bu tablodaki sayilar PUBLIC CI loguna YAZILMAZ.
+CREATE TABLE IF NOT EXISTS rum_vekil (
+  gun TEXT NOT NULL,
+  kaynak TEXT NOT NULL,
+  n INTEGER NOT NULL,
+  PRIMARY KEY (gun, kaynak)
+);

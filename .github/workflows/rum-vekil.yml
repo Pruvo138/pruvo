@@ -1,0 +1,58 @@
+name: Rum vekil gunluk sayim
+
+# ══════════════════════════════════════════════════════════════════════════════
+# NEDEN VAR — RIZA-BAGIMSIZ KANAL SAYIMI
+# ══════════════════════════════════════════════════════════════════════════════
+# GA4 rizasiz oturumu GORMEZ -> GA4'ten gunluk trafik kokeni dagilimi almak
+# DONGUSEL. CF RUM rizanin DISINDA calisir ve `refererHost` boyutunu uretir;
+# boylece "PRUVO'ya herhangi bir kanaldan ne kadar ziyaret geldi"yi rafin bagimsizli
+# ile gunluk D1'e yazabiliriz (araç: tools/rum-vekil-olc.py). Reklam tavan hesabi
+# (tools/riza-tavani-olc.py) AYRI bir eksendir — bu is akisi sayilari D1'e
+# yalniz ve kamu PARK loguna YASMAZ (sayi stdout'a basilmaz).
+#
+# 🔴 NEDEN AYRI IS AKISI — `deploy.yml`E ADIM EKLENMEDI
+#   * `push`/`pull_request`/`workflow_call` tetigi YOK -> deploy.yml bunu HIC
+#     baslatmaz; yayin kritik yoluna 0 sn maliyet.
+#   * deploy.yml'e `needs:` ile BAGLI DEGIL -> buradaki kirmizi yayini DURDURMAZ.
+#   * `concurrency` grubu AYRI -> hicbir yayin adimini bekletmez.
+#
+# ══════════════════════════════════════════════════════════════════════════════
+# CADANS — GUNLUK, 03:37 UTC (TRT 06:37)
+# ══════════════════════════════════════════════════════════════════════════════
+# Dakika komsu is akislarinin fazlarina CARPMAZ (olculdu): nobet 47,
+# reklam-oci 34, d1-uzlastirici 9/24/39/54, paket-tazelik 13/28/43/58, vs.
+# Bos dakika secildi: 37 (gun 03:37 UTC).
+on:
+  schedule:
+    - cron: "37 3 * * *"
+  # Elle kosum yolu HER ZAMAN acik (cron kacarsa insan tetikleyebilir).
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Yayin is akisiyla (deploy.yml `group: pages`) AYRI grup.
+concurrency:
+  group: rum-vekil
+
+jobs:
+  sayim:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Python hazirla
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # CI loguna SAYI YAZILMAZ — yalniz `RUM_VEKIL=YAZILDI` ya da
+      # `RUM_VEKIL=OLCULEMEDI sebep=<jeton>` basar; token/hesap kimligi
+      # HICBIR yerde gorunmez (FAIL-CLOSED maske aracin icinde).
+      # rc 0 -> yesil; rc 3 -> OLCULEMEDI, yesile SAYILMAZ.
+      - name: "Rum vekil gunluk sayim (D1)"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: python3 tools/rum-vekil-olc.py
