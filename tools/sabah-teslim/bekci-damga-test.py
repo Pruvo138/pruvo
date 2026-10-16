@@ -17,10 +17,14 @@ VAKALAR (hepsi `karar()` uzerinden, uctan uca):
   D4  `CANLI=1` damgasi                    -> KIRMIZI
   D5  spec OKUNAMADI (damga 1. satirda)    -> KIRMIZI (fail-closed)
   K1  damga + cip DOGDU                    -> YESIL KANIT_VAR_CIP_DOGDU (sira degismedi)
+  D6  ev bicimi `09:4x` iki alanda         -> YESIL  KANIT_VAR_KAPANDI_DAMGASI (BaBa 16 Eki 15:2x)
+  D7  tek haneli saat `9:4x`               -> KIRMIZI
+  D8  eksik dakika `09:4`                  -> KIRMIZI
 MUTANTLAR (izole kopyada; canli kaynak sha'si once/sonra ESIT olmali):
   M1  damga kolu silinir                   -> D1 KIRMIZI (yakalanmali)
   M2  baslik siniri (5 satir) kaldirilir   -> D3a YESIL (yakalanmali)
   M3  `is True` -> `is not False`          -> D5 YESIL (fail-closed kolu)
+  M4  `x` kabulu kapatilir (`\d{2}`)       -> D6 KIRMIZI (ev bicimi kolu)
 
 TAMAMI FIKSTURDEDIR: canli `tamirci-spec/`, bekci logu, damga dizini HIC
 okunmaz/yazilmaz; tum yollar `karar()` parametresiyle gecici dizine baglanir.
@@ -52,6 +56,11 @@ M2_CAPA = ("                if sira >= KAPANDI_DAMGA_SATIR_SINIRI:\n"
 M2_YAMA = "                pass  # MUTANT M2: baslik siniri KALDIRILDI\n"
 M3_CAPA = "        if kapandi_damgasi_olc(yol) is True:\n"
 M3_YAMA = "        if kapandi_damgasi_olc(yol) is not False:  # MUTANT M3\n"
+M4_CAPA = ('    r"^KAPANDI: CANLI=0 \\d{2}:\\d[0-9x] '
+           '\\(BaBa hükmü \\d{2}:\\d[0-9x]\\)$")\n')
+M4_YAMA = ('    r"^KAPANDI: CANLI=0 \\d{2}:\\d{2} '
+           '\\(BaBa hükmü \\d{2}:\\d{2}\\)$")  # MUTANT M4\n')
+DAMGA_EV = "KAPANDI: CANLI=0 09:4x (BaBa hükmü 09:4x)"
 
 
 def _sha(yol):
@@ -86,6 +95,12 @@ def _spec_metni(vaka):
         satirlar = bas + govde[:8] + ["> " + DAMGA, DAMGA] + govde[8:]
     elif vaka == "D4":
         satirlar = [DAMGA.replace("CANLI=0", "CANLI=1")] + bas + govde
+    elif vaka == "D6":
+        satirlar = [DAMGA_EV] + bas + govde
+    elif vaka == "D7":
+        satirlar = [DAMGA_EV.replace("=0 09:4x", "=0 9:4x")] + bas + govde
+    elif vaka == "D8":
+        satirlar = [DAMGA_EV.replace("=0 09:4x", "=0 09:4")] + bas + govde
     else:
         raise ValueError(vaka)
     return "\n".join(satirlar) + "\n"
@@ -147,12 +162,16 @@ BEKLENEN = {
     "D4": ("KIRMIZI", "KANIT_VAR_CIP_DOGMADI"),
     "D5": ("KIRMIZI", "KANIT_VAR_CIP_DOGMADI"),
     "K1": ("YESIL", "KANIT_VAR_CIP_DOGDU"),
+    "D6": ("YESIL", "KANIT_VAR_KAPANDI_DAMGASI"),
+    "D7": ("KIRMIZI", "KANIT_VAR_CIP_DOGMADI"),
+    "D8": ("KIRMIZI", "KANIT_VAR_CIP_DOGMADI"),
 }
 # Mutant -> (hedef vaka, mutantta BEKLENEN yanlis hukum)
 MUTANTLAR = (
     ("M1", M1_CAPA, M1_YAMA, "D1", "KIRMIZI"),
     ("M2", M2_CAPA, M2_YAMA, "D3a", "YESIL"),
     ("M3", M3_CAPA, M3_YAMA, "D5", "YESIL"),
+    ("M4", M4_CAPA, M4_YAMA, "D6", "KIRMIZI"),
 )
 
 

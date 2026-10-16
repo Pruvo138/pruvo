@@ -405,6 +405,9 @@ def dogum_olc(anahtar, log_yolu=None):
 # ise yalniz CIP DOGUMUNU kapanis sayiyordu -> `KANIT_VAR_CIP_DOGMADI` KIRMIZI.
 # Kapanis kaniti spec dosyasinin BASLIGINA elle yazilan TAM SATIRDIR:
 #     KAPANDI: CANLI=0 HH:MM (BaBa hükmü HH:MM)
+# · Dakika EV BICIMINDE de olabilir: `HH:Mx` (son hane maskeli, ör. `09:4x`) —
+#   BaBa 16 Eki 15:2x: ev damgasi doktrini tek bicimdir, regex'e uyar. Iki
+#   alanda da `HH:M[0-9x]`; `9:4x` (tek haneli saat) ve `09:4` (eksik) SAYILMAZ.
 # · YALNIZ ilk `KAPANDI_DAMGA_SATIR_SINIRI` satir sayilir: govdede/alintida
 #   gecen ayni metin kapanis DEGILDIR.
 # · `CANLI=0` disi (ör. `CANLI=1`) SAYILMAZ.
@@ -412,7 +415,7 @@ def dogum_olc(anahtar, log_yolu=None):
 # Spec gunde BIR KEZ (06:20, `kral-sabah.py`) yazilir; damga gun icinde ezilmez.
 KAPANDI_DAMGA_SATIR_SINIRI = 5
 _KAPANDI_DAMGA_DESENI = re.compile(
-    r"^KAPANDI: CANLI=0 \d{2}:\d{2} \(BaBa hükmü \d{2}:\d{2}\)$")
+    r"^KAPANDI: CANLI=0 \d{2}:\d[0-9x] \(BaBa hükmü \d{2}:\d[0-9x]\)$")
 
 
 def kapandi_damgasi_olc(yol):
