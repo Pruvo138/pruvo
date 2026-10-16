@@ -842,8 +842,8 @@ jobs:
       # 🔴 16 Eki 2026 (`KraL-BekciDamga`, BaBa 15 Eki 23:1x (2)) — cip-dogum
       # bekcisi spec BASLIGINDAKI `KAPANDI: CANLI=0 HH:MM (BaBa hükmü HH:MM)`
       # damgasini kapanis sayar. Tamami fikstur (canli tamirci-spec/log/damga
-      # dizinine dokunmaz); 7 vaka (D1-D5 + K1) + 3 mutant izole kopyada.
-      - name: K-BekciDamga cip-dogum bekcisi KAPANDI damgasi kabul (7 vaka + 3 mutant)
+      # dizinine dokunmaz); 10 vaka (D1-D8 + K1) + 4 mutant izole kopyada; ev bicimi `HH:Mx` (BaBa 16 Eki 15:2x).
+      - name: K-BekciDamga cip-dogum bekcisi KAPANDI damgasi kabul (10 vaka + 4 mutant)
         if: ${{ !cancelled() }}
         run: python3 tools/sabah-teslim/bekci-damga-test.py
 
