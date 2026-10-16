@@ -1182,6 +1182,8 @@ function sahteBelge() {
     setAttribute(k, v) { this.ozn[k] = String(v); if (k === "hidden") { this.hidden = true; } }
     getAttribute(k) { return k in this.ozn ? this.ozn[k] : null; }
     removeAttribute(k) { delete this.ozn[k]; if (k === "hidden") { this.hidden = false; } }
+    // ÇA (16 Eki): kaydırma çağrıları SAYILIR (o anki `hidden` ile) — "gizliyken kaydırma" ayrıca görünür.
+    scrollIntoView(o) { (this.kaydirma = this.kaydirma || []).push({ o: o || null, gizli: this.hidden === true }); }
     addEventListener(tip, fn) { (this.dinle = this.dinle || {})[tip] = ((this.dinle || {})[tip] || []).concat([fn]); }
     // ek.evt (14 Eki RNH): dinleyiciye iletkeninici özellikler (pointerType vb.) — mevcut çağrılar
     // (ek.evt olmadan) bayt-aynı ({target: this}) çalışır; geriye uyumlu.
@@ -1312,7 +1314,8 @@ async function ekranKos(kaynak, fotoVeri, acikYanit, kayit, durumYanit, ek) {
   let akisPostu = false;
   // Konum: ek.hash ile açılış (YA: eski `#tur=` bağlantısı). history.replaceState adresi YAZAR (hash dahil) ve
   // `gecmis`e kaydeder — açılış temizliği buradan ölçülür.
-  const konum = { href: "https://pruvo3d.com/" + (ek.hash || ""), pathname: "/", search: "", hash: ek.hash || "" };
+  // İS (16 Eki): ek.search ile `?utm_…` açılışı (varsayılan "" — eski vakalar bayt-aynı).
+  const konum = { href: "https://pruvo3d.com/" + (ek.search || "") + (ek.hash || ""), pathname: "/", search: ek.search || "", hash: ek.hash || "" };
   const kok = {
     document, PRUVO_FOTO: fotoVeri, setTimeout, clearTimeout, console, ...gorselSahte,
     // ek.zamanlayici: yoklama araligi OLCULUR, gercek zamanlayici kurulmaz (test 5 sn beklemez).
@@ -1327,7 +1330,11 @@ async function ekranKos(kaynak, fotoVeri, acikYanit, kayit, durumYanit, ek) {
                  remove() {}, reset() {} },
     // Durumlu sessionStorage: ek.oturum ({anahtar: değer}) ile dolu başlar (YA: eski sürümün bıraktığı kayıtlar);
     // getItem/setItem/removeItem gerçekten okur/yazar/siler, okunan anahtarlar `okunan`da sayılır.
-    sessionStorage: (() => {
+    // İS: ek.depo verilirse İKİ yükleme AYNI oturum deposunu paylaşır (ikinci yüklemede beacon 0 ölçülsün).
+    // ek.beacon (dizi): navigator.sendBeacon çağrıları · ek.gtag (dizi): gtag + dataLayer.push çağrıları sayılır.
+    ...(Array.isArray(ek.beacon) ? { navigator: { sendBeacon: (u, g) => { ek.beacon.push({ u: String(u), g: String(g) }); return true; } } } : {}),
+    ...(Array.isArray(ek.gtag) ? { gtag: (...a) => { ek.gtag.push(a); }, dataLayer: { push: (...a) => { ek.gtag.push(a); } } } : {}),
+    sessionStorage: ek.depo || (() => {
       const m = new Map(Object.entries(ek.oturum || {})), okunan = [];
       return { getItem: (k) => { okunan.push(k); return m.has(k) ? m.get(k) : null; }, setItem: (k, v) => { m.set(k, String(v)); },
                removeItem: (k) => { m.delete(k); }, anahtarlar: () => [...m.keys()], okunan };
@@ -7595,6 +7602,79 @@ console.log("YA) YENİLEME — açılış her zaman ① (oturum kaydı + #tur= g
     const kir = ["Y1", "Y2", "Y3"].filter((x) => r[x] !== true);
     ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli), JSON.stringify(kir));
   }
+}
+
+// ---------------------------------------------------------------- ÇA) ÇAPA İNİŞİ #fotoUretim (BaBa 16 Eki 17:4x)
+// Reklam adresi `/?utm…#fotoUretim`: bölüm `hidden` başlayıp /acik ile açıldığı için tarayıcı çapaya kaymıyordu
+// (ArTisT: scrollY=0, sihirbaz ilk ekranın altında). Ç1 #fotoUretim ile açılış -> bölüm AÇIKKEN tam 1 kaydırma
+// ({block:"start"}) · Ç2 KONTROL: çapasız ve #sss açılışta kaydırma 0 · Ç3 KONTROL: /acik kapalı -> bölüm gizli,
+// kaydırma 0. Mutantlar: ÇA-M1 çağrı silinir -> [Ç1] · ÇA-M2 çapa koşulu kalkar (her açılışta kaydır) -> [Ç2] ·
+// ÇA-M3 çağrı bölüm açılmadan ÖNCEye taşınır (gizliyken kaydırır) -> [Ç1].
+console.log("ÇA) ÇAPA İNİŞİ — #fotoUretim ile açılışta bölüm açılınca kaydırılır; başka çapada/kapalıda dokunulmaz");
+{
+  const V = veriYukle(VERI_KAYNAK);
+  const kaydirma = (e) => e.bolum.kaydirma || [];
+  const caKos = async (kaynak) => {
+    const s = {}, iz = {};
+    const e1 = await ekranKos(kaynak, V, acikGercek(V, V6_TUM), null, null, { hash: "#fotoUretim" });
+    iz.C1 = { k: kaydirma(e1), gorunur: e1.gorunur, istisna: e1.istisna };
+    s.C1 = iz.C1.k.length === 1 && iz.C1.k[0].gizli === false && !!iz.C1.k[0].o && iz.C1.k[0].o.block === "start" &&
+      iz.C1.gorunur === true && iz.C1.istisna === 0;
+    const e2a = await ekranKos(kaynak, V, acikGercek(V, V6_TUM), null, null, {});
+    const e2b = await ekranKos(kaynak, V, acikGercek(V, V6_TUM), null, null, { hash: "#sss" });
+    iz.C2 = { capasiz: kaydirma(e2a).length, sss: kaydirma(e2b).length, istisna: e2a.istisna + e2b.istisna };
+    s.C2 = iz.C2.capasiz === 0 && iz.C2.sss === 0 && iz.C2.istisna === 0;
+    const e3 = await ekranKos(kaynak, V, { acik: false, turler: [] }, null, null, { hash: "#fotoUretim" });
+    iz.C3 = { k: kaydirma(e3).length, gorunur: e3.gorunur };
+    s.C3 = iz.C3.k === 0 && iz.C3.gorunur === false;
+    Object.defineProperty(s, "iz", { value: iz, enumerable: false });
+    return s;
+  };
+  const s = await caKos(EKRAN_KAYNAK);
+  ol("Ç1 #fotoUretim ile açılış → bölüm açıkken tam 1 kaydırma {block:'start'}", s.C1, JSON.stringify(s.iz.C1));
+  ol("Ç2 KONTROL çapasız + #sss açılışta kaydırma 0", s.C2, JSON.stringify(s.iz.C2));
+  ol("Ç3 KONTROL /acik kapalı → bölüm gizli, kaydırma 0", s.C3, JSON.stringify(s.iz.C3));
+  const CAGRI = "      if (anaBolum) anaBolum.removeAttribute(\"hidden\");\n      capayaKaydir(anaBolum);";
+  const CA_MUT = [
+    ["ÇA-M1 kaydırma çağrısı silindi", [[CAGRI, "      if (anaBolum) anaBolum.removeAttribute(\"hidden\");"]], ["C1"]],
+    ["ÇA-M2 çapa koşulu kalktı (her açılışta kaydırır)", [["l.hash !== \"#\" + ANA_BOLUM_ID || ", ""]], ["C2"]],
+    ["ÇA-M3 çağrı bölüm açılmadan önce (gizliyken kaydırır)", [[CAGRI,
+      "      capayaKaydir(anaBolum);\n      if (anaBolum) anaBolum.removeAttribute(\"hidden\");"]], ["C1"]],
+    ["ÇA-K0 KONTROL (yorum)", [["  function capayaKaydir(bolum) {", "  // kontrol\n  function capayaKaydir(bolum) {"]], []],
+  ];
+  for (const [ad, degisim, olmeli] of CA_MUT) {
+    let m = EKRAN_KAYNAK, capaYok = null;
+    for (const [capa, yerine] of degisim) {
+      if (m.split(capa).length - 1 !== 1) { capaYok = capa; break; }
+      m = m.replace(capa, yerine);
+    }
+    if (capaYok) { ol(ad + " capa bulundu", false, capaYok); continue; }
+    const r = await caKos(m);
+    const kir = ["C1", "C2", "C3"].filter((x) => r[x] !== true);
+    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli), JSON.stringify(kir));
+  }
+}
+
+// ---------------------------------------------------------------- İS) REKLAM İNİŞ SAYACI (rızasız, kişisel veri yok)
+// `?utm_source=…` ile açılış -> /api/shop/inis'e TEK sendBeacon {s, c}; AYNI oturumda ikinci yükleme -> 0 beacon;
+// utm'siz açılış -> 0; hiçbir yüklemede gtag/dataLayer çağrısı yok (rıza kapısının işi değil, GA4'e gitmez).
+console.log("İS) REKLAM İNİŞ SAYACI — utm_source'lu açılışta oturum başına tek beacon, gtag 0");
+{
+  const V = veriYukle(VERI_KAYNAK);
+  const m = new Map();
+  const depo = { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => { m.set(k, String(v)); }, removeItem: (k) => { m.delete(k); } };
+  const b1 = [], b2 = [], b3 = [], g = [];
+  const ara = "?utm_source=google&utm_campaign=foto-ekim";
+  await ekranKos(EKRAN_KAYNAK, V, acikGercek(V, V6_TUM), null, null, { search: ara, hash: "#fotoUretim", depo, beacon: b1, gtag: g });
+  await ekranKos(EKRAN_KAYNAK, V, acikGercek(V, V6_TUM), null, null, { search: ara, hash: "#fotoUretim", depo, beacon: b2, gtag: g });
+  await ekranKos(EKRAN_KAYNAK, V, acikGercek(V, V6_TUM), null, null, { beacon: b3, gtag: g });
+  const g1 = b1[0] ? JSON.parse(b1[0].g) : null;
+  ol("İS1 utm_source'lu ilk yükleme → sendBeacon tam 1 kez /api/shop/inis {s:'google', c:'foto-ekim'}",
+    b1.length === 1 && b1[0].u === "/api/shop/inis" && !!g1 && g1.s === "google" && g1.c === "foto-ekim" &&
+      JSON.stringify(Object.keys(g1)) === JSON.stringify(["s", "c"]), JSON.stringify(b1));
+  ol("İS2 aynı oturumda ikinci yükleme → sendBeacon 0", b2.length === 0, JSON.stringify(b2));
+  ol("İS3 KONTROL utm'siz açılış → sendBeacon 0", b3.length === 0, JSON.stringify(b3));
+  ol("İS4 üç yüklemede gtag/dataLayer çağrısı 0", g.length === 0, JSON.stringify(g).slice(0, 200));
 }
 
 console.log(kirmizi ? "\n❌ " + kirmizi + " iddia KIRMIZI" : "\n✅ HEPSI GECTI");

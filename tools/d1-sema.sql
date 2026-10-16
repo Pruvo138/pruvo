@@ -702,3 +702,7 @@ CREATE TABLE IF NOT EXISTS rum_vekil (
   n INTEGER NOT NULL,
   PRIMARY KEY (gun, kaynak)
 );
+
+-- Reklam INIS sayaci (POST /api/shop/inis, shop/src/inis.js): riza vermeyen ziyaretcinin reklam inisini de sayar (GA4 rizasiz gormez).
+-- KISISEL VERI YOK: yalniz sunucu UTC gunu + beyaz listeli kaynak + kalibi tutan kampanya + sayac; IP/UA/cerez/URL ne okunur ne saklanir.
+CREATE TABLE IF NOT EXISTS inis_sayac (gun TEXT NOT NULL, kaynak TEXT NOT NULL, kampanya TEXT NOT NULL, n INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (gun,kaynak,kampanya));

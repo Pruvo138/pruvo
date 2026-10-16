@@ -102,12 +102,25 @@ simple = { limit = 10, period = 60 }
 # kod FAIL-CLOSED (binding yoksa 429, onizleme uretilmez). Asil sinir D1'deki ziyaretci
 # basi 24 saat sayaci + bot dogrulamasidir. AYRI namespace: odeme/fiyat/beacon kotasini
 # tuketmez. namespace_id HESAP GENELINDE benzersiz: 1001-1003 shop · 1004 onizleme ·
-# 1005-1006 pruvo-bot -> foto 1007 (5 Eki: 1004 cakisti, derleme-hiz-siniri V7 yakaladi). SIR YOK.
+# 1005-1006 pruvo-bot -> foto 1007 (5 Eki: 1004 cakisti, derleme-hiz-siniri V7 yakaladi) ·
+# 1008 inis sayaci (INIS_RATE_LIMIT, asagida). SIR YOK.
 [[unsafe.bindings]]
 name = "FOTO_RATE_LIMIT"
 type = "ratelimit"
 namespace_id = "1007"
 simple = { limit = 6, period = 60 }
+
+# RIZA BAGIMSIZ REKLAM INIS SAYACI — POST /api/shop/inis (src/inis.js). AYRI ad + AYRI namespace
+# (REF ile PAYLASILMAZ — gerekce FIYAT blogundaki AYRI KOTA notu: paylasilan namespace'te inis
+# trafigi REF beacon'ini, REF trafigi inisi kapatabilirdi). Uc IP OKUMAZ (kisisel veri sifir) ->
+# anahtar = beyaz listeli KAYNAK (en cok 16 deger): kaynak basina 10/60 sn, kolo basina bolunur
+# (EN IYI CABA, garantili sinir DEGIL — bkz. FIYAT blogu). Kod FAIL-CLOSED-SESSIZ: binding yoksa
+# ya da limiter patlarsa 204 doner, D1'e YAZILMAZ. SIR YOK.
+[[unsafe.bindings]]
+name = "INIS_RATE_LIMIT"
+type = "ratelimit"
+namespace_id = "1008"
+simple = { limit = 10, period = 60 }
 
 # Uretim dosyalari (STL/3MF) OZEL R2 kovasinda (pruvo-media DEGIL — ticari dosya public'e
 # sizmaz). Yonetim /stl ucu SALT-OKUMA ile stream eder; toplu yukleme tools/stl-r2-yukle.py.

@@ -22,6 +22,7 @@
   var ACIK_URL = "/api/shop/foto/acik";
   var ONIZLEME_URL = "/api/shop/foto/onizleme";
   var DURUM_URL = "/api/shop/foto/durum";
+  var INIS_URL = "/api/shop/inis";
   var TURNS_SITEKEY = "0x4AAAAAAE6AA20ln7MIOR9k";
   var TURNS_KAYNAK = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
   var MAKS_DOSYA_BAYT = 15 * 1024 * 1024;
@@ -2560,6 +2561,7 @@
       // kapalı / hata / boş listede `hidden` kalır (index.html varsayılanı, fail-closed).
       var anaBolum = document.getElementById(ANA_BOLUM_ID);
       if (anaBolum) anaBolum.removeAttribute("hidden");
+      capayaKaydir(anaBolum);
       S.acikVeri = veri;
       // ① kartları: yalnız /acik listesindeki türlerin kartları çizilir.
       if (S.ornekBlok) ornekCiz(S.ornekBlok, veri.turler.map(function (x) { return x.kod; }));
@@ -2567,6 +2569,22 @@
       adimKoy("S1");
       pencereGit(1);
     });
+  }
+
+  /* ============== ÇAPA İNİŞİ (#fotoUretim) ==============
+     BaBa 16 Eki 17:4x (ArTisT ölçümü): reklam adresi `/?utm…#fotoUretim` — ama bölüm `hidden` başlar ve /acik
+     dönünce açılır; tarayıcı çapaya yükleme anında baktığı için gizli öğeye KAYMAZ (scrollY=0, sihirbaz ilk ekranın
+     altında). Bölüm açılınca çapa bu bölümse kaydırılır; görseller sonradan yüklenip yukarıyı iterse `load`ta BİR kez
+     daha — kullanıcı bu arada kendisi kaydırdıysa DOKUNULMAZ. Başka çapada / çapasız açılışta hiçbir şey yapılmaz. */
+  function capayaKaydir(bolum) {
+    var l = kok.location;
+    if (!bolum || !l || l.hash !== "#" + ANA_BOLUM_ID || typeof bolum.scrollIntoView !== "function") return;
+    bolum.scrollIntoView({ block: "start" });
+    if (document.readyState === "complete" || typeof kok.addEventListener !== "function") return;
+    var y0 = kok.pageYOffset;
+    kok.addEventListener("load", function () {
+      if (Math.abs((kok.pageYOffset || 0) - (y0 || 0)) < 2) bolum.scrollIntoView({ block: "start" });
+    }, { once: true });
   }
 
   /* ============== /durum ============== */
@@ -2871,9 +2889,38 @@
   }
 
   /* ============== /baslat ============== */
+  /* ============== REKLAM İNİŞ SAYACI ==============
+     GA4 rıza vermeyeni görmez: `utm_source`lu açılışta oturum başına TEK beacon /api/shop/inis'e {s, c}
+     (kaynak + kampanya) gider; sunucu yalnız (gün, kaynak, kampanya) sayar — kişisel veri YOK, rıza kapısı
+     gerekmez. gtag/dataLayer ÇAĞRILMAZ. İşaret sessionStorage['pruvo_inis'] (depo yoksa yine tek gönderim). */
+  function utmOku(ad) {
+    var q = String((kok.location && kok.location.search) || "");
+    if (q.charAt(0) === "?") q = q.slice(1);
+    var parcalar = q ? q.split("&") : [];
+    for (var i = 0; i < parcalar.length; i++) {
+      var j = parcalar[i].indexOf("=");
+      var k = j >= 0 ? parcalar[i].slice(0, j) : parcalar[i];
+      if (k !== ad) continue;
+      var v = j >= 0 ? parcalar[i].slice(j + 1).split("+").join(" ") : "";
+      try { return decodeURIComponent(v); } catch (e) { return v; }
+    }
+    return null;
+  }
+  function inisSay() {
+    var s = utmOku("utm_source");
+    if (!s) return;
+    var depo = null;
+    try { depo = kok.sessionStorage; if (depo && depo.getItem("pruvo_inis")) return; } catch (e) { depo = null; }
+    var n = kok.navigator;
+    if (!n || typeof n.sendBeacon !== "function") return;
+    try { n.sendBeacon(INIS_URL, JSON.stringify({ s: s, c: utmOku("utm_campaign") || "" })); } catch (e) { return; }
+    try { if (depo) depo.setItem("pruvo_inis", "1"); } catch (e) { /* depo yok: işaret konamaz */ }
+  }
+
   /* ============== BASLANGIC ============== */
   function basla() {
     acilisTemizle();
+    inisSay();
     if (!F || !F.turler || !F.turler.length) return;
     var ornekVar = false;
     for (var i = 0; i < F.turler.length; i++) {

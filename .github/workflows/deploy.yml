@@ -1562,6 +1562,7 @@ jobs:
         run: |
           node shop/test/eposta.mjs
           node shop/test/ref-route.mjs
+          node shop/test/inis-sayac.mjs
 
       # FOTOGRAFTAN OZEL URETIM (5 Eki 2026, Okan karari). KREDI + ODEME + KISISEL VERI
       # sinifi: onizleme siniri (sinir+1 RED), bot kapisi fail-closed, havuz esigi tek
