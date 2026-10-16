@@ -691,3 +691,7 @@ CREATE TABLE IF NOT EXISTS foto_renk_onizleme (
   guncel       INTEGER NOT NULL DEFAULT 0  -- son asama degisimi (ms) — render bekleme suresi buradan
 );
 CREATE INDEX IF NOT EXISTS idx_foto_renk_onizleme_asama ON foto_renk_onizleme (asama, guncel);
+
+-- Reklam INIS sayaci (POST /api/shop/inis, shop/src/inis.js): riza vermeyen ziyaretcinin reklam inisini de sayar (GA4 rizasiz gormez).
+-- KISISEL VERI YOK: yalniz sunucu UTC gunu + beyaz listeli kaynak + kalibi tutan kampanya + sayac; IP/UA/cerez/URL ne okunur ne saklanir.
+CREATE TABLE IF NOT EXISTS inis_sayac (gun TEXT NOT NULL, kaynak TEXT NOT NULL, kampanya TEXT NOT NULL, n INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (gun,kaynak,kampanya));
