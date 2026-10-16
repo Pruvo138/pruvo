@@ -2560,6 +2560,7 @@
       // kapalı / hata / boş listede `hidden` kalır (index.html varsayılanı, fail-closed).
       var anaBolum = document.getElementById(ANA_BOLUM_ID);
       if (anaBolum) anaBolum.removeAttribute("hidden");
+      capayaKaydir(anaBolum);
       S.acikVeri = veri;
       // ① kartları: yalnız /acik listesindeki türlerin kartları çizilir.
       if (S.ornekBlok) ornekCiz(S.ornekBlok, veri.turler.map(function (x) { return x.kod; }));
@@ -2567,6 +2568,22 @@
       adimKoy("S1");
       pencereGit(1);
     });
+  }
+
+  /* ============== ÇAPA İNİŞİ (#fotoUretim) ==============
+     BaBa 16 Eki 17:4x (ArTisT ölçümü): reklam adresi `/?utm…#fotoUretim` — ama bölüm `hidden` başlar ve /acik
+     dönünce açılır; tarayıcı çapaya yükleme anında baktığı için gizli öğeye KAYMAZ (scrollY=0, sihirbaz ilk ekranın
+     altında). Bölüm açılınca çapa bu bölümse kaydırılır; görseller sonradan yüklenip yukarıyı iterse `load`ta BİR kez
+     daha — kullanıcı bu arada kendisi kaydırdıysa DOKUNULMAZ. Başka çapada / çapasız açılışta hiçbir şey yapılmaz. */
+  function capayaKaydir(bolum) {
+    var l = kok.location;
+    if (!bolum || !l || l.hash !== "#" + ANA_BOLUM_ID || typeof bolum.scrollIntoView !== "function") return;
+    bolum.scrollIntoView({ block: "start" });
+    if (document.readyState === "complete" || typeof kok.addEventListener !== "function") return;
+    var y0 = kok.pageYOffset;
+    kok.addEventListener("load", function () {
+      if (Math.abs((kok.pageYOffset || 0) - (y0 || 0)) < 2) bolum.scrollIntoView({ block: "start" });
+    }, { once: true });
   }
 
   /* ============== /durum ============== */

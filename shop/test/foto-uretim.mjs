@@ -1182,6 +1182,8 @@ function sahteBelge() {
     setAttribute(k, v) { this.ozn[k] = String(v); if (k === "hidden") { this.hidden = true; } }
     getAttribute(k) { return k in this.ozn ? this.ozn[k] : null; }
     removeAttribute(k) { delete this.ozn[k]; if (k === "hidden") { this.hidden = false; } }
+    // ÇA (16 Eki): kaydırma çağrıları SAYILIR (o anki `hidden` ile) — "gizliyken kaydırma" ayrıca görünür.
+    scrollIntoView(o) { (this.kaydirma = this.kaydirma || []).push({ o: o || null, gizli: this.hidden === true }); }
     addEventListener(tip, fn) { (this.dinle = this.dinle || {})[tip] = ((this.dinle || {})[tip] || []).concat([fn]); }
     // ek.evt (14 Eki RNH): dinleyiciye iletkeninici özellikler (pointerType vb.) — mevcut çağrılar
     // (ek.evt olmadan) bayt-aynı ({target: this}) çalışır; geriye uyumlu.
@@ -7593,6 +7595,57 @@ console.log("YA) YENİLEME — açılış her zaman ① (oturum kaydı + #tur= g
     if (capaYok) { ol(ad + " capa bulundu", false, capaYok); continue; }
     const r = await yaKos(m);
     const kir = ["Y1", "Y2", "Y3"].filter((x) => r[x] !== true);
+    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli), JSON.stringify(kir));
+  }
+}
+
+// ---------------------------------------------------------------- ÇA) ÇAPA İNİŞİ #fotoUretim (BaBa 16 Eki 17:4x)
+// Reklam adresi `/?utm…#fotoUretim`: bölüm `hidden` başlayıp /acik ile açıldığı için tarayıcı çapaya kaymıyordu
+// (ArTisT: scrollY=0, sihirbaz ilk ekranın altında). Ç1 #fotoUretim ile açılış -> bölüm AÇIKKEN tam 1 kaydırma
+// ({block:"start"}) · Ç2 KONTROL: çapasız ve #sss açılışta kaydırma 0 · Ç3 KONTROL: /acik kapalı -> bölüm gizli,
+// kaydırma 0. Mutantlar: ÇA-M1 çağrı silinir -> [Ç1] · ÇA-M2 çapa koşulu kalkar (her açılışta kaydır) -> [Ç2] ·
+// ÇA-M3 çağrı bölüm açılmadan ÖNCEye taşınır (gizliyken kaydırır) -> [Ç1].
+console.log("ÇA) ÇAPA İNİŞİ — #fotoUretim ile açılışta bölüm açılınca kaydırılır; başka çapada/kapalıda dokunulmaz");
+{
+  const V = veriYukle(VERI_KAYNAK);
+  const kaydirma = (e) => e.bolum.kaydirma || [];
+  const caKos = async (kaynak) => {
+    const s = {}, iz = {};
+    const e1 = await ekranKos(kaynak, V, acikGercek(V, V6_TUM), null, null, { hash: "#fotoUretim" });
+    iz.C1 = { k: kaydirma(e1), gorunur: e1.gorunur, istisna: e1.istisna };
+    s.C1 = iz.C1.k.length === 1 && iz.C1.k[0].gizli === false && !!iz.C1.k[0].o && iz.C1.k[0].o.block === "start" &&
+      iz.C1.gorunur === true && iz.C1.istisna === 0;
+    const e2a = await ekranKos(kaynak, V, acikGercek(V, V6_TUM), null, null, {});
+    const e2b = await ekranKos(kaynak, V, acikGercek(V, V6_TUM), null, null, { hash: "#sss" });
+    iz.C2 = { capasiz: kaydirma(e2a).length, sss: kaydirma(e2b).length, istisna: e2a.istisna + e2b.istisna };
+    s.C2 = iz.C2.capasiz === 0 && iz.C2.sss === 0 && iz.C2.istisna === 0;
+    const e3 = await ekranKos(kaynak, V, { acik: false, turler: [] }, null, null, { hash: "#fotoUretim" });
+    iz.C3 = { k: kaydirma(e3).length, gorunur: e3.gorunur };
+    s.C3 = iz.C3.k === 0 && iz.C3.gorunur === false;
+    Object.defineProperty(s, "iz", { value: iz, enumerable: false });
+    return s;
+  };
+  const s = await caKos(EKRAN_KAYNAK);
+  ol("Ç1 #fotoUretim ile açılış → bölüm açıkken tam 1 kaydırma {block:'start'}", s.C1, JSON.stringify(s.iz.C1));
+  ol("Ç2 KONTROL çapasız + #sss açılışta kaydırma 0", s.C2, JSON.stringify(s.iz.C2));
+  ol("Ç3 KONTROL /acik kapalı → bölüm gizli, kaydırma 0", s.C3, JSON.stringify(s.iz.C3));
+  const CAGRI = "      if (anaBolum) anaBolum.removeAttribute(\"hidden\");\n      capayaKaydir(anaBolum);";
+  const CA_MUT = [
+    ["ÇA-M1 kaydırma çağrısı silindi", [[CAGRI, "      if (anaBolum) anaBolum.removeAttribute(\"hidden\");"]], ["C1"]],
+    ["ÇA-M2 çapa koşulu kalktı (her açılışta kaydırır)", [["l.hash !== \"#\" + ANA_BOLUM_ID || ", ""]], ["C2"]],
+    ["ÇA-M3 çağrı bölüm açılmadan önce (gizliyken kaydırır)", [[CAGRI,
+      "      capayaKaydir(anaBolum);\n      if (anaBolum) anaBolum.removeAttribute(\"hidden\");"]], ["C1"]],
+    ["ÇA-K0 KONTROL (yorum)", [["  function capayaKaydir(bolum) {", "  // kontrol\n  function capayaKaydir(bolum) {"]], []],
+  ];
+  for (const [ad, degisim, olmeli] of CA_MUT) {
+    let m = EKRAN_KAYNAK, capaYok = null;
+    for (const [capa, yerine] of degisim) {
+      if (m.split(capa).length - 1 !== 1) { capaYok = capa; break; }
+      m = m.replace(capa, yerine);
+    }
+    if (capaYok) { ol(ad + " capa bulundu", false, capaYok); continue; }
+    const r = await caKos(m);
+    const kir = ["C1", "C2", "C3"].filter((x) => r[x] !== true);
     ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli), JSON.stringify(kir));
   }
 }
