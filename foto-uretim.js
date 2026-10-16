@@ -2571,7 +2571,7 @@
     });
   }
 
-  /* ÇAPA BANTI (17 Eki, ArTisT ölçümü 390x844): #fotoUretim çapayla gelen ziyaretçilerde sticky `.help-cta` bandı
+  /* ÇAPA BANTI (17 Eki, KraL canlı ölçümü 390x844): #fotoUretim çapayla gelen ziyaretçilerde sticky `.help-cta` bandı
      (top 0, yükseklik 61 px) bölümün üstünü örtüyor → "① Tür seç" adım göstergesi bandın altında kalıyor. scrollIntoView
      bölümün üstünü viewport'un tepesine koyar; bant tepede olduğu için bölümün tepesinin üstüne biraz daha kayarız.
      Bant yoksa, üstte değilse (bant top > 1) ya da bölümü örtmüyorsa (rb.bottom <= rs.top) DOKUNULMAZ. Hata kaydırmayı
