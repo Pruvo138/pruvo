@@ -44,6 +44,7 @@ import { epostaAkisi, onayEpostasiHtml, okanaBildir } from "./eposta.js";
 import { olcumGonder, olcumLog } from "./olcum.js";
 import { biletUret, biletDogrula } from "./olcum-bilet.js";
 import { refKaydet, REF_KALIBI } from "./ref.js";
+import { inisKaydet } from "./inis.js";
 // 🟢 ADLI EXPORT YASAGI: workerd giris modulundeki adli exportlari `function or
 // ExportedHandler` sanip reddediyor (olculdu 12 Eyl 2026, wrangler 4.131.1). Bu sabitler
 // ayrik modulde durur; burada SADECE local binding olarak okunur, RE-EXPORT EDILMEZ.
@@ -1475,6 +1476,8 @@ export default {
       // wa.me lead attribution (OCI #1): landing beacon'i REF->click-id'yi D1'e kalici kilar.
       // Handler yalniz POST'u yazar, digerini 204 gecer; her durumda 204 (bilgi sizmaz).
       if (yol === "/ref") return await refKaydet(request, env);
+      // Riza bagimsiz reklam INIS sayaci (gun, kaynak, kampanya) — kisisel veri YOK (src/inis.js).
+      if (yol === "/inis" && request.method === "POST") return await inisKaydet(request, env);
       // FOTOGRAFTAN OZEL URETIM: /foto/acik · /foto/onizleme · /foto/durum · /foto/gorsel
       if (yol.startsWith("/foto/")) return await fotoUclari(request, env, url, yol, telegram);
       // Anahtar korumali yonetim (same-origin; anahtar yok/yanlis -> 404, telegram fallback icin

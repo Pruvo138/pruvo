@@ -22,6 +22,7 @@
   var ACIK_URL = "/api/shop/foto/acik";
   var ONIZLEME_URL = "/api/shop/foto/onizleme";
   var DURUM_URL = "/api/shop/foto/durum";
+  var INIS_URL = "/api/shop/inis";
   var TURNS_SITEKEY = "0x4AAAAAAE6AA20ln7MIOR9k";
   var TURNS_KAYNAK = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
   var MAKS_DOSYA_BAYT = 15 * 1024 * 1024;
@@ -2888,9 +2889,38 @@
   }
 
   /* ============== /baslat ============== */
+  /* ============== REKLAM İNİŞ SAYACI ==============
+     GA4 rıza vermeyeni görmez: `utm_source`lu açılışta oturum başına TEK beacon /api/shop/inis'e {s, c}
+     (kaynak + kampanya) gider; sunucu yalnız (gün, kaynak, kampanya) sayar — kişisel veri YOK, rıza kapısı
+     gerekmez. gtag/dataLayer ÇAĞRILMAZ. İşaret sessionStorage['pruvo_inis'] (depo yoksa yine tek gönderim). */
+  function utmOku(ad) {
+    var q = String((kok.location && kok.location.search) || "");
+    if (q.charAt(0) === "?") q = q.slice(1);
+    var parcalar = q ? q.split("&") : [];
+    for (var i = 0; i < parcalar.length; i++) {
+      var j = parcalar[i].indexOf("=");
+      var k = j >= 0 ? parcalar[i].slice(0, j) : parcalar[i];
+      if (k !== ad) continue;
+      var v = j >= 0 ? parcalar[i].slice(j + 1).split("+").join(" ") : "";
+      try { return decodeURIComponent(v); } catch (e) { return v; }
+    }
+    return null;
+  }
+  function inisSay() {
+    var s = utmOku("utm_source");
+    if (!s) return;
+    var depo = null;
+    try { depo = kok.sessionStorage; if (depo && depo.getItem("pruvo_inis")) return; } catch (e) { depo = null; }
+    var n = kok.navigator;
+    if (!n || typeof n.sendBeacon !== "function") return;
+    try { n.sendBeacon(INIS_URL, JSON.stringify({ s: s, c: utmOku("utm_campaign") || "" })); } catch (e) { return; }
+    try { if (depo) depo.setItem("pruvo_inis", "1"); } catch (e) { /* depo yok: işaret konamaz */ }
+  }
+
   /* ============== BASLANGIC ============== */
   function basla() {
     acilisTemizle();
+    inisSay();
     if (!F || !F.turler || !F.turler.length) return;
     var ornekVar = false;
     for (var i = 0; i < F.turler.length; i++) {

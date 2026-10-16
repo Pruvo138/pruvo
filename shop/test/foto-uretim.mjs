@@ -1314,7 +1314,8 @@ async function ekranKos(kaynak, fotoVeri, acikYanit, kayit, durumYanit, ek) {
   let akisPostu = false;
   // Konum: ek.hash ile açılış (YA: eski `#tur=` bağlantısı). history.replaceState adresi YAZAR (hash dahil) ve
   // `gecmis`e kaydeder — açılış temizliği buradan ölçülür.
-  const konum = { href: "https://pruvo3d.com/" + (ek.hash || ""), pathname: "/", search: "", hash: ek.hash || "" };
+  // İS (16 Eki): ek.search ile `?utm_…` açılışı (varsayılan "" — eski vakalar bayt-aynı).
+  const konum = { href: "https://pruvo3d.com/" + (ek.search || "") + (ek.hash || ""), pathname: "/", search: ek.search || "", hash: ek.hash || "" };
   const kok = {
     document, PRUVO_FOTO: fotoVeri, setTimeout, clearTimeout, console, ...gorselSahte,
     // ek.zamanlayici: yoklama araligi OLCULUR, gercek zamanlayici kurulmaz (test 5 sn beklemez).
@@ -1329,7 +1330,11 @@ async function ekranKos(kaynak, fotoVeri, acikYanit, kayit, durumYanit, ek) {
                  remove() {}, reset() {} },
     // Durumlu sessionStorage: ek.oturum ({anahtar: değer}) ile dolu başlar (YA: eski sürümün bıraktığı kayıtlar);
     // getItem/setItem/removeItem gerçekten okur/yazar/siler, okunan anahtarlar `okunan`da sayılır.
-    sessionStorage: (() => {
+    // İS: ek.depo verilirse İKİ yükleme AYNI oturum deposunu paylaşır (ikinci yüklemede beacon 0 ölçülsün).
+    // ek.beacon (dizi): navigator.sendBeacon çağrıları · ek.gtag (dizi): gtag + dataLayer.push çağrıları sayılır.
+    ...(Array.isArray(ek.beacon) ? { navigator: { sendBeacon: (u, g) => { ek.beacon.push({ u: String(u), g: String(g) }); return true; } } } : {}),
+    ...(Array.isArray(ek.gtag) ? { gtag: (...a) => { ek.gtag.push(a); }, dataLayer: { push: (...a) => { ek.gtag.push(a); } } } : {}),
+    sessionStorage: ek.depo || (() => {
       const m = new Map(Object.entries(ek.oturum || {})), okunan = [];
       return { getItem: (k) => { okunan.push(k); return m.has(k) ? m.get(k) : null; }, setItem: (k, v) => { m.set(k, String(v)); },
                removeItem: (k) => { m.delete(k); }, anahtarlar: () => [...m.keys()], okunan };
@@ -7648,6 +7653,28 @@ console.log("ÇA) ÇAPA İNİŞİ — #fotoUretim ile açılışta bölüm açı
     const kir = ["C1", "C2", "C3"].filter((x) => r[x] !== true);
     ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli), JSON.stringify(kir));
   }
+}
+
+// ---------------------------------------------------------------- İS) REKLAM İNİŞ SAYACI (rızasız, kişisel veri yok)
+// `?utm_source=…` ile açılış -> /api/shop/inis'e TEK sendBeacon {s, c}; AYNI oturumda ikinci yükleme -> 0 beacon;
+// utm'siz açılış -> 0; hiçbir yüklemede gtag/dataLayer çağrısı yok (rıza kapısının işi değil, GA4'e gitmez).
+console.log("İS) REKLAM İNİŞ SAYACI — utm_source'lu açılışta oturum başına tek beacon, gtag 0");
+{
+  const V = veriYukle(VERI_KAYNAK);
+  const m = new Map();
+  const depo = { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => { m.set(k, String(v)); }, removeItem: (k) => { m.delete(k); } };
+  const b1 = [], b2 = [], b3 = [], g = [];
+  const ara = "?utm_source=google&utm_campaign=foto-ekim";
+  await ekranKos(EKRAN_KAYNAK, V, acikGercek(V, V6_TUM), null, null, { search: ara, hash: "#fotoUretim", depo, beacon: b1, gtag: g });
+  await ekranKos(EKRAN_KAYNAK, V, acikGercek(V, V6_TUM), null, null, { search: ara, hash: "#fotoUretim", depo, beacon: b2, gtag: g });
+  await ekranKos(EKRAN_KAYNAK, V, acikGercek(V, V6_TUM), null, null, { beacon: b3, gtag: g });
+  const g1 = b1[0] ? JSON.parse(b1[0].g) : null;
+  ol("İS1 utm_source'lu ilk yükleme → sendBeacon tam 1 kez /api/shop/inis {s:'google', c:'foto-ekim'}",
+    b1.length === 1 && b1[0].u === "/api/shop/inis" && !!g1 && g1.s === "google" && g1.c === "foto-ekim" &&
+      JSON.stringify(Object.keys(g1)) === JSON.stringify(["s", "c"]), JSON.stringify(b1));
+  ol("İS2 aynı oturumda ikinci yükleme → sendBeacon 0", b2.length === 0, JSON.stringify(b2));
+  ol("İS3 KONTROL utm'siz açılış → sendBeacon 0", b3.length === 0, JSON.stringify(b3));
+  ol("İS4 üç yüklemede gtag/dataLayer çağrısı 0", g.length === 0, JSON.stringify(g).slice(0, 200));
 }
 
 console.log(kirmizi ? "\n❌ " + kirmizi + " iddia KIRMIZI" : "\n✅ HEPSI GECTI");
