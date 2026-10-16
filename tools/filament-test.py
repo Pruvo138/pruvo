@@ -924,8 +924,8 @@ def main():
         # par_u / ps21 yukarida (FIKSTUR SECIMI blogu) secildi — EHLIYET suzgecinden gecti.
         if "ikon-btn ikon-sepet" not in ps21:
             h21.append("parametrik sayfada ikon sepet yok (kart-secim duzeni bekleniyor)")
-        if "ikon-btn ikon-wa" not in ps21:
-            h21.append("parametrik sayfada ikon WhatsApp yok (kart-secim duzeni bekleniyor)")
+        if "ikon-btn ikon-wa" in ps21:
+            h21.append("parametrik sayfada WhatsApp ikonu hala var (Okan 16 Eki kaldirdi)")
         if 'class="cart-btn" id="cartBtn"' in ps21 or 'class="order-wa" id="orderAlt"' in ps21:
             h21.append("parametrik sayfada eski BUYUK butonlar geri gelmis (F kalemi geri alinmis)")
         kayit(21, "(l) buyuk butonlar kalkti, Adet satirinda 2 ikon (aria+title+44px); "
@@ -944,14 +944,15 @@ def main():
         kayit(22, "(m) ikon sepet butonu = ayni kapi (secimsiz eklemez + titrer) + durum aria/title",
               not h22, "; ".join(h22[:3]) or "temiz")
 
-        # ---- 23 (n) WhatsApp ikonu dogru hedef: statik href + JS canli guncelleme
+        # ---- 23 (n) Okan 16 Eki: kart-secim sayfasinda statik orderAlt (WhatsApp ikonu) YOK;
+        #   JS canli guncelleme satiri BUYUK-buton sayfalari icin KALIR ve `if(orderAlt)` korumali
         h23 = []
         m23 = re.search(r'id="orderAlt" href="([^"]+)"', fs)
-        if not (m23 and m23.group(1).startswith("https://wa.me/905451386526?text=")):
-            h23.append("statik href wa.me/905451386526 degil: %r" % (m23.group(1)[:60] if m23 else None))
+        if m23:
+            h23.append("kart-secim sayfasinda statik orderAlt hala var: %r" % m23.group(1)[:60])
         if 'orderAlt.href = "https://wa.me/905451386526?text=" + encodeURIComponent(mesaj);' not in fs:
-            h23.append("JS canli mesaj guncellemesi yok")
-        kayit(23, "(n) WhatsApp ikonu dogru wa.me hedefi (statik + JS)", not h23,
+            h23.append("JS canli mesaj guncellemesi yok (BUYUK-buton sayfalari kirilir)")
+        kayit(23, "(n) WhatsApp ikonu yok + JS guncellemesi korumali kaldi", not h23,
               "; ".join(h23[:2]) or "temiz")
 
         # ---- 24 NOBETCI: BUYUK buton yolu (build.py BUYUK_BUTONLAR_HTML) hala CANLI.
