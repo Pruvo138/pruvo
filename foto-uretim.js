@@ -2571,19 +2571,39 @@
     });
   }
 
+  /* ÇAPA BANTI (17 Eki, ArTisT ölçümü 390x844): #fotoUretim çapayla gelen ziyaretçilerde sticky `.help-cta` bandı
+     (top 0, yükseklik 61 px) bölümün üstünü örtüyor → "① Tür seç" adım göstergesi bandın altında kalıyor. scrollIntoView
+     bölümün üstünü viewport'un tepesine koyar; bant tepede olduğu için bölümün tepesinin üstüne biraz daha kayarız.
+     Bant yoksa, üstte değilse (bant top > 1) ya da bölümü örtmüyorsa (rb.bottom <= rs.top) DOKUNULMAZ. Hata kaydırmayı
+     ASLA bozmaz (try/catch). */
+  function bantPayi(bolum) {
+    try {
+      if (!bolum || typeof bolum.getBoundingClientRect !== "function") return;
+      if (typeof kok.scrollBy !== "function") return;
+      var bant = document.querySelector(".help-cta");
+      if (!bant || typeof bant.getBoundingClientRect !== "function") return;
+      var rb = bant.getBoundingClientRect(), rs = bolum.getBoundingClientRect();
+      if (rb.top <= 1 && rb.bottom > rs.top) kok.scrollBy(0, -(rb.bottom - rs.top + 8));
+    } catch (e) { }
+  }
   /* ============== ÇAPA İNİŞİ (#fotoUretim) ==============
      BaBa 16 Eki 17:4x (ArTisT ölçümü): reklam adresi `/?utm…#fotoUretim` — ama bölüm `hidden` başlar ve /acik
      dönünce açılır; tarayıcı çapaya yükleme anında baktığı için gizli öğeye KAYMAZ (scrollY=0, sihirbaz ilk ekranın
      altında). Bölüm açılınca çapa bu bölümse kaydırılır; görseller sonradan yüklenip yukarıyı iterse `load`ta BİR kez
-     daha — kullanıcı bu arada kendisi kaydırdıysa DOKUNULMAZ. Başka çapada / çapasız açılışta hiçbir şey yapılmaz. */
+     daha — kullanıcı bu arada kendisi kaydırdıysa DOKUNULMAZ. Başka çapada / çapasız açılışta hiçbir şey yapılmaz.
+     17 Eki: çapa inişini sticky `.help-cta` bandı örtüyor → `bantPayi` bandın altına süpürür. */
   function capayaKaydir(bolum) {
     var l = kok.location;
     if (!bolum || !l || l.hash !== "#" + ANA_BOLUM_ID || typeof bolum.scrollIntoView !== "function") return;
     bolum.scrollIntoView({ block: "start" });
+    bantPayi(bolum);
     if (document.readyState === "complete" || typeof kok.addEventListener !== "function") return;
     var y0 = kok.pageYOffset;
     kok.addEventListener("load", function () {
-      if (Math.abs((kok.pageYOffset || 0) - (y0 || 0)) < 2) bolum.scrollIntoView({ block: "start" });
+      if (Math.abs((kok.pageYOffset || 0) - (y0 || 0)) < 2) {
+        bolum.scrollIntoView({ block: "start" });
+        bantPayi(bolum);
+      }
     }, { once: true });
   }
 
