@@ -21,6 +21,30 @@ import tempfile
 
 sys.dont_write_bytecode = True
 
+# AG/SUBPROCESS YASAGI (17 Eki): zarf testi canli wrangler'a CIKAMAZ. Mutant kolu sahteyi
+# takmadan gercek d1-sync'e gidince yerelde canli D1 sorgusu, CI'da kimliksiz kirmizi oldu.
+import subprocess as _sp                                 # noqa: E402
+
+
+_SP_ASIL = {ad: getattr(_sp, ad) for ad in ("run", "Popen", "check_output", "call")}
+_YASAK_JETON = ("wrangler", "npx", "curl", "wget")        # git SERBEST (veri_kok cozumu)
+
+
+def _sarmala(ad):
+    asil = _SP_ASIL[ad]
+
+    def _bekci(*a, **k):
+        cmd = a[0] if a else k.get("args")
+        metin = " ".join(map(str, cmd)) if isinstance(cmd, (list, tuple)) else str(cmd)
+        if any(j in metin for j in _YASAK_JETON):
+            raise RuntimeError("ZARF TESTI AGA CIKAMAZ: %r" % metin[:120])
+        return asil(*a, **k)
+    return _bekci
+
+
+for _ad in _SP_ASIL:
+    setattr(_sp, _ad, _sarmala(_ad))
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TOOLS = os.path.join(ROOT, "tools")
 sys.path.insert(0, TOOLS)
@@ -76,6 +100,9 @@ def main():
             exec(mutant, ns)
         except SystemExit:
             pass
+        # Sahte D1 MUTANTIN KENDI ad alanina takilir: takilmazsa D1Vt() gercek d1-sync'e
+        # (canli wrangler) gider — 17 Eki CI'da kimliksiz kirmizi, yerelde canli sorgu.
+        ns["_d1_modulu"] = lambda: Faked1()
         D1VtMut = ns.get("D1Vt")
         if D1VtMut is None:
             hata.append("M1 mutant govdesi yuklenemedi (D1Vt bulunamadi)")
