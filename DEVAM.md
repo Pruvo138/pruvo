@@ -4,9 +4,9 @@
 
 > Eski gövde (92 satır) `DEVAM-ARSIV.md` "2026-10-16 00:3x — C4" başlığında bayt-eşit (sha256 `abfac73d`).
 
-## 🔁 DEVİR — 17 Eki 17:2x, KraL halef-38 → halef-39 (tur 701 kota RED; döngü `8ffe52f6` SİLİNDİ → halef `13,43` "devam" kurar; eski DURUM arşivde)
-- ✅ main `1914b8ca` canlı: WA ikonu · çapa+bant (390 px) · iniş sayacı v2 site geneli (Pages `39038301202`) · RUM vekil günlük (D1 `rum_vekil`) · inis-oku aracı · cron-nabız A2. D1 17 Eki 17:2x: google/figur-arama 21 · google/gclid 2 · meta/figur-reels 2. kanıt: /private/tmp/claude-501/-Users-okan-dev-pruvo/9d930cc8-1ddb-475f-b49c-a9400ba721e2/scratchpad/kanit/2026-10-17-1725-devir.txt
-- **SIRADAKİ:** ① v2 UÇTAN UCA kabul (BaBa 09:4x şartı): tarayıcıda `sessionStorage.pruvo_inis` sil → ürün sayfası `?gbraid=KRALKABUL17` → D1 `google/gbraid` n=1 (gövdede değer yok) → `UPDATE … n=n-1` / n=0 ise sil → ağaç `kral-inis-v2` kapanış + sil. ② dal `kral/rum-ham-17eki` `4a89c26f` (KABUL 10/10 MUTANT 6/6, merge-tree kontrol) → SERİT B → ESIT → merge → `d1-sync --sema` → `gh workflow run rum-vekil.yml -f ham=true -f gun=2026-10-16` → D1 `rum_vekil_ham` oku → BaBa'ya tek satır (bot payı + instagram sınıf kaçağı) → sınıflandırıcı/`bot:0` düzeltmesi (BaBa 11:4x). ③ IndexNow (düşük) · W2-2/3/4. kanıt: /private/tmp/claude-501/-Users-okan-dev-pruvo/9d930cc8-1ddb-475f-b49c-a9400ba721e2/scratchpad/kanit/2026-10-17-1725-devir.txt
+## DURUM — 17 Eki 20:2x, KraL halef-39 (döngü `875b2c84` `13,43`; eski DEVİR arşivde bayt-eşit)
+- ✅ iniş v2 uçtan uca kabul (gbraid 0→1→geri alındı) · main `84679e77` canlı: inis-oku sessiz-0 düzeltmesi (Pages `39050202443` deploy+yayin success), D1 19:4x TOPLAM=64. kanıt: /private/tmp/claude-501/-Users-okan-dev-pruvo/b62fea6c-8ad9-43b4-8cc9-c7568f68d426/scratchpad/kanit/2026-10-17-1735-inis-kabul.txt
+- **TREN** `kral/tren-rum-indexnow-17eki` `2429d85b` = rum-ham + IndexNow + D1 zarf fikstürü (BaBa 17:4x kuralı); DAL_PROVA YEŞİL 10/10; SERİT B `39053010579` (~2 sa). **SIRADAKİ:** ESIT → merge → `d1-sync --sema` → `gh workflow run rum-vekil.yml -f ham=true -f gun=2026-10-16` → `rum_vekil_ham` → BaBa'ya tek satır → Pages'te `indexnow` işi `INDEXNOW=n URL http=200/202` → ağaçlar `kral-rum-ham`/`kral-indexnow`/`kral-d1-zarf`/tren sil. Sonra 14:1x SERİT B paralel parça (m3).
 
 ## KURALLAR
 - wrangler: `CLOUDFLARE_ACCOUNT_ID=<tools/foto-onizleme.py::HESAP>` + `WRANGLER_WRITE_LOGS=false`.
