@@ -1154,7 +1154,7 @@ console.log("L) DRIFT");
 // yaniti sahte fetch'ten gelir. Sayilan sey cizilen DOM'dur (metin aramasi degil).
 // POZITIF KONTROL: iki turlu yanitta tur radyo dugmesi 2 cizilmeli — sayac kor degil.
 
-function sahteBelge() {
+function sahteBelge(ek0) {
   class Metin {
     constructor(t) { this.nodeType = 3; this.metin = String(t); this.parentNode = null; this.childNodes = []; }
     get textContent() { return this.metin; }
@@ -1163,6 +1163,9 @@ function sahteBelge() {
     constructor(etiket) {
       this.tagName = String(etiket).toUpperCase(); this.nodeType = 1; this.childNodes = []; this.parentNode = null;
       this.ozn = {}; this.className = ""; this.hidden = false; this.style = {};
+      // ÇA bantPayi (17 Eki): testten verilen dikdörtgeni `getBoundingClientRect` ile döndürürürüz; varsayılan
+      // 0/0. Bant kapalı senaryolarda `.help-cta` öğesi yok — querySelector null döndürür.
+      this.rect = { top: 0, bottom: 0, left: 0, right: 0, width: 0, height: 0 };
       const o = this;
       this.classList = {
         contains: (c) => o.className.split(/\s+/).includes(c),
@@ -1182,6 +1185,9 @@ function sahteBelge() {
     setAttribute(k, v) { this.ozn[k] = String(v); if (k === "hidden") { this.hidden = true; } }
     getAttribute(k) { return k in this.ozn ? this.ozn[k] : null; }
     removeAttribute(k) { delete this.ozn[k]; if (k === "hidden") { this.hidden = false; } }
+    // ÇA bantPayi (17 Eki): testten verilen dikdörtgen (this.rect) aynen döner. resize gibi DOMRect
+    // yardımcıları testlerde kullanılmıyor; bantPayi yalnız top/bottom okur.
+    getBoundingClientRect() { return this.rect; }
     // ÇA (16 Eki): kaydırma çağrıları SAYILIR (o anki `hidden` ile) — "gizliyken kaydırma" ayrıca görünür.
     scrollIntoView(o) { (this.kaydirma = this.kaydirma || []).push({ o: o || null, gizli: this.hidden === true }); }
     addEventListener(tip, fn) { (this.dinle = this.dinle || {})[tip] = ((this.dinle || {})[tip] || []).concat([fn]); }
@@ -1202,15 +1208,28 @@ function sahteBelge() {
   const body = new Oge("body");
   const bolum = new Oge("section"); bolum.id = "fotoUretim"; bolum.setAttribute("hidden", "");
   body.appendChild(bolum);
+  // ÇA bantPayi (17 Eki): ek0.bant verilmişse body'ye `.help-cta` öğesi iliştirilir; vermezse hiç yok
+  // (querySelector null döner). Bant rect'i Ç4/Ç5/Ç6 vakalarında bantın top/bottom'ına göre kurulur;
+  // bölüm rect'i Ç4'te top=0 (çapa inişi sonrası), Ç6'da top=100 (bantı örtmüyor).
+  if (ek0 && ek0.bant) {
+    const bant = new Oge("section");
+    bant.className = "help-cta";
+    bant.rect = ek0.bant.rect || { top: 0, bottom: 61 };
+    body.appendChild(bant);
+  }
+  if (ek0 && ek0.bolumRect) { bolum.rect = ek0.bolumRect; }
+  // ÇA bantPayi (17 Eki): querySelector için YEREL agac; yoksa null. bantPayi `.help-cta` arar ve
+  // bulursa onun `getBoundingClientRect`'inden bandın dikdörtgenini okur. Bant eklenmediyse null döner
+  // → bantPayi DOKUNMAZ (Ç5).
   const document = {
     readyState: "complete", head, body,
     createElement: (e) => new Oge(e),
     createTextNode: (t) => new Metin(t),
     getElementById: (id) => { for (const n of [...head.agac(), ...body.agac()]) { if (n.id === id) { return n; } } return null; },
-    querySelector: () => null,
+    querySelector: (s) => { for (const n of body.agac()) { if (s.startsWith(".") ? n.classList.contains(s.slice(1)) : n.tagName === s.toUpperCase()) { return n; } } return null; },
     addEventListener: () => {},
   };
-  return { document, bolum };
+  return { document, bolum, bant: (ek0 && ek0.bant) ? body.querySelector(".help-cta") : null };
 }
 
 // Bolum kodunun fetch geri cagrisinda firlayan istisna (yakalanmamis Promise reddi) testi COKERTMEZ, SAYILIR:
@@ -1222,8 +1241,10 @@ process.on("unhandledRejection", (e) => { ASENKRON_ISTISNA.push({ temiz: SON_EKR
 // paletSahte tuvalinin toDataURL'i (FR ölçer); akışta EL/RY bölümleri FR'den ÖNCE koşar -> sabit burada (TDZ yok).
 const FR_PALETLI = "data:image/png;base64,PALETLI";
 async function ekranKos(kaynak, fotoVeri, acikYanit, kayit, durumYanit, ek) {
-  const { document, bolum } = sahteBelge();
   ek = ek || {};
+  // ÇA bantPayi (17 Eki): vaka bant/rect verirse sahte DOM'a `.help-cta` öğesi iliştirilir; bantPayi'nin
+  // ölçtüğü iki dikdörtgen (bant + bölüm) testin elindedir; scrollBy çağrıları `bantKayit`ta sayılır.
+  const { document, bolum } = sahteBelge(ek);
   SON_EKRAN_TEMIZ = typeof EKRAN_KAYNAK === "string" && kaynak === EKRAN_KAYNAK;
   // AKIŞLA ④ (Okan 15 Eki: yenilemede HİÇBİR ŞEY geri yüklenmez): `kayit` ({is, tur, alt_tur, olcu, renk_secim, renkler,
   // malzeme}) verilen vaka ④'e oturum deposundan DEĞİL müşterinin akışıyla gelir — kart → ② fotoğraf → ③ seçimleri →
@@ -1311,6 +1332,10 @@ async function ekranKos(kaynak, fotoVeri, acikYanit, kayit, durumYanit, ek) {
     };
   }
   const istekler = [], araliklar = [], yoklamalar = [], akisIstekleri = [], gecmis = [];
+  // ÇA bantPayi (17 Eki): bantPayi çapa inişinde sticky bandın altına `scrollBy` çağırır; vakalarda
+  // "tam 1 scrollBy(0, -69)" gibi sayısal iddialar bu diziden okunur. Bant kapalı senaryolarda fonksiyon
+  // kurulmaz (bantPayi typeof === "function" kontrolünü geçemez → DOKUNMAZ); yine de zararsız no-op.
+  const bantKayit = [];
   let akisPostu = false;
   // Konum: ek.hash ile açılış (YA: eski `#tur=` bağlantısı). history.replaceState adresi YAZAR (hash dahil) ve
   // `gecmis`e kaydeder — açılış temizliği buradan ölçülür.
@@ -1318,6 +1343,8 @@ async function ekranKos(kaynak, fotoVeri, acikYanit, kayit, durumYanit, ek) {
   const konum = { href: "https://pruvo3d.com/" + (ek.search || "") + (ek.hash || ""), pathname: "/", search: ek.search || "", hash: ek.hash || "" };
   const kok = {
     document, PRUVO_FOTO: fotoVeri, setTimeout, clearTimeout, console, ...gorselSahte,
+    // ÇA bantPayi (17 Eki): bantPayi `kok.scrollBy` çağrısı yapar; vaka tabloları {x, y} kaydeder.
+    scrollBy: (x, y) => { bantKayit.push({ x: x, y: y }); },
     // ek.zamanlayici: yoklama araligi OLCULUR, gercek zamanlayici kurulmaz (test 5 sn beklemez).
     // Yoklama islevi saklanir: DOM vakasi yoklamayi ELLE tetikler (durum yaniti adim adim degisir).
     setInterval: ek.zamanlayici ? (fn, ms) => { araliklar.push(ms); yoklamalar.push(fn); return 0; } : setInterval,
@@ -1444,6 +1471,9 @@ async function ekranKos(kaynak, fotoVeri, acikYanit, kayit, durumYanit, ek) {
   Object.defineProperty(sonuc, "konum", { value: konum, enumerable: false });
   Object.defineProperty(sonuc, "gecmis", { value: gecmis, enumerable: false });
   Object.defineProperty(sonuc, "akisIstekleri", { value: akisIstekleri, enumerable: false });
+  // ÇA bantPayi (17 Eki): `bantKayit` dizisi tanımsızsa vakaya `bantKayit` özelliği eklenmez; vakalar
+  // `e.bantKayit` ile okur. bantPayi scrollBy(0, x) çağrılarını {x, y} olarak saklar.
+  if (typeof bantKayit !== "undefined") { Object.defineProperty(sonuc, "bantKayit", { value: bantKayit, enumerable: false }); }
   return sonuc;
 }
 
@@ -7604,16 +7634,22 @@ console.log("YA) YENİLEME — açılış her zaman ① (oturum kaydı + #tur= g
   }
 }
 
-// ---------------------------------------------------------------- ÇA) ÇAPA İNİŞİ #fotoUretim (BaBa 16 Eki 17:4x)
+// ---------------------------------------------------------------- ÇA) ÇAPA İNİŞİ #fotoUretim (BaBa 16 Eki 17:4x + 17 Eki bantPayi)
 // Reklam adresi `/?utm…#fotoUretim`: bölüm `hidden` başlayıp /acik ile açıldığı için tarayıcı çapaya kaymıyordu
 // (ArTisT: scrollY=0, sihirbaz ilk ekranın altında). Ç1 #fotoUretim ile açılış -> bölüm AÇIKKEN tam 1 kaydırma
 // ({block:"start"}) · Ç2 KONTROL: çapasız ve #sss açılışta kaydırma 0 · Ç3 KONTROL: /acik kapalı -> bölüm gizli,
 // kaydırma 0. Mutantlar: ÇA-M1 çağrı silinir -> [Ç1] · ÇA-M2 çapa koşulu kalkar (her açılışta kaydır) -> [Ç2] ·
 // ÇA-M3 çağrı bölüm açılmadan ÖNCEye taşınır (gizliyken kaydırır) -> [Ç1].
-console.log("ÇA) ÇAPA İNİŞİ — #fotoUretim ile açılışta bölüm açılınca kaydırılır; başka çapada/kapalıda dokunulmaz");
+// 17 Eki çapa bandı: sticky `.help-cta` (top 0, yükseklik 61 px) çapa inişinde bölümün üstünü örtüyor → ① Tür seç
+// göstergesi bandın altında kalıyor. Ç4 bant top 0 / bottom 61 + bölüm top 0 → tam 1 scrollBy(0, -69) · Ç5 KONTROL
+// bant yok → scrollBy 0 · Ç6 KONTROL bant top 0 / bottom 61 + bölüm top 100 (bandı örtmüyor) → scrollBy 0 ·
+// Ç7 KONTROL çapasız açılış + bant mevcut → scrollBy 0 (capayaKaydir hiç koşmaz). Yeni mutantlar: ÇA-M4
+// bantPayi çağrısı silinir -> [Ç4] · ÇA-M5 `rb.bottom > rs.top` koşulu -> `true` -> [Ç6] (her kaydırır).
+console.log("ÇA) ÇAPA İNİŞİ — #fotoUretim ile açılışta bölüm açılınca kaydırılır; sticky `.help-cta` bandı örtüyorsa bantPayi bölümün altına süzülür");
 {
   const V = veriYukle(VERI_KAYNAK);
   const kaydirma = (e) => e.bolum.kaydirma || [];
+  const bantKayit = (e) => e.bantKayit || [];
   const caKos = async (kaynak) => {
     const s = {}, iz = {};
     const e1 = await ekranKos(kaynak, V, acikGercek(V, V6_TUM), null, null, { hash: "#fotoUretim" });
@@ -7627,6 +7663,23 @@ console.log("ÇA) ÇAPA İNİŞİ — #fotoUretim ile açılışta bölüm açı
     const e3 = await ekranKos(kaynak, V, { acik: false, turler: [] }, null, null, { hash: "#fotoUretim" });
     iz.C3 = { k: kaydirma(e3).length, gorunur: e3.gorunur };
     s.C3 = iz.C3.k === 0 && iz.C3.gorunur === false;
+    const e4 = await ekranKos(kaynak, V, acikGercek(V, V6_TUM), null, null,
+      { hash: "#fotoUretim", bant: { rect: { top: 0, bottom: 61 } }, bolumRect: { top: 0 } });
+    iz.C4 = { by: bantKayit(e4), k: kaydirma(e4), gorunur: e4.gorunur, istisna: e4.istisna };
+    s.C4 = iz.C4.by.length === 1 && iz.C4.by[0].x === 0 && iz.C4.by[0].y === -69 &&
+      iz.C4.k.length === 1 && iz.C4.k[0].gizli === false && iz.C4.gorunur === true && iz.C4.istisna === 0;
+    const e5 = await ekranKos(kaynak, V, acikGercek(V, V6_TUM), null, null,
+      { hash: "#fotoUretim", bolumRect: { top: 0 } });
+    iz.C5 = { by: bantKayit(e5), k: kaydirma(e5) };
+    s.C5 = iz.C5.by.length === 0 && iz.C5.k.length === 1;
+    const e6 = await ekranKos(kaynak, V, acikGercek(V, V6_TUM), null, null,
+      { hash: "#fotoUretim", bant: { rect: { top: 0, bottom: 61 } }, bolumRect: { top: 100 } });
+    iz.C6 = { by: bantKayit(e6), k: kaydirma(e6) };
+    s.C6 = iz.C6.by.length === 0 && iz.C6.k.length === 1;
+    const e7 = await ekranKos(kaynak, V, acikGercek(V, V6_TUM), null, null,
+      { bant: { rect: { top: 0, bottom: 61 } }, bolumRect: { top: 0 } });
+    iz.C7 = { by: bantKayit(e7), k: kaydirma(e7) };
+    s.C7 = iz.C7.by.length === 0 && iz.C7.k.length === 0;
     Object.defineProperty(s, "iz", { value: iz, enumerable: false });
     return s;
   };
@@ -7634,15 +7687,31 @@ console.log("ÇA) ÇAPA İNİŞİ — #fotoUretim ile açılışta bölüm açı
   ol("Ç1 #fotoUretim ile açılış → bölüm açıkken tam 1 kaydırma {block:'start'}", s.C1, JSON.stringify(s.iz.C1));
   ol("Ç2 KONTROL çapasız + #sss açılışta kaydırma 0", s.C2, JSON.stringify(s.iz.C2));
   ol("Ç3 KONTROL /acik kapalı → bölüm gizli, kaydırma 0", s.C3, JSON.stringify(s.iz.C3));
+  ol("Ç4 bant top 0/bottom 61 + bölüm top 0 → tam 1 scrollBy(0, -69)", s.C4, JSON.stringify(s.iz.C4));
+  ol("Ç5 KONTROL bant yok → scrollBy 0 (scrollIntoView 1)", s.C5, JSON.stringify(s.iz.C5));
+  ol("Ç6 KONTROL bant üstte ama bölüm top 100 → scrollBy 0 (örtmüyor)", s.C6, JSON.stringify(s.iz.C6));
+  ol("Ç7 KONTROL çapasız açılış + bant mevcut → scrollBy 0 (capayaKaydir koşmaz)", s.C7, JSON.stringify(s.iz.C7));
   const CAGRI = "      if (anaBolum) anaBolum.removeAttribute(\"hidden\");\n      capayaKaydir(anaBolum);";
+  const CAGRI_BANTPAYI = "bolum.scrollIntoView({ block: \"start\" });\n    bantPayi(bolum);";
+  const CAGRI_BANTPAYI_LOAD = "bolum.scrollIntoView({ block: \"start\" });\n        bantPayi(bolum);";
+  const BANTPAYI_KOSUL = "if (rb.top <= 1 && rb.bottom > rs.top) kok.scrollBy(0, -(rb.bottom - rs.top + 8));";
+  // Tuples (ad, degisim, olmeli, kapsam): `kapsam` mutanta hangi vakaların bakılacağını seçer. 17 Eki öncesi
+  // ÇA-M1..M3 Ç1-Ç3'e yazıldı; Ç4-Ç7 eklenince aynı mutant (örn. capayaKaydir çağrısı silme) Ç4-Ç6'yı da
+  // kırmızıya çevirir. ÇA-M4/M5 yalnız Ç4-Ç7 kapsamına girer; eski mutantların Ç1-Ç3 dışı yanması yeşil
+  // sayılmaz, `kapsam`'a yazılmayan ek başarısızlıklar göz ardı edilir.
   const CA_MUT = [
-    ["ÇA-M1 kaydırma çağrısı silindi", [[CAGRI, "      if (anaBolum) anaBolum.removeAttribute(\"hidden\");"]], ["C1"]],
-    ["ÇA-M2 çapa koşulu kalktı (her açılışta kaydırır)", [["l.hash !== \"#\" + ANA_BOLUM_ID || ", ""]], ["C2"]],
+    ["ÇA-M1 kaydırma çağrısı silindi", [[CAGRI, "      if (anaBolum) anaBolum.removeAttribute(\"hidden\");"]], ["C1"], ["C1"]],
+    ["ÇA-M2 çapa koşulu kalktı (her açılışta kaydırır)", [["l.hash !== \"#\" + ANA_BOLUM_ID || ", ""]], ["C2"], ["C2"]],
     ["ÇA-M3 çağrı bölüm açılmadan önce (gizliyken kaydırır)", [[CAGRI,
-      "      capayaKaydir(anaBolum);\n      if (anaBolum) anaBolum.removeAttribute(\"hidden\");"]], ["C1"]],
-    ["ÇA-K0 KONTROL (yorum)", [["  function capayaKaydir(bolum) {", "  // kontrol\n  function capayaKaydir(bolum) {"]], []],
+      "      capayaKaydir(anaBolum);\n      if (anaBolum) anaBolum.removeAttribute(\"hidden\");"]], ["C1"], ["C1"]],
+    ["ÇA-M4 bantPayi çağrıları silindi (bantın altına süpürmez)", [
+      [CAGRI_BANTPAYI, "bolum.scrollIntoView({ block: \"start\" });"],
+      [CAGRI_BANTPAYI_LOAD, "bolum.scrollIntoView({ block: \"start\" });"]], ["C4"], ["C4","C5","C6","C7"]],
+    ["ÇA-M5 bantPayi 'bantı örtüyor mu' koşulu kalktı (her durumda kaydırır)", [
+      [BANTPAYI_KOSUL, "if (true) kok.scrollBy(0, -(rb.bottom - rs.top + 8));"]], ["C6"], ["C4","C5","C6","C7"]],
+    ["ÇA-K0 KONTROL (yorum)", [["  function capayaKaydir(bolum) {", "  // kontrol\n  function capayaKaydir(bolum) {"]], [], ["C1","C2","C3","C4","C5","C6","C7"]],
   ];
-  for (const [ad, degisim, olmeli] of CA_MUT) {
+  for (const [ad, degisim, olmeli, kapsam] of CA_MUT) {
     let m = EKRAN_KAYNAK, capaYok = null;
     for (const [capa, yerine] of degisim) {
       if (m.split(capa).length - 1 !== 1) { capaYok = capa; break; }
@@ -7650,7 +7719,7 @@ console.log("ÇA) ÇAPA İNİŞİ — #fotoUretim ile açılışta bölüm açı
     }
     if (capaYok) { ol(ad + " capa bulundu", false, capaYok); continue; }
     const r = await caKos(m);
-    const kir = ["C1", "C2", "C3"].filter((x) => r[x] !== true);
+    const kir = kapsam.filter((x) => r[x] !== true);
     ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli), JSON.stringify(kir));
   }
 }
