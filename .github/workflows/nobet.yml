@@ -1361,6 +1361,13 @@ jobs:
       - name: "Riza tavani olcumu — kabul + mutant (OCI tavani, agsiz)"
         if: ${{ !cancelled() }}
         run: python3 tools/riza-tavani-test.py
+      # INIS SAYACI OKUYUCU (17 Eki 2026, ArTisT gunluk UTM_FB/UTM_G olcum aracinin
+      # kabul testi). D1 `inis_sayac` tablosunu gun bazli okuyup sinif toplamlarini
+      # (FB/IG/G/GEO/DIGER) tek satir olarak ureten aracin kabul + mutant kapisi. Ag YOK
+      # (sqlite fikstur), <2 s. SERIT B: aracin kendini sinamasi; yayini DURDURMAZ.
+      - name: "Inis sayaci okuyucu — kabul + mutant (ArTisT gunluk, agsiz)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/inis-sayac-oku-test.py
       # RUM VEKIL — CF RUM'dan gunluk "/ x referer kaynak" sayimini D1'e yazan aracin
       # kabul testi (tools/rum-vekil-test.py). AGSIZ: fikstur + yerel sqlite kolu;
       # V1 sinif toplamlari birebir, V2 ayni gun 2 kosum -> ciftlenmez,
