@@ -74,8 +74,9 @@ def fikstur_yaz(icerik):
 
 def vt_oku(yol, tablo="rum_vekil"):
     """Test kolu sqlite — D1'in yerel mukabili; SELECT ile tum satirlari okur.
-    `tablo` "rum_vekil" veya "rum_vekil_ham" olabilir; --ham modu yalnizca
-    ikincisine yazar (birincisi bos kalmali)."""
+    `tablo` "rum_vekil", "rum_vekil_ham" veya "rum_vekil_bos_ulke" olabilir;
+    --ham modu yalnizca ikincisine, --bos-ulke modu yalnizca ucuncusune yazar
+    (birincisi bos kalmali)."""
     conn = sqlite3.connect(yol)
     conn.row_factory = sqlite3.Row
     try:
@@ -83,6 +84,8 @@ def vt_oku(yol, tablo="rum_vekil"):
             sql = "SELECT gun, kaynak, n FROM rum_vekil WHERE gun=? ORDER BY kaynak"
         elif tablo == "rum_vekil_ham":
             sql = "SELECT gun, host, bot, n FROM rum_vekil_ham WHERE gun=? ORDER BY host, bot"
+        elif tablo == "rum_vekil_bos_ulke":
+            sql = "SELECT gun, ulke, saat, n FROM rum_vekil_bos_ulke WHERE gun=? ORDER BY ulke, saat"
         else:
             raise ValueError("bilinmeyen tablo: " + tablo)
         return [dict(r) for r in conn.execute(sql, (GUN,)).fetchall()]
@@ -90,9 +93,14 @@ def vt_oku(yol, tablo="rum_vekil"):
         conn.close()
 
 
-def kos(arac, fikstur_yol, vt_yol=None, env_ek=None, cwd=None, ham=False):
+def kos(arac, fikstur_yol, vt_yol=None, env_ek=None, cwd=None, ham=False,
+        bos_ulke=False, env_ek_yap=None):
     """Araci alt surec olarak kosar; (rc, stdout, stderr) doner. `ham=True` ise
-    --ham bayragi da gonderilir (--ham modunda yalniz rum_vekil_ham'a yazilir)."""
+    --ham bayragi da gonderilir (--ham modunda yalniz rum_vekil_ham'a yazilir);
+    `bos_ulke=True` ise --bos-ulke gonderilir (yalniz rum_vekil_bos_ulke'ye
+    yazilir; ikisi birlikte ise KOL-CAKISMA kapisi reddeder).
+    `env_ek_yap` callable (ortam) -> ortam: env uzerinde test bittikten SONRA
+    geri almak icin (PRUVO_RUM_BOS_ULKE=true gibi tek-kullanimlik testlerde)."""
     ortam = os.environ.copy()
     ortam.pop("CLOUDFLARE_API_TOKEN", None)
     ortam.pop("CLOUDFLARE_ACCOUNT_ID", None)
@@ -101,10 +109,15 @@ def kos(arac, fikstur_yol, vt_yol=None, env_ek=None, cwd=None, ham=False):
     cmd = [sys.executable, arac, "--gun", GUN, "--fikstur", fikstur_yol]
     if ham:
         cmd.append("--ham")
+    if bos_ulke:
+        cmd.append("--bos-ulke")
     if vt_yol:
         cmd += ["--vt", vt_yol]
     p = subprocess.run(cmd, capture_output=True, text=True, env=ortam,
                        cwd=cwd, timeout=120)
+    if env_ek_yap:
+        env_ek_yap(ortam)
+    return p.returncode, (p.stdout or ""), (p.stderr or "")
     return p.returncode, (p.stdout or ""), (p.stderr or "")
 
 
@@ -450,6 +463,204 @@ def v10_ham_sorgu_bicimi(arac, hata):
             hata.append("V10 ham sorgu bicimi: %s" % neden)
 
 
+# V11 fikstur — BOS referrer x ulke x datetimeHour kirilimi (--bos-ulke modu). Bicim
+# mevcut ham fiksturu (V8) + CF boyutlari `refererHost countryName datetimeHour`.
+# Gercek CF yaniti HENUZ YOK (durust yaz): 16 Eki 9.441 yuklemenin %93'u BOS referrer
+# olmakla birlikte ulke/saat kirilimi su an bilinmiyor; bu fikstur SEKIL + ARACIN
+# DAVRANISINI olcer (filtreleyici + toplayici + yazici), gercek dagilimla eslesmesi
+# aracin isi DEGIL. Dolu referrerli 2 satir V11'in iddiasini korur: ATLANMALI.
+# Saat=23 siniri (sut gununun son saati) + None ulke (bos string'e normalize) + ayni
+# (ulke, saat) ile iki satir (toplam 7+4=11) orneklenmistir.
+V11_FIKSTUR = {
+    "data": {
+        "viewer": {
+            "accounts": [{
+                "rumPageloadEventsAdaptiveGroups": [
+                    {"count": 12, "dimensions": {"refererHost": "www.google.com.tr", "countryName": "TR", "datetimeHour": "2026-10-16T09:00:00Z"}},
+                    {"count": 7,  "dimensions": {"refererHost": None,                "countryName": "DE", "datetimeHour": "2026-10-16T03:00:00Z"}},
+                    {"count": 5,  "dimensions": {"refererHost": "",                  "countryName": "TR", "datetimeHour": "2026-10-16T09:00:00Z"}},
+                    {"count": 4,  "dimensions": {"refererHost": None,                "countryName": "DE", "datetimeHour": "2026-10-16T03:00:00Z"}},
+                    {"count": 3,  "dimensions": {"refererHost": "",                  "countryName": None, "datetimeHour": "2026-10-16T15:00:00Z"}},
+                    {"count": 2,  "dimensions": {"refererHost": None,                "countryName": "GB", "datetimeHour": "2026-10-16T23:00:00Z"}},
+                    {"count": 1,  "dimensions": {"refererHost": "facebook.com",      "countryName": "US", "datetimeHour": "2026-10-16T12:00:00Z"}}
+                ]
+            }]
+        }
+    }
+}
+
+# V11 beklenen bos-ulke toplamlari (gun=2026-10-16). Dolu referrerli 2 satir (12+1=13)
+# yutulur; kalan 5 satir (7+5+4+3+2=21) (ulke, saat) bazinda toplanir.
+# (DE, 3) = 7+4 = 11; (TR, 9) = 5; ("", 15) = 3; (GB, 23) = 2. Toplam = 11+5+3+2 = 21.
+V11_BEKLENEN_BOS_ULKE = [
+    {"ulke": "DE", "saat": 3,  "n": 11},
+    {"ulke": "TR", "saat": 9,  "n": 5},
+    {"ulke": "",   "saat": 15, "n": 3},
+    {"ulke": "GB", "saat": 23, "n": 2},
+]
+
+
+def v11_bos_ulke_birebir(arac, hata):
+    """V11 --bos-ulke fikstur uzerinde (ulke, saat) satirlari birebir, dolu referrer
+    sayilmaz (12 + 1 = 13 yutulur), rum_vekil/rum_vekil_ham bos kalir."""
+    fy = fikstur_yaz(V11_FIKSTUR)
+    vt = tempfile.mktemp(prefix="rum-vt-bos-ulke-", suffix=".sqlite")
+    try:
+        rc, out, err = kos(arac, fy, vt_yol=vt, bos_ulke=True)
+        if rc != 0:
+            hata.append("V11 --bos-ulke rc=%d (0 bekleniyordu)\n  out: %s\n  err: %s"
+                        % (rc, out, err))
+            return
+        if "RUM_VEKIL_BOS_ULKE=YAZILDI" not in out:
+            hata.append("V11 --bos-ulke YAZILDI jetonu tasimaz: %r" % out)
+        # rum_vekil ve rum_vekil_ham bos kalmali (--bos-ulke modu dokunmamali).
+        bos = vt_oku(vt, "rum_vekil")
+        if bos:
+            hata.append("V11 --bos-ulke rum_vekil bos olmaliydi, dolu: %r" % bos)
+        bos = vt_oku(vt, "rum_vekil_ham")
+        if bos:
+            hata.append("V11 --bos-ulke rum_vekil_ham bos olmaliydi, dolu: %r" % bos)
+        # rum_vekil_bos_ulke satirlari birebir (dolu referrer ATLANMALI: 12+1=13 yutulur,
+        # toplam 7+5+4+3+2=21 yazilir).
+        geldi = vt_oku(vt, "rum_vekil_bos_ulke")
+        bek_set = {(r["ulke"], r["saat"], r["n"]) for r in V11_BEKLENEN_BOS_ULKE}
+        geldi_set = {(r["ulke"], r["saat"], r["n"]) for r in geldi}
+        if bek_set != geldi_set:
+            hata.append("V11 bos-ulke satir sapmali: bek=%r geldi=%r"
+                        % (sorted(bek_set), sorted(geldi_set)))
+    finally:
+        for p in (fy, vt):
+            try:
+                os.unlink(p)
+            except OSError:
+                pass
+
+
+def v12_bos_ulke_ham_birebir(arac, hata):
+    """V12 --bos-ulke + --ham AYNI ANDA verilince aracin KOL-CAKISMA kapisi rc=3
+    ile reddetmesini olcer. --ham fiksturuyla birlestirilir; fikstur dosyasi bir
+    kez yazilir, iki --bos-ulke --ham kosumunda ortak kullanilir. CI'da workflow
+    inputlari `ham=true bos_ulke=true` ise bu kapinin yakmasi BEKLENIR."""
+    fy = fikstur_yaz(V11_FIKSTUR)
+    try:
+        # --bos-ulke + --ham AYNI ANDA: kapinin KIRMIZI yakmasi beklenir.
+        rc, out, err = kos(arac, fy, bos_ulke=True, ham=True)
+        if rc != 3:
+            hata.append("V12 --bos-ulke + --ham rc=%d (3 bekleniyordu)\n  out: %s\n  err: %s"
+                        % (rc, out, err))
+            return
+        if "RUM_VEKIL_BOS_ULKE=OLCULEMEDI sebep=KOL-CAKISMA" not in (out + err):
+            hata.append("V12 KOL-CAKISMA jetonu tasimaz: out=%r err=%r" % (out, err))
+    finally:
+        try:
+            os.unlink(fy)
+        except OSError:
+            pass
+
+
+def v13_bos_ulke_ciftlenmez(arac, hata):
+    """V13 --bos-ulke ayni gun ikinci kez koarsa cift sayim YOK (DELETE + INSERT),
+    her iki kosum da rc=0 donmeli. Sqlite toplam (SELECT SUM) ilk + ikinci kosumda
+    AYNI olmali."""
+    fy = fikstur_yaz(V11_FIKSTUR)
+    vt = tempfile.mktemp(prefix="rum-vt-bos-ulke-cift-", suffix=".sqlite")
+    try:
+        rc1, _, _ = kos(arac, fy, vt_yol=vt, bos_ulke=True)
+        satir1 = vt_oku(vt, "rum_vekil_bos_ulke")
+        rc2, _, _ = kos(arac, fy, vt_yol=vt, bos_ulke=True)
+        satir2 = vt_oku(vt, "rum_vekil_bos_ulke")
+        if rc1 != 0 or rc2 != 0:
+            hata.append("V13 rc sapmali: ilk=%d ikinci=%d (0 bekleniyordu)" % (rc1, rc2))
+        if satir1 != satir2:
+            hata.append("V13 ayni gun iki kosum farkli: ilk=%r ikinci=%r"
+                        % (satir1, satir2))
+        # Toplamlar da AYNI olmali (cift sayim YOK).
+        def toplam_n(satirlar):
+            return sum(r["n"] for r in satirlar)
+        if toplam_n(satir1) != toplam_n(satir2):
+            hata.append("V13 toplam n farkli: ilk=%d ikinci=%d"
+                        % (toplam_n(satir1), toplam_n(satir2)))
+        # Beklenen toplam: 11+5+3+2 = 21 (dolu referrer 12+1=13 zaten sayilmadi).
+        if toplam_n(satir1) != 21:
+            hata.append("V13 beklenen toplam=21, geldi=%d" % toplam_n(satir1))
+    finally:
+        for p in (fy, vt):
+            try:
+                os.unlink(p)
+            except OSError:
+                pass
+
+
+def v14_bos_ulke_stdout_sayi_yok(arac, hata):
+    """V14 --bos-ulke basarili kosumda stdout HICBIR rakam dizgesi tasimaz
+    (gun=Y-M-D formati disinda)."""
+    fy = fikstur_yaz(V11_FIKSTUR)
+    vt = tempfile.mktemp(prefix="rum-vt-bos-ulke-sayi-", suffix=".sqlite")
+    try:
+        rc, out, err = kos(arac, fy, vt_yol=vt, bos_ulke=True)
+        if rc != 0:
+            hata.append("V14 --bos-ulke YAZILDI vermedi: rc=%d\n  out: %s\n  err: %s"
+                        % (rc, out, err))
+            return
+        kalinti = out.replace("gun=2026-10-16", "").replace("gun=2026-10-16T", "")
+        sayilar = re.findall(r"\d+", kalinti)
+        if sayilar:
+            hata.append("V14 --bos-ulke stdout rakam tasiyor: %r (bulunan diziler: %s)"
+                        % (out, sayilar))
+    finally:
+        for p in (fy, vt):
+            try:
+                os.unlink(p)
+            except OSError:
+                pass
+
+
+def v15_bos_ulke_sorgu_bicimi(arac, hata):
+    """V15 --bos-ulke kolunun GONDERDIGI GraphQL govdesi kanitli bicimde mi (ag YOK:
+    urlopen sahtesi govdeyi yakalar). V7 deseni AYNI (ic ice, kucuk harf `string!`) +
+    `countryName datetimeHour` boyutlari."""
+    import importlib.util
+    import urllib.error
+    yakala = {}
+    sp = importlib.util.spec_from_file_location("rum_vekil_v15", arac)
+    m = importlib.util.module_from_spec(sp)
+    sp.loader.exec_module(m)
+
+    def sahte(req, timeout=None):
+        yakala["govde"] = req.data
+        raise urllib.error.URLError("V15 sahte ag")
+
+    eski = m.urllib.request.urlopen
+    m.urllib.request.urlopen = sahte
+    try:
+        m.graphql_bos_ulke_yukle(GUN, "T", "ACCT")
+    except Exception:
+        pass
+    finally:
+        m.urllib.request.urlopen = eski
+    if "govde" not in yakala:
+        hata.append("V15 bos-ulke kol ag cagrisi yapmadi (govde yakalanamadi)")
+        return
+    g = json.loads(yakala["govde"].decode("utf-8"))
+    q = g.get("query", "")
+    tek = re.sub(r"\s+", " ", q)
+    sartlar = [
+        ("viewer { accounts(filter: {accountTag: $accountTag})" in tek,
+         "viewer{accounts} ic ice degil"),
+        ("viewer." not in q, "noktali alan yolu (gecersiz GraphQL)"),
+        ("$accountTag: string!" in q, "accountTag skaleri kucuk harf `string!` degil"),
+        ("$gun: Date!" in q, "gun skaleri `Date!` degil"),
+        ("dimensions { refererHost countryName datetimeHour }" in tek,
+         "refererHost x countryName x datetimeHour boyutu yok"),
+        (q.count("{") == q.count("}"), "suslu parantez dengesiz"),
+        (g.get("variables") == {"accountTag": "ACCT", "gun": GUN},
+         "variables beklenen degil"),
+    ]
+    for ok, neden in sartlar:
+        if not ok:
+            hata.append("V15 bos-ulke sorgu bicimi: %s" % neden)
+
+
 MUTANTLAR = [
     ("M1 DELETE kaldirildi -> V2 cift sayar",
      'DELETE FROM rum_vekil WHERE gun=',
@@ -481,6 +692,33 @@ MUTANTLAR = [
      '"        dimensions { refererHost }\\n"',
      "V10_ham_sorgu_bicimi",
      "bot boyutu olmadan ham kirilim anlamsizlasir; V10 `dimensions { refererHost bot }` sartini yakalar"),
+    # Bos-ulke mutantlari. Her birinin YALNIZ bir vakayi kirmizi yakmasi beklenir;
+    # geri kalan vakalar YESIL kalmali (mutantlar izole, birbirini etkilememeli).
+    ("M7 bos-ulke filtresi kaldirildi (dolu referrer de gecirilir) -> V11 KIRMIZI",
+     'if h is None or h == "":\n            pass  # bos referrer',
+     'if False:\n            pass  # bos referrer',
+     "V11_bos_ulke_birebir",
+     "filtre kalkinca tum satirlar (12 www.google.com.tr + 1 facebook.com dahil) toplanir; beklenen (DE,3,11) yerine (TR,9,17) gibi sapma olusur"),
+    ("M8 bos-ulke toplamasi yapilmiyor (her satir tek sefer) -> V13 KIRMIZI",
+     "anahtar = (str(ulke).strip(), saat)\n        toplam[anahtar] = toplam.get(anahtar, 0) + n",
+     "anahtar = (str(ulke).strip(), saat)\n        toplam[anahtar] = toplam.get(anahtar, 0) + 1",
+     "V13_bos_ulke_ciftlenmez",
+     "her satir 1 sayilinca (DE,3) beklenen 11 yerine 2 olur; toplam n=21 yerine 6 (veya benzeri) cikar; V13'in beklenen toplam=21 sarti yakalar"),
+    ("M9 bos-ulke KOL-CAKISMA kapisi kaldirildi -> V12 KIRMIZI",
+     'if a.ham and a.bos_ulke:\n        print("RUM_VEKIL_BOS_ULKE=OLCULEMEDI sebep=KOL-CAKISMA")\n        return 3',
+     'if False and a.ham and a.bos_ulke:\n        print("RUM_VEKIL_BOS_ULKE=OLCULEMEDI sebep=KOL-CAKISMA")\n        return 3',
+     "V12_bos_ulke_ham_birebir",
+     "kapinin kosulu False yapilinca --ham + --bos-ulke birlikte calisir; iki tabloya da yazma CABUL olur; V12'nin KOL-CAKISMA sarti yakalar"),
+    ("M10 bos-ulke stdout'a count basildi -> V14 KIRMIZI",
+     'print("%s=YAZILDI gun=%s" % (baslik, gun))',
+     'print("%s=YAZILDI gun=%s toplam=%d" % (baslik, gun, 21))',
+     "V14_bos_ulke_stdout_sayi_yok",
+     "toplam stdout'a basildiginda 'dijital iz' olarak CI loguna sizar; V14'un rakam sarti yakalar"),
+    ("M11 bos-ulke sorgusundan countryName dusuruldu -> V15 KIRMIZI",
+     '"        dimensions { refererHost countryName datetimeHour }\\n"',
+     '"        dimensions { refererHost datetimeHour }\\n"',
+     "V15_bos_ulke_sorgu_bicimi",
+     "countryName boyutu olmadan ulke kirilimi anlamsizlasir; V15 `dimensions { refererHost countryName datetimeHour }` sartini yakalar"),
 ]
 
 
@@ -495,12 +733,17 @@ VAKA_FONKS = {
     "V8_ham_birebir": v8_ham_birebir,
     "V9_ham_stdout_sayi_yok": v9_ham_stdout_sayi_yok,
     "V10_ham_sorgu_bicimi": v10_ham_sorgu_bicimi,
+    "V11_bos_ulke_birebir": v11_bos_ulke_birebir,
+    "V12_bos_ulke_ham_birebir": v12_bos_ulke_ham_birebir,
+    "V13_bos_ulke_ciftlenmez": v13_bos_ulke_ciftlenmez,
+    "V14_bos_ulke_stdout_sayi_yok": v14_bos_ulke_stdout_sayi_yok,
+    "V15_bos_ulke_sorgu_bicimi": v15_bos_ulke_sorgu_bicimi,
 }
 
 
 def main():
     gecen = 0
-    toplam_vaka = 10
+    toplam_vaka = 15
     hata = []
 
     v1_birebir(ARAC, hata)
@@ -513,6 +756,11 @@ def main():
     v8_ham_birebir(ARAC, hata)
     v9_ham_stdout_sayi_yok(ARAC, hata)
     v10_ham_sorgu_bicimi(ARAC, hata)
+    v11_bos_ulke_birebir(ARAC, hata)
+    v12_bos_ulke_ham_birebir(ARAC, hata)
+    v13_bos_ulke_ciftlenmez(ARAC, hata)
+    v14_bos_ulke_stdout_sayi_yok(ARAC, hata)
+    v15_bos_ulke_sorgu_bicimi(ARAC, hata)
     gecen = toplam_vaka - len(hata)
 
     mutant_puan = 0

@@ -713,6 +713,18 @@ CREATE TABLE IF NOT EXISTS rum_vekil_ham (
   PRIMARY KEY (gun, host, bot)
 );
 
+-- Tek seferlik BOS referrer x ulke x UTC saat kirilimi (16 Eki 9.441 yuklemenin %93'u BOS referrer;
+-- hipotez = bizim CI nobet tarayicilarimiz). KISISEL VERI YOK: yalniz sunucu UTC saati + ulke ISO kodu
+-- + sayac. Yazici: tools/rum-vekil-olc.py --bos-ulke (PRUVO_RUM_BOS_ULKE=true).
+-- rum_vekil ve rum_vekil_ham'a DOKUNMAZ (iki ayri kol, KOL-CAKISMA ile reddedilir).
+CREATE TABLE IF NOT EXISTS rum_vekil_bos_ulke (
+  gun TEXT NOT NULL,
+  ulke TEXT NOT NULL,
+  saat INTEGER NOT NULL,
+  n INTEGER NOT NULL,
+  PRIMARY KEY (gun, ulke, saat)
+);
+
 -- Reklam INIS sayaci (POST /api/shop/inis, shop/src/inis.js): riza vermeyen ziyaretcinin reklam inisini de sayar (GA4 rizasiz gormez).
 -- KISISEL VERI YOK: yalniz sunucu UTC gunu + beyaz listeli kaynak + kalibi tutan kampanya + sayac; IP/UA/cerez/URL ne okunur ne saklanir.
 CREATE TABLE IF NOT EXISTS inis_sayac (gun TEXT NOT NULL, kaynak TEXT NOT NULL, kampanya TEXT NOT NULL, n INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (gun,kaynak,kampanya));

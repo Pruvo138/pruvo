@@ -28,11 +28,16 @@ on:
   # Elle kosum yolu HER ZAMAN acik (cron kacarsa insan tetikleyebilir).
   workflow_dispatch:
     # Tek seferlik ham kirilim (`rum_vekil_ham` tablosuna yazar; `rum_vekil` YAZILMAZ).
+    # `bos_ulke` ayrica BOS referrer x ulke x saat kirilimini (`rum_vekil_bos_ulke`)
+    # acar; `ham` ile AYNI ANDA verilirse aracin icinde KOL-CAKISMA ile reddedilir.
     # `gun` belirtilmeden calistirilirsa yine dun UTC kullanilir (varsayilan kol ile AYNI).
     # `run:` metnine DIREK ${{ }} GOMULMEZ — inputlar env uzerinden python'a tasinir
     # (enjeksiyon yuzeyi yok).
     inputs:
       ham:
+        type: boolean
+        default: false
+      bos_ulke:
         type: boolean
         default: false
       gun:
@@ -58,12 +63,15 @@ jobs:
         with:
           python-version: "3.12"
 
-      # CI loguna SAYI YAZILMAZ — yalniz `RUM_VEKIL=YAZILDI` (--ham: `RUM_VEKIL_HAM=YAZILDI`)
-      # ya da `RUM_VEKIL=OLCULEMEDI sebep=<jeton>` basar; token/hesap kimligi
-      # HICBIR yerde gorunmez (FAIL-CLOSED maske aracin icinde).
+      # CI loguna SAYI YAZILMAZ — yalniz `RUM_VEKIL=YAZILDI` (--ham: `RUM_VEKIL_HAM=YAZILDI`,
+      # --bos-ulke: `RUM_VEKIL_BOS_ULKE=YAZILDI`) ya da `RUM_VEKIL=OLCULEMEDI sebep=<jeton>`
+      # basar; token/hesap kimligi HICBIR yerde gorunmez (FAIL-CLOSED maske aracin icinde).
       # rc 0 -> yesil; rc 3 -> OLCULEMEDI, yesile SAYILMAZ.
       # `inputs.ham` true ise aracin --ham kolu devreye girer (CI ham kirilim yapar,
       # `rum_vekil_ham` tablosuna yazar, `rum_vekil` tablosuna DOKUNMAZ).
+      # `inputs.bos_ulke` true ise aracin --bos-ulke kolu devreye girer (BOS referrer
+      # x ulke x saat kirilimi, `rum_vekil_bos_ulke` tablosuna yazar; ham ile cakisirsa
+      # aracin KOL-CAKISMA kapisi rc=3 ile reddeder).
       # `inputs.gun` doluysa o gun okunur; bos ise dun UTC kullanilir.
       # Inputlar `env:` ile python'a tasinir (run: metnine `${{ }}` GOMULMEZ).
       - name: "Rum vekil gunluk sayim (D1)"
@@ -71,11 +79,15 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           PRUVO_RUM_HAM: ${{ inputs.ham }}
+          PRUVO_RUM_BOS_ULKE: ${{ inputs.bos_ulke }}
           PRUVO_RUM_GUN: ${{ inputs.gun }}
         run: |
           ARGS=()
           if [ "${PRUVO_RUM_HAM:-false}" = "true" ]; then
             ARGS+=(--ham)
+          fi
+          if [ "${PRUVO_RUM_BOS_ULKE:-false}" = "true" ]; then
+            ARGS+=(--bos-ulke)
           fi
           if [ -n "${PRUVO_RUM_GUN:-}" ]; then
             ARGS+=(--gun "$PRUVO_RUM_GUN")
