@@ -4,9 +4,9 @@
 
 > Eski gövde (92 satır) `DEVAM-ARSIV.md` "2026-10-16 00:3x — C4" başlığında bayt-eşit (sha256 `abfac73d`).
 
-## 📊 DURUM — 16 Eki 22:5x, KraL halef-38 (döngü `8ffe52f6` `13,43`; halef-37 DEVİR bloğu arşivde bayt-eşit sha256 `357c92a5`)
-- ✅ **OKAN İSTEĞİ WA ikonu CANLIDA KALKTI:** main `f2a389df` (SERİT B `38938413373` + uç ESIT `3d48c6f6` + DAL_PROVA 10/10) → Pages `38954911561` deploy+yayin success → canlı ürün sayfası ikon 0 / orderAlt 0 / Bize yazın bandı 1. kanıt: /private/tmp/claude-501/-Users-okan-dev-pruvo/9d930cc8-1ddb-475f-b49c-a9400ba721e2/scratchpad/kanit/2026-10-16-2250-wa-canli.txt
-- **SIRADAKİ:** ① dal `kral/foto-capa-16eki` `78bd0674` (çapa + rızasız iniş sayacı; inis-sayac 8/8 + MUTANT 3/3, ci-kapsam YEŞİL, DAL_PROVA 10/10, merge-tree temiz) → main SERİT B bitince dal SERİT B → uç ESIT → merge → `d1-sync.py --sema` → shop deploy (`versions upload` → `deploy @100%`) → canlı POST 204 + D1 n artışı. ② `rum-vekil-olc` günlük araç. ③ IndexNow (düşük). ④ W2-2/W2-3/W2-4. kanıt: /private/tmp/claude-501/-Users-okan-dev-pruvo/9d930cc8-1ddb-475f-b49c-a9400ba721e2/scratchpad/kanit/2026-10-16-2140-inis-sayac.txt
+## 🔁 DEVİR — 17 Eki 17:2x, KraL halef-38 → halef-39 (tur 701 kota RED; döngü `8ffe52f6` SİLİNDİ → halef `13,43` "devam" kurar; eski DURUM arşivde)
+- ✅ main `1914b8ca` canlı: WA ikonu · çapa+bant (390 px) · iniş sayacı v2 site geneli (Pages `39038301202`) · RUM vekil günlük (D1 `rum_vekil`) · inis-oku aracı · cron-nabız A2. D1 17 Eki 17:2x: google/figur-arama 21 · google/gclid 2 · meta/figur-reels 2. kanıt: /private/tmp/claude-501/-Users-okan-dev-pruvo/9d930cc8-1ddb-475f-b49c-a9400ba721e2/scratchpad/kanit/2026-10-17-1725-devir.txt
+- **SIRADAKİ:** ① v2 UÇTAN UCA kabul (BaBa 09:4x şartı): tarayıcıda `sessionStorage.pruvo_inis` sil → ürün sayfası `?gbraid=KRALKABUL17` → D1 `google/gbraid` n=1 (gövdede değer yok) → `UPDATE … n=n-1` / n=0 ise sil → ağaç `kral-inis-v2` kapanış + sil. ② dal `kral/rum-ham-17eki` `4a89c26f` (KABUL 10/10 MUTANT 6/6, merge-tree kontrol) → SERİT B → ESIT → merge → `d1-sync --sema` → `gh workflow run rum-vekil.yml -f ham=true -f gun=2026-10-16` → D1 `rum_vekil_ham` oku → BaBa'ya tek satır (bot payı + instagram sınıf kaçağı) → sınıflandırıcı/`bot:0` düzeltmesi (BaBa 11:4x). ③ IndexNow (düşük) · W2-2/3/4. kanıt: /private/tmp/claude-501/-Users-okan-dev-pruvo/9d930cc8-1ddb-475f-b49c-a9400ba721e2/scratchpad/kanit/2026-10-17-1725-devir.txt
 
 ## KURALLAR
 - wrangler: `CLOUDFLARE_ACCOUNT_ID=<tools/foto-onizleme.py::HESAP>` + `WRANGLER_WRITE_LOGS=false`.
