@@ -3055,6 +3055,16 @@ IZIN_LISTESI = {
         "-> V1 KIRMIZI) / M2 (mtime sarti yok -> V3 KIRMIZI). Dogrudan cagri satiri "
         "anlamsiz: girdisi (spec + ev + baslangic zamani) isci.sh kosumudur."
     ),
+    # 18 EKI 2026 — ISCI ALT AJAN KAPISI (BaBa 01:2x (B))
+    "tools/isci-altajan-kapisi.py": (
+        "KABUL TESTI DEGIL — `~/.claude/cron/isci.sh`'in kurulu kopyasina UYGULANAN "
+        "yama (`uygula`/`kontrol <isci.sh>`: 3 claude bayrak dizisine "
+        "`--disallowedTools Agent,Task`). Argumansiz kosumu rc=2 kullanim metnidir. "
+        "DOLAYLI KOSULUR: `tools/isci-altajan-kapisi-test.py` (nobet.yml serit-b) bu "
+        "dosyanin KENDISINI subprocess ile kosar — V1-V6 + mutant M1 (bayrak eklenmez "
+        "-> V2 KIRMIZI) / M2 (kontrol hep sayar -> V1) / M3 (eksik hedefte yazar -> V4). "
+        "Dogrudan cagri satiri anlamsiz: girdisi kurulu isci.sh'tir (CI'da yok)."
+    ),
     # 10 EKI 2026 — CLAUDE-API MOTORU (tarif-rutin-api §1)
     "tools/claude-api-motor-test.py": (
         "OLCTUGU GOVDE CI KOSUCUSUNDA YOK: `~/.claude/cron/isci.sh` + "

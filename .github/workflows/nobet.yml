@@ -564,6 +564,15 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/isci-urun-kapisi-test.py
 
+      # ISCI ALT AJAN KAPISI (18 Eki 2026, BaBa 01:2x (B)): m3 iscisi engelde isi
+      # `Agent` alt ajanina devretti. Yama isci.sh'in 3 claude bayrak dizisine
+      # `--disallowedTools Agent,Task` ekler (idempotent, hedef eksikse rc=3 yazmaz).
+      # HERMETIK fikstur (kurulu kopyadan KAYNAK satirli). 6 vaka + 3 mutant; kurulu
+      # kopya (f) CI'da ATLANDI. SERIT B: kirmizisi yayini DURDURMAZ (makine kapisi).
+      - name: "Isci alt ajan kapisi — kabul testi (6 vaka + 3 mutant, hermetik)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/isci-altajan-kapisi-test.py
+
       # RECETE KAPISI — MIMAR-ICRA-KAPISI'NIN RECETE KONTROLCUSU (18 Agu 2026, K168).
       # Arac, tools/ dizinindeki HER .py icindeki "python3 ..." komutlarini mimar-icra-kapisi
       # uzerinden kuru kosuma yollar; REDDEDILEN sayisi > 0 ise rc=1. SERIT B kapsaminda — kirmizisi
