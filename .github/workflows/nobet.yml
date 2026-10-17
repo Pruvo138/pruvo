@@ -1368,6 +1368,47 @@ jobs:
       - name: "Inis sayaci okuyucu — kabul + mutant (ArTisT gunluk, agsiz)"
         if: ${{ !cancelled() }}
         run: python3 tools/inis-sayac-oku-test.py
+      # 17 Eki BaBa kurali: D1 okuyuculari gercek wrangler zarfi ortak fiksturuyle
+      # (tools/d1_zarf_fikstur.py) olculur; yeni okuyucu fikstursuz gecmez. Asagidaki
+      # 12 aracin hepsi AGSIZ ortak fikstur uzerinden zarf ayristirma yapar; seriit
+      # B kolunda toplanan kapinin (`d1-zarf-fikstur-kapisi.py`) kendisi de ayni
+      # fiksturu dogrular — yeni okuyucu eklenirse kapinin `EKSIK` ciktisi buyur.
+      - name: "D1 zarf fiksturu — d1-kaynak-sync zarf testi (agsiz)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/d1-kaynak-sync-zarf-test.py
+      - name: "D1 zarf fiksturu — d1-sync wrangler_cikti_coz zarf testi (agsiz)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/d1-sync-zarf-test.py
+      - name: "D1 zarf fiksturu — kanal-kirilim-raporu zarf testi (agsiz)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/kanal-kirilim-raporu-zarf-test.py
+      - name: "D1 zarf fiksturu — olculmemis-siparis zarf testi (agsiz)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/olculmemis-siparis-zarf-test.py
+      - name: "D1 zarf fiksturu — panel-uygulayici zarf testi (agsiz)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/panel-uygulayici-zarf-test.py
+      - name: "D1 zarf fiksturu — reklam-oci-yukleyici zarf testi (agsiz)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/reklam-oci-yukleyici-zarf-test.py
+      - name: "D1 zarf fiksturu — riza-tavani-olc zarf testi (agsiz)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/riza-tavani-olc-zarf-test.py
+      - name: "D1 zarf fiksturu — rum-vekil-olc zarf testi (agsiz)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/rum-vekil-olc-zarf-test.py
+      - name: "D1 zarf fiksturu — siparisler zarf testi (agsiz)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/siparisler-zarf-test.py
+      - name: "D1 zarf fiksturu — yayin-kapisi zarf testi (agsiz)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/yayin-kapisi-zarf-test.py
+      - name: "D1 zarf fikstur kapisi — kapsam kapisinin kendi kabul testi"
+        if: ${{ !cancelled() }}
+        run: python3 tools/d1-zarf-fikstur-kapisi-test.py
+      - name: "D1 zarf fikstur kapisi — D1 okuyuculari fiksturlu teste bagli mi"
+        if: ${{ !cancelled() }}
+        run: python3 tools/d1-zarf-fikstur-kapisi.py
       # RUM VEKIL — CF RUM'dan gunluk "/ x referer kaynak" sayimini D1'e yazan aracin
       # kabul testi (tools/rum-vekil-test.py). AGSIZ: fikstur + yerel sqlite kolu;
       # V1 sinif toplamlari birebir, V2 ayni gun 2 kosum -> ciftlenmez,
