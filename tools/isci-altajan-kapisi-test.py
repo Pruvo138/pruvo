@@ -12,17 +12,19 @@ VAKALAR (HERMETIK: gecici dizin, gercek HOME/cron'a yazilmaz)
   V2 uygula                             -> rc=0 AJAN_KAPALI=3/3 PROMPT=1
   V3 ikinci uygula (idempotent)         -> degisti=0, bayt-esit, bayrak satir basina 1 kez
   V4 KAPANIS satiri yok                 -> rc=3 OLCULEMEDI, dosya bayt-esit (yazmaz)
-  V5 arguman sirasi: `Agent,Task`'tan sonraki ilk belirtec '-' ile baslar
+  V5 arguman sirasi: `Agent,Task,Workflow`'tan sonraki ilk belirtec '-' ile baslar
      (degiskenli --disallowedTools sonraki argumani YUTMAZ), 3 dizide de
-  V6 yamali satirlar zsh'ta dizi olarak acilir, `Agent,Task` tek eleman
+  V6 yamali satirlar zsh'ta dizi olarak acilir, `Agent,Task,Workflow` tek eleman
      (zsh yoksa -- CI kosucusu -- ATLANDI, hukmu ETKILEMEZ)
+  V7 GOC: eski `Agent,Task` yamali satir -> yeni liste, bayrak satir basina 1 kez
 MUTANTLAR (yardimcinin gecici kopyasi; beklenen KIRMIZI)
   M1 bayrak eklenmez (yamala kimlik)     -> V2 KIRMIZI
   M2 kontrol hep 3/3 sayar               -> V1 KIRMIZI
   M3 eksik hedefte de yazar (fail-open)  -> V4 KIRMIZI
+  M4 goc kolu yok (ikinci bayrak eklenir) -> V7 KIRMIZI
 YEREL (canli hat yoksa -- CI -- ATLANDI, hukmu ETKILEMEZ)
   (f) kurulu ~/.claude/cron/isci.sh kontrol -> AJAN_KAPALI=3/3 PROMPT=1 basilir
-Cikti: `VAKA=<n>/<n> MUTANT_OLDU=3/3`; rc 0 yalniz hepsi yesil ise.
+Cikti: `VAKA=<n>/<n> MUTANT_OLDU=4/4`; rc 0 yalniz hepsi yesil ise.
 """
 import os
 import pwd
@@ -37,6 +39,7 @@ YARDIMCI = KOK / "isci-altajan-kapisi.py"
 FIKSTUR = KOK / "fikstur" / "isci-altajan" / "isci-bayrak-satirlari.zsh"
 CANLI = Path(pwd.getpwuid(os.getuid()).pw_dir) / ".claude" / "cron" / "isci.sh"
 DIZILER = ("CLAUDE_BAYRAKLAR=", "CLAUDE_BAYRAKLAR_2=", "KAPANIS_BAYRAKLAR=")
+LISTE = "Agent,Task,Workflow"
 
 
 def kos(yardimci, kip, yol):
@@ -64,7 +67,7 @@ def vakalar(yardimci, tmp):
     for s in metin.splitlines():
         if s.lstrip().startswith(DIZILER):
             b = s.split()
-            i = b.index("Agent,Task") if "Agent,Task" in b else -1
+            i = b.index(LISTE) if LISTE in b else -1
             sira.append(i > 0 and b[i - 1] == "--disallowedTools" and i + 1 < len(b)
                         and b[i + 1].startswith(("-", "${BUTCE_BAYRAK[@]+")))
     sonuc["V5"] = len(sira) == 3 and all(sira)
@@ -74,6 +77,15 @@ def vakalar(yardimci, tmp):
     once = eksik.read_bytes()
     rc, out = kos(yardimci, "uygula", eksik)
     sonuc["V4"] = rc == 3 and "OLCULEMEDI" in out and eksik.read_bytes() == once
+    eski = Path(tmp) / "eski.sh"
+    eski.write_text(FIKSTUR.read_text(encoding="utf-8").replace(
+        "--permission-mode bypassPermissions",
+        "--permission-mode bypassPermissions --disallowedTools Agent,Task"), encoding="utf-8")
+    rc, out = kos(yardimci, "uygula", eski)
+    sonuc["V7"] = rc == 0 and "AJAN_KAPALI=3/3" in out and all(
+        s.count("--disallowedTools") == 1 and (" " + LISTE + " ") in s
+        for s in eski.read_text(encoding="utf-8").splitlines()
+        if s.lstrip().startswith(DIZILER))
     zsh = shutil.which("zsh")
     if zsh and sonuc["V2"]:
         dizi = "\n".join(s for s in metin.splitlines() if s.lstrip().startswith(DIZILER))
@@ -84,7 +96,7 @@ def vakalar(yardimci, tmp):
                      "print -rl -- \"${(@P)d}\"; print -r -- '#SON'; done\n")
             p = subprocess.run([zsh, "-f", "-c", betik], capture_output=True, text=True)
             el = p.stdout.splitlines()
-            idx = [i for i, e in enumerate(el) if e == "Agent,Task"]
+            idx = [i for i, e in enumerate(el) if e == LISTE]
             iyi = iyi and p.returncode == 0 and len(idx) == 3 and all(
                 el[i - 1] == "--disallowedTools" and el[i + 1].startswith("-") for i in idx)
         sonuc["V6"] = iyi
@@ -116,6 +128,7 @@ def main():
             ("M1", "s = s.replace(CAPA, CAPA + \" \" + BAYRAK, 1)", "pass", "V2"),
             ("M2", "        if BAYRAK in bulunan[0]:\n            kapali += 1",
              "        kapali += 1", "V1"),
+            ("M4", "if \"--disallowedTools \" in s:", "if False:", "V7"),
             ("M3", "    if eksik:\n        print(\"OLCULEMEDI",
              "    if eksik and argv[1] == 'kontrol':\n        print(\"OLCULEMEDI", "V4"),
         ):
@@ -129,8 +142,8 @@ def main():
     else:
         print("(f) ATLANDI (canli isci.sh yok)")
     yesil = sum(s.values())
-    print("VAKA=%d/%d MUTANT_OLDU=%d/3" % (yesil, len(s), olen))
-    return 0 if yesil == len(s) and olen == 3 else 1
+    print("VAKA=%d/%d MUTANT_OLDU=%d/4" % (yesil, len(s), olen))
+    return 0 if yesil == len(s) and olen == 4 else 1
 
 
 if __name__ == "__main__":

@@ -9,10 +9,12 @@ OLCULEN VAKA (BaBa 18 Eki 01:2x (B), MaCiT oyuncak derin8 kosumu): m3 iscisi
 engel gorunce isi `Agent` alt ajanina devretti. Spec cumlesi ("alt ajan YASAK")
 yalniz ricadir; deterministik kol CLI bayragidir: isci.sh'in UC claude cagrisinin
 bayrak dizisine (`CLAUDE_BAYRAKLAR`, `CLAUDE_BAYRAKLAR_2`, `KAPANIS_BAYRAKLAR`)
-`--disallowedTools Agent,Task` eklenir. Bayrak `--permission-mode bypassPermissions`
+`--disallowedTools Agent,Task,Workflow` eklenir. Bayrak `--permission-mode bypassPermissions`
 cifinin HEMEN ARKASINA girer: arkasindan hep bir secenek (`--max-budget-usd` /
 `--output-format`) gelir, degiskenli secenek sonraki argumani YUTMAZ. Talimat
 promptuna ek cumle: alt ajan yok, engelde `SEBEP=` satiriyla dur.
+`Workflow` da listededir: 18 Eki oyuncak kabul kosumunda iscinin arac listesinde
+gorundu ve o da alt ajan dogurur. Eski liste (`Agent,Task`) tasiyan satir GOC eder.
 
 Kullanim:
   isci-altajan-kapisi.py uygula <isci.sh>   -> yamalar (idempotent); hedef satir
@@ -26,7 +28,7 @@ import re
 import sys
 import tempfile
 
-BAYRAK = "--disallowedTools Agent,Task"
+BAYRAK = "--disallowedTools Agent,Task,Workflow"
 DIZILER = ("CLAUDE_BAYRAKLAR", "CLAUDE_BAYRAKLAR_2", "KAPANIS_BAYRAKLAR")
 CAPA = "--permission-mode bypassPermissions"
 PROMPT_DEGISKENI = "ISCI_TALIMAT_PROMPTU"
@@ -67,7 +69,12 @@ def yamala(satirlar):
     for s in satirlar:
         for ad in DIZILER:
             if _dizi_deseni(ad).match(s) and BAYRAK not in s:
-                s = s.replace(CAPA, CAPA + " " + BAYRAK, 1)
+                if "--disallowedTools " in s:
+                    # GOC: eski liste (18 Eki ilk kurulum `Agent,Task`) yenisiyle degisir,
+                    # ikinci bayrak EKLENMEZ.
+                    s = re.sub(r"--disallowedTools \S+", BAYRAK, s, count=1)
+                else:
+                    s = s.replace(CAPA, CAPA + " " + BAYRAK, 1)
         m = pdesen.match(s)
         if m and "ALT AJAN YOK" not in s:
             s = '%s%s="%s%s"\n' % (m.group(1), PROMPT_DEGISKENI, m.group(2), PROMPT_EKI)

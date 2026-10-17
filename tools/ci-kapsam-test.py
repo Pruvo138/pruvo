@@ -3059,10 +3059,10 @@ IZIN_LISTESI = {
     "tools/isci-altajan-kapisi.py": (
         "KABUL TESTI DEGIL — `~/.claude/cron/isci.sh`'in kurulu kopyasina UYGULANAN "
         "yama (`uygula`/`kontrol <isci.sh>`: 3 claude bayrak dizisine "
-        "`--disallowedTools Agent,Task`). Argumansiz kosumu rc=2 kullanim metnidir. "
+        "`--disallowedTools Agent,Task,Workflow`). Argumansiz kosumu rc=2 kullanim metnidir. "
         "DOLAYLI KOSULUR: `tools/isci-altajan-kapisi-test.py` (nobet.yml serit-b) bu "
-        "dosyanin KENDISINI subprocess ile kosar — V1-V6 + mutant M1 (bayrak eklenmez "
-        "-> V2 KIRMIZI) / M2 (kontrol hep sayar -> V1) / M3 (eksik hedefte yazar -> V4). "
+        "dosyanin KENDISINI subprocess ile kosar — V1-V7 + mutant M1 (bayrak eklenmez "
+        "-> V2 KIRMIZI) / M2 (kontrol hep sayar -> V1) / M3 (eksik hedefte yazar -> V4) / M4 (goc yok -> V7). "
         "Dogrudan cagri satiri anlamsiz: girdisi kurulu isci.sh'tir (CI'da yok)."
     ),
     # 10 EKI 2026 — CLAUDE-API MOTORU (tarif-rutin-api §1)
