@@ -1368,6 +1368,15 @@ jobs:
       - name: "Inis sayaci okuyucu — kabul + mutant (ArTisT gunluk, agsiz)"
         if: ${{ !cancelled() }}
         run: python3 tools/inis-sayac-oku-test.py
+      # INDEXNOW GONDERIM (17 Eki 2026, deploy sonrasi sitemap farkini IndexNow'a
+      # tek POST ile bildiren aracin kabul testi). tools/indexnow-gonder.py
+      # stdlib only: tempdir'da sentetik git reposu (eski+yeni sitemap), yerel
+      # 127.0.0.1 stub HTTP sunucusu (thread); 7 vaka + 3 mutant (lastmod
+      # karsilastirmasi, 403 basari sayimi, kalkan URL'lerin dusmesi). Ag YOK
+      # (stub), <2 s. SERIT B: aracin kendini sinamasi; yayini DURDURMAZ.
+      - name: "IndexNow gonderim — kabul + mutant (deploy sonrasi sitemap farki, agsiz)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/indexnow-gonder-test.py
       # RUM VEKIL — CF RUM'dan gunluk "/ x referer kaynak" sayimini D1'e yazan aracin
       # kabul testi (tools/rum-vekil-test.py). AGSIZ: fikstur + yerel sqlite kolu;
       # V1 sinif toplamlari birebir, V2 ayni gun 2 kosum -> ciftlenmez,
