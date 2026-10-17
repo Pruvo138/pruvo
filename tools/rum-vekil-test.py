@@ -72,26 +72,35 @@ def fikstur_yaz(icerik):
     return yol
 
 
-def vt_oku(yol):
-    """Test kolu sqlite — D1'in yerel mukabili; SELECT ile tum satirlari okur."""
+def vt_oku(yol, tablo="rum_vekil"):
+    """Test kolu sqlite — D1'in yerel mukabili; SELECT ile tum satirlari okur.
+    `tablo` "rum_vekil" veya "rum_vekil_ham" olabilir; --ham modu yalnizca
+    ikincisine yazar (birincisi bos kalmali)."""
     conn = sqlite3.connect(yol)
     conn.row_factory = sqlite3.Row
     try:
-        return [dict(r) for r in conn.execute(
-            "SELECT gun, kaynak, n FROM rum_vekil WHERE gun=? ORDER BY kaynak", (GUN,)
-        ).fetchall()]
+        if tablo == "rum_vekil":
+            sql = "SELECT gun, kaynak, n FROM rum_vekil WHERE gun=? ORDER BY kaynak"
+        elif tablo == "rum_vekil_ham":
+            sql = "SELECT gun, host, bot, n FROM rum_vekil_ham WHERE gun=? ORDER BY host, bot"
+        else:
+            raise ValueError("bilinmeyen tablo: " + tablo)
+        return [dict(r) for r in conn.execute(sql, (GUN,)).fetchall()]
     finally:
         conn.close()
 
 
-def kos(arac, fikstur_yol, vt_yol=None, env_ek=None, cwd=None):
-    """Araci alt surec olarak kosar; (rc, stdout, stderr) doner."""
+def kos(arac, fikstur_yol, vt_yol=None, env_ek=None, cwd=None, ham=False):
+    """Araci alt surec olarak kosar; (rc, stdout, stderr) doner. `ham=True` ise
+    --ham bayragi da gonderilir (--ham modunda yalniz rum_vekil_ham'a yazilir)."""
     ortam = os.environ.copy()
     ortam.pop("CLOUDFLARE_API_TOKEN", None)
     ortam.pop("CLOUDFLARE_ACCOUNT_ID", None)
     if env_ek:
         ortam.update(env_ek)
     cmd = [sys.executable, arac, "--gun", GUN, "--fikstur", fikstur_yol]
+    if ham:
+        cmd.append("--ham")
     if vt_yol:
         cmd += ["--vt", vt_yol]
     p = subprocess.run(cmd, capture_output=True, text=True, env=ortam,
@@ -313,6 +322,134 @@ def v7_sorgu_bicimi(arac, hata):
             hata.append("V7 sorgu bicimi: %s" % neden)
 
 
+# V8 fikstur — host x bot kirilimi (--ham modu). Ham modda siniflama YOK; her (host, bot)
+# satiri dogrudan rum_vekil_ham'a yazilir. "www.instagram.com" bot=0 (insan) + "" bot=1
+# (dogrudan bot) zorunlu — siniflandirici yalniz "instagram.com"/"l.instagram.com"
+# turevlerini kapsar; www.instagram.com eski siniflandirici ile "diger" olurdu.
+V8_FIKSTUR = {
+    "data": {
+        "viewer": {
+            "accounts": [{
+                "rumPageloadEventsAdaptiveGroups": [
+                    {"count": 50, "dimensions": {"refererHost": "www.instagram.com", "bot": 0}},
+                    {"count": 10, "dimensions": {"refererHost": "www.instagram.com", "bot": 1}},
+                    {"count": 24, "dimensions": {"refererHost": "", "bot": 1}},
+                    {"count": 7,  "dimensions": {"refererHost": "l.instagram.com", "bot": 0}},
+                    {"count": 2,  "dimensions": {"refererHost": "l.instagram.com", "bot": 1}},
+                ]
+            }]
+        }
+    }
+}
+
+V8_BEKLENEN_HAM = [
+    {"host": "www.instagram.com", "bot": 0, "n": 50},
+    {"host": "www.instagram.com", "bot": 1, "n": 10},
+    {"host": "",                  "bot": 1, "n": 24},
+    {"host": "l.instagram.com",   "bot": 0, "n": 7},
+    {"host": "l.instagram.com",   "bot": 1, "n": 2},
+]
+
+
+def v8_ham_birebir(arac, hata):
+    """V8 --ham fikstur uzerinde host x bot satirlari birebir, rum_vekil bos kalir."""
+    fy = fikstur_yaz(V8_FIKSTUR)
+    vt = tempfile.mktemp(prefix="rum-vt-ham-", suffix=".sqlite")
+    try:
+        rc, out, err = kos(arac, fy, vt_yol=vt, ham=True)
+        if rc != 0:
+            hata.append("V8 --ham rc=%d (0 bekleniyordu)\n  out: %s\n  err: %s"
+                        % (rc, out, err))
+            return
+        if "RUM_VEKIL_HAM=YAZILDI" not in out:
+            hata.append("V8 --ham YAZILDI jetonu tasimaz: %r" % out)
+        # rum_vekil tamamen bos olmali (--ham modu dokunmamali)
+        bos = vt_oku(vt, "rum_vekil")
+        if bos:
+            hata.append("V8 --ham rum_vekil bos olmaliydi, dolu: %r" % bos)
+        # rum_vekil_ham satirlari birebir
+        ham_satirlar = vt_oku(vt, "rum_vekil_ham")
+        bek_set = {(r["host"], r["bot"], r["n"]) for r in V8_BEKLENEN_HAM}
+        geldi_set = {(r["host"], r["bot"], r["n"]) for r in ham_satirlar}
+        if bek_set != geldi_set:
+            hata.append("V8 ham satir sapmali: bek=%r geldi=%r"
+                        % (sorted(bek_set), sorted(geldi_set)))
+    finally:
+        for p in (fy, vt):
+            try:
+                os.unlink(p)
+            except OSError:
+                pass
+
+
+def v9_ham_stdout_sayi_yok(arac, hata):
+    """V9 --ham basarili kosumda stdout HICBIR rakam dizgesi tasimaz (gun=Y-M-D formati disinda)."""
+    fy = fikstur_yaz(V8_FIKSTUR)
+    vt = tempfile.mktemp(prefix="rum-vt-", suffix=".sqlite")
+    try:
+        rc, out, err = kos(arac, fy, vt_yol=vt, ham=True)
+        if rc != 0:
+            hata.append("V9 --ham YAZILDI vermedi: rc=%d\n  out: %s\n  err: %s"
+                        % (rc, out, err))
+            return
+        kalinti = out.replace("gun=2026-10-16", "").replace("gun=2026-10-16T", "")
+        sayilar = re.findall(r"\d+", kalinti)
+        if sayilar:
+            hata.append("V9 --ham stdout rakam tasiyor: %r (bulunan diziler: %s)"
+                        % (out, sayilar))
+    finally:
+        for p in (fy, vt):
+            try:
+                os.unlink(p)
+            except OSError:
+                pass
+
+
+def v10_ham_sorgu_bicimi(arac, hata):
+    """V10 --ham kolunun GONDERDIGI GraphQL govdesi kanitli bicimde mi (ag YOK: urlopen
+    sahtesi govdeyi yakalar). V7 deseni AYNI (ic ice, kucuk harf `string!`) + `bot` boyutu."""
+    import importlib.util
+    import urllib.error
+    yakala = {}
+    sp = importlib.util.spec_from_file_location("rum_vekil_v10", arac)
+    m = importlib.util.module_from_spec(sp)
+    sp.loader.exec_module(m)
+
+    def sahte(req, timeout=None):
+        yakala["govde"] = req.data
+        raise urllib.error.URLError("V10 sahte ag")
+
+    eski = m.urllib.request.urlopen
+    m.urllib.request.urlopen = sahte
+    try:
+        m.graphql_ham_yukle(GUN, "T", "ACCT")
+    except Exception:
+        pass
+    finally:
+        m.urllib.request.urlopen = eski
+    if "govde" not in yakala:
+        hata.append("V10 ham kol ag cagrisi yapmadi (govde yakalanamadi)")
+        return
+    g = json.loads(yakala["govde"].decode("utf-8"))
+    q = g.get("query", "")
+    tek = re.sub(r"\s+", " ", q)
+    sartlar = [
+        ("viewer { accounts(filter: {accountTag: $accountTag})" in tek,
+         "viewer{accounts} ic ice degil"),
+        ("viewer." not in q, "noktali alan yolu (gecersiz GraphQL)"),
+        ("$accountTag: string!" in q, "accountTag skaleri kucuk harf `string!` degil"),
+        ("$gun: Date!" in q, "gun skaleri `Date!` degil"),
+        ("dimensions { refererHost bot }" in tek,
+         "refererHost x bot boyutu yok"),
+        (q.count("{") == q.count("}"), "suslu parantez dengesiz"),
+        (g.get("variables") == {"accountTag": "ACCT", "gun": GUN},
+         "variables beklenen degil"),
+    ]
+    for ok, neden in sartlar:
+        if not ok:
+            hata.append("V10 ham sorgu bicimi: %s" % neden)
+
+
 MUTANTLAR = [
     ("M1 DELETE kaldirildi -> V2 cift sayar",
      'DELETE FROM rum_vekil WHERE gun=',
@@ -325,15 +462,25 @@ MUTANTLAR = [
      "V1_birebir",
      "l.facebook.com cikarilinca 62 sayim facebook yerine 'diger'e duser"),
     ("M3 stdout'a toplam basildi -> V5 rakam tasiyor",
-     'print("RUM_VEKIL=YAZILDI gun=%s" % gun)',
-     'print("RUM_VEKIL=YAZILDI gun=%s n=%d" % (gun, 999))',
+     'print("%s=YAZILDI gun=%s" % (baslik, gun))',
+     'print("%s=YAZILDI gun=%s n=%d" % (baslik, gun, 999))',
      "V5_stdout_sayi_yok",
      "toplam stdout'a basildiginde 'dijital iz' olarak CI loguna sizar"),
     ("M4 noktali alan yolu geri geldi -> V7 gecersiz sorgu",
-     '        "  viewer {\\n"\n        "    accounts(filter: {accountTag: $accountTag}) {\\n"',
-     '        "  viewer.accounts(filter: {accountTag: $accountTag}) {\\n"\n        "    {\\n"',
+     '        "query RumGunluk($accountTag: string!, $gun: Date!) {\\n"\n        "  viewer {\\n"\n        "    accounts(filter: {accountTag: $accountTag}) {\\n"',
+     '        "query RumGunluk($accountTag: string!, $gun: Date!) {\\n"\n        "  viewer.accounts(filter: {accountTag: $accountTag}) {\\n"\n        "    {\\n"',
      "V7_sorgu_bicimi",
      "17 Eki m3 cikisi `viewer.accounts(` idi: fikstur vakalari yesil kaldi, canlida her gun OLCULEMEDI olurdu"),
+    ("M5 --ham modunda rum_vekil'e de yazilir -> V8 KIRMIZI",
+     "satirlar = ham_satirlari(grup)\n            sql = yazma_ham_sql(gun, satirlar, q_fn)",
+     "satirlar = ham_satirlari(grup)\n            sql = yazma_sql(gun, {s: 0 for s in SINIFLAR}, q_fn)",
+     "V8_ham_birebir",
+     "--ham kolu yazma_ham_sql yerine yazma_sql cagirinca rum_vekil'e 0 satirlari yazilir; rum_vekil_ham bos kalir"),
+    ("M6 ham sorgudan bot boyutu dusuruldu -> V10 KIRMIZI",
+     '"        dimensions { refererHost bot }\\n"',
+     '"        dimensions { refererHost }\\n"',
+     "V10_ham_sorgu_bicimi",
+     "bot boyutu olmadan ham kirilim anlamsizlasir; V10 `dimensions { refererHost bot }` sartini yakalar"),
 ]
 
 
@@ -345,12 +492,15 @@ VAKA_FONKS = {
     "V5_stdout_sayi_yok": v5_stdout_sayi_yok,
     "V6_token_sizmaz": v6_token_sizmaz,
     "V7_sorgu_bicimi": v7_sorgu_bicimi,
+    "V8_ham_birebir": v8_ham_birebir,
+    "V9_ham_stdout_sayi_yok": v9_ham_stdout_sayi_yok,
+    "V10_ham_sorgu_bicimi": v10_ham_sorgu_bicimi,
 }
 
 
 def main():
     gecen = 0
-    toplam_vaka = 7
+    toplam_vaka = 10
     hata = []
 
     v1_birebir(ARAC, hata)
@@ -360,6 +510,9 @@ def main():
     v5_stdout_sayi_yok(ARAC, hata)
     v6_token_sizmaz(ARAC, hata)
     v7_sorgu_bicimi(ARAC, hata)
+    v8_ham_birebir(ARAC, hata)
+    v9_ham_stdout_sayi_yok(ARAC, hata)
+    v10_ham_sorgu_bicimi(ARAC, hata)
     gecen = toplam_vaka - len(hata)
 
     mutant_puan = 0

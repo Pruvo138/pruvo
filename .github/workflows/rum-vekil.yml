@@ -27,6 +27,17 @@ on:
     - cron: "37 3 * * *"
   # Elle kosum yolu HER ZAMAN acik (cron kacarsa insan tetikleyebilir).
   workflow_dispatch:
+    # Tek seferlik ham kirilim (`rum_vekil_ham` tablosuna yazar; `rum_vekil` YAZILMAZ).
+    # `gun` belirtilmeden calistirilirsa yine dun UTC kullanilir (varsayilan kol ile AYNI).
+    # `run:` metnine DIREK ${{ }} GOMULMEZ — inputlar env uzerinden python'a tasinir
+    # (enjeksiyon yuzeyi yok).
+    inputs:
+      ham:
+        type: boolean
+        default: false
+      gun:
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -47,12 +58,26 @@ jobs:
         with:
           python-version: "3.12"
 
-      # CI loguna SAYI YAZILMAZ — yalniz `RUM_VEKIL=YAZILDI` ya da
-      # `RUM_VEKIL=OLCULEMEDI sebep=<jeton>` basar; token/hesap kimligi
+      # CI loguna SAYI YAZILMAZ — yalniz `RUM_VEKIL=YAZILDI` (--ham: `RUM_VEKIL_HAM=YAZILDI`)
+      # ya da `RUM_VEKIL=OLCULEMEDI sebep=<jeton>` basar; token/hesap kimligi
       # HICBIR yerde gorunmez (FAIL-CLOSED maske aracin icinde).
       # rc 0 -> yesil; rc 3 -> OLCULEMEDI, yesile SAYILMAZ.
+      # `inputs.ham` true ise aracin --ham kolu devreye girer (CI ham kirilim yapar,
+      # `rum_vekil_ham` tablosuna yazar, `rum_vekil` tablosuna DOKUNMAZ).
+      # `inputs.gun` doluysa o gun okunur; bos ise dun UTC kullanilir.
+      # Inputlar `env:` ile python'a tasinir (run: metnine `${{ }}` GOMULMEZ).
       - name: "Rum vekil gunluk sayim (D1)"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: python3 tools/rum-vekil-olc.py
+          PRUVO_RUM_HAM: ${{ inputs.ham }}
+          PRUVO_RUM_GUN: ${{ inputs.gun }}
+        run: |
+          ARGS=()
+          if [ "${PRUVO_RUM_HAM:-false}" = "true" ]; then
+            ARGS+=(--ham)
+          fi
+          if [ -n "${PRUVO_RUM_GUN:-}" ]; then
+            ARGS+=(--gun "$PRUVO_RUM_GUN")
+          fi
+          python3 tools/rum-vekil-olc.py "${ARGS[@]}"
