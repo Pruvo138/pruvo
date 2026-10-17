@@ -1368,6 +1368,14 @@ jobs:
       - name: "Inis sayaci okuyucu — kabul + mutant (ArTisT gunluk, agsiz)"
         if: ${{ !cancelled() }}
         run: python3 tools/inis-sayac-oku-test.py
+      # RUM VEKIL — CF RUM'dan gunluk "/ x referer kaynak" sayimini D1'e yazan aracin
+      # kabul testi (tools/rum-vekil-test.py). AGSIZ: fikstur + yerel sqlite kolu;
+      # V1 sinif toplamlari birebir, V2 ayni gun 2 kosum -> ciftlenmez,
+      # V3 env yok -> rc=3 OLCULEMEDI, V4 errors dolu -> rc=3,
+      # V5 stdout rakam tasiMAMALI, V6 token sizmaz. 6 vaka + 3 mutant.
+      - name: "Rum vekil — kabul + mutant (D1 gunluk sayim, agsiz)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/rum-vekil-test.py
       # SERIT B — bu adim 68 adimindan AYRILDI (kapi SILINMEDI, ikiye bolundu):
       # bayraksiz (gercek olcum) kol SERIT A'da bloklayici kaldi, oz-nobetci kolu
       # buraya tasindi. Gerekce: tools/is-akisi-kapisi.py :: SERIT_B tablosu.
