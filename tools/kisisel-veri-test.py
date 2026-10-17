@@ -674,6 +674,10 @@ KOK_BELGE_IZIN = {
     # `JEV-ENVANTER.md` arar (tasinirsa o olcum korlesir). Icerik: kalip adi, ev, esik,
     # altin kume sayisi; tedarikci/sir/uyelik YAZILMAZ (icerik ekseni ayrica taranir).
     "JEV-ENVANTER.md": "Jev karar kaliplari envanteri — BaBa olcumu kokte arar; ic sir tasimaz",
+    # 17 Eki 2026: IndexNow anahtar dosyasi — `_site/` kokune YAYINLANIR (yayin-topla
+    # MANIFESTO), IndexNow POST'u `https://pruvo3d.com/<anahtar>.txt`'den dogrular. Anahtar
+    # tasarim geregi HALKA ACIKTIR (sir degil); icerik yalniz dosya adinin kendisidir.
+    "pruvo3d-indexnow-anahtari-17eki.txt": "IndexNow anahtar dosyasi — YAYINLANIR, halka acik dogrulama; sir/ic bilgi tasimaz",
 }
 
 

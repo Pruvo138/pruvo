@@ -432,7 +432,7 @@ def _v8_v9_kos(gccer, hata, tmp):
 
 
 def _araci_repo_icine_kur(repo_kok):
-    """V8/V9'un gecici 'repo root'u icin araci + b84aad5 anahtar dosyasinin
+    """V8/V9'un gecici 'repo root'u icin araci + anahtar dosyasinin
     bulunmasini beklemeden izole kopya kurar; gercek ROOT'a DOKUNMAZ."""
     os.makedirs(os.path.join(repo_kok, "tools"), exist_ok=True)
     shutil.copyfile(ARAC, os.path.join(repo_kok, "tools", "indexnow-gonder.py"))
