@@ -12,19 +12,24 @@ NEDEN VAR (17 Eki 2026):
 
 GUvenliK/CIKTI:
   * Sayilar stdout'a YAZILMAZ (CI loguna sizmaz, yalniz D1).
-  * Tek satir: `RUM_VEKIL=YAZILDI gun=<gun> sinif=<k>` ya da
-    `RUM_VEKIL=OLCULEMEDI sebep=<jeton>` rc=3.
+  * Tek satir: `RUM_VEKIL=YAZILDI gun=<gun>` (--ham: `RUM_VEKIL_HAM=YAZILDI gun=<gun>`)
+    ya da `RUM_VEKIL=OLCULEMEDI sebep=<jeton>` rc=3.
   * Token/hesap kimligi HICBIR cikti/hata metninde gorunmez (maskeleme).
+  * `--ham` modu: tek seferlik refererHost × bot kirilimini `rum_vekil_ham` tablosuna
+    yazar; `rum_vekil` tablosuna DOKUNMAZ (iki tablo tamamen ayri yazicilardir).
 
 KULLANIM (borusuz):
   python3 tools/rum-vekil-olc.py                 # dunden UTC, CANLI D1
   python3 tools/rum-vekil-olc.py --gun 2026-10-16
   python3 tools/rum-vekil-olc.py --fikstur <graphql.json>   # test kolu (aga CIKMAZ)
   python3 tools/rum-vekil-olc.py --vt /tmp/yerel.sqlite     # CANLI YERINE sqlite
+  python3 tools/rum-vekil-olc.py --ham                       # rum_vekil_ham'a yazar (ham kirilim)
 
 ENV (canli kol):
   CLOUDFLARE_API_TOKEN    zorunlu
   CLOUDFLARE_ACCOUNT_ID   zorunlu
+  PRUVO_RUM_HAM           "true" ise --ham ile AYNI (CI workflow'dan)
+  PRUVO_RUM_GUN           dolu ise --gun <deger> ile AYNI (CI workflow'dan)
 """
 import argparse
 import datetime
@@ -170,6 +175,73 @@ def graphql_yukle(gun, token, account_id):
     return grup
 
 
+def graphql_ham_yukle(gun, token, account_id):
+    """Ham kol — CF GraphQL'den refererHost × bot kirilimini okur.
+    Tek seferlik teshir/karakter icin; siniflama YAPMAZ, ham kirilimi
+    `rum_vekil_ham`'a yazar. Iskelet V7 ile ayni (`viewer { accounts }` ic ice,
+    kucuk harf `string!` skaler, `Date!`); bicim `rum-vekil-test.py::V10` ile olculur.
+    accountTag `variables` ile gider; sorgu dizesine elle BIRLESMEZ (enjeksiyon riski)."""
+    sorgu = (
+        # Bicim `graphql_yukle` ile AYNI iskelet (V7) + ek boyut `bot`:
+        # `viewer { accounts(...) }` ic ice (nokta YOK), CF skaleri kucuk harf `string`,
+        # bot suzgeci YOK (CF'nin ham sinifi — bize dokunmaz).
+        "query RumHam($accountTag: string!, $gun: Date!) {\n"
+        "  viewer {\n"
+        "    accounts(filter: {accountTag: $accountTag}) {\n"
+        "      rumPageloadEventsAdaptiveGroups(\n"
+        "        limit: 1000\n"
+        "        filter: {date: $gun}\n"
+        "        orderBy: [count_DESC]\n"
+        "      ) {\n"
+        "        count\n"
+        "        dimensions { refererHost bot }\n"
+        "      }\n"
+        "    }\n"
+        "  }\n"
+        "}"
+    )
+    govde = json.dumps({
+        "query": sorgu,
+        "variables": {"accountTag": account_id, "gun": gun},
+    }).encode("utf-8")
+    req = urllib.request.Request(GRAPHQL_URL, data=govde, method="POST",
+                                 headers={"Authorization": "Bearer %s" % token,
+                                          "Content-Type": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=60) as r:
+            yanit_metin = r.read().decode("utf-8", errors="replace")
+            durum = r.getcode()
+    except urllib.error.HTTPError as e:
+        raise Olculemedi("HTTP-DELTA",
+                       "HTTP %d CF GraphQL" % e.code)
+    except urllib.error.URLError as e:
+        raise Olculemedi("AG-DELTA", "CF GraphQL erisilemedi")
+    except Exception as e:
+        raise Olculemedi("AG-DELTA", "CF GraphQL hatasi: %s" % str(e)[:200])
+    if durum != 200:
+        raise Olculemedi("HTTP-DELTA", "HTTP %d" % durum)
+    try:
+        yanit = json.loads(yanit_metin)
+    except ValueError:
+        raise Olculemedi("YANIT-BOZUK", "CF yaniti JSON degil")
+    errs = yanit.get("errors")
+    if errs:
+        raise Olculemedi("GRAFIK-HATA", "GraphQL errors dolu (n=%d)" % len(errs))
+    data = yanit.get("data")
+    if not isinstance(data, dict):
+        raise Olculemedi("VERI-YOK", "data yolu yok")
+    viewer = data.get("viewer")
+    if not isinstance(viewer, dict):
+        raise Olculemedi("VERI-YOK", "viewer yolu yok")
+    hesaplar = viewer.get("accounts")
+    if not isinstance(hesaplar, list) or not hesaplar:
+        raise Olculemedi("VERI-YOK", "accounts yolu bos")
+    grup = hesaplar[0].get("rumPageloadEventsAdaptiveGroups")
+    if not isinstance(grup, list):
+        raise Olculemedi("VERI-YOK", "rumPageloadEventsAdaptiveGroups yolu yok")
+    return grup
+
+
 def fikstur_oku(yol):
     """Test kolu — GraphQL yanit dosyasi (CANLI DOKUNMAZ, aga CIKMAZ)."""
     if not os.path.exists(yol):
@@ -209,6 +281,45 @@ def yazma_sql(gun, toplamlar, q_fn):
     return "\n".join(satirlar) + "\n"
 
 
+def ham_satirlari(grupations):
+    """GraphQL `dimensions { refererHost bot }` listesi -> [(host, bot, n), ...].
+    Host kucuk harfe cekilir; None/bos -> "" (dogrudan). Bot suzgeci YOK
+    (CF'nin ham sinifi — bize dokunmaz). Ayni (host, bot) birden fazla satirda
+    gelirse TOPLANIR (CF genellikle zaten tek satir verir; savunma ama cli)."""
+    toplam = {}
+    if not grupations:
+        return []
+    for row in grupations:
+        try:
+            n = int(row.get("count") or 0)
+        except (TypeError, ValueError):
+            continue
+        dims = row.get("dimensions") or {}
+        h = dims.get("refererHost")
+        if h is None:
+            h = ""
+        try:
+            bot = int(dims.get("bot") or 0)
+        except (TypeError, ValueError):
+            bot = 0
+        anahtar = (str(h).lower().strip(), bot)
+        toplam[anahtar] = toplam.get(anahtar, 0) + n
+    return [(h, b, n) for (h, b), n in toplam.items()]
+
+
+def yazma_ham_sql(gun, satirlar, q_fn):
+    """TEK SQL metin — DELETE + INSERT. `rum_vekil_ham` tablosuna yazar;
+    `rum_vekil`'e DOKUNMAZ. Ayni gun ikinci kez koarsa cift sayim YOK
+    (PRIMARY KEY (gun, host, bot) + DELETE oncesi)."""
+    satirlar_out = ["DELETE FROM rum_vekil_ham WHERE gun=%s;" % q_fn(gun)]
+    for host, bot, n in satirlar:
+        satirlar_out.append(
+            "INSERT INTO rum_vekil_ham (gun, host, bot, n) VALUES (%s, %s, %d, %d);"
+            % (q_fn(gun), q_fn(host), int(bot), int(n))
+        )
+    return "\n".join(satirlar_out) + "\n"
+
+
 class YerelVt(object):
     ad = "sqlite"
 
@@ -219,7 +330,7 @@ class YerelVt(object):
         self._sema()
 
     def _sema(self):
-        """Yerel sqlite'a minimum gerekli tabloyu kur (CI'da --sema D1'i OLUSTURMAZ; bu
+        """Yerel sqlite'a minimum gerekli tablolari kur (CI'da --sema D1'i OLUSTURMAZ; bu
         test kolunun HIZLI KENDI KURULUSUDUR — d1-sema.sql kanonik tanim, orada da var)."""
         self.conn.executescript(
             "CREATE TABLE IF NOT EXISTS rum_vekil ("
@@ -227,6 +338,13 @@ class YerelVt(object):
             "  kaynak TEXT NOT NULL,"
             "  n INTEGER NOT NULL,"
             "  PRIMARY KEY (gun, kaynak)"
+            ");"
+            "CREATE TABLE IF NOT EXISTS rum_vekil_ham ("
+            "  gun TEXT NOT NULL,"
+            "  host TEXT NOT NULL,"
+            "  bot INTEGER NOT NULL,"
+            "  n INTEGER NOT NULL,"
+            "  PRIMARY KEY (gun, host, bot)"
             ");"
         )
 
@@ -298,14 +416,28 @@ def main(argv=None):
                     help="GraphQL yanit JSON (test kolu, aga CIKMAZ)")
     ap.add_argument("--vt", default=None,
                     help="D1 yerine yerel sqlite (test kolu)")
+    ap.add_argument("--ham", action="store_true", default=False,
+                    help="Tek seferlik refererHost x bot kirilimi (rum_vekil_ham tablosuna yazar; rum_vekil'e DOKUNMAZ)")
     a = ap.parse_args(argv)
 
+    # CI workflow input'lari: PRUVO_RUM_HAM=true -> --ham; PRUVO_RUM_GUN=YYYY-MM-DD -> --gun.
+    # CLI bayraklari acik oldugunda onceliklidir; aksi halde env'den okunur. Boylece
+    # test kolu (--ham/--gun ile) oldugu gibi calisir, CI da inputs'lari env'ye yazip
+    # python'a hicbir sey gecmeden devreye alir (enjeksiyon yuzeyi YOK).
+    if not a.ham and os.environ.get("PRUVO_RUM_HAM", "").lower() == "true":
+        a.ham = True
+    if not a.gun:
+        _env_gun = os.environ.get("PRUVO_RUM_GUN", "").strip()
+        if _env_gun:
+            a.gun = _env_gun
+
     try:
+        baslik = "RUM_VEKIL_HAM" if a.ham else "RUM_VEKIL"
         if a.gun:
             try:
                 gun_t = datetime.date.fromisoformat(a.gun)
             except ValueError as e:
-                print("RUM_VEKIL=OLCULEMEDI sebep=PENCERE-BICIMI")
+                print("%s=OLCULEMEDI sebep=PENCERE-BICIMI" % baslik)
                 return 3
             gun = gun_t.isoformat()
         else:
@@ -318,19 +450,23 @@ def main(argv=None):
             token = os.environ.get("CLOUDFLARE_API_TOKEN")
             account_id = os.environ.get("CLOUDFLARE_ACCOUNT_ID")
             if not token or not account_id:
-                print("RUM_VEKIL=OLCULEMEDI sebep=JETON-YOK")
+                print("%s=OLCULEMEDI sebep=JETON-YOK" % baslik)
                 return 3
-            grup = graphql_yukle(gun, token, account_id)
+            grup = (graphql_ham_yukle if a.ham else graphql_yukle)(gun, token, account_id)
             kaynak = "CF-RUM"
 
-        toplamlar = siniflara_ayir(grup)
         vt = vt_ac(a.vt)
         try:
             d1 = _d1_modulu() if a.vt is None else _YerelQ()
             q_fn = d1.q
         except Exception as e:
             raise Olculemedi("D1-MODULU-YOK", "d1-sync yuklenemedi: %s" % str(e)[:200])
-        sql = yazma_sql(gun, toplamlar, q_fn)
+        if a.ham:
+            satirlar = ham_satirlari(grup)
+            sql = yazma_ham_sql(gun, satirlar, q_fn)
+        else:
+            toplamlar = siniflara_ayir(grup)
+            sql = yazma_sql(gun, toplamlar, q_fn)
         try:
             vt.calistir(sql)
         except Olculemedi:
@@ -338,12 +474,12 @@ def main(argv=None):
         except Exception as e:
             raise Olculemedi("D1-YAZIM-HATASI", "yazim basarisiz: %s" % str(e)[:200])
         # Basarili: TEK satir, sayi YOK (gun disinda HICBIR rakam dizgesi).
-        print("RUM_VEKIL=YAZILDI gun=%s" % gun)
+        print("%s=YAZILDI gun=%s" % (baslik, gun))
         return 0
     except Olculemedi as x:
         # Sebep jetonu disinda HICBIR sey basma; hesap/token sizintisi YASAK.
-        sys.stderr.write("RUM_VEKIL=OLCULEMEDI sebep=%s\n" % x.jeton)
-        print("RUM_VEKIL=OLCULEMEDI sebep=%s" % x.jeton)
+        sys.stderr.write("%s=OLCULEMEDI sebep=%s\n" % (baslik, x.jeton))
+        print("%s=OLCULEMEDI sebep=%s" % (baslik, x.jeton))
         return 3
 
 
