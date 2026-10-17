@@ -13,8 +13,9 @@ Cevap her vaka/mutant icin yorumda. IKI kol:
 
 Kosum (borusuz):  python3 tools/inis-sayac-oku-test.py
 
-Son satir: KABUL <g>/6 MUTANT <m>/3  (YESIL icin 6/6 + 3/3; rc=0).
+Son satir: KABUL <g>/8 MUTANT <m>/4  (YESIL icin 8/8 + 4/4; rc=0).
 """
+import json
 import os
 import re
 import shutil
@@ -243,6 +244,50 @@ def vakalar_kos(gccer, hata):
                     hata.append("V6 --kampanya beklenen cumlelerden biri yok:\n  beklenen=%r\n  cikti=%r"
                                 % (sorted(bek_satirlar), alt))
 
+        # ── V7: CANLI D1 SEKLI — wrangler zarf LISTESI -> F1 toplamlari ──────
+        # 17 Eki olculdu: eski ayristirici liste zarfini satir sandi, canlida 25 inis
+        # varken TOPLAM=0 basti. V1-V6 yalniz sqlite kolunu olcuyordu (bu yol kordu).
+        yol7 = _d1_json_yaz(tmp, "v7.json", _d1_zarfi(F1_SATIRLAR))
+        rc, cikti = kos(ARAC, args=["--d1-json", yol7], gun="2026-10-17")
+        bek = _ilk_satir_ciz(cikti)
+        if rc == 0 and bek and all(
+            bek[k] == F1_BEK[k] for k in ("fb", "ig", "g", "geo", "diger", "toplam")
+        ):
+            gccer.append("V7")
+        else:
+            hata.append("V7 wrangler zarf listesi yanlis sayildi: rc=%d\n  bek=%s\n  olculen=%s\n  cikti=%r"
+                        % (rc, F1_BEK, bek, cikti[:300]))
+
+        # ── V8: bozuk sekil (results yok / satir alani eksik) -> rc=3, 0 YOK ─
+        bozuklar = [[{"success": True}], [], [{"results": [{"kaynak": "google"}]}]]
+        v8_ok = True
+        for i, bozuk in enumerate(bozuklar):
+            yol8 = _d1_json_yaz(tmp, "v8-%d.json" % i, bozuk)
+            rc, cikti = kos(ARAC, args=["--d1-json", yol8], gun="2026-10-17")
+            if not (rc == 3 and "INIS=OLCULEMEDI sebep=D1-SEKIL" in cikti
+                    and "TOPLAM=" not in cikti):
+                v8_ok = False
+                hata.append("V8 bozuk D1 sekli #%d sessiz gecti (rc=%d bek 3):\n  cikti=%r"
+                            % (i, rc, cikti[:300]))
+        if v8_ok:
+            gccer.append("V8")
+
+
+def _d1_zarfi(satirlar):
+    """wrangler `d1 execute --json` cevabinin GERCEK sekli (17 Eki canli cevaptan)."""
+    return [{
+        "results": [{"kaynak": k, "kampanya": c, "n": n} for _g, k, c, n in satirlar],
+        "success": True,
+        "meta": {"changes": 0, "rows_read": len(satirlar), "rows_written": 0},
+    }]
+
+
+def _d1_json_yaz(tmp, ad, veri):
+    yol = os.path.join(tmp, ad)
+    with open(yol, "w", encoding="utf-8") as f:
+        json.dump(veri, f)
+    return yol
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # MUTANTLAR (izole kopya)
@@ -313,6 +358,21 @@ def mutantlar_kos(gccer, hata):
             else:
                 hata.append("M3 hata kolunda sessiz 0 basmadi (rc=%d, 'TOPLAM=0' YOK):\n  cikti=%r"
                             % (rc, cikti[:300]))
+
+        # ── M4: 17 Eki oncesi ayristirici geri gelir -> V7 KIRMIZI ───────────
+        # Capa: zarf listesini acan dongu yerine liste AYNEN satir diye doner.
+        k = izole_kopya(tmp)
+        mutasyonla(k, "    satirlar = []\n    for zarf in raw:",
+                   "    return raw\n    satirlar = []\n    for zarf in raw:")
+        with tempfile.TemporaryDirectory(prefix="inis-m4-") as m_tmp:
+            yol = _d1_json_yaz(m_tmp, "m4.json", _d1_zarfi(F1_SATIRLAR))
+            rc, cikti = kos(k, args=["--d1-json", yol], gun="2026-10-17")
+            bek = _ilk_satir_ciz(cikti)
+            if not (rc == 0 and bek and bek["toplam"] == 46):
+                gccer.append("M4")
+            else:
+                hata.append("M4 eski ayristirici geri geldi ama V7 YESIL kaldi (toplam=46)\n  cikti=%r"
+                            % cikti[:300])
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 
@@ -327,19 +387,19 @@ def main():
     vakalar_kos(gccer, hata)
     mutantlar_kos(gccer, hata)
 
-    # Filtreleme: V1..V6 ve M1..M3 disindaki etiketler (MNEG/NEG) sayima GIRMEZ.
+    # Filtreleme: V1..V8 ve M1..M4 disindaki etiketler (MNEG/NEG) sayima GIRMEZ.
     vakalar = [g for g in gccer if g.startswith("V")]
     mutantlar = [g for g in gccer if g.startswith("M") and g[1:].isdigit()]
 
-    print("VAKA_GECEN=%d  VAKA_HATA=%d" % (len(vakalar), 6 - len(vakalar)))
-    print("MUTANT_GECEN=%d MUTANT_HATA=%d" % (len(mutantlar), 3 - len(mutantlar)))
+    print("VAKA_GECEN=%d  VAKA_HATA=%d" % (len(vakalar), 8 - len(vakalar)))
+    print("MUTANT_GECEN=%d MUTANT_HATA=%d" % (len(mutantlar), 4 - len(mutantlar)))
     for h in hata:
         print("KIRMIZI: %s" % h)
-    print("KABUL %d/6 MUTANT %d/3" % (len(vakalar), len(mutantlar)))
+    print("KABUL %d/8 MUTANT %d/4" % (len(vakalar), len(mutantlar)))
     if hata:
         print("HAL=KIRMIZI")
         return 1
-    if len(vakalar) != 6 or len(mutantlar) != 3:
+    if len(vakalar) != 8 or len(mutantlar) != 4:
         print("HAL=KIRMIZI")
         return 1
     print("HAL=YESIL")

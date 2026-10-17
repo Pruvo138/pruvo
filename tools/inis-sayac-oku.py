@@ -19,6 +19,7 @@ CIKTI (TEK SATIR, sonradan dusunulebilir analiz kolay):
 HATALAR (rc, satır):
     rc=2  INIS=OLCULEMEDI sebep=GUN-BICIMI   --gun YYYY-MM-DD degil
     rc=3  INIS=OLCULEMEDI sebep=D1           canli D1 erisilemedi (sessiz 0 YOK)
+    rc=3  INIS=OLCULEMEDI sebep=D1-SEKIL     D1 cevabi zarf/satir seklinde degil (sessiz 0 YOK)
     rc=0  Kayit yoksa sifirlarla ayni satir ("0 inis" gecerli olcumdur)
 
 DESEN: tools/reklam-oci-yukleyici.py:302-380 — `_d1_modulu` importlib ile
@@ -28,6 +29,7 @@ YOK ([[ikiz-tanim-sessiz-ayrisma]]); kapi uctan uca olculur.
 import argparse
 import datetime as _dt
 import importlib.util
+import json
 import os
 import sqlite3
 import sys
@@ -106,16 +108,45 @@ def _d1_modulu():
     return mod
 
 
+class SekilHatasi(ValueError):
+    """D1 cevabi beklenen zarf/satir seklinde degil — sayilamaz, sessiz 0 YASAK."""
+
+
+def _satirlar_coz(raw):
+    """wrangler `d1 execute --json` cevabi -> satir listesi.
+
+    Cevap ZARF LISTESIDIR: [{"results": [{kaynak, kampanya, n}, ...], "success": ..}].
+    17 Eki olculdu: eski kod yalniz dict bekliyordu; liste geldiginde zarfin kendisini
+    satir sanip `n=0` basti -> canli D1'de 25 inis varken TOPLAM=0 (sessiz 0).
+    Beklenmeyen her sekil SekilHatasi -> rc=3 OLCULEMEDI.
+    """
+    if isinstance(raw, dict):
+        raw = [raw]
+    if not isinstance(raw, list) or not raw:
+        raise SekilHatasi("D1 cevabi bos ya da liste degil")
+    satirlar = []
+    for zarf in raw:
+        if not isinstance(zarf, dict) or not isinstance(zarf.get("results"), list):
+            raise SekilHatasi("D1 zarfi 'results' listesi tasimiyor")
+        for s in zarf["results"]:
+            if not isinstance(s, dict) or not {"kaynak", "kampanya", "n"} <= set(s):
+                raise SekilHatasi("D1 satiri kaynak/kampanya/n tasimiyor")
+            satirlar.append(s)
+    return satirlar
+
+
 def _sorgu_d1(gun):
     """Canli D1: SELECT kaynak, kampanya, n FROM inis_sayac WHERE gun=?"""
     d1 = _d1_modulu()
     q = d1.q
     sql = "SELECT kaynak, kampanya, n FROM inis_sayac WHERE gun=" + q(gun)
-    raw = d1.sorgu(sql) or []
-    # D1 wrangler cevabi {"results":[{...},...]} yapisinda — satir listesi oradan turer.
-    if isinstance(raw, dict):
-        return raw.get("results") or []
-    return raw
+    return _satirlar_coz(d1.sorgu(sql))
+
+
+def _sorgu_d1_json(yol):
+    """Test kolu: wrangler cevabini dosyadan oku, canli yolla AYNI ayristiriciya ver."""
+    with open(yol, encoding="utf-8") as f:
+        return _satirlar_coz(json.load(f))
 
 
 def _sorgu_sqlite(gun, vt_yolu):
@@ -141,6 +172,8 @@ def main():
                     help="test kolu: yerel sqlite dosyasi (canli D1 yerine)")
     ap.add_argument("--kampanya", action="store_true",
                     help="her (kaynak, kampanya) icin n azalan alt satirlar bas")
+    ap.add_argument("--d1-json", metavar="YOL", default=None, dest="d1_json",
+                    help="test kolu: wrangler --json cevabi dosyasi (canli D1 ayristiricisi)")
     args = ap.parse_args()
 
     gun = _bugun_utc() if not args.gun else args.gun
@@ -152,8 +185,13 @@ def main():
     try:
         if args.vt:
             satirlar = _sorgu_sqlite(gun, args.vt)
+        elif args.d1_json:
+            satirlar = _sorgu_d1_json(args.d1_json)
         else:
             satirlar = _sorgu_d1(gun)
+    except SekilHatasi:
+        sys.stdout.write("INIS=OLCULEMEDI sebep=D1-SEKIL\n")
+        return 3
     except Exception as e:
         # Canli D1 erisilemez (token, ag, DNS) — sessiz 0 YASAK.
         sys.stdout.write("INIS=OLCULEMEDI sebep=D1\n")
