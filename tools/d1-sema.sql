@@ -692,6 +692,17 @@ CREATE TABLE IF NOT EXISTS foto_renk_onizleme (
 );
 CREATE INDEX IF NOT EXISTS idx_foto_renk_onizleme_asama ON foto_renk_onizleme (asama, guncel);
 
+-- RUM VEKIL — CF RUM'dan gunluk "/ x referer kaynak" sayimi (rizadan BAGIMSIZ, GA4 rizasiz gormez).
+-- NEDEN: GA4 rizasiz oturumu GORMEZ; CF RUM ise bostan sayar. Gunluk tek DELETE + INSERT
+-- (ayni gun ikinci kez kosarsa cift sayim YOK). Yazici: tools/rum-vekil-olc.py
+-- (CF GraphQL -> sinif toplamlari -> D1). Bu tablodaki sayilar PUBLIC CI loguna YAZILMAZ.
+CREATE TABLE IF NOT EXISTS rum_vekil (
+  gun TEXT NOT NULL,
+  kaynak TEXT NOT NULL,
+  n INTEGER NOT NULL,
+  PRIMARY KEY (gun, kaynak)
+);
+
 -- Reklam INIS sayaci (POST /api/shop/inis, shop/src/inis.js): riza vermeyen ziyaretcinin reklam inisini de sayar (GA4 rizasiz gormez).
 -- KISISEL VERI YOK: yalniz sunucu UTC gunu + beyaz listeli kaynak + kalibi tutan kampanya + sayac; IP/UA/cerez/URL ne okunur ne saklanir.
 CREATE TABLE IF NOT EXISTS inis_sayac (gun TEXT NOT NULL, kaynak TEXT NOT NULL, kampanya TEXT NOT NULL, n INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (gun,kaynak,kampanya));

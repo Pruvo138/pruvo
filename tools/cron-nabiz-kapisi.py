@@ -79,6 +79,11 @@ NE OLCER (5 EKSEN, hepsi FAIL-CLOSED)
   A2 DURUM  (AG)    — cron tasiyan is akisi GitHub tarafinda kayitli ve `state == active` mi
      (GitHub 60 gun hareketsizlikta zamanlanmis is akisini `disabled_inactivity` yapar —
      dosya yerinde durur, kimse fark etmez).
+     17 Eki 2026: yeni is akisi dosyasi (main'de henuz YOK + ref!=main) 🟡 YENI'dir, 🔴
+     degil — GitHub is akisini ancak varsayilan dala girince kaydeder. AYRIM: kayitli
+     degil VE (GITHUB_REF_NAME yok VEYA ref=='main' VEYA dosya main'de VAR) -> 🔴; aksi
+     halde 🟡. `main` olcumu GitHub contents API (`?ref=main`: 200 var · 404 yok); 404/200
+     disi her sonuc -> fail-closed: 🔴 KALIR (git DEGIL: checkout`ta origin/main yok).
   A4 PAKET  (AG · BIRINCIL, A0 ILE AYNI DESEN) — SON BASARILI PAKET TAZELIGI damgasi N
      saatten eski mi. Damgayi `paket-tazelik-alarmi.yml` KENDI kosar ve YALNIZ olcum
      `durum == 'parite'` verdiginde yukler; drift / olculemedi / atlanan kosum damga
@@ -1029,6 +1034,56 @@ def _jeton():
     return None
 
 
+def _api_mainde_var(dosya, ref="main", zaman_asimi=25):
+    """GitHub contents API: `.github/workflows/<dosya>` `ref`te var mi -> (var, hata).
+    `var=True`  : HTTP 200 — dosya main'de MEVCUT (kayitli degilse GERCEK ariza, alarm).
+    `var=False` : HTTP 404 — dosya main'de YOK (🟡 dal-yeni muafiyeti uygulanabilir).
+    `var=None, hata=str` : 404/200 DISI her sonuc (403 kota, 5xx, ag, JSON) — FAIL-CLOSED.
+    🔴 NEDEN git DEGIL (17 Eki olcumu): `cron-nabzi` isi varsayilan derinlikte checkout
+    eder, `origin/main` ref'i YOKTUR; `git cat-file -e origin/main:<yol>` ref yokken de
+    rc 128 doner -> "main'de yok" sayilirsa muafiyet FAIL-OPEN olurdu (ad/yol degisimi de
+    🟡 gecerdi). API kendi ref cozumlemesini yapar ve 404 ile "yok"u ayri soyler."""
+    url = "%s/repos/%s/contents/.github/workflows/%s?ref=%s" % (
+        API, DEPO, urllib.parse.quote(dosya), urllib.parse.quote(ref))
+    istek = urllib.request.Request(url, method="GET")
+    istek.add_header("Accept", "application/vnd.github+json")
+    istek.add_header("X-GitHub-Api-Version", "2022-11-28")
+    istek.add_header("User-Agent", "pruvo-cron-nabiz-kapisi")
+    jeton = _jeton()
+    if jeton:
+        istek.add_header("Authorization", "Bearer %s" % jeton)
+    try:
+        with urllib.request.urlopen(istek, timeout=zaman_asimi) as y:
+            kod = y.getcode()
+    except urllib.error.HTTPError as e:
+        if e.code == 404:
+            return False, None
+        return None, "contents API HTTP %s (%s)" % (e.code, dosya)
+    except Exception as e:  # noqa: BLE001 — URLError, socket.timeout, ssl ...
+        return None, "contents API cagrilamadi (%s: %s)" % (type(e).__name__, dosya)
+    if kod == 200:
+        return True, None
+    return None, "contents API beklenmeyen HTTP %s (%s)" % (kod, dosya)
+
+
+def _a2_yeni_dal_mi(ref_adi, mainde_var, mainde_hata):
+    """A2 kayitli=False hükmünde dal-yeni (🟡) muafiyeti uygulanir mi? (yenimi, kaynak).
+
+    Muafiyet YALNIZ iki kosul BIRLIKTE dogru ise uygulanir (17 Eki 2026 OLCUMU):
+      (a) `ref_adi` tanimli VE `main` degil
+      (b) `mainde_hata yok` VE `mainde_var == False` (dosya main'de YOK)
+    Bunlardan biri tutmazsa fail-closed: 🔴 KALIR (`yenimi=False`)."""
+    if not ref_adi:
+        return False, "ref yok (yerel kosum)"
+    if ref_adi == "main":
+        return False, "ref=main"
+    if mainde_hata is not None:
+        return False, "main olcum hatasi: %s" % mainde_hata
+    if mainde_var:
+        return False, "main'de var (ad/yol degisimi)"
+    return True, "dal kosumu, main'de yok"
+
+
 def api_getir(yol, zaman_asimi=25):
     """GitHub REST GET -> ayristirilmis JSON. Her ariza OlcumHatasi (fail-closed)."""
     url = "%s/%s" % (API, yol.lstrip("/"))
@@ -1388,7 +1443,8 @@ def teyitli_degerlendir(dosyalar, gozlemler, getir=None, simdi=None, bekle=None,
 
 
 def gozlem_topla(dosyalar, getir=api_getir, simdi=None,
-                 pencere_saat=TESLIM_PENCERESI_SAAT, bekle=None):
+                 pencere_saat=TESLIM_PENCERESI_SAAT, bekle=None,
+                 ref_adi=None, main_olc=None):
     """[{dosya, cron, aralik, esik, kayitli, durum, kosum_sayisi, son_kosum,
           yenileme_an, pencere_gozlemi}] — AG kolu.
 
@@ -1396,7 +1452,16 @@ def gozlem_topla(dosyalar, getir=api_getir, simdi=None,
     `simdi` IKINCI GOZLEMIN pencere sinirini kurar (bkz. `_pencere_gozlemi`); verilmezse
     olcum ani okunur. `bekle(sn)`: pencereli TEKRAR cekisler arasi bekleme — verilmezse
     yalniz GERCEK ag kolunda (`getir is api_getir`) `time.sleep`, enjekte edilen fikstur
-    `getir`inde no-op (testler uyumaz)."""
+    `getir`inde no-op (testler uyumaz).
+    `ref_adi` ENJEKTE EDILEBILIR: A2 kayitli=False hükmünde dal-yeni muafiyeti icin
+    kullanilir (bkz. `_a2_yeni_dal_mi`). Verilmezse `GITHUB_REF_NAME` ortam degiskeni
+    okunur (gercek kosum kolunda `os.environ` ile beslenir).
+    `main_olc(dosya) -> (var, hata)` ENJEKTE EDILEBILIR: fikstur ağsız+gitsiz
+    kosabilsin. Verilmezse `_api_mainde_var` (gercek GitHub contents API, `?ref=main`)
+    kullanilir."""
+    ref_adi = ref_adi if ref_adi is not None else os.environ.get("GITHUB_REF_NAME") or None
+    if main_olc is None:
+        main_olc = _api_mainde_var
     simdi = simdi or datetime.now(timezone.utc)
     if bekle is None:
         bekle = time.sleep if getir is api_getir else (lambda _sn: None)
@@ -1410,13 +1475,30 @@ def gozlem_topla(dosyalar, getir=api_getir, simdi=None,
             raise OlcumHatasi("is akisi kaydinda `path`/`id`/`created_at` yok: %r" % (wf,))
         yol_ile[wf["path"]] = wf
 
+    # A2 dal-yeni muafiyeti: YALNIZ `kayitli==False` dosya VE dal kosumunda olculur
+    # (kayitli dosyada A2 bu bilgiye BAKMAZ; ref yok/main ise muafiyet zaten uygulanmaz ->
+    # her main kosumunda N bos API cagrisi yapilmaz). Olcum hatasi -> fail-closed.
+    main_olcum = {}
+    for dosya, _cron in dosyalar:
+        if dosya in main_olcum:
+            continue
+        if yol_ile.get(".github/workflows/%s" % dosya) is not None or not ref_adi \
+                or ref_adi == "main":
+            main_olcum[dosya] = (None, None)
+            continue
+        main_olcum[dosya] = main_olc(dosya)
+
     gozlemler = []
     for dosya, cron in dosyalar:
         yol = ".github/workflows/%s" % dosya
         wf = yol_ile.get(yol)
+        # A2 dal-yeni muafiyeti icin GEREKEN uc alan: ref (kosum geneli), dosyanin main'de
+        # var/yok/hata durumu. Kayitli==False hükmünde BU uc alan birlikte hukme girer.
+        var, hata = main_olcum[dosya]
         g = {"dosya": dosya, "cron": cron, "kayitli": wf is not None,
              "durum": (wf or {}).get("state"), "kosum_sayisi": None, "son_kosum": None,
              "kayit_an": _iso(wf["created_at"]) if wf is not None else None,
+             "ref_adi": ref_adi, "mainde_var": var, "mainde_hata": hata,
              # KIRMIZI TEYIDI (K431) ikinci gozlemi SONRADAN cekebilsin diye.
              "wf_id": wf["id"] if wf is not None else None,
              "yenileme_an": None, "tum_kosumlar": [], "pencere_kirpildi": False,
@@ -1862,6 +1944,17 @@ def degerlendir(dosyalar, gozlemler, simdi=None, damga=None, damga_esigi=None,
     for g in gozlemler:
         etiket = g["dosya"]
         if not g["kayitli"]:
+            # 17 Eki 2026: kayitli=False hükmünde dal-yeni (🟡 YENI) muafiyeti — dosya
+            # main'de henuz yoksa + ref!=main ise ALARM SUSTURULMAZ (GitHub is akisini
+            # ancak varsayilan dala girince kaydeder). Her iki kosul da tutmali; biri
+            # tutmazsa fail-closed: 🔴 KALIR (ad/yol degisimi ya da yerel/ref yok).
+            yenimi, _kaynak = _a2_yeni_dal_mi(g.get("ref_adi"), g.get("mainde_var"),
+                                              g.get("mainde_hata"))
+            if yenimi:
+                satirlar.append("🟡 A2 YENI %s -> dal kosumu (%s), dosya main'de yok: "
+                                "main'e girince kaydolur; main kosumunda kayitsizsa "
+                                "KIRMIZI" % (etiket, g["ref_adi"]))
+                continue   # A3/A5 bu kol icin zaten atlanir (kayitli=False zaten A3/A5'e gidemez)
             satirlar.append("🔴 A2 DURUM %s -> GitHub'da KAYITLI DEGIL (is akisi hic "
                             "taninmamis: dosya main'de mi, adi/yolu degisti mi?)" % etiket)
             alarm = True
@@ -3882,10 +3975,13 @@ def kendini_test():
         if not kosul:
             hatalar.append(ad)
 
-    def kos(dosyalar, getir, damga_ile=False, paket_ile=False):
-        """damga_ile=True -> A0 · paket_ile=True -> A4 (GERCEK olcum yolunun ayni sirasi)."""
+    def kos(dosyalar, getir, damga_ile=False, paket_ile=False,
+            ref_adi="", main_olc=None):
+        """damga_ile=True -> A0 · paket_ile=True -> A4 (GERCEK olcum yolunun ayni sirasi).
+        ref_adi / main_olc : A2 kayitli=False hükmünde dal-yeni muafiyeti icin (test
+          kolu; gercek kol `gozlem_topla` defaultlarini kullanir)."""
         try:
-            g = gozlem_topla(dosyalar, getir)
+            g = gozlem_topla(dosyalar, getir, ref_adi=ref_adi, main_olc=main_olc)
             d = n0 = p = n4 = None
             if damga_ile:
                 _ad, n0, _ar = uzlastirici_esigi(dosyalar)
@@ -4074,8 +4170,72 @@ def kendini_test():
     iddia("A2: state=disabled_inactivity -> KIRMIZI", rc == 1, "rc=%d" % rc)
     iddia("A2: teshis 60 gun hareketsizligi ANLATIR",
           any("disabled_inactivity" in x and "60 gun" in x for x in s))
+    # ── 17 Eki 2026: A2 kayitli=False hükmünde DAL-YENI (🟡 YENI) muafiyeti ──────────
+    # GitHub is akisini YALNIZ varsayilan dala girince kaydeder; yeni dosya getiren
+    # her dal bu ekseni yapısal olarak tetiklerdi ve SERIT B'yi gecmezdi. Muafiyet
+    # YALNIZ iki kosul BIRLIKTE dogru ise: ref!=main VE dosya main'de YOK. Bunlardan
+    # biri tutmazsa fail-closed: 🔴 KALIR (mevcut "kayitli degil -> KIRMIZI" davranisi).
+    # Y4: yerel (ref yok) — mevcut "kayitli degil -> KIRMIZI" vakasini DEGISTIRMEZ.
     rc, _ = kos(D, _sahte_api(kayitli=False))
     iddia("A2: is akisi GitHub'da kayitli degil -> KIRMIZI", rc == 1, "rc=%d" % rc)
+    D_RV = [("rum-vekil.yml", "9 * * * *")]      # 17 Eki 2026 spec gercek vaka
+    # Y1: kayitli=False + ref='kral/x' + main'de YOK -> 🟡 YENI (alarm YOK)
+    rc, s = kos(D_RV, _sahte_api(kayitli=False, dosya="rum-vekil.yml"),
+                ref_adi="kral/rum-vekil-17eki",
+                main_olc=lambda _d: (False, None))
+    iddia("A2 Y1: kayitli degil + ref=kral/x + main'de YOK -> YESIL (🟡 YENI)",
+          rc == 0, "rc=%d" % rc)
+    iddia("A2 Y1: 🟡 A2 YENI rum-vekil.yml satiri var (ref adini gecirir)",
+          any("🟡 A2 YENI rum-vekil.yml" in x and "kral/rum-vekil-17eki" in x
+              for x in s), s)
+    # Y2: ref='main' -> fail-closed (kayitli degilse GERÇEK ariza)
+    rc, s = kos(D_RV, _sahte_api(kayitli=False, dosya="rum-vekil.yml"),
+                ref_adi="main",
+                main_olc=lambda _d: (False, None))
+    iddia("A2 Y2: kayitli degil + ref=main -> KIRMIZI", rc == 1, "rc=%d" % rc)
+    iddia("A2 Y2: satir KAYITLI DEGIL mesaji tasir (YENI muafiyeti UYGULANMAZ)",
+          any("A2 DURUM" in x and "KAYITLI DEGIL" in x for x in s), s)
+    # Y3: ref='kral/x' + main'de VAR (ad/yol degisimi) -> KIRMIZI
+    rc, _ = kos(D_RV, _sahte_api(kayitli=False, dosya="rum-vekil.yml"),
+                ref_adi="kral/rum-vekil-17eki",
+                main_olc=lambda _d: (True, None))
+    iddia("A2 Y3: kayitli degil + ref=kral/x + main'de VAR -> KIRMIZI (ad/yol "
+          "degisimi; dal-yeni muafiyeti UYGULANMAZ)", rc == 1, "rc=%d" % rc)
+    # Y4: ref YOK (yerel) -> KIRMIZI (mevcut davranis korunur)
+    rc, _ = kos(D_RV, _sahte_api(kayitli=False, dosya="rum-vekil.yml"),
+                ref_adi="",
+                main_olc=lambda _d: (False, None))
+    iddia("A2 Y4: kayitli degil + ref YOK (yerel) -> KIRMIZI", rc == 1, "rc=%d" % rc)
+    # Y7: KENDI TESTI ORTAMDAN YALITIK (17 Eki SERIT B 39001723976 olcumu): CI dal
+    # kosumunda `GITHUB_REF_NAME` doludur; `kos` varsayilani ortami okusaydi Y4 "yerel"
+    # vakasi CI'da yerel OLMAZDI ve kendi testi (+ onu cagiran D1 sapma bataryasi) dusurdu.
+    _eski_ref = os.environ.get("GITHUB_REF_NAME")
+    os.environ["GITHUB_REF_NAME"] = "kral/ortam-sizintisi"
+    try:
+        rc, _ = kos(D_RV, _sahte_api(kayitli=False, dosya="rum-vekil.yml"),
+                    main_olc=lambda _d: (False, None))
+    finally:
+        if _eski_ref is None:
+            os.environ.pop("GITHUB_REF_NAME", None)
+        else:
+            os.environ["GITHUB_REF_NAME"] = _eski_ref
+    iddia("A2 Y7: ortamda GITHUB_REF_NAME=dal iken kendi testi varsayilani YEREL kalir -> "
+          "KIRMIZI (ortam sizintisi yok)", rc == 1, "rc=%d" % rc)
+    # Y5: ref='kral/x' + git olcum hatasi -> fail-closed KIRMIZI
+    rc, _ = kos(D_RV, _sahte_api(kayitli=False, dosya="rum-vekil.yml"),
+                ref_adi="kral/rum-vekil-17eki",
+                main_olc=lambda _d: (None, "contents API HTTP 403"))
+    iddia("A2 Y5: kayitli degil + ref=kral/x + main olcum HATASI -> KIRMIZI "
+          "(fail-closed; muafiyet hata varken UYGULANMAZ)", rc == 1, "rc=%d" % rc)
+    # Y6: main ölçümü YALNIZ kayitsiz dosya ∧ dal kosumunda yapilir (main kosumunda N bos
+    # API cagrisi yok; kayitli dosyada A2 bu bilgiye bakmaz).
+    cagri = []
+    kos(D_RV, _sahte_api(kayitli=True, dosya="rum-vekil.yml", kosum_sayisi=9, yas_saat=0.2),
+        ref_adi="kral/rum-vekil-17eki", main_olc=lambda d: cagri.append(d) or (False, None))
+    kos(D_RV, _sahte_api(kayitli=False, dosya="rum-vekil.yml"),
+        ref_adi="main", main_olc=lambda d: cagri.append(d) or (False, None))
+    iddia("A2 Y6: kayitli dosyada ve ref=main'de main olcumu YAPILMAZ (0 cagri)",
+          cagri == [], "cagri=%r" % (cagri,))
 
     # --- A3 NABIZ (IKINCIL EKSEN — KAYBOLMADI, esigi OLCULEN cadansa gore) ---
     rc, s = kos(D, _sahte_api(kosum_sayisi=0, kayit_yas_saat=0.8))
@@ -5743,7 +5903,7 @@ def main():
         if p_sorun:
             raise OlcumHatasi(
                 "A4 KABLOSU KOPUK (%s): %s" % (PAKET_ALARM_DOSYA, " · ".join(p_sorun)))
-        gozlemler = gozlem_topla(dosyalar)
+        gozlemler = gozlem_topla(dosyalar, ref_adi=os.environ.get("GITHUB_REF_NAME") or None)
         damga = damga_gozle(ad=DAMGA_ADI)
         paket = damga_gozle(ad=PAKET_DAMGA_ADI)
     except OlcumHatasi as e:
