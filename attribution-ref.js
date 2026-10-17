@@ -8,6 +8,11 @@
   var GROUP_RE = /^[A-Z0-9]{2,4}$/;
   var SOURCE_RE = /^[A-Z]{2}$/;
   var REF_RE = /^REF:[A-Z]{2}-[A-Z0-9]{2,4}-[A-Z0-9]{4}$/;
+  // PAID yolda pg YOKKEN kullanilan kampanya -> grup haritasi (buyuk harf, GROUP_RE uzunluk
+  // sinifiyla uyumlu 2-4; "FIG"/"GY"/"UC"). utm_campaign DEGERI hicbir yere yazilmaz
+  // (kvkk + sessiz hata yok); yalniz bu tablodan sinif turesin. Yeni Figür son eki buraya;
+  // harita disinda kalan trafik "UC" (Unclassified) tasir. PMax ayri: gclid-yalniz "GY".
+  var KAMPANYA_GRUP = { "figur-arama": "FIG" };
   var LEAD_ENDPOINT = "/api/shop/ref";
   var CONSENT_KEY = "pruvo_onay_analitik";
   // ORGANIK ATIF: click-id YOKKEN, referrer bir ARAMA MOTORU ise organik REF (src=OG) uretilir.
@@ -31,6 +36,17 @@
   function normalize(value, pattern, fallback) {
     var normalized = String(value || "").toUpperCase();
     return pattern.test(normalized) ? normalized : fallback;
+  }
+
+  // PAID yolda pg YOKKEN/gecersizken grup KAMPANYA_GRUP'tan turetilir. utm_campaign ham
+  // degeri yalniz HARITA bakisi icin kullanilir; hicbir yere yazilmaz/loglanmaz (kvkk).
+  // Bos/yok utm_campaign -> "GY" (gclid-yalniz), tabloda olan -> degeri, harita disi -> "UC".
+  // Tablo bos ise (M1 mutant'i gibi) harita hic vurmaz, trafik "UC" tasiyarak PMax'ten
+  // (gclid-yalniz "GY") sayim ayri kalir; bu kasitli fail-closed davranistir.
+  function paidGroupFromCampaign(params) {
+    var raw = String((params && params.get("utm_campaign")) || "").trim().toLowerCase();
+    if (raw === "") { return "GY"; }
+    return KAMPANYA_GRUP[raw] || "UC";
   }
 
   function randomPart() {
@@ -204,8 +220,12 @@
     }
 
     if (hasClickId) {
-      // PAID yol — DEGISMEZ.
-      var group = normalize(params.get("pg"), GROUP_RE, "G0");
+      // PAID yol — pg ONCELIKLI (varsa AYNEN; G0'a dusmez); pg yoksa/gecersizse grup
+      // KAMPANYA_GRUP'tan turetilir (figur-arama -> FIG, gclid-yalniz -> GY, harita disi -> UC).
+      // utm_campaign DEGERI hicbir yere yazilmaz/saklanmaz (kvkk); yalniz sinif turesin.
+      var pgValue = params.get("pg");
+      var pgNormalized = String(pgValue || "").toUpperCase();
+      var group = GROUP_RE.test(pgNormalized) ? pgNormalized : paidGroupFromCampaign(params);
       var source = normalize(params.get("s"), SOURCE_RE, "GS");
       var ref = makeRef(source, group);
       if (!ref) { return; }
