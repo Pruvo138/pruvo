@@ -20,6 +20,15 @@ Storage.prototype.getItem = function (key) {
 Storage.prototype.setItem = function (key, value) { this.data[key] = String(value); };
 Storage.prototype.removeItem = function (key) { delete this.data[key]; };
 
+function SessionStorage(initial) {
+  this.data = Object.assign({}, initial || {});
+}
+SessionStorage.prototype.getItem = function (key) {
+  return Object.prototype.hasOwnProperty.call(this.data, key) ? this.data[key] : null;
+};
+SessionStorage.prototype.setItem = function (key, value) { this.data[key] = String(value); };
+SessionStorage.prototype.removeItem = function (key) { delete this.data[key]; };
+
 function Anchor(href) {
   this.attrs = { href: href };
   this.tagName = "A";
@@ -37,6 +46,12 @@ function randomSource() {
       return bytes;
     }
   };
+}
+
+// Yardimci: attribution-ref.js IKI ayri beacon yolu tasir (ref + inis). Eski senaryolar
+// ref'e odaklanir; gclid iceren sorgularda inis de 1 ekledigi icin ref-only filtresi sart.
+function refOnly(res) {
+  return res.beacons.filter(function (b) { return b.url === "/api/shop/ref"; });
 }
 
 // navigator.sendBeacon stub: cagrilari yakalar. Blob yerine partlari saklayan sahte yapi ->
@@ -57,14 +72,33 @@ function run(search, storage, hrefs, random, options) {
     addEventListener: function (name, handler) { listeners[name] = handler; }
   };
   var location = { search: search, href: "https://example.test/" + search };
-  var window = {};
+  var gtagCalls = options.gtagCalls || [];
+  var dlPushCalls = options.dlPushCalls || [];
+  var spyDataLayer = {
+    push: function () {
+      dlPushCalls.push(Array.prototype.slice.call(arguments));
+      return dlPushCalls.length;
+    },
+    length: 0
+  };
+  var window = {
+    gtag: function () { gtagCalls.push(Array.prototype.slice.call(arguments)); },
+    dataLayer: spyDataLayer
+  };
+  // I8: modulun gtag/dataLayer cagiri sayisi 0 olmali. Spy, modul kosana kadar bos
+  // (testin warm-up cagrisi yok); moduldan gelen HER push/call diziye eklenir.
   var beacons = [];
   var navigator = {
-    sendBeacon: function (url, blob) {
-      beacons.push({ url: url, type: blob && blob.type, body: blob && blob.parts && blob.parts[0] });
+    sendBeacon: function (url, data) {
+      var body, type;
+      if (typeof data === "string") { body = data; type = "text/plain"; }
+      else if (data && data.parts) { body = data.parts[0]; type = data.type; }
+      beacons.push({ url: url, type: type, body: body });
       return options.beaconFails ? false : true;
     }
   };
+  var sessionStorage = options.sessionStorage || new SessionStorage();
+  window.sessionStorage = sessionStorage;
   var context = {
     window: window,
     document: document,
@@ -78,11 +112,13 @@ function run(search, storage, hrefs, random, options) {
     Uint8Array: Uint8Array,
     Date: Date,
     JSON: JSON,
-    String: String
+    String: String,
+    sessionStorage: sessionStorage
   };
   vm.runInNewContext(MODULE, context, { filename: "attribution-ref.js" });
   return { window: window, anchors: anchors, listeners: listeners, context: context,
-           beacons: beacons, storage: storage };
+           beacons: beacons, storage: storage, sessionStorage: sessionStorage,
+           gtagCalls: gtagCalls, dlPushCalls: dlPushCalls };
 }
 
 // Bir click olayini dogrudan yakalayici handler'a ver (event.target = anchor).
@@ -208,10 +244,11 @@ var WA = "https://wa.me/905451386526?text=Merhaba";
 scenario("lead beacon paid", function () {
   var result = run("?gclid=TEST&pg=BYP", new Storage({ pruvo_onay_analitik: "kabul" }), [WA]);
   click(result);
-  assert(result.beacons.length === 1, "beacon tam 1 kez gonderilmedi: " + result.beacons.length);
-  assert(result.beacons[0].url === "/api/shop/ref", "beacon ucu yanlis: " + result.beacons[0].url);
-  assert(result.beacons[0].type === "application/json", "beacon content-type yanlis");
-  var p = JSON.parse(result.beacons[0].body);
+  var refs = refOnly(result);
+  assert(refs.length === 1, "ref beacon tam 1 kez gonderilmedi: " + refs.length);
+  assert(refs[0].url === "/api/shop/ref", "beacon ucu yanlis: " + refs[0].url);
+  assert(refs[0].type === "application/json", "beacon content-type yanlis");
+  var p = JSON.parse(refs[0].body);
   assert(p.ref === result.window.pruvoRef(), "payload ref aktif REF degil");
   assert(p.gclid === "TEST", "payload gclid yanlis: " + p.gclid);
   assert(p.grup === "BYP" && p.src === "GS" && typeof p.ts === "number", "payload grup/src/ts eksik");
@@ -230,28 +267,28 @@ scenario("lead idempotent ayni sayfa", function () {
   click(result);
   click(result);
   click(result);
-  assert(result.beacons.length === 1, "ayni sayfada tekrar gonderildi: " + result.beacons.length);
+  assert(refOnly(result).length === 1, "ayni sayfada tekrar gonderildi: " + refOnly(result).length);
 });
 
 scenario("lead idempotent sayfalar arasi", function () {
   var storage = new Storage({ pruvo_onay_analitik: "kabul" });
   var first = run("?gclid=X&pg=NUM", storage, [WA]);
   click(first);
-  assert(first.beacons.length === 1, "ilk sayfada beacon gitmedi");
+  assert(refOnly(first).length === 1, "ilk sayfada beacon gitmedi");
   // Ayni tarayici, sonraki sayfa (organik don): record.logged kalicidir -> tekrar gonderilmez.
   var second = run("", storage, [WA]);
   click(second);
-  assert(second.beacons.length === 0, "logged kayit ikinci sayfada tekrar gonderdi");
+  assert(refOnly(second).length === 0, "logged kayit ikinci sayfada tekrar gonderdi");
 });
 
 scenario("lead riza yok", function () {
   // Riza kapisi: pruvo_onay_analitik !== 'kabul' -> gonderilmez (varsayilan riza-kapili).
   var result = run("?gclid=X&pg=BYP", new Storage(), [WA]);
   click(result);
-  assert(result.beacons.length === 0, "riza olmadan beacon gonderildi");
+  assert(refOnly(result).length === 0, "riza olmadan ref beacon gonderildi");
   var reddedilmis = run("?gclid=X&pg=BYP", new Storage({ pruvo_onay_analitik: "red" }), [WA]);
   click(reddedilmis);
-  assert(reddedilmis.beacons.length === 0, "riza 'red' iken beacon gonderildi");
+  assert(refOnly(reddedilmis).length === 0, "riza 'red' iken ref beacon gonderildi");
 });
 
 scenario("lead gbraid wbraid", function () {
@@ -262,8 +299,9 @@ scenario("lead gbraid wbraid", function () {
   assert(kayit.gbraid === "GB123" && kayit.wbraid === "WB456", "gbraid/wbraid record'a yakalanmadi");
   assert(kayit.gclid === null, "gclid null degil");
   click(result);
-  assert(result.beacons.length === 1, "gbraid/wbraid lead gonderilmedi");
-  var p = JSON.parse(result.beacons[0].body);
+  var refs = refOnly(result);
+  assert(refs.length === 1, "gbraid/wbraid lead gonderilmedi");
+  var p = JSON.parse(refs[0].body);
   assert(p.gbraid === "GB123" && p.wbraid === "WB456", "payload gbraid/wbraid yanlis");
   assert(!("gclid" in p), "bos gclid alani atilmadi");
 });
@@ -277,8 +315,10 @@ scenario("lead beacon basarisizsa loglanmaz", function () {
   // `logged` YAZMADIGI icin lead tiki ikinci kez dener. Iki deneme, iki AYRI cagri yeri.
   // Sayi ZAYIFLATILMADI (>=1 degil, TAM 2): "basarisizsa tekrar denenir" iddiasi tam da
   // ikinci denemenin VARLIGIYLA olculur.
-  assert(result.beacons.length === 2,
-         "basarisiz beacon iki cagri yerinden de denenmedi: " + result.beacons.length);
+  // (Inis-v2 sonrasi: URL'de click-id var -> inis de gonderilebilir; sadece /api/shop/ref'e bak.)
+  var refs = refOnly(result);
+  assert(refs.length === 2,
+         "basarisiz ref beacon iki cagri yerinden denenmedi: " + refs.length);
   var kayit = JSON.parse(storage.getItem("pruvo_ref"));
   assert(!kayit.logged, "basarisiz beacon logged=true yazdi");
 });
@@ -291,9 +331,10 @@ scenario("OCI#2 paid: wa.me'ye HIC tiklanmadan ref->gclid kalicilasir", function
   // -> Ads'e OCI yuklenemiyor. Bu vaka TIK OLMADAN beacon'i olcer.
   var storage = new Storage({ pruvo_onay_analitik: "kabul" });
   var result = run("?gclid=ABC123&pg=OTO", storage, [WA]);   // click() CAGRILMIYOR
-  assert(result.beacons.length === 1,
-         "tik olmadan beacon gonderilmedi (OCI#2 kolu olu): " + result.beacons.length);
-  var p = JSON.parse(result.beacons[0].body);
+  var refs = refOnly(result);
+  assert(refs.length === 1,
+         "tik olmadan ref beacon gonderilmedi (OCI#2 kolu olu): " + refs.length);
+  var p = JSON.parse(refs[0].body);
   assert(p.gclid === "ABC123", "payload gclid yanlis: " + p.gclid);
   assert(/^REF:GS-OTO-[A-Z0-9]{4}$/.test(p.ref), "payload REF gecersiz: " + p.ref);
   var kayit = JSON.parse(storage.getItem("pruvo_ref"));
@@ -305,17 +346,17 @@ scenario("OCI#2 paid: acilis beacon'i sonra gelen wa.me tikinda TEKRARLANMAZ", f
   var storage = new Storage({ pruvo_onay_analitik: "kabul" });
   var result = run("?gclid=ABC123&pg=OTO", storage, [WA]);
   click(result);
-  assert(result.beacons.length === 1,
-         "ayni REF icin ikinci beacon gonderildi: " + result.beacons.length);
+  assert(refOnly(result).length === 1,
+         "ayni REF icin ikinci ref beacon gonderildi: " + refOnly(result).length);
 });
 
 scenario("OCI#2 NEGATIF: riza yokken acilis beacon'i GONDERILMEZ", function () {
   // Gizlilik regresyonu kolu — OCI#2 yeni bir alan TOPLAMAZ, yalniz ZAMANI degistirir.
   var result = run("?gclid=ABC123&pg=OTO", new Storage(), [WA]);
-  assert(result.beacons.length === 0, "rizasiz acilis beacon'i gonderildi");
+  assert(refOnly(result).length === 0, "rizasiz acilis ref beacon gonderildi");
   var red = run("?gclid=ABC123&pg=OTO",
                 new Storage({ pruvo_onay_analitik: "red" }), [WA]);
-  assert(red.beacons.length === 0, "riza 'red' iken acilis beacon'i gonderildi");
+  assert(refOnly(red).length === 0, "riza 'red' iken acilis ref beacon gonderildi");
 });
 
 scenario("OCI#2 NEGATIF: ORGANIK (OG) kol acilista beacon GONDERMEZ", function () {
@@ -323,10 +364,10 @@ scenario("OCI#2 NEGATIF: ORGANIK (OG) kol acilista beacon GONDERMEZ", function (
   // OG kolu bugunku "lead ani" anlaminda KALIR — bu vaka o siniri civiler.
   var result = run("", new Storage({ pruvo_onay_analitik: "kabul" }), [WA], null,
                    { referrer: "https://www.google.com/search?q=pruvo" });
-  assert(result.beacons.length === 0,
-         "organik REF acilista beacon gonderdi (kapsam genisledi): " + result.beacons.length);
+  assert(refOnly(result).length === 0,
+         "organik REF acilista ref beacon gonderdi (kapsam genisledi): " + refOnly(result).length);
   click(result);
-  assert(result.beacons.length === 1, "organik lead tiki beacon gondermedi");
+  assert(refOnly(result).length === 1, "organik lead tiki ref beacon gondermedi");
 });
 
 // ---- ORGANIK ATIF (YENI): arama motoru referrer -> src=OG ----
@@ -404,6 +445,221 @@ scenario("paid arama referrer'inda bile OG'ye donmez", function () {
   var result = run("?gclid=X&pg=BYP", new Storage(), [], null,
     { referrer: "https://www.google.com/" });
   assert(/^REF:GS-BYP-[A-Z0-9]{4}$/.test(result.window.pruvoRef()), "paid REF OG'ye kaydi");
+});
+
+// ---- INIS-V2 (17 Eki 2026): site geneli inis beacon'i ----
+
+var INIS_SESSION_KEY = "pruvo_inis";
+
+function inisErisim(ss) { return ss && ss.data && ss.data[INIS_SESSION_KEY]; }
+
+scenario("I1 utm_source'lü ilk yukleme -> beacon {s:'google', c:'figur'}", function () {
+  var session = new SessionStorage();
+  var result = run("?utm_source=Google&utm_campaign=figur", new Storage(), [], null,
+    { sessionStorage: session });
+  var inis = result.beacons.filter(function (b) { return b.url === "/api/shop/inis"; });
+  assert(inis.length === 1, "inis beacon tam 1 kez gonderilmedi: " + JSON.stringify(inis));
+  var p = JSON.parse(inis[0].body);
+  assert(p.s === "google" && p.c === "figur", "inis payload s/c yanlis: " + JSON.stringify(p));
+  assert(JSON.stringify(Object.keys(p)) === JSON.stringify(["s", "c"]),
+    "gövdede fazla alan: " + JSON.stringify(Object.keys(p)));
+  assert(inisErisim(session) === "1", "sessionStorage isareti konmadi");
+});
+
+scenario("I2 gclid -> {s:'google', c:'gclid'}; govdede deger YOK", function () {
+  var session = new SessionStorage();
+  var result = run("?gclid=ABC123xyz", new Storage(), [], null,
+    { sessionStorage: session });
+  var inis = result.beacons.filter(function (b) { return b.url === "/api/shop/inis"; });
+  assert(inis.length === 1, "gclid icin inis beacon yok: " + JSON.stringify(inis));
+  var p = JSON.parse(inis[0].body);
+  assert(p.s === "google" && p.c === "gclid", "gclid payload yanlis: " + JSON.stringify(p));
+  assert(inis[0].body.indexOf("ABC123xyz") === -1, "govdeye gclid DEGERI sizdi: " + inis[0].body);
+});
+
+scenario("I3 gbraid -> {s:'google', c:'gbraid'} (wbraid da benzer)", function () {
+  var session = new SessionStorage();
+  var result = run("?gbraid=Q1", new Storage(), [], null,
+    { sessionStorage: session });
+  var inis = result.beacons.filter(function (b) { return b.url === "/api/shop/inis"; });
+  assert(inis.length === 1, "gbraid icin inis beacon yok");
+  var p = JSON.parse(inis[0].body);
+  assert(p.s === "google" && p.c === "gbraid", "gbraid payload yanlis: " + JSON.stringify(p));
+  assert(inis[0].body.indexOf("Q1") === -1, "govdeye gbraid DEGERI sizdi");
+});
+
+scenario("I4 fbclid -> {s:'facebook', c:'fbclid'}; govdede F9 yok", function () {
+  var session = new SessionStorage();
+  var result = run("?fbclid=F9", new Storage(), [], null,
+    { sessionStorage: session });
+  var inis = result.beacons.filter(function (b) { return b.url === "/api/shop/inis"; });
+  assert(inis.length === 1, "fbclid icin inis beacon yok");
+  var p = JSON.parse(inis[0].body);
+  assert(p.s === "facebook" && p.c === "fbclid", "fbclid payload yanlis: " + JSON.stringify(p));
+  assert(inis[0].body.indexOf("F9") === -1, "govdeye fbclid DEGERI sizdi");
+});
+
+scenario("I5 parametresiz -> 0 inis beacon", function () {
+  var session = new SessionStorage();
+  var result = run("", new Storage(), [], null, { sessionStorage: session });
+  var inis = result.beacons.filter(function (b) { return b.url === "/api/shop/inis"; });
+  assert(inis.length === 0, "parametresiz halde inis beacon gonderildi: " + JSON.stringify(inis));
+  assert(!inisErisim(session), "parametresiz halde session isareti kondu");
+});
+
+scenario("I6 ikinci yukleme ayni sessionStorage -> 0 inis beacon", function () {
+  var session = new SessionStorage();
+  run("?utm_source=meta&utm_campaign=akut", new Storage(), [], null,
+    { sessionStorage: session });
+  var once = inisErisim(session);
+  assert(once === "1", "birinci yukleme sonrasi session isareti yok: " + once);
+  var result = run("?utm_source=meta&utm_campaign=akut", new Storage(), [], null,
+    { sessionStorage: session });
+  var inis = result.beacons.filter(function (b) { return b.url === "/api/shop/inis"; });
+  assert(inis.length === 0, "ikinci yuklemede de inis beacon gonderildi: " + JSON.stringify(inis));
+});
+
+scenario("I7 riza YOK iken de I2 -> 1 inis beacon (PII yok, riza bagimsiz)", function () {
+  // riza YOK (storage bos) + gclid var -> inis beacon YINE gider (KVKK: PII = 0, riza gerekmez).
+  var session = new SessionStorage();
+  var result = run("?gclid=ABC123xyz", new Storage(), [], null,
+    { sessionStorage: session });
+  var inis = result.beacons.filter(function (b) { return b.url === "/api/shop/inis"; });
+  assert(inis.length === 1, "rizasiz inis beacon gitmedi: " + JSON.stringify(inis));
+});
+
+scenario("I8 gtag/dataLayer cagrisi 0 (inis akisi bunlara DOKUNMAZ)", function () {
+  var session = new SessionStorage();
+  var result = run("?utm_source=meta&utm_campaign=akut&gclid=ABC", new Storage(), [], null,
+    { sessionStorage: session });
+  assert(result.gtagCalls.length === 0,
+    "modul gtag cagirisi yapti: " + JSON.stringify(result.gtagCalls));
+  assert(result.dlPushCalls.length === 0,
+    "modul dataLayer.push cagirisi yapti: " + JSON.stringify(result.dlPushCalls));
+});
+
+// ---- MUTANT'LAR: gecici kopya uzerinde metinsel mutasyon ----
+
+var fsMut = require("fs");
+var osMut = require("os");
+var pathMut = require("path");
+
+/* Modulun gecici bir kopyasini mutate et, vm ile calistir, sonra sil. Tek ortam: /tmp. */
+function mutantKos(mutantKod, search, session) {
+  var dosya = pathMut.join(osMut.tmpdir(), "pruvo-attribution-mutant-" +
+    Date.now() + "-" + Math.random().toString(36).slice(2, 8) + ".js");
+  fsMut.writeFileSync(dosya, mutantKod, "utf8");
+  try {
+    var anchors = [];
+    var beacons = [];
+    var gtagCalls = [];
+    var dlPushCalls = [];
+    var dlProxy = {
+      push: function () {
+        dlPushCalls.push(Array.prototype.slice.call(arguments));
+        return dlPushCalls.length;
+      }, length: 0
+    };
+    var document = {
+      readyState: "complete", referrer: "",
+      querySelectorAll: function () { return anchors; },
+      addEventListener: function () {}
+    };
+    var location = { search: search, href: "https://example.test/" + search };
+    var window = {
+      gtag: function () { gtagCalls.push(Array.prototype.slice.call(arguments)); },
+      dataLayer: dlProxy
+    };
+    var navigator = {
+      sendBeacon: function (url, data) {
+        var body, type;
+        if (typeof data === "string") { body = data; type = "text/plain"; }
+        else if (data && data.parts) { body = data.parts[0]; type = data.type; }
+        beacons.push({ url: url, type: type, body: body });
+        return true;
+      }
+    };
+    var context = {
+      window: window, document: document, location: location,
+      localStorage: new Storage(), navigator: navigator, Blob: FakeBlob,
+      crypto: randomSource(), URL: URL, URLSearchParams: URLSearchParams,
+      Uint8Array: Uint8Array, Date: Date, JSON: JSON, String: String,
+      sessionStorage: session || new SessionStorage()
+    };
+    vm.runInNewContext(fsMut.readFileSync(dosya, "utf8"), context,
+      { filename: dosya });
+    return { beacons: beacons, gtagCalls: gtagCalls, dlPushCalls: dlPushCalls };
+  } finally {
+    try { fsMut.unlinkSync(dosya); } catch (e) {}
+  }
+}
+
+function inisBekir(res) {
+  return res.beacons.filter(function (b) { return b.url === "/api/shop/inis"; });
+}
+
+scenario("M1 govdeye click-id DEGERI eklenir -> I2 KIRMIZI (sizinti)", function () {
+  // MUTANT: govde {s, c, gid} eklenir; gclid degeri "ABC123xyz" yine ele verir.
+  var mutated = MODULE.replace(
+    'JSON.stringify({ s: s, c: c })',
+    'JSON.stringify({ s: s, c: c, gid: (params.get("gclid") || params.get("gbraid") ' +
+      '|| params.get("wbraid") || params.get("fbclid") || "") })'
+  );
+  assert(mutated !== MODULE, "M1 metinsel mutasyon uygulanamadi");
+  var res = mutantKos(mutated, "?gclid=ABC123xyz");
+  var inis = inisBekir(res);
+  assert(inis.length === 1 && inis[0].body.indexOf("ABC123xyz") !== -1,
+    "M1 gclid degerini sizdirmadi; regress muaf olmus olabilir");
+  // I2 KIRMIZI yakalandi: deger GEZEGENDE, davranis kabul edilebilir degil.
+  // Bu vaka PASS ettigi AN mutant DEVAM ediyor demektir; testin KENDISI gecti,
+  // mutant REGRESS'i I2'nin reddedilmesiyle hukmen cogu.
+});
+
+scenario("M2 riza kapisi eklenir -> I7 KIRMIZI (riza=0 iken hala gider)", function () {
+  // MUTANT: inisSay() basina `if (!hasConsent()) { return; }` enjekte et.
+  // hasConsent localStorage'a bakar; riza yokken 'kabul' degilse early-return.
+  var mutated = MODULE.replace(
+    "function inisSay() {",
+    'function inisSay() { if (typeof hasConsent === "function" && !hasConsent()) { return; }'
+  );
+  assert(mutated !== MODULE, "M2 metinsel mutasyon uygulanamadi");
+  var res = mutantKos(mutated, "?gclid=ABC123xyz");
+  var inis = inisBekir(res);
+  // I7 beklentisi: riza yokken de 1 inis beacon. MUTANT bunu KIRMIZI yapar (0 beacon).
+  // Test gecmezse mutant yakalanmis demektir.
+  assert(inis.length === 0,
+    "M2 riza kapisi inis'i durdurmadi -> I7 hala GECTI; mutant algilanamadi");
+});
+
+scenario("M3 oturum isareti kalkar -> I6 KIRMIZI (ayni oturumda iki beacon)", function () {
+  // MUTANT: `if (depo && depo.getItem("pruvo_inis")) { return; }` satirini sil.
+  // (Iki mock'lu sessionStorage ayarliyor; ilk kosudan sonra "pruvo_inis"=1 var,
+  // mutant'li kopya YINE bir beacon gonderir.)
+  var mutated = MODULE.replace(
+    'if (depo && depo.getItem("pruvo_inis")) { return; }', ""
+  );
+  assert(mutated !== MODULE, "M3 metinsel mutasyon uygulanamadi");
+  var session = new SessionStorage();
+  mutantKos(mutated, "?utm_source=meta&utm_campaign=akut", session);
+  var res = mutantKos(mutated, "?utm_source=meta&utm_campaign=akut", session);
+  var inis = inisBekir(res);
+  // I6 beklentisi: ayni oturumda 2. yukleme 0 inis. MUTANT 1 uretir.
+  assert(inis.length === 1,
+    "M3 oturum isareti olmadan 2. beacon gondermedi -> I6 hala GECTI");
+});
+
+scenario("M4 gclid kolu silinir -> I2 KIRMIZI (gclid ile hic inis yok)", function () {
+  // MUTANT: gclid|gbraid|wbraid dalini sil. ?gclid=... ile inis uretilmez.
+  var mutated = MODULE.replace(
+    '} else if (params.has("gclid") || params.has("gbraid") || params.has("wbraid")) {',
+    '} else if (false) {'
+  );
+  assert(mutated !== MODULE, "M4 metinsel mutasyon uygulanamadi");
+  var res = mutantKos(mutated, "?gclid=ABC123xyz");
+  var inis = inisBekir(res);
+  // I2 beklentisi: gclid ile 1 inis beacon. MUTANT 0 uretir.
+  assert(inis.length === 0,
+    "M4 gclid kolu silinmis ama inis uretiyor -> I2 KIRMIZI degil");
 });
 
 // Payda SABIT YAZILMAZ — 21 Eyl 2026'da 32 senaryo kosarken "/28" basiyordu (4 tur bayat).

@@ -7724,26 +7724,24 @@ console.log("ÇA) ÇAPA İNİŞİ — #fotoUretim ile açılışta bölüm açı
   }
 }
 
-// ---------------------------------------------------------------- İS) REKLAM İNİŞ SAYACI (rızasız, kişisel veri yok)
-// `?utm_source=…` ile açılış -> /api/shop/inis'e TEK sendBeacon {s, c}; AYNI oturumda ikinci yükleme -> 0 beacon;
-// utm'siz açılış -> 0; hiçbir yüklemede gtag/dataLayer çağrısı yok (rıza kapısının işi değil, GA4'e gitmez).
-console.log("İS) REKLAM İNİŞ SAYACI — utm_source'lu açılışta oturum başına tek beacon, gtag 0");
+// ---------------------------------------------------------------- İS) REKLAM İNİŞ SAYACI KALDIRILDI (inis-v2, 17 Eki)
+// foto-uretim.js (ana sayfa) artik inis beacon'i tasimaz; site geneli (attribution-ref.js, her
+// sayfada /varlik/atif-*.js olarak) tek kaynak. Burasi: "foto-uretim.js'te iniş beacon'ı YOK" vakasi.
+console.log("İS) foto-uretim.js'te iniş beacon'ı YOK (v1 kolu kaldirildi; tik/akis dahil hicbir yolda)");
 {
   const V = veriYukle(VERI_KAYNAK);
   const m = new Map();
   const depo = { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => { m.set(k, String(v)); }, removeItem: (k) => { m.delete(k); } };
-  const b1 = [], b2 = [], b3 = [], g = [];
+  const b1 = [], b2 = [], g = [];
   const ara = "?utm_source=google&utm_campaign=foto-ekim";
   await ekranKos(EKRAN_KAYNAK, V, acikGercek(V, V6_TUM), null, null, { search: ara, hash: "#fotoUretim", depo, beacon: b1, gtag: g });
   await ekranKos(EKRAN_KAYNAK, V, acikGercek(V, V6_TUM), null, null, { search: ara, hash: "#fotoUretim", depo, beacon: b2, gtag: g });
-  await ekranKos(EKRAN_KAYNAK, V, acikGercek(V, V6_TUM), null, null, { beacon: b3, gtag: g });
-  const g1 = b1[0] ? JSON.parse(b1[0].g) : null;
-  ol("İS1 utm_source'lu ilk yükleme → sendBeacon tam 1 kez /api/shop/inis {s:'google', c:'foto-ekim'}",
-    b1.length === 1 && b1[0].u === "/api/shop/inis" && !!g1 && g1.s === "google" && g1.c === "foto-ekim" &&
-      JSON.stringify(Object.keys(g1)) === JSON.stringify(["s", "c"]), JSON.stringify(b1));
-  ol("İS2 aynı oturumda ikinci yükleme → sendBeacon 0", b2.length === 0, JSON.stringify(b2));
-  ol("İS3 KONTROL utm'siz açılış → sendBeacon 0", b3.length === 0, JSON.stringify(b3));
-  ol("İS4 üç yüklemede gtag/dataLayer çağrısı 0", g.length === 0, JSON.stringify(g).slice(0, 200));
+  const inis1 = b1.filter((x) => x.u === "/api/shop/inis");
+  const inis2 = b2.filter((x) => x.u === "/api/shop/inis");
+  ol("İS1 foto-uretim.js utm_source'lu açılışta /api/shop/inis'e beacon GONDERMIYOR", inis1.length === 0,
+    "inis=" + JSON.stringify(inis1));
+  ol("İS2 foto-uretim.js ikinci yüklemede de /api/shop/inis'e beacon GONDERMIYOR", inis2.length === 0,
+    "inis=" + JSON.stringify(inis2));
 }
 
 console.log(kirmizi ? "\n❌ " + kirmizi + " iddia KIRMIZI" : "\n✅ HEPSI GECTI");

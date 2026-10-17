@@ -461,6 +461,8 @@ function refSayfa(opts) {
   return { ctx, depo, oturum, baglantilar, beacons, dinleyiciler,
            ref: () => ctx.window.pruvoRef(),
            riza: ctx.window.pruvoRefRiza,
+           refBeacon: () => beacons.filter((b) => b.url === "/api/shop/ref"),
+           inisBeacon: () => beacons.filter((b) => b.url === "/api/shop/inis"),
            tikla: (i) => dinleyiciler.click({ target: baglantilar[i || 0] }) };
 }
 
@@ -627,7 +629,7 @@ senaryo("B1 riza YOK + ?gclid=SIZ -> hicbir depoda SIZ yok (REF akisi calisir)",
   const mesaj = new URL(s.baglantilar[0].getAttribute("href")).searchParams.get("text");
   assert(mesaj.indexOf(s.ref()) !== -1, "wa.me linki REF ile zenginlestirilmedi: " + mesaj);
   s.tikla(0);
-  assert(s.beacons.length === 0, "rizasiz beacon gonderildi");
+  assert(s.refBeacon().length === 0, "rizasiz ref beacon gonderildi");
 });
 
 senaryo("B1b riza YOK + ?gbraid/?wbraid -> saklanmaz", () => {
@@ -640,8 +642,8 @@ senaryo("B2 riza VAR + ?gclid=X -> eskisi gibi saklanir ve lead gider", () => {
   const s = refSayfa({ search: "?gclid=XKLIK&pg=BYP", onay: "kabul", linkler: [WA] });
   var_(s, "XKLIK", "rizali gclid");
   s.tikla(0);
-  assert(s.beacons.length === 1, "rizali lead gonderilmedi");
-  assert(JSON.parse(s.beacons[0].body).gclid === "XKLIK", "lead payload gclid yanlis");
+  assert(s.refBeacon().length === 1, "rizali lead gonderilmedi");
+  assert(JSON.parse(s.refBeacon()[0].body).gclid === "XKLIK", "lead payload gclid yanlis");
 });
 
 senaryo("B3 geriye donuk: rizasiz tarayicidaki ESKI gclid kod kosunca silinir", () => {
@@ -669,8 +671,9 @@ senaryo("B5 riza sonradan verilirse: yenileme olmadan yakalanir + lead gider", (
   s.riza();
   var_(s, "SONRA", "riza sonradan verilince gclid");
   s.tikla(0);
-  assert(s.beacons.length === 1, "riza sonrasi lead gitmedi");
-  assert(JSON.parse(s.beacons[0].body).gclid === "SONRA", "lead payload gclid yanlis");
+  var sonRefs = s.refBeacon();
+  assert(sonRefs.length === 1, "riza sonrasi lead gitmedi");
+  assert(JSON.parse(sonRefs[0].body).gclid === "SONRA", "lead payload gclid yanlis");
 });
 
 senaryo("B6 sayfalar arasi: rizasiz landing sonrasi organik sayfada da sizinti yok", () => {
@@ -803,7 +806,7 @@ senaryo("C4 dugme sonrasi tekrar 'Kabul Et' -> akis normale doner", () => {
   const yeni = refSayfa({ search: "?gclid=DONDU&pg=BYP", depo, linkler: [WA] });
   var_(yeni, "DONDU", "kabul sonrasi gclid");
   yeni.tikla(0);
-  assert(yeni.beacons.length === 1, "kabul sonrasi lead gitmedi");
+  assert(yeni.refBeacon().length === 1, "kabul sonrasi lead gitmedi");
 });
 
 senaryo("C5 banner gorunurlugu TEK kaynak: yalniz sakli riza degerinden turer", () => {

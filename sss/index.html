@@ -457,7 +457,43 @@ setTimeout(L,5000);})();
     persistRef(record);
   }
 
+  // Reklam INIS sayaci (site geneli, riza bagimsiz): PRUVO_ATIF + v1'deki foto-uretim.js
+  // v1 kolunun (kisaltilmis utm_source'a bakan, urun sayfalarina inmeyen) yerini alir.
+  // Click-id (gclid/gbraid/wbraid/fbclid) BEYAZ LISTE mantigi: AD gorulur, DEGER GORULMEZ
+  // (gizlilik davranisi zaten attribution-ref.js'de; deger hicbir yere yazilmaz). Kaynak
+  // yoksa (dogrudan trafik) beacon gonderilmez. Modul yuklenince BİR KEZ cagrilir.
+  function inisSay() {
+    var params = new URLSearchParams(location.search);
+    var s = "", c = "", gerekli = false, anahtar;
+    if (params.has("utm_source")) {
+      anahtar = String(params.get("utm_source") || "").toLowerCase();
+      if (anahtar) { s = anahtar; c = String(params.get("utm_campaign") || "").toLowerCase(); gerekli = true; }
+    } else if (params.has("gclid") || params.has("gbraid") || params.has("wbraid")) {
+      s = "google";
+      if (params.has("gclid")) { c = "gclid"; }
+      else if (params.has("gbraid")) { c = "gbraid"; }
+      else { c = "wbraid"; }
+      gerekli = true;
+    } else if (params.has("fbclid")) {
+      s = "facebook"; c = "fbclid"; gerekli = true;
+    }
+    if (!gerekli) { return; }
+    var depo = null;
+    try {
+      depo = window.sessionStorage;
+      if (depo && depo.getItem("pruvo_inis")) { return; }
+    } catch (error) { depo = null; }
+    var govde = JSON.stringify({ s: s, c: c });
+    try {
+      if (navigator && typeof navigator.sendBeacon === "function") {
+        navigator.sendBeacon("/api/shop/inis", govde);
+      }
+    } catch (error) { /* gtag/dataLayer CAGIRILMAZ */ }
+    try { if (depo) { depo.setItem("pruvo_inis", "1"); } } catch (error) { /* depo yok */ }
+  }
+
   initialize();
+  inisSay();
   window.pruvoRef = function () { return activeRef; };
   // Riza degisince (banner Kabul/Reddet, baska sekme) cagrilabilir: kabul -> URL'deki click-id
   // yakalanir, ret/geri cekme -> saklanmis click-id'ler silinir. Sayfa yenilemesi gerekmez.
