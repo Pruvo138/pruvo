@@ -35,7 +35,8 @@ FALLBACK_MODEL = "gemini-flash-lite-latest"   # ana model 503/yogun ise buna dus
 RETRYABLE = (429, 500, 503)
 
 KATEGORILER = ["Tamirat", "Marin", "Otomobil", "Motosiklet", "Bisiklet", "Ev",
-               "Ofis", "Elektronik", "Kamera", "Bahce", "Dekorasyon", "Oyun/Hobi"]
+               "Ofis", "Elektronik", "Kamera", "Bahce", "Dekorasyon", "Oyun/Hobi",
+               "Figür", "Fidget"]
 
 PROMPT = """Sen PRUVO adli endustriyel parca uretim firmasinin urun-listeleme yardimcisisin.
 Sana bir kaynak urunun ingilizce basligi, tasarimci/lisans bilgisi, olcusu ve N adet galeri
@@ -90,7 +91,8 @@ SERBEST (bunlar IHLAL DEGIL, DUZELTME):
     kamera HARIC, e-bike HARIC.
   * Bisiklet: bisiklet + e-bike parcalari (e-bike Elektronik'e DEGIL).
   * Ev: elektriksiz ev esyasi. Ofis: ofis/kirtasiye. Bahce: bahce/guc ekipmani. Dekorasyon: sus.
-    Oyun/Hobi: oyuncak/hobi/koleksiyon. Marin: tekne/denizcilik.
+    Oyun/Hobi: oyuncak/hobi/koleksiyon. Figür: 3D baski figürü (eklemli/diorama/heykel/bust).
+    Fidget: 3D baski fidget oyuncaklari (spinner/klik/toy). Marin: tekne/denizcilik.
 - marka: DIZI. Basliktaki/urundeki marka veya model adlari (or. ["Audi","Volkswagen"]). Jenerik urunse [].
 - fiyat_oneri: KABA bir baslangic fiyati (or. "400 TL"). PRUVO ozel-uretim yedek parca satar; kucuk
   tekil parca genelde ~200-600 TL, buyuk/coklu-parca/set ~600-1200 TL. Sadece baslangic tahmini —

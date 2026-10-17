@@ -1526,7 +1526,7 @@ setTimeout(L,5000);})();
   // ─────────────────────────────────────────────────────────────────────────
 
   var WHATSAPP = "905451386526";
-  var CATEGORIES = ["Marin","Otomobil","Motosiklet","Bisiklet","Tamirat","Ev","Ofis","Elektronik","Kamera","Bahçe","Dekorasyon","Oyun/Hobi"];
+  var CATEGORIES = ["Marin","Otomobil","Motosiklet","Bisiklet","Tamirat","Ev","Ofis","Elektronik","Kamera","Bahçe","Dekorasyon","Oyun/Hobi","Figür","Fidget"];
   // GİZLİ kategoriler (işletme kararı, 17 Tem): menüde GÖRÜNMEZ ama ?kategori=<ad> linki, arama ve
   // ürün sayfaları çalışır. "Jeneratör" = TÜM parametrik (sarı seri) ürünler; banner +
   // vitrin oradan beslenir. "Skan Art" (işletme kararı, 23 Tem) = İskandinav tasarım dilli dekor/heykel
@@ -4211,7 +4211,16 @@ setTimeout(L,5000);})();
 
   function renderCats(){
     var el = document.getElementById("cats");
-    var all = ["Tümü"].concat(CATEGORIES);
+    var ix = cipIndeks();
+    var all = ["Tümü"].concat(CATEGORIES).filter(function(c){
+      // 0 urunlu kategori nav'da YOK (K2, 18 Eki): Figür/Fidget henuz urunsuz, ilk
+      // urun eklenince kendiliginden cikar. Indeks yoksa (calisma kipinde) tumu goster —
+      // sayfa kaybolmasin. GIZLI_KATEGORILER zaten bu fonksiyona GIRMEZ (cizmez).
+      if(c === "Tümü"){ return true; }
+      if(!ix || !ix.katSayisi){ return true; }
+      var n = ix.katSayisi[c];
+      return (typeof n === "number" && n > 0);
+    });
     el.innerHTML = "";
     all.forEach(function(c){
       var b = document.createElement("button");

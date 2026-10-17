@@ -6,7 +6,7 @@
  *   python3 tools/abs-mutasyon.py                 # ONCE-KIRMIZI kaniti (o da CI'da BLOKLAYICI)
  *
  * ISLETME KARARI (Okan, 14 Agu): ABS satisa GERI ACILDI ve fiyati ASA ile BIREBIR AYNI;
- * Ev · Ofis · Dekorasyon · Skan Art · Oyun/Hobi kategorilerinde ABS SECILEMEZ. Karbon
+ * Ev · Ofis · Dekorasyon · Skan Art · Oyun/Hobi · Figür · Fidget kategorilerinde ABS SECILEMEZ. Karbon
  * Katkili KAPALI KALIR.
  *
  * OLCULEN IKI SESSIZ-HATA SINIFI:
@@ -84,7 +84,7 @@ function olcumsuz(mesaj) {
 
 // ---------------------------------------------------------------- kategori kumeleri
 const DAHIL = ["Otomobil", "Marin", "Jeneratör"];
-const HARIC = ["Ev", "Ofis", "Dekorasyon", "Skan Art", "Oyun/Hobi"];
+const HARIC = ["Ev", "Ofis", "Dekorasyon", "Skan Art", "Oyun/Hobi", "Figür", "Fidget"];
 const COZULEMEZ = ["", "Bilinmeyen Kategori"];
 
 // ---------------------------------------------------------------- secenekler.js (kanonik)

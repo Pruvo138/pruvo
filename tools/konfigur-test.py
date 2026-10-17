@@ -597,7 +597,7 @@ KART_SECIM_CEKIRDEK = (['id="filCipler"', 'id="opsiyonlar"', 'id="cartBtn"'],
 # (Otomobil = test-oto-parca, Ev = test-boylu, Kamera = test-lisansli, Jeneratör =
 # test-panelsiz + olcuye-ozel-huni). Kalan her fonksiyonel kategori için sade fikstür:
 KATEGORI_FIKSTURLERI = ["Marin", "Motosiklet", "Bisiklet", "Tamirat", "Ofis", "Elektronik",
-                        "Bahçe", "Dekorasyon", "Oyun/Hobi", "Skan Art"]
+                        "Bahçe", "Dekorasyon", "Oyun/Hobi", "Figür", "Fidget", "Skan Art"]
 
 _SLUG_HARF = {"ç": "c", "ğ": "g", "ı": "i", "ö": "o", "ş": "s", "ü": "u", "â": "a"}
 

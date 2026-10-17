@@ -439,9 +439,12 @@ def fiyat_kirmizi(u):
 
 
 # canli katalogdaki TUM kategoriler (olculdu 31 Tem: 15.930 urun, 14 kategori — nav'da gizli
-# 'Jeneratör' ve arsiv 'Skan Art' dahil). Kural artik hepsinde gecerli (Jeneratör HARIC).
+# 'Jeneratör' ve arsiv 'Skan Art' dahil). 18 Eki: Figür/Fidget eklendi (0 urunlu ust kategori
+# ama kural yine gecerli; Oyun/Hobi ile ayni muamele). Kural artik hepsinde gecerli
+# (Jeneratör HARIC).
 FIYAT_KATEGORILERI = ("Marin", "Otomobil", "Motosiklet", "Bisiklet", "Tamirat", "Ev", "Ofis",
-                      "Elektronik", "Kamera", "Bahçe", "Dekorasyon", "Oyun/Hobi", "Skan Art")
+                      "Elektronik", "Kamera", "Bahçe", "Dekorasyon", "Oyun/Hobi",
+                      "Figür", "Fidget", "Skan Art")
 
 # --- (a) POZITIF: taban alti NORMAL urun -> HER kategoride KIRMIZI ---------------------
 # Canli dagilimda gercekten gecen taban-alti degerler (olculdu): 150(1109), 180(392),
@@ -654,9 +657,9 @@ check("MUT-ILGISIZ capasi tuttu (%d degisiklik)" % len(_ILGISIZ), not _ilgisiz_c
 check("MUT-ILGISIZ: fiyat kurali DISI degisiklik %d probun HICBIRINDE hukmu degistirmedi"
       % len(_PROBE_KUMESI), not _ilgisiz_bozdu)
 
-# --- TIER-A "figur" kolu: Oyun/Hobi oyuncak figur maket DEGIL (12 Eki) -----------------
+# --- TIER-A "figur" kolu: Oyun/Hobi/Figür oyuncak figur maket DEGIL (12 Eki + 18 Eki) ----
 # Okan yasagi OLCEKLI MAKET/MODEL'dir; eklemli oyuncak figur yasak degil. Muafiyet YALNIZ
-# Oyun/Hobi + YALNIZ figur kolu: olcek/maket terimi Oyun/Hobi'de de auto_sil uretir.
+# Oyun/Hobi + Figür + YALNIZ figur kolu: olcek/maket terimi bu kategorilerde de auto_sil uretir.
 _FIG_VAKA = [
     ("FIG-1 Oyun/Hobi eklemli dinozor figuru -> auto_sil YOK",
      urun("fig-dino", "Eklemli dinozor figürü", kategori="Oyun/Hobi", marka=[]), False),
@@ -664,6 +667,10 @@ _FIG_VAKA = [
      urun("fig-asker", "1:35 ölçekli asker figürü", kategori="Oyun/Hobi", marka=[]), True),
     ("FIG-3 Otomobil figur -> auto_sil VAR (eski davranis)",
      urun("fig-oto", "Torpido figür tutucu", kategori="Otomobil"), True),
+    ("FIG-4 Figür eklemli dinozor figuru -> auto_sil YOK (18 Eki)",
+     urun("fig-fig-dino", "Eklemli dinozor figürü", kategori="Figür", marka=[]), False),
+    ("FIG-5 Figür 1:35 olcekli asker figuru -> auto_sil VAR (18 Eki)",
+     urun("fig-fig-asker", "1:35 ölçekli asker figürü", kategori="Figür", marka=[]), True),
 ]
 for _ad, _u, _bek in _FIG_VAKA:
     _h = dk.kapi_maket_auto(_u)

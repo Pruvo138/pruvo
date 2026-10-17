@@ -157,8 +157,8 @@ def d_n2(s):
 
 
 def d_n3(s):
-    return s.replace('"ABS": ["Ev", "Ofis", "Dekorasyon", "Skan Art", "Oyun/Hobi"]',
-                     '"ABS": ["Ev", "Ofis", "Skan Art", "Oyun/Hobi"]')
+    return s.replace('"ABS": ["Ev", "Ofis", "Dekorasyon", "Skan Art", "Oyun/Hobi", "Figür", "Fidget"]',
+                     '"ABS": ["Ev", "Ofis", "Skan Art", "Oyun/Hobi", "Figür", "Fidget"]')
 
 
 def d_n4(s):

@@ -500,6 +500,10 @@ async function test2Nav() {
     etiketler.push(b.textContent || b.attrs["aria-label"] || b.title || "");
   }
   if (etiketler.indexOf("Jeneratör") !== -1) { hatalar.push("nav'da 'Jeneratör' GORUNUYOR"); }
+  // 18 Eki: Figür + Fidget CATEGORIES'te var ama su anda 0 urunlu; renderCats()
+  // PRUVO_CIP_INDEKS.katSayisi'a bakip bos olanlari ATLADIGI icin nav'da gorunmez.
+  // Bu K2 davranisinin musterideki yansimasi; test katalogda urun olmadigi icin
+  // beklenen listeye dahil etmez.
   const beklenen = ["Tüm ürünler", "Marin", "Otomobil", "Motosiklet", "Bisiklet", "Tamirat", "Ev",
     "Ofis", "Elektronik", "Kamera", "Bahçe", "Dekorasyon", "Oyun/Hobi"];
   for (const k of beklenen) {
@@ -509,7 +513,7 @@ async function test2Nav() {
     hatalar.push("nav " + etiketler.length + " oge (beklenen " + beklenen.length + "): " +
       etiketler.join(","));
   }
-  rapor("2 nav: Jeneratör gizli, 12 kategori + Tümü tam", hatalar,
+  rapor("2 nav: Jeneratör gizli, 12 kategori + Tümü tam (Figür/Fidget 0 urun -> K2 skip)", hatalar,
     etiketler.length + " nav ogesi, Jeneratör yok");
 }
 
