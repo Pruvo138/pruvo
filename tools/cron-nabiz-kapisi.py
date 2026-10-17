@@ -3976,7 +3976,7 @@ def kendini_test():
             hatalar.append(ad)
 
     def kos(dosyalar, getir, damga_ile=False, paket_ile=False,
-            ref_adi=None, main_olc=None):
+            ref_adi="", main_olc=None):
         """damga_ile=True -> A0 · paket_ile=True -> A4 (GERCEK olcum yolunun ayni sirasi).
         ref_adi / main_olc : A2 kayitli=False hükmünde dal-yeni muafiyeti icin (test
           kolu; gercek kol `gozlem_topla` defaultlarini kullanir)."""
@@ -4203,9 +4203,24 @@ def kendini_test():
           "degisimi; dal-yeni muafiyeti UYGULANMAZ)", rc == 1, "rc=%d" % rc)
     # Y4: ref YOK (yerel) -> KIRMIZI (mevcut davranis korunur)
     rc, _ = kos(D_RV, _sahte_api(kayitli=False, dosya="rum-vekil.yml"),
-                ref_adi=None,
+                ref_adi="",
                 main_olc=lambda _d: (False, None))
     iddia("A2 Y4: kayitli degil + ref YOK (yerel) -> KIRMIZI", rc == 1, "rc=%d" % rc)
+    # Y7: KENDI TESTI ORTAMDAN YALITIK (17 Eki SERIT B 39001723976 olcumu): CI dal
+    # kosumunda `GITHUB_REF_NAME` doludur; `kos` varsayilani ortami okusaydi Y4 "yerel"
+    # vakasi CI'da yerel OLMAZDI ve kendi testi (+ onu cagiran D1 sapma bataryasi) dusurdu.
+    _eski_ref = os.environ.get("GITHUB_REF_NAME")
+    os.environ["GITHUB_REF_NAME"] = "kral/ortam-sizintisi"
+    try:
+        rc, _ = kos(D_RV, _sahte_api(kayitli=False, dosya="rum-vekil.yml"),
+                    main_olc=lambda _d: (False, None))
+    finally:
+        if _eski_ref is None:
+            os.environ.pop("GITHUB_REF_NAME", None)
+        else:
+            os.environ["GITHUB_REF_NAME"] = _eski_ref
+    iddia("A2 Y7: ortamda GITHUB_REF_NAME=dal iken kendi testi varsayilani YEREL kalir -> "
+          "KIRMIZI (ortam sizintisi yok)", rc == 1, "rc=%d" % rc)
     # Y5: ref='kral/x' + git olcum hatasi -> fail-closed KIRMIZI
     rc, _ = kos(D_RV, _sahte_api(kayitli=False, dosya="rum-vekil.yml"),
                 ref_adi="kral/rum-vekil-17eki",
