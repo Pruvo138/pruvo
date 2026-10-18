@@ -293,6 +293,25 @@ jobs:
       - name: Yayin klasorunu topla (beyaz liste)
         run: python3 tools/yayin-topla.py
 
+      # INDEXNOW HAZIRLIK (BLOKLAMAZ): canli onceki sitemap'i indirip + build.py'nin
+      # urettigi yeni sitemap.xml'i `_indexnow/` altinda toplar. `indexnow-gonder.py
+      # --hazirla` HATA DURUMUNDA bile rc=0 ile cikar; hata olursa `ESKI-YOK`/`YENI-YOK`
+      # yazip bos dosyalarla surer. Boylece canli sitemap indirilemese bile Pages
+      # artefact yukleme adimi (asagida) KIRMIZI YANMAZ. Ciktilar sonraki `indexnow:`
+      # isine `actions/upload-artifact` ile tasinir (ayni workflow'un iki ise bolunmesi
+      # artifact transferini zorunlu kilar). `if-no-files-found: ignore`: dizin bos
+      # dahi olsa artefact asamasini gecirir.
+      - name: "IndexNow: eski+yeni sitemap hazirla (bloklamaz, rc hep 0)"
+        run: python3 tools/indexnow-gonder.py --hazirla _indexnow
+
+      - name: "IndexNow: sitemap artefact yukle"
+        uses: actions/upload-artifact@v4
+        with:
+          name: indexnow-sitemap
+          path: _indexnow
+          retention-days: 1
+          if-no-files-found: ignore
+
       - name: Pages artefaktini yukle
         uses: actions/upload-pages-artifact@v3
         with:
@@ -1875,3 +1894,42 @@ jobs:
       - name: "Foto canli gizli kapisi (program kapaliyken bolum canlida gorunmez)"
         if: always()
         run: python3 tools/foto-canli-gizli-kapisi.py --deneme 3 --bekle 15
+
+  # INDEXNOW — `yayin:` isinden SONRA, sitemap.xml farkini IndexNow API'sine tek
+  # POST ile bildiren ayrik is. AYRI IS olmasi NEDEN: `yayin:` kendi icinde
+  # bloklayici (taslak -> yayinda atomik gecis); IndexNow gonderimi `yayin:`
+  # basarili olsa bile YAPISAL OLARAK basarili sayilamaz (bot'un sayfayi
+  # yeniden tarayacaginin garantisi yok, o zaten IndexNow'un isi). Bu yuzden
+  # `needs: yayin` ile siraya dizilir ve AYRI JOB olarak ayrilir:
+  #   * `yayin:` kirmizi yanarsa IndexNow KOSMAZ (yayinlanmamis sitemap'i
+  #     IndexNow'a gondermek yalnis pozitif olurdu);
+  #   * IndexNow kirmizi yanarsa `yayin:` ZATEN yesil bitti -> site canli,
+  #     kullanici deneyimi etkilenmez, sadece bot hizi yavaslar.
+  # `if: github.ref == 'refs/heads/main'`: workflow_dispatch ile elden
+  # tetiklenen kosum main degilse (ornek feature dali) IndexNow'a POST ATILMAZ;
+  # bot'a yanlis koktan URL gitmesin. continue-on-error YOK: kirmizi
+  # gorunur olur (yayin kapandiktan SONRA, kullaniciyi engellemez).
+  # ESKI/YENI sitemap'ler ONCEKI tasarimdaki gibi git gecmisinden DEGIL, build
+  # isinin `actions/upload-artifact` ile burada `actions/download-artifact` ile
+  # cektigi `_indexnow/eski.xml + yeni.xml` dosyalarindan okunur. `sitemap.xml`
+  # git'te izlenmez (CI'da build.py yazar); onceki tasarim `fetch-depth: 2` +
+  # SHA ile erisiyordu ama HEPTEN tutarsiz bir tek denekti. Artifact tasarimi
+  # buyuk dosyayi (sitemap 100 KB civari) 1 gun retention ile tasir.
+  indexnow:
+    needs: yayin
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: "IndexNow: sitemap artefact indir (build isinden)"
+        uses: actions/download-artifact@v4
+        with:
+          name: indexnow-sitemap
+          path: _indexnow
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: "IndexNow: sitemap farkini POST et (deploy sonrasi)"
+        run: python3 tools/indexnow-gonder.py --eski _indexnow/eski.xml --yeni _indexnow/yeni.xml

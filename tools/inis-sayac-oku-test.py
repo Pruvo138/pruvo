@@ -27,6 +27,8 @@ import tempfile
 sys.dont_write_bytecode = True                            # hedef repoya __pycache__ yazma
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+import d1_zarf_fikstur                                   # noqa: E402  (ortak gercek zarf)
 ARAC = os.path.join(ROOT, "tools", "inis-sayac-oku.py")
 
 # 🔴 Tekil satir beklenen REGEX: alan sirasi ve n>=0 SABIT.
@@ -274,12 +276,10 @@ def vakalar_kos(gccer, hata):
 
 
 def _d1_zarfi(satirlar):
-    """wrangler `d1 execute --json` cevabinin GERCEK sekli (17 Eki canli cevaptan)."""
-    return [{
-        "results": [{"kaynak": k, "kampanya": c, "n": n} for _g, k, c, n in satirlar],
-        "success": True,
-        "meta": {"changes": 0, "rows_read": len(satirlar), "rows_written": 0},
-    }]
+    """wrangler `d1 execute --json` cevabi — TEK ORTAK FIKSTUR (`tools/d1_zarf_fikstur.py`,
+    canli cevaptan yakalanan zarf). Elle yazilmis zarf YOK (BaBa 17 Eki 17:4x)."""
+    return d1_zarf_fikstur.zarf(
+        [{"kaynak": k, "kampanya": c, "n": n} for _g, k, c, n in satirlar])
 
 
 def _d1_json_yaz(tmp, ad, veri):
