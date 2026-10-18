@@ -1,5 +1,243 @@
 [
   {
+    "id": "olu-kafali-guve-duvar-heykeli",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Ölü Kafalı Güve Duvar Heykeli — Kafatası Desenli Gotik Kanat Dekoru (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Açık kanatlarının ortasında bir kafatası taşıyan, süslü bir ölü kafalı güve duvar heykeli. Kanat hatlarını izleyen hilal biçimli kabartmalar ve süs motifleri, tüy biçimli antenler ve bölmeli gövdesiyle gotik bir siluet oluşturuyor.\n- Salon, çalışma odası ya da koridor duvarı için dikkat çekici bir dekor; gotik, doğa ve koleksiyon temasını sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz boyutu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3ddeath-s-head-moth-wall-sculpture-skull-moth-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3ddeath-s-head-moth-wall-sculpture-skull-moth-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3ddeath-s-head-moth-wall-sculpture-skull-moth-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3ddeath-s-head-moth-wall-sculpture-skull-moth-4.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Boyut"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "gotik-kafatasi-kitap-arasi-dekoru",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Gotik Kafatası Kitap Arası Dekoru — Kitaplık Köşesi Kafatası Çerçevesi (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Abartılı göz çukurları, keskin elmacık kemikleri ve sert ifadeli bir kafatasını dikdörtgen bir çerçevenin içinde sunan, kitaplığa kitapların arasına doğrudan sıkıştırılan karanlık bir raf dekoru. Gotik bir odak noktası oluşturur.\n- Kitaplık, çalışma odası ya da kütüphane köşesi için gotik temalı dekor; kitap kurtlarına ve koleksiyonculara hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz boyutu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dgothic-skull-book-nook-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dgothic-skull-book-nook-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dgothic-skull-book-nook-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Boyut"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "ahsap-tabut-duvar-heykeli",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Ahşap Görünümlü Tabut Duvar Heykeli — Anahtar Deliği Askılı Gotik Dekor (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Katmanlı tahta yapısı, oyulmuş ahşap damar dokusu ve derin içi olan, eski kereste izlenimi veren tabut biçimli bir duvar heykeli. Eşit olmayan tahtalar, açılı çerçeve ve eskitilmiş yüzey ayrıntıları ona kaba ahşap bir tabut görünümü veriyor. Duvara asmak için anahtar deliği askısı hazırdır.\n- Salon, koridor ya da cadılar bayramı köşesi için gotik temalı bir duvar dekoru; içine küçük bir mum ya da ledli ışık yerleştirilebilir (alevsiz LED önerilir). Hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz boyutu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dwooden-coffin-wall-sculpture-keyhole-mount-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dwooden-coffin-wall-sculpture-keyhole-mount-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dwooden-coffin-wall-sculpture-keyhole-mount-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dwooden-coffin-wall-sculpture-keyhole-mount-4.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Boyut"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "gotik-kafatasi-iskelet-anahtar-duvar-heykeli",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Gotik Kafatası İskelet Anahtar Duvar Heykeli — Barok Süslemeli Eski Dünya Anahtarı (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Detaylı bir kafatası merkezi, süslü kıvrımlar ve uzun, eski dünya tarzı bir anahtar gövdesinden oluşan gotik bir iskelet anahtar duvar heykeli. Barok süs motifleri ile güçlü kafatası temasını birleştirerek karanlık, kalıntı havası taşıyan iddialı bir duvar objesi sunuyor.\n- Salon, çalışma odası ya da kapı yanı için gotik dekor; fantezi ve gotik koleksiyon meraklılarına hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz boyutu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dgothic-skull-skeleton-key-wall-sculpture-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dgothic-skull-skeleton-key-wall-sculpture-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dgothic-skull-skeleton-key-wall-sculpture-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Boyut"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
     "id": "savas-yarali-kafatasi-karanlik-dekor-heykeli",
     "kategori": "Figür",
     "marka": [],
