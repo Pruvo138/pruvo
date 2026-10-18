@@ -305,6 +305,52 @@ const VERI = {
     ],
     "varsayilanMalzeme": "PLA"
   },
+  "cthulhu-idolu-antik-kalinti-heykeli": {
+    "boyutMm": {
+      "adim": 10,
+      "etiket": "Yükseklik",
+      "max": 250,
+      "min": 60,
+      "varsayilan": 150
+    },
+    "fiyatCapalari": [
+      [
+        60,
+        600
+      ],
+      [
+        250,
+        2500
+      ]
+    ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
+    "malzemeler": [
+      {
+        "ad": "PLA",
+        "katsayi": 1
+      },
+      {
+        "ad": "PETG",
+        "katsayi": 1.3
+      },
+      {
+        "ad": "ASA",
+        "katsayi": 1.6
+      }
+    ],
+    "renkGorselIndeks": {
+      "Beyaz": 0,
+      "Gri": 0,
+      "Siyah": 0
+    },
+    "renkler": [
+      "Siyah",
+      "Beyaz",
+      "Gri"
+    ],
+    "varsayilanMalzeme": "PLA"
+  },
   "eklemli-deniz-yildizi-stres-oyuncagi": {
     "boyutMm": {
       "adim": 10,
@@ -631,6 +677,52 @@ const VERI = {
     ],
     "varsayilanMalzeme": "PLA"
   },
+  "grafiti-adam-sprey-kutusu-karakter-figuru": {
+    "boyutMm": {
+      "adim": 10,
+      "etiket": "Yükseklik",
+      "max": 250,
+      "min": 60,
+      "varsayilan": 150
+    },
+    "fiyatCapalari": [
+      [
+        60,
+        600
+      ],
+      [
+        250,
+        2500
+      ]
+    ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
+    "malzemeler": [
+      {
+        "ad": "PLA",
+        "katsayi": 1
+      },
+      {
+        "ad": "PETG",
+        "katsayi": 1.3
+      },
+      {
+        "ad": "ASA",
+        "katsayi": 1.6
+      }
+    ],
+    "renkGorselIndeks": {
+      "Beyaz": 0,
+      "Gri": 0,
+      "Siyah": 0
+    },
+    "renkler": [
+      "Siyah",
+      "Beyaz",
+      "Gri"
+    ],
+    "varsayilanMalzeme": "PLA"
+  },
   "iskelet-ejderha-masa-figuru": {
     "boyutMm": {
       "adim": 10,
@@ -863,6 +955,52 @@ const VERI = {
     ],
     "varsayilanMalzeme": "PLA"
   },
+  "sicrayan-buyuk-beyaz-kopekbaligi-heykeli": {
+    "boyutMm": {
+      "adim": 10,
+      "etiket": "Yükseklik",
+      "max": 250,
+      "min": 60,
+      "varsayilan": 150
+    },
+    "fiyatCapalari": [
+      [
+        60,
+        600
+      ],
+      [
+        250,
+        2500
+      ]
+    ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
+    "malzemeler": [
+      {
+        "ad": "PLA",
+        "katsayi": 1
+      },
+      {
+        "ad": "PETG",
+        "katsayi": 1.3
+      },
+      {
+        "ad": "ASA",
+        "katsayi": 1.6
+      }
+    ],
+    "renkGorselIndeks": {
+      "Beyaz": 0,
+      "Gri": 0,
+      "Siyah": 0
+    },
+    "renkler": [
+      "Siyah",
+      "Beyaz",
+      "Gri"
+    ],
+    "varsayilanMalzeme": "PLA"
+  },
   "sinsi-siyam-kedisi-heykeli": {
     "boyutMm": {
       "adim": 10,
@@ -1044,6 +1182,52 @@ const VERI = {
     "renkGorselIndeks": {
       "Beyaz": 2,
       "Gri": 1,
+      "Siyah": 0
+    },
+    "renkler": [
+      "Siyah",
+      "Beyaz",
+      "Gri"
+    ],
+    "varsayilanMalzeme": "PLA"
+  },
+  "tedirgin-kara-kedi-heykeli": {
+    "boyutMm": {
+      "adim": 10,
+      "etiket": "Yükseklik",
+      "max": 250,
+      "min": 60,
+      "varsayilan": 150
+    },
+    "fiyatCapalari": [
+      [
+        60,
+        600
+      ],
+      [
+        250,
+        2500
+      ]
+    ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
+    "malzemeler": [
+      {
+        "ad": "PLA",
+        "katsayi": 1
+      },
+      {
+        "ad": "PETG",
+        "katsayi": 1.3
+      },
+      {
+        "ad": "ASA",
+        "katsayi": 1.6
+      }
+    ],
+    "renkGorselIndeks": {
+      "Beyaz": 0,
+      "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
