@@ -86,6 +86,34 @@ FIX_OLCULEMEZ = [_urun("x-bozuk", ["Siyah", "Beyaz"], [])]
 
 FIX_POZITIF = [_gecerli("x-1"), _gecerli("x-2"), _gecerli("x-3")]
 
+
+# RENDER-SETSIZ SINIF (BaBa 18 Eki 16:4x): Figur/Fidget + fiyatModu=dogrusal. Kapak
+# tasarimci gorseli (tek gorsel, tum renkler 0'a capali); eksen B yerine etiket olculur.
+def _rs(uid, kategori="Figür", mod="dogrusal", etiket=True, renkler=("Siyah", "Beyaz", "Gri"),
+        rgi=None):
+    u = _urun(uid, renkler, rgi if rgi is not None else {r: 0 for r in renkler}, _g(1))
+    u["kategori"] = kategori
+    if mod is not None:
+        u["konfigur"]["fiyatModu"] = mod
+    if etiket:
+        u["konfigur"]["gorselOrnek"] = True
+    return u
+
+
+FIX_RS_GECERLI = [_rs("x-rs-figur"), _rs("x-rs-fidget", kategori="Fidget")]
+# C8 — etiketsiz render-setsiz urun (gorselOrnek yazilmamis).
+FIX_RS_ETIKETSIZ = [_rs("x-rs-etiketsiz", etiket=False)]
+# C9 — sinifta da on-secim Siyah aranir: renk sirasi Gri'yi one aldi.
+FIX_RS_GRI = [_rs("x-rs-gri", renkler=("Gri", "Siyah", "Beyaz"))]
+# C10/C11 KACIS fiksturu: hicbir renk 0'a capali DEGIL -> uretim fonksiyonu "listenin ilki"
+# (Siyah) doner, eksen A TEMIZ; siyah-render capasi yok -> YALNIZ eksen B yakalar. Boylece
+# sinif kosulu sokulurse (N-8/N-9) urun etiketle TAM'a kacar ve iddia duser.
+_KACIS_RGI = {"Siyah": 2, "Beyaz": 1, "Gri": 3}
+# C10 — KACIS (kategori): Skan Art urunu dogrusal mod + etiketle kapak capasindan kacamaz.
+FIX_RS_KACIS_KATEGORI = [_rs("x-rs-kacis-k", kategori="Skan Art", rgi=_KACIS_RGI)]
+# C11 — KACIS (mod): Figur ama fiyatModu yok (hacim modu) -> sinif DISI, eksen B yakalar.
+FIX_RS_KACIS_MOD = [_rs("x-rs-kacis-m", mod=None, rgi=_KACIS_RGI)]
+
 # C5 — KAPSAM: konfigur alani OLMAYAN urunler sayilmamali.
 FIX_KAPSAM = [_gecerli("x-1"),
               {"id": "x-duz", "kategori": "Otomobil", "gorseller": _g(3)},
@@ -139,6 +167,36 @@ def c6_gri_kapak(mod):
     return (len(ihlal) == 1 and mod.JETON_IHLAL in satir), satir
 
 
+def c7_rs_pozitif(mod):
+    """Render-setsiz Figur/Fidget: on-secim Siyah + etiket -> TAM (siyah render aranmaz)."""
+    satir, ihlal, olc, tam = mod.denetle(FIX_RS_GECERLI, _turet(mod))
+    return (ihlal == [] and olc == [] and tam == 2 and mod.JETON_TAM in satir), satir
+
+
+def c8_rs_etiketsiz(mod):
+    """Render-setsiz urun gorsel ornek etiketi basmiyorsa -> IHLAL."""
+    satir, ihlal, olc, _ = mod.denetle(FIX_RS_ETIKETSIZ, _turet(mod))
+    return (len(ihlal) == 1 and olc == [] and mod.JETON_IHLAL in satir), satir
+
+
+def c9_rs_gri(mod):
+    """Render-setsiz sinifta da on-secim Siyah degilse -> IHLAL."""
+    satir, ihlal, olc, _ = mod.denetle(FIX_RS_GRI, _turet(mod))
+    return (len(ihlal) == 1 and olc == [] and mod.JETON_IHLAL in satir), satir
+
+
+def c10_rs_kacis_kategori(mod):
+    """Skan Art + dogrusal + etiket kapak capasindan KACAMAZ -> IHLAL (eksen B)."""
+    satir, ihlal, olc, _ = mod.denetle(FIX_RS_KACIS_KATEGORI, _turet(mod))
+    return (len(ihlal) == 1 and olc == [] and mod.JETON_IHLAL in satir), satir
+
+
+def c11_rs_kacis_mod(mod):
+    """Figur ama fiyatModu yok + etiket kapak capasindan KACAMAZ -> IHLAL (eksen B)."""
+    satir, ihlal, olc, _ = mod.denetle(FIX_RS_KACIS_MOD, _turet(mod))
+    return (len(ihlal) == 1 and olc == [] and mod.JETON_IHLAL in satir), satir
+
+
 IDDIALAR = [
     ("C1 POZITIF KOL   (gecerli siyah kapakli urun reddedilmiyor)", c1_pozitif),
     ("C2 EKSEN A       (capa 0 ama on-secim Gri -> IHLAL)", c2_eksen_a),
@@ -146,6 +204,11 @@ IDDIALAR = [
     ("C4 OLCULEMEDI    (cozulemeyen kayitta sessiz yesil YOK)", c4_olculemedi),
     ("C5 KAPSAM        (konfigursuz urun sayilmiyor)", c5_kapsam),
     ("C6 GRI KAPAK     (gercek regresyon: kapak geri alindi -> IHLAL)", c6_gri_kapak),
+    ("C7 RS POZITIF    (render-setsiz Figur/Fidget + etiket -> TAM)", c7_rs_pozitif),
+    ("C8 RS ETIKETSIZ  (render-setsiz urun etiketsiz -> IHLAL)", c8_rs_etiketsiz),
+    ("C9 RS ON-SECIM   (render-setsiz sinifta on-secim Gri -> IHLAL)", c9_rs_gri),
+    ("C10 RS KACIS-K   (Skan Art dogrusal+etiketle kapak capasindan kacamaz)", c10_rs_kacis_kategori),
+    ("C11 RS KACIS-M   (Figur modsuz+etiketle kapak capasindan kacamaz)", c11_rs_kacis_mod),
 ]
 
 # ------------------------------------------------------------------------ mutantlar
@@ -200,6 +263,22 @@ MUTANTLAR = [
      _KAPSAM_SAYACI,
      "    kapsam = len(olculemedi) + len(ihlal) + len(tam)\n",
      False, "-"),
+    ("N-7 EKSEN C SOKULDU (render-setsiz urunde etiket artik olculmuyor)",
+     "        if eksik:\n",
+     "        if False:\n",
+     True, "C8"),
+    ("N-8 SINIF KATEGORI KOSULU SOKULDU (her kategori siyah kapaktan kacabilir)",
+     '    return (u.get("kategori") in RENDER_SETSIZ_KATEGORILER\n',
+     '    return (True\n',
+     True, "C10"),
+    ("N-9 SINIF MOD KOSULU SOKULDU (modsuz Figur siyah kapaktan kacabilir)",
+     '            and k.get("fiyatModu") == RENDER_SETSIZ_FIYAT_MODU)\n',
+     '            and True)\n',
+     True, "C11"),
+    ("N-10 ETIKET URETIM KODUNDAN KOPARILDI (sabit metne baglandi)",
+     "            html = _ETIKET_FN(k)\n",
+     '            html = "tasarımcı örneğidir tek renkte"\n',
+     True, "C8"),
 ]
 
 

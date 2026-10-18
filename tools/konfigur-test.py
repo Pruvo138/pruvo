@@ -1270,6 +1270,30 @@ def test_dogrusal():
     kontrol('"fiyatModu"' not in build.render_product(pk, [pk]),
             "modsuz (hacim) sayfanın inline verisine fiyatModu SIZMAZ (bayt-eşitlik korunur)")
 
+    # GÖRSEL ÖRNEK ETİKETİ (BaBa 18 Eki 16:4x): render-setsiz Figür sayfası etiketi #opsiyonlar
+    # içinde, renk butonlarından SONRA basar; alansız sayfa etiketi basmaz; şema yalnız true.
+    beklenen_etiket = ("Görsel tasarımcı örneğidir — ürün seçtiğiniz tek renkte "
+                       "(Siyah/Beyaz/Gri) üretilir.")
+    pe = urun(dict(FIGUR_KONFIGUR_HACIMSIZ, gorselOrnek=True), id="test-figur-etiket",
+              kategori="Figür", fiyat="600 TL")
+    kontrol(build.konfigur_dogrula(pe) == [],
+            "konfigur_dogrula gorselOrnek=true şemasını kabul eder: %r" % build.konfigur_dogrula(pe))
+    html_e = build.render_product(pe, [pe])
+    ops = re.search(r'<div class="opsiyonlar konf" id="opsiyonlar">(.*?)<div class="opsiyon-fiyat"',
+                    html_e, re.S)
+    govde = ops.group(1) if ops else ""
+    kontrol(beklenen_etiket in govde and 'id="renkButonlar"' in govde and
+            govde.find(beklenen_etiket) > govde.rfind('class="renk-ad"'),
+            "gorselOrnek sayfası etiketi #opsiyonlar içinde renk seçiciden sonra basar")
+    kontrol("tasarımcı örneğidir" not in html0 and "tasarımcı örneğidir" not in
+            build.render_product(pk, [pk]),
+            "gorselOrnek alanı olmayan sayfalar etiketi BASMAZ (bayt-eşitlik korunur)")
+    for kotu in (False, "evet", 1):
+        h = build.konfigur_dogrula(urun(dict(FIGUR_KONFIGUR_HACIMSIZ, gorselOrnek=kotu),
+                                        fiyat="600 TL"))
+        kontrol(any("gorselOrnek" in x for x in h),
+                "konfigur_dogrula gorselOrnek=%r reddeder: %r" % (kotu, h))
+
     # Hacim modunda değişim 0: katalog + KURT fikstürü, yeni /konfigur.js == eski (git referansı).
     eski, ref = _referans_konfigur_js()
     if eski is None:
