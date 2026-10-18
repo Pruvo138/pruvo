@@ -125,11 +125,14 @@ MANIFESTO = (
     # llms.txt = LLM/ajan okuyuculara yonelik kok manifesti (llmstxt.org deseni).
     # robots.txt/sitemap.xml'in AKSINE build.py URETMEZ, depoda IZLENIR (elle yazilir,
     # kaynagi ArTisT'in icerik duzlemidir) -> IZLENEN_GIRDILER'de de beyan edilir.
+    # pruvo3d-indexnow-anahtari-17eki.txt = IndexNow anahtar dosyasi (17 Eki 2026).
+    # Anahtar tasarim geregi HALKA ACIK (sir degil); IndexNow POST'u bu dosyanin
+    # `https://pruvo3d.com/ANAHTAR.txt` adresinden okunabilir oldugunu dogrular.
     # Manifestodan dusurulurse dosya kokte DURSA BILE `_site`'a kopyalanmaz ve canlida
     # 404 kalir; sessiz fail-open sinifi budur (7 Eyl 2026'da taban bu haldeydi).
     Adim("DOSYALAR", ("urunler.json", "ozet.json", "CNAME",
                       "robots.txt", "sitemap.xml", "merchant-feed.xml", "llms.txt",
-                      ".nojekyll"),
+                      "pruvo3d-indexnow-anahtari-17eki.txt", ".nojekyll"),
          SITE, "katalog + kok meta dosyalari"),
     Adim("AGAC", ("urun",), SITE + "/urun",
          "urun sayfalari"),
@@ -181,6 +184,10 @@ IZLENEN_GIRDILER = (
     # edilmezse `_hazirlik()` onu "uretilen" sanar ve temiz bir checkout'ta
     # "build.py kosmus" yonunde YANLIS sinyal verirdi.
     "llms.txt",
+    # IndexNow anahtar dosyasi (17 Eki 2026): anahtar tasarim geregi HALKA ACIK
+    # (sir degil), elle yazilir + commit'lir; build.py URETMEZ. Ayni gerekce:
+    # beyan edilmezse "build.py kosmus mu" sinyali yanlis pozitife doner.
+    "pruvo3d-indexnow-anahtari-17eki.txt",
 )
 
 
@@ -490,6 +497,7 @@ FIKSTUR_DOSYALAR = {
     "sitemap.xml": "<urlset/>",
     "merchant-feed.xml": "<rss/>",
     "llms.txt": "# PRUVO\n",
+    "pruvo3d-indexnow-anahtari-17eki.txt": "pruvo3d-indexnow-anahtari-17eki",
     ".nojekyll": "",
     "urun/aaa/index.html": "urun aaa",
     "urun/bbb/index.html": "urun bbb",
@@ -534,7 +542,8 @@ BEKLENEN_SITE_YOLLARI = (
     "secenekler.js", "konfigur.js", "talep-alanlari.js",
     "filament-veri.js", "taban-fiyatlar.js",
     "urunler.json", "ozet.json", "CNAME", "robots.txt",
-    "sitemap.xml", "merchant-feed.xml", "llms.txt", ".nojekyll",
+    "sitemap.xml", "merchant-feed.xml", "llms.txt",
+    "pruvo3d-indexnow-anahtari-17eki.txt", ".nojekyll",
     "urun/aaa/index.html", "urun/bbb/index.html",
     "varlik/sayfa-1.css", "varlik/urun-2.js",
     "sss/index.html", "marka/renault/index.html", "kategori/marin/index.html",
