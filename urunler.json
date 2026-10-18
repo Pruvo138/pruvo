@@ -1,5 +1,253 @@
 [
   {
+    "id": "eriyen-lolipop-masa-heykeli",
+    "kategori": "Figür",
+    "marka": [],
+    "baslik": "Eriyen Lolipop Masa Heykeli — Birikintiye Dönüşen Şeker Dekor Figürü (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Sade bir fikirden doğan, eriyip yumuşak bir birikintiye dönüşmüş lolipop heykeli. Düzgün ve pürüzsüz hatları ile masada hem şık hem eğlenceli bir görünüm veriyor.\n- Raf, çalışma masası ya da hediyelik köşe için renkli bir dekor; tatlı ve şeker temasını sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dmelting-lollipop-desk-sculpture-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dmelting-lollipop-desk-sculpture-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DeadMoon",
+      "tur": "CC BY 4.0"
+    },
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "isirilmis-elma-heykeli",
+    "kategori": "Figür",
+    "marka": [],
+    "baslik": "Isırılmış Elma Heykeli — Abartılı İç Yapılı Dekor Figürü (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Dış kabuğu ile iç çekirdek bölümü arasında güçlü bir kontrast sunan, abartılı iç yapısıyla heykelsi bir görünüm taşıyan ısırılmış elma. Sağlam ve gösterişli bir masa objesi.\n- Raf, çalışma masası ya da mutfak köşesi için dikkat çekici bir dekor; sanat objesi ve hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3deaten-apple-multicolor-print-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DeadMoon",
+      "tur": "CC BY 4.0"
+    },
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "kase-kafali-figur-saklama-kabi",
+    "kategori": "Figür",
+    "marka": [],
+    "baslik": "Kase Kafalı Figür — Şeker ve Küçük Eşya Saklama Kabı (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Kafası içi boş bir kase olarak tasarlanmış, tasarım oyuncağı siluetini işlevsel bir saklama kabıyla birleştiren sevimli bir figür. Geniş kase ağzı, şeker, masa üstü küçük eşyalar ya da anahtar gibi şeyleri elin altında tutmaya uygun.\n- Çalışma masası, giriş rafı ya da çocuk odası için hem dekor hem kap işlevli bir figür; hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dbowl-head-figure-storage-container-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dbowl-head-figure-storage-container-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DeadMoon",
+      "tur": "CC BY 4.0"
+    },
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "etcil-bitki-fantastik-heykeli",
+    "kategori": "Figür",
+    "marka": [],
+    "baslik": "Etçil Bitki Heykeli — Keskin Dişli Karanlık Fantastik Saksı Figürü (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Yuvarlak saksısı, kıvrılan gövdesi, geniş yaprakları ve iri ağzıyla koleksiyonluk bir görünüm taşıyan, keskin dişleri ile canavar havasına giren stilize bir etçil bitki heykeli.\n- Çalışma masası, raf ya da korku temalı bir koleksiyon için karakterli bir dekor; bitki ve yaratık sevenlere hediye olarak uygun. Dişleri sivridir, dikkatli tutulmalıdır.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dmonstera-plant-dark-fantasy-sculpture-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dmonstera-plant-dark-fantasy-sculpture-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dmonstera-plant-dark-fantasy-sculpture-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DeadMoon",
+      "tur": "CC BY 4.0"
+    },
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
     "id": "halka-frizbi-ucan-halka-disk",
     "kategori": "Oyun/Hobi",
     "marka": [],
