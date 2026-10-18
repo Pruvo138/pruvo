@@ -1,5 +1,252 @@
 [
   {
+    "id": "savas-yarali-kafatasi-karanlik-dekor-heykeli",
+    "kategori": "Figür",
+    "marka": [],
+    "baslik": "Savaş Yaralı Kafatası Heykeli — Gotik Karanlık Dekor Figürü (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Raf, masa ya da stüdyo köşesine daha karanlık bir hava katmak için tasarlanmış, büyük boy gotik bir kafatası heykeli. Derin savaş çizikleri, keskin kaş hatları ve cesur siluetiyle fazla karmaşıklığa kaçmadan sert bir duruş sergiliyor.\n- Raf ya da çalışma masası için iddialı bir dekor parçası; gotik, korku ve koleksiyon meraklılarına hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dbattle-scarred-skull-dark-decor-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dbattle-scarred-skull-dark-decor-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dbattle-scarred-skull-dark-decor-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DeadMoon",
+      "tur": "CC BY 4.0"
+    },
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "kizgin-yuzlu-buyucu-sapkasi-heykeli",
+    "kategori": "Figür",
+    "marka": [],
+    "baslik": "Kızgın Yüzlü Büyücü Şapkası Heykeli — Büyülü Deliliğin Şapkası Dekoru (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Öfkeli yüz ifadesine sahip, kıvrık uçlu büyülü bir büyücü şapkası. Büyük bir gösterişli parça olarak tasarlandı; boyutlandırmaya çok uygun, rafta ya da masada güçlü bir etki bırakıyor.\n- Fantastik ve oyun temalı odalar, vitrinler ve koleksiyonlar için karakterli bir dekor; fantastik hikâye ve rol yapma oyunu sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3denchanted-hat-of-insanity-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3denchanted-hat-of-insanity-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DeadMoon",
+      "tur": "CC BY 4.0"
+    },
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "kafatasli-bomba-karanlik-raf-heykeli",
+    "kategori": "Figür",
+    "marka": [],
+    "baslik": "Kafatası Başlıklı Bomba Heykeli — Soğuk Savaş Temalı Karanlık Raf Dekoru (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Soğuk savaş dönemi bomba formunu stilize bir kafatası ön kısmıyla birleştiren karanlık bir sergi heykeli. Sade ve net siluetiyle odanın karşı tarafından bile hemen okunuyor.\n- Raf, çalışma masası ya da sohbet açan bir dekor objesi olarak; gotik, retro ve koleksiyon temasını sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dskull-nuke-dark-shelf-decor-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dskull-nuke-dark-shelf-decor-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dskull-nuke-dark-shelf-decor-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dskull-nuke-dark-shelf-decor-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DeadMoon",
+      "tur": "CC BY 4.0"
+    },
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "ihtilaf-elmasi-kaideli-heykel",
+    "kategori": "Figür",
+    "marka": [],
+    "baslik": "İhtilaf Elması Heykeli — Kaideli Efsanevi Elma Kalıntısı (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Truva Savaşı'nı başlatan efsanevi İhtilaf Elması'nı yorumlayan, alev gibi ve organik kıvrımlı yüzeyiyle öne çıkan stilize bir elma heykeli. Antik sütun biçimli bir kaide üzerinde sunulur.\n- Raf, çalışma masası ya da vitrin için mitoloji ve antik tema sevenlere hitap eden bir dekor; hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dapple-of-discord-apple-pedestal-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dapple-of-discord-apple-pedestal-2.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
     "id": "eriyen-lolipop-masa-heykeli",
     "kategori": "Figür",
     "marka": [],
