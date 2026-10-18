@@ -305,6 +305,52 @@ const VERI = {
     ],
     "varsayilanMalzeme": "PLA"
   },
+  "eklemli-vatoz-stres-oyuncagi": {
+    "boyutMm": {
+      "adim": 10,
+      "etiket": "Yükseklik",
+      "max": 250,
+      "min": 60,
+      "varsayilan": 150
+    },
+    "fiyatCapalari": [
+      [
+        60,
+        600
+      ],
+      [
+        250,
+        2500
+      ]
+    ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
+    "malzemeler": [
+      {
+        "ad": "PLA",
+        "katsayi": 1
+      },
+      {
+        "ad": "PETG",
+        "katsayi": 1.3
+      },
+      {
+        "ad": "ASA",
+        "katsayi": 1.6
+      }
+    ],
+    "renkGorselIndeks": {
+      "Beyaz": 0,
+      "Gri": 0,
+      "Siyah": 0
+    },
+    "renkler": [
+      "Siyah",
+      "Beyaz",
+      "Gri"
+    ],
+    "varsayilanMalzeme": "PLA"
+  },
   "geyik-serit-dekoratif-figur": {
     "boyutMm": {
       "adim": 10,
@@ -449,6 +495,52 @@ const VERI = {
     ],
     "varsayilanMalzeme": "PLA"
   },
+  "mr-bones-iskelet-kase-tutucu": {
+    "boyutMm": {
+      "adim": 10,
+      "etiket": "Yükseklik",
+      "max": 250,
+      "min": 60,
+      "varsayilan": 150
+    },
+    "fiyatCapalari": [
+      [
+        60,
+        600
+      ],
+      [
+        250,
+        2500
+      ]
+    ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
+    "malzemeler": [
+      {
+        "ad": "PLA",
+        "katsayi": 1
+      },
+      {
+        "ad": "PETG",
+        "katsayi": 1.3
+      },
+      {
+        "ad": "ASA",
+        "katsayi": 1.6
+      }
+    ],
+    "renkGorselIndeks": {
+      "Beyaz": 0,
+      "Gri": 0,
+      "Siyah": 0
+    },
+    "renkler": [
+      "Siyah",
+      "Beyaz",
+      "Gri"
+    ],
+    "varsayilanMalzeme": "PLA"
+  },
   "sonsuzluk-dugumu-serit-dekoratif-figur": {
     "boyutMm": {
       "adim": 10,
@@ -584,6 +676,52 @@ const VERI = {
     "renkGorselIndeks": {
       "Beyaz": 2,
       "Gri": 1,
+      "Siyah": 0
+    },
+    "renkler": [
+      "Siyah",
+      "Beyaz",
+      "Gri"
+    ],
+    "varsayilanMalzeme": "PLA"
+  },
+  "uc-bilge-iskelet-figur-seti": {
+    "boyutMm": {
+      "adim": 10,
+      "etiket": "Yükseklik",
+      "max": 250,
+      "min": 60,
+      "varsayilan": 150
+    },
+    "fiyatCapalari": [
+      [
+        60,
+        600
+      ],
+      [
+        250,
+        2500
+      ]
+    ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
+    "malzemeler": [
+      {
+        "ad": "PLA",
+        "katsayi": 1
+      },
+      {
+        "ad": "PETG",
+        "katsayi": 1.3
+      },
+      {
+        "ad": "ASA",
+        "katsayi": 1.6
+      }
+    ],
+    "renkGorselIndeks": {
+      "Beyaz": 0,
+      "Gri": 0,
       "Siyah": 0
     },
     "renkler": [

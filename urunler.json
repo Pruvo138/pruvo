@@ -1,5 +1,181 @@
 [
   {
+    "id": "uc-bilge-iskelet-figur-seti",
+    "kategori": "Figür",
+    "marka": [],
+    "baslik": "Üç Bilge İskelet Figür Seti — Görmez, Duymaz, Konuşmaz (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Klasik «görmez, duymaz, konuşmaz» öğüdünü ürkütücü ama sevimli bir iskelet üçlüsüyle anlatan dekoratif figür seti. Üç iskeletten biri ağzını, biri gözlerini, biri kulaklarını kapatır; ayrıntılı kemik yapıları ve eskitilmiş kafatası dokusuyla vitrinde dikkat çeker.\n- Cadılar Bayramı sofrası, raf, çalışma masası ve kitaplık için karakterli bir dekor parçası.\n- Üç figür bir arada sergilenebilir ya da evin farklı köşelerine ayrı ayrı yerleştirilebilir.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dthe-three-wise-skeletons-see-no-evil-hear-no-evil-speak-no-evil-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dthe-three-wise-skeletons-see-no-evil-hear-no-evil-speak-no-evil-2.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "mr-bones-iskelet-kase-tutucu",
+    "kategori": "Figür",
+    "marka": [],
+    "baslik": "Mr. Bones İskelet Kase Tutucu — Şeker Kasesi ve Mum Standı (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Papyonlu bir iskeletin elinde çatlak seramik görünümlü bir kase tuttuğu eğlenceli bir dekor figürü. Küçük boyda alevsiz LED mum standı, büyük boyda ise cadılar bayramı şeker ve atıştırmalık kasesi olarak kullanılır.\n- Kafatası, kaburga ve papyon ayrıntılarıyla sofra ve vitrin için dikkat çekici bir orta parça.\n- Kase ölçüsü seçtiğiniz boyuta göre değişir; mum standı olarak kullanacaksanız yalnızca alevsiz LED mum tercih edin, gerçek mum kullanmayın.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dmr-bones-the-spooky-bowl-holder-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dmr-bones-the-spooky-bowl-holder-2.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "eklemli-vatoz-stres-oyuncagi",
+    "kategori": "Fidget",
+    "marka": [],
+    "baslik": "Eklemli Vatoz Stres Oyuncağı — Hareketli Gövde (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Segmentli gövdesi ve kuyruğuyla elde esneyen, hareketli eklemli bir vatoz oyuncağı. Parçalar tek seferde birbirine bağlı üretildiği için montaj gerektirmez; gövde ve kuyruk her yöne akıcı biçimde kıvrılır.\n- Masa başında stres atmak, elde oynamak ya da koleksiyon ve hediye olarak kullanmak için ideal.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz uzunluğu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3darticulated-stingray-anti-stress-toy-print-in-place-3d-model-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3darticulated-stingray-anti-stress-toy-print-in-place-3d-model-4.jpg",
+      "https://media.pruvo3d.com/urunler/c3darticulated-stingray-anti-stress-toy-print-in-place-3d-model-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3darticulated-stingray-anti-stress-toy-print-in-place-3d-model-1.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
     "id": "oyun-yosegi-esinli-bulmaca-kutusu-surgulu-kapakli-desenli-pr27521",
     "kategori": "Oyun/Hobi",
     "marka": [],
