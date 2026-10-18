@@ -383,6 +383,9 @@ async function sayfaKur(ayar) {
     ctx.Math = sabitMath;
   }
   if (ayar.tabanHarita) { ctx.PRUVO_TABAN_FIYATLAR = ayar.tabanHarita; }
+  /* Gomulu kategori indeksi (canlida build'in sayfaya bastigi PRUVO_CIP_INDEKS). Verilmezse
+     sayfa "indeks yok" kolunu yasar (nav TUM kategorileri gosterir — bilincli fail-open). */
+  if (ayar.cipIndeks) { ctx.PRUVO_CIP_INDEKS = ayar.cipIndeks; }
   /* Satisa kapali aile isareti + fiyatsiz cumle: taban-fiyatlar.js'in AYNI dosyada
      yayina koydugu iki global. Verilmezse sayfa "artefakt inmemis" halini yasar
      (kart eski fallback metnine duser) — o yol da test ediliyor. */
@@ -494,27 +497,44 @@ function test1Veri() {
 /** 2 — NAV: kategori menusunde Jeneratör YOK, gorunur liste tam */
 async function test2Nav() {
   const hatalar = [];
-  const s = await sayfaKur({});
-  const etiketler = [];
-  for (const b of s.el("cats").children) {
-    etiketler.push(b.textContent || b.attrs["aria-label"] || b.title || "");
-  }
-  if (etiketler.indexOf("Jeneratör") !== -1) { hatalar.push("nav'da 'Jeneratör' GORUNUYOR"); }
-  // 18 Eki: Figür + Fidget CATEGORIES'te var ama su anda 0 urunlu; renderCats()
-  // PRUVO_CIP_INDEKS.katSayisi'a bakip bos olanlari ATLADIGI icin nav'da gorunmez.
-  // Bu K2 davranisinin musterideki yansimasi; test katalogda urun olmadigi icin
-  // beklenen listeye dahil etmez.
-  const beklenen = ["Tüm ürünler", "Marin", "Otomobil", "Motosiklet", "Bisiklet", "Tamirat", "Ev",
-    "Ofis", "Elektronik", "Kamera", "Bahçe", "Dekorasyon", "Oyun/Hobi"];
-  for (const k of beklenen) {
-    if (etiketler.indexOf(k) === -1) { hatalar.push("nav'da '" + k + "' eksik"); }
-  }
-  if (etiketler.length !== beklenen.length) {
-    hatalar.push("nav " + etiketler.length + " oge (beklenen " + beklenen.length + "): " +
-      etiketler.join(","));
-  }
-  rapor("2 nav: Jeneratör gizli, 12 kategori + Tümü tam (Figür/Fidget 0 urun -> K2 skip)", hatalar,
-    etiketler.length + " nav ogesi, Jeneratör yok");
+  // 18 Eki: Figür + Fidget CATEGORIES'te var; renderCats() gomulu indeksin katSayisi'na
+  // bakip 0 urunlu kategoriyi ATLAR (K2). Indeks YOKSA (calisma kipi) hepsini gosterir —
+  // sayfa kaybolmasin. 🔴 18 Eki ilk main yayini (Pages 39109300627) bu testin indeksi
+  // VERMEDEN 13 beklemesi yuzunden KIRMIZI yandi; artik uc kol AYRI olculur.
+  const ONIKI = ["Marin", "Otomobil", "Motosiklet", "Bisiklet", "Tamirat", "Ev", "Ofis",
+    "Elektronik", "Kamera", "Bahçe", "Dekorasyon", "Oyun/Hobi"];
+  const katSayisi = {};
+  ONIKI.forEach((k, i) => { katSayisi[k] = 10 + i; });
+  const indeks = (ek) => ({ kat: {}, alt: [], katSayisi: Object.assign({}, katSayisi, ek) });
+  const navOku = async (ayar) => {
+    const s = await sayfaKur(ayar);
+    const out = [];
+    for (const b of s.el("cats").children) {
+      out.push(b.textContent || b.attrs["aria-label"] || b.title || "");
+    }
+    return out;
+  };
+  const kol = (ad, etiketler, beklenen) => {
+    if (etiketler.indexOf("Jeneratör") !== -1) { hatalar.push(ad + ": nav'da 'Jeneratör' GORUNUYOR"); }
+    for (const k of beklenen) {
+      if (etiketler.indexOf(k) === -1) { hatalar.push(ad + ": nav'da '" + k + "' eksik"); }
+    }
+    if (etiketler.length !== beklenen.length) {
+      hatalar.push(ad + ": nav " + etiketler.length + " oge (beklenen " + beklenen.length + "): " +
+        etiketler.join(","));
+    }
+  };
+  // (a) indeks YOK -> 12 + Figür + Fidget + Tümü = 15 (fail-open, sayfa kaybolmaz)
+  const a = await navOku({});
+  kol("(a) indeks yok", a, ["Tüm ürünler"].concat(ONIKI, ["Figür", "Fidget"]));
+  // (b) indeks VAR, Figür/Fidget katSayisi'nda yok -> 13 (bos kategori GORUNMEZ)
+  const b = await navOku({ cipIndeks: indeks({}) });
+  kol("(b) indeks var, Figür/Fidget 0", b, ["Tüm ürünler"].concat(ONIKI));
+  // (c) Figür'e ilk urun gelir (katSayisi 3) -> Figür KENDILIGINDEN gorunur, Fidget hala yok
+  const c = await navOku({ cipIndeks: indeks({ "Figür": 3 }) });
+  kol("(c) Figür 3 urun", c, ["Tüm ürünler"].concat(ONIKI, ["Figür"]));
+  rapor("2 nav: Jeneratör gizli · indeks yok 15 · bos Figür/Fidget gizli 13 · ilk urunle Figür gorunur 14",
+    hatalar, a.length + "/" + b.length + "/" + c.length + " nav ogesi, Jeneratör yok");
 }
 
 /** 3 — LINK: ?kategori=Jeneratör gorunumu calisir; banner bu gorunumde YOK */
