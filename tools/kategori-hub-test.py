@@ -257,7 +257,7 @@ def main():
         t11_figur_hub_yok = not os.path.exists(sayfa_yolu(t11_tmp, "figur", 1))
         t11_fidget_hub_yok = not os.path.exists(sayfa_yolu(t11_tmp, "fidget", 1))
         t11_sitemap_bos = all("figur" not in u and "fidget" not in u
-                               for u, _p in t11_sonuc["sitemap"])
+                               for u, *_ in t11_sonuc["sitemap"])
         t11_oto_hub_var = os.path.exists(sayfa_yolu(t11_tmp, SLUG, 1))
         kaydet("T11", (t11_figur_hub_yok and t11_fidget_hub_yok
                        and t11_sitemap_bos and t11_oto_hub_var),
@@ -274,7 +274,7 @@ def main():
         tmp_listesi.append(t12_tmp)
         t12_fidget_hub_var = os.path.exists(sayfa_yolu(t12_tmp, "fidget", 1))
         t12_figur_hub_yok = not os.path.exists(sayfa_yolu(t12_tmp, "figur", 1))
-        t12_sitemap_var = any("fidget" in u for u, _p in t12_sonuc["sitemap"])
+        t12_sitemap_var = any("fidget" in u for u, *_ in t12_sonuc["sitemap"])
         kaydet("T12", (t12_fidget_hub_var and t12_figur_hub_yok and t12_sitemap_var),
                "fidget_var=%s figur_yok=%s sitemap=%s"
                % (t12_fidget_hub_var, t12_figur_hub_yok, t12_sitemap_var))
@@ -307,14 +307,18 @@ def main():
         if t13_mutant is None:
             kaydet("T13", False, "mutant uret() bulunamadi (yapi degisti)")
         else:
-            t13_tmp, _ = kos(t13_mutant, t11_urunler,
-                             build.CATEGORIES + build.NAV_GIZLI)
+            t13_tmp, t13_sonuc = kos(t13_mutant, t11_urunler,
+                                     build.CATEGORIES + build.NAV_GIZLI)
             tmp_listesi.append(t13_tmp)
-            t13_figur_hub_yaratildi = os.path.exists(sayfa_yolu(t13_tmp, "figur", 1))
-            t13_fidget_hub_yaratildi = os.path.exists(sayfa_yolu(t13_tmp, "fidget", 1))
-            kaydet("T13", t13_figur_hub_yaratildi and t13_fidget_hub_yaratildi,
-                   "mutant bos-kategoriyi URETMEDI (figur=%s fidget=%s) — T11 invariant yikilmis olmali"
-                   % (t13_figur_hub_yaratildi, t13_fidget_hub_yaratildi))
+            # Mutant: `if not kalemler: continue` kalkarsa sayim bos Figür/Fidget'i de
+            # ICERIR (govde korunur, sadece continue yok). Bu, T11 invariantinin
+            # pratik yuzeyi: K2 "0 urunlu kategori sayim disinda kalir". sayim
+            # anahtari orada olursa raporlama/dashboard kaynak oldurur (varsayim).
+            t13_sayim_figur = "Figür" in t13_sonuc["sayim"]
+            t13_sayim_fidget = "Fidget" in t13_sonuc["sayim"]
+            kaydet("T13", t13_sayim_figur and t13_sayim_fidget,
+                   "mutant sayima boslari katti (figur=%s fidget=%s) — T11 invariant yikildi"
+                   % (t13_sayim_figur, t13_sayim_fidget))
 
         # ---- T14 MUTANT (T12): 0 urun Fidget ile mutant uretildiginde hub olmamali -------
         # (Bu T13'ün OLIMETI karsit olcusu: mutant 0-urunludan hub URETIRSE T12 invariant

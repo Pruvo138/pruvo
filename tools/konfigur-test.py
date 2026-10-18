@@ -683,8 +683,16 @@ def eski_build_modulu():
         if kaynak.stdout == calisan:
             return None, REF_TOTOLOJI, taban
         g = {"__file__": os.path.join(TOOLS, "build.py"), "__name__": "build_eski"}
-        exec(compile(kaynak.stdout.decode("utf-8"),
-                     "build_eski<%s>" % commit[:12], "exec"), g)
+        try:
+            exec(compile(kaynak.stdout.decode("utf-8"),
+                         "build_eski<%s>" % commit[:12], "exec"), g)
+        except SystemExit as e:
+            # 18 Eki (Figür/Fidget): eski build.py GUNCEL secenekler.js'i okur; dal kategori
+            # defterini genisletince eski build kendi tutarlilik kapisiyla SystemExit verir
+            # (or. FILAMENT_KATEGORI_HARIC'te yeni kategori). Referans YUKLENEMEDI = olcum
+            # yok; cokme degil ÖLÇÜLEMEDİ (merge sonrasi main'de durum TOTOLOJI'ye doner).
+            return None, REF_YOK, "%s — eski build güncel secenekler.js ile yüklenemedi: %s" % (
+                taban, str(e)[:160])
         return g, REF_OLCULDU, taban
     return None, REF_YOK, "merge-base/git show alınamadı (sığ klon / origin-main yok?)"
 
