@@ -78,6 +78,11 @@ SITEMAP_UC_TEST_ONEK = "http://127.0.0.1:"
 PARCA_TAVAN = 10000
 HAZIRLA_TIMEOUT_SN = 30
 HAZIRLA_DENEME_SAYISI = 2
+# 🔴 KIMLIKLI ISTEK (18 Eki, olculdu): urllib'in varsayilan `Python-urllib/3.x` kimligi
+# canli sitemap'te HTTP 403 yiyor (CI koşucusu VE yerel ag — IP degil kimlik engeli);
+# ilk main yayininda `INDEXNOW_HAZIRLA=ESKI-YOK` -> indexnow isi rc=3. Acik, sahibini
+# soyleyen bir kimlik gonderilir (tarayici taklidi DEGIL).
+ISTEK_KIMLIGI = "PruvoIndexNow/1.0 (+https://pruvo3d.com/)"
 
 
 def _hata(mesaj):
@@ -120,9 +125,10 @@ def _indir(uc):
     Hata durumunda `None`. DNS/baglanti/timeout/HTTP>=400 hepsi ayni tasima gider
     (kullanici adina tekrarlanan istek sessiz kalmasin)."""
     son = None
+    req = urllib.request.Request(uc, headers={"User-Agent": ISTEK_KIMLIGI})
     for _ in range(HAZIRLA_DENEME_SAYISI):
         try:
-            with urllib.request.urlopen(uc, timeout=HAZIRLA_TIMEOUT_SN) as r:
+            with urllib.request.urlopen(req, timeout=HAZIRLA_TIMEOUT_SN) as r:
                 return r.read()
         except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, OSError) as e:
             son = e
@@ -180,7 +186,8 @@ def _post_parca(uc, url_list):
         "urlList": url_list,
     }, ensure_ascii=False).encode("utf-8")
     req = urllib.request.Request(uc, data=govde, method="POST",
-                                headers={"Content-Type": "application/json; charset=utf-8"})
+                                headers={"Content-Type": "application/json; charset=utf-8",
+                                         "User-Agent": ISTEK_KIMLIGI})
     try:
         with urllib.request.urlopen(req, timeout=60) as resp:
             return resp.status, resp.read()
