@@ -1181,13 +1181,14 @@ def test_dogrusal():
         uyar("(f) hacim modu eski-kod karşılaştırması ÖLÇÜLEMEDİ: %s (KURT kimlik iddiası "
              "yukarıda koştu)" % ref)
     else:
+        # Sentetik fikstürler (bu nöbetçi ürün verisi OKUMAZ — katalog ekseni
+        # tools/eski-fiyat-test.py e2'de TAM KÜME): tavanlı KURT + malzemeli KURT + tavanın
+        # hiç binmediği küçük hacimli geometri (afin bölgenin tamamı).
         vakalar = []
-        with open(os.path.join(ROOT, "urunler.json"), encoding="utf-8") as f:
-            katalog = json.load(f)
-        konfler = [u["konfigur"] for u in katalog
-                   if isinstance(u, dict) and isinstance(u.get("konfigur"), dict)
-                   and u["konfigur"].get("fiyatModu", "hacim") == "hacim"]
-        for k in konfler + [KURT_KONFIGUR_MALZEME]:
+        konfler = [KURT_KONFIGUR, KURT_KONFIGUR_MALZEME,
+                   dict(KURT_KONFIGUR_MALZEME, hacim={"refYukseklikMm": 150.0, "refHacimCm3": 9.5},
+                        fiyatCapalari=[[60, 500], [300, 1400]])]
+        for k in konfler:
             b = k["boyutMm"]
             mal = k.get("malzemeler") or [{"ad": "PLA", "katsayi": 1.0}]
             boy = b["min"]
@@ -1209,7 +1210,7 @@ def test_dogrusal():
         if e_son is not None and y_son is not None:
             sapan = sum(1 for a, b2 in zip(e_son, y_son) if a != b2)
             kontrol(len(vakalar) > 0 and sapan == 0,
-                    "HACİM MODUNDA DEĞİŞİM 0: %d ürün + fikstür, %d kombinasyon, sapan %d "
+                    "HACİM MODUNDA DEĞİŞİM 0: %d fikstür, %d kombinasyon, sapan %d "
                     "(referans %s)" % (len(konfler), len(vakalar), sapan, ref))
 
     # Mutantlar: her biri en az bir iddiayı KIRMIZI yakmalı; değişmemiş kopya (kontrol) yeşil.
