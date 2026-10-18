@@ -104,10 +104,12 @@ URUN_DIR = os.path.join(CIKTI_KOK, "urun")
 # Şeması olan parametrik ürünün sayfasına konfigüratör UI basılır; olmayana dokunulmaz.
 # Şema KAYNAĞI — OKUMA; ROOT'ta kalır.
 JEN_URUN_DIR = os.path.join(ROOT, "jenerator", "urunler")
-CATEGORIES = ["Marin", "Otomobil", "Motosiklet", "Bisiklet", "Tamirat", "Ev", "Ofis", "Elektronik", "Kamera", "Bahçe", "Dekorasyon", "Oyun/Hobi"]
+CATEGORIES = ["Marin", "Otomobil", "Motosiklet", "Bisiklet", "Tamirat", "Ev", "Ofis", "Elektronik", "Kamera", "Bahçe", "Dekorasyon", "Oyun/Hobi", "Figür", "Fidget"]
 # GİZLİ kategoriler (Okan, 17 Tem): ana sayfa menüsünde GÖRÜNMEZ ama ürün sayfaları,
 # arama ve ?kategori=<ad> linki çalışır. "Jeneratör" = TÜM parametrik (sarı seri) ürünler.
 # "Skan Art" (Okan, 23 Tem) = İskandinav tasarım dilli dekor/heykel alt-serisi; aynı sınıf.
+# "Figür" + "Fidget" (Okan, 18 Eki) = gorunur ust kategori; nav'da gosterilir, urun sayisi
+# 0 iken nav/hub/sitemap URETILMEZ (mevcut "0 urunlu kategori gosterilmez" davranisi).
 # index.html'deki GIZLI_KATEGORILER ile BİRLİKTE güncelle (CATEGORIES kuralının aynısı).
 NAV_GIZLI = ["Jeneratör", "Skan Art"]
 
@@ -365,7 +367,7 @@ def kategori_gorunur(kat):
 # kategorilerde gösterilir. Okan 23 Tem: Dekorasyon + Oyun/Hobi de standart ürün kartını
 # (Marin/Otomobil ile birebir) alır — eski geniş sayfa-altı buton düzeni kalktı.
 # secenekler.js'deki FONKSIYONEL_KATEGORILER ile BİRLİKTE güncelle (tek karar iki yerde).
-FONKSIYONEL_KATEGORILER = ["Otomobil", "Motosiklet", "Tamirat", "Elektronik", "Ev", "Marin", "Bisiklet", "Bahçe", "Ofis", "Kamera", "Dekorasyon", "Oyun/Hobi", "Skan Art"]
+FONKSIYONEL_KATEGORILER = ["Otomobil", "Motosiklet", "Tamirat", "Elektronik", "Ev", "Marin", "Bisiklet", "Bahçe", "Ofis", "Kamera", "Dekorasyon", "Oyun/Hobi", "Figür", "Fidget", "Skan Art"]
 
 # "Ilgili urunler" YEDEK HAVUZU (23 Tem, olculdu). Ilgili-urun bolumu AYNI kategoriden
 # beslenir; ince bir alt-seride (Skan Art'ta bugun TEK urun) aday havuzu BOSALIR ve
@@ -1786,6 +1788,8 @@ GOOGLE_PRODUCT_CATEGORY = {
     "Bahçe": "Home & Garden > Lawn & Garden",
     "Dekorasyon": "Home & Garden > Decor",
     "Oyun/Hobi": "Toys & Games",
+    "Figür": "Toys & Games",
+    "Fidget": "Toys & Games",
     # Skan Art = dekor/heykel alt-serisi -> Dekorasyon ile ayni taksonomi dugumu.
     # Eslesme yoksa g:google_product_category satiri feed'e HIC yazilmaz (asagida ~2210)
     # ve Merchant siniflandirmasi sessizce duser.

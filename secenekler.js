@@ -45,7 +45,7 @@
      hesabına SOKMAZ. Kategori çözülemiyorsa (boş / tanınmayan ad) cevap yine HAYIR'dır;
      "bilinmiyorsa göster" yönü sessizce satış açardı. */
   var FILAMENT_KATEGORI_HARIC = {
-    "ABS": ["Ev", "Ofis", "Dekorasyon", "Skan Art", "Oyun/Hobi"]
+    "ABS": ["Ev", "Ofis", "Dekorasyon", "Skan Art", "Oyun/Hobi", "Figür", "Fidget"]
   };
 
   /* Ölçüye özel (sarı) serinin kategori adı. Kısıtlı malzemede kategori TANINMALI olduğu
@@ -228,7 +228,7 @@
   // katsayılı fiyat) alır — Marin/Otomobil ile birebir. Sayfa üreteci ile BİRLİKTE güncellendi.
   // "Skan Art" (gizli dekor alt-serisi) da aynı düzeni alır: kategori Dekorasyon'dan
   // ayrıldığı an bu listede olmazsa ürün sessizce eski geniş-buton düzenine düşer.
-  var FONKSIYONEL_KATEGORILER = ["Otomobil", "Motosiklet", "Tamirat", "Elektronik", "Ev", "Marin", "Bisiklet", "Bahçe", "Ofis", "Kamera", "Dekorasyon", "Oyun/Hobi", "Skan Art"];
+  var FONKSIYONEL_KATEGORILER = ["Otomobil", "Motosiklet", "Tamirat", "Elektronik", "Ev", "Marin", "Bisiklet", "Bahçe", "Ofis", "Kamera", "Dekorasyon", "Oyun/Hobi", "Figür", "Fidget", "Skan Art"];
 
   /* Liste fiyatı metninden TL sayısı. Sayfa üreteci (arama.fiyat_tam_tl -> feed_price /
      price_number) ve Worker ile AYNI kural; üç yerde birebir aynı olmak ZORUNDA.

@@ -159,8 +159,10 @@ scenario("organik temiz", function () {
 });
 
 scenario("grup fallback", function () {
+  // ONCUL: "G0" fallback idi; spec guncellendikten sonra paid yolda pg yoksa KAMPANYA_GRUP'a
+  // duser, utm_campaign YOK ise "GY" (gclid-yalniz) olur. Eski "G0" artik URETILMEZ.
   var result = run("?gclid=X", new Storage(), []);
-  assert(/^REF:GS-G0-[A-Z0-9]{4}$/.test(result.window.pruvoRef()), "G0 fallback yok");
+  assert(/^REF:GS-GY-[A-Z0-9]{4}$/.test(result.window.pruvoRef()), "G0 fallback degil, GY (gclid-yalniz) olmali");
 });
 
 scenario("grup normalize", function () {
@@ -169,8 +171,74 @@ scenario("grup normalize", function () {
 });
 
 scenario("gecersiz grup", function () {
+  // ONCUL: G0'a dusuyordu; gecersiz pg (GROUP_RE basarisiz) -> paidGroupFromCampaign'a duser,
+  // utm_campaign YOK ise "GY". pg uzunlugunu GEYSEN bile "GY" artik beklenen sonuc.
   var result = run("?gclid=X&pg=cok-uzun-slug", new Storage(), []);
-  assert(/^REF:GS-G0-[A-Z0-9]{4}$/.test(result.window.pruvoRef()), "gecersiz grup G0 olmadi");
+  assert(/^REF:GS-GY-[A-Z0-9]{4}$/.test(result.window.pruvoRef()), "gecersiz grup GY olmali (gclid-yalniz)");
+});
+
+// === ref-grup-17eki: paid REF grubu pg yoksa kampanyadan turesin ====================
+// ONCUL: paid yolda grup yalniz pg'den turuyordu ("G0" fallback). OPAK 22:1x Figür arama
+// kampanyasi son ekini ("utm_campaign=figur-arama") tasidigi halde PMax ile ayni sepete
+// (REF:GS-G0-) dusuyordu. Yeni: pg varsa AYNEN, yoksa KAMPANYA_GRUP'a duser; utm_campaign
+// degeri hicbir yere yazilmaz (yalniz sinif turesin). Ayni davranis Figur haric kampanya
+// (UC) ve gclid-yalniz (GY) icin de.
+scenario("R1 Figür arama son eki -> FIG", function () {
+  var result = run("?gclid=X&utm_campaign=figur-arama", new Storage(), []);
+  assert(/^REF:GS-FIG-[A-Z0-9]{4}$/.test(result.window.pruvoRef()),
+    "Figur arama son eki FIG vermedi: " + result.window.pruvoRef());
+});
+
+scenario("R2 gclid-yalniz -> GY", function () {
+  var result = run("?gclid=X", new Storage(), []);
+  assert(/^REF:GS-GY-[A-Z0-9]{4}$/.test(result.window.pruvoRef()),
+    "gclid-yalniz GY vermedi: " + result.window.pruvoRef());
+});
+
+scenario("R3 gbraid-yalniz -> GY", function () {
+  var result = run("?gbraid=X", new Storage(), []);
+  assert(/^REF:GS-GY-[A-Z0-9]{4}$/.test(result.window.pruvoRef()),
+    "gbraid-yalniz GY vermedi: " + result.window.pruvoRef());
+});
+
+scenario("R4 bilinmeyen kampanya -> UC", function () {
+  var result = run("?gclid=X&utm_campaign=baska", new Storage(), []);
+  assert(/^REF:GS-UC-[A-Z0-9]{4}$/.test(result.window.pruvoRef()),
+    "bilinmeyen kampanya UC vermedi: " + result.window.pruvoRef());
+});
+
+scenario("R5 pg önceliği (pg + kampanya birlikte) -> pg", function () {
+  // pg=AB12 + utm_campaign=figur-arama + gclid. ONCELIK pg'de; FIG'i ezmis olmali.
+  var result = run("?gclid=X&pg=AB12&utm_campaign=figur-arama", new Storage(), []);
+  var ref = result.window.pruvoRef();
+  assert(/^REF:GS-AB12-[A-Z0-9]{4}$/.test(ref),
+    "pg onceligi FIG'i ezmeli: " + ref);
+  assert(ref.indexOf("FIG") === -1, "FIG'e dusmus: " + ref);
+});
+
+scenario("R6 click-id yoksa paid REF URETILMEZ", function () {
+  // utm_campaign=figur-arama var ama gclid/gbraid/wbraid yok -> paid yol SKIP, ref bos.
+  // ONCUL davranis (organik/ref-yok semantics'i bozmamak icin KORUNUR; sadece paid REF
+  // uretim kosulu "hasClickId" ile sinirli, kampanyanin paid kapisina BOS YOL acmaz).
+  var result = run("?utm_campaign=figur-arama", new Storage(), []);
+  assert(!result.window.pruvoRef(),
+    "click-id yokken paid REF uretildi: " + result.window.pruvoRef());
+});
+
+scenario("R7 kayitta utm_campaign DEGERI YOK", function () {
+  // utm_campaign=figur-arama olmali, ama localStorage kaydinda DEGERI yer almamali;
+  // yalniz sinif (FIG) turemeli (kvkk: ham deger hicbir yere yazilmaz).
+  var storage = new Storage();
+  run("?gclid=X&utm_campaign=figur-arama", storage, []);
+  var raw = storage.getItem("pruvo_ref");
+  assert(raw !== null, "pruvo_ref kaydi yok");
+  assert(raw.indexOf("figur-arama") === -1,
+    "kayitta utm_campaign DEGERI sizdi: " + raw);
+  var record = JSON.parse(raw);
+  assert(/^REF:GS-FIG-/.test(record.ref), "kayit ref FIG degil: " + record.ref);
+  var tumAnahtar = Object.keys(record).join(",");
+  assert(tumAnahtar.indexOf("ampaign") === -1,
+    "kayitta 'ampaign' (utm_campaign) anahtari gecti: " + tumAnahtar);
 });
 
 scenario("sayfalar arasi tekrar kullanim", function () {
@@ -660,6 +728,93 @@ scenario("M4 gclid kolu silinir -> I2 KIRMIZI (gclid ile hic inis yok)", functio
   // I2 beklentisi: gclid ile 1 inis beacon. MUTANT 0 uretir.
   assert(inis.length === 0,
     "M4 gclid kolu silinmis ama inis uretiyor -> I2 KIRMIZI degil");
+});
+
+// Mutant icin run() muadili: pruvoRef() sonucunu ve storage'i da disari ver (M5-M7 icin).
+function runMutant(mutated, search, storage) {
+  storage = storage || new Storage();
+  var anchors = [];
+  var beacons = [];
+  var gtagCalls = [];
+  var dlPushCalls = [];
+  var dlProxy = {
+    push: function () {
+      dlPushCalls.push(Array.prototype.slice.call(arguments));
+      return dlPushCalls.length;
+    }, length: 0
+  };
+  var document = {
+    readyState: "complete", referrer: "",
+    querySelectorAll: function () { return anchors; },
+    addEventListener: function () {}
+  };
+  var location = { search: search, href: "https://example.test/" + search };
+  var window = {
+    gtag: function () { gtagCalls.push(Array.prototype.slice.call(arguments)); },
+    dataLayer: dlProxy
+  };
+  var navigator = {
+    sendBeacon: function (url, data) {
+      var body, type;
+      if (typeof data === "string") { body = data; type = "text/plain"; }
+      else if (data && data.parts) { body = data.parts[0]; type = data.type; }
+      beacons.push({ url: url, type: type, body: body });
+      return true;
+    }
+  };
+  var sessionStorage = new SessionStorage();
+  window.sessionStorage = sessionStorage;
+  var context = {
+    window: window, document: document, location: location,
+    localStorage: storage, navigator: navigator, Blob: FakeBlob,
+    crypto: randomSource(), URL: URL, URLSearchParams: URLSearchParams,
+    Uint8Array: Uint8Array, Date: Date, JSON: JSON, String: String,
+    sessionStorage: sessionStorage
+  };
+  vm.runInNewContext(mutated, context, { filename: "attribution-ref-mutant.js" });
+  return { window: window, storage: storage, beacons: beacons };
+}
+
+scenario("M5 KAMPANYA_GRUP bosaltilir -> R1 KIRMIZI (Figur arama FIG vermez)", function () {
+  // MUTANT: haritayi bosalt. ?gclid=X&utm_campaign=figur-arama artik "UC" tasir, R1 FIG bekliyordu.
+  var mutated = MODULE.replace(
+    'KAMPANYA_GRUP = { "figur-arama": "FIG" }',
+    'KAMPANYA_GRUP = {}'
+  );
+  assert(mutated !== MODULE, "M5 metinsel mutasyon uygulanamadi");
+  var res = runMutant(mutated, "?gclid=X&utm_campaign=figur-arama");
+  var ref = res.window.pruvoRef() || "";
+  // Testin KENDISI gecmezse mutant yakalanmis demektir (R1 KIRMIZI oldu).
+  assert(ref.indexOf("FIG") === -1,
+    "M5 KAMPANYA_GRUP bos ama hala FIG uretiyor: " + ref);
+});
+
+scenario("M6 GY -> G0 doner -> R2 KIRMIZI (gclid-yalniz GY vermez)", function () {
+  // MUTANT: utm_campaign YOK ise "GY" yerine "G0" don. ?gclid=X artik REF:GS-G0-... uretir,
+  // R2 "GY" bekliyordu. gclid-yalniz PMax ile ayni sepete duserse ayrim yapilamaz.
+  var mutated = MODULE.replace(
+    'if (raw === "") { return "GY"; }',
+    'if (raw === "") { return "G0"; }'
+  );
+  assert(mutated !== MODULE, "M6 metinsel mutasyon uygulanamadi");
+  var res = runMutant(mutated, "?gclid=X");
+  var ref = res.window.pruvoRef() || "";
+  assert(ref.indexOf("GY") === -1,
+    "M6 gclid-yalniz G0'a dondu ama test GY bekliyordu: " + ref);
+});
+
+scenario("M7 pg onceligi tersine (utm once) -> R5 KIRMIZI (pg ezilir)", function () {
+  // MUTANT: pg dali kaldir. utm_campaign FIG olan her tik pg'yi ezer; R5 (pg=AB12) FIG'e dusmeli.
+  var mutated = MODULE.replace(
+    'var group = GROUP_RE.test(pgNormalized) ? pgNormalized : paidGroupFromCampaign(params);',
+    'var group = paidGroupFromCampaign(params);'
+  );
+  assert(mutated !== MODULE, "M7 metinsel mutasyon uygulanamadi");
+  var res = runMutant(mutated, "?gclid=X&pg=AB12&utm_campaign=figur-arama");
+  var ref = res.window.pruvoRef() || "";
+  // R5 AB12 bekliyordu; mutant FIG uretip AB12'yi ezmeli. Gecip gecmedigini kontrol et.
+  assert(ref.indexOf("AB12") === -1 && ref.indexOf("FIG") !== -1,
+    "M7 pg onceligi kalkmamis: " + ref);
 });
 
 // Payda SABIT YAZILMAZ — 21 Eyl 2026'da 32 senaryo kosarken "/28" basiyordu (4 tur bayat).

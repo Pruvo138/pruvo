@@ -47,7 +47,8 @@ FAILS = []
 # okunmaz. Sozlugun KENDI turetimi ayri bir eksendir, burada olculmez.
 MARKA_FIKSTUR = {"renault": "Renault", "clio": "Clio", "bosch": "Bosch"}
 KATEGORI_FIKSTUR = ["Marin", "Otomobil", "Motosiklet", "Bisiklet", "Tamirat", "Ev",
-                    "Ofis", "Elektronik", "Kamera", "Bahçe", "Dekorasyon", "Oyun/Hobi"]
+                    "Ofis", "Elektronik", "Kamera", "Bahçe", "Dekorasyon", "Oyun/Hobi",
+                    "Figür", "Fidget"]
 
 
 def _load(yol, modad):

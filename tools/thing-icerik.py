@@ -226,7 +226,8 @@ SERBEST (bunlar IHLAL DEGIL, DUZELTME):
     kamera HARIC, e-bike HARIC.
   * Bisiklet: bisiklet + e-bike parcalari (e-bike Elektronik'e DEGIL).
   * Ev: elektriksiz ev esyasi. Ofis: ofis/kirtasiye. "Bahçe": bahce/guc ekipmani. Dekorasyon: sus.
-    Oyun/Hobi: oyuncak/hobi/koleksiyon. Marin: tekne/denizcilik.
+    Oyun/Hobi: oyuncak/hobi/koleksiyon. Figür: 3D baski figürü (eklemli/diorama/heykel/bust).
+    Fidget: 3D baski fidget oyuncaklari (spinner/klik/toy). Marin: tekne/denizcilik.
 - marka: DIZI. Basliktaki/urundeki marka veya model adlari (or. ["Audi","Volkswagen"]). Jenerik urunse [].
 - fiyat_oneri: KABA bir baslangic fiyati (or. "400 TL"). PRUVO ozel-uretim yedek parca satar; kucuk
   tekil parca genelde ~200-600 TL, buyuk/coklu-parca/set ~600-1200 TL. Sadece baslangic tahmini —

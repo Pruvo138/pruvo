@@ -528,6 +528,65 @@ def aralik_dakika(dakikalar):
     return min(farklar)
 
 
+def _alan_kumesi(alan, ust):
+    """Tek cron alanindaki degerler (set) — `*`, `*/n`, `a`, `a-b`, virgul listesi.
+    Cozulemeyen bicim -> None (cagiran SIKI yola duser)."""
+    if alan == "*":
+        return set(range(ust))
+    m = re.fullmatch(r"\*/(\d{1,2})", alan)
+    if m:
+        adim = int(m.group(1))
+        return set(range(0, ust, adim)) if adim > 0 else None
+    out = set()
+    for parca in alan.split(","):
+        if re.fullmatch(r"\d{1,2}", parca):
+            out.add(int(parca))
+        elif re.fullmatch(r"\d{1,2}-\d{1,2}", parca):
+            bas, son = (int(x) for x in parca.split("-"))
+            if bas > son:
+                return None
+            out.update(range(bas, son + 1))
+        else:
+            return None
+    return out if out and max(out) < ust else None
+
+
+def gunluk_periyot_dk(cron):
+    """Cron'un GERCEK nominal periyodu (dk): dakika VE saat alani birlikte, gun ici
+    tetik anlarinin dairesel en kisa araligi. `aralik_dakika` YALNIZ dakika alanina
+    bakar (`37 3 * * *` -> 60 dk); bu fonksiyon saat alanini da okur (-> 1440 dk).
+
+    🔴 OLCULDU (18 Eki 2026): gunluk `rum-vekil.yml` (`37 3 * * *`) GitHub'da kayittan
+    20,8 sa sonra ilk zamanlanmis tetigini ALAMADI (03:37Z atlandi); A3 onu "60 dk'lik
+    cron" sayip N=18 sa tavanla KIRMIZI yakti -> main ve her dal SERIT B kosumu ertesi
+    gunun 03:37Z'sine kadar `cron-nabzi` kirmizi (merge'ler uc kapisinda kilitli).
+    Gun/ay/hafta-gunu alani `*` DEGILSE None (periyot gune sigmaz; cagiran SIKI kalir)."""
+    alanlar = cron.split()
+    if len(alanlar) != 5 or any(a != "*" for a in alanlar[2:]):
+        return None
+    dakikalar = _alan_kumesi(alanlar[0], 60)
+    saatler = _alan_kumesi(alanlar[1], 24)
+    if not dakikalar or not saatler:
+        return None
+    anlar = sorted(s * 60 + d for s in saatler for d in dakikalar)
+    if len(anlar) == 1:
+        return 1440
+    farklar = [b - a for a, b in zip(anlar, anlar[1:])]
+    farklar.append(1440 - anlar[-1] + anlar[0])
+    return min(farklar)
+
+
+def uzun_periyot_tabani(periyot_dk):
+    """A3 icin UZUN PERIYOT TABANI (saat): periyot > 60 dk ise N >= 2 x periyot, aksi
+    halde 0 (etkisiz). Gunluk cron -> 48 sa: TEK atlanan gun tolere edilir, IKI ardisik
+    atlanan gun KIRMIZI. MUTLAK_SESSIZLIK_SAAT (18) 15 dk'lik cron'larin TESLIM
+    istatistiginden turedi; gunluk cron icin 18 sa sessizlik NORMALDIR. Yalniz A3'e
+    uygulanir — A0/A4 damga eksenleri (artifact saklama 24 sa) DEGISMEZ."""
+    if not periyot_dk or periyot_dk <= 60:
+        return 0
+    return int(math.ceil(2.0 * periyot_dk / 60.0 - 1e-9))
+
+
 def efektif_aralik_dk(nominal_aralik_dk, oran=None):
     """NOMINAL cron araligini OLCULEN teslim oraniyla GERCEK cadansa cevirir.
 
@@ -1519,6 +1578,7 @@ def gozlem_topla(dosyalar, getir=api_getir, simdi=None,
         except OlcumHatasi:
             g["aralik"] = None
         g["esik"] = esik_saat(g["aralik"]) if g["aralik"] else ESIK_TABAN_SAAT
+        g["periyot"] = gunluk_periyot_dk(cron)
         if wf is not None:
             # 🔴 per_page=1 DEGIL: tek kayit YALNIZ "son kosum kac saatlik" (A3) sorusunu
             # cevaplar. A5 ekseni FIILI DAGILIMI olcer ve bunun icin kosum LISTESI gerekir
@@ -1998,6 +2058,11 @@ def degerlendir(dosyalar, gozlemler, simdi=None, damga=None, damga_esigi=None,
             g["dosya"], (g["esik"], "donmus (gozlem yok)", None))
         if efektif_dk is None and g["aralik"]:
             efektif_dk = efektif_aralik_dk(g["aralik"])
+        uzun_taban = uzun_periyot_tabani(g.get("periyot"))
+        if uzun_taban > n:
+            esik_kaynak += (" · UZUN PERIYOT %d dk -> N >= 2 x periyot = %d sa"
+                            % (g["periyot"], uzun_taban))
+            n = uzun_taban
         # 🔴 CAPA A5 ILE HIZALANDI (4 Agu 2026): `max(kayit_an, yenileme_an)` DEGIL,
         # yalniz `kayit_an`. Gerekce + olcum: `gecmis_capasi` docstring'i. Dosyaya
         # dokunmak alarmi 9 saat SUSTURUYORDU; artik SUSTURMAZ, satirda ⚠ olarak GORUNUR.
@@ -4280,6 +4345,41 @@ def kendini_test():
           rc == 1, "rc=%d" % rc)
     iddia("A3 (a) teshis 'HIC ATESLENMEMIS' der (susma sinifi adlandirilir)",
           any("HIC ATESLENMEMIS" in x for x in s))
+    # 🔴 A3 UZUN PERIYOT (18 Eki 2026, olculdu: gunluk rum-vekil ilk tetigini kaybetti,
+    # "60 dk'lik cron" sanildi, N=18 sa -> main + tum dal SERIT B kosumlari kirmizi).
+    iddia("PERIYOT: gunluk_periyot_dk saat alanini OKUR (37 3=1440, 47 */4=240, "
+          "34 */6=360, 9,24,39,54 *=15, 20 *=60, gun alani dolu=None)",
+          [gunluk_periyot_dk(c) for c in ("37 3 * * *", "47 */4 * * *", "34 */6 * * *",
+                                          "9,24,39,54 * * * *", "20 * * * *",
+                                          "0 1 * * 1")] == [1440, 240, 360, 15, 60, None])
+    iddia("PERIYOT: uzun_periyot_tabani gunluk=48 sa, 4 saatlik=8 sa, <=60 dk=0 (etkisiz)",
+          [uzun_periyot_tabani(p) for p in (1440, 240, 60, 15, None)] == [48, 8, 0, 0, 0])
+    DG = [("d1-uzlastirici.yml", "37 3 * * *")]
+    rc, s = kos(DG, _sahte_api(kosum_sayisi=0, kayit_yas_saat=20.8))
+    iddia("A3 UZUN PERIYOT (p1) GUNLUK cron 20,8 sa once kaydedildi, schedule kosumu yok "
+          "-> 🟡 (ilk tetik penceresi 2 x 24 = 48 sa; 18 Eki canli vakasi)",
+          rc == 0 and any("🟡 A3 NABIZ" in x and "esik N=48" in x for x in s)
+          and not any(x.startswith("🔴 A3") for x in s), s)
+    rc, s = kos(DG, _sahte_api(kosum_sayisi=0, kayit_yas_saat=49.0))
+    iddia("A3 UZUN PERIYOT (p2) GUNLUK cron 49 sa kayitli, HIC tetik yok -> KIRMIZI "
+          "(taban sonsuz sabir DEGIL)",
+          rc == 1 and any(x.startswith("🔴 A3 NABIZ") and "HIC ATESLENMEMIS" in x
+                          for x in s), s)
+    rc, s = kos(DG, _sahte_api(kosum_sayisi=3, yas_saat=30.0, kosum_yaslari=[30.0, 54.0, 78.0], kayit_yas_saat=400.0,
+                               yenileme_yas_saat=400.0))
+    iddia("A3 UZUN PERIYOT (p3) GUNLUK cron son tetik 30 sa once (TEK atlanan gun) -> "
+          "A3 ✅ ve esik kaynaginda UZUN PERIYOT yazar",
+          any(x.startswith("✅ A3 NABIZ") and "UZUN PERIYOT 1440 dk" in x for x in s)
+          and not any(x.startswith("🔴 A3") for x in s), s)
+    rc, s = kos(DG, _sahte_api(kosum_sayisi=3, yas_saat=50.0, kosum_yaslari=[50.0, 74.0, 98.0], kayit_yas_saat=400.0,
+                               yenileme_yas_saat=400.0))
+    iddia("A3 UZUN PERIYOT (p4) GUNLUK cron son tetik 50 sa once (IKI atlanan gun) -> "
+          "A3 KIRMIZI", rc == 1 and any(x.startswith("🔴 A3 NABIZ") for x in s), s)
+    rc, s = kos(D, _sahte_api(kosum_sayisi=0, kayit_yas_saat=20.8))
+    iddia("A3 UZUN PERIYOT KONTROL: 15 dk'lik cron AYNI fikstur (20,8 sa, tetik yok) -> "
+          "HALA KIRMIZI, taban UYGULANMAZ (gevseme yalniz uzun periyotlu cron'da)",
+          rc == 1 and any(x.startswith("🔴 A3 NABIZ") for x in s)
+          and not any("UZUN PERIYOT" in x for x in s), s)
     rc, s = kos(D, _sahte_api(kosum_sayisi=137, yas_saat=0.4))
     iddia("A3 (b) YAKIN ZAMANDA kosum var (24 dk) -> YESIL", rc == 0, "rc=%d" % rc)
     iddia("A3 (b) rapor kosum sayisini ve yasi SAYIYLA yazar",
