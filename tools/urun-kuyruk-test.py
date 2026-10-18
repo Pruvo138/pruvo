@@ -17,10 +17,13 @@ V19 semasiz parametrik RED (K441) · V20 sema main'de -> BIRLESTI · V21 gecmis 
 tetiklemez · V22 bozuk urunler.json OLCULEMEDI · YAPISAL BIRLESIM (14 Eki): Y1 iki taraf
 basa ekledi -> yol=yapisal · Y2 main'in sildigi geri gelmez · Y3 cift-ekleme · Y4
 cift-degisiklik · Y5 sil-degistir · Y6 urunler.json + kod.txt cakismasi -> CAKISMA (sebepsiz)
-· Y7 bicim (main roundtrip-esit degil) · Y8 ozdes ekleme tek kopya. Toplam 30 vaka (V15 dahil).
-Mutantlar (izole kopya, once TABAN; 9 mutant): BOS erken donusu silinir -> V3 · yol kapisi
+· Y7 bicim (main roundtrip-esit degil) · Y8 ozdes ekleme tek kopya · KONFIGUR BUNDLE (19 Eki):
+K1 esit ayna BIRLESTI · K2 bayat RED · K3 sema bozuk RED · K4 esit ama baska yabanci RED.
+Toplam 34 vaka (V15 dahil).
+Mutantlar (izole kopya, once TABAN; 11 mutant): BOS erken donusu silinir -> V3 · yol kapisi
 kapatilir -> V8 · sema kapisi kapatilir -> V19 · aclik x2 · cakisan-yol kumesi -> Y6 ·
-cift-degisiklik -> Y4 · silme korumasi -> Y2 · cift-ekleme -> Y3.
+cift-degisiklik -> Y4 · silme korumasi -> Y2 · cift-ekleme -> Y3 · bundle esitligi -> K2 ·
+kosullu izin kolu -> K1.
 """
 import importlib.util
 import json
@@ -564,7 +567,54 @@ def vakalar():
     v.append(("Y8-ozdes-ekleme-tek-kopya",
               y_kur([a, bb], [k1, x, a, bb], [m1, x, a, bb]),
               y_birlesti(["k1", "m1", "x", "a", "b"], (1, 0, 0))))
+
+    # ── KONFIGUR BUNDLE (19 Eki 2026): turetilmis ayna kosullu izinli ─────────────────────
+    # 1. vaka 18 Eki: konfigurlu Figur partisi `yabanci-yol yollar=shop/src/konfigurlar.js`
+    # ile 3 tur takildi. Gecis sarti: aday agacindaki ayna = AYNI agacin urunler.json'undan
+    # TEK KAYNAK uretecin ciktisi (bayt-esit). Beklenti uretecten TURER (elle metin yok).
+    kbk = _kbk()
+    konf_liste = [{"id": "a"}, {"id": "fig-x", "konfigur": kbk._ornek_konfigur()}]
+    konf_metin = kanonik(konf_liste)
+    esit_ayna = kbk.turet(konf_liste)
+    bayat_ayna = kbk.turet([{"id": "a"}])  # kayit eklendi, ayna uretilmedi
+    bozuk_konf = dict(kbk._ornek_konfigur())
+    del bozuk_konf["fiyatCapalari"]
+    bozuk_metin = kanonik([{"id": "a"}, {"id": "fig-x", "konfigur": bozuk_konf}])
+
+    def kb_kur(urun_metin, ayna, ek=None):
+        def kur(s):
+            s.yaz("shop/src/konfigurlar.js", ayna)
+            for yol, metin in (ek or {}).items():
+                s.yaz(yol, metin)
+            k = kur_kuyruk_urun(s, urun_metin)
+            return {}, True, {"k": k, "main": s.uzak("main")}
+        return kur
+
+    def kb_birlesti(s, rc, satir, b):
+        if rc != 0 or not satir.startswith("KUYRUK=BIRLESTI sha=%s yol=ff" % b["k"][:12]):
+            return "rc/satir: %r" % satir
+        if not satir.endswith(" worker-bundle=degisti"):
+            return "worker-bundle bilgisi yok: %r" % satir
+        if s.uzak("main") != b["k"]:
+            return "main kuyruk ucuna ff olmadi"
+    v.append(("K1-BIRLESTI-bundle-esit", kb_kur(konf_metin, esit_ayna), kb_birlesti))
+    v.append(("K2-RED-bundle-bayat", kb_kur(konf_metin, bayat_ayna),
+              red_dog("KUYRUK=RED sebep=konfigur-bundle hal=bayat")))
+    v.append(("K3-RED-bundle-sema-bozuk", kb_kur(bozuk_metin, esit_ayna),
+              red_dog("KUYRUK=RED sebep=konfigur-bundle hal=sema-bozuk")))
+    v.append(("K4-RED-bundle-esit-ama-baska-yabanci",
+              kb_kur(konf_metin, esit_ayna, {"index.html": "<p>2</p>\n"}),
+              red_dog("KUYRUK=RED sebep=yabanci-yol yollar=index.html")))
     return v
+
+
+def _kbk():
+    """Uretec TEK KAYNAK: tools/konfigur-bundle-kapisi.py (beklenen ayna ondan turer)."""
+    spec = importlib.util.spec_from_file_location(
+        "konfigur_bundle_kapisi_test", os.path.join(KOK, "tools", "konfigur-bundle-kapisi.py"))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
 
 
 def kanonik(liste):
@@ -623,6 +673,12 @@ MUTANTLAR = [
     ("M-BOS", "BOS erken donusu silindi",
      ('        return "KUYRUK=BOS sebep=geride", 0  # MUTANT-CAPA:BOS',
       '        pass  # MUTANT BOS'), "V3-BOS-geride"),
+    ("M-BUNDLE", "bundle esitlik sarti kapatildi (bayat ayna gecer)",
+     ("    if a.stdout != beklenen:  # MUTANT-CAPA:BUNDLE", "    if False:  # MUTANT BUNDLE"),
+     "K2-RED-bundle-bayat"),
+    ("M-BUNDLE-KOL", "kosullu izin kolu kapatildi (esit ayna da RED)",
+     ("    if KONFIGUR_BUNDLE_YOLU in yabanci:", "    if False:"),
+     "K1-BIRLESTI-bundle-esit"),
     ("M-YOL", "yabanci yol kapisi kapatildi",
      ("    if yabanci:  # MUTANT-CAPA:YOL", "    if False:  # MUTANT YOL"), "V8-yabanci-yol"),
     ("M-SEMA", "semasiz parametrik kapisi kapatildi (K441)",
