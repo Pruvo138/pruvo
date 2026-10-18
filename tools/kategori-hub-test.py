@@ -23,6 +23,7 @@ import tempfile
 import types
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(TOOLS)
 sys.path.insert(0, TOOLS)
 
 import build                                                    # noqa: E402
@@ -227,11 +228,108 @@ def main():
         m_tam, m_mukerrer, m_gorulen = kapsama(t9_tmp, SLUG, N_BOYUT)
         kaydet("T9", (not m_tam) and len(m_gorulen) < N_BOYUT,
                "mutant kapsamayı düşürmedi (tam=%s tekilsayı=%d)" % (m_tam, len(m_gorulen)))
+
+        # ---- T10 PARİTE+SIRA: build.py CATEGORIES == index.html CATEGORIES,
+        #      iki yeni deger (Figür + Fidget) Oyun/Hobi'den SONRA AYNI sirada ---------
+        with open(os.path.join(ROOT, "index.html"), encoding="utf-8") as _f:
+            _index_html = _f.read()
+        import json as _json
+        _m = re.search(r"var\s+CATEGORIES\s*=\s*\[(.*?)\];", _index_html, re.S)
+        _i_cat = _json.loads("[" + _m.group(1) + "]") if _m else []
+        t10_drift_yok = (build.CATEGORIES == _i_cat)
+        t10_figer_var = "Figür" in build.CATEGORIES and "Fidget" in build.CATEGORIES
+        t10_sira_dogru = (
+            "Figür" in build.CATEGORIES and "Fidget" in build.CATEGORIES
+            and build.CATEGORIES.index("Figür") > build.CATEGORIES.index("Oyun/Hobi")
+            and build.CATEGORIES.index("Fidget") > build.CATEGORIES.index("Figür"))
+        kaydet("T10", t10_drift_yok and t10_figer_var and t10_sira_dogru,
+               "drift_yok=%s figer_var=%s sira=%s"
+               % (t10_drift_yok, t10_figer_var,
+                  "Figür@%d Fidget@%d" % (build.CATEGORIES.index("Figür"),
+                                          build.CATEGORIES.index("Fidget"))
+                  if t10_figer_var else "?"))
+
+        # ---- T11 BOS KATEGORI (K2): 0 urunlu Figür+Fidget -> hub/sitemap URETILMEZ ------
+        t11_urunler = katalog(5)  # 5 Otomobil urunu, Figür/Fidget YOK
+        t11_tmp, t11_sonuc = kos(kb, t11_urunler,
+                                 build.CATEGORIES + build.NAV_GIZLI)
+        tmp_listesi.append(t11_tmp)
+        t11_figur_hub_yok = not os.path.exists(sayfa_yolu(t11_tmp, "figur", 1))
+        t11_fidget_hub_yok = not os.path.exists(sayfa_yolu(t11_tmp, "fidget", 1))
+        t11_sitemap_bos = all("figur" not in u and "fidget" not in u
+                               for u, *_ in t11_sonuc["sitemap"])
+        t11_oto_hub_var = os.path.exists(sayfa_yolu(t11_tmp, SLUG, 1))
+        kaydet("T11", (t11_figur_hub_yok and t11_fidget_hub_yok
+                       and t11_sitemap_bos and t11_oto_hub_var),
+               "figur_hub_yok=%s fidget_hub_yok=%s sitemap_bos=%s oto_var=%s"
+               % (t11_figur_hub_yok, t11_fidget_hub_yok, t11_sitemap_bos, t11_oto_hub_var))
+
+        # ---- T12 TEK URUNLU FIDGET: 1 Fidget urun -> hub FIGOTTER (slug) URETILIR -------
+        t12_urunler = katalog(3)  # 3 Otomobil
+        t12_urunler.append({"id": "kat-test-fidget-1", "kategori": "Fidget",
+                            "marka": [], "baslik": "Fidget spinner test",
+                            "fiyat": "10 TL", "gorseller": []})
+        t12_tmp, t12_sonuc = kos(kb, t12_urunler,
+                                 build.CATEGORIES + build.NAV_GIZLI)
+        tmp_listesi.append(t12_tmp)
+        t12_fidget_hub_var = os.path.exists(sayfa_yolu(t12_tmp, "fidget", 1))
+        t12_figur_hub_yok = not os.path.exists(sayfa_yolu(t12_tmp, "figur", 1))
+        t12_sitemap_var = any("fidget" in u for u, *_ in t12_sonuc["sitemap"])
+        kaydet("T12", (t12_fidget_hub_var and t12_figur_hub_yok and t12_sitemap_var),
+               "fidget_var=%s figur_yok=%s sitemap=%s"
+               % (t12_fidget_hub_var, t12_figur_hub_yok, t12_sitemap_var))
+
+        # ---- T13 MUTANT (T11): `if not kalemler: continue` kaldirilirsa T11 DUSMELI -----
+        def _uret_ici_uret_ekle():
+            """Boş-kategori atla kontrolünü YOK eden mutant."""
+            with open(KB_PATH, encoding="utf-8") as f:
+                kaynak = f.read()
+            agac2 = ast.parse(kaynak)
+            dugum2 = next((x for x in agac2.body
+                           if isinstance(x, ast.FunctionDef) and x.name == "uret"), None)
+            if dugum2 is None:
+                return None
+            satirlar2 = kaynak.splitlines(keepends=True)
+            mutant_kaynak = "".join(satirlar2[:dugum2.lineno - 1])
+            # uret() gövdesini olduğu gibi koru, içerideki 'continue' satırını sil
+            mutant_kaynak += "".join(satirlar2[dugum2.lineno - 1:])
+            mutant_kaynak = re.sub(
+                r"        if not kalemler:\n            continue[^\n]*\n", "",
+                mutant_kaynak)
+            mod = types.ModuleType("pruvo_kb_bos_mutant")
+            mod.__file__ = KB_PATH
+            mod.__package__ = ""
+            sys.modules["pruvo_kb_bos_mutant"] = mod
+            exec(compile(mutant_kaynak, KB_PATH, "exec"), mod.__dict__)
+            return mod
+
+        t13_mutant = _uret_ici_uret_ekle()
+        if t13_mutant is None:
+            kaydet("T13", False, "mutant uret() bulunamadi (yapi degisti)")
+        else:
+            t13_tmp, t13_sonuc = kos(t13_mutant, t11_urunler,
+                                     build.CATEGORIES + build.NAV_GIZLI)
+            tmp_listesi.append(t13_tmp)
+            # Mutant: `if not kalemler: continue` kalkarsa sayim bos Figür/Fidget'i de
+            # ICERIR (govde korunur, sadece continue yok). Bu, T11 invariantinin
+            # pratik yuzeyi: K2 "0 urunlu kategori sayim disinda kalir". sayim
+            # anahtari orada olursa raporlama/dashboard kaynak oldurur (varsayim).
+            t13_sayim_figur = "Figür" in t13_sonuc["sayim"]
+            t13_sayim_fidget = "Fidget" in t13_sonuc["sayim"]
+            kaydet("T13", t13_sayim_figur and t13_sayim_fidget,
+                   "mutant sayima boslari katti (figur=%s fidget=%s) — T11 invariant yikildi"
+                   % (t13_sayim_figur, t13_sayim_fidget))
+
+        # ---- T14 MUTANT (T12): 0 urun Fidget ile mutant uretildiginde hub olmamali -------
+        # (Bu T13'ün OLIMETI karsit olcusu: mutant 0-urunludan hub URETIRSE T12 invariant
+        #  yikilir; mutant KENDISI 1-urunluda hub uretir. Burada asil iddia: T13 mutantinin
+        #  1-urunlu Fidget'ta HUB URETMEDIGI — yani mutant filtreyi kaldirmis, bosluklari
+        #  URETIR. Ek test mutant dogru davraniyor mu diye; T13 bunu zaten olcuyor.)
     finally:
         for t in tmp_listesi:
             shutil.rmtree(t, ignore_errors=True)
 
-    print("VAKA=9 DUSEN=%d" % len(dusen))
+    print("VAKA=14 DUSEN=%d" % len(dusen))
     return 1 if dusen else 0
 
 

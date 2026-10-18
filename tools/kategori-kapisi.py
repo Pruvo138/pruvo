@@ -157,7 +157,7 @@ def kendini_test():
         kaynak_hatasi = str(e)
     iddia("KONTROL-A/kaynak-paritesi-index-build", (True, True, None),
           (i_nav == b_nav, i_gizli == b_gizli, kaynak_hatasi))
-    iddia("KONTROL-A/nav-12-gizli-2", (12, 2),
+    iddia("KONTROL-A/nav-14-gizli-2", (14, 2),
           (len(i_nav or []), len(i_gizli or [])))
 
     # --- KONTROL-B: rc civisi IKI YONLU ----------------------------------------

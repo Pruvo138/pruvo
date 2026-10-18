@@ -14,6 +14,12 @@
    boydan itibaren KESİN ARTAN (düz-bölge artefaktı yok); görünen fiyat TAM TL'ye
    yuvarlanır. Standart renkler (Siyah/Beyaz/Gri) fiyatı değiştirmez.
 
+   DOĞRUSAL MOD (işletme kararı, 18 Eki 2026 — Figür): şemada `fiyatModu: "dogrusal"` varsa AYNI iki
+   çapa boyun kendisine doğrusal okunur: fiyat_TL = sabit + birim × boy_mm (Figür:
+   [[60,600],[250,2500]] -> 100 TL/cm, sabit 0) ve 3× TAVAN UYGULANMAZ. Alan yoksa ya da
+   "hacim" ise davranış bugünküyle BİREBİR (geri uyumluluk). Bilinmeyen mod -> fiyat YOK
+   (null) = FAIL-CLOSED (Worker kalemi reddeder; yanlış tahsilat yerine sipariş kaybı).
+
    SEPET/SİPARİŞ TAŞIMA: seçimler mevcut parametrik satır kanalıyla taşınır
    (satir.parametreler/parametre_detay/hacim_mm3/parametrik_fiyat_kurus) + satir.konfigur
    bayrağı. Bayrak, secenekler.js parametrikSatirOzeti'nde kart-ödeme kanalını FAIL-CLOSED
@@ -30,34 +36,58 @@
   // Referans modelden küple ölçeklenmiş malzeme hacmi (mm³). İşlem sırası
   // sayfa üreteci konfigur_hacim_mm3 ile BİREBİR aynı (çift hassasiyet eşleniği:
   // JS öncesi basılan başlangıç fiyatı ile canlı hesap ayrışmasın).
+  // Doğrusal modda hacim OPSİYONEL (Figür/Fidget: ücretli kaynakta dosya yok) -> alan yoksa
+  // null (sipariş satırında hacim_mm3 null; uydurma değer YOK). Sayfa üreteci aynı (None).
   function hacimMm3(konfigur, boyMm) {
     var h = konfigur.hacim;
+    if (!h || typeof h !== "object") { return null; }
     var oran = boyMm / h.refYukseklikMm;
     return h.refHacimCm3 * 1000 * oran * oran * oran;
   }
 
-  // Afin modeli çapa çiftinden çözer: fiyat_TL = sabit + birim × hacim_cm3.
-  // İşlem sırası sayfa üreteci _konfigur_fiyat_modeli ile BİREBİR (drift nöbeti testte).
+  // Fiyat modu: alan yok / "hacim" -> afin-hacim (bugünkü), "dogrusal" -> boya doğrusal;
+  // başka her değer null (FAIL-CLOSED). Sayfa üreteci _konfigur_fiyat_modu ile BİREBİR.
+  function fiyatModu(konfigur) {
+    var m = konfigur.fiyatModu;
+    if (m === undefined || m === "hacim") { return "hacim"; }
+    return m === "dogrusal" ? "dogrusal" : null;
+  }
+
+  // Modun fiyat ekseni: hacim modunda hacim_cm3(boy), doğrusal modda boy_mm'nin kendisi.
+  function fiyatEkseni(konfigur, mod, boyMm) {
+    if (mod === "dogrusal") { return boyMm; }
+    var v = hacimMm3(konfigur, boyMm);
+    return v === null ? null : v / 1000;   // hacim modunda hacimsiz şema -> fiyat YOK
+  }
+
+  // Afin modeli çapa çiftinden çözer: fiyat_TL = sabit + birim × eksen (eksen = hacim_cm3,
+  // doğrusal modda boy_mm). İşlem sırası sayfa üreteci _konfigur_fiyat_modeli ile BİREBİR
+  // (drift nöbeti testte).
   function fiyatModeli(konfigur) {
     var c = konfigur.fiyatCapalari;
-    if (!c || c.length !== 2) { return null; }
-    var v1 = hacimMm3(konfigur, c[0][0]) / 1000;
-    var v2 = hacimMm3(konfigur, c[1][0]) / 1000;
+    var mod = fiyatModu(konfigur);
+    if (!c || c.length !== 2 || !mod) { return null; }
+    var v1 = fiyatEkseni(konfigur, mod, c[0][0]);
+    var v2 = fiyatEkseni(konfigur, mod, c[1][0]);
+    if (v1 === null || v2 === null) { return null; }   // FAIL-CLOSED (Worker reddeder)
     var birim = (c[1][1] - c[0][1]) / (v2 - v1);
-    return { birim: birim, sabit: c[0][1] - birim * v1 };
+    return { birim: birim, sabit: c[0][1] - birim * v1, mod: mod };
   }
 
   // Birim fiyat (kuruş): afin model × malzeme katsayısı, görünen fiyat TAM TL'ye yuvarlanır
   // (mimar kararı) — kuruş = round(afin_TL × katsayi) × 100; sepet/WhatsApp aynı değeri taşır
   // (ikinci hesap yok). katsayi verilmezse/geçersizse 1 (PLA / malzemesiz) => malzeme-öncesi
   // kodla BİREBİR aynı (geri uyumluluk). Çapalar tanım gereği tam tutar (katsayi=1'de).
+  // 3× tavan YALNIZ hacim modunda (doğrusal modda işletme kararıyla tavan YOK).
   function fiyatKurus(konfigur, boyMm, katsayi) {
     var m = fiyatModeli(konfigur);
     if (!m) { return null; }
     var k = (typeof katsayi === "number" && isFinite(katsayi) && katsayi > 0) ? katsayi : 1;
-    var tl = (m.sabit + m.birim * (hacimMm3(konfigur, boyMm) / 1000)) * k;
-    var tavan = 3 * konfigur.fiyatCapalari[0][1];   // 3× TAVAN (işletme kuralı)
-    if (tl > tavan) { tl = tavan; }
+    var tl = (m.sabit + m.birim * fiyatEkseni(konfigur, m.mod, boyMm)) * k;
+    if (m.mod === "hacim") {
+      var tavan = 3 * konfigur.fiyatCapalari[0][1];   // 3× TAVAN (işletme kuralı)
+      if (tl > tavan) { tl = tavan; }
+    }
     return Math.round(tl) * 100;
   }
 

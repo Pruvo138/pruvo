@@ -168,12 +168,14 @@ _MAKET_RE = re.compile(
     r"|1\s*[/:]\s*\d+\s*(ölçek|olcek)", re.UNICODE)
 # "figür" ayri kol: Okan yasagi OLCEKLI MAKET/MODEL'dir, oyuncak figur (eklemli dinozor,
 #   ejder) YASAK DEGIL. 12 Eki: Oyun/Hobi'de "figür" sozcugu tek basina auto_sil uretiyordu
-#   (TREND×Oyuncak d1, 4 aday). Bu kol YALNIZ Oyun/Hobi kategorisinde susar; diger
-#   kategorilerde eski davranis. Oyun/Hobi'de de _MAKET_RE (maket/olcekli/diorama/1:N/
-#   model araç) AYNEN tetikler -> "1:24 ölçekli figür" hala yakalanir. Kategori kapiya
-#   urun dict'iyle gelir (kapi_maket_auto(urun)), metinden tahmin EDILMEZ.
+#   (TREND×Oyuncak d1, 4 aday). Bu kol YALNIZ Oyun/Hobi + Figür kategorilerinde susar; diger
+#   kategorilerde eski davranis. Oyun/Hobi/Figür'de de _MAKET_RE (maket/olcekli/diorama/1:N/
+#   model araç) AYNEN tetikler -> "1:24 ölçekli figür" hala yakalanir. 18 Eki: "Figür"
+#   ust kategorisi (3D baski figürler) eklendi; muafiyet oraya da genisletildi, aksi
+#   halde Figür kartina "eklemli dinozor figuru" urunu auto_sil'e dusuyordu. Kategori
+#   kapiya urun dict'iyle gelir (kapi_maket_auto(urun)), metinden tahmin EDILMEZ.
 _FIGUR_RE = re.compile(r"\bfigür\w*|\bfigur\w*", re.UNICODE)
-MAKET_FIGUR_MUAF_KATEGORI = {"oyun/hobi"}
+MAKET_FIGUR_MUAF_KATEGORI = {"oyun/hobi", "figür"}
 #
 # TIER-B eskalasyon = LOGO/amblem/plaket/rozet/koleksiyon. OLCUM: baslik+aciklamada
 #   102 urune degiyor ama 68'i SADECE aciklamada gecen ISLEVSEL parca ("Honda jant

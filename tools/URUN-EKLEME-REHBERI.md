@@ -393,6 +393,18 @@ WhatsApp'a düşer — 29 Tem'de bu iki kez iş kaybettirdi.
 👉 **Yap:** `python3 tools/konfigur-bundle-kapisi.py --yaz` **+** `npx wrangler deploy --config
 shop/wrangler.toml`. İkisi de yapılmadan dekor ürünü "eklendi" sayılmaz.
 
+### 9.3b Figür fiyatı: `"fiyatModu": "dogrusal"` (Okan, 18 Eki 2026)
+Varsayılan konfigür fiyatı hacme göre afin çözülür ve en küçük boy fiyatının 3 katında kesilir.
+Figür ürünlerinde fiyat boya doğrusaldır (100 TL/cm, PLA) ve bu kesinti yoktur. Bunun için şemaya
+`"fiyatModu": "dogrusal"` yazılır, `fiyatCapalari` iki boy noktası olarak kalır:
+`[[60, 600], [250, 2500]]` (6 cm 600 TL, 25 cm 2.500 TL; `"fiyat": "600 TL"`). PETG/ASA
+katsayıları `malzemeler` ekseninden gelir. Alan yoksa ya da `"hacim"` ise eski davranış sürer.
+Başka bir değer build'i ve bundle'ı düşürür, Worker da o kalemi reddeder.
+Doğrusal modda `hacim` alanı **opsiyoneldir**: model dosyası yoksa (ücretli kaynak) alanı hiç
+yazma, tahmini değer uydurma; fiyat boydan çözülür, sipariş satırında hacim boş kalır. Alan
+yazılırsa yine doğrulanır. Hacim modunda `hacim` zorunlu kalır.
+Kabul testi: `python3 tools/konfigur-test.py`, bölüm (f).
+
 ### 9.4 `boy_secenekleri` biçimi
 Boy varyantı D1, edge kartı ve ödeme Worker'ında aynı kanonik diziden okunur; geçersiz/eksik
 etiket ödeme yolunda fail-closed reddedilir. Biçim:
