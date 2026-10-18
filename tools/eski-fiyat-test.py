@@ -832,7 +832,16 @@ def bolum_e2(urunler):
     toplam_yeni = 0
     toplam_eski = 0
     urun_kumesi = set()
+    # Doğrusal fiyat modu (Figür/Fidget, 18 Eki) referans ağaçtan SONRA doğdu: eski build.py
+    # `fiyatModu`'nu bilmez ve hacimsiz şemada çöker -> karşılaştırma anlamsız. Bu ürünler
+    # e2 dışıdır (para ekseni tools/konfigur-test.py (f)'de site=Worker=build.py ölçülür);
+    # yalnız modu "dogrusal" olan dışlanır, başka her mod/eksik mod yine ölçülür (sayı basılır).
+    dogrusal = {p["id"] for p in urunler
+                if isinstance(p.get("konfigur"), dict)
+                and p["konfigur"].get("fiyatModu") == "dogrusal"}
     for p, k, boy, kat in _kombinasyonlar(urunler):
+        if p["id"] in dogrusal:
+            continue
         y = build.konfigur_fiyat_kurus(k, boy, kat)
         e = eski["konfigur_fiyat_kurus"](k, boy, kat)
         n += 1
@@ -841,8 +850,9 @@ def bolum_e2(urunler):
         urun_kumesi.add(p["id"])
         if y != e:
             sapan += 1
-    print("     olculen kombinasyon: %d (%d urun) · toplam kurus yeni=%d eski=%d"
-          % (n, len(urun_kumesi), toplam_yeni, toplam_eski))
+    print("     olculen kombinasyon: %d (%d urun) · toplam kurus yeni=%d eski=%d · "
+          "dogrusal mod e2 disi: %d urun"
+          % (n, len(urun_kumesi), toplam_yeni, toplam_eski, len(dogrusal)))
     kontrol(n > 0, "kombinasyon kumesi BOS DEGIL (%d) — vakum nobeti" % n)
     kontrol(sapan == 0, "TAM KUME kurus esitligi: sapan %d / %d" % (sapan, n))
     kontrol(toplam_yeni == toplam_eski,

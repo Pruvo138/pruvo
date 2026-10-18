@@ -535,10 +535,25 @@ baslik("== 2) 3x TAVAN (shop/src/konfigur.js:59 — 3 x fiyatCapalari[0][1]) hal
 {
   const hatalar = [];
   let tavanVuran = 0;
+  let dogrusalTavansiz = 0;
+  let hacimModlu = 0;
   for (const u of KONFIGUR_URUNLER) {
     const kf = u.konfigur;
     const tavan = 3 * kf.fiyatCapalari[0][1] * 100;
     const kat = (kf.malzemeler.find((m) => m.ad === "ASA") || {}).katsayi;
+    // DOGRUSAL MOD (Figur/Fidget, 18 Eki): 3x tavan TASARIM GEREGI YOK. Burada tersini olc:
+    // Worker tahsilati = site cekirdegi (kirpilmis boy) ve tavanin USTUNDE (kirpma yok).
+    if (kf.fiyatModu === "dogrusal") {
+      const r = await baslat(YENI, [d1Satiri(u)],
+        [{ id: u.id, malzeme: "ASA", renk: "Siyah", adet: 1, parametreler: { boy_mm: 300 } }]);
+      const bek = FRONT.fiyatKurus(kf, FRONT.boyDuzelt(kf, 300), kat);
+      if (r.birimKurus !== bek || !(r.birimKurus > tavan)) {
+        hatalar.push(u.id + ": dogrusal 300mm/ASA = " + r.birimKurus + " (beklenen " + bek +
+                     ", tavan " + tavan + " USTUNDE olmali)");
+      } else { dogrusalTavansiz += 1; }
+      continue;
+    }
+    hacimModlu += 1;
     const m = FRONT.fiyatModeli(kf);
     const kapaksizTl = (m.sabit + m.birim * (FRONT.hacimMm3(kf, 300) / 1000)) * kat;
     const r = await baslat(YENI, [d1Satiri(u)],
@@ -550,13 +565,17 @@ baslik("== 2) 3x TAVAN (shop/src/konfigur.js:59 — 3 x fiyatCapalari[0][1]) hal
       hatalar.push(u.id + ": 300mm/ASA = " + r.birimKurus + " != tavan " + tavan);
     } else { tavanVuran += 1; }
   }
-  not("300mm/ASA'da tavana kirpilan urun: " + tavanVuran + "/" + KONFIGUR_URUNLER.length +
-      " (tavan = 3 x 500 TL = 150000 kurus)");
+  not("300mm/ASA'da tavana kirpilan urun: " + tavanVuran + "/" + hacimModlu + " hacim modlu" +
+      " (tavan = 3 x 500 TL = 150000 kurus) · dogrusal tavansiz: " + dogrusalTavansiz);
+  if (hacimModlu === 0) { hatalar.push("hacim modlu konfigur urunu YOK — tavan kolu vakum"); }
   if (hatalar.length) {
     kirmizi += 1;
     hatalar.slice(0, 5).forEach((h) => ham.push("    ❌ " + h));
     ham.push("  ❌ KALDI — tavan");
-  } else { ham.push("  ✅ GECTI — tavan 14/14 urunde uygulaniyor"); }
+  } else {
+    ham.push("  ✅ GECTI — tavan " + tavanVuran + "/" + hacimModlu + " hacim modlu urunde " +
+             "uygulaniyor · dogrusal " + dogrusalTavansiz + " urunde tavan YOK (tasarim)");
+  }
 }
 
 }
