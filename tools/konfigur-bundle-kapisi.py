@@ -62,7 +62,10 @@ BASLIK = """/**
  */
 """
 
-ZORUNLU_ALANLAR = ("boyutMm", "hacim", "fiyatCapalari", "malzemeler")
+ZORUNLU_ALANLAR = ("boyutMm", "fiyatCapalari", "malzemeler")
+# hacim: hacim modunda (fiyatModu yok/"hacim") ZORUNLU; "dogrusal" modda OPSIYONEL (Okan 18 Eki —
+# Figur/Fidget ucretli kaynakta dosya yok, refHacimCm3 olculemez; uydurma deger YAZILMAZ).
+# Alan VARSA her modda dogrulanir.
 
 # Bos/null konfigur halinde basilan COZUM metni + FAIL-CLOSED gerekcesi.
 #
@@ -95,6 +98,8 @@ def _sema_dogrula(urun_id, konf):
     if not isinstance(konf, dict):
         return "konfigur bir obje degil"
     eksik = [a for a in ZORUNLU_ALANLAR if a not in konf]
+    if "hacim" not in konf and konf.get("fiyatModu") != "dogrusal":
+        eksik.append("hacim")
     if eksik:
         return "eksik alan: " + ",".join(eksik)
     b = konf.get("boyutMm")
@@ -102,8 +107,8 @@ def _sema_dogrula(urun_id, konf):
             isinstance(b.get(k), (int, float)) for k in ("min", "max", "adim", "varsayilan")):
         return "boyutMm min/max/adim/varsayilan sayisal degil"
     h = konf.get("hacim")
-    if not isinstance(h, dict) or not all(
-            isinstance(h.get(k), (int, float)) for k in ("refYukseklikMm", "refHacimCm3")):
+    if "hacim" in konf and (not isinstance(h, dict) or not all(
+            isinstance(h.get(k), (int, float)) for k in ("refYukseklikMm", "refHacimCm3"))):
         return "hacim refYukseklikMm/refHacimCm3 sayisal degil"
     c = konf.get("fiyatCapalari")
     if (not isinstance(c, list) or len(c) != 2 or

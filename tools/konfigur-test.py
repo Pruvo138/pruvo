@@ -969,13 +969,24 @@ FIGUR_KONFIGUR = {
 FIGUR_SABIT_KURUS = {(60, "PLA"): 60000, (150, "PLA"): 150000, (220, "PLA"): 220000,
                      (250, "PLA"): 250000, (220, "PETG"): 286000, (250, "ASA"): 400000}
 KATSAYI = {m["ad"]: m["katsayi"] for m in MALZEMELER}
+# Gerçek Figür/Fidget şeması HACİMSİZ (MaCiT 18 Eki 12:3x, Okan): ücretli kaynakta dosya
+# indirilmez -> refHacimCm3 ÖLÇÜLEMEZ; uydurma değer yazılmaz. Doğrusal modda hacim opsiyonel.
+FIGUR_KONFIGUR_HACIMSIZ = {a: v for a, v in FIGUR_KONFIGUR.items() if a != "hacim"}
+KURT_KONFIGUR_HACIMSIZ = {a: v for a, v in KURT_KONFIGUR.items() if a != "hacim"}
 
+# Her vaka try/catch'te: istisna "THROW", NaN/Infinity "NaN" döner (JSON.stringify NaN'ı null'a
+# çevirip fail-closed null'u TAKLİT etmesin — mutant sessizce sağ kalmasın).
 DOGRUSAL_RUNNER = r"""
 "use strict";
 var K = require(process.argv[2]);
 var vakalar = JSON.parse(require("fs").readFileSync(process.argv[3], "utf8"));
 process.stdout.write(JSON.stringify(vakalar.map(function (v) {
-  return v.kat == null ? K.fiyatKurus(v.k, v.boy) : K.fiyatKurus(v.k, v.boy, v.kat);
+  var r;
+  try {
+    if (v.fn === "hacimMm3") { r = K.hacimMm3(v.k, v.boy); }
+    else { r = v.kat == null ? K.fiyatKurus(v.k, v.boy) : K.fiyatKurus(v.k, v.boy, v.kat); }
+  } catch (e) { return "THROW"; }
+  return (typeof r === "number" && !isFinite(r)) ? "NaN" : r;
 })));
 """
 
@@ -992,7 +1003,7 @@ DOGRUSAL_MUTANTLAR = [
     ("M1 tavan doğrusal modda da uygulanıyor",
      'if (m.mod === "hacim") {', "if (true) {"),
     ("M2 doğrusal eksen hacme dönmüş",
-     'return mod === "dogrusal" ? boyMm :', "return false ? boyMm :"),
+     'if (mod === "dogrusal") { return boyMm; }', "if (false) { return boyMm; }"),
     ("M3 bilinmeyen mod hacme düşüyor (fail-open)",
      'return m === "dogrusal" ? "dogrusal" : null;',
      'return m === "dogrusal" ? "dogrusal" : "hacim";'),
@@ -1000,6 +1011,12 @@ DOGRUSAL_MUTANTLAR = [
      'if (m === undefined || m === "hacim")', "if (m === undefined)"),
     ("M5 hacim modunda tavan kalkmış",
      'if (m.mod === "hacim") {', 'if (m.mod === "yok") {'),
+    ("M6 hacimsiz şemada hacimMm3 null korkuluğu yok (istisna)",
+     'if (!h || typeof h !== "object") { return null; }', ""),
+    ("M7 hacim modunda hacimsiz şema fiyat üretiyor (NaN, fail-open)",
+     "if (v1 === null || v2 === null) { return null; }", ""),
+    ("M8 hacim ekseni null'u sayıya çeviriyor (0 hacim)",
+     "return v === null ? null : v / 1000;", "return v / 1000;"),
 ]
 
 
@@ -1057,6 +1074,15 @@ def _dogrusal_js_iddialari(node, konfigur_js):
             etiket.append(("dog", b, ad))
     vakalar.append({"k": dict(FIGUR_KONFIGUR, fiyatModu="dogrusal-x"), "boy": 150, "kat": 1.0})
     etiket.append(("bilinmeyen", 150, "PLA"))
+    # Hacimsiz (gerçek Figür/Fidget) şema: aynı fiyat; hacimMm3 null; hacim modunda fiyat YOK.
+    for b in range(bm["min"], bm["max"] + 1, bm["adim"]):
+        for ad, kat in KATSAYI.items():
+            vakalar.append({"k": FIGUR_KONFIGUR_HACIMSIZ, "boy": b, "kat": kat})
+            etiket.append(("dog-h0", b, ad))
+    vakalar.append({"k": FIGUR_KONFIGUR_HACIMSIZ, "boy": 150, "fn": "hacimMm3"})
+    etiket.append(("hmm3-h0", 150, "-"))
+    vakalar.append({"k": KURT_KONFIGUR_HACIMSIZ, "boy": kb["min"], "kat": None})
+    etiket.append(("hacim-h0", kb["min"], "PLA"))
     for b in range(kb["min"], kb["max"] + 1, kb["adim"]):
         vakalar.append({"k": KURT_KONFIGUR, "boy": b, "kat": None})
         etiket.append(("hacim-yok", b, "PLA"))
@@ -1080,6 +1106,15 @@ def _dogrusal_js_iddialari(node, konfigur_js):
     if t[("bilinmeyen", 150, "PLA")] is not None:
         ihlal.append("bilinmeyen fiyatModu fiyat üretti (%r) — fail-open"
                      % t[("bilinmeyen", 150, "PLA")])
+    h0_sapan = [(b, ad) for b in range(bm["min"], bm["max"] + 1, bm["adim"]) for ad in KATSAYI
+                if t[("dog-h0", b, ad)] != t[("dog", b, ad)]]
+    if h0_sapan:
+        ihlal.append("hacimsiz doğrusal şema hacimliden farklı fiyat: %s" % h0_sapan[:3])
+    if t[("hmm3-h0", 150, "-")] is not None:
+        ihlal.append("hacimsiz şemada hacimMm3 null değil: %r" % t[("hmm3-h0", 150, "-")])
+    if t[("hacim-h0", kb["min"], "PLA")] is not None:
+        ihlal.append("hacim modunda hacimsiz şema fiyat üretti (%r) — fail-open"
+                     % t[("hacim-h0", kb["min"], "PLA")])
     fark = [b for b in range(kb["min"], kb["max"] + 1, kb["adim"])
             if t[("hacim-yok", b, "PLA")] != t[("hacim-acik", b, "PLA")]]
     if fark:
@@ -1139,11 +1174,25 @@ def test_dogrusal():
         kontrol(False, "build.py bilinmeyen fiyatModu'nda fiyat ÜRETMEMELİ (sessiz üretti)")
     except ValueError:
         kontrol(True, "build.py bilinmeyen fiyatModu'nda fiyat üretmez (ValueError)")
+    py_h0 = [(b, ad) for b in range(bm["min"], bm["max"] + 1, bm["adim"])
+             for ad, kat in KATSAYI.items()
+             if build.konfigur_fiyat_kurus(FIGUR_KONFIGUR_HACIMSIZ, b, kat) != t[("dog", b, ad)]]
+    kontrol(not py_h0, "build.py hacimsiz doğrusal şema == /konfigur.js (sapan %s)" % py_h0[:3])
+    kontrol(build.konfigur_hacim_mm3(FIGUR_KONFIGUR_HACIMSIZ, 150) is None,
+            "build.py konfigur_hacim_mm3 hacimsiz şemada None (uydurma hacim yok)")
+    try:
+        build.konfigur_fiyat_kurus(KURT_KONFIGUR_HACIMSIZ, KURT_KONFIGUR["boyutMm"]["min"])
+        kontrol(False, "build.py hacim modunda hacimsiz şemada fiyat ÜRETMEMELİ (sessiz üretti)")
+    except ValueError:
+        kontrol(True, "build.py hacim modunda hacimsiz şemada fiyat üretmez (ValueError)")
 
     # Worker (para yolu): konfigurHesapla — sabit sayılar + site eşitliği + kırpma + fail-closed.
     w_vaka = [{"k": FIGUR_KONFIGUR, "boy": b, "m": ad} for (b, ad) in FIGUR_SABIT_KURUS]
     w_vaka.append({"k": FIGUR_KONFIGUR, "boy": 100000, "m": "PLA"})
     w_vaka.append({"k": dict(FIGUR_KONFIGUR, fiyatModu="dogrusal-x"), "boy": 150, "m": "PLA"})
+    w_vaka.append({"k": FIGUR_KONFIGUR_HACIMSIZ, "boy": 220, "m": "PETG"})
+    w_vaka.append({"k": dict(KURT_KONFIGUR_HACIMSIZ, malzemeler=[dict(m) for m in MALZEMELER]),
+                   "boy": KURT_KONFIGUR["boyutMm"]["min"], "m": "PLA"})
     ws, whata = _worker_sonuc(node, w_vaka)
     kontrol(ws is not None, "Worker konfigurHesapla koşumu başarılı (%s)" % (whata or "-"))
     if ws is not None:
@@ -1159,6 +1208,13 @@ def test_dogrusal():
         kontrol(ws[len(sabit) + 1].get("hata") == "konfigur-fiyat-yok",
                 "Worker bilinmeyen fiyatModu'nu REDDEDER (konfigur-fiyat-yok): %r"
                 % ws[len(sabit) + 1])
+        h0 = ws[len(sabit) + 2]
+        kontrol(h0.get("birimKurus") == FIGUR_SABIT_KURUS[(220, "PETG")] and
+                h0.get("hacimMm3") is None and h0.get("parametreler") == {"boy_mm": 220},
+                "Worker hacimsiz Figür 22 cm PETG = 2.860 TL, hacimMm3 null (uydurma yok): %r" % h0)
+        kontrol(ws[len(sabit) + 3].get("hata") == "konfigur-fiyat-yok",
+                "Worker hacim modunda hacimsiz şemayı REDDEDER (konfigur-fiyat-yok): %r"
+                % ws[len(sabit) + 3])
 
     # Şema kapıları: geçerli doğrusal şema kabul, bilinmeyen mod build'i düşürür.
     kontrol(build.konfigur_dogrula(urun(FIGUR_KONFIGUR, fiyat="600 TL")) == [],
@@ -1168,6 +1224,27 @@ def test_dogrusal():
                                           fiyat="600 TL"))
     kontrol(any("fiyatModu" in h for h in hatalar),
             "konfigur_dogrula bilinmeyen fiyatModu'nu reddeder: %r" % hatalar)
+    h0 = build.konfigur_dogrula(urun(FIGUR_KONFIGUR_HACIMSIZ, fiyat="600 TL"))
+    kontrol(h0 == [], "konfigur_dogrula HACİMSİZ doğrusal Figür şemasını kabul eder: %r" % h0)
+    hatalar = build.konfigur_dogrula(urun(KURT_KONFIGUR_HACIMSIZ))
+    kontrol(any("hacim" in h for h in hatalar),
+            "konfigur_dogrula hacim modunda hacimsiz şemayı reddeder: %r" % hatalar)
+    hatalar = build.konfigur_dogrula(urun(dict(FIGUR_KONFIGUR, hacim={"refYukseklikMm": 0,
+                                                                      "refHacimCm3": 1}),
+                                          fiyat="600 TL"))
+    kontrol(any("hacim" in h for h in hatalar),
+            "konfigur_dogrula doğrusal modda VAR olan bozuk hacmi yine reddeder: %r" % hatalar)
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "konfigur_bundle_kapisi", os.path.join(ROOT, "tools", "konfigur-bundle-kapisi.py"))
+    kbk = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(kbk)
+    sema = [kbk._sema_dogrula("t", FIGUR_KONFIGUR_HACIMSIZ),
+            kbk._sema_dogrula("t", KURT_KONFIGUR_HACIMSIZ),
+            kbk._sema_dogrula("t", dict(FIGUR_KONFIGUR, hacim={"refYukseklikMm": "x"}))]
+    kontrol(sema[0] == "" and "hacim" in sema[1] and "hacim" in sema[2],
+            "bundle kapısı: hacimsiz doğrusal kabul, hacimsiz hacim-modu RED, bozuk hacim RED: %r"
+            % sema)
 
     # Sayfa: doğrusal mod inline veride, JS öncesi fiyat 15 cm PLA = 1.500 TL, Offer = 600.
     p = urun(FIGUR_KONFIGUR, id="test-figur-dogrusal", fiyat="600 TL")
@@ -1179,7 +1256,17 @@ def test_dogrusal():
     ld = json.loads(re.findall(r'<script type="application/ld\+json">(.*?)</script>', html, re.S)[0])
     kontrol((ld.get("offers") or {}).get("price") == "600",
             "doğrusal sayfada JSON-LD Offer.price = çapa-1 (600): %r" % (ld.get("offers") or {}).get("price"))
+    p0 = urun(FIGUR_KONFIGUR_HACIMSIZ, id="test-figur-hacimsiz", fiyat="600 TL")
+    html0 = build.render_product(p0, [p0])
+    ik = re.search(r"var URUN_KONFIGUR = (\{.*?\});", html0)
+    kontrol(ik is not None and "hacim" not in json.loads(ik.group(1)) and
+            ('id="opsiyonFiyat">%s<' % metin) in html0,
+            "hacimsiz doğrusal sayfa üretilir: inline veride hacim YOK, JS öncesi fiyat %s" % metin)
     pk = urun(KURT_KONFIGUR)
+    ikk = re.search(r"var URUN_KONFIGUR = (\{.*?\});", build.render_product(pk, [pk]))
+    kontrol(ikk is not None and list(json.loads(ikk.group(1))) == ["boyutMm", "hacim", "fiyatCapalari"],
+            "modsuz (hacim) sayfanın inline anahtar sırası bugünkü gibi (boyutMm, hacim, "
+            "fiyatCapalari): %r" % (list(json.loads(ikk.group(1))) if ikk else None))
     kontrol('"fiyatModu"' not in build.render_product(pk, [pk]),
             "modsuz (hacim) sayfanın inline verisine fiyatModu SIZMAZ (bayt-eşitlik korunur)")
 

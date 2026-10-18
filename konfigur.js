@@ -36,8 +36,11 @@
   // Referans modelden küple ölçeklenmiş malzeme hacmi (mm³). İşlem sırası
   // sayfa üreteci konfigur_hacim_mm3 ile BİREBİR aynı (çift hassasiyet eşleniği:
   // JS öncesi basılan başlangıç fiyatı ile canlı hesap ayrışmasın).
+  // Doğrusal modda hacim OPSİYONEL (Figür/Fidget: ücretli kaynakta dosya yok) -> alan yoksa
+  // null (sipariş satırında hacim_mm3 null; uydurma değer YOK). Sayfa üreteci aynı (None).
   function hacimMm3(konfigur, boyMm) {
     var h = konfigur.hacim;
+    if (!h || typeof h !== "object") { return null; }
     var oran = boyMm / h.refYukseklikMm;
     return h.refHacimCm3 * 1000 * oran * oran * oran;
   }
@@ -52,7 +55,9 @@
 
   // Modun fiyat ekseni: hacim modunda hacim_cm3(boy), doğrusal modda boy_mm'nin kendisi.
   function fiyatEkseni(konfigur, mod, boyMm) {
-    return mod === "dogrusal" ? boyMm : hacimMm3(konfigur, boyMm) / 1000;
+    if (mod === "dogrusal") { return boyMm; }
+    var v = hacimMm3(konfigur, boyMm);
+    return v === null ? null : v / 1000;   // hacim modunda hacimsiz şema -> fiyat YOK
   }
 
   // Afin modeli çapa çiftinden çözer: fiyat_TL = sabit + birim × eksen (eksen = hacim_cm3,
@@ -64,6 +69,7 @@
     if (!c || c.length !== 2 || !mod) { return null; }
     var v1 = fiyatEkseni(konfigur, mod, c[0][0]);
     var v2 = fiyatEkseni(konfigur, mod, c[1][0]);
+    if (v1 === null || v2 === null) { return null; }   // FAIL-CLOSED (Worker reddeder)
     var birim = (c[1][1] - c[0][1]) / (v2 - v1);
     return { birim: birim, sabit: c[0][1] - birim * v1, mod: mod };
   }

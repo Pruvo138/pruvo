@@ -2092,8 +2092,13 @@ def konfigur_dogrula(p):
         if not isinstance(etiket, str) or not etiket.strip():
             hatalar.append("boyutMm.etiket boş olamaz (sepet/WhatsApp satır detayında görünür)")
 
+    # hacim: hacim modunda ZORUNLU (fiyat ekseni). Doğrusal modda OPSİYONEL (Okan 18 Eki —
+    # Figür/Fidget ücretli kaynakta dosya yok -> refHacimCm3 ölçülemez; UYDURMA değer yazılmaz,
+    # fiyat boydan çözülür, sipariş satırında hacim_mm3 null). Alan VARSA her modda doğrulanır.
     h = k.get("hacim")
-    if not isinstance(h, dict):
+    if "hacim" not in k and k.get("fiyatModu") == "dogrusal":
+        pass
+    elif not isinstance(h, dict):
         hatalar.append("hacim eksik ya da obje değil")
     else:
         for alan in ("refYukseklikMm", "refHacimCm3"):
@@ -2208,7 +2213,9 @@ def konfigur_hacim_mm3(konfigur, boy_mm):
     """Referans modelden küple ölçeklenmiş hacim (mm³). /konfigur.js hacimMm3 ile AYNI
     işlem sırası (çift hassasiyet eşleniği) — JS öncesi basılan başlangıç fiyatı, sayfa
     JS'inin ilk hesabıyla bayt-bayt aynı metni versin diye."""
-    h = konfigur["hacim"]
+    h = konfigur.get("hacim")
+    if not isinstance(h, dict):
+        return None   # doğrusal modda hacimsiz şema (JS hacimMm3 -> null ikizi)
     oran = boy_mm / float(h["refYukseklikMm"])
     return float(h["refHacimCm3"]) * 1000 * oran * oran * oran
 
@@ -2224,7 +2231,10 @@ def _konfigur_fiyat_ekseni(konfigur, mod, boy_mm):
     """/konfigur.js fiyatEkseni aynası: hacim modunda hacim_cm3(boy), doğrusalda boy_mm."""
     if mod == "dogrusal":
         return float(boy_mm)
-    return konfigur_hacim_mm3(konfigur, boy_mm) / 1000.0
+    v = konfigur_hacim_mm3(konfigur, boy_mm)
+    if v is None:
+        raise ValueError("konfigur hacim modunda hacim alanı yok")
+    return v / 1000.0
 
 
 def _konfigur_fiyat_modeli(konfigur):
@@ -4275,9 +4285,12 @@ def render_product(p, all_products, chip_map=None):
         konf_scripts = '<script src="/konfigur.js"></script>'
         _konfigur_client = {
             "boyutMm": konfigur["boyutMm"],
-            "hacim": konfigur["hacim"],
-            "fiyatCapalari": konfigur["fiyatCapalari"],
         }
+        # hacim YALNIZ alan varsa basılır (doğrusal modda opsiyonel); anahtar sırası hacim
+        # modunda bugünküyle aynı -> modsuz sayfaların inline verisi bayt-bayt aynı kalır.
+        if "hacim" in konfigur:
+            _konfigur_client["hacim"] = konfigur["hacim"]
+        _konfigur_client["fiyatCapalari"] = konfigur["fiyatCapalari"]
         # fiyatModu YALNIZ alan varsa basılır: modsuz (hacim) sayfaların inline verisi
         # bayt-bayt bugünkü gibi kalır; doğrusal sayfada /konfigur.js aynı modu okur.
         if "fiyatModu" in konfigur:

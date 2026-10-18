@@ -400,6 +400,9 @@ Figür ürünlerinde fiyat boya doğrusaldır (100 TL/cm, PLA) ve bu kesinti yok
 `[[60, 600], [250, 2500]]` (6 cm 600 TL, 25 cm 2.500 TL; `"fiyat": "600 TL"`). PETG/ASA
 katsayıları `malzemeler` ekseninden gelir. Alan yoksa ya da `"hacim"` ise eski davranış sürer.
 Başka bir değer build'i ve bundle'ı düşürür, Worker da o kalemi reddeder.
+Doğrusal modda `hacim` alanı **opsiyoneldir**: model dosyası yoksa (ücretli kaynak) alanı hiç
+yazma, tahmini değer uydurma; fiyat boydan çözülür, sipariş satırında hacim boş kalır. Alan
+yazılırsa yine doğrulanır. Hacim modunda `hacim` zorunlu kalır.
 Kabul testi: `python3 tools/konfigur-test.py`, bölüm (f).
 
 ### 9.4 `boy_secenekleri` biçimi
