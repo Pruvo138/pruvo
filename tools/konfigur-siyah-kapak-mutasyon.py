@@ -87,7 +87,7 @@ FIX_OLCULEMEZ = [_urun("x-bozuk", ["Siyah", "Beyaz"], [])]
 FIX_POZITIF = [_gecerli("x-1"), _gecerli("x-2"), _gecerli("x-3")]
 
 
-# RENDER-SETSIZ SINIF (BaBa 18 Eki 16:4x): Figur/Fidget + fiyatModu=dogrusal. Kapak
+# RENDER-SETSIZ SINIF (BaBa 18 Eki 16:4x; 19 Eki kategoriden bagimsiz): fiyatModu=dogrusal. Kapak
 # tasarimci gorseli (tek gorsel, tum renkler 0'a capali); eksen B yerine etiket olculur.
 def _rs(uid, kategori="Figür", mod="dogrusal", etiket=True, renkler=("Siyah", "Beyaz", "Gri"),
         rgi=None):
@@ -107,12 +107,16 @@ FIX_RS_ETIKETSIZ = [_rs("x-rs-etiketsiz", etiket=False)]
 FIX_RS_GRI = [_rs("x-rs-gri", renkler=("Gri", "Siyah", "Beyaz"))]
 # C10/C11 KACIS fiksturu: hicbir renk 0'a capali DEGIL -> uretim fonksiyonu "listenin ilki"
 # (Siyah) doner, eksen A TEMIZ; siyah-render capasi yok -> YALNIZ eksen B yakalar. Boylece
-# sinif kosulu sokulurse (N-8/N-9) urun etiketle TAM'a kacar ve iddia duser.
+# sinif kosulu sokulurse (N-9) urun etiketle TAM'a kacar ve iddia duser.
 _KACIS_RGI = {"Siyah": 2, "Beyaz": 1, "Gri": 3}
-# C10 — KACIS (kategori): Skan Art urunu dogrusal mod + etiketle kapak capasindan kacamaz.
-FIX_RS_KACIS_KATEGORI = [_rs("x-rs-kacis-k", kategori="Skan Art", rgi=_KACIS_RGI)]
+# C10 — KATEGORIDEN BAGIMSIZ SINIF (19 Eki, BaBa 01:1x): Oyun/Hobi dogrusal + etiket, siyah
+# render capasi YOK -> TAM. Kategori kisiti geri gelirse (N-8) urun eksen B'ye duser -> IHLAL.
+FIX_RS_KATEGORI_DISI = [_rs("x-rs-oyun", kategori="Oyun/Hobi", rgi=_KACIS_RGI)]
 # C11 — KACIS (mod): Figur ama fiyatModu yok (hacim modu) -> sinif DISI, eksen B yakalar.
 FIX_RS_KACIS_MOD = [_rs("x-rs-kacis-m", mod=None, rgi=_KACIS_RGI)]
+# C12 — kategori-disi dogrusal ETIKETSIZ (tum renkler 0'a capali): sinifta -> eksen C IHLAL.
+# Taban "gorselOrnek ∧ dogrusal" olsaydi (N-11) eksen B'ye duser, rgi[Siyah]=0 ile GECERDI.
+FIX_RS_KATEGORI_DISI_ETIKETSIZ = [_rs("x-rs-ev-etiketsiz", kategori="Ev", etiket=False)]
 
 # C5 — KAPSAM: konfigur alani OLMAYAN urunler sayilmamali.
 FIX_KAPSAM = [_gecerli("x-1"),
@@ -185,9 +189,15 @@ def c9_rs_gri(mod):
     return (len(ihlal) == 1 and olc == [] and mod.JETON_IHLAL in satir), satir
 
 
-def c10_rs_kacis_kategori(mod):
-    """Skan Art + dogrusal + etiket kapak capasindan KACAMAZ -> IHLAL (eksen B)."""
-    satir, ihlal, olc, _ = mod.denetle(FIX_RS_KACIS_KATEGORI, _turet(mod))
+def c10_rs_kategori_disi(mod):
+    """Oyun/Hobi + dogrusal + etiket (siyah render capasi yok) -> TAM (sinif kategoriden bagimsiz)."""
+    satir, ihlal, olc, tam = mod.denetle(FIX_RS_KATEGORI_DISI, _turet(mod))
+    return (ihlal == [] and olc == [] and tam == 1 and mod.JETON_TAM in satir), satir
+
+
+def c12_rs_kategori_disi_etiketsiz(mod):
+    """Ev + dogrusal + etiketsiz (tum renkler 0'a capali) -> IHLAL (eksen C)."""
+    satir, ihlal, olc, _ = mod.denetle(FIX_RS_KATEGORI_DISI_ETIKETSIZ, _turet(mod))
     return (len(ihlal) == 1 and olc == [] and mod.JETON_IHLAL in satir), satir
 
 
@@ -207,8 +217,9 @@ IDDIALAR = [
     ("C7 RS POZITIF    (render-setsiz Figur/Fidget + etiket -> TAM)", c7_rs_pozitif),
     ("C8 RS ETIKETSIZ  (render-setsiz urun etiketsiz -> IHLAL)", c8_rs_etiketsiz),
     ("C9 RS ON-SECIM   (render-setsiz sinifta on-secim Gri -> IHLAL)", c9_rs_gri),
-    ("C10 RS KACIS-K   (Skan Art dogrusal+etiketle kapak capasindan kacamaz)", c10_rs_kacis_kategori),
+    ("C10 RS KATEGORI  (Oyun/Hobi dogrusal+etiket -> TAM; sinif kategoriden bagimsiz)", c10_rs_kategori_disi),
     ("C11 RS KACIS-M   (Figur modsuz+etiketle kapak capasindan kacamaz)", c11_rs_kacis_mod),
+    ("C12 RS ETIKETSIZ-K (Ev dogrusal etiketsiz, renkler 0'a capali -> IHLAL)", c12_rs_kategori_disi_etiketsiz),
 ]
 
 # ------------------------------------------------------------------------ mutantlar
@@ -267,14 +278,19 @@ MUTANTLAR = [
      "        if eksik:\n",
      "        if False:\n",
      True, "C8"),
-    ("N-8 SINIF KATEGORI KOSULU SOKULDU (her kategori siyah kapaktan kacabilir)",
-     '    return (u.get("kategori") in RENDER_SETSIZ_KATEGORILER\n',
-     '    return (True\n',
+    ("N-8 SINIF KATEGORI KISITI GERI GELDI (kategori-disi dogrusal urun eksen B'ye duser)",
+     '    return k.get("fiyatModu") == RENDER_SETSIZ_FIYAT_MODU\n',
+     '    return (u.get("kategori") in ("Figür", "Fidget")\n'
+     '            and k.get("fiyatModu") == RENDER_SETSIZ_FIYAT_MODU)\n',
      True, "C10"),
     ("N-9 SINIF MOD KOSULU SOKULDU (modsuz Figur siyah kapaktan kacabilir)",
-     '            and k.get("fiyatModu") == RENDER_SETSIZ_FIYAT_MODU)\n',
-     '            and True)\n',
+     '    return k.get("fiyatModu") == RENDER_SETSIZ_FIYAT_MODU\n',
+     '    return True\n',
      True, "C11"),
+    ("N-11 SINIF TABANI gorselOrnek ∧ dogrusal (etiketsiz dogrusal eski kola kacar)",
+     '    return k.get("fiyatModu") == RENDER_SETSIZ_FIYAT_MODU\n',
+     '    return k.get("fiyatModu") == RENDER_SETSIZ_FIYAT_MODU and bool(k.get("gorselOrnek"))\n',
+     True, "C8/C12"),
     ("N-10 ETIKET URETIM KODUNDAN KOPARILDI (sabit metne baglandi)",
      "            html = _ETIKET_FN(k)\n",
      '            html = "tasarımcı örneğidir tek renkte"\n',

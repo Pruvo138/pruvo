@@ -572,9 +572,14 @@ baslik("== 8) Skan Art konfigur kolu DEGISMEDI (ABS SIZMADI) ==");
   const skanArt = konf.filter((u) => u.kategori === "Skan Art");
   ol("8.1 Skan Art dekor serisi konfigur urun sayisi 16", skanArt.length === 16,
      "sayi=" + skanArt.length + " (toplam konfigur=" + konf.length + ")");
-  ol("8.2 her konfigur urunu izinli kategoride {Skan Art, Figür, Fidget}",
-     konf.every((u) => ["Skan Art", "Figür", "Fidget"].includes(u.kategori)),
-     JSON.stringify([...new Set(konf.map((u) => u.kategori))]));
+  // 19 Eki (BaBa 01:1x): dogrusal sinif KATEGORIDEN BAGIMSIZ (Pentakoron Oyun/Hobi/Ev). Kategori
+  // listesi ABS'i korumuyordu (8.3 korur: malzeme listesi acik, ABS'siz); korunan sinif kurali:
+  // hacim modlu konfigur yalniz Skan Art dekor serisindedir, digerleri fiyatModu "dogrusal".
+  const sinifDisi = konf.filter((u) => !(u.kategori === "Skan Art" ||
+    (u.konfigur && u.konfigur.fiyatModu === "dogrusal")));
+  ol("8.2 her konfigur urunu ya Skan Art (hacim) ya fiyatModu \"dogrusal\"",
+     sinifDisi.length === 0,
+     sinifDisi.slice(0, 5).map((u) => u.id + "@" + u.kategori).join(", ") || "temiz");
   ol("8.3 malzeme kumesi TAM {PLA, PETG, ASA} — ABS SIZMADI",
      adlar.size === 3 && ["PLA", "PETG", "ASA"].every((a) => adlar.has(a)) && !adlar.has("ABS"),
      JSON.stringify([...adlar]));

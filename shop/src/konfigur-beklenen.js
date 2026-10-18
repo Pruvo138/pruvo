@@ -23,6 +23,11 @@
  * Yanlis-pozitifin bedeli = o kalem WhatsApp'a duser (siparis kaybi); yanlis-negatifin bedeli
  * = sessiz eksik tahsilat. Okan kurali: siparis kaybetmek yanlis tahsilattan iyidir.
  *
+ * SINIR (19 Eki 2026, BaBa 01:1x): kategori-disi dogrusal konfigur (Pentakoron: Oyun/Hobi, Ev
+ * ...) burada TAHMIN EDILEMEZ — ayirt edici alan `fiyatModu` D1 konfigur KOLONUNUN icindedir,
+ * bu dosya yalniz kategori/id gorur. O urunde koruma 2 katmandir (D1 kolonu + bundle);
+ * shop/test/konfigur-fail-closed.mjs §2 "her konfigur urunu bundle VEYA tahminle" olcer ve
+ * bundle'a girmemis kategori-disi dogrusal kaydi KIRMIZI yakar (sentetik oz-kontrollu).
  * BAKIM: yeni konfigurator serisi BASKA bir kategoriyle/id kalibiyla gelirse buraya eklenir;
  * eklenmezse davranis BUGUNKU haliyle ayni kalir (regresyon yok), yalniz o yeni seri icin
  * pencere yeniden acilir -> yeni seri eklerken bu dosya da guncellenmeli.
