@@ -1092,7 +1092,7 @@ def _referans_konfigur_js():
     if r.returncode != 0:
         return None, "git log rc=%d" % r.returncode
     shalar = r.stdout.split()
-    ref = (shalar[-1] + "^") if shalar else "HEAD"
+    ref = (shalar[-1][:12] + "^") if shalar else "HEAD"
     s = subprocess.run(["git", "-C", ROOT, "show", ref + ":konfigur.js"],
                        capture_output=True, text=True, timeout=60)
     if s.returncode != 0:
@@ -1210,7 +1210,7 @@ def test_dogrusal():
             sapan = sum(1 for a, b2 in zip(e_son, y_son) if a != b2)
             kontrol(len(vakalar) > 0 and sapan == 0,
                     "HACİM MODUNDA DEĞİŞİM 0: %d ürün + fikstür, %d kombinasyon, sapan %d "
-                    "(referans %s)" % (len(konfler), len(vakalar), sapan, ref[:12]))
+                    "(referans %s)" % (len(konfler), len(vakalar), sapan, ref))
 
     # Mutantlar: her biri en az bir iddiayı KIRMIZI yakmalı; değişmemiş kopya (kontrol) yeşil.
     with open(gercek, encoding="utf-8") as f:
