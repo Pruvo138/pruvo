@@ -62,7 +62,10 @@ BASLIK = """/**
  */
 """
 
-ZORUNLU_ALANLAR = ("boyutMm", "hacim", "fiyatCapalari", "malzemeler")
+ZORUNLU_ALANLAR = ("boyutMm", "fiyatCapalari", "malzemeler")
+# hacim: hacim modunda (fiyatModu yok/"hacim") ZORUNLU; "dogrusal" modda OPSIYONEL (Okan 18 Eki —
+# Figur/Fidget ucretli kaynakta dosya yok, refHacimCm3 olculemez; uydurma deger YAZILMAZ).
+# Alan VARSA her modda dogrulanir.
 
 # Bos/null konfigur halinde basilan COZUM metni + FAIL-CLOSED gerekcesi.
 #
@@ -95,6 +98,8 @@ def _sema_dogrula(urun_id, konf):
     if not isinstance(konf, dict):
         return "konfigur bir obje degil"
     eksik = [a for a in ZORUNLU_ALANLAR if a not in konf]
+    if "hacim" not in konf and konf.get("fiyatModu") != "dogrusal":
+        eksik.append("hacim")
     if eksik:
         return "eksik alan: " + ",".join(eksik)
     b = konf.get("boyutMm")
@@ -102,14 +107,18 @@ def _sema_dogrula(urun_id, konf):
             isinstance(b.get(k), (int, float)) for k in ("min", "max", "adim", "varsayilan")):
         return "boyutMm min/max/adim/varsayilan sayisal degil"
     h = konf.get("hacim")
-    if not isinstance(h, dict) or not all(
-            isinstance(h.get(k), (int, float)) for k in ("refYukseklikMm", "refHacimCm3")):
+    if "hacim" in konf and (not isinstance(h, dict) or not all(
+            isinstance(h.get(k), (int, float)) for k in ("refYukseklikMm", "refHacimCm3"))):
         return "hacim refYukseklikMm/refHacimCm3 sayisal degil"
     c = konf.get("fiyatCapalari")
     if (not isinstance(c, list) or len(c) != 2 or
             not all(isinstance(p, list) and len(p) == 2 and
                     all(isinstance(x, (int, float)) for x in p) for p in c)):
         return "fiyatCapalari [[boyMm,TL],[boyMm,TL]] bicimde degil"
+    # fiyatModu OPSIYONEL (Okan 18 Eki — Figur dogrusal): yok/"hacim"/"dogrusal". Baska deger
+    # /konfigur.js'te fiyat=null -> Worker kalemi 400'ler; artefakt uretimi burada DUSER.
+    if "fiyatModu" in konf and konf["fiyatModu"] not in ("hacim", "dogrusal"):
+        return "fiyatModu %r gecersiz (izinli: hacim, dogrusal)" % (konf["fiyatModu"],)
     m = konf.get("malzemeler")
     if (not isinstance(m, list) or not m or
             not all(isinstance(x, dict) and isinstance(x.get("ad"), str) and
@@ -462,6 +471,7 @@ def kendini_test():
         ("fiyatCapalari tek capaya inmis", lambda k: k.__setitem__("fiyatCapalari", [[60, 500]])),
         ("malzeme katsayisi 0", lambda k: k.__setitem__("malzemeler", [{"ad": "PLA", "katsayi": 0}])),
         ("boyutMm.max metin olmus", lambda k: k["boyutMm"].__setitem__("max", "300")),
+        ("fiyatModu bilinmeyen", lambda k: k.__setitem__("fiyatModu", "dogrusal-x")),
     ]
     reddedilmeyen = 0
     for ad, boz in bozuk_vaka:
