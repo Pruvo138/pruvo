@@ -16,6 +16,7 @@
  *      "Skan Art" = 13 urun = KONFIGURLAR'daki 13 urun, birebir).
  *   2) id soneki "-serit-dekoratif-figur" — serinin id kalibi (13/13). Kategori yanlis
  *      girilse bile (or. "Dekorasyon") kalem yine kapiya takilir; iki eksen birbirini yedekler.
+ *   3) kategori "Figür" / "Fidget" — dogrusal fiyatli konfigur serisi (18 Eki).
  *
  * FAIL-CLOSED: sinyal dogru ama harita bos ise fiyat HESAPLANMAZ -> gorunur 400
  * ("konfigur-urun" + WhatsApp yonlendirmesi; index.js'te zaten var olan cevabin AYNISI).
@@ -30,6 +31,12 @@
 /** Konfigurator serisinin kendine ait (nav'da gizli) kategorisi. */
 export const KONFIGUR_KATEGORI = "Skan Art";
 
+/** Dogrusal fiyatli konfigur serisi (Okan 18 Eki: Figur + Fidget 6-25 cm, 100 TL/cm). Bu iki
+ *  kategoride konfiguratorsuz urun YOKTUR (kategoriler seriyle dogdu; 18 Eki 7/7 konfigurlu).
+ *  Eklenmeseydi D1 `konfigur` kolonu kacan bir Figur, 25 cm'lik 2.500 TL siparisi sabit
+ *  "600 TL"den tahsil ederdi (sessiz eksik tahsilat). */
+export const DOGRUSAL_KONFIGUR_KATEGORILERI = Object.freeze(["Figür", "Fidget"]);
+
 /** Konfigurator serisinin id kalibi (13/13 urun bu sonekle biter). */
 export const KONFIGUR_ID_SONEKI = "-serit-dekoratif-figur";
 
@@ -42,7 +49,8 @@ export function konfigurBeklenirMi(u) {
   if (!u || typeof u !== "object") { return false; }
   const kategori = typeof u.kategori === "string" ? u.kategori.trim() : "";
   const id = typeof u.id === "string" ? u.id : "";
-  return kategori === KONFIGUR_KATEGORI || id.endsWith(KONFIGUR_ID_SONEKI);
+  return kategori === KONFIGUR_KATEGORI || id.endsWith(KONFIGUR_ID_SONEKI) ||
+    DOGRUSAL_KONFIGUR_KATEGORILERI.includes(kategori);
 }
 
 export default konfigurBeklenirMi;

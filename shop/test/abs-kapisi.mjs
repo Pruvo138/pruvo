@@ -568,10 +568,12 @@ baslik("== 8) Skan Art konfigur kolu DEGISMEDI (ABS SIZMADI) ==");
       }
     }
   }
-  ol("8.1 konfigur urun sayisi 16 (Skan Art dekor serisi)", konf.length === 16,
-     "sayi=" + konf.length);
-  ol("8.2 hepsi Skan Art kategorisinde",
-     konf.every((u) => u.kategori === "Skan Art"),
+  // 18 Eki: dogrusal konfigur serisi (Figur + Fidget) eklendi; Skan Art dekor serisi 16'da sabit.
+  const skanArt = konf.filter((u) => u.kategori === "Skan Art");
+  ol("8.1 Skan Art dekor serisi konfigur urun sayisi 16", skanArt.length === 16,
+     "sayi=" + skanArt.length + " (toplam konfigur=" + konf.length + ")");
+  ol("8.2 her konfigur urunu izinli kategoride {Skan Art, Figür, Fidget}",
+     konf.every((u) => ["Skan Art", "Figür", "Fidget"].includes(u.kategori)),
      JSON.stringify([...new Set(konf.map((u) => u.kategori))]));
   ol("8.3 malzeme kumesi TAM {PLA, PETG, ASA} — ABS SIZMADI",
      adlar.size === 3 && ["PLA", "PETG", "ASA"].every((a) => adlar.has(a)) && !adlar.has("ABS"),
