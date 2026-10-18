@@ -110,6 +110,10 @@ def _sema_dogrula(urun_id, konf):
             not all(isinstance(p, list) and len(p) == 2 and
                     all(isinstance(x, (int, float)) for x in p) for p in c)):
         return "fiyatCapalari [[boyMm,TL],[boyMm,TL]] bicimde degil"
+    # fiyatModu OPSIYONEL (Okan 18 Eki — Figur dogrusal): yok/"hacim"/"dogrusal". Baska deger
+    # /konfigur.js'te fiyat=null -> Worker kalemi 400'ler; artefakt uretimi burada DUSER.
+    if "fiyatModu" in konf and konf["fiyatModu"] not in ("hacim", "dogrusal"):
+        return "fiyatModu %r gecersiz (izinli: hacim, dogrusal)" % (konf["fiyatModu"],)
     m = konf.get("malzemeler")
     if (not isinstance(m, list) or not m or
             not all(isinstance(x, dict) and isinstance(x.get("ad"), str) and
@@ -462,6 +466,7 @@ def kendini_test():
         ("fiyatCapalari tek capaya inmis", lambda k: k.__setitem__("fiyatCapalari", [[60, 500]])),
         ("malzeme katsayisi 0", lambda k: k.__setitem__("malzemeler", [{"ad": "PLA", "katsayi": 0}])),
         ("boyutMm.max metin olmus", lambda k: k["boyutMm"].__setitem__("max", "300")),
+        ("fiyatModu bilinmeyen", lambda k: k.__setitem__("fiyatModu", "dogrusal-x")),
     ]
     reddedilmeyen = 0
     for ad, boz in bozuk_vaka:

@@ -2033,6 +2033,11 @@ def taban_fiyat_metni(tl):
 # değiştirince eğri türesin). Fiyat en küçük boydan itibaren KESİN ARTAN; görünen fiyat
 # TAM TL'ye yuvarlanır. Ürünün "fiyat" alanı = çapa-1 (EN KÜÇÜK boy) fiyatı — JSON-LD
 # Offer.price ve Merchant feed'e mevcut kod yolundan otomatik bu (minimum) sayı gider.
+# DOĞRUSAL MOD (Okan 18 Eki — Figür): opsiyonel "fiyatModu": "dogrusal" -> aynı iki çapa
+# boya doğrusal (fiyat_TL = sabit + birim × boy_mm; Figür [[60,600],[250,2500]] = 100 TL/cm),
+# 3× tavan YOK. Alan yoksa "hacim" (yukarıdaki afin-hacim model + 3× tavan) — geri uyumlu.
+
+KONFIGUR_FIYAT_MODLARI = ("hacim", "dogrusal")
 
 
 def konfigur_dogrula(p):
@@ -2131,6 +2136,13 @@ def konfigur_dogrula(p):
             if capalar[1][0] > bm["max"] + 1e-9:
                 hatalar.append("capa2.boy boyutMm.max'ı aşamaz")
 
+    # Fiyat modu (OPSİYONEL, Okan 18 Eki — Figür): yok/"hacim" = afin-hacim + 3× tavan
+    # (bugünkü), "dogrusal" = çapalar boya doğrusal, tavan YOK. Başka değer /konfigur.js'te
+    # fiyat=null (Worker reddeder) -> burada da build DÜŞER (sessiz WhatsApp'a düşüş yok).
+    if "fiyatModu" in k and k["fiyatModu"] not in KONFIGUR_FIYAT_MODLARI:
+        hatalar.append("fiyatModu %r geçersiz (izinli: %s)"
+                       % (k["fiyatModu"], ", ".join(KONFIGUR_FIYAT_MODLARI)))
+
     # "fiyat" alanı = çapa-1 (EN KÜÇÜK boyun) fiyatı (feed/JSON-LD ile TEK kaynak). Boş ya
     # da çapadan farklıysa minimum fiyat beyanı yalan olur -> reddedilir.
     fiyat_sayi = feed_price(p.get("fiyat") if "fiyat" in p else "")
@@ -2197,28 +2209,47 @@ def konfigur_hacim_mm3(konfigur, boy_mm):
     return float(h["refHacimCm3"]) * 1000 * oran * oran * oran
 
 
+def _konfigur_fiyat_modu(konfigur):
+    """/konfigur.js fiyatModu'nun Python aynası: yok/"hacim" -> "hacim", "dogrusal" ->
+    "dogrusal", başka değer -> None (fail-closed; konfigur_dogrula zaten build'i düşürür)."""
+    m = konfigur.get("fiyatModu", "hacim")
+    return m if m in KONFIGUR_FIYAT_MODLARI else None
+
+
+def _konfigur_fiyat_ekseni(konfigur, mod, boy_mm):
+    """/konfigur.js fiyatEkseni aynası: hacim modunda hacim_cm3(boy), doğrusalda boy_mm."""
+    if mod == "dogrusal":
+        return float(boy_mm)
+    return konfigur_hacim_mm3(konfigur, boy_mm) / 1000.0
+
+
 def _konfigur_fiyat_modeli(konfigur):
     """/konfigur.js fiyatModeli'nin Python aynası (AYNI işlem sırası): iki çapadan
-    afin model çöz -> (birim TL/cm³, sabit TL)."""
+    afin model çöz -> (birim TL/eksen, sabit TL, mod)."""
     c = konfigur["fiyatCapalari"]
-    v1 = konfigur_hacim_mm3(konfigur, c[0][0]) / 1000.0
-    v2 = konfigur_hacim_mm3(konfigur, c[1][0]) / 1000.0
+    mod = _konfigur_fiyat_modu(konfigur)
+    if mod is None:
+        raise ValueError("konfigur fiyatModu geçersiz: %r" % (konfigur.get("fiyatModu"),))
+    v1 = _konfigur_fiyat_ekseni(konfigur, mod, c[0][0])
+    v2 = _konfigur_fiyat_ekseni(konfigur, mod, c[1][0])
     birim = (c[1][1] - c[0][1]) / (v2 - v1)
-    return birim, c[0][1] - birim * v1
+    return birim, c[0][1] - birim * v1, mod
 
 
 def konfigur_fiyat_kurus(konfigur, boy_mm, katsayi=1.0):
-    """/konfigur.js fiyatKurus'un Python aynası: fiyat_TL = (sabit + birim × hacim_cm3) ×
+    """/konfigur.js fiyatKurus'un Python aynası: fiyat_TL = (sabit + birim × eksen) ×
     malzeme katsayısı, TAM TL'ye yuvarlanır (Math.round eşleniği floor(x+0.5)), kuruş = TL × 100.
     katsayi=1.0 (PLA / malzemesiz) => malzeme-öncesi kodla BİREBİR aynı (geri uyumluluk).
+    3× tavan YALNIZ hacim modunda (doğrusal: tavan yok, Okan 18 Eki).
     Drift nöbeti: tools/konfigur-test.py bu fonksiyonu node'daki GERÇEK JS ile karşılaştırır."""
-    birim, sabit = _konfigur_fiyat_modeli(konfigur)
+    birim, sabit, mod = _konfigur_fiyat_modeli(konfigur)
     k = katsayi if (isinstance(katsayi, (int, float)) and not isinstance(katsayi, bool)
                     and katsayi > 0) else 1.0
-    tl = (sabit + birim * (konfigur_hacim_mm3(konfigur, boy_mm) / 1000.0)) * k
-    tavan = 3 * konfigur["fiyatCapalari"][0][1]   # 3× TAVAN (Okan)
-    if tl > tavan:
-        tl = tavan
+    tl = (sabit + birim * _konfigur_fiyat_ekseni(konfigur, mod, boy_mm)) * k
+    if mod == "hacim":
+        tavan = 3 * konfigur["fiyatCapalari"][0][1]   # 3× TAVAN (Okan)
+        if tl > tavan:
+            tl = tavan
     return int(math.floor(tl + 0.5)) * 100
 
 
@@ -4243,6 +4274,10 @@ def render_product(p, all_products, chip_map=None):
             "hacim": konfigur["hacim"],
             "fiyatCapalari": konfigur["fiyatCapalari"],
         }
+        # fiyatModu YALNIZ alan varsa basılır: modsuz (hacim) sayfaların inline verisi
+        # bayt-bayt bugünkü gibi kalır; doğrusal sayfada /konfigur.js aynı modu okur.
+        if "fiyatModu" in konfigur:
+            _konfigur_client["fiyatModu"] = konfigur["fiyatModu"]
         konfigur_tanim = ("\nvar URUN_KONFIGUR = "
                           + json.dumps(_konfigur_client, ensure_ascii=False,
                                        separators=(",", ":")).replace("</script>", "<\\/script>")
