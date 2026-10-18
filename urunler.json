@@ -1,5 +1,244 @@
 [
   {
+    "id": "sinsi-siyam-kedisi-heykeli",
+    "kategori": "Figür",
+    "marka": [],
+    "baslik": "Sinsi Siyam Kedisi Heykeli — Sivri Kulaklı Sırıtan Kedi Figürü (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Uzun sivri kulakları, kısık gözleri, kıvrık kuyruğu ve geniş sırıtışıyla çizgi film kötücülü havası taşıyan, şık hatlı bir Siyam kedisi heykeli. Yüz hatları net işlenmiş, dişler ve gözler belirgin bir ifade veriyor.\n- Raf, çalışma masası, kitaplık ya da vitrin için karakterli bir dekor; kedi severlere ve koyu temalı koleksiyonlara hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3ddark-siamese-cat-sculpture-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3ddark-siamese-cat-sculpture-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3ddark-siamese-cat-sculpture-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3ddark-siamese-cat-sculpture-4.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "iskelet-ejderha-masa-figuru",
+    "kategori": "Figür",
+    "marka": [],
+    "baslik": "İskelet Ejderha Masa Figürü — Kemik Kanatlı Ejderha Heykeli (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Kuru kafa görünümlü sivri başı, açıkta kaburgaları, iskelet kanatları ve yere basan kuyruğuyla güçlü bir silüete sahip stilize iskelet ejderha figürü. Her açıdan dikkat çeken hatlara sahip.\n- Masa ve raf süsü, fantastik koleksiyon vitrini, ejderha ve iskelet figürü sevenler için hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dbone-dragon-skeletal-desk-decor-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dbone-dragon-skeletal-desk-decor-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dbone-dragon-skeletal-desk-decor-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dbone-dragon-skeletal-desk-decor-4.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "iskelet-kedi-karikatur-figuru",
+    "kategori": "Figür",
+    "marka": [],
+    "baslik": "İskelet Kedi Figürü — Karikatür Tarzı Koleksiyon Heykeli (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Kuru kafa, kaburga ve uzuvları sade çizgilerle belirtilmiş, abartılı oranlara sahip karikatür tarzı bir iskelet kedi figürü. Baş ve gövde ayrı parçalar halinde hazırlanır ve yapıştırıcı gerektirmeden sıkı geçmeyle birleşir.\n- Raf, masa ya da vitrin için eğlenceli bir koleksiyon figürü; kedi ve iskelet temalarını sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dskullcat-cartoon-skeleton-cat-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dskullcat-cartoon-skeleton-cat-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dskullcat-cartoon-skeleton-cat-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dskullcat-cartoon-skeleton-cat-4.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "kral-kobra-heykeli",
+    "kategori": "Figür",
+    "marka": [],
+    "baslik": "Kral Kobra Heykeli — Yükselen Kabarık Başlı Yılan Figürü (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Dikilmiş savunma duruşu, açılmış kabarık başı, açık ağzı ve belirgin sivri dişleriyle ayrıntılı bir kral kobra heykeli; kalın kıvrımlı tabanın üzerinde yükselir. Başta, boyunda ve gövdede katmanlı pul dokusu işlenmiştir.\n- Raf, masa ya da vitrin için etkileyici bir vahşi yaşam figürü; sürüngen ve yılan meraklılarına hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dking-cobra-statue-multicolor-print-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dking-cobra-statue-multicolor-print-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dking-cobra-statue-multicolor-print-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
     "id": "eklemli-deniz-yildizi-stres-oyuncagi",
     "kategori": "Fidget",
     "marka": [],
