@@ -18,8 +18,8 @@ sessizce ayrismasi demektir ([[ikiz-tanim-sessiz-ayrisma]]): kapi yesil yanarken
 sayfa baska renk basabilirdi. Fonksiyon bulunamazsa kapi "gecti" DEMEZ, OLCULEMEDI
 basar ve KIRMIZI biter.
 
-RENDER-SETSIZ SINIF (BaBa 18 Eki 16:4x): Figur/Fidget + fiyatModu=dogrusal urunde eksen B
-yerine EKSEN C (gorsel ornek etiketi) olculur; ayrinti RENDER_SETSIZ_* sabitlerinin ustunde.
+RENDER-SETSIZ SINIF (BaBa 18 Eki 16:4x; 19 Eki 01:1x kategoriden bagimsiz): fiyatModu=dogrusal
+urunde eksen B yerine EKSEN C (gorsel ornek etiketi) olculur; ayrinti RENDER_SETSIZ_* ustunde.
 IKI EKSEN (biri digerini KARSILAMAZ)
 ------------------------------------
   (A) TURETIM SONUCU : uretim fonksiyonunun dondurdugu renk "Siyah" mi.
@@ -60,14 +60,16 @@ JETON_OLCULEMEDI = "OLCULEMEDI"
 # RENDER-SETSIZ SINIF (BaBa 18 Eki 16:4x hukmu; Okan 14 Eki "seciginiz tek renkte uretilir,
 # gorsel ornek gibi bir sey yazilir"; Okan 18 Eki "ucretli urunlerde dosya indirmiyoruz"):
 # Okan'in 11 Agu emrinin nesnesi galerisinde siyah render OLAN 16 urundur; render'i HIC olmayan
-# urunde (Figur/Fidget, fiyatModu=dogrusal) kapak tasarimci gorselidir ve siyah-render capasi
+# urunde (fiyatModu=dogrusal) kapak tasarimci gorselidir ve siyah-render capasi
 # (eksen B) ARANMAZ. Yerine EKSEN C olculur: sayfa, renk secicinin yaninda "gorsel tasarimci
 # ornegidir — urun sectiginiz tek renkte uretilir" etiketini basiyor mu (URETIM fonksiyonu
 # cagrilarak). On-secim Siyah (eksen A) bu sinifta da AYNEN aranir.
-# Sinif IKI kosulla: kategori bu listede ∧ fiyatModu "dogrusal". Biri eksikse urun eski kolda
-# (A+B) olculur -> render-setli bir urunu sinifa sokup siyah kapaktan kacmak icin hem kategori
-# hem fiyat modu degismeli, ve o zaman bile etiket ZORUNLU (durust beyan).
-RENDER_SETSIZ_KATEGORILER = ("Figür", "Fidget")
+# 🔴 19 Eki 2026 (Okan "pu olmayan tum urunleri ekle" -> BaBa 01:1x; KraL 01:0x olcumu): sinif
+# KATEGORIDEN BAGIMSIZ, TEK kosul fiyatModu "dogrusal" (Pentakoron frisbee/satranc/drone parcasi
+# Oyun-Hobi/Ev'de dogrusal). gorselOrnek sinifin TABANINA KONMAZ, sinifin ICINDE ZORUNLUDUR:
+# taban "gorselOrnek ∧ dogrusal" olsaydi etiketsiz dogrusal kayit eski kola (eksen B) duserdi ve
+# tum renkleri 0'a capali tek-gorselli kayit orada "siyah kapak" sayilip GECERDI. Render-setli
+# bir urun dogrusala gecerek siyah kapaktan kacarsa etiket yine ZORUNLU (durust beyan).
 RENDER_SETSIZ_FIYAT_MODU = "dogrusal"
 # Etiketin ANLAM capalari (metnin kopyasi DEGIL): ikisi de etiket HTML'inde gecmeli.
 ETIKET_CAPALARI = ("tasarımcı örneğidir", "tek renkte")
@@ -98,8 +100,7 @@ def uretim_turetimi():
 
 def render_setsiz_mi(u):
     k = u.get("konfigur") or {}
-    return (u.get("kategori") in RENDER_SETSIZ_KATEGORILER
-            and k.get("fiyatModu") == RENDER_SETSIZ_FIYAT_MODU)
+    return k.get("fiyatModu") == RENDER_SETSIZ_FIYAT_MODU
 
 
 def urun_hukmu(u, turet):
