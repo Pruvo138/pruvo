@@ -1,5 +1,182 @@
 [
   {
+    "id": "dikenli-kabuklu-kaplumbaga-figuru",
+    "kategori": "Figür",
+    "marka": [],
+    "baslik": "Dikenli Kabuklu Kaplumbağa Figürü — Fantastik Yaratık Heykeli (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Gövdesinin üzerine sıkıca oturan çıkarılabilir dikenli kabuğuyla zırhlı bir fantastik kaplumbağa figürü. Abartılı dikenleri ve iri hatlarıyla güçlü bir görünüme sahiptir.\n- Masa ve raf süsü, koleksiyon figürü ya da masa bekçisi olarak uygun; kaplumbağa ve fantastik yaratık sevenlere hediye olarak ideal. Kabuk dikenleri sivridir, dikkatli tutulmalıdır.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dspiked-shell-turtle-modular-fantasy-creature-figurine-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dspiked-shell-turtle-modular-fantasy-creature-figurine-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dspiked-shell-turtle-modular-fantasy-creature-figurine-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dspiked-shell-turtle-modular-fantasy-creature-figurine-4.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "dikenli-kalp-gul-heykeli",
+    "kategori": "Figür",
+    "marka": [],
+    "baslik": "Dikenli Kalp Gül Heykeli — Sevgililer Günü Hediye Heykelciği (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Dikenli sarmaşıkların oluşturduğu kalp formunun tepesinde açmış bir gül taşıyan şık ve sert çizgili bir heykel. Katmanlı sarmaşık dokusu ışığı güzel yakalar.\n- Masa, raf ya da mevsimsel süsleme için dekoratif bir vurgu; Sevgililer Günü ve romantik hediyeler için uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dthorned-heart-valentines-day-gift-rose-sculpture-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dthorned-heart-valentines-day-gift-rose-sculpture-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dthorned-heart-valentines-day-gift-rose-sculpture-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "kudurmus-kedi-modul-tasarim-figuru",
+    "kategori": "Figür",
+    "marka": [],
+    "baslik": "Kudurmuş Kedi Tasarım Figürü — Parçalı Koleksiyon Heykeli (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Sivri dişli kara kedi başı, tişört giymiş gövdesi, kolları, elleri, bacakları ve ayakkabılarıyla eğlenceli bir tasarım figürü karakteri. Parçalar yapıştırıcı gerekmeden sıkı geçmeyle birleşir.\n- Raf, masa ya da vitrin için karakterli bir koleksiyon figürü; tasarım oyuncağı ve kedi temalarını sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dpsychocat-modular-designer-figure-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dpsychocat-modular-designer-figure-2.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
     "id": "magara-adami-krag-karakter-figuru",
     "kategori": "Figür",
     "marka": [],
