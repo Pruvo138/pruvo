@@ -999,6 +999,98 @@ const VERI = {
     ],
     "varsayilanMalzeme": "PLA"
   },
+  "halka-frizbi-ucan-halka-disk": {
+    "boyutMm": {
+      "adim": 10,
+      "etiket": "Çap",
+      "max": 250,
+      "min": 60,
+      "varsayilan": 150
+    },
+    "fiyatCapalari": [
+      [
+        60,
+        600
+      ],
+      [
+        250,
+        2500
+      ]
+    ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
+    "malzemeler": [
+      {
+        "ad": "PLA",
+        "katsayi": 1
+      },
+      {
+        "ad": "PETG",
+        "katsayi": 1.3
+      },
+      {
+        "ad": "ASA",
+        "katsayi": 1.6
+      }
+    ],
+    "renkGorselIndeks": {
+      "Beyaz": 0,
+      "Gri": 0,
+      "Siyah": 0
+    },
+    "renkler": [
+      "Siyah",
+      "Beyaz",
+      "Gri"
+    ],
+    "varsayilanMalzeme": "PLA"
+  },
+  "helezon-kalemlik-saklama-bardagi": {
+    "boyutMm": {
+      "adim": 10,
+      "etiket": "Yükseklik",
+      "max": 250,
+      "min": 60,
+      "varsayilan": 150
+    },
+    "fiyatCapalari": [
+      [
+        60,
+        600
+      ],
+      [
+        250,
+        2500
+      ]
+    ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
+    "malzemeler": [
+      {
+        "ad": "PLA",
+        "katsayi": 1
+      },
+      {
+        "ad": "PETG",
+        "katsayi": 1.3
+      },
+      {
+        "ad": "ASA",
+        "katsayi": 1.6
+      }
+    ],
+    "renkGorselIndeks": {
+      "Beyaz": 0,
+      "Gri": 0,
+      "Siyah": 0
+    },
+    "renkler": [
+      "Siyah",
+      "Beyaz",
+      "Gri"
+    ],
+    "varsayilanMalzeme": "PLA"
+  },
   "iskelet-ejderha-masa-figuru": {
     "boyutMm": {
       "adim": 10,
@@ -1323,6 +1415,52 @@ const VERI = {
     ],
     "varsayilanMalzeme": "PLA"
   },
+  "minimal-dis-fircasi-ve-macun-standi": {
+    "boyutMm": {
+      "adim": 10,
+      "etiket": "Yükseklik",
+      "max": 250,
+      "min": 60,
+      "varsayilan": 150
+    },
+    "fiyatCapalari": [
+      [
+        60,
+        600
+      ],
+      [
+        250,
+        2500
+      ]
+    ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
+    "malzemeler": [
+      {
+        "ad": "PLA",
+        "katsayi": 1
+      },
+      {
+        "ad": "PETG",
+        "katsayi": 1.3
+      },
+      {
+        "ad": "ASA",
+        "katsayi": 1.6
+      }
+    ],
+    "renkGorselIndeks": {
+      "Beyaz": 0,
+      "Gri": 0,
+      "Siyah": 0
+    },
+    "renkler": [
+      "Siyah",
+      "Beyaz",
+      "Gri"
+    ],
+    "varsayilanMalzeme": "PLA"
+  },
   "mr-bones-iskelet-kase-tutucu": {
     "boyutMm": {
       "adim": 10,
@@ -1373,6 +1511,52 @@ const VERI = {
     "boyutMm": {
       "adim": 10,
       "etiket": "Yükseklik",
+      "max": 250,
+      "min": 60,
+      "varsayilan": 150
+    },
+    "fiyatCapalari": [
+      [
+        60,
+        600
+      ],
+      [
+        250,
+        2500
+      ]
+    ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
+    "malzemeler": [
+      {
+        "ad": "PLA",
+        "katsayi": 1
+      },
+      {
+        "ad": "PETG",
+        "katsayi": 1.3
+      },
+      {
+        "ad": "ASA",
+        "katsayi": 1.6
+      }
+    ],
+    "renkGorselIndeks": {
+      "Beyaz": 0,
+      "Gri": 0,
+      "Siyah": 0
+    },
+    "renkler": [
+      "Siyah",
+      "Beyaz",
+      "Gri"
+    ],
+    "varsayilanMalzeme": "PLA"
+  },
+  "sarmasik-yapraklari-kablo-susu": {
+    "boyutMm": {
+      "adim": 10,
+      "etiket": "Boyut",
       "max": 250,
       "min": 60,
       "varsayilan": 150

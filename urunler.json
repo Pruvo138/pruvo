@@ -1,5 +1,251 @@
 [
   {
+    "id": "halka-frizbi-ucan-halka-disk",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "baslik": "Halka Frizbi — Hafif ve Dayanıklı Uçan Halka Disk (6-25 cm Çap Seçenekli)",
+    "aciklama": "Dayanıklılık ve uzun atışlar için tasarlanmış, yakalanırken eli acıtmayacak şekilde şekillendirilmiş halka biçimli bir uçan disk. Geleneksel frizbiden farklı, ince ve hafif halka formuyla havada uzağa gider.\n- Park, bahçe ya da plaj için eğlenceli bir oyuncak; açık hava oyunlarını ve atış denemelerini sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz çapı kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dthe-best-3d-printed-frisbee-inspired-by-aerobie-ring-frisbee-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dthe-best-3d-printed-frisbee-inspired-by-aerobie-ring-frisbee-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dthe-best-3d-printed-frisbee-inspired-by-aerobie-ring-frisbee-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Çap"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "minimal-dis-fircasi-ve-macun-standi",
+    "kategori": "Ev",
+    "marka": [],
+    "baslik": "Minimal Diş Fırçası ve Diş Macunu Standı — Banyo Düzenleyici (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Bir diş macunu ve iki diş fırçasını ayakta tutmak için tasarlanmış, modern görünümlü ve sade bir banyo standı. Kompakt yapısı lavabo kenarında az yer kaplar, dengeli duruşuyla devrilmez.\n- Banyo, lavabo kenarı ya da seyahat odası için pratik bir düzenleyici; yeni ev ve ofis banyosu hediyesi olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dminimal-toothbrush-toothpaste-stand-commercial-license-and-raw-files-included-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dminimal-toothbrush-toothpaste-stand-commercial-license-and-raw-files-included-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dminimal-toothbrush-toothpaste-stand-commercial-license-and-raw-files-included-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "helezon-kalemlik-saklama-bardagi",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Helezon Kalemlik ve Saklama Bardağı — Modern Spiral Dekor Kabı (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Helezon (sarmal) hatlarla tasarlanmış modern bir bardak; kalem ve küçük gereç saklamak için ya da yalnızca dekor olarak kullanılabilir. Kalemlerin içeride devrilmemesi için iç yapısı düzenlenmiştir.\n- Çalışma masası, ofis ya da kitaplık için hem işlevli hem şık bir obje; masa düzenleyici ve hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dhelix-cup-for-storage-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dhelix-cup-for-storage-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dhelix-cup-for-storage-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dhelix-cup-for-storage-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Pentakoron",
+      "tur": "CC BY 4.0"
+    },
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "sarmasik-yapraklari-kablo-susu",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Sarmaşık Yaprakları Kablo Süsü — Kabloya Asılan Dekoratif Yapraklar (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Kablonun üzerine asılarak sarmaşık görünümü veren dekoratif yapraklar. Kıvrım yerlerinden hafifçe bükülerek kabloya yeterli sürtünmeyle tutunur; duvar boyunca uzanan kabloları gizlemek ve süslemek için uygundur.\n- Ev, ofis ya da çocuk odasında kabloları dekoratif hale getirmek için; sarmaşık ve doğa temasını sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz boyutu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3divy-leaves-cable-decoration-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3divy-leaves-cable-decoration-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3divy-leaves-cable-decoration-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3divy-leaves-cable-decoration-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Pentakoron",
+      "tur": "CC BY 4.0"
+    },
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Boyut"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
     "id": "zombi-t-rex-heykeli",
     "kategori": "Figür",
     "marka": [],
