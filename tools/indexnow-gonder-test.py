@@ -15,7 +15,7 @@ Cevap her vaka/mutant icin yorumda. IKI kol:
 
 Kosum (borusuz):  python3 tools/indexnow-gonder-test.py
 
-Son satir: KABUL <g>/11 MUTANT <m>/5  (YESIL icin 11/11 + 5/5; rc=0).
+Son satir: KABUL <g>/11 MUTANT <m>/6  (YESIL icin 11/11 + 6/6; rc=0).
 """
 import json
 import os
@@ -102,9 +102,16 @@ class StubHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
-        """`--hazirla` icin: GET /sitemap.xml bayt byte dondurur."""
+        """`--hazirla` icin: GET /sitemap.xml bayt byte dondurur. CANLI KENAR TAKLIDI
+        (18 Eki olculdu): varsayilan `Python-urllib/...` kimligi canlida 403 yer -> stub
+        da ayni kimlige 403 doner; kimliksiz istek V8'i KIRMIZI yakar (M6)."""
         with StubHandler._kayit_lock:
             bayt = StubHandler._kayit["sitemap_bayi"]
+        if (self.headers.get("User-Agent") or "").startswith("Python-urllib"):
+            self.send_response(403)
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
         self.send_response(200)
         self.send_header("Content-Type", "application/xml; charset=utf-8")
         self.send_header("Content-Length", str(len(bayt)))
@@ -638,6 +645,30 @@ def mutantlar_kos(gccer, hata):
             else:
                 hata.append("M5 namespace-kor ayristirici geri geldi ama V10 GECTI:\n  cikti=%r"
                             % cikti[:400])
+        # ── M6: istek kimligi silinir -> canli kenar taklidi 403 -> V8 KIRMIZI ──
+        # Capa: `_indir` acik User-Agent'li Request kurar. Mutant: ciplak URL'ye doner
+        # (urllib varsayilan `Python-urllib/3.x` kimligi = 18 Eki ilk yayindaki 403).
+        with tempfile.TemporaryDirectory(prefix="indexnow-m6-") as m_tmp:
+            kopya = izole_kopya(ARAC, m_tmp)
+            mutasyonla(kopya, 'req = urllib.request.Request(uc, headers={"User-Agent": ISTEK_KIMLIGI})',
+                       "req = uc")
+            with tempfile.TemporaryDirectory(prefix="indexnow-m6-repo-") as repo_kok:
+                _araci_repo_icine_kur(repo_kok)
+                with open(os.path.join(repo_kok, "sitemap.xml"), "w", encoding="utf-8") as f:
+                    f.write(SITEMAP_V2_YENI)
+                shutil.copyfile(kopya, os.path.join(repo_kok, "tools", "indexnow-gonder.py"))
+                hedef = os.path.join(repo_kok, "_indexnow")
+                with StubSunucu(status=200,
+                                sitemap_bayi=SITEMAP_STUB_ESKI.encode("utf-8")) as stub:
+                    rc, cikti = kos(os.path.join(repo_kok, "tools", "indexnow-gonder.py"),
+                                    env=_env({"PRUVO_INDEXNOW_SITEMAP_UC": stub.sitemap_uc}),
+                                    args=["--hazirla", hedef], cwd=repo_kok)
+                eski_var = os.path.isfile(os.path.join(hedef, "eski.xml"))
+            if "INDEXNOW_HAZIRLA=TAMAM" not in cikti and not eski_var:
+                gccer.append("M6")
+            else:
+                hata.append("M6 istek kimligi silindi ama V8 yolu GECTI (rc=%d, eski_var=%s):"
+                            "\n  cikti=%r" % (rc, eski_var, cikti[:400]))
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 
@@ -656,14 +687,14 @@ def main():
     mutantlar = [g for g in gccer if g.startswith("M") and g[1:].isdigit()]
 
     print("VAKA_GECEN=%d  VAKA_HATA=%d" % (len(vakalar), 11 - len(vakalar)))
-    print("MUTANT_GECEN=%d MUTANT_HATA=%d" % (len(mutantlar), 5 - len(mutantlar)))
+    print("MUTANT_GECEN=%d MUTANT_HATA=%d" % (len(mutantlar), 6 - len(mutantlar)))
     for h in hata:
         print("KIRMIZI: %s" % h)
-    print("KABUL %d/11 MUTANT %d/5" % (len(vakalar), len(mutantlar)))
+    print("KABUL %d/11 MUTANT %d/6" % (len(vakalar), len(mutantlar)))
     if hata:
         print("HAL=KIRMIZI")
         return 1
-    if len(vakalar) != 11 or len(mutantlar) != 5:
+    if len(vakalar) != 11 or len(mutantlar) != 6:
         print("HAL=KIRMIZI")
         return 1
     print("HAL=YESIL")
