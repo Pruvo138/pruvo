@@ -1,5 +1,240 @@
 [
   {
+    "id": "magara-adami-krag-karakter-figuru",
+    "kategori": "Figür",
+    "marka": [],
+    "baslik": "Mağara Adamı Krag Karakter Figürü — Güçlü Duruşlu Koleksiyon Heykeli (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Ham güç etrafında kurgulanmış, geniş duruşu, iri kolları ve odaklı ifadesiyle öne çıkan stilize bir mağara adamı figürü. Pürüzsüz yüzeyleri ve tombul oranlarıyla vinil koleksiyon figürü estetiğinde tasarlanmıştır.\n- Tek başına bir vitrin parçası olarak ya da karakter dizisinin parçası olarak raf ve masa için uygun; koleksiyon figürü sevenlere hediye olarak ideal.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dkrag-the-caveman-multicolor-print-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dkrag-the-caveman-multicolor-print-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dkrag-the-caveman-multicolor-print-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "uc-bilge-yaratik-figur-seti",
+    "kategori": "Figür",
+    "marka": [],
+    "baslik": "Üç Bilge Yaratık Figür Seti — Görmez Duymaz Konuşmaz Heykelcikleri (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Görmeyen, duymayan ve konuşmayan klasik üçlüyü dokulu, sivri dişli ve abartılı ifadeli yaratıklarla yorumlayan figür seti. Üç figür de oturur pozdadır ve kendi dengesi sayesinde ayrı bir tabana ihtiyaç duymadan durur; birlikte ya da ayrı ayrı sergilenebilir.\n- Masa, raf ve vitrin için karakterli bir üçlü; mizahı ve koleksiyon figürlerini sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dthree-wise-gremlins-hear-no-evil-see-no-evil-speak-no-evil-figurine-set-deadmoon-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dthree-wise-gremlins-hear-no-evil-see-no-evil-speak-no-evil-figurine-set-deadmoon-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dthree-wise-gremlins-hear-no-evil-see-no-evil-speak-no-evil-figurine-set-deadmoon-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "retro-hayalet-figuru",
+    "kategori": "Figür",
+    "marka": [],
+    "baslik": "Retro Hayalet Figürü — Ayakkabılı Çizgi Film Tarzı Koleksiyon Heykeli (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Eski çizgi film hayaletlerini andıran, spor ayakkabılı, eldivenli kollu ve sevimli yüzlü bir hayalet figürü. Parçalar sıkı geçmeyle birleşir; gövde, gözler, kollar ve eller ayrı parçalar halindedir.\n- Masa, raf ya da vitrin için eğlenceli bir karakter; cadılar bayramı süsü ve koleksiyon figürü sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dretro-ghost-figure-multipart-multicolor-print-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dretro-ghost-figure-multipart-multicolor-print-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dretro-ghost-figure-multipart-multicolor-print-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "uc-bilge-uzayli-figur-seti",
+    "kategori": "Figür",
+    "marka": [],
+    "baslik": "Üç Bilge Uzaylı Figür Seti — Görmez Duymaz Konuşmaz Heykelcikleri (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Görmeyen, duymayan ve konuşmayan klasik üçlünün gri uzaylılarla yorumlandığı eğlenceli bir figür seti. Üç figür de gözleri, kulakları ve ağzı kapatan simgesel pozlarda oturur; yumuşak organik hatlara ve abartılı uzaylı yüzlerine sahiptir.\n- Masa, raf ve vitrin için espirili bir üçlü; uzaylı ve mizah temalı koleksiyonlara hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dno-evil-alien-collection-see-no-evil-hear-no-evil-speak-no-evil-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dno-evil-alien-collection-see-no-evil-hear-no-evil-speak-no-evil-2.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
     "id": "tedirgin-kara-kedi-heykeli",
     "kategori": "Figür",
     "marka": [],

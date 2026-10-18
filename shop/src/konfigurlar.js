@@ -909,7 +909,99 @@ const VERI = {
     ],
     "varsayilanMalzeme": "PLA"
   },
+  "magara-adami-krag-karakter-figuru": {
+    "boyutMm": {
+      "adim": 10,
+      "etiket": "Yükseklik",
+      "max": 250,
+      "min": 60,
+      "varsayilan": 150
+    },
+    "fiyatCapalari": [
+      [
+        60,
+        600
+      ],
+      [
+        250,
+        2500
+      ]
+    ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
+    "malzemeler": [
+      {
+        "ad": "PLA",
+        "katsayi": 1
+      },
+      {
+        "ad": "PETG",
+        "katsayi": 1.3
+      },
+      {
+        "ad": "ASA",
+        "katsayi": 1.6
+      }
+    ],
+    "renkGorselIndeks": {
+      "Beyaz": 0,
+      "Gri": 0,
+      "Siyah": 0
+    },
+    "renkler": [
+      "Siyah",
+      "Beyaz",
+      "Gri"
+    ],
+    "varsayilanMalzeme": "PLA"
+  },
   "mr-bones-iskelet-kase-tutucu": {
+    "boyutMm": {
+      "adim": 10,
+      "etiket": "Yükseklik",
+      "max": 250,
+      "min": 60,
+      "varsayilan": 150
+    },
+    "fiyatCapalari": [
+      [
+        60,
+        600
+      ],
+      [
+        250,
+        2500
+      ]
+    ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
+    "malzemeler": [
+      {
+        "ad": "PLA",
+        "katsayi": 1
+      },
+      {
+        "ad": "PETG",
+        "katsayi": 1.3
+      },
+      {
+        "ad": "ASA",
+        "katsayi": 1.6
+      }
+    ],
+    "renkGorselIndeks": {
+      "Beyaz": 0,
+      "Gri": 0,
+      "Siyah": 0
+    },
+    "renkler": [
+      "Siyah",
+      "Beyaz",
+      "Gri"
+    ],
+    "varsayilanMalzeme": "PLA"
+  },
+  "retro-hayalet-figuru": {
     "boyutMm": {
       "adim": 10,
       "etiket": "Yükseklik",
@@ -1238,6 +1330,98 @@ const VERI = {
     "varsayilanMalzeme": "PLA"
   },
   "uc-bilge-iskelet-figur-seti": {
+    "boyutMm": {
+      "adim": 10,
+      "etiket": "Yükseklik",
+      "max": 250,
+      "min": 60,
+      "varsayilan": 150
+    },
+    "fiyatCapalari": [
+      [
+        60,
+        600
+      ],
+      [
+        250,
+        2500
+      ]
+    ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
+    "malzemeler": [
+      {
+        "ad": "PLA",
+        "katsayi": 1
+      },
+      {
+        "ad": "PETG",
+        "katsayi": 1.3
+      },
+      {
+        "ad": "ASA",
+        "katsayi": 1.6
+      }
+    ],
+    "renkGorselIndeks": {
+      "Beyaz": 0,
+      "Gri": 0,
+      "Siyah": 0
+    },
+    "renkler": [
+      "Siyah",
+      "Beyaz",
+      "Gri"
+    ],
+    "varsayilanMalzeme": "PLA"
+  },
+  "uc-bilge-uzayli-figur-seti": {
+    "boyutMm": {
+      "adim": 10,
+      "etiket": "Yükseklik",
+      "max": 250,
+      "min": 60,
+      "varsayilan": 150
+    },
+    "fiyatCapalari": [
+      [
+        60,
+        600
+      ],
+      [
+        250,
+        2500
+      ]
+    ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
+    "malzemeler": [
+      {
+        "ad": "PLA",
+        "katsayi": 1
+      },
+      {
+        "ad": "PETG",
+        "katsayi": 1.3
+      },
+      {
+        "ad": "ASA",
+        "katsayi": 1.6
+      }
+    ],
+    "renkGorselIndeks": {
+      "Beyaz": 0,
+      "Gri": 0,
+      "Siyah": 0
+    },
+    "renkler": [
+      "Siyah",
+      "Beyaz",
+      "Gri"
+    ],
+    "varsayilanMalzeme": "PLA"
+  },
+  "uc-bilge-yaratik-figur-seti": {
     "boyutMm": {
       "adim": 10,
       "etiket": "Yükseklik",
