@@ -14,7 +14,7 @@
    boydan itibaren KESİN ARTAN (düz-bölge artefaktı yok); görünen fiyat TAM TL'ye
    yuvarlanır. Standart renkler (Siyah/Beyaz/Gri) fiyatı değiştirmez.
 
-   DOĞRUSAL MOD (Okan, 18 Eki 2026 — Figür): şemada `fiyatModu: "dogrusal"` varsa AYNI iki
+   DOĞRUSAL MOD (işletme kararı, 18 Eki 2026 — Figür): şemada `fiyatModu: "dogrusal"` varsa AYNI iki
    çapa boyun kendisine doğrusal okunur: fiyat_TL = sabit + birim × boy_mm (Figür:
    [[60,600],[250,2500]] -> 100 TL/cm, sabit 0) ve 3× TAVAN UYGULANMAZ. Alan yoksa ya da
    "hacim" ise davranış bugünküyle BİREBİR (geri uyumluluk). Bilinmeyen mod -> fiyat YOK
@@ -72,7 +72,7 @@
   // (mimar kararı) — kuruş = round(afin_TL × katsayi) × 100; sepet/WhatsApp aynı değeri taşır
   // (ikinci hesap yok). katsayi verilmezse/geçersizse 1 (PLA / malzemesiz) => malzeme-öncesi
   // kodla BİREBİR aynı (geri uyumluluk). Çapalar tanım gereği tam tutar (katsayi=1'de).
-  // 3× tavan YALNIZ hacim modunda (doğrusal modda Okan kararıyla tavan YOK).
+  // 3× tavan YALNIZ hacim modunda (doğrusal modda işletme kararıyla tavan YOK).
   function fiyatKurus(konfigur, boyMm, katsayi) {
     var m = fiyatModeli(konfigur);
     if (!m) { return null; }
