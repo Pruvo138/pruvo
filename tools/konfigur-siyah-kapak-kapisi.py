@@ -18,6 +18,8 @@ sessizce ayrismasi demektir ([[ikiz-tanim-sessiz-ayrisma]]): kapi yesil yanarken
 sayfa baska renk basabilirdi. Fonksiyon bulunamazsa kapi "gecti" DEMEZ, OLCULEMEDI
 basar ve KIRMIZI biter.
 
+RENDER-SETSIZ SINIF (BaBa 18 Eki 16:4x): Figur/Fidget + fiyatModu=dogrusal urunde eksen B
+yerine EKSEN C (gorsel ornek etiketi) olculur; ayrinti RENDER_SETSIZ_* sabitlerinin ustunde.
 IKI EKSEN (biri digerini KARSILAMAZ)
 ------------------------------------
   (A) TURETIM SONUCU : uretim fonksiyonunun dondurdugu renk "Siyah" mi.
@@ -55,9 +57,28 @@ JETON_TAM = "KONFIGUR_KAPAK_TAM"
 JETON_IHLAL = "KONFIGUR_KAPAK_IHLAL"
 JETON_OLCULEMEDI = "OLCULEMEDI"
 
+# RENDER-SETSIZ SINIF (BaBa 18 Eki 16:4x hukmu; Okan 14 Eki "seciginiz tek renkte uretilir,
+# gorsel ornek gibi bir sey yazilir"; Okan 18 Eki "ucretli urunlerde dosya indirmiyoruz"):
+# Okan'in 11 Agu emrinin nesnesi galerisinde siyah render OLAN 16 urundur; render'i HIC olmayan
+# urunde (Figur/Fidget, fiyatModu=dogrusal) kapak tasarimci gorselidir ve siyah-render capasi
+# (eksen B) ARANMAZ. Yerine EKSEN C olculur: sayfa, renk secicinin yaninda "gorsel tasarimci
+# ornegidir — urun sectiginiz tek renkte uretilir" etiketini basiyor mu (URETIM fonksiyonu
+# cagrilarak). On-secim Siyah (eksen A) bu sinifta da AYNEN aranir.
+# Sinif IKI kosulla: kategori bu listede ∧ fiyatModu "dogrusal". Biri eksikse urun eski kolda
+# (A+B) olculur -> render-setli bir urunu sinifa sokup siyah kapaktan kacmak icin hem kategori
+# hem fiyat modu degismeli, ve o zaman bile etiket ZORUNLU (durust beyan).
+RENDER_SETSIZ_KATEGORILER = ("Figür", "Fidget")
+RENDER_SETSIZ_FIYAT_MODU = "dogrusal"
+# Etiketin ANLAM capalari (metnin kopyasi DEGIL): ikisi de etiket HTML'inde gecmeli.
+ETIKET_CAPALARI = ("tasarımcı örneğidir", "tek renkte")
+
+# uretim_turetimi() build.py'yi yukleyince etiket fonksiyonunu da buraya koyar.
+_ETIKET_FN = None
+
 
 def uretim_turetimi():
     """(fn, sebep) — sayfayi basan GERCEK fonksiyon. Cozulemezse (None, sebep)."""
+    global _ETIKET_FN
     if not os.path.isfile(BUILD):
         return None, "tools/build.py bulunamadi (%s)" % BUILD
     try:
@@ -70,7 +91,15 @@ def uretim_turetimi():
     if not callable(fn):
         return None, ("build.py'de _konfigur_varsayilan_renk YOK — on-secim turetimi "
                       "tasinmis/yeniden adlandirilmis olabilir")
+    etiket = getattr(mod, "_konfigur_gorsel_ornek_html", None)
+    _ETIKET_FN = etiket if callable(etiket) else None
     return fn, None
+
+
+def render_setsiz_mi(u):
+    k = u.get("konfigur") or {}
+    return (u.get("kategori") in RENDER_SETSIZ_KATEGORILER
+            and k.get("fiyatModu") == RENDER_SETSIZ_FIYAT_MODU)
 
 
 def urun_hukmu(u, turet):
@@ -98,6 +127,23 @@ def urun_hukmu(u, turet):
     if renk != BEKLENEN_RENK:
         return "IHLAL", ("onden secili renk '%s' (beklenen '%s') — kapak gorseli "
                          "'%s' rengine ait" % (renk, BEKLENEN_RENK, renk))
+
+    # EKSEN C — render-setsiz sinif: siyah-render capasi yerine GORSEL ORNEK ETIKETI.
+    if render_setsiz_mi(u):
+        if _ETIKET_FN is None:
+            return "OLCULEMEDI", ("build.py'de _konfigur_gorsel_ornek_html YOK — render-setsiz "
+                                  "urunun etiketi olculemiyor")
+        try:
+            html = _ETIKET_FN(k)
+        except Exception as e:                                   # noqa: BLE001
+            return "OLCULEMEDI", "etiket fonksiyonu patladi (%s: %s)" % (type(e).__name__, e)
+        eksik = [c for c in ETIKET_CAPALARI if c not in (html or "")]
+        if eksik:
+            return "IHLAL", ("render-setsiz urun (kategori %s, fiyatModu %s) GORSEL ORNEK "
+                             "ETIKETI basmiyor (eksik capa: %s) — konfigur.gorselOrnek=true "
+                             "yazilmali" % (u.get("kategori"), RENDER_SETSIZ_FIYAT_MODU,
+                                            ", ".join(eksik)))
+        return "TAM", "render-setsiz sinif: on-secim Siyah + gorsel ornek etiketi basiliyor"
 
     # EKSEN B — turetim GERCEKTEN kapak gorselinden mi geliyor
     ix = rgi.get(BEKLENEN_RENK)

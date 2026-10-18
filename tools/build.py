@@ -1895,6 +1895,21 @@ def _konfigur_varsayilan_renk(konfigur):
     return renkler[0]
 
 
+# GÖRSEL ÖRNEK ETİKETİ (BaBa 18 Eki 16:4x hükmü; Okan 14 Eki: "seçtiğiniz tek renkte üretilir,
+# görsel örnek gibi bir şey yazılır"). Render-seti OLMAYAN konfigür ürününde (Figür/Fidget,
+# ücretli kaynak: dosya yok -> siyah render üretilemez) kapak tasarımcının görselidir; müşteriye
+# bunun örnek olduğu ve ürünün SEÇTİĞİ TEK renkte üretildiği renk seçicinin yanında söylenir.
+# Şemada `"gorselOrnek": true` ile açılır; alan yoksa sayfa bayt-bayt bugünkü gibi kalır.
+# Kapı: tools/konfigur-siyah-kapak-kapisi.py bu fonksiyonu ÇAĞIRARAK ölçer (kopya metin yok).
+def _konfigur_gorsel_ornek_html(konfigur):
+    if konfigur.get("gorselOrnek") is not True:
+        return ""
+    renkler = [r for r in (konfigur.get("renkler") or []) if r != "Diğer"]
+    metin = ("Görsel tasarımcı örneğidir — ürün seçtiğiniz tek renkte (%s) üretilir."
+             % "/".join(renkler))
+    return '\n      <div class="konf-hacim konf-gorsel-ornek">%s</div>' % esc(metin)
+
+
 def _renk_butonlari_html(renkler=None, renk_gorselleri=None, secili=None):
     """Renk BUTONLARI (Okan, 16 Tem) — fonksiyonel/kart-seçim ürününde dropdown yerine 4 buton:
     Siyah/Beyaz/Gri düz renk yuvarlağı, Diğer = gökkuşağı gradyan. Önden seçili YOK; 'Diğer'
@@ -2117,6 +2132,12 @@ def konfigur_dogrula(p):
             if not isinstance(idx, int) or isinstance(idx, bool) or not (0 <= idx < len(gorseller)):
                 hatalar.append("renkGorselIndeks[%r] geçersiz görsel indeksi: %r (gorseller %d adet)"
                                % (r, idx, len(gorseller)))
+
+    # gorselOrnek (OPSİYONEL, BaBa 18 Eki 16:4x): yalnız true. false/metin/1 gibi değerler
+    # etiketi sessizce kapatırdı -> build düşer (alan ya hiç yazılmaz ya true'dur).
+    if "gorselOrnek" in k and k["gorselOrnek"] is not True:
+        hatalar.append("gorselOrnek yalnız true olabilir (etiket istenmiyorsa alanı hiç yazma): %r"
+                       % (k["gorselOrnek"],))
 
     # Fiyat çapaları: [boyMm, TL] × 2 — afin eğri bu iki noktadan çözülür.
     capalar = k.get("fiyatCapalari")
@@ -4070,7 +4091,8 @@ def render_product(p, all_products, chip_map=None):
                 malzeme=_malzeme_html,
                 hata=SECIM_HATA_HTML,
                 renk=_renk_butonlari_html(konfigur["renkler"], _renk_gorselleri,
-                                          secili=_konfigur_varsayilan_renk(konfigur)),
+                                          secili=_konfigur_varsayilan_renk(konfigur))
+                + _konfigur_gorsel_ornek_html(konfigur),
                 boy=_konfigur_boy_html(konfigur),
                 adet=ADET_IKON_HTML % (
                     ADET_EN_AZ, ADET_EN_COK,
