@@ -254,14 +254,28 @@ def main():
             len(plan_sil) == 1 and plan_sil[0].startswith("UPDATE urunler SET konfigur=''"),
             str(plan_sil))
     # BOZUK konfigur: haritaya girmez + atlanan raporlanir + D1 bosaltilir (fail-closed)
-    bozuk = json.loads(json.dumps(konf_urunler[0]))
-    del bozuk["konfigur"]["hacim"]
-    hb, ab = d1.konfigur_haritasi_d1([bozuk])
-    plan_bozuk = d1.konfigur_plan([bozuk], hb, {bozuk["id"]: harita[konf_urunler[0]["id"]]})
-    dogrula("BOZUK konfigur: haritaya GIRMEZ + sebep RAPORLANIR + D1 BOSALTILIR (fail-closed)",
-            hb == {} and len(ab) == 1 and ab[0][0] == bozuk["id"] and
-            len(plan_bozuk) == 1 and "konfigur=''" in plan_bozuk[0],
-            "harita=%s atlanan=%s plan=%s" % (hb, ab, plan_bozuk))
+    # 🔴 19 Eki (SERIT B 39162510914 KeyError 'hacim'): fikstur eskiden konf_urunler[0] idi;
+    # katalog basina dogrusal Figur/Fidget eklenince [0] `hacim`siz kayit oldu. Fikstur artik
+    # SINIFINDAN secilir — her fiyat modu kendi bozulma ekseniyle (hacim modu: `hacim` yok;
+    # dogrusal: `fiyatModu` yok -> hacim moduna duser, `hacim` de yok = bozuk).
+    for mod, sart, silinen in (
+            ("hacim", lambda k: "hacim" in k, "hacim"),
+            ("dogrusal", lambda k: k.get("fiyatModu") == "dogrusal", "fiyatModu")):
+        kaynak = next((u for u in konf_urunler if isinstance(u["konfigur"], dict)
+                       and sart(u["konfigur"])), None)
+        dogrula("BOZUK konfigur fiksturu (%s modu) katalogda VAR" % mod, kaynak is not None,
+                "konfigurlu %d urunde %s modu yok" % (len(konf_urunler), mod))
+        if kaynak is None:
+            continue
+        bozuk = json.loads(json.dumps(kaynak))
+        del bozuk["konfigur"][silinen]
+        hb, ab = d1.konfigur_haritasi_d1([bozuk])
+        plan_bozuk = d1.konfigur_plan([bozuk], hb, {bozuk["id"]: harita[kaynak["id"]]})
+        dogrula("BOZUK konfigur (%s modu, -%s): haritaya GIRMEZ + sebep RAPORLANIR + D1 "
+                "BOSALTILIR (fail-closed)" % (mod, silinen),
+                hb == {} and len(ab) == 1 and ab[0][0] == bozuk["id"] and
+                len(plan_bozuk) == 1 and "konfigur=''" in plan_bozuk[0],
+                "harita=%s atlanan=%s plan=%s" % (hb, ab, plan_bozuk))
     for ad, deger in (("bos obje", {}), ("null", None), ("bos metin", "")):
         hz, az = d1.konfigur_haritasi_d1([dict(konf_urunler[0], konfigur=deger)])
         dogrula("BOS konfigur (%s): haritaya girmez + raporlanir" % ad,
