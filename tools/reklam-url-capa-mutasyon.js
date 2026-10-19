@@ -116,7 +116,8 @@ const MUTANTLAR = [
     jetonlar: ["SONUC: KIRMIZI", "ok  1 ?gclid", "ok  6 korunan liste"],
     // 🔴 ALT DIZE TUZAGI: "pco-kabul" -> "pco-kabulXX" YETMEZ; yeni ad eskisini ALT
     // DIZE olarak icerir, imza yine eslesir ve mutant hic dogmaz (olculdu).
-    uygula: (d) => yamalaTum(d, "index.html", "pco-kabul", "pcoXXkabul", 4)
+    // Adet 5 (19 Eki banner: Kabul Et birincil dugmesi bantta 5. `pco-kabul` gecisi).
+    uygula: (d) => yamalaTum(d, "index.html", "pco-kabul", "pcoXXkabul", 5)
   },
   {
     ad: "M4 bir RIZA senaryosu SESSIZCE silindi (sayac isiriyor mu)",
@@ -141,7 +142,7 @@ const MUTANTLAR = [
         'const BANNER_JS = blokCapa("riza bandi", "pco-kabul");\n' +
         "/* MUTANT: tembellik SOKULDU — capalar tanim aninda cozulur (eski hal). */\n" +
         "GA_JS(); BANNER_JS();");
-      yamalaTum(d, "index.html", "pco-kabul", "pcoXXkabul", 4);
+      yamalaTum(d, "index.html", "pco-kabul", "pcoXXkabul", 5);
     }
   }
 ];
