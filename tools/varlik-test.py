@@ -550,6 +550,45 @@ BILEREK_DEGISEN_CSS = (
 )
 
 
+# SAYFAYA OZEL <style> BLOKLARI (cekirdek CSS DISI; or. GA_BANNER_SNIPPET'in riza bandi stili).
+# 19 Eki 2026'ya kadar bu bloklar icin beyan yuzeyi YOKTU -> bant stili FIILEN degistirilemezdi
+# (11 Agu cekirdek-CSS kilidinin AYNISI). Giris kurallari BILEREK_DEGISEN_CSS ile BIREBIR
+# (granul, ayirt edici, YENI->ESKI birer kez, bayat beyan KIRMIZI, iddia baska kapida).
+BILEREK_DEGISEN_CSS_OZEL = (
+    # 2026-10-19 — RIZA BANDI UST KONUM (Okan 16:2x "pencereyi de yukari al"): satin alma
+    # seridi (.satin-serit bottom:0) ve sepet dugmesiyle cakisma biter; golge asagi.
+    # Nobetci: tools/reklam-etiket-kapisi.py SINIF C BANT_UST_KONUM · kendini-test K19.
+    ("right:0;bottom:0;z-index:2147483000;\n"
+     "    background:#12294d;color:#fff;padding:15px 18px;box-shadow:0 -2px 14px",
+     "right:0;top:0;z-index:2147483000;\n"
+     "    background:#12294d;color:#fff;padding:15px 18px;box-shadow:0 2px 14px",
+     "riza bandi UST konum (nobetci: reklam-etiket-kapisi.py SINIF C, K19)"),
+    # 2026-10-19 — "TIKLAMAYA TESVIK" (Okan 16:2x): Kabul Et birincil (buyuk, mobilde tam
+    # genislik, ilk sira); Reddet AYNI katmanda tek tik <button>, baglanti GORUNUMU.
+    # Nobetci: reklam-etiket-kapisi.py SINIF C (Kabul DOM'da once K20 · Reddet <button> K21).
+    ("  #pruvo-cerez-onay .pco-btns{display:flex;gap:10px;flex:0 0 auto}\n"
+     "  #pruvo-cerez-onay button{cursor:pointer;border:none;border-radius:8px;padding:10px 18px;\n"
+     "    font-size:14px;font-weight:700;font-family:inherit}\n"
+     "  #pruvo-cerez-onay .pco-kabul{background:#d1332e;color:#fff}\n"
+     "  #pruvo-cerez-onay .pco-ret{background:rgba(255,255,255,.14);color:#fff;\n"
+     "    border:1px solid rgba(255,255,255,.4)}\n"
+     "  #pruvo-cerez-onay button:focus-visible{outline:3px solid #ffd166;outline-offset:2px}\n",
+     "  #pruvo-cerez-onay .pco-btns{display:flex;gap:10px;flex:0 0 auto;align-items:center}\n"
+     "  #pruvo-cerez-onay button{cursor:pointer;border:none;border-radius:8px;font-family:inherit}\n"
+     "  #pruvo-cerez-onay .pco-kabul{background:#d1332e;color:#fff;padding:12px 28px;\n"
+     "    font-size:15px;font-weight:700}\n"
+     "  #pruvo-cerez-onay .pco-ret{background:none;color:#dbe4f2;padding:12px 10px;\n"
+     "    font-size:14px;font-weight:400;text-decoration:underline}\n"
+     "  #pruvo-cerez-onay button:focus-visible{outline:3px solid #ffd166;outline-offset:2px}\n"
+     "  @media (max-width:600px){\n"
+     "    #pruvo-cerez-onay .pco-btns{flex:1 1 100%;flex-direction:column;align-items:stretch;gap:4px}\n"
+     "    #pruvo-cerez-onay .pco-kabul{width:100%}\n"
+     "  }\n",
+     "Kabul Et birincil, Reddet ayni katmanda tek tik (nobetci: reklam-etiket-kapisi.py "
+     "SINIF C, K20/K21)"),
+)
+
+
 def css_beyani_uygula(yeni_css, tablo=None):
     """Beyan edilen CSS parcalarini YENI->ESKI yonunde BIRER KEZ geri cevirir.
 
@@ -3213,7 +3252,14 @@ def olc(eski, yeni, secim, urunler, ref):
               "BAYT-ESIT degil (%d + %d, beyan sonrasi %d != %d)"
               % (len(y_css[0]), len(harici), len(y_tam), len(e_css[0])))
         # sayfaya ozel ek <style> bloklari da aynen durmali
-        bekle(e_css[1:] == y_css[1:], "2 sayfaya ozel satir-ici <style> bloklari ayristi")
+        # BEYANLI: ozel bloklar da YENI->ESKI birer kez cevrilir, sonra TAM esitlik aranir.
+        _AYRAC = "\x00"
+        y_ozel, ozel_hatalar = css_beyani_uygula(_AYRAC.join(y_css[1:]),
+                                                 BILEREK_DEGISEN_CSS_OZEL)
+        for _h in ozel_hatalar:
+            HATALAR.append(_h.replace("2b ", "2c OZEL-BLOK ", 1))
+        bekle(y_ozel == _AYRAC.join(e_css[1:]),
+              "2 sayfaya ozel satir-ici <style> bloklari ayristi (beyan sonrasi)")
 
     # ------------------------------------------------------------------ 2 (JS: kayip/eklenti yok)
     for pid in yeni:

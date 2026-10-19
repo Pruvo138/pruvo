@@ -113,6 +113,11 @@ GIZLILIK_BEYAN_JETONLARI = (
     "Meta Piksel",
     "geri alabilirsiniz",
 )
+# Okan 16:2x (BaBa hukmu): bant UST konumda (satin alma seridi/sepet dugmesini ortmez),
+# "Kabul Et" birincil ve DOM'da ONCE; "Reddet" AYNI katmanda TEK TIK <button> kalir (KVKK
+# es kolaylik: baglanti GORUNUMU serbest, ikinci katmana/baglantiya inmesi YASAK).
+BANT_UST_KONUM = "#pruvo-cerez-onay{position:fixed;left:0;right:0;top:0;"
+_RET_BUTON_RE = re.compile(r'<button\b[^>]*\bid="pco-ret"')
 _YORUM_RE = re.compile(r"<!--.*?-->", re.S)
 _SCRIPT_STYLE_RE = re.compile(r"<(script|style)\b.*?</\1>", re.S | re.I)
 # Bandin GORUNUR metni ilk <p>'sindedir (gercek bant 3 ic ice div, fikstur tek div).
@@ -459,6 +464,14 @@ def degerlendir(kok):
                 if jeton not in bant_metin.group(0):
                     bant_eksik.append("riza metni aydinlatma sayfasina BAGLANMIYOR "
                                       "(eksik: %r)" % jeton[:48])
+        if BANT_UST_KONUM not in metin:
+            bant_eksik.append("bant UST konumda degil (%r yok)" % BANT_UST_KONUM[:40])
+        i_kabul, i_ret = metin.find('id="pco-kabul"'), metin.find('id="pco-ret"')
+        if i_kabul < 0 or i_ret < 0 or i_kabul > i_ret:
+            bant_eksik.append("'Kabul Et' DOM'da 'Reddet'ten ONCE degil (kabul=%d ret=%d)"
+                              % (i_kabul, i_ret))
+        if not _RET_BUTON_RE.search(metin):
+            bant_eksik.append("'Reddet' ayni katmanda tek tik <button> DEGIL")
         if bant_eksik:
             hata_satir.append("  ❌ %s -> %s" % (rel, "; ".join(bant_eksik)))
         else:
@@ -575,7 +588,8 @@ _F_INDEX_KUYRUK = '''
 '''
 
 
-_F_BANNER = '''<div id="pruvo-cerez-onay" hidden>
+_F_BANNER = '''<style>#pruvo-cerez-onay{position:fixed;left:0;right:0;top:0;z-index:9}</style>
+<div id="pruvo-cerez-onay" hidden>
   <p>Çerezler kullanıyoruz. Detaylı bilgiye <a href="/gizlilik/">Gizlilik ve Çerez
      Politikası</a> sayfamızdan erişebilirsiniz.</p>
   <button type="button" id="pco-kabul">Kabul Et</button>
@@ -747,6 +761,18 @@ def _senaryolar():
         ("K18 Meta Piksel yalniz HTML yorumunda kalir (gorunur govdede yok)", KIRMIZI,
          dict(gizlilik_govde=_F_GIZLILIK_GOVDE.replace(
              "<strong>Meta Piksel</strong>", "<!-- Meta Piksel -->"))),
+        # Okan 16:2x: ust konum + Kabul birincil + Reddet ayni katmanda tek tik.
+        ("K19 bant ALTA geri iner (bottom:0)", KIRMIZI,
+         dict(bant=_F_BANNER.replace("right:0;top:0;", "right:0;bottom:0;"))),
+        ("K20 'Reddet' DOM'da 'Kabul Et'in ONUNE gecer", KIRMIZI,
+         dict(bant=_F_BANNER.replace(
+             '  <button type="button" id="pco-kabul">Kabul Et</button>\n'
+             '  <button type="button" id="pco-ret">Reddet</button>',
+             '  <button type="button" id="pco-ret">Reddet</button>\n'
+             '  <button type="button" id="pco-kabul">Kabul Et</button>'))),
+        ("K21 'Reddet' <button> yerine baglantiya (ikinci katman) iner", KIRMIZI,
+         dict(bant=_F_BANNER.replace('<button type="button" id="pco-ret">Reddet</button>',
+                                     '<a href="/gizlilik/" id="pco-ret">Reddet</a>'))),
         # K16: Ads donusum etiketi (f) ekseni — GA etiketi yerinde dururken bu satirin
         # dusmesi SESSIZDIR: sitede hicbir sey bozulmaz, yalniz Ads paneli "hatali
         # yapilandirilmis" der ve reklam butcesi yanlis okunur.
