@@ -1,5 +1,3593 @@
 [
   {
+    "id": "yakut-tilsim-anahtarligi-ve-kolye-ucu",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Yakut Kırmızısı Tılsım — Anahtarlık ve Kolye Ucu Olarak Fantastik Muska (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Sekizgen siyah çerçevesi içinde yüzeyli kırmızı bir mücevher taşıyan, büyülü bir kalıntı havasında tılsım. Anahtarlık, çanta süsü ya da zincire takılarak kolye ucu olarak kullanılabilir.\n- Anahtarlık, kolye ucu, kostüm aksesuarı ya da küçük dekor olarak kullanılabilir; fantastik tema, cosplay ve cadılar bayramı sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz boyutu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3djeweled-amulet-3d-printable-keychain-necklace-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3djeweled-amulet-3d-printable-keychain-necklace-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3djeweled-amulet-3d-printable-keychain-necklace-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Boyut"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "hayalet-govdeli-kutuk-saksi-ve-kalemlik",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Hayalet Yüzlü Kütük Saksı ve Kalemlik — Cadılar Bayramı Masa Dekoru (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Oyuk gözleri ve ağzıyla ürkütücü ama sevimli duran, yüzlü bir ağaç kütüğü. Küçük saksı, kalemlik, mini çöp kutusu ya da cadılar bayramı süsü olarak kullanılabilir.\n- Masa, raf ya da kapı girişi için saksı, kalemlik veya süs; cadılar bayramı ve gotik dekor sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dhaunted-stump-xl-mini-versions-deadmoon-2-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dhaunted-stump-xl-mini-versions-deadmoon-2-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dhaunted-stump-xl-mini-versions-deadmoon-2-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dhaunted-stump-xl-mini-versions-deadmoon-2-4.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "futuristik-akilli-saat-standi",
+    "kategori": "Ev",
+    "marka": [],
+    "baslik": "Fütüristik Akıllı Saat Standı — Şarj Kablolu Saatler İçin Masa Standı (10,4 cm)",
+    "aciklama": "Akıllı saati yatık biçimde tutan, kararlı tabanlı ve fütüristik hatlı bir masa standı. Saat şarj kablosuyla bağlıyken de rahatça durur.\n- Masa, komodin ya da çalışma köşesi için akıllı saat standı; teknoloji sevenlere hediye olarak uygun.\n- Tek boyda üretilir: en büyük ölçüsü yaklaşık 10,4 cm; fiyat bu boya göre sabittir.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "1040 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dwatch-stand-for-amazfit-active-2-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dwatch-stand-for-amazfit-active-2-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dwatch-stand-for-amazfit-active-2-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dwatch-stand-for-amazfit-active-2-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Pentakoron",
+      "tur": "CC BY 4.0"
+    },
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 104,
+        "max": 104,
+        "adim": 10,
+        "varsayilan": 104,
+        "etiket": "Boy"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          104,
+          1040
+        ],
+        [
+          104,
+          1040
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "yazici-qr-kod-gizleme-kapagi",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "baslik": "3D Yazıcı QR Kod Gizleme Kapağı — Sade Beyaz Koruyucu Kapak (4,6 cm)",
+    "aciklama": "Yazıcı gövdesindeki QR etiketini örten, yuvarlak köşeli sade bir kapak. Düz yüzeyi sayesinde dilerseniz kendi logonuzla özelleştirmeye uygundur.\n- Atölye, masaüstü yazıcı ya da küçük bir cihaz için gizleme kapağı; kendi işini yapan ve cihazını düzenli tutan kullanıcılara uygun.\n- Tek boyda üretilir: en büyük ölçüsü yaklaşık 4,6 cm; fiyat bu boya göre sabittir.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dcreality-ender3-qr-code-cover-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dcreality-ender3-qr-code-cover-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dcreality-ender3-qr-code-cover-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 46,
+        "max": 46,
+        "adim": 10,
+        "varsayilan": 46,
+        "etiket": "Boy"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          46,
+          600
+        ],
+        [
+          46,
+          600
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "buruk-govdeli-fantastik-bonsai-agaci",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Buruk Gövdeli Fantastik Bonsai Ağacı — Masa Üstü Heykelsi Dekor (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Kıvrılarak yükselen gövdesi ve yuvarlak taçlarıyla sessiz bir bilgelik taşıyan, tek parça fantastik bir bonsai heykeli. Masaya, rafa ya da çalışma köşesine zen havası katar.\n- Masa üstü, raf ya da çalışma köşesi için heykelsi dekor; doğa, fantastik tema ve koleksiyon sevenlere hediye olarak uygun. İnce dallar nedeniyle nazik kullanım önerilir.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dtwisted-bonsai-tree-fantasy-decor-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dtwisted-bonsai-tree-fantasy-decor-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dtwisted-bonsai-tree-fantasy-decor-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "zehirli-elma-kafatasi-anahtarligi",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Zehirli Elma Kafatası Anahtarlığı — Damlayan Elma Çanta Süsü (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Üzerinden zehir damlıyor gibi duran, kafatası yüzlü bir elma anahtarlığı. Anahtar, çanta ya da fermuar ucu için karanlık masalsı bir süs.\n- Anahtarlık, çanta süsü ya da küçük bir dekor olarak kullanılabilir; masal ve korku temasını sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz boyutu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dpoison-apple-keychain-no-ams-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dpoison-apple-keychain-no-ams-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dpoison-apple-keychain-no-ams-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dpoison-apple-keychain-no-ams-4.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Boyut"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "dusuk-poligon-topuz-anahtarligi",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Düşük Poligon Topuz Anahtarlığı — Köşeli Dikenli Orta Çağ Süsü (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Köşeli, geometrik yüzeyli ve dikenli bir topuz biçiminde stilize edilmiş anahtarlık; tek parça üretilir. Gerçek bir silah değil, süs ve masa objesi olarak tasarlanmıştır.\n- Anahtarlık, çanta süsü ya da küçük masa objesi olarak kullanılabilir; orta çağ fantezisi, masa oyunu ve geometrik tasarım sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz boyutu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dlow-poly-mace-keychain-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dlow-poly-mace-keychain-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dlow-poly-mace-keychain-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Boyut"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "kurutulmus-kafa-anahtarligi-dikisli-gozler",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Dikişli Gözlü Kurutulmuş Kafa Anahtarlığı — Gotik Korku Çanta Süsü (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Dikişli gözleri ve ağzıyla karanlık mizah ile gotik havayı birleştiren, kafatası yapılı küçük bir kafa anahtarlığı. Anahtar, çanta ya da korku temalı bir koleksiyonun parçası olarak asılabilir.\n- Anahtarlık, çanta süsü ya da vitrin objesi olarak kullanılabilir; korku, cadılar bayramı ve gotik tarz sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dshrunken-head-keychain-colored-for-ams-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dshrunken-head-keychain-colored-for-ams-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dshrunken-head-keychain-colored-for-ams-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dshrunken-head-keychain-colored-for-ams-4.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "kapi-ustu-uyari-tabelasi-kapi-gecme-yasak-bolge",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Gerçekliğin Dışına Çıkma Uyarı Tabelası — Esprili Sarı Kapı Dekoru (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Gerçeklikte tamamen işlenmiş kalmaya çalışanlar için mizahi bir uyarı tabelası: sarı zemin üzerinde siyah figür ve yazılı uyarı. Odanın kapısına ya da duvarına asılarak oyun odasında, atölyede ya da ofiste espri katar.\n- Oyun odası, ofis kapısı ya da atölye için esprili bir dekor; internet kültürü ve mizah sevenlere hediye olarak uygun. Gerçek bir güvenlik işareti değil, dekoratif bir plakadır.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz boyutu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dbackrooms-no-clipping-zone-caution-sign-deadmoon-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dbackrooms-no-clipping-zone-caution-sign-deadmoon-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DeadMoon",
+      "tur": "CC BY 4.0"
+    },
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Boyut"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "kafatasi-vazo-genis-agizli-heykelsi-vazo",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Kafatası Vazo — Geniş Boyunlu Heykelsi Gotik Vazo (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Pürüzsüz, heykelsi formlu ve temiz dikey akışlı, stilize bir kafatasını uzun, açılan bir vazo boynuyla birleştiren cesur bir vazo. Hem işlevli bir vazo hem de dekoratif bir obje olarak çalışır.\n- Kuru çiçek ve minik yapay bitkiler için masa, raf ya da cadılar bayramı dekoru; gotik tema sevenlere hediye olarak uygun. Su geçirmezliği garanti edilmez, taze çiçek için içine ayrı bir kap koymanız önerilir.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dskull-vase-no-supports-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dskull-vase-no-supports-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DeadMoon",
+      "tur": "CC BY 4.0"
+    },
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "sarmal-yumurta-lambasi-led-mum-icin",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Sarmal Yumurta Lambası — Led Mum ve Led Disk Işık İçin Dekor (8,9 cm)",
+    "aciklama": "Herhangi bir led mum ile çalışacak şekilde tasarlanmış, tek parça sarmal desenli yumurta biçimli bir lamba. Sarmal kesiklerden süzülen ışık masada ya da rafta yumuşak bir parıltı yaratır.\n- Yatak odası, salon ya da çalışma masası için sakin bir ışık dekoru; ışık ve tasarım sevenlere hediye olarak uygun. Led mum ya da led disk ürüne dahil değildir; yalnız alevsiz led ile kullanılır.\n- Tek boyda üretilir: en büyük ölçüsü yaklaşık 8,9 cm; fiyat bu boya göre sabittir.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "890 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dspiral-egg-lamp-for-led-tea-light-puck-light-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dspiral-egg-lamp-for-led-tea-light-puck-light-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DeadMoon",
+      "tur": "CC BY 4.0"
+    },
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 89,
+        "max": 89,
+        "adim": 10,
+        "varsayilan": 89,
+        "etiket": "Boy"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          89,
+          890
+        ],
+        [
+          89,
+          890
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "dort-yaprakli-yonca-anahtarlik",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Dört Yapraklı Yonca Anahtarlık — Şans Tılsımı Dekoru (6-25 cm Boyut Seçenekli)",
+    "aciklama": "İlkbahar pazarları ve şans temalı hediyeler için tasarlanmış sade bir dört yapraklı yonca anahtarlık. Şans tılsımı, parti hediyesi, sırt çantası aksesuarı ya da küçük bir dekor olarak kullanılabilir.\n- Anahtar, çanta ya da dekor için şans teması; bahar ve şans sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz boyutu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dst-patrick-s-day-four-leaf-clover-keychain-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dst-patrick-s-day-four-leaf-clover-keychain-2.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Boyut"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "tas-cerceveli-prizma-minyatur-sergi-standi",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Taş Çerçeveli Prizma Standı — Küçük Obje Sergileme ve Zar Tutucu (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Basit ama tuhaf bir kırık üçgen prizma: önemli bir şeyi taşımak için yapılmış eski bir kalıntı gibi. Mistik bir sergi standı, zar tutucu ya da küçük bir led diskle birlikte minimal bir fantastik lamba olarak kullanılabilir. Çatlak taş görünümü, unutulmuş bir tapınaktan çıkmış gibi eskimiş, gizemli bir hava veriyor.\n- Masa, raf ya da oyun masası için küçük objeleri sergilemek isteyenlere; fantastik oyun ve koleksiyon meraklılarına hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dstoneframe-prism-miniature-display-stand-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dstoneframe-prism-miniature-display-stand-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dstoneframe-prism-miniature-display-stand-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "gizemli-alev-lambasi-fantastik-led-isik",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Gizemli Alev Lambası — Alev Biçimli Fantastik Led Işık Dekoru (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Standart bir led disk ışıkla birlikte kullanılan, iki parçalı modüler fantastik bir lamba. Alev biçimli kalıntı, ışık altında sihirli bir parıltı yayar.\n- Masa, raf ya da oyun odası için fantastik ve mistik bir ışık dekoru; fantastik tema ve koleksiyon sevenlere hediye olarak uygun. Led disk ışık ürüne dahil değildir.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3darcane-flame-lamp-printable-led-fantasy-light-1.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "biyomekanik-korku-duvar-rafi-sergi-askisi",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Biyomekanik Korku Duvar Rafı — Organik Makine Hatlı Sergi Askısı (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Biyomekanik korkunun grotesk güzelliğini odanıza taşıyan, duvara asılan bir raf. Organik ve mekanik hatları iç içe geçmiş karanlık bir sergi rafıdır; heykelcikler, küçük figürler ve maskeler için sahne olur.\n- Salon, çalışma odası ya da koleksiyon köşesi için karakterli bir sergi rafı; korku ve bilim kurgu koleksiyonerlerine hediye olarak uygun. Yalnız hafif objeler için.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz genişliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dxl-biohorror-wall-shelf-giger-inspired-display-mount-full-mini-versions-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dxl-biohorror-wall-shelf-giger-inspired-display-mount-full-mini-versions-2.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Genişlik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "yarim-yuz-kafatasi-maskesi-sessizlikte-dovulmus",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "baslik": "Yarım Yüz Kafatası Maskesi — Sessizlikte Dövülmüş Kostüm Maskesi (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Cosplay, kostüm ve sergi için tasarlanmış, yüzün alt yarısını kaplayan bir kafatası maskesi. Keskin dişleri ve dövülmüş görünümüyle karanlık bir kostüm aksesuarı ya da duvar objesi olarak kullanılır.\n- Kostüm, cosplay, cadılar bayramı ya da vitrin için; fantastik ve korku temasını sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3ddeadmoon-mask-forged-in-silence-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3ddeadmoon-mask-forged-in-silence-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3ddeadmoon-mask-forged-in-silence-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "buyulu-mana-iksiri-sisesi",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Büyülü Mana İksiri Şişesi — Fantastik Dekor ve Mini Vazo (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Sıradan dekoratif iksir şişelerinden ayrılmak için tasarlanmış, içi boş ve sızdıran değil, su geçirmez yapıda bir mana iksiri şişesi. Kıvrımlı gövdesi ve uzun boynuyla bir büyücü çantasından çıkmış gibi görünür.\n- Fantastik oyun odası, masa üstü ya da raf dekoru olarak; kuru çiçek ve minik bitkiler için mini vazo gibi de kullanılabilir. Fantastik ve rol yapma oyunu sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dwatertight-mana-potion-bottle-fantasy-3d-printable-prop-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dwatertight-mana-potion-bottle-fantasy-3d-printable-prop-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dwatertight-mana-potion-bottle-fantasy-3d-printable-prop-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "sifa-iksiri-sisesi-fantastik-mini-vazo",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Şifa İksiri Şişesi — Fantastik Rol Yapma Propu ve Mini Vazo (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Bir büyücü çantasında ya da simyacı atölyesi rafında bulabileceğiniz bir şey gibi görünmesi için tasarlanmış iksir şişesi. Kıvrımlı gövdesi, uzun boynu ve oyulmuş elmas bandıyla klasik bir iksir şişesi havası verir; su geçirmez yapıdadır.\n- Fantastik oyun odası, masa üstü ya da raf dekoru olarak; kuru çiçek ve minik bitkiler için mini vazo gibi de kullanılabilir. Fantastik ve rol yapma oyunu sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dwatertight-health-potion-bottle-fantasy-rpg-prop-mini-vase-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dwatertight-health-potion-bottle-fantasy-rpg-prop-mini-vase-2.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "damlayan-birikinti-raf-aksesuari",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Damlayan Birikinti Raf Aksesuarı — Rafın Kenarından Akan Boya Etkisi Dekoru (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Rafınızın ya da dolabınızın kenarından aşağı damlayan parlak bir birikinti gibi görünen, eğlenceli bir illüzyon parçası. Dökülmüş boya, balçık ya da sıvı etkisi veren tek parça bir tasarım.\n- Raf, dolap ya da masa kenarı için esprili bir dekor; yaratıcı ve eğlenceli hediye arayanlar için uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz genişliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3ddripping-puddle-shelf-accent-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3ddripping-puddle-shelf-accent-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3ddripping-puddle-shelf-accent-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Genişlik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "kaya-bardak-altligi-fantastik-tas-altlik",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Kaya Bardak Altlığı — Taş Dokulu Fantastik Içecek Altlığı (6-25 cm Çap Seçenekli)",
+    "aciklama": "Bardaklar, kupalar ve kadehler için taş dokulu, sağlam görünümlü bir içecek tabanı: içeceğinize bir kale gibi dayanak olur. Fantastik temalı barlar, oyun masaları ve rol yapma gecelerinde kullanılabilir.\n- Masa, bar köşesi ya da oyun odası için işlevli bir dekor; fantastik tema sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz çapı kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dboulder-cupholder-rugged-fantasy-stone-drink-coaster-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dboulder-cupholder-rugged-fantasy-stone-drink-coaster-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dboulder-cupholder-rugged-fantasy-stone-drink-coaster-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dboulder-cupholder-rugged-fantasy-stone-drink-coaster-4.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Çap"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "cizgi-film-tarzi-tahta-kilic-propu",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "baslik": "Çizgi Film Tarzı Tahta Kılıç Propu — Kocaman Oyuncak ve Kostüm Aksesuarı (6-25 cm Boyut Seçenekli)",
+    "aciklama": "İri, fantastik oranlarda stilize edilmiş oyuncak bir tahta kılıç: oyulmuş ahşap damarı dokusu, kırık kenarlar, budak detayları ve bıçak, siperlik ve sap boyunca abartılı tahta levha biçimi. Gerçek bir silah değil, kostüm ve oyun için tasarlanmış bir prop.\n- Kostüm, cosplay, oyun masası ya da duvar dekoru için; fantastik ve oyun temasını sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz uzunluğu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dcartoony-wooden-sword-prop-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dcartoony-wooden-sword-prop-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dcartoony-wooden-sword-prop-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Uzunluk"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "biyolojik-tehlike-kapi-tabelasi-uyari-plakasi",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Biyolojik Tehlike Kapı Tabelası — Sarı Siyah Uyarı Plakası Dekoru (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Cesur ve dikkat çekici ama abartıya kaçmayan, sarı ve siyah iki renkli bir biyolojik tehlike uyarı tabelası. Üçgen biçimli plakası ve belirgin sembolüyle kapıda, atölyede ya da oyun odasında eğlenceli bir dekor olarak kullanılır.\n- Kapı, atölye, laboratuvar temalı oda ya da cadılar bayramı dekoru için; bilim kurgu ve korku temasını sevenlere hediye olarak uygun. Gerçek bir güvenlik uyarı işareti değil, dekoratif bir plakadır.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz boyutu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dbiohazard-door-sign-warning-plaque-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dbiohazard-door-sign-warning-plaque-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dbiohazard-door-sign-warning-plaque-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Boyut"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "mantar-duvar-rafi-organik-islevsel-sanat",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Mantar Duvar Rafı — Ağaçtan Çıkan Yabani Mantar Katmanları Sanat Rafı (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Ağaçtan çıkan yabani mantar katmanlarını andıran, doğadan esinlenmiş heykelsi bir duvar parçası; hem güzel hem işlevli bir raf. Orman havasını duvara taşır.\n- Salon, çalışma odası ya da koridor için hafif eşyalar (gözlük, anahtar, küçük süs) taşıyan doğal temalı raf; doğa ve mantar sevenlere hediye olarak uygun. Yalnız hafif eşyalar için.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz genişliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dmushroom-wall-shelf-organic-functional-art-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dmushroom-wall-shelf-organic-functional-art-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dmushroom-wall-shelf-organic-functional-art-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Genişlik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "omurga-hilal-duvar-dekoru",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Omurga Hilal Duvar Dekoru — İnsan Omurgasından Gotik Ay Hilali (6-25 cm Çap Seçenekli)",
+    "aciklama": "İnsan benzeri bir omurgadan oluşan, ürkütücü ama zarif bir duvar sergisi sunan, perili görünümlü bir hilal ay. Her omur ayrıntılı işlenmiş, hilal formu duvarda zarif bir silüet oluşturuyor.\n- Cadılar bayramı, gotik iç mekanlar ya da sanatın karanlık yüzünü seven herkes için; gotik tema sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz çapı kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dspinal-moon-wall-decoration-halloween-decor-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dspinal-moon-wall-decoration-halloween-decor-2.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Çap"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "tiki-kafatasi-led-mumluk",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Tiki Kafatası Led Mumluk — Çatlak Taş Detaylı Alevsiz Mum Tutucu (6,8 cm)",
+    "aciklama": "Oyulmuş tiki esintili siluetiyle, çatlak taş ayrıntıları, ağır kaş plakaları, boş göz çukurları, üçgen burun açıklığı ve kare diş dizisi olan stilize bir kafatası biçimli led mum tutucu. İçine alevsiz bir led mum yerleştirilir.\n- Salon, bar köşesi ya da cadılar bayramı dekoru için karakterli bir ışık objesi; tiki ve gotik tema sevenlere hediye olarak uygun. Yalnız alevsiz led mum ile kullanılmalıdır.\n- Tek boyda üretilir: en büyük ölçüsü yaklaşık 6,8 cm; fiyat bu boya göre sabittir.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "680 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dtiki-skull-led-tea-light-holder-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dtiki-skull-led-tea-light-holder-2.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 68,
+        "max": 68,
+        "adim": 10,
+        "varsayilan": 68,
+        "etiket": "Boy"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          68,
+          680
+        ],
+        [
+          68,
+          680
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "kalp-seklinde-led-mumluk",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Kalp Şeklinde Led Mumluk — Alevsiz Işıklı Romantik Dekor (11,3 cm)",
+    "aciklama": "Açık alev riski olmadan yumuşak, sıcak bir ışık yaymak için tasarlanmış kalp biçimli led mum tutucu. Hafif kavisli duvarları ve içine oturan alevsiz led mumuyla ortama romantik bir atmosfer katar.\n- Sevgililer günü, yıldönümü masası, yatak odası ya da sofra dekoru için; sevgiliye hediye olarak uygun. Birkaç tanesi bir arada kullanılabilir.\n- Tek boyda üretilir: en büyük ölçüsü yaklaşık 11,3 cm; fiyat bu boya göre sabittir.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "1130 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dheart-shaped-led-tea-light-holder-deadmoon-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dheart-shaped-led-tea-light-holder-deadmoon-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dheart-shaped-led-tea-light-holder-deadmoon-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dheart-shaped-led-tea-light-holder-deadmoon-4.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 113,
+        "max": 113,
+        "adim": 10,
+        "varsayilan": 113,
+        "etiket": "Boy"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          113,
+          1130
+        ],
+        [
+          113,
+          1130
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "kar-tanesi-duvar-dekoru-ve-susu-seti",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Kar Tanesi Duvar Dekoru ve Süs Seti — Yılbaşı ve Kış Dekorasyonu (6-25 cm Çap Seçenekli)",
+    "aciklama": "Hem duvar sergisi hem yılbaşı süslemesi için tasarlanmış, ayrıntılı bir kar tanesi koleksiyonu. Dantel gibi ince hatlı kar tanesi desenleri duvara asılabilir, ağaca takılabilir ya da pencerede kullanılabilir.\n- Yılbaşı, kış teması ya da çocuk odası dekoru için; kış temasını sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz çapı kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dsnowflake-wall-decor-and-ornament-set-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dsnowflake-wall-decor-and-ornament-set-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dsnowflake-wall-decor-and-ornament-set-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dsnowflake-wall-decor-and-ornament-set-4.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Çap"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "kara-dikenli-canavar-kurt-duvar-heykeli",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Kara Dikenli Canavar Kurt Duvar Heykeli — Gotik Fantastik Kurt Başı (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Gotik ve fantastik dekor koleksiyonerleri için tasarlanmış, büyük boy duvara asılan bir kurt başı heykeli. Tüm tabla alanını dolduran bu yaratık, ışığı ve gölgeyi kıran sivri bir siluetle duvardan çıkıyor.\n- Salon, çalışma odası ya da oyun odası duvarı için iddialı bir dekor; fantastik ve kurt teması sevenlere hediye olarak uygun. Uçları sivridir, dikkatli tutulmalıdır.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dblackthorn-direwolf-wall-sculpture-deadmoon-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dblackthorn-direwolf-wall-sculpture-deadmoon-2.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "fener-baligi-iskeleti-duvar-trofesi",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Fener Balığı İskeleti Duvar Trofesi — Plakalı Derin Deniz Balığı Dekoru (6-25 cm Boyut Seçenekli)",
+    "aciklama": "İskelet formunda derin deniz fener balığını arka plaka üzerinde sergileyen, duvara asılan bir trofe. Balığın ince kemik detayları ve plakanın çerçeve hatları, klasik bir av trofesi görünümünü gotik bir dokunuşla birleştiriyor.\n- Salon, çalışma odası ya da deniz temalı bir köşe için dikkat çekici bir duvar dekoru; balıkçılık ve gotik tema sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz boyutu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3danglerfish-skeleton-trophy-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3danglerfish-skeleton-trophy-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3danglerfish-skeleton-trophy-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Boyut"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "alev-hukumdari-fantastik-ates-tac",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "baslik": "Alev Hükümdarı Fantastik Ateş Tacı — Alev Biçimli Kostüm Tacı (22,4 cm)",
+    "aciklama": "Sert bir taç tabanı üzerinde yontulmuş alev geometrisi taşıyan, ışığı ve renk geçişlerini özellikle iyi yakalayan fantastik bir ateş tacı. Alev uçları kıvrılarak yükselen bir ateş görünümü verir.\n- Kostüm, cosplay, fotoğraf çekimi ya da sergi için; fantastik ve rol yapma oyunu sevenlere hediye olarak uygun.\n- Tek boyda üretilir: en büyük ölçüsü yaklaşık 22,4 cm; fiyat bu boya göre sabittir.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "2240 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dfantasy-fire-crown-monarch-of-flame-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dfantasy-fire-crown-monarch-of-flame-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dfantasy-fire-crown-monarch-of-flame-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 224,
+        "max": 224,
+        "adim": 10,
+        "varsayilan": 224,
+        "etiket": "Boy"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          224,
+          2240
+        ],
+        [
+          224,
+          2240
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "seytan-gargoyle-kapi-tokmagi",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Şeytan Gargoyle Kapı Tokmağı — Ağzında Dönen Halkalı Gotik Kapı Dekoru (22 cm)",
+    "aciklama": "Ağzındaki halkayı tutan bir şeytan gargoyle başı biçiminde gotik bir kapı tokmağı. Halka hareketlidir; döndürülerek ya da çekilerek kullanılabilir.\n- Giriş kapısı, oyun odası ya da cadılar bayramı dekoru için karakterli bir aksesuar; gotik tema sevenlere hediye olarak uygun.\n- Tek boyda üretilir: en büyük ölçüsü yaklaşık 22 cm; fiyat bu boya göre sabittir.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "2200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3ddevil-door-knocker-no-assembly-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3ddevil-door-knocker-no-assembly-2.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 220,
+        "max": 220,
+        "adim": 10,
+        "varsayilan": 220,
+        "etiket": "Boy"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          220,
+          2200
+        ],
+        [
+          220,
+          2200
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "kan-portali-duvar-mumlugu-ve-askisi",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Kan Portalı Duvar Mumluğu ve Askısı — Alev Sunan Lanetli El Dekoru (24,3 cm)",
+    "aciklama": "Sıradan bir duvar lambası değil: eski, unutulmuş bir şeyin ölümlülerin kapısına bıraktığı bir hediye. Gölgelerden uzanan, alev sunan lanetli bir el. Mum ya da alevsiz LED ışık taşır; aynı zamanda kulaklık gibi küçük eşyaları asmak için askı olarak da kullanılabilir.\n- Salon, çalışma odası ya da cadılar bayramı köşesi için gotik duvar dekoru; fantastik ve gotik tema sevenlere hediye olarak uygun. Gerçek mum yerine alevsiz LED önerilir.\n- Tek boyda üretilir: en büyük ölçüsü yaklaşık 24,3 cm; fiyat bu boya göre sabittir.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "2430 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dblood-portal-wall-mounted-candle-holder-hanger-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dblood-portal-wall-mounted-candle-holder-hanger-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dblood-portal-wall-mounted-candle-holder-hanger-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dblood-portal-wall-mounted-candle-holder-hanger-4.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 243,
+        "max": 243,
+        "adim": 10,
+        "varsayilan": 243,
+        "etiket": "Boy"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          243,
+          2430
+        ],
+        [
+          243,
+          2430
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "ates-ejderhasi-duvar-basi-heykeli",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Ateş Ejderhası Duvar Başı Heykeli — Katmanlı Pullu Ejderha Başı Dekoru (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Katmanlı pulları, geniş kıvrık boynuzları ve duman gibi dışarı doğru akan alev hatlarıyla canlı görünmesi için tasarlanmış, duvara asılan bir ejderha başı. Arkası düz olduğu için çift taraflı bant ya da duvar macunuyla kolayca tutturulur.\n- Salon, çalışma odası ya da oyun odası duvarı için iddialı bir fantastik dekor; ejderha ve fantastik tema sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dfire-dragon-wall-mount-display-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dfire-dragon-wall-mount-display-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dfire-dragon-wall-mount-display-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "vampir-kafatasi-kitap-arasi-dekoru",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Vampir Kafatası Kitap Arası Dekoru — Kitapların Arasında Bekleyen Gotik Bakış (12-25 cm Boyut Seçenekli)",
+    "aciklama": "Sayfaların arasından size bakan bir şey var. Bu vampir kafatası kitap arası dekoru, kitapların arasına doğrudan sıkıştırılarak boş raf boşluğunu karanlık bir odak noktasına dönüştürüyor. Derin göz çukurları ve gerilmiş çene hatları ürkütücü bir ifade veriyor.\n- Kitaplık, çalışma odası ya da kütüphane köşesi için gotik temalı bir dekor; korku ve kitap sevenlere hediye olarak uygun.\n- Boyut seçenekli: 12 ile 25 cm arasında dilediğiniz boyutu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "1200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dvampire-skull-book-nook-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dvampire-skull-book-nook-2.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 120,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Boyut"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          120,
+          1200
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "boynuzlu-kafatasi-masa-ustu-duzenleyici-kase",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Boynuzlu Kafatası Masa Üstü Düzenleyici Kase — Kalem ve Küçük Eşya Tutucu (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Kalemler, aletler, kartlar, kablolar, bozuk paralar, anahtarlar ve normalde ortalıkta kalan tüm küçük eşyalar için tasarlanmış derin bir masa kasesi. Düşük poligon yüzeyleri net bir görünüm verirken boynuzlu kafatası formu masada karakterli bir duruş sağlar.\n- Çalışma masası, giriş rafı ya da oyun odası için hem dekor hem düzenleyici işlevli; gotik ve oyun temalı masa sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dhorned-skull-catchall-organizer-bowl-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dhorned-skull-catchall-organizer-bowl-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dhorned-skull-catchall-organizer-bowl-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dhorned-skull-catchall-organizer-bowl-4.jpg",
+      "https://media.pruvo3d.com/urunler/c3dhorned-skull-catchall-organizer-bowl-5.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "ejderha-kafatasi-masa-ustu-kase",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Ejderha Kafatası Masa Üstü Kase — İskelet Ejderha Başı Dekor ve Düzenleyici (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Depoya kaldırılmak yerine masada, rafta ya da tezgâhta durması için tasarlanmış işlevli bir iskelet ejderha kafatası dekoru. Açık taç kısmı küçük eşyalar için derin bir kase oluşturuyor.\n- Çalışma masası, raf ya da oyun odası için hem dekor hem düzenleyici; ejderha ve fantastik tema sevenlere hediye olarak uygun. Alevsiz LED mum yerleştirilebilir.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3ddragon-skull-catchall-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3ddragon-skull-catchall-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3ddragon-skull-catchall-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3ddragon-skull-catchall-4.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "kemik-ejderha-ouroboros-duvar-dekoru",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Kemik Ejderha Ouroboros Duvar Dekoru — Kuyruğunu Yiyen Karanlık Ejderha Halkası (6-25 cm Çap Seçenekli)",
+    "aciklama": "Cesur bir dairesel duvar parçası olarak tasarlanmış, kuyruğunu yiyen stilize bir kemik ejderha. Ejderhanın başı, dişleri, pulları ve dikenli gövdesi güçlü bir karanlık fantastik görünüm verirken siluet temiz kalıyor.\n- Salon, çalışma odası ya da oyun odası duvarı için dikkat çekici bir dekor; fantastik ve gotik tema sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz çapı kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dbone-dragon-ouroboros-dark-wall-decor-1.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Çap"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "kafatasi-patlamasi-kemik-yildiz-duvar-dekoru",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Kafatası Patlaması Kemik Yıldız Duvar Dekoru — Omurga Sivri Uçlu Gotik Güneş (6-25 cm Çap Seçenekli)",
+    "aciklama": "Yükseltilmiş bir kafatası merkezi ve omurga tarzı ışınsal sivri uçlarla kurulu gotik bir kemik yıldız duvar parçası. Temiz dairesel siluetiyle duvarda güçlü bir duruş sergiler.\n- Salon, çalışma odası ya da koridor duvarı için hafif ve dikkat çekici bir dekor; gotik tema sevenlere hediye olarak uygun. Uçları sivridir, dikkatli tutulmalıdır.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz çapı kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dskullburst-bone-star-wall-decor-1.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Çap"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "surukleme-ahsap-gemi-dumeni-duvar-heykeli",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Sürüklenmiş Ahşap Görünümlü Gemi Dümeni Duvar Heykeli — Korsan Dümeni Duvar Dekoru (6-25 cm Çap Seçenekli)",
+    "aciklama": "Derin oyulmuş sürüklenmiş ahşap oluklarıyla duvarda belirgin gölgeler oluşturan, iri ve stilize bir gemi dümeni duvar heykeli. Arkası düz olduğu için duvara kolayca monte edilen bir duvar parçası olarak tasarlanmıştır.\n- Salon, çalışma odası ya da deniz temalı bir köşe için karakterli bir dekor; denizcilik ve korsan teması sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz çapı kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3ddriftwood-pirate-wheel-wall-sculpture-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3ddriftwood-pirate-wheel-wall-sculpture-2.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Çap"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "gelecekci-ankh-duvar-heykeli",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Gelecekçi Ankh Duvar Heykeli — Kutsal Geometri ve Bilim Kurgu Panelli Yaşam Sembolü (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Antik yaşam sembolünün hassas biçimde yorumlanmış, bilim kurgu panelleriyle kutsal geometriyi birleştiren zarif ve gelecekçi bir duvar objesi.\n- Salon, çalışma odası ya da koridor için sade ama iddialı bir duvar dekoru; bilim kurgu, antik tema ve tasarım meraklılarına hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3daxiom-ankh-futuristic-wall-sculpture-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3daxiom-ankh-futuristic-wall-sculpture-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3daxiom-ankh-futuristic-wall-sculpture-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3daxiom-ankh-futuristic-wall-sculpture-4.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "kizgin-yuzlu-cizgi-karakter-cosplay-maskesi",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "baslik": "Kızgın Yüzlü Çizgi Karakter Cosplay Maskesi — Tam Yüz Kostüm Maskesi (22,9 cm)",
+    "aciklama": "Tam yüzü kaplayan bir cosplay maskesine yontulmuş öfkeli bir çizgi film ifadesi. Göz açıklıklarının üzerine çöken ağır kaşlar, dişleri sıkılı geniş bir ifade ve yükselen yanak hatları suratı keskinleştiriyor.\n- Kostüm, cosplay, fotoğraf çekimi ya da duvar dekoru olarak kullanılabilir; kostüm ve fandom etkinliklerine hediye olarak uygun.\n- Tek boyda üretilir: en büyük ölçüsü yaklaşık 22,9 cm; fiyat bu boya göre sabittir.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "2290 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dangry-anime-face-mask-cosplay-mask-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dangry-anime-face-mask-cosplay-mask-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dangry-anime-face-mask-cosplay-mask-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dangry-anime-face-mask-cosplay-mask-4.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 229,
+        "max": 229,
+        "adim": 10,
+        "varsayilan": 229,
+        "etiket": "Boy"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          229,
+          2290
+        ],
+        [
+          229,
+          2290
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "agac-kabuklu-orman-ruhu-kafatasi-maskesi",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "baslik": "Ağaç Kabuklu Orman Ruhu Kafatası Maskesi — Fantastik Kostüm Maskesi (24,1 cm)",
+    "aciklama": "Oyulmuş ağaç kabuğu dokusu, keskin organik kabartmaları ve temiz bir fantastik aksesuar silueti olan, giyilebilir bir orman ruhu kafatası maskesi. Doğal, ağaç yaratığı görünümü kostüm, duvar sergisi, fotoğraf ve festival için çok uygun.\n- Kostüm, cosplay ve rol yapma etkinlikleri ya da duvar dekoru için; fantastik tema sevenlere hediye olarak uygun.\n- Tek boyda üretilir: en büyük ölçüsü yaklaşık 24,1 cm; fiyat bu boya göre sabittir.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "2410 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dskullbark-mask-wood-spirit-fantasy-costume-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dskullbark-mask-wood-spirit-fantasy-costume-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dskullbark-mask-wood-spirit-fantasy-costume-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dskullbark-mask-wood-spirit-fantasy-costume-4.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 241,
+        "max": 241,
+        "adim": 10,
+        "varsayilan": 241,
+        "etiket": "Boy"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          241,
+          2410
+        ],
+        [
+          241,
+          2410
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "voronoi-desenli-organik-delikli-maske",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "baslik": "Voronoi Desenli Organik Delikli Maske — Giyilebilir Cosplay Maskesi (23,3 cm)",
+    "aciklama": "Temiz, ürkütücü ve pürüzsüz bir yüzeye sahip, akışkan açık kesikleri ile yabancı-biyomekanik bir görünüm veren Voronoi desenli bir maske. Giyilebilir bir sergi parçası, cosplay aksesuarı, cadılar bayramı maskesi ya da fotoğraf aksesuarı olarak kullanılabilir.\n- Kostüm, fotoğraf çekimi ya da vitrin için dikkat çekici bir obje; tasarım ve bilim kurgu meraklılarına hediye olarak uygun.\n- Tek boyda üretilir: en büyük ölçüsü yaklaşık 23,3 cm; fiyat bu boya göre sabittir.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "2330 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dvoronoi-mask-organic-hollow-wearable-mask-for-cosplay-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dvoronoi-mask-organic-hollow-wearable-mask-for-cosplay-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dvoronoi-mask-organic-hollow-wearable-mask-for-cosplay-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 233,
+        "max": 233,
+        "adim": 10,
+        "varsayilan": 233,
+        "etiket": "Boy"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          233,
+          2330
+        ],
+        [
+          233,
+          2330
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "kurt-maskesi-acili-yirtici-cosplay-maskesi",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "baslik": "Kurt Maskesi — Açılı Hatlı Yırtıcı Cosplay ve Kostüm Maskesi (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Stilize açılı tasarımı ile yırtıcı bir kenar taşıyan bir kurt maskesi. Hatlar zayıf, düşük poligon bir estetik veriyor ama yine de canlı hissettiriyor; kurt ruhu ile şeytani bir koruyucu arasında bir görünüm.\n- Cadılar bayramı, kostüm partisi ya da cosplay için; fantastik ve kurt teması sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dwolf-mask-cosplay-costume-mask-for-halloween-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dwolf-mask-cosplay-costume-mask-for-halloween-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dwolf-mask-cosplay-costume-mask-for-halloween-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dwolf-mask-cosplay-costume-mask-for-halloween-4.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "olu-kafali-guve-duvar-heykeli",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Ölü Kafalı Güve Duvar Heykeli — Kafatası Desenli Gotik Kanat Dekoru (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Açık kanatlarının ortasında bir kafatası taşıyan, süslü bir ölü kafalı güve duvar heykeli. Kanat hatlarını izleyen hilal biçimli kabartmalar ve süs motifleri, tüy biçimli antenler ve bölmeli gövdesiyle gotik bir siluet oluşturuyor.\n- Salon, çalışma odası ya da koridor duvarı için dikkat çekici bir dekor; gotik, doğa ve koleksiyon temasını sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz boyutu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3ddeath-s-head-moth-wall-sculpture-skull-moth-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3ddeath-s-head-moth-wall-sculpture-skull-moth-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3ddeath-s-head-moth-wall-sculpture-skull-moth-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3ddeath-s-head-moth-wall-sculpture-skull-moth-4.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Boyut"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "gotik-kafatasi-kitap-arasi-dekoru",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Gotik Kafatası Kitap Arası Dekoru — Kitaplık Köşesi Kafatası Çerçevesi (12-25 cm Boyut Seçenekli)",
+    "aciklama": "Abartılı göz çukurları, keskin elmacık kemikleri ve sert ifadeli bir kafatasını dikdörtgen bir çerçevenin içinde sunan, kitaplığa kitapların arasına doğrudan sıkıştırılan karanlık bir raf dekoru. Gotik bir odak noktası oluşturur.\n- Kitaplık, çalışma odası ya da kütüphane köşesi için gotik temalı dekor; kitap kurtlarına ve koleksiyonculara hediye olarak uygun.\n- Boyut seçenekli: 12 ile 25 cm arasında dilediğiniz boyutu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "1200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dgothic-skull-book-nook-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dgothic-skull-book-nook-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dgothic-skull-book-nook-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 120,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Boyut"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          120,
+          1200
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "ahsap-tabut-duvar-heykeli",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Ahşap Görünümlü Tabut Duvar Heykeli — Anahtar Deliği Askılı Gotik Dekor (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Katmanlı tahta yapısı, oyulmuş ahşap damar dokusu ve derin içi olan, eski kereste izlenimi veren tabut biçimli bir duvar heykeli. Eşit olmayan tahtalar, açılı çerçeve ve eskitilmiş yüzey ayrıntıları ona kaba ahşap bir tabut görünümü veriyor. Duvara asmak için anahtar deliği askısı hazırdır.\n- Salon, koridor ya da cadılar bayramı köşesi için gotik temalı bir duvar dekoru; içine küçük bir mum ya da ledli ışık yerleştirilebilir (alevsiz LED önerilir). Hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz boyutu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dwooden-coffin-wall-sculpture-keyhole-mount-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dwooden-coffin-wall-sculpture-keyhole-mount-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dwooden-coffin-wall-sculpture-keyhole-mount-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dwooden-coffin-wall-sculpture-keyhole-mount-4.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Boyut"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "gotik-kafatasi-iskelet-anahtar-duvar-heykeli",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Gotik Kafatası İskelet Anahtar Duvar Heykeli — Barok Süslemeli Eski Dünya Anahtarı (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Detaylı bir kafatası merkezi, süslü kıvrımlar ve uzun, eski dünya tarzı bir anahtar gövdesinden oluşan gotik bir iskelet anahtar duvar heykeli. Barok süs motifleri ile güçlü kafatası temasını birleştirerek karanlık, kalıntı havası taşıyan iddialı bir duvar objesi sunuyor.\n- Salon, çalışma odası ya da kapı yanı için gotik dekor; fantezi ve gotik koleksiyon meraklılarına hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz boyutu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dgothic-skull-skeleton-key-wall-sculpture-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dgothic-skull-skeleton-key-wall-sculpture-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dgothic-skull-skeleton-key-wall-sculpture-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Boyut"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "savas-yarali-kafatasi-karanlik-dekor-heykeli",
+    "kategori": "Figür",
+    "marka": [],
+    "baslik": "Savaş Yaralı Kafatası Heykeli — Gotik Karanlık Dekor Figürü (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Raf, masa ya da stüdyo köşesine daha karanlık bir hava katmak için tasarlanmış, büyük boy gotik bir kafatası heykeli. Derin savaş çizikleri, keskin kaş hatları ve cesur siluetiyle fazla karmaşıklığa kaçmadan sert bir duruş sergiliyor.\n- Raf ya da çalışma masası için iddialı bir dekor parçası; gotik, korku ve koleksiyon meraklılarına hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dbattle-scarred-skull-dark-decor-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dbattle-scarred-skull-dark-decor-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dbattle-scarred-skull-dark-decor-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DeadMoon",
+      "tur": "CC BY 4.0"
+    },
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "kizgin-yuzlu-buyucu-sapkasi-heykeli",
+    "kategori": "Figür",
+    "marka": [],
+    "baslik": "Kızgın Yüzlü Büyücü Şapkası Heykeli — Büyülü Deliliğin Şapkası Dekoru (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Öfkeli yüz ifadesine sahip, kıvrık uçlu büyülü bir büyücü şapkası. Büyük bir gösterişli parça olarak tasarlandı; boyutlandırmaya çok uygun, rafta ya da masada güçlü bir etki bırakıyor.\n- Fantastik ve oyun temalı odalar, vitrinler ve koleksiyonlar için karakterli bir dekor; fantastik hikâye ve rol yapma oyunu sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3denchanted-hat-of-insanity-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3denchanted-hat-of-insanity-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DeadMoon",
+      "tur": "CC BY 4.0"
+    },
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "kafatasli-bomba-karanlik-raf-heykeli",
+    "kategori": "Figür",
+    "marka": [],
+    "baslik": "Kafatası Başlıklı Bomba Heykeli — Soğuk Savaş Temalı Karanlık Raf Dekoru (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Soğuk savaş dönemi bomba formunu stilize bir kafatası ön kısmıyla birleştiren karanlık bir sergi heykeli. Sade ve net siluetiyle odanın karşı tarafından bile hemen okunuyor.\n- Raf, çalışma masası ya da sohbet açan bir dekor objesi olarak; gotik, retro ve koleksiyon temasını sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dskull-nuke-dark-shelf-decor-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dskull-nuke-dark-shelf-decor-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dskull-nuke-dark-shelf-decor-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dskull-nuke-dark-shelf-decor-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DeadMoon",
+      "tur": "CC BY 4.0"
+    },
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "ihtilaf-elmasi-kaideli-heykel",
+    "kategori": "Figür",
+    "marka": [],
+    "baslik": "İhtilaf Elması Heykeli — Kaideli Efsanevi Elma Kalıntısı (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Truva Savaşı'nı başlatan efsanevi İhtilaf Elması'nı yorumlayan, alev gibi ve organik kıvrımlı yüzeyiyle öne çıkan stilize bir elma heykeli. Antik sütun biçimli bir kaide üzerinde sunulur.\n- Raf, çalışma masası ya da vitrin için mitoloji ve antik tema sevenlere hitap eden bir dekor; hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dapple-of-discord-apple-pedestal-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dapple-of-discord-apple-pedestal-2.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "eriyen-lolipop-masa-heykeli",
+    "kategori": "Figür",
+    "marka": [],
+    "baslik": "Eriyen Lolipop Masa Heykeli — Birikintiye Dönüşen Şeker Dekor Figürü (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Sade bir fikirden doğan, eriyip yumuşak bir birikintiye dönüşmüş lolipop heykeli. Düzgün ve pürüzsüz hatları ile masada hem şık hem eğlenceli bir görünüm veriyor.\n- Raf, çalışma masası ya da hediyelik köşe için renkli bir dekor; tatlı ve şeker temasını sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dmelting-lollipop-desk-sculpture-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dmelting-lollipop-desk-sculpture-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DeadMoon",
+      "tur": "CC BY 4.0"
+    },
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "isirilmis-elma-heykeli",
+    "kategori": "Figür",
+    "marka": [],
+    "baslik": "Isırılmış Elma Heykeli — Abartılı İç Yapılı Dekor Figürü (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Dış kabuğu ile iç çekirdek bölümü arasında güçlü bir kontrast sunan, abartılı iç yapısıyla heykelsi bir görünüm taşıyan ısırılmış elma. Sağlam ve gösterişli bir masa objesi.\n- Raf, çalışma masası ya da mutfak köşesi için dikkat çekici bir dekor; sanat objesi ve hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3deaten-apple-multicolor-print-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DeadMoon",
+      "tur": "CC BY 4.0"
+    },
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "kase-kafali-figur-saklama-kabi",
+    "kategori": "Figür",
+    "marka": [],
+    "baslik": "Kase Kafalı Figür — Şeker ve Küçük Eşya Saklama Kabı (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Kafası içi boş bir kase olarak tasarlanmış, tasarım oyuncağı siluetini işlevsel bir saklama kabıyla birleştiren sevimli bir figür. Geniş kase ağzı, şeker, masa üstü küçük eşyalar ya da anahtar gibi şeyleri elin altında tutmaya uygun.\n- Çalışma masası, giriş rafı ya da çocuk odası için hem dekor hem kap işlevli bir figür; hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dbowl-head-figure-storage-container-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dbowl-head-figure-storage-container-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DeadMoon",
+      "tur": "CC BY 4.0"
+    },
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "etcil-bitki-fantastik-heykeli",
+    "kategori": "Figür",
+    "marka": [],
+    "baslik": "Etçil Bitki Heykeli — Keskin Dişli Karanlık Fantastik Saksı Figürü (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Yuvarlak saksısı, kıvrılan gövdesi, geniş yaprakları ve iri ağzıyla koleksiyonluk bir görünüm taşıyan, keskin dişleri ile canavar havasına giren stilize bir etçil bitki heykeli.\n- Çalışma masası, raf ya da korku temalı bir koleksiyon için karakterli bir dekor; bitki ve yaratık sevenlere hediye olarak uygun. Dişleri sivridir, dikkatli tutulmalıdır.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dmonstera-plant-dark-fantasy-sculpture-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dmonstera-plant-dark-fantasy-sculpture-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dmonstera-plant-dark-fantasy-sculpture-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DeadMoon",
+      "tur": "CC BY 4.0"
+    },
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "halka-frizbi-ucan-halka-disk",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "baslik": "Halka Frizbi — Hafif ve Dayanıklı Uçan Halka Disk (6-25 cm Çap Seçenekli)",
+    "aciklama": "Dayanıklılık ve uzun atışlar için tasarlanmış, yakalanırken eli acıtmayacak şekilde şekillendirilmiş halka biçimli bir uçan disk. Geleneksel frizbiden farklı, ince ve hafif halka formuyla havada uzağa gider.\n- Park, bahçe ya da plaj için eğlenceli bir oyuncak; açık hava oyunlarını ve atış denemelerini sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz çapı kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dthe-best-3d-printed-frisbee-inspired-by-aerobie-ring-frisbee-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dthe-best-3d-printed-frisbee-inspired-by-aerobie-ring-frisbee-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dthe-best-3d-printed-frisbee-inspired-by-aerobie-ring-frisbee-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Çap"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "minimal-dis-fircasi-ve-macun-standi",
+    "kategori": "Ev",
+    "marka": [],
+    "baslik": "Minimal Diş Fırçası ve Diş Macunu Standı — Banyo Düzenleyici (7,6 cm)",
+    "aciklama": "Bir diş macunu ve iki diş fırçasını ayakta tutmak için tasarlanmış, modern görünümlü ve sade bir banyo standı. Kompakt yapısı lavabo kenarında az yer kaplar, dengeli duruşuyla devrilmez.\n- Banyo, lavabo kenarı ya da seyahat odası için pratik bir düzenleyici; yeni ev ve ofis banyosu hediyesi olarak uygun.\n- Tek boyda üretilir: en büyük ölçüsü yaklaşık 7,6 cm; fiyat bu boya göre sabittir.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "760 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dminimal-toothbrush-toothpaste-stand-commercial-license-and-raw-files-included-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dminimal-toothbrush-toothpaste-stand-commercial-license-and-raw-files-included-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dminimal-toothbrush-toothpaste-stand-commercial-license-and-raw-files-included-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 76,
+        "max": 76,
+        "adim": 10,
+        "varsayilan": 76,
+        "etiket": "Boy"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          76,
+          760
+        ],
+        [
+          76,
+          760
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "helezon-kalemlik-saklama-bardagi",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Helezon Kalemlik ve Saklama Bardağı — Modern Spiral Dekor Kabı (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Helezon (sarmal) hatlarla tasarlanmış modern bir bardak; kalem ve küçük gereç saklamak için ya da yalnızca dekor olarak kullanılabilir. Kalemlerin içeride devrilmemesi için iç yapısı düzenlenmiştir.\n- Çalışma masası, ofis ya da kitaplık için hem işlevli hem şık bir obje; masa düzenleyici ve hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dhelix-cup-for-storage-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dhelix-cup-for-storage-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dhelix-cup-for-storage-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dhelix-cup-for-storage-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Pentakoron",
+      "tur": "CC BY 4.0"
+    },
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "sarmasik-yapraklari-kablo-susu",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Sarmaşık Yaprakları Kablo Süsü — Kabloya Asılan Dekoratif Yapraklar (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Kablonun üzerine asılarak sarmaşık görünümü veren dekoratif yapraklar. Kıvrım yerlerinden hafifçe bükülerek kabloya yeterli sürtünmeyle tutunur; duvar boyunca uzanan kabloları gizlemek ve süslemek için uygundur.\n- Ev, ofis ya da çocuk odasında kabloları dekoratif hale getirmek için; sarmaşık ve doğa temasını sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz boyutu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3divy-leaves-cable-decoration-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3divy-leaves-cable-decoration-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3divy-leaves-cable-decoration-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3divy-leaves-cable-decoration-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Pentakoron",
+      "tur": "CC BY 4.0"
+    },
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Boyut"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
     "id": "zombi-t-rex-heykeli",
     "kategori": "Figür",
     "marka": [],
