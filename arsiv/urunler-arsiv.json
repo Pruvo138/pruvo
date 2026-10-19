@@ -934,5 +934,29 @@
         "tur": "CC BY 4.0"
       }
     }
+  },
+  {
+    "silinme_ts": "2026-10-19T05:15:30Z",
+    "yazan": "panel-uygulayici",
+    "kuyruk_id": 54,
+    "kayit": {
+      "id": "ev-esnek-baglama-kayisi-tokali-uc-boy-380-420-650-mm-pr1135454",
+      "kategori": "Ev",
+      "marka": [],
+      "uyum": [],
+      "baslik": "Esnek Bağlama Kayışı (Tokalı, 380, 420 ve 650 mm)",
+      "aciklama": "Eşyaları ve parçaları sabitlemek için delikli, esnek bağlama kayışı. Kayışın ucundaki 18 mm genişlikli toka, delikli gövdenin istenen deliğine takılarak uzunluğu ayarlar. 380 mm, 420 mm ve 650 mm olmak üzere üç boyda hazırdır. Fotoğraflarda turuncu kayış masa ayağına bağlı ve düz serilmiş halde görülür.\nYaklaşık dış ölçüler: toka 34 × 27 × 16 mm; kayışlar 380, 420 ve 650 mm uzunluğundadır.",
+      "fiyat": "350 TL",
+      "gorseller": [
+        "https://media.pruvo3d.com/urunler/pr1135454-1.jpg",
+        "https://media.pruvo3d.com/urunler/pr1135454-2.jpg",
+        "https://media.pruvo3d.com/urunler/pr1135454-3.jpg",
+        "https://media.pruvo3d.com/urunler/pr1135454-4.jpg"
+      ],
+      "lisans": {
+        "tasarimci": "Hans Hiorth",
+        "tur": "CC BY-SA 4.0"
+      }
+    }
   }
 ]
