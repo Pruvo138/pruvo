@@ -739,8 +739,8 @@ def top_btn_ekle(html_metni):
 
 GA_BANNER_SNIPPET = """<!-- KVKK çerez onay banner'ı (vanilla JS/CSS — harici kütüphane YOK). analytics_storage için açık rıza. -->
 <style>
-  #pruvo-cerez-onay{position:fixed;left:0;right:0;bottom:0;z-index:2147483000;
-    background:#12294d;color:#fff;padding:15px 18px;box-shadow:0 -2px 14px rgba(0,0,0,.28);
+  #pruvo-cerez-onay{position:fixed;left:0;right:0;top:0;z-index:2147483000;
+    background:#12294d;color:#fff;padding:15px 18px;box-shadow:0 2px 14px rgba(0,0,0,.28);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     font-size:14px;line-height:1.5}
   #pruvo-cerez-onay[hidden]{display:none}
@@ -748,13 +748,17 @@ GA_BANNER_SNIPPET = """<!-- KVKK çerez onay banner'ı (vanilla JS/CSS — haric
     gap:14px;flex-wrap:wrap;justify-content:space-between}
   #pruvo-cerez-onay p{margin:0;flex:1 1 320px;color:#dbe4f2}
   #pruvo-cerez-onay a{color:#fff;text-decoration:underline}
-  #pruvo-cerez-onay .pco-btns{display:flex;gap:10px;flex:0 0 auto}
-  #pruvo-cerez-onay button{cursor:pointer;border:none;border-radius:8px;padding:10px 18px;
-    font-size:14px;font-weight:700;font-family:inherit}
-  #pruvo-cerez-onay .pco-kabul{background:#d1332e;color:#fff}
-  #pruvo-cerez-onay .pco-ret{background:rgba(255,255,255,.14);color:#fff;
-    border:1px solid rgba(255,255,255,.4)}
+  #pruvo-cerez-onay .pco-btns{display:flex;gap:10px;flex:0 0 auto;align-items:center}
+  #pruvo-cerez-onay button{cursor:pointer;border:none;border-radius:8px;font-family:inherit}
+  #pruvo-cerez-onay .pco-kabul{background:#d1332e;color:#fff;padding:12px 28px;
+    font-size:15px;font-weight:700}
+  #pruvo-cerez-onay .pco-ret{background:none;color:#dbe4f2;padding:12px 10px;
+    font-size:14px;font-weight:400;text-decoration:underline}
   #pruvo-cerez-onay button:focus-visible{outline:3px solid #ffd166;outline-offset:2px}
+  @media (max-width:600px){
+    #pruvo-cerez-onay .pco-btns{flex:1 1 100%;flex-direction:column;align-items:stretch;gap:4px}
+    #pruvo-cerez-onay .pco-kabul{width:100%}
+  }
 </style>
 <div id="pruvo-cerez-onay" role="dialog" aria-label="Çerez onayı" hidden>
   <div class="pco-inner">
@@ -762,8 +766,8 @@ GA_BANNER_SNIPPET = """<!-- KVKK çerez onay banner'ı (vanilla JS/CSS — haric
        kullanıyoruz. Detaylı bilgiye <a href="/gizlilik/">Gizlilik ve Çerez Politikası</a>
        sayfamızdan erişebilirsiniz.</p>
     <div class="pco-btns">
-      <button type="button" class="pco-ret" id="pco-ret">Reddet</button>
       <button type="button" class="pco-kabul" id="pco-kabul">Kabul Et</button>
+      <button type="button" class="pco-ret" id="pco-ret">Reddet</button>
     </div>
   </div>
 </div>
