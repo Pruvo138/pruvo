@@ -122,9 +122,9 @@
     "id": "futuristik-akilli-saat-standi",
     "kategori": "Ev",
     "marka": [],
-    "baslik": "Fütüristik Akıllı Saat Standı — Şarj Kablolu Saatler İçin Masa Standı (6-25 cm Boyut Seçenekli)",
-    "aciklama": "Akıllı saati yatık biçimde tutan, kararlı tabanlı ve fütüristik hatlı bir masa standı. Saat şarj kablosuyla bağlıyken de rahatça durur.\n- Masa, komodin ya da çalışma köşesi için akıllı saat standı; teknoloji sevenlere hediye olarak uygun. Saatinize uygun yuva ölçüsü için seçtiğiniz boyutu ona göre belirleyin.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
-    "fiyat": "600 TL",
+    "baslik": "Fütüristik Akıllı Saat Standı — Şarj Kablolu Saatler İçin Masa Standı (10,4 cm)",
+    "aciklama": "Akıllı saati yatık biçimde tutan, kararlı tabanlı ve fütüristik hatlı bir masa standı. Saat şarj kablosuyla bağlıyken de rahatça durur.\n- Masa, komodin ya da çalışma köşesi için akıllı saat standı; teknoloji sevenlere hediye olarak uygun.\n- Tek boyda üretilir: en büyük ölçüsü yaklaşık 10,4 cm; fiyat bu boya göre sabittir.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "1040 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/c3dwatch-stand-for-amazfit-active-2-1.jpg",
       "https://media.pruvo3d.com/urunler/c3dwatch-stand-for-amazfit-active-2-2.jpg",
@@ -148,21 +148,21 @@
       },
       "gorselOrnek": true,
       "boyutMm": {
-        "min": 60,
-        "max": 250,
+        "min": 104,
+        "max": 104,
         "adim": 10,
-        "varsayilan": 150,
-        "etiket": "Yükseklik"
+        "varsayilan": 104,
+        "etiket": "Boy"
       },
       "fiyatModu": "dogrusal",
       "fiyatCapalari": [
         [
-          60,
-          600
+          104,
+          1040
         ],
         [
-          250,
-          2500
+          104,
+          1040
         ]
       ],
       "malzemeler": [
@@ -186,8 +186,8 @@
     "id": "yazici-qr-kod-gizleme-kapagi",
     "kategori": "Oyun/Hobi",
     "marka": [],
-    "baslik": "3D Yazıcı QR Kod Gizleme Kapağı — Sade Beyaz Koruyucu Kapak (6-25 cm Boyut Seçenekli)",
-    "aciklama": "Yazıcı gövdesindeki QR etiketini örten, yuvarlak köşeli sade bir kapak. Düz yüzeyi sayesinde dilerseniz kendi logonuzla özelleştirmeye uygundur.\n- Atölye, masaüstü yazıcı ya da küçük bir cihaz için gizleme kapağı; kendi işini yapan ve cihazını düzenli tutan kullanıcılara uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz genişliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "baslik": "3D Yazıcı QR Kod Gizleme Kapağı — Sade Beyaz Koruyucu Kapak (4,6 cm)",
+    "aciklama": "Yazıcı gövdesindeki QR etiketini örten, yuvarlak köşeli sade bir kapak. Düz yüzeyi sayesinde dilerseniz kendi logonuzla özelleştirmeye uygundur.\n- Atölye, masaüstü yazıcı ya da küçük bir cihaz için gizleme kapağı; kendi işini yapan ve cihazını düzenli tutan kullanıcılara uygun.\n- Tek boyda üretilir: en büyük ölçüsü yaklaşık 4,6 cm; fiyat bu boya göre sabittir.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
     "fiyat": "600 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/c3dcreality-ender3-qr-code-cover-1.jpg",
@@ -207,21 +207,21 @@
       },
       "gorselOrnek": true,
       "boyutMm": {
-        "min": 60,
-        "max": 250,
+        "min": 46,
+        "max": 46,
         "adim": 10,
-        "varsayilan": 150,
-        "etiket": "Genişlik"
+        "varsayilan": 46,
+        "etiket": "Boy"
       },
       "fiyatModu": "dogrusal",
       "fiyatCapalari": [
         [
-          60,
+          46,
           600
         ],
         [
-          250,
-          2500
+          46,
+          600
         ]
       ],
       "malzemeler": [
@@ -607,9 +607,9 @@
     "id": "sarmal-yumurta-lambasi-led-mum-icin",
     "kategori": "Dekorasyon",
     "marka": [],
-    "baslik": "Sarmal Yumurta Lambası — Led Mum ve Led Disk Işık İçin Dekor (6-25 cm Boyut Seçenekli)",
-    "aciklama": "Herhangi bir led mum ile çalışacak şekilde tasarlanmış, tek parça sarmal desenli yumurta biçimli bir lamba. Sarmal kesiklerden süzülen ışık masada ya da rafta yumuşak bir parıltı yaratır.\n- Yatak odası, salon ya da çalışma masası için sakin bir ışık dekoru; ışık ve tasarım sevenlere hediye olarak uygun. Led mum ya da led disk ürüne dahil değildir; yalnız alevsiz led ile kullanılır.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
-    "fiyat": "600 TL",
+    "baslik": "Sarmal Yumurta Lambası — Led Mum ve Led Disk Işık İçin Dekor (8,9 cm)",
+    "aciklama": "Herhangi bir led mum ile çalışacak şekilde tasarlanmış, tek parça sarmal desenli yumurta biçimli bir lamba. Sarmal kesiklerden süzülen ışık masada ya da rafta yumuşak bir parıltı yaratır.\n- Yatak odası, salon ya da çalışma masası için sakin bir ışık dekoru; ışık ve tasarım sevenlere hediye olarak uygun. Led mum ya da led disk ürüne dahil değildir; yalnız alevsiz led ile kullanılır.\n- Tek boyda üretilir: en büyük ölçüsü yaklaşık 8,9 cm; fiyat bu boya göre sabittir.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "890 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/c3dspiral-egg-lamp-for-led-tea-light-puck-light-1.jpg",
       "https://media.pruvo3d.com/urunler/c3dspiral-egg-lamp-for-led-tea-light-puck-light-2.jpg"
@@ -631,21 +631,21 @@
       },
       "gorselOrnek": true,
       "boyutMm": {
-        "min": 60,
-        "max": 250,
+        "min": 89,
+        "max": 89,
         "adim": 10,
-        "varsayilan": 150,
-        "etiket": "Yükseklik"
+        "varsayilan": 89,
+        "etiket": "Boy"
       },
       "fiyatModu": "dogrusal",
       "fiyatCapalari": [
         [
-          60,
-          600
+          89,
+          890
         ],
         [
-          250,
-          2500
+          89,
+          890
         ]
       ],
       "malzemeler": [
@@ -1431,9 +1431,9 @@
     "id": "tiki-kafatasi-led-mumluk",
     "kategori": "Dekorasyon",
     "marka": [],
-    "baslik": "Tiki Kafatası Led Mumluk — Çatlak Taş Detaylı Alevsiz Mum Tutucu (6-25 cm Boyut Seçenekli)",
-    "aciklama": "Oyulmuş tiki esintili siluetiyle, çatlak taş ayrıntıları, ağır kaş plakaları, boş göz çukurları, üçgen burun açıklığı ve kare diş dizisi olan stilize bir kafatası biçimli led mum tutucu. İçine alevsiz bir led mum yerleştirilir.\n- Salon, bar köşesi ya da cadılar bayramı dekoru için karakterli bir ışık objesi; tiki ve gotik tema sevenlere hediye olarak uygun. Yalnız alevsiz led mum ile kullanılmalıdır.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
-    "fiyat": "600 TL",
+    "baslik": "Tiki Kafatası Led Mumluk — Çatlak Taş Detaylı Alevsiz Mum Tutucu (6,8 cm)",
+    "aciklama": "Oyulmuş tiki esintili siluetiyle, çatlak taş ayrıntıları, ağır kaş plakaları, boş göz çukurları, üçgen burun açıklığı ve kare diş dizisi olan stilize bir kafatası biçimli led mum tutucu. İçine alevsiz bir led mum yerleştirilir.\n- Salon, bar köşesi ya da cadılar bayramı dekoru için karakterli bir ışık objesi; tiki ve gotik tema sevenlere hediye olarak uygun. Yalnız alevsiz led mum ile kullanılmalıdır.\n- Tek boyda üretilir: en büyük ölçüsü yaklaşık 6,8 cm; fiyat bu boya göre sabittir.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "680 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/c3dtiki-skull-led-tea-light-holder-1.jpg",
       "https://media.pruvo3d.com/urunler/c3dtiki-skull-led-tea-light-holder-2.jpg"
@@ -1451,21 +1451,21 @@
       },
       "gorselOrnek": true,
       "boyutMm": {
-        "min": 60,
-        "max": 250,
+        "min": 68,
+        "max": 68,
         "adim": 10,
-        "varsayilan": 150,
-        "etiket": "Yükseklik"
+        "varsayilan": 68,
+        "etiket": "Boy"
       },
       "fiyatModu": "dogrusal",
       "fiyatCapalari": [
         [
-          60,
-          600
+          68,
+          680
         ],
         [
-          250,
-          2500
+          68,
+          680
         ]
       ],
       "malzemeler": [
@@ -1489,9 +1489,9 @@
     "id": "kalp-seklinde-led-mumluk",
     "kategori": "Dekorasyon",
     "marka": [],
-    "baslik": "Kalp Şeklinde Led Mumluk — Alevsiz Işıklı Romantik Dekor (6-25 cm Boyut Seçenekli)",
-    "aciklama": "Açık alev riski olmadan yumuşak, sıcak bir ışık yaymak için tasarlanmış kalp biçimli led mum tutucu. Hafif kavisli duvarları ve içine oturan alevsiz led mumuyla ortama romantik bir atmosfer katar.\n- Sevgililer günü, yıldönümü masası, yatak odası ya da sofra dekoru için; sevgiliye hediye olarak uygun. Birkaç tanesi bir arada kullanılabilir.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz boyutu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
-    "fiyat": "600 TL",
+    "baslik": "Kalp Şeklinde Led Mumluk — Alevsiz Işıklı Romantik Dekor (11,3 cm)",
+    "aciklama": "Açık alev riski olmadan yumuşak, sıcak bir ışık yaymak için tasarlanmış kalp biçimli led mum tutucu. Hafif kavisli duvarları ve içine oturan alevsiz led mumuyla ortama romantik bir atmosfer katar.\n- Sevgililer günü, yıldönümü masası, yatak odası ya da sofra dekoru için; sevgiliye hediye olarak uygun. Birkaç tanesi bir arada kullanılabilir.\n- Tek boyda üretilir: en büyük ölçüsü yaklaşık 11,3 cm; fiyat bu boya göre sabittir.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "1130 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/c3dheart-shaped-led-tea-light-holder-deadmoon-1.jpg",
       "https://media.pruvo3d.com/urunler/c3dheart-shaped-led-tea-light-holder-deadmoon-2.jpg",
@@ -1511,21 +1511,21 @@
       },
       "gorselOrnek": true,
       "boyutMm": {
-        "min": 60,
-        "max": 250,
+        "min": 113,
+        "max": 113,
         "adim": 10,
-        "varsayilan": 150,
-        "etiket": "Boyut"
+        "varsayilan": 113,
+        "etiket": "Boy"
       },
       "fiyatModu": "dogrusal",
       "fiyatCapalari": [
         [
-          60,
-          600
+          113,
+          1130
         ],
         [
-          250,
-          2500
+          113,
+          1130
         ]
       ],
       "malzemeler": [
@@ -1726,9 +1726,9 @@
     "id": "alev-hukumdari-fantastik-ates-tac",
     "kategori": "Oyun/Hobi",
     "marka": [],
-    "baslik": "Alev Hükümdarı Fantastik Ateş Tacı — Alev Biçimli Kostüm Tacı (6-25 cm Boyut Seçenekli)",
-    "aciklama": "Sert bir taç tabanı üzerinde yontulmuş alev geometrisi taşıyan, ışığı ve renk geçişlerini özellikle iyi yakalayan fantastik bir ateş tacı. Alev uçları kıvrılarak yükselen bir ateş görünümü verir.\n- Kostüm, cosplay, fotoğraf çekimi ya da sergi için; fantastik ve rol yapma oyunu sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz çapı kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
-    "fiyat": "600 TL",
+    "baslik": "Alev Hükümdarı Fantastik Ateş Tacı — Alev Biçimli Kostüm Tacı (22,4 cm)",
+    "aciklama": "Sert bir taç tabanı üzerinde yontulmuş alev geometrisi taşıyan, ışığı ve renk geçişlerini özellikle iyi yakalayan fantastik bir ateş tacı. Alev uçları kıvrılarak yükselen bir ateş görünümü verir.\n- Kostüm, cosplay, fotoğraf çekimi ya da sergi için; fantastik ve rol yapma oyunu sevenlere hediye olarak uygun.\n- Tek boyda üretilir: en büyük ölçüsü yaklaşık 22,4 cm; fiyat bu boya göre sabittir.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "2240 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/c3dfantasy-fire-crown-monarch-of-flame-1.jpg",
       "https://media.pruvo3d.com/urunler/c3dfantasy-fire-crown-monarch-of-flame-2.jpg",
@@ -1747,21 +1747,21 @@
       },
       "gorselOrnek": true,
       "boyutMm": {
-        "min": 60,
-        "max": 250,
+        "min": 224,
+        "max": 224,
         "adim": 10,
-        "varsayilan": 150,
-        "etiket": "Çap"
+        "varsayilan": 224,
+        "etiket": "Boy"
       },
       "fiyatModu": "dogrusal",
       "fiyatCapalari": [
         [
-          60,
-          600
+          224,
+          2240
         ],
         [
-          250,
-          2500
+          224,
+          2240
         ]
       ],
       "malzemeler": [
@@ -1785,9 +1785,9 @@
     "id": "seytan-gargoyle-kapi-tokmagi",
     "kategori": "Dekorasyon",
     "marka": [],
-    "baslik": "Şeytan Gargoyle Kapı Tokmağı — Ağzında Dönen Halkalı Gotik Kapı Dekoru (6-25 cm Boyut Seçenekli)",
-    "aciklama": "Ağzındaki halkayı tutan bir şeytan gargoyle başı biçiminde gotik bir kapı tokmağı. Halka hareketlidir; döndürülerek ya da çekilerek kullanılabilir.\n- Giriş kapısı, oyun odası ya da cadılar bayramı dekoru için karakterli bir aksesuar; gotik tema sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
-    "fiyat": "600 TL",
+    "baslik": "Şeytan Gargoyle Kapı Tokmağı — Ağzında Dönen Halkalı Gotik Kapı Dekoru (22 cm)",
+    "aciklama": "Ağzındaki halkayı tutan bir şeytan gargoyle başı biçiminde gotik bir kapı tokmağı. Halka hareketlidir; döndürülerek ya da çekilerek kullanılabilir.\n- Giriş kapısı, oyun odası ya da cadılar bayramı dekoru için karakterli bir aksesuar; gotik tema sevenlere hediye olarak uygun.\n- Tek boyda üretilir: en büyük ölçüsü yaklaşık 22 cm; fiyat bu boya göre sabittir.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "2200 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/c3ddevil-door-knocker-no-assembly-1.jpg",
       "https://media.pruvo3d.com/urunler/c3ddevil-door-knocker-no-assembly-2.jpg"
@@ -1805,21 +1805,21 @@
       },
       "gorselOrnek": true,
       "boyutMm": {
-        "min": 60,
-        "max": 250,
+        "min": 220,
+        "max": 220,
         "adim": 10,
-        "varsayilan": 150,
-        "etiket": "Yükseklik"
+        "varsayilan": 220,
+        "etiket": "Boy"
       },
       "fiyatModu": "dogrusal",
       "fiyatCapalari": [
         [
-          60,
-          600
+          220,
+          2200
         ],
         [
-          250,
-          2500
+          220,
+          2200
         ]
       ],
       "malzemeler": [
@@ -1843,9 +1843,9 @@
     "id": "kan-portali-duvar-mumlugu-ve-askisi",
     "kategori": "Dekorasyon",
     "marka": [],
-    "baslik": "Kan Portalı Duvar Mumluğu ve Askısı — Alev Sunan Lanetli El Dekoru (6-25 cm Boyut Seçenekli)",
-    "aciklama": "Sıradan bir duvar lambası değil: eski, unutulmuş bir şeyin ölümlülerin kapısına bıraktığı bir hediye. Gölgelerden uzanan, alev sunan lanetli bir el. Mum ya da alevsiz LED ışık taşır; aynı zamanda kulaklık gibi küçük eşyaları asmak için askı olarak da kullanılabilir.\n- Salon, çalışma odası ya da cadılar bayramı köşesi için gotik duvar dekoru; fantastik ve gotik tema sevenlere hediye olarak uygun. Gerçek mum yerine alevsiz LED önerilir.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz boyutu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
-    "fiyat": "600 TL",
+    "baslik": "Kan Portalı Duvar Mumluğu ve Askısı — Alev Sunan Lanetli El Dekoru (24,3 cm)",
+    "aciklama": "Sıradan bir duvar lambası değil: eski, unutulmuş bir şeyin ölümlülerin kapısına bıraktığı bir hediye. Gölgelerden uzanan, alev sunan lanetli bir el. Mum ya da alevsiz LED ışık taşır; aynı zamanda kulaklık gibi küçük eşyaları asmak için askı olarak da kullanılabilir.\n- Salon, çalışma odası ya da cadılar bayramı köşesi için gotik duvar dekoru; fantastik ve gotik tema sevenlere hediye olarak uygun. Gerçek mum yerine alevsiz LED önerilir.\n- Tek boyda üretilir: en büyük ölçüsü yaklaşık 24,3 cm; fiyat bu boya göre sabittir.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "2430 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/c3dblood-portal-wall-mounted-candle-holder-hanger-1.jpg",
       "https://media.pruvo3d.com/urunler/c3dblood-portal-wall-mounted-candle-holder-hanger-2.jpg",
@@ -1865,21 +1865,21 @@
       },
       "gorselOrnek": true,
       "boyutMm": {
-        "min": 60,
-        "max": 250,
+        "min": 243,
+        "max": 243,
         "adim": 10,
-        "varsayilan": 150,
-        "etiket": "Boyut"
+        "varsayilan": 243,
+        "etiket": "Boy"
       },
       "fiyatModu": "dogrusal",
       "fiyatCapalari": [
         [
-          60,
-          600
+          243,
+          2430
         ],
         [
-          250,
-          2500
+          243,
+          2430
         ]
       ],
       "malzemeler": [
@@ -2373,9 +2373,9 @@
     "id": "kizgin-yuzlu-cizgi-karakter-cosplay-maskesi",
     "kategori": "Oyun/Hobi",
     "marka": [],
-    "baslik": "Kızgın Yüzlü Çizgi Karakter Cosplay Maskesi — Tam Yüz Kostüm Maskesi (6-25 cm Boyut Seçenekli)",
-    "aciklama": "Tam yüzü kaplayan bir cosplay maskesine yontulmuş öfkeli bir çizgi film ifadesi. Göz açıklıklarının üzerine çöken ağır kaşlar, dişleri sıkılı geniş bir ifade ve yükselen yanak hatları suratı keskinleştiriyor.\n- Kostüm, cosplay, fotoğraf çekimi ya da duvar dekoru olarak kullanılabilir; kostüm ve fandom etkinliklerine hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
-    "fiyat": "600 TL",
+    "baslik": "Kızgın Yüzlü Çizgi Karakter Cosplay Maskesi — Tam Yüz Kostüm Maskesi (22,9 cm)",
+    "aciklama": "Tam yüzü kaplayan bir cosplay maskesine yontulmuş öfkeli bir çizgi film ifadesi. Göz açıklıklarının üzerine çöken ağır kaşlar, dişleri sıkılı geniş bir ifade ve yükselen yanak hatları suratı keskinleştiriyor.\n- Kostüm, cosplay, fotoğraf çekimi ya da duvar dekoru olarak kullanılabilir; kostüm ve fandom etkinliklerine hediye olarak uygun.\n- Tek boyda üretilir: en büyük ölçüsü yaklaşık 22,9 cm; fiyat bu boya göre sabittir.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "2290 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/c3dangry-anime-face-mask-cosplay-mask-1.jpg",
       "https://media.pruvo3d.com/urunler/c3dangry-anime-face-mask-cosplay-mask-2.jpg",
@@ -2395,21 +2395,21 @@
       },
       "gorselOrnek": true,
       "boyutMm": {
-        "min": 60,
-        "max": 250,
+        "min": 229,
+        "max": 229,
         "adim": 10,
-        "varsayilan": 150,
-        "etiket": "Yükseklik"
+        "varsayilan": 229,
+        "etiket": "Boy"
       },
       "fiyatModu": "dogrusal",
       "fiyatCapalari": [
         [
-          60,
-          600
+          229,
+          2290
         ],
         [
-          250,
-          2500
+          229,
+          2290
         ]
       ],
       "malzemeler": [
@@ -2433,9 +2433,9 @@
     "id": "agac-kabuklu-orman-ruhu-kafatasi-maskesi",
     "kategori": "Oyun/Hobi",
     "marka": [],
-    "baslik": "Ağaç Kabuklu Orman Ruhu Kafatası Maskesi — Fantastik Kostüm Maskesi (6-25 cm Boyut Seçenekli)",
-    "aciklama": "Oyulmuş ağaç kabuğu dokusu, keskin organik kabartmaları ve temiz bir fantastik aksesuar silueti olan, giyilebilir bir orman ruhu kafatası maskesi. Doğal, ağaç yaratığı görünümü kostüm, duvar sergisi, fotoğraf ve festival için çok uygun.\n- Kostüm, cosplay ve rol yapma etkinlikleri ya da duvar dekoru için; fantastik tema sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
-    "fiyat": "600 TL",
+    "baslik": "Ağaç Kabuklu Orman Ruhu Kafatası Maskesi — Fantastik Kostüm Maskesi (24,1 cm)",
+    "aciklama": "Oyulmuş ağaç kabuğu dokusu, keskin organik kabartmaları ve temiz bir fantastik aksesuar silueti olan, giyilebilir bir orman ruhu kafatası maskesi. Doğal, ağaç yaratığı görünümü kostüm, duvar sergisi, fotoğraf ve festival için çok uygun.\n- Kostüm, cosplay ve rol yapma etkinlikleri ya da duvar dekoru için; fantastik tema sevenlere hediye olarak uygun.\n- Tek boyda üretilir: en büyük ölçüsü yaklaşık 24,1 cm; fiyat bu boya göre sabittir.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "2410 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/c3dskullbark-mask-wood-spirit-fantasy-costume-1.jpg",
       "https://media.pruvo3d.com/urunler/c3dskullbark-mask-wood-spirit-fantasy-costume-2.jpg",
@@ -2455,21 +2455,21 @@
       },
       "gorselOrnek": true,
       "boyutMm": {
-        "min": 60,
-        "max": 250,
+        "min": 241,
+        "max": 241,
         "adim": 10,
-        "varsayilan": 150,
-        "etiket": "Yükseklik"
+        "varsayilan": 241,
+        "etiket": "Boy"
       },
       "fiyatModu": "dogrusal",
       "fiyatCapalari": [
         [
-          60,
-          600
+          241,
+          2410
         ],
         [
-          250,
-          2500
+          241,
+          2410
         ]
       ],
       "malzemeler": [
@@ -2493,9 +2493,9 @@
     "id": "voronoi-desenli-organik-delikli-maske",
     "kategori": "Oyun/Hobi",
     "marka": [],
-    "baslik": "Voronoi Desenli Organik Delikli Maske — Giyilebilir Cosplay Maskesi (6-25 cm Boyut Seçenekli)",
-    "aciklama": "Temiz, ürkütücü ve pürüzsüz bir yüzeye sahip, akışkan açık kesikleri ile yabancı-biyomekanik bir görünüm veren Voronoi desenli bir maske. Giyilebilir bir sergi parçası, cosplay aksesuarı, cadılar bayramı maskesi ya da fotoğraf aksesuarı olarak kullanılabilir.\n- Kostüm, fotoğraf çekimi ya da vitrin için dikkat çekici bir obje; tasarım ve bilim kurgu meraklılarına hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
-    "fiyat": "600 TL",
+    "baslik": "Voronoi Desenli Organik Delikli Maske — Giyilebilir Cosplay Maskesi (23,3 cm)",
+    "aciklama": "Temiz, ürkütücü ve pürüzsüz bir yüzeye sahip, akışkan açık kesikleri ile yabancı-biyomekanik bir görünüm veren Voronoi desenli bir maske. Giyilebilir bir sergi parçası, cosplay aksesuarı, cadılar bayramı maskesi ya da fotoğraf aksesuarı olarak kullanılabilir.\n- Kostüm, fotoğraf çekimi ya da vitrin için dikkat çekici bir obje; tasarım ve bilim kurgu meraklılarına hediye olarak uygun.\n- Tek boyda üretilir: en büyük ölçüsü yaklaşık 23,3 cm; fiyat bu boya göre sabittir.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "2330 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/c3dvoronoi-mask-organic-hollow-wearable-mask-for-cosplay-1.jpg",
       "https://media.pruvo3d.com/urunler/c3dvoronoi-mask-organic-hollow-wearable-mask-for-cosplay-2.jpg",
@@ -2514,21 +2514,21 @@
       },
       "gorselOrnek": true,
       "boyutMm": {
-        "min": 60,
-        "max": 250,
+        "min": 233,
+        "max": 233,
         "adim": 10,
-        "varsayilan": 150,
-        "etiket": "Yükseklik"
+        "varsayilan": 233,
+        "etiket": "Boy"
       },
       "fiyatModu": "dogrusal",
       "fiyatCapalari": [
         [
-          60,
-          600
+          233,
+          2330
         ],
         [
-          250,
-          2500
+          233,
+          2330
         ]
       ],
       "malzemeler": [
@@ -3404,9 +3404,9 @@
     "id": "minimal-dis-fircasi-ve-macun-standi",
     "kategori": "Ev",
     "marka": [],
-    "baslik": "Minimal Diş Fırçası ve Diş Macunu Standı — Banyo Düzenleyici (6-25 cm Boyut Seçenekli)",
-    "aciklama": "Bir diş macunu ve iki diş fırçasını ayakta tutmak için tasarlanmış, modern görünümlü ve sade bir banyo standı. Kompakt yapısı lavabo kenarında az yer kaplar, dengeli duruşuyla devrilmez.\n- Banyo, lavabo kenarı ya da seyahat odası için pratik bir düzenleyici; yeni ev ve ofis banyosu hediyesi olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
-    "fiyat": "600 TL",
+    "baslik": "Minimal Diş Fırçası ve Diş Macunu Standı — Banyo Düzenleyici (7,6 cm)",
+    "aciklama": "Bir diş macunu ve iki diş fırçasını ayakta tutmak için tasarlanmış, modern görünümlü ve sade bir banyo standı. Kompakt yapısı lavabo kenarında az yer kaplar, dengeli duruşuyla devrilmez.\n- Banyo, lavabo kenarı ya da seyahat odası için pratik bir düzenleyici; yeni ev ve ofis banyosu hediyesi olarak uygun.\n- Tek boyda üretilir: en büyük ölçüsü yaklaşık 7,6 cm; fiyat bu boya göre sabittir.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "760 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/c3dminimal-toothbrush-toothpaste-stand-commercial-license-and-raw-files-included-1.jpg",
       "https://media.pruvo3d.com/urunler/c3dminimal-toothbrush-toothpaste-stand-commercial-license-and-raw-files-included-2.jpg",
@@ -3425,21 +3425,21 @@
       },
       "gorselOrnek": true,
       "boyutMm": {
-        "min": 60,
-        "max": 250,
+        "min": 76,
+        "max": 76,
         "adim": 10,
-        "varsayilan": 150,
-        "etiket": "Yükseklik"
+        "varsayilan": 76,
+        "etiket": "Boy"
       },
       "fiyatModu": "dogrusal",
       "fiyatCapalari": [
         [
-          60,
-          600
+          76,
+          760
         ],
         [
-          250,
-          2500
+          76,
+          760
         ]
       ],
       "malzemeler": [

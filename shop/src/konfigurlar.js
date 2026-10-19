@@ -20,19 +20,19 @@ const VERI = {
   "agac-kabuklu-orman-ruhu-kafatasi-maskesi": {
     "boyutMm": {
       "adim": 10,
-      "etiket": "Yükseklik",
-      "max": 250,
-      "min": 60,
-      "varsayilan": 150
+      "etiket": "Boy",
+      "max": 241,
+      "min": 241,
+      "varsayilan": 241
     },
     "fiyatCapalari": [
       [
-        60,
-        600
+        241,
+        2410
       ],
       [
-        250,
-        2500
+        241,
+        2410
       ]
     ],
     "fiyatModu": "dogrusal",
@@ -112,19 +112,19 @@ const VERI = {
   "alev-hukumdari-fantastik-ates-tac": {
     "boyutMm": {
       "adim": 10,
-      "etiket": "Çap",
-      "max": 250,
-      "min": 60,
-      "varsayilan": 150
+      "etiket": "Boy",
+      "max": 224,
+      "min": 224,
+      "varsayilan": 224
     },
     "fiyatCapalari": [
       [
-        60,
-        600
+        224,
+        2240
       ],
       [
-        250,
-        2500
+        224,
+        2240
       ]
     ],
     "fiyatModu": "dogrusal",
@@ -1596,19 +1596,19 @@ const VERI = {
   "futuristik-akilli-saat-standi": {
     "boyutMm": {
       "adim": 10,
-      "etiket": "Yükseklik",
-      "max": 250,
-      "min": 60,
-      "varsayilan": 150
+      "etiket": "Boy",
+      "max": 104,
+      "min": 104,
+      "varsayilan": 104
     },
     "fiyatCapalari": [
       [
-        60,
-        600
+        104,
+        1040
       ],
       [
-        250,
-        2500
+        104,
+        1040
       ]
     ],
     "fiyatModu": "dogrusal",
@@ -2520,19 +2520,19 @@ const VERI = {
   "kalp-seklinde-led-mumluk": {
     "boyutMm": {
       "adim": 10,
-      "etiket": "Boyut",
-      "max": 250,
-      "min": 60,
-      "varsayilan": 150
+      "etiket": "Boy",
+      "max": 113,
+      "min": 113,
+      "varsayilan": 113
     },
     "fiyatCapalari": [
       [
-        60,
-        600
+        113,
+        1130
       ],
       [
-        250,
-        2500
+        113,
+        1130
       ]
     ],
     "fiyatModu": "dogrusal",
@@ -2566,19 +2566,19 @@ const VERI = {
   "kan-portali-duvar-mumlugu-ve-askisi": {
     "boyutMm": {
       "adim": 10,
-      "etiket": "Boyut",
-      "max": 250,
-      "min": 60,
-      "varsayilan": 150
+      "etiket": "Boy",
+      "max": 243,
+      "min": 243,
+      "varsayilan": 243
     },
     "fiyatCapalari": [
       [
-        60,
-        600
+        243,
+        2430
       ],
       [
-        250,
-        2500
+        243,
+        2430
       ]
     ],
     "fiyatModu": "dogrusal",
@@ -2934,19 +2934,19 @@ const VERI = {
   "kizgin-yuzlu-cizgi-karakter-cosplay-maskesi": {
     "boyutMm": {
       "adim": 10,
-      "etiket": "Yükseklik",
-      "max": 250,
-      "min": 60,
-      "varsayilan": 150
+      "etiket": "Boy",
+      "max": 229,
+      "min": 229,
+      "varsayilan": 229
     },
     "fiyatCapalari": [
       [
-        60,
-        600
+        229,
+        2290
       ],
       [
-        250,
-        2500
+        229,
+        2290
       ]
     ],
     "fiyatModu": "dogrusal",
@@ -3304,19 +3304,19 @@ const VERI = {
   "minimal-dis-fircasi-ve-macun-standi": {
     "boyutMm": {
       "adim": 10,
-      "etiket": "Yükseklik",
-      "max": 250,
-      "min": 60,
-      "varsayilan": 150
+      "etiket": "Boy",
+      "max": 76,
+      "min": 76,
+      "varsayilan": 76
     },
     "fiyatCapalari": [
       [
-        60,
-        600
+        76,
+        760
       ],
       [
-        250,
-        2500
+        76,
+        760
       ]
     ],
     "fiyatModu": "dogrusal",
@@ -3534,19 +3534,19 @@ const VERI = {
   "sarmal-yumurta-lambasi-led-mum-icin": {
     "boyutMm": {
       "adim": 10,
-      "etiket": "Yükseklik",
-      "max": 250,
-      "min": 60,
-      "varsayilan": 150
+      "etiket": "Boy",
+      "max": 89,
+      "min": 89,
+      "varsayilan": 89
     },
     "fiyatCapalari": [
       [
-        60,
-        600
+        89,
+        890
       ],
       [
-        250,
-        2500
+        89,
+        890
       ]
     ],
     "fiyatModu": "dogrusal",
@@ -3672,19 +3672,19 @@ const VERI = {
   "seytan-gargoyle-kapi-tokmagi": {
     "boyutMm": {
       "adim": 10,
-      "etiket": "Yükseklik",
-      "max": 250,
-      "min": 60,
-      "varsayilan": 150
+      "etiket": "Boy",
+      "max": 220,
+      "min": 220,
+      "varsayilan": 220
     },
     "fiyatCapalari": [
       [
-        60,
-        600
+        220,
+        2200
       ],
       [
-        250,
-        2500
+        220,
+        2200
       ]
     ],
     "fiyatModu": "dogrusal",
@@ -4184,19 +4184,19 @@ const VERI = {
   "tiki-kafatasi-led-mumluk": {
     "boyutMm": {
       "adim": 10,
-      "etiket": "Yükseklik",
-      "max": 250,
-      "min": 60,
-      "varsayilan": 150
+      "etiket": "Boy",
+      "max": 68,
+      "min": 68,
+      "varsayilan": 68
     },
     "fiyatCapalari": [
       [
-        60,
-        600
+        68,
+        680
       ],
       [
-        250,
-        2500
+        68,
+        680
       ]
     ],
     "fiyatModu": "dogrusal",
@@ -4460,19 +4460,19 @@ const VERI = {
   "voronoi-desenli-organik-delikli-maske": {
     "boyutMm": {
       "adim": 10,
-      "etiket": "Yükseklik",
-      "max": 250,
-      "min": 60,
-      "varsayilan": 150
+      "etiket": "Boy",
+      "max": 233,
+      "min": 233,
+      "varsayilan": 233
     },
     "fiyatCapalari": [
       [
-        60,
-        600
+        233,
+        2330
       ],
       [
-        250,
-        2500
+        233,
+        2330
       ]
     ],
     "fiyatModu": "dogrusal",
@@ -4740,19 +4740,19 @@ const VERI = {
   "yazici-qr-kod-gizleme-kapagi": {
     "boyutMm": {
       "adim": 10,
-      "etiket": "Genişlik",
-      "max": 250,
-      "min": 60,
-      "varsayilan": 150
+      "etiket": "Boy",
+      "max": 46,
+      "min": 46,
+      "varsayilan": 46
     },
     "fiyatCapalari": [
       [
-        60,
+        46,
         600
       ],
       [
-        250,
-        2500
+        46,
+        600
       ]
     ],
     "fiyatModu": "dogrusal",
