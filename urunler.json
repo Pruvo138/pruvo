@@ -1,5 +1,243 @@
 [
   {
+    "id": "buruk-govdeli-fantastik-bonsai-agaci",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Buruk Gövdeli Fantastik Bonsai Ağacı — Masa Üstü Heykelsi Dekor (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Kıvrılarak yükselen gövdesi ve yuvarlak taçlarıyla sessiz bir bilgelik taşıyan, tek parça fantastik bir bonsai heykeli. Masaya, rafa ya da çalışma köşesine zen havası katar.\n- Masa üstü, raf ya da çalışma köşesi için heykelsi dekor; doğa, fantastik tema ve koleksiyon sevenlere hediye olarak uygun. İnce dallar nedeniyle nazik kullanım önerilir.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dtwisted-bonsai-tree-fantasy-decor-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dtwisted-bonsai-tree-fantasy-decor-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dtwisted-bonsai-tree-fantasy-decor-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "zehirli-elma-kafatasi-anahtarligi",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Zehirli Elma Kafatası Anahtarlığı — Damlayan Elma Çanta Süsü (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Üzerinden zehir damlıyor gibi duran, kafatası yüzlü bir elma anahtarlığı. Anahtar, çanta ya da fermuar ucu için karanlık masalsı bir süs.\n- Anahtarlık, çanta süsü ya da küçük bir dekor olarak kullanılabilir; masal ve korku temasını sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz boyutu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dpoison-apple-keychain-no-ams-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dpoison-apple-keychain-no-ams-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dpoison-apple-keychain-no-ams-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dpoison-apple-keychain-no-ams-4.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Boyut"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "dusuk-poligon-topuz-anahtarligi",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Düşük Poligon Topuz Anahtarlığı — Köşeli Dikenli Orta Çağ Süsü (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Köşeli, geometrik yüzeyli ve dikenli bir topuz biçiminde stilize edilmiş anahtarlık; tek parça üretilir. Gerçek bir silah değil, süs ve masa objesi olarak tasarlanmıştır.\n- Anahtarlık, çanta süsü ya da küçük masa objesi olarak kullanılabilir; orta çağ fantezisi, masa oyunu ve geometrik tasarım sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz boyutu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dlow-poly-mace-keychain-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dlow-poly-mace-keychain-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dlow-poly-mace-keychain-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Boyut"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "kurutulmus-kafa-anahtarligi-dikisli-gozler",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Dikişli Gözlü Kurutulmuş Kafa Anahtarlığı — Gotik Korku Çanta Süsü (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Dikişli gözleri ve ağzıyla karanlık mizah ile gotik havayı birleştiren, kafatası yapılı küçük bir kafa anahtarlığı. Anahtar, çanta ya da korku temalı bir koleksiyonun parçası olarak asılabilir.\n- Anahtarlık, çanta süsü ya da vitrin objesi olarak kullanılabilir; korku, cadılar bayramı ve gotik tarz sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dshrunken-head-keychain-colored-for-ams-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dshrunken-head-keychain-colored-for-ams-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dshrunken-head-keychain-colored-for-ams-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dshrunken-head-keychain-colored-for-ams-4.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
     "id": "kapi-ustu-uyari-tabelasi-kapi-gecme-yasak-bolge",
     "kategori": "Dekorasyon",
     "marka": [],
