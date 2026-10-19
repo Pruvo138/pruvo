@@ -625,6 +625,52 @@ const VERI = {
     ],
     "varsayilanMalzeme": "PLA"
   },
+  "buyulu-mana-iksiri-sisesi": {
+    "boyutMm": {
+      "adim": 10,
+      "etiket": "Yükseklik",
+      "max": 250,
+      "min": 60,
+      "varsayilan": 150
+    },
+    "fiyatCapalari": [
+      [
+        60,
+        600
+      ],
+      [
+        250,
+        2500
+      ]
+    ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
+    "malzemeler": [
+      {
+        "ad": "PLA",
+        "katsayi": 1
+      },
+      {
+        "ad": "PETG",
+        "katsayi": 1.3
+      },
+      {
+        "ad": "ASA",
+        "katsayi": 1.6
+      }
+    ],
+    "renkGorselIndeks": {
+      "Beyaz": 0,
+      "Gri": 0,
+      "Siyah": 0
+    },
+    "renkler": [
+      "Siyah",
+      "Beyaz",
+      "Gri"
+    ],
+    "varsayilanMalzeme": "PLA"
+  },
   "capa-serit-dekoratif-figur": {
     "boyutMm": {
       "adim": 10,
@@ -723,6 +769,52 @@ const VERI = {
     "boyutMm": {
       "adim": 10,
       "etiket": "Yükseklik",
+      "max": 250,
+      "min": 60,
+      "varsayilan": 150
+    },
+    "fiyatCapalari": [
+      [
+        60,
+        600
+      ],
+      [
+        250,
+        2500
+      ]
+    ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
+    "malzemeler": [
+      {
+        "ad": "PLA",
+        "katsayi": 1
+      },
+      {
+        "ad": "PETG",
+        "katsayi": 1.3
+      },
+      {
+        "ad": "ASA",
+        "katsayi": 1.6
+      }
+    ],
+    "renkGorselIndeks": {
+      "Beyaz": 0,
+      "Gri": 0,
+      "Siyah": 0
+    },
+    "renkler": [
+      "Siyah",
+      "Beyaz",
+      "Gri"
+    ],
+    "varsayilanMalzeme": "PLA"
+  },
+  "damlayan-birikinti-raf-aksesuari": {
+    "boyutMm": {
+      "adim": 10,
+      "etiket": "Genişlik",
       "max": 250,
       "min": 60,
       "varsayilan": 150
@@ -2287,6 +2379,52 @@ const VERI = {
     ],
     "varsayilanMalzeme": "PLA"
   },
+  "kaya-bardak-altligi-fantastik-tas-altlik": {
+    "boyutMm": {
+      "adim": 10,
+      "etiket": "Çap",
+      "max": 250,
+      "min": 60,
+      "varsayilan": 150
+    },
+    "fiyatCapalari": [
+      [
+        60,
+        600
+      ],
+      [
+        250,
+        2500
+      ]
+    ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
+    "malzemeler": [
+      {
+        "ad": "PLA",
+        "katsayi": 1
+      },
+      {
+        "ad": "PETG",
+        "katsayi": 1.3
+      },
+      {
+        "ad": "ASA",
+        "katsayi": 1.6
+      }
+    ],
+    "renkGorselIndeks": {
+      "Beyaz": 0,
+      "Gri": 0,
+      "Siyah": 0
+    },
+    "renkler": [
+      "Siyah",
+      "Beyaz",
+      "Gri"
+    ],
+    "varsayilanMalzeme": "PLA"
+  },
   "kemik-ejderha-ouroboros-duvar-dekoru": {
     "boyutMm": {
       "adim": 10,
@@ -3118,6 +3256,52 @@ const VERI = {
     "varsayilanMalzeme": "PLA"
   },
   "sicrayan-buyuk-beyaz-kopekbaligi-heykeli": {
+    "boyutMm": {
+      "adim": 10,
+      "etiket": "Yükseklik",
+      "max": 250,
+      "min": 60,
+      "varsayilan": 150
+    },
+    "fiyatCapalari": [
+      [
+        60,
+        600
+      ],
+      [
+        250,
+        2500
+      ]
+    ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
+    "malzemeler": [
+      {
+        "ad": "PLA",
+        "katsayi": 1
+      },
+      {
+        "ad": "PETG",
+        "katsayi": 1.3
+      },
+      {
+        "ad": "ASA",
+        "katsayi": 1.6
+      }
+    ],
+    "renkGorselIndeks": {
+      "Beyaz": 0,
+      "Gri": 0,
+      "Siyah": 0
+    },
+    "renkler": [
+      "Siyah",
+      "Beyaz",
+      "Gri"
+    ],
+    "varsayilanMalzeme": "PLA"
+  },
+  "sifa-iksiri-sisesi-fantastik-mini-vazo": {
     "boyutMm": {
       "adim": 10,
       "etiket": "Yükseklik",

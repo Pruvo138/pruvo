@@ -1,5 +1,241 @@
 [
   {
+    "id": "buyulu-mana-iksiri-sisesi",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Büyülü Mana İksiri Şişesi — Fantastik Dekor ve Mini Vazo (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Sıradan dekoratif iksir şişelerinden ayrılmak için tasarlanmış, içi boş ve sızdıran değil, su geçirmez yapıda bir mana iksiri şişesi. Kıvrımlı gövdesi ve uzun boynuyla bir büyücü çantasından çıkmış gibi görünür.\n- Fantastik oyun odası, masa üstü ya da raf dekoru olarak; kuru çiçek ve minik bitkiler için mini vazo gibi de kullanılabilir. Fantastik ve rol yapma oyunu sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dwatertight-mana-potion-bottle-fantasy-3d-printable-prop-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dwatertight-mana-potion-bottle-fantasy-3d-printable-prop-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dwatertight-mana-potion-bottle-fantasy-3d-printable-prop-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "sifa-iksiri-sisesi-fantastik-mini-vazo",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Şifa İksiri Şişesi — Fantastik Rol Yapma Propu ve Mini Vazo (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Bir büyücü çantasında ya da simyacı atölyesi rafında bulabileceğiniz bir şey gibi görünmesi için tasarlanmış iksir şişesi. Kıvrımlı gövdesi, uzun boynu ve oyulmuş elmas bandıyla klasik bir iksir şişesi havası verir; su geçirmez yapıdadır.\n- Fantastik oyun odası, masa üstü ya da raf dekoru olarak; kuru çiçek ve minik bitkiler için mini vazo gibi de kullanılabilir. Fantastik ve rol yapma oyunu sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dwatertight-health-potion-bottle-fantasy-rpg-prop-mini-vase-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dwatertight-health-potion-bottle-fantasy-rpg-prop-mini-vase-2.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "damlayan-birikinti-raf-aksesuari",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Damlayan Birikinti Raf Aksesuarı — Rafın Kenarından Akan Boya Etkisi Dekoru (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Rafınızın ya da dolabınızın kenarından aşağı damlayan parlak bir birikinti gibi görünen, eğlenceli bir illüzyon parçası. Dökülmüş boya, balçık ya da sıvı etkisi veren tek parça bir tasarım.\n- Raf, dolap ya da masa kenarı için esprili bir dekor; yaratıcı ve eğlenceli hediye arayanlar için uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz genişliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3ddripping-puddle-shelf-accent-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3ddripping-puddle-shelf-accent-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3ddripping-puddle-shelf-accent-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Genişlik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "kaya-bardak-altligi-fantastik-tas-altlik",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Kaya Bardak Altlığı — Taş Dokulu Fantastik Içecek Altlığı (6-25 cm Çap Seçenekli)",
+    "aciklama": "Bardaklar, kupalar ve kadehler için taş dokulu, sağlam görünümlü bir içecek tabanı: içeceğinize bir kale gibi dayanak olur. Fantastik temalı barlar, oyun masaları ve rol yapma gecelerinde kullanılabilir.\n- Masa, bar köşesi ya da oyun odası için işlevli bir dekor; fantastik tema sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz çapı kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dboulder-cupholder-rugged-fantasy-stone-drink-coaster-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dboulder-cupholder-rugged-fantasy-stone-drink-coaster-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dboulder-cupholder-rugged-fantasy-stone-drink-coaster-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dboulder-cupholder-rugged-fantasy-stone-drink-coaster-4.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Çap"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
     "id": "cizgi-film-tarzi-tahta-kilic-propu",
     "kategori": "Oyun/Hobi",
     "marka": [],
