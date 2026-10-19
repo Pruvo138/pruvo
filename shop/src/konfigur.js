@@ -60,7 +60,21 @@ export function konfigurHesapla(kalem, secenek, konfigur) {
     return { hata: "gecersiz-malzeme" };
   }
 
-  const birimKurus = KONF.fiyatKurus(konfigur, boyMm, mal.katsayi);
+  // RENK "Diğer" (işletme kararı 19 Eki — Figür/Fidget): yalniz konfigur.renkler "Diğer" SUNUYORSA kabul;
+  // yuzde secenekler.js RENK_DIGER_YUZDE (TEK kaynak, istemci yuzdesi OKUNMAZ). Sunmayan urunde
+  // "Diğer" -> RED (indirimli/yanlis renk siparisi olusmasin); yuzde okunamazsa fiyat YOK.
+  let renkYuzde = 0;
+  if (kalem.renk === "Diğer") {
+    if (!Array.isArray(konfigur.renkler) || !konfigur.renkler.includes("Diğer")) {
+      return { hata: "gecersiz-renk" };
+    }
+    renkYuzde = secenek && secenek.RENK_DIGER_YUZDE;
+    if (!(typeof renkYuzde === "number" && isFinite(renkYuzde) && renkYuzde > 0)) {
+      return { hata: "konfigur-fiyat-yok" };
+    }
+  }
+
+  const birimKurus = KONF.fiyatKurus(konfigur, boyMm, mal.katsayi, renkYuzde);
   if (birimKurus == null || !(birimKurus > 0)) { return { hata: "konfigur-fiyat-yok" }; }
 
   // parametre_detay /konfigur.js satiraYaz ile BIREBIR ayni bicim (boy cm, virgullu).

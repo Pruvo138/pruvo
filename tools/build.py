@@ -1904,9 +1904,10 @@ def _konfigur_varsayilan_renk(konfigur):
 def _konfigur_gorsel_ornek_html(konfigur):
     if konfigur.get("gorselOrnek") is not True:
         return ""
-    renkler = [r for r in (konfigur.get("renkler") or []) if r != "Diğer"]
-    metin = ("Görsel tasarımcı örneğidir — ürün seçtiğiniz tek renkte (%s) üretilir."
-             % "/".join(renkler))
+    tum = konfigur.get("renkler") or []
+    renkler = [r for r in tum if r != "Diğer"]
+    metin = ("Görsel tasarımcı örneğidir — ürün seçtiğiniz tek renkte (%s%s) üretilir."
+             % ("/".join(renkler), " ya da yazdığınız renk" if "Diğer" in tum else ""))
     return '\n      <div class="konf-hacim konf-gorsel-ornek">%s</div>' % esc(metin)
 
 
@@ -1933,17 +1934,24 @@ def _renk_butonlari_html(renkler=None, renk_gorselleri=None, secili=None):
         return ' aria-pressed="true"' if (secili is not None and r == secili) else ""
 
     if renkler is not None:
+        # "Diğer" (Okan 19 Eki — Figür/Fidget): etiket yüzdeyi taşır + serbest renk kutusu.
+        # Listede "Diğer" yoksa çıktı bugünküyle BAYT-EŞİT.
         btns = "".join(
             '<button type="button" class="%s" data-renk="%s" data-gorsel="%s"%s>%s'
             '<span class="renk-ad">%s</span></button>' % (
                 _cls(r), esc(r), esc((renk_gorselleri or {}).get(r, "")), _ek(r),
-                ornek.get(r, ""), esc(r))
+                ornek.get(r, ""),
+                esc(r + (" (+%%%d)" % RENK_DIGER_YUZDE if r == "Diğer" else "")))
             for r in renkler)
+        ozel = ("""
+      <input type="text" id="renkOzel" class="renk-ozel" maxlength="30"
+             placeholder="istediğiniz rengi yazın (ör. turuncu)" style="display:none">"""
+                if "Diğer" in renkler else "")
         return ("""
       <div class="opsiyon-row opsiyon-renk">
         <label>Renk</label>
         <div class="renk-butonlar" id="renkButonlar">""" + btns + """</div>
-      </div>""")
+      </div>""" + ozel)
     btns = "".join(
         '<button type="button" class="%s" data-renk="%s"%s>%s'
         '<span class="renk-ad">%s</span></button>' % (
@@ -2080,8 +2088,8 @@ def konfigur_dogrula(p):
         for r in renkler:
             if not isinstance(r, str) or not r.strip():
                 hatalar.append("renkler içinde boş/dize-olmayan değer var")
-            elif r == "Diğer":
-                hatalar.append("renkler 'Diğer' içeremez (özel renk yüzdesi bu akışta hesaplanmıyor)")
+            # "Diğer" 19 Eki'den beri SERBEST (Okan — Figür/Fidget): yüzde /konfigur.js + Worker
+            # konfigurHesapla'da RENK_DIGER_YUZDE'den çarpılır, özel renk metni zorunlu.
             elif r not in RENK_SECENEKLERI:
                 hatalar.append("bilinmeyen renk: %r (secenekler.js RENK_SECENEKLERI dışı)" % r)
 
@@ -2291,7 +2299,7 @@ def _konfigur_fiyat_modeli(konfigur):
     return birim, c[0][1] - birim * v1, mod
 
 
-def konfigur_fiyat_kurus(konfigur, boy_mm, katsayi=1.0):
+def konfigur_fiyat_kurus(konfigur, boy_mm, katsayi=1.0, renk_yuzde=0):
     """/konfigur.js fiyatKurus'un Python aynası: fiyat_TL = (sabit + birim × eksen) ×
     malzeme katsayısı, TAM TL'ye yuvarlanır (Math.round eşleniği floor(x+0.5)), kuruş = TL × 100.
     katsayi=1.0 (PLA / malzemesiz) => malzeme-öncesi kodla BİREBİR aynı (geri uyumluluk).
@@ -2301,6 +2309,10 @@ def konfigur_fiyat_kurus(konfigur, boy_mm, katsayi=1.0):
     k = katsayi if (isinstance(katsayi, (int, float)) and not isinstance(katsayi, bool)
                     and katsayi > 0) else 1.0
     tl = (sabit + birim * _konfigur_fiyat_ekseni(konfigur, mod, boy_mm)) * k
+    # "Diğer" renk yüzdesi (JS ile birebir: malzemeden sonra, tavandan önce).
+    if (isinstance(renk_yuzde, (int, float)) and not isinstance(renk_yuzde, bool)
+            and renk_yuzde > 0):
+        tl = tl * (1 + renk_yuzde / 100.0)
     if mod == "hacim":
         tavan = 3 * konfigur["fiyatCapalari"][0][1]   # 3× TAVAN (Okan)
         if tl > tavan:

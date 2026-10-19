@@ -87,11 +87,17 @@
   // (ikinci hesap yok). katsayi verilmezse/geçersizse 1 (PLA / malzemesiz) => malzeme-öncesi
   // kodla BİREBİR aynı (geri uyumluluk). Çapalar tanım gereği tam tutar (katsayi=1'de).
   // 3× tavan YALNIZ hacim modunda (doğrusal modda işletme kararıyla tavan YOK).
-  function fiyatKurus(konfigur, boyMm, katsayi) {
+  // "Diğer" renk (işletme kararı, 19 Eki — Figür/Fidget): renkYuzde (secenekler.js RENK_DIGER_YUZDE, TEK
+  // kaynak; çağıran verir) malzemeden SONRA, tavandan ÖNCE çarpar (standart sayfa sırası).
+  // Verilmezse 0 -> bugünkü fiyat BİREBİR (geri uyumluluk).
+  function fiyatKurus(konfigur, boyMm, katsayi, renkYuzde) {
     var m = fiyatModeli(konfigur);
     if (!m) { return null; }
     var k = (typeof katsayi === "number" && isFinite(katsayi) && katsayi > 0) ? katsayi : 1;
     var tl = (m.sabit + m.birim * fiyatEkseni(konfigur, m.mod, boyMm)) * k;
+    if (typeof renkYuzde === "number" && isFinite(renkYuzde) && renkYuzde > 0) {
+      tl = tl * (1 + renkYuzde / 100);
+    }
     if (m.mod === "hacim") {
       var tavan = 3 * konfigur.fiyatCapalari[0][1];   // 3× TAVAN (işletme kuralı)
       if (tl > tavan) { tl = tavan; }
@@ -117,16 +123,34 @@
   }
 
   // ---- sayfa entegrasyonu ----
-  var durum = { konfigur: null, cb: null, seciliRenk: "", boyMm: 0,
+  var durum = { konfigur: null, cb: null, seciliRenk: "", boyMm: 0, renkOzelEl: null,
                 sayiEl: null, kaydiriciEl: null, renkKok: null,
                 malzemeAcik: false, seciliMalzeme: "", seciliKatsayi: 1, malzemeKok: null };
+
+  // Seçili rengin yüzdesi: "Diğer" -> secenekler.js RENK_DIGER_YUZDE; diğerleri 0.
+  // "Diğer" seçili ama yüzde OKUNAMIYORSA null (fiyat YOK — eksik fiyat basılmaz).
+  function renkYuzdesi() {
+    if (durum.seciliRenk !== "Diğer") { return 0; }
+    var S = root.PRUVO_SECENEK;
+    var y = S && S.RENK_DIGER_YUZDE;
+    return (typeof y === "number" && isFinite(y) && y > 0) ? y : null;
+  }
+
+  function seciliFiyatKurus() {
+    var y = renkYuzdesi();
+    return y === null ? null : fiyatKurus(durum.konfigur, durum.boyMm, durum.seciliKatsayi, y);
+  }
+
+  function renkOzelMetni() {
+    return durum.renkOzelEl ? durum.renkOzelEl.value.trim().slice(0, 30) : "";
+  }
 
   // Fiyat göstergesi: kart-seçim sayfasıyla aynı dil — adet DAHİL toplam, kuruşuyla.
   function fiyatYaz() {
     var el = document.getElementById("opsiyonFiyat");
     if (!el || !durum.konfigur) { return; }
     var SECENEK = root.PRUVO_SECENEK;
-    var kurus = fiyatKurus(durum.konfigur, durum.boyMm, durum.seciliKatsayi);
+    var kurus = seciliFiyatKurus();
     if (kurus == null || !SECENEK) { el.textContent = "Fiyat için sipariş verin"; return; }
     var adetEl = document.getElementById("adetSec");
     var adet = adetEl ? SECENEK.adetDuzelt(adetEl.value) : 1;
@@ -158,6 +182,7 @@
       durum.sayiEl = document.getElementById("konfigurBoy");
       durum.kaydiriciEl = document.getElementById("konfigurKaydirici");
       durum.renkKok = document.getElementById("renkButonlar");
+      durum.renkOzelEl = document.getElementById("renkOzel");
       durum.malzemeKok = document.getElementById("malzemeButonlar");
       durum.malzemeAcik = false;
       durum.seciliMalzeme = "";
@@ -196,9 +221,22 @@
           for (var n = 0; n < btnlar.length; n++) {
             btnlar[n].classList.toggle("secili", btnlar[n] === this);
           }
+          // "Diğer": serbest renk kutusu görünür (standart sayfanın renkOzel deseni).
+          if (durum.renkOzelEl) {
+            var digerMi = durum.seciliRenk === "Diğer";
+            durum.renkOzelEl.style.display = digerMi ? "block" : "none";
+            if (digerMi) { try { durum.renkOzelEl.focus(); } catch (e) { } }
+            else { durum.renkOzelEl.classList.remove("hata"); }
+          }
           gorselSec(this.getAttribute("data-gorsel"));
           degisim();
         };
+        if (durum.renkOzelEl) {
+          durum.renkOzelEl.addEventListener("input", function () {
+            durum.renkOzelEl.classList.remove("hata");
+            if (durum.cb) { durum.cb(); }
+          });
+        }
         for (var i = 0; i < btnlar.length; i++) {
           btnlar[i].addEventListener("click", sec);
         }
@@ -246,13 +284,24 @@
     // Sepete ekleme şartı: renk seçilmiş olmalı (boy her an geçerli — boyDuzelt kırpar).
     // Malzeme ekseni açıksa varsayılan önden seçili -> seciliMalzeme daima dolu; yine de
     // savunmacı kontrol edilir (malzeme açıkken boş kalmışsa eklemeyi kilitle).
+    // "Diğer" seçiliyse renk metni DOLU olmalı (boş özel renk sipariş edilemez — Worker da
+    // renk-ozel-bos ile reddeder) ve yüzde okunabilmeli (fiyat null ise eklenmez).
     gecerliMi: function () {
       return !!(durum.konfigur && durum.seciliRenk &&
-                (!durum.malzemeAcik || durum.seciliMalzeme));
+                (!durum.malzemeAcik || durum.seciliMalzeme) &&
+                (durum.seciliRenk !== "Diğer" || (renkOzelMetni() && renkYuzdesi() !== null)));
     },
     tazele: function () { fiyatYaz(); },
     // Renk seçilmeden "Sepete Ekle": renk butonları titrer + kırmızı vurgu (kart-seçim deseni).
     eksikVurgula: function () {
+      if (durum.seciliRenk === "Diğer" && durum.renkOzelEl && !renkOzelMetni()) {
+        var el = durum.renkOzelEl;
+        el.classList.remove("titre", "hata");
+        void el.offsetWidth;
+        el.classList.add("titre", "hata");
+        try { el.focus(); } catch (e) { }
+        return;
+      }
       var kok = durum.renkKok;
       if (!kok) { return; }
       kok.classList.remove("titre", "hata-vurgu");
@@ -271,6 +320,7 @@
       if (!durum.konfigur) { return satir; }
       var k = durum.konfigur;
       satir.renk = durum.seciliRenk || "";
+      satir.renk_ozel = durum.seciliRenk === "Diğer" ? renkOzelMetni() : "";
       // Malzeme ekseni açıksa seçili malzeme siparişe (sepet/WhatsApp "Malzeme: PETG") taşınır;
       // kapalıysa satir.malzeme DEFAULT ("PLA", bosSatir) kalır -> mevcut davranış korunur.
       if (durum.malzemeAcik && durum.seciliMalzeme) { satir.malzeme = durum.seciliMalzeme; }
@@ -278,7 +328,7 @@
       satir.parametreler = { boy_mm: durum.boyMm };
       satir.parametre_detay = (k.boyutMm.etiket || "Boy") + ": " + cmMetni(durum.boyMm) + " cm";
       satir.hacim_mm3 = hacimMm3(k, durum.boyMm);
-      satir.parametrik_fiyat_kurus = fiyatKurus(k, durum.boyMm, durum.seciliKatsayi);
+      satir.parametrik_fiyat_kurus = seciliFiyatKurus();
       return satir;
     }
   };

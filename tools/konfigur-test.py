@@ -271,8 +271,11 @@ def test_sema():
     mutant("max adıma oturmuyor", lambda k: k["boyutMm"].update({"max": 305}))
     mutant("etiket boş", lambda k: k["boyutMm"].update({"etiket": " "}))
     mutant("renkler boş", lambda k: k.update({"renkler": []}))
-    mutant("renkler 'Diğer' içeriyor", lambda k: k.update(
-        {"renkler": ["Siyah", "Diğer"], "renkGorselIndeks": {"Siyah": 0, "Diğer": 1}}))
+    # 19 Eki (Okan — Figür/Fidget "Diğer"): Diğer artık KABUL (yüzde çekirdekte + Worker'da).
+    pd = urun(dict(KURT_KONFIGUR, renkler=["Siyah", "Diğer"],
+                   renkGorselIndeks={"Siyah": 0, "Diğer": 1}))
+    kontrol(build.konfigur_dogrula(pd) == [],
+            "renkler 'Diğer' içeren şema KABUL edilir: %r" % build.konfigur_dogrula(pd))
     mutant("bilinmeyen renk", lambda k: k.update(
         {"renkler": ["Mor"], "renkGorselIndeks": {"Mor": 0}}))
     mutant("hacim ref yüksekliği 0", lambda k: k["hacim"].update({"refYukseklikMm": 0}))
@@ -982,6 +985,12 @@ TEK_KONFIGUR = dict(FIGUR_KONFIGUR_HACIMSIZ,
                     fiyatCapalari=[[120, 1200], [120, 1200]], gorselOrnek=True)
 TEK_KONFIGUR_CELISKI = dict(TEK_KONFIGUR, fiyatCapalari=[[120, 1200], [120, 1300]])
 TEK_PLA_KURUS = 120000
+# "DİĞER" RENK (Okan 19 Eki — Figür/Fidget): +%RENK_DIGER_YUZDE malzemeden sonra. Okan sayıları:
+# 15 cm PLA Diğer = 1.725 TL, 22 cm PETG Diğer = 3.289 TL (formülden türetilmez).
+FIGUR_DIGER = dict(FIGUR_KONFIGUR_HACIMSIZ, renkler=["Siyah", "Beyaz", "Gri", "Diğer"],
+                   renkGorselIndeks={"Siyah": 0, "Beyaz": 0, "Gri": 0, "Diğer": 0},
+                   gorselOrnek=True)
+DIGER_SABIT_KURUS = {(150, "PLA"): 172500, (220, "PETG"): 328900}
 
 # Her vaka try/catch'te: istisna "THROW", NaN/Infinity "NaN" döner (JSON.stringify NaN'ı null'a
 # çevirip fail-closed null'u TAKLİT etmesin — mutant sessizce sağ kalmasın).
@@ -993,6 +1002,7 @@ process.stdout.write(JSON.stringify(vakalar.map(function (v) {
   var r;
   try {
     if (v.fn === "hacimMm3") { r = K.hacimMm3(v.k, v.boy); }
+    else if (v.ry != null) { r = K.fiyatKurus(v.k, v.boy, v.kat, v.ry); }
     else { r = v.kat == null ? K.fiyatKurus(v.k, v.boy) : K.fiyatKurus(v.k, v.boy, v.kat); }
   } catch (e) { return "THROW"; }
   return (typeof r === "number" && !isFinite(r)) ? "NaN" : r;
@@ -1004,7 +1014,7 @@ import fs from "node:fs";
 const W = await import(process.argv[2]);
 const vakalar = JSON.parse(fs.readFileSync(process.argv[3], "utf8"));
 process.stdout.write(JSON.stringify(vakalar.map((v) =>
-  W.konfigurHesapla({ malzeme: v.m, parametreler: { boy_mm: v.boy } }, {}, v.k))));
+  W.konfigurHesapla({ malzeme: v.m, renk: v.r, parametreler: { boy_mm: v.boy } }, v.s || {}, v.k))));
 """
 
 # Doğrusal mod mutantları: /konfigur.js'in GEÇİCİ kopyasına uygulanır (kaynak dokunulmaz).
@@ -1030,6 +1040,8 @@ DOGRUSAL_MUTANTLAR = [
      "    if (c[0][0] === c[1][0]) {\n", "    if (false) {\n"),
     ("M10 tek boyda çelişkili çapa fiyat üretiyor (fail-open)",
      "if (c[0][1] !== c[1][1]) { return null; }", ""),
+    ("M11 Diğer renk yüzdesi uygulanmıyor (eksik tahsilat)",
+     "tl = tl * (1 + renkYuzde / 100);", ""),
 ]
 
 
@@ -1101,6 +1113,11 @@ def _dogrusal_js_iddialari(node, konfigur_js):
         etiket.append(("tek", 120, ad))
     vakalar.append({"k": TEK_KONFIGUR_CELISKI, "boy": 120, "kat": 1.0})
     etiket.append(("tek-celiski", 120, "PLA"))
+    for (b, ad) in DIGER_SABIT_KURUS:
+        vakalar.append({"k": FIGUR_DIGER, "boy": b, "kat": KATSAYI[ad], "ry": build.RENK_DIGER_YUZDE})
+        etiket.append(("diger", b, ad))
+        vakalar.append({"k": FIGUR_DIGER, "boy": b, "kat": KATSAYI[ad], "ry": 0})
+        etiket.append(("diger-0", b, ad))
     for b in range(kb["min"], kb["max"] + 1, kb["adim"]):
         vakalar.append({"k": KURT_KONFIGUR, "boy": b, "kat": None})
         etiket.append(("hacim-yok", b, "PLA"))
@@ -1149,6 +1166,11 @@ def _dogrusal_js_iddialari(node, konfigur_js):
     if t[("tek-celiski", 120, "PLA")] is not None:
         ihlal.append("tek boyda çelişkili çapa fiyat üretti (%r) — fail-open"
                      % t[("tek-celiski", 120, "PLA")])
+    for (b, ad), bek in DIGER_SABIT_KURUS.items():
+        if t[("diger", b, ad)] != bek:
+            ihlal.append("Diğer renk %d mm %s: %r != %d (Okan sayısı)" % (b, ad, t[("diger", b, ad)], bek))
+        if t[("diger-0", b, ad)] != FIGUR_SABIT_KURUS.get((b, ad), t[("dog", b, ad)]):
+            ihlal.append("renkYuzde=0 fiyatı değiştirdi %d mm %s: %r" % (b, ad, t[("diger-0", b, ad)]))
     return ihlal, t
 
 
@@ -1407,6 +1429,42 @@ def test_dogrusal():
             "tek boy sayfasında JS öncesi fiyat = 12 cm PLA (%s)" % build.taban_fiyat_metni(1200.0))
     kontrol(" disabled" not in (re.search(r'id="konfigurKaydirici"[^>]*>', html).group(0)),
             "aralıklı doğrusal sayfanın kaydırıcısı donuk DEĞİL (değişim yok)")
+
+    # "DİĞER" RENK (Okan 19 Eki): build.py ikizi + Worker (para yolu) + şema + sayfa.
+    ry = build.RENK_DIGER_YUZDE
+    py_dg = [(b, ad) for (b, ad) in DIGER_SABIT_KURUS
+             if build.konfigur_fiyat_kurus(FIGUR_DIGER, b, KATSAYI[ad], ry) != t[("diger", b, ad)]]
+    kontrol(not py_dg, "build.py Diğer renk == /konfigur.js (sapan %s)" % py_dg)
+    sec = {"RENK_DIGER_YUZDE": ry}
+    dw, dw_hata = _worker_sonuc(node, [
+        {"k": FIGUR_DIGER, "boy": 150, "m": "PLA", "r": "Diğer", "s": sec},
+        {"k": FIGUR_DIGER, "boy": 220, "m": "PETG", "r": "Diğer", "s": sec},
+        {"k": FIGUR_DIGER, "boy": 150, "m": "PLA", "r": "Siyah", "s": sec},
+        {"k": FIGUR_KONFIGUR_HACIMSIZ, "boy": 150, "m": "PLA", "r": "Diğer", "s": sec},
+        {"k": FIGUR_DIGER, "boy": 150, "m": "PLA", "r": "Diğer", "s": {}}])
+    kontrol(dw is not None, "Worker Diğer koşumu başarılı (%s)" % (dw_hata or "-"))
+    if dw is not None:
+        kontrol(dw[0].get("birimKurus") == DIGER_SABIT_KURUS[(150, "PLA")] and
+                dw[1].get("birimKurus") == DIGER_SABIT_KURUS[(220, "PETG")],
+                "Worker Diğer = Okan sayısı (15 cm PLA 1.725 · 22 cm PETG 3.289 TL): %r %r"
+                % (dw[0], dw[1]))
+        kontrol(dw[2].get("birimKurus") == FIGUR_SABIT_KURUS[(150, "PLA")],
+                "Worker Diğer sunan üründe Siyah fiyatı değişmez (1.500 TL): %r" % dw[2])
+        kontrol(dw[3].get("hata") == "gecersiz-renk",
+                "Worker Diğer SUNMAYAN üründe Diğer'i REDDEDER (gecersiz-renk): %r" % dw[3])
+        kontrol(dw[4].get("hata") == "konfigur-fiyat-yok",
+                "Worker yüzde okunamazsa Diğer'i fiyatlamaz (konfigur-fiyat-yok): %r" % dw[4])
+    pdg = urun(FIGUR_DIGER, id="test-figur-diger", kategori="Figür", fiyat="600 TL")
+    kontrol(build.konfigur_dogrula(pdg) == [],
+            "konfigur_dogrula Diğer'li doğrusal şemayı kabul eder: %r" % build.konfigur_dogrula(pdg))
+    html_dg = build.render_product(pdg, [pdg])
+    rb = html_dg.split('id="renkButonlar"', 1)[1].split("</div>", 1)[0]
+    kontrol(("Diğer (+%%%d)" % ry) in rb and 'id="renkOzel"' in html_dg,
+            "Diğer'li sayfa 'Diğer (+%%%d)' butonu + serbest renk kutusu basar" % ry)
+    kontrol("ya da yazdığınız renk" in html_dg,
+            "Diğer'li sayfanın görsel örnek etiketi özel rengi de anar")
+    kontrol('id="renkOzel"' not in build.render_product(pe, [pe]),
+            "Diğer'siz konfigür sayfasında serbest renk kutusu YOK (bayt-eşitlik)")
 
     # Mutantlar: her biri en az bir iddiayı KIRMIZI yakmalı; değişmemiş kopya (kontrol) yeşil.
     with open(gercek, encoding="utf-8") as f:
