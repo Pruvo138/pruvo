@@ -336,10 +336,13 @@ def tel_kosumu(mod, urunler, kontrol_alanlari, index_yol):
 
     (hatalar, satirlar) dondurur."""
     hatalar, satirlar = [], []
+    # 🔴 TEL = YAYINDAKI TEMSIL (19 Eki 2026, v4): sabit 3 burada kalsaydi v4'un `konfigur`
+    # indeks dizisi bu kapidan HIC gecmezdi (konfigur tam da olculen fiyat alanidir).
+    surum = int(getattr(mod, "OZET_TEMSIL_SURUM", 3))
     ornek = _tel_ornekle(urunler, kontrol_alanlari)
     if not ornek:
-        satirlar.append("  · TEL (v3 -> canli ozetAc): deger tasiyan urun YOK -> olculecek "
-                        "kart yok (kart ekseni zaten MUAF raporladi)")
+        satirlar.append("  · TEL (v%d -> canli ozetAc): deger tasiyan urun YOK -> olculecek "
+                        "kart yok (kart ekseni zaten MUAF raporladi)" % surum)
         return hatalar, satirlar
     bolum = int(getattr(mod, "OZET_YENI", 48))
     kart_sayisi, deger_sayisi = 0, 0
@@ -347,9 +350,10 @@ def tel_kosumu(mod, urunler, kontrol_alanlari, index_yol):
         parti = ornek[bas:bas + bolum]
         try:
             with contextlib.redirect_stdout(io.StringIO()):
-                metin = mod.render_ozet(parti, temsil_surum=3)
+                metin = mod.render_ozet(parti, temsil_surum=surum)
         except SystemExit as e:
-            hatalar.append("TEL: v3 artefakti URETILEMEDI (build fail-closed): %s" % e)
+            hatalar.append("TEL: v%d artefakti URETILEMEDI (build fail-closed): %s"
+                           % (surum, e))
             return hatalar, satirlar
         acik, sebep = _canli_cozucu_ac(metin, index_yol)
         if sebep:
@@ -388,9 +392,9 @@ def tel_kosumu(mod, urunler, kontrol_alanlari, index_yol):
                                    % (alan, p.get("id"), acilmis[alan], beklenen))
                 else:
                     deger_sayisi += 1
-    satirlar.append("  · TEL (v3 -> CANLI index.html ozetAc): %d kart geri acildi, %d "
+    satirlar.append("  · TEL (v%d -> CANLI index.html ozetAc): %d kart geri acildi, %d "
                     "alan-degeri BIREBIR %s"
-                    % (kart_sayisi, deger_sayisi, "✔" if not hatalar else "✘"))
+                    % (surum, kart_sayisi, deger_sayisi, "✔" if not hatalar else "✘"))
     return hatalar, satirlar
 
 

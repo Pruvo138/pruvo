@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * PRUVO — ozet.json KART TEMSILI KABUL TESTI (v3: gorsel oneki + `yeni` referansi)
+ * PRUVO — ozet.json KART TEMSILI KABUL TESTI (v3: gorsel oneki + `yeni` referansi ·
+ *         v4: `konfigur` sozlugu)
  *
  *   node tools/ozet-temsil-test.js
  *   node tools/ozet-temsil-test.js --mutasyon          # kapinin yuk tasidigini kanitla
@@ -38,6 +39,12 @@
  *   9  GERCEK KATALOG — iki bayrak hali + bayat istemci penceresi SAYIYLA
  *  10  PATOLOJIK ID — derleme ile istemcinin REFERANS YUKLEMI ayni mi (kalici fikstur:
  *      bos dize · constructor · __proto__ · toString · hasOwnProperty · 0)
+ *  11  v4 KAYIPSIZ — `konfigur` sozlugu (`konfigurAlanlari`/`konfigurDegerleri`) ile dort
+ *      fikstur (karisik · sifir · tam · patolojik) CANLI cozucuyle BIREBIR acilir
+ *  12  BAYAT ISTEMCI v3 + v4 ARTEFAKT — 19 Eki (main 02328a71) cozucusu v4'u alirsa
+ *      konfigur'lu her kartta `!!kart.konfigur` AYNI kalir, diger alanlar v3 acilimiyla
+ *      BIREBIR (v4'u TEK yayinda cikaran ONCUL; veri mutanti "konum 11 = 0" KIRMIZI yakar)
+ *  13  GERCEK KATALOG v4 — bayt < OZET_BUTCE ve TUM kartlar kart_ozeti ile BIREBIR
  *
  * 🔴 TEMSIL BAYRAGI (build.py `OZET_TEMSIL_SURUM`, mimar karari 12 Agu 2026): v3'u ACABILEN
  * istemci once yayinlanir (bayrak KAPALI, artefakt v2 -> kimse etkilenmez), tarayici
@@ -156,6 +163,11 @@ const KENAR = [
   { gorseller: [ONEK] },                                        // onegin TAM KENDISI
   { tur: "fiziksel", tavsiyeFilament: "PETG" },
   { konfigur: { aile: "fx", olcu: { a: 10, b: 20 } }, tur: "fiziksel" },
+  // v4 SOZLUK KENARLARI: ayni deger FARKLI anahtar sirasiyla (tek kanon kaydi) · 1 / true /
+  // "1" AYRI degerler · deger olarak null (anahtar VAR) · sabit listede OLMAYAN anahtar.
+  { konfigur: { olcu: { b: 20, a: 10 }, aile: "fx", bayrak: 1 } },
+  { konfigur: { bayrak: true, renkler: ["kirmizi"], bos: null } },
+  { konfigur: { bayrak: "1", renkler: ["kirmizi"] } },
 ];
 
 /** KARISIK: `yeni` kesitinde hem havuzda OLAN hem OLMAYAN kartlar bulunur. */
@@ -209,18 +221,109 @@ function ozetUret(urunler, surum) {
   return { ham, ozet: JSON.parse(ham), bayt: Buffer.byteLength(ham, "utf8") };
 }
 
-/** Artefaktin BEKLENEN kart kesitleri (fikstur + blok kuralindan turetilir). */
-function beklenenKesitler(urunler) {
-  const parametrik = urunler.filter((p) => p.parametrik).map(beklenenKart);
+/** Artefaktin BEKLENEN kart kesitleri (fikstur + blok kuralindan turetilir).
+ *  `kartFn` verilmezse BAGIMSIZ capa (`beklenenKart`); gercek katalogda build.py
+ *  `kart_ozeti` (iddia 13 — eski_fiyat/boy gibi kosullu alanlar o kuralda yasar). */
+function beklenenKesitler(urunler, kartFn) {
+  const kart = kartFn || beklenenKart;
+  const parametrik = urunler.filter((p) => p.parametrik).map(kart);
   const bloklar = {};
   VITRIN_BLOKLAR.forEach((kural) => {
     if (kural.kaynak === "parametrik") { return; }
     const aday = urunler.filter((p) => (p.kategori || "") === kural.kategori);
     const n = Number(kural.havuz || 0);
-    bloklar[kural.kategori] = (n ? aday.slice(0, n) : aday).map(beklenenKart);
+    bloklar[kural.kategori] = (n ? aday.slice(0, n) : aday).map(kart);
   });
-  return { parametrik, bloklar, yeni: urunler.slice(0, OZET_YENI).map(beklenenKart) };
+  return { parametrik, bloklar, yeni: urunler.slice(0, OZET_YENI).map(kart) };
 }
+
+/** Acilmis artefaktin kartlarini SABIT sirayla duzlestirir (parametrik · bloklar · yeni). */
+function duzKartlar(acik) {
+  const bloklar = acik.bloklar || {};
+  return [].concat(acik.parametrik || [])
+    .concat(Object.keys(bloklar).sort().reduce((t, k) => t.concat(bloklar[k] || []), []))
+    .concat(acik.yeni || []);
+}
+
+/**
+ * GERCEK build.py `kart_ozeti` — Python'dan, YALNIZ istenen urun indeksleri icin.
+ * Kural JS'e KOPYALANMAZ (bagimsiz capa `beklenenKart` eski_fiyat/boy kurallarini
+ * tasimaz); burada olculen sey "v4 TELI kart_ozeti'nin urettigini kaybetmeden tasiyor mu".
+ */
+const KART_OZETI_PY = [
+  "import json, sys, types",
+  "yol, katalog, idx = sys.argv[1], sys.argv[2], sys.argv[3]",
+  "sys.path.insert(0, __import__('os').path.dirname(yol))",
+  "m = types.ModuleType('build_ozet_temsil'); m.__file__ = yol",
+  "exec(compile(open(yol, encoding='utf-8').read(), yol, 'exec'), m.__dict__)",
+  "U = json.load(open(katalog, encoding='utf-8'))",
+  "I = json.load(open(idx, encoding='utf-8'))",
+  "json.dump([m.kart_ozeti(U[i]) for i in I], sys.stdout, ensure_ascii=False)",
+].join("\n");
+function kartOzetiAl(katalogYol, indeksler) {
+  const idxYol = path.join(GECICI, "idx-" + (++_no) + ".json");
+  fs.writeFileSync(idxYol, JSON.stringify(indeksler), "utf8");
+  const r = spawnSync("python3", ["-", BUILD_YOL, katalogYol, idxYol],
+    { input: KART_OZETI_PY, encoding: "utf8", maxBuffer: 256 * 1024 * 1024 });
+  if (r.status !== 0) {
+    olculemedi("kart_ozeti alinamadi: " + String(r.stderr || "").trim().slice(-300));
+  }
+  return JSON.parse(r.stdout);
+}
+
+// ------------------------------------------------------------- BAYAT v3 ISTEMCI (19 Eki)
+/* 🔴 DONDURULMUS KOPYA — main 02328a71 (19 Eki 2026) index.html `ozetAc` govdesi, v4'ten
+   ONCEKI son istemci. Metin tools/fikstur-ozetac-v3-19eki.txt'de BAYT BAYT durur (sha256
+   asagida civili): olculen sey "ziyaretcinin onbelleginde duran v3 kodu v4 artefaktini
+   alirsa ne cizer" sorusudur — canli dosyadan okunsaydi soru sorulmus olmazdi.
+   Guncellenmez. */
+const BAYAT_V3_YOL = path.join(KOK, "tools", "fikstur-ozetac-v3-19eki.txt");
+const BAYAT_V3_SHA256 = "01ba5e61f0ee813fd5dad52579c4bbf1988f14c10948874cdc4a9aef2cf0f1b7";
+const BAYAT_V3_KAYNAK_SHA = "02328a71";
+function bayatV3Al() {
+  if (!fs.existsSync(BAYAT_V3_YOL)) { olculemedi("bayat v3 fiksturu YOK: " + BAYAT_V3_YOL); }
+  const metin = fs.readFileSync(BAYAT_V3_YOL, "utf8");
+  const ozet = require("node:crypto").createHash("sha256").update(metin).digest("hex");
+  if (ozet !== BAYAT_V3_SHA256) {
+    olculemedi("bayat v3 fiksturu DEGISMIS (sha256 " + ozet.slice(0, 12) + ") — dondurulmus "
+      + "kopya guncellenmez.");
+  }
+  // KAYNAK TEYIDI (yalniz commit erisilebilirse; sig klonda olcum disi, BEYAN edilir).
+  let teyit = "commit erisilemedi (sig klon) -> sha256 civisi yeterli";
+  const g = spawnSync("git", ["-C", KOK, "show", BAYAT_V3_KAYNAK_SHA + ":index.html"],
+    { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+  if (g.status === 0) {
+    const asil = require(path.join(KOK, "tools", "ozet-ac-ayikla.js")).ozetAcKaynagi(g.stdout);
+    if (asil !== metin) { olculemedi("bayat v3 fiksturu " + BAYAT_V3_KAYNAK_SHA + " ozetAc'i ile AYRISIYOR"); }
+    teyit = BAYAT_V3_KAYNAK_SHA + " ozetAc ile BAYT BAYT ayni";
+  }
+  // eslint-disable-next-line no-new-func
+  const fn = new Function("\"use strict\";" + metin + "\nreturn ozetAc;")();
+  return { fn, teyit };
+}
+
+/**
+ * Bayat v3 istemcisi v4 artefaktini actiginda KARAR degisiyor mu?
+ * referans = CANLI istemcinin v3 artefakti acilimi (v4'ten once ziyaretcinin gordugu).
+ * Doner: { kart, konfigurlu, truthy, digerSapma, idFiyatGorselEsit }.
+ */
+function bayatV4Olc(bayatFn, v4Ham, referansAcik) {
+  const bayat = duzKartlar(bayatFn(JSON.parse(v4Ham)));
+  const ref = duzKartlar(referansAcik);
+  const ucAlan = (l) => JSON.stringify(l.map((k) => [k && k.id, k && k.fiyat, k && k.gorsel]));
+  let konfigurlu = 0, truthy = 0, digerSapma = 0;
+  ref.forEach((r, i) => {
+    const b = bayat[i];
+    if (r && r.konfigur) { konfigurlu++; if (b && !!b.konfigur === true) { truthy++; } }
+    const rk = Object.assign({}, r); const bk = Object.assign({}, b);
+    delete rk.konfigur; delete bk.konfigur;
+    if (!esit(rk, bk) || !!(r && r.konfigur) !== !!(b && b.konfigur)) { digerSapma++; }
+  });
+  return { kart: bayat.length, refKart: ref.length, konfigurlu, truthy, digerSapma,
+    idFiyatGorselEsit: ucAlan(bayat) === ucAlan(ref) };
+}
+const bayatV4Tamam = (o) => o.kart === o.refKart && o.konfigurlu > 0
+  && o.truthy === o.konfigurlu && o.digerSapma === 0 && o.idFiyatGorselEsit;
 
 // --------------------------------------------------------------------------- raporlama
 let kirmizi = 0;
@@ -390,9 +493,12 @@ function kosum() {
   const v3AlanHic = !("gorselOnek" in vOzet) && !("yeniRef" in vOzet);
   const vKapakTam = (vOzet.bloklar.Marin || []).every((k) => typeof k[5] !== "string"
     || k[5].indexOf("://") !== -1);
-  const sekilTamam = BEYAN >= 3
-    ? (v3Alan && Array.isArray(vOzet.yeniRef))
-    : (v3AlanHic && Array.isArray(vOzet.yeni) && vKapakTam);
+  const v4Alan = Array.isArray(vOzet.konfigurAlanlari) && Array.isArray(vOzet.konfigurDegerleri);
+  const sekilTamam = BEYAN >= 4
+    ? (v3Alan && v4Alan && Array.isArray(vOzet.yeniRef))
+    : (BEYAN >= 3
+      ? (v3Alan && !v4Alan && Array.isArray(vOzet.yeniRef))
+      : (v3AlanHic && Array.isArray(vOzet.yeni) && vKapakTam));
   const vKayipsiz = esit(vAcik.yeni || [], bek.yeni) && esit(vAcik.parametrik || [], bek.parametrik);
   rapor("8 TEMSIL BAYRAGI: BEYAN (" + BEYAN + ") ile URETILEN artefakt tutuyor ve yeni "
     + "istemci onu BIREBIR aciyor",
@@ -401,7 +507,8 @@ function kosum() {
     + " | v3 alani " + (v3Alan ? "VAR" : (v3AlanHic ? "yok" : "YARIM ✘"))
     + " | kesit " + ((vOzet.yeniRef || vOzet.yeni || []).length) + " kart | "
     + varsayilan.bayt + " B | kayipsiz " + (vKayipsiz ? "OK" : "SAPTI")
-    + (BEYAN >= 3 ? " | ⚠ YAZICI ACIK (yayin N+1 hali)" : " | yazici KAPALI (yayin N hali)"));
+    + (BEYAN >= 4 ? " | v4 konfigur sozlugu " + (v4Alan ? "VAR" : "YOK ✘")
+      : (BEYAN >= 3 ? " | ⚠ YAZICI ACIK (yayin N+1 hali)" : " | yazici KAPALI (yayin N hali)")));
 
   // ---- 9: GERCEK KATALOG — iki bayrak hali + BAYAT ISTEMCI PENCERESI SAYIYLA
   const katalogYol = path.join(KOK, "urunler.json");
@@ -428,6 +535,64 @@ function kosum() {
       "KAPALI " + gKapali.bayt + " B (v2) | ACIK " + gAcik.bayt + " B (v3) | kazanc "
       + (gKapali.bayt - gAcik.bayt) + " B | BAYAT ISTEMCI: bos kart " + gBosKart
       + ", kapagi kaybolan kart " + gKapakKayip + " (yayin N->N+1 penceresi kapatir)");
+
+    // ---- 12: BAYAT v3 ISTEMCI + v4 ARTEFAKT (TEK YAYIN ONCULU) — gercek katalog
+    const gV4 = ozetUret(katalogYol, 4);
+    if (gV4.hata) { olculemedi("gercek katalog v4 kolu: " + gV4.hata); }
+    const bayatV3 = bayatV3Al();
+    const v3Ref = ozetAc(JSON.parse(gAcik.ham));            // CANLI istemci + v3 = bugunku ekran
+    const o12 = bayatV4Olc(bayatV3.fn, gV4.ham, v3Ref);
+    // VERI MUTANTI (iddianin disi var mi): konum 11'e 0 basan yazici -> bayat istemcide
+    // konfigur FALSY olur; ayni olcum KIRMIZI vermeli, yoksa iddia yuk tasimiyor demektir.
+    const sifirli = JSON.parse(gV4.ham);
+    const sifirla = (k) => { if (Array.isArray(k) && Array.isArray(k[11])) { k[11] = 0; } return k; };
+    sifirli.parametrik = (sifirli.parametrik || []).map(sifirla);
+    Object.keys(sifirli.bloklar || {}).forEach((kat) => { sifirli.bloklar[kat] = sifirli.bloklar[kat].map(sifirla); });
+    sifirli.yeniRef = (sifirli.yeniRef || []).map(sifirla);
+    const o12m = bayatV4Olc(bayatV3.fn, JSON.stringify(sifirli), v3Ref);
+    const yeniKonfigurlu = (v3Ref.yeni || []).filter((k) => k && k.konfigur).length;
+    rapor("12 BAYAT v3 ISTEMCI + v4 ARTEFAKT: konfigur karari DEGISMEZ, diger alanlar BIREBIR "
+      + "(+ veri mutanti `konum 11 = 0` KIRMIZI)",
+    bayatV4Tamam(o12) && !bayatV4Tamam(o12m),
+    "kart " + o12.kart + "/" + o12.refKart + " | konfigur'lu " + o12.konfigurlu + " (yeni kesiti "
+      + yeniKonfigurlu + ") -> !!konfigur true " + o12.truthy + " | diger alan sapmasi "
+      + o12.digerSapma + " | id/fiyat/gorsel " + (o12.idFiyatGorselEsit ? "BIREBIR" : "SAPTI ✘")
+      + " | MUTANT(0): truthy " + o12m.truthy + "/" + o12m.konfigurlu
+      + (bayatV4Tamam(o12m) ? " YESIL ✘ (iddia OLU)" : " KIRMIZI ✔") + " | fikstur " + bayatV3.teyit);
+
+    // ---- 13: GERCEK KATALOG v4 — bayt butcesi + TUM kartlar kart_ozeti ile BIREBIR
+    const BUTCE = (function () {
+      const src = fs.readFileSync(BUILD_YOL, "utf8");
+      const m = src.match(/^OZET_BUTCE\s*=\s*(\d+)\s*\*\s*(\d+)/m);
+      if (!m) { olculemedi("build.py'de OZET_BUTCE bulunamadi."); }
+      return Number(m[1]) * Number(m[2]);
+    })();
+    const katalog = JSON.parse(fs.readFileSync(katalogYol, "utf8"));
+    const sira = new Map(katalog.map((p, i) => [p, i]));
+    const idxKesit = beklenenKesitler(katalog, (p) => sira.get(p));
+    const idxDuz = duzKartlar(idxKesit);
+    const kartlar = kartOzetiAl(katalogYol, idxDuz);
+    const ozIdx = new Map(idxDuz.map((ix, j) => [ix, kartlar[j]]));
+    const bek13 = beklenenKesitler(katalog, (p) => ozIdx.get(sira.get(p)));
+    const acik13 = ozetAc(JSON.parse(gV4.ham));
+    const bekDuz = duzKartlar(bek13);
+    const acikDuz = duzKartlar(acik13);
+    let sapan = 0, konfEsit = 0, konfSayi = 0;
+    bekDuz.forEach((b, i) => {
+      if (!esit(acikDuz[i], b)) { sapan++; }
+      if (b.konfigur) { konfSayi++; if (acikDuz[i] && esit(acikDuz[i].konfigur, b.konfigur)) { konfEsit++; } }
+    });
+    const telDizi = (gV4.ozet.yeniRef || []).filter((k) => Array.isArray(k) && Array.isArray(k[11])).length;
+    rapor("13 GERCEK KATALOG v4: bayt < OZET_BUTCE ve TUM kartlar kart_ozeti ile BIREBIR",
+      gV4.ozet.surum === 4 && gV4.bayt < BUTCE && gV4.bayt < gAcik.bayt
+      && acikDuz.length === bekDuz.length && sapan === 0 && konfSayi > 0 && konfEsit === konfSayi
+      && acik13.yeniCozulemeyen === 0,
+      "v3 " + gAcik.bayt + " B -> v4 " + gV4.bayt + " B (kazanc " + (gAcik.bayt - gV4.bayt)
+      + " B, butce " + BUTCE + ", pay " + (BUTCE - gV4.bayt) + " B) | kart " + acikDuz.length
+      + "/" + bekDuz.length + " sapan " + sapan + " | konfigur nesnesi esit " + konfEsit + "/"
+      + konfSayi + " | yeniRef tam kartta indeks dizisi " + telDizi + " | sozluk "
+      + (gV4.ozet.konfigurAlanlari || []).length + " alan / "
+      + (gV4.ozet.konfigurDegerleri || []).length + " deger");
   }
 
   // ---- 10: PATOLOJIK ID — derleme ile istemcinin REFERANS YUKLEMI ayni mi?
@@ -465,6 +630,32 @@ function kosum() {
     + gecersizRef + " | istemci `yeni` " + patKart + "/" + Math.min(OZET_YENI, patUrun.length)
     + " kart | cozulemeyen iz " + JSON.stringify(patDusen)
     + (k10.sapmalar.length ? " | SAPAN: " + k10.sapmalar.join(", ") : ""));
+
+  // ---- 11: v4 KAYIPSIZ — dort fikstur, v4 kolu ACIKCA
+  const v4Sonuc = [["karisik", karisikUrun], ["sifir", sifirUrun], ["tam", tamUrun],
+    ["patolojik", JSON.parse(fs.readFileSync(path.join(KOK, "tools", "fikstur-ozet-patolojik-id.json"), "utf8"))]]
+    .map(([ad, urunler]) => {
+      const u = ozetUret(urunler, 4);
+      const k = kayipsizMi(u, urunler, "v4 " + ad + " fiksturu");
+      return { ad, k, u };
+    });
+  const v4Karisik = v4Sonuc[0].u.ozet;
+  const tel11 = [].concat(v4Karisik.parametrik || [], v4Karisik.yeniRef || [],
+    ...Object.values(v4Karisik.bloklar || {})).filter((k) => Array.isArray(k) && k.length > 11 && k[11] !== null);
+  const indeksDizisi = tel11.filter((k) => Array.isArray(k[11])
+    && k[11].every((x) => x === null || Number.isInteger(x))).length;
+  const kanonlar = (v4Karisik.konfigurDegerleri || []).map(kanon);
+  const tekil = new Set(kanonlar).size === kanonlar.length;
+  const v4Sapan = v4Sonuc.filter((x) => x.k.sapmalar.length).map((x) => x.ad + ":" + x.k.sapmalar.join("/"));
+  rapor("11 v4 KAYIPSIZ: konfigur sozluguyle dort fikstur CANLI cozucuyle BIREBIR",
+    v4Sapan.length === 0 && v4Karisik.surum === 4 && tel11.length > 0
+    && indeksDizisi === tel11.length && tekil
+    && (v4Karisik.konfigurAlanlari || []).indexOf("bayrak") !== -1,
+    v4Sonuc.map((x) => x.ad + " " + x.k.kartSayisi).join(" · ") + " kart | konfigur teli "
+    + indeksDizisi + "/" + tel11.length + " indeks dizisi | deger " + kanonlar.length
+    + (tekil ? " tekil" : " TEKRARLI ✘") + " | alanlar " + JSON.stringify(v4Karisik.konfigurAlanlari)
+    + (v4Sapan.length ? " | SAPAN: " + v4Sapan.join(", ") : ""));
+
 
   console.log("");
   console.log("OLCUM: karisik fikstur ozet.json %d B | sifir-ortusme %d B | tam-ortusme %d B",
@@ -527,6 +718,22 @@ const MUTANTLAR = [
     "OZET_REF_YUKLEM = \"bos-olmayan-dize\"", "OZET_REF_YUKLEM = \"her-deger\"",
     "iki tarafin 'bu referans gecerli mi' cevabi sessizce ayrisirsa v3 kart dusurur; "
     + "jeton bagi bunu BUGUN kirmizi yakmali"],
+  // ---- v4 (19 Eki 2026): konfigur sozlugu
+  ["M-J derleme: `konfigurDegerleri`nden bir deger SILINIR (indeksler kayar)", "build", "kol",
+    "            ozet[\"konfigurDegerleri\"] = k_sozluk[1]",
+    "            ozet[\"konfigurDegerleri\"] = k_sozluk[1][1:]",
+    "baslik sozlugu eksik basilirsa her konfigur YANLIS degerle acilir (fiyat capasi/boyut "
+    + "sessizce kayar) — konum capasi BASLIKTAN acip kaynakla kiyaslar -> build KIRMIZI"],
+  ["M-K derleme: konum 11'e indeks dizisi yerine 0 basilir", "build", "kol",
+    "        dizi[_OZET_I_KONFIGUR] = indeksler",
+    "        dizi[_OZET_I_KONFIGUR] = 0",
+    "bayat v3 istemcide konfigur FALSY olur (on-secim/odeme kapisi kolu degisir) — konum "
+    + "capasi yakalar; iddia 12'nin kendi disi VERI mutantiyla ayrica olculur"],
+  ["M-L istemci: ozetAc v4 kolu (konfigur indeks dizisi -> nesne) SILINIR", "index", "iddia",
+    "      if(kAlanlar && Object.prototype.toString.call(out.konfigur) === \"[object Array]\"){",
+    "      if(false){",
+    "taze istemci konfigur'u indeks dizisi olarak birakir: truthy kalir ama nesne alanlari "
+    + "(boyutMm/fiyatCapalari) okunamaz -> iddia 11/13 KIRMIZI"],
 ];
 
 function mutasyonKosumu() {

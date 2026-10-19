@@ -1,0 +1,64 @@
+function ozetAc(d){
+    var alanlar = (d && d.kartAlanlari) || [];
+    if(!alanlar.length){ return d; }
+    var onek = (d && d.gorselOnek) || "";
+    // TEK YÜKLEM (OZET_REF_YUKLEM = "bos-olmayan-dize"): bir `yeniRef` öğesinin havuz
+    // ANAHTARI sayılması için BOŞ OLMAYAN DİZE olması gerekir. Sayı (0), boş dize, null,
+    // obje referans DEĞİLDİR. sayfa ureticisi `_ref_gecerli` BİREBİR aynı yüklemi uygular.
+    function refGecerli(v){ return typeof v === "string" && v !== ""; }
+    function kartAc(k){
+      if(Object.prototype.toString.call(k) !== "[object Array]"){ return k; }
+      var out = {};
+      k.forEach(function(deger, i){
+        if(i < alanlar.length && (i < 8 || deger !== null)){ out[alanlar[i]] = deger; }
+      });
+      // Öneki geri ekle: yalnız BOŞ OLMAYAN ve mutlak OLMAYAN ("://" yok) değere.
+      if(onek && typeof out.gorsel === "string" && out.gorsel &&
+         out.gorsel.indexOf("://") === -1){
+        out.gorsel = onek + out.gorsel;
+      }
+      return out;
+    }
+    d.parametrik = (d.parametrik || []).map(kartAc);
+    Object.keys(d.bloklar || {}).forEach(function(kat){
+      d.bloklar[kat] = (d.bloklar[kat] || []).map(kartAc);
+    });
+    if(d.yeniRef){
+      // 🔴 PROTOTİPSİZ HAVUZ. Düz `{}` sözlükte arama yapmak, id'si "constructor" /
+      // "__proto__" / "toString" / "hasOwnProperty" olan bir referansta Object.prototype'tan
+      // MİRAS bir değer buluyordu ve kart yerine native fonksiyon (ya da boş obje) vitrine
+      // giriyordu. Object.create(null) mirası KÖKTEN keser; `Map` yerine seçildi çünkü bu
+      // dosyada harici bağımlılık yok ve null-prototipli obje ES5 yüzeyinde `in`/atama ile
+      // aynı işi yapıyor (kalan kod aynı kalıyor, Map olsa iki ayrı erişim biçimi doğardı).
+      var havuz = Object.create(null);
+      var kaydet = function(k){
+        if(k && refGecerli(k.id) && !(k.id in havuz)){ havuz[k.id] = k; }
+      };
+      d.parametrik.forEach(kaydet);
+      Object.keys(d.bloklar || {}).forEach(function(kat){ d.bloklar[kat].forEach(kaydet); });
+      d.yeni = [];
+      var dusen = 0;
+      d.yeniRef.forEach(function(oge){
+        // Dize = havuz referansı (YÜKLEM tek: boş olmayan dize). Dizi = tam kart.
+        // Bunun DIŞINDAKİ her şey (sayı, null, obje) ne referans ne karttır -> DÜŞER.
+        var kart = null;
+        if(typeof oge === "string"){
+          if(refGecerli(oge) && (oge in havuz)){ kart = havuz[oge]; }
+        }else if(Object.prototype.toString.call(oge) === "[object Array]"){
+          kart = kartAc(oge);
+        }
+        if(kart && typeof kart === "object"){ d.yeni.push(kart); }else{ dusen++; }
+      });
+      // ÖLÇÜLEBİLİR İZ — sessiz düşüş YASAK. Kabul testi bunu okur; canlı sayfada da
+      // konsola tek satır düşer (kart çizilmediği için ekranda başka işaret olmazdı).
+      d.yeniCozulemeyen = dusen;
+      if(dusen && typeof console !== "undefined" && console.warn){
+        console.warn("PRUVO: ozet.json `yeniRef` " + dusen + " referansi COZULEMEDI, "
+          + "o kartlar cizilmedi.");
+      }
+    }else{
+      d.yeni = (d.yeni || []).map(kartAc);
+      d.yeniCozulemeyen = 0;
+    }
+    return d;
+  }

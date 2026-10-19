@@ -4818,7 +4818,7 @@ setTimeout(L,5000);})();
   // taşır. Alan sözlüğü artefaktın içindedir; böylece arama/kart yüzeyinden hiçbir değer
   // atılmadan yalnız temsil sıkışır.
   //
-  // 🔴 ÜÇ SÜRÜM DE AÇILIR — bayat tarayıcı/CDN önbelleği GERÇEK: taze index.html eski
+  // 🔴 DÖRT SÜRÜM DE AÇILIR — bayat tarayıcı/CDN önbelleği GERÇEK: taze index.html eski
   // (önbellekten gelen) bir ozet.json ile karşılaşabilir. Sürüm ayrımı ALAN VARLIĞIYLA
   // yapılır (kendini tanımlayan artefakt), `surum` sayısıyla değil: yanlış etiketlenmiş
   // bir artefakt bile DOĞRU çizilir. `surum` bump'ı sayfa üreteci tarafında
@@ -4827,6 +4827,11 @@ setTimeout(L,5000);})();
   //   v2  sabit sıralı dizi         -> alan sözlüğüyle açılır
   //   v3  + `gorselOnek` başlıkta   -> kapak URL'sinin ortak öneki geri eklenir
   //       + `yeniRef` kesiti        -> dize = havuz kartına ID referansı, dizi = tam kart
+  //   v4  + `konfigurAlanlari` + `konfigurDegerleri` başlıkta -> kartın `konfigur` konumu
+  //       DİZİ ise (indeks dizisi: konfigurDegerleri'nde indeks, null = anahtar yok) nesneye
+  //       çevrilir; dizi DEĞİLSE dokunulmaz. (Bayat v3 istemci diziyi olduğu gibi bırakır —
+  //       `konfigur` yalnız truthiness ile okunduğu için kararı DEĞİŞMEZ; ozet temsil kabul
+  //       testi iddia 12 bunu dondurulmuş v3 çözücüyle ölçer.)
   // Çözülemeyen referans SESSİZCE BOŞ KART çizdirmez, DÜŞÜRÜLÜR (fail-closed yön) ve
   // düşen sayısı `yeniCozulemeyen` alanında ÖLÇÜLEBİLİR iz olarak durur.
   //
@@ -4843,6 +4848,18 @@ setTimeout(L,5000);})();
     var alanlar = (d && d.kartAlanlari) || [];
     if(!alanlar.length){ return d; }
     var onek = (d && d.gorselOnek) || "";
+    var kAlanlar = (d && d.konfigurAlanlari) || null;   // v4 değilse null -> dokunulmaz
+    var kDegerler = (d && d.konfigurDegerleri) || [];
+    function konfigurAc(liste){
+      var nesne = {};
+      liste.forEach(function(ix, sira){
+        if(typeof ix === "number" && ix % 1 === 0 && ix >= 0 && ix < kDegerler.length &&
+           sira < kAlanlar.length){
+          nesne[kAlanlar[sira]] = kDegerler[ix];
+        }
+      });
+      return nesne;
+    }
     // TEK YÜKLEM (OZET_REF_YUKLEM = "bos-olmayan-dize"): bir `yeniRef` öğesinin havuz
     // ANAHTARI sayılması için BOŞ OLMAYAN DİZE olması gerekir. Sayı (0), boş dize, null,
     // obje referans DEĞİLDİR. sayfa ureticisi `_ref_gecerli` BİREBİR aynı yüklemi uygular.
@@ -4857,6 +4874,9 @@ setTimeout(L,5000);})();
       if(onek && typeof out.gorsel === "string" && out.gorsel &&
          out.gorsel.indexOf("://") === -1){
         out.gorsel = onek + out.gorsel;
+      }
+      if(kAlanlar && Object.prototype.toString.call(out.konfigur) === "[object Array]"){
+        out.konfigur = konfigurAc(out.konfigur);
       }
       return out;
     }

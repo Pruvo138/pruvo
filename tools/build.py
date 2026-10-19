@@ -4861,9 +4861,11 @@ OZET_KART_ALANLARI = ("id", "baslik", "kategori", "marka", "fiyat", "gorsel",
                       "tavsiyeFilament", "konfigur", "boy_secenekleri")
 # 🔴 ARTEFAKT SÜRÜMÜ — istemci sözleşmesi. v1 = sözlük kartları · v2 = sabit sıralı dizi ·
 # v3 = dizi + görsel ortak öneki başlıkta (`gorselOnek`) + `yeni` kesiti havuz kartlarını
-# ID ile REFERANSLAR (`yeniRef`). index.html ozetAc ÜÇÜNÜ DE açar (bayat tarayıcı
-# önbelleği gerçektir). `_ozet_surum_dogrula` fail-closed kontrol eder: sürüm ile basılan
-# alanlar ayrışırsa build KIRMIZI.
+# ID ile REFERANSLAR (`yeniRef`) · v4 = v3 + `konfigur` SÖZLÜĞÜ başlıkta
+# (`konfigurAlanlari` + `konfigurDegerleri`; kartın konfigur konumu indeks dizisi taşır).
+# index.html ozetAc DÖRDÜNÜ DE açar (bayat tarayıcı önbelleği gerçektir).
+# `_ozet_surum_dogrula` fail-closed kontrol eder: sürüm ile basılan alanlar ayrışırsa
+# build KIRMIZI.
 #
 # 🔴 TEK KAYNAK TEMSİL BAYRAĞI — OKUYUCU ÖNCE, YAZICI SONRA (mimar kararı, 12 Ağu 2026).
 # ÖLÇÜLDÜ: bayat tarayıcı önbelleğindeki ESKİ index.html yeni (v3) artefaktı alırsa boş
@@ -4876,14 +4878,34 @@ OZET_KART_ALANLARI = ("id", "baslik", "kategori", "marka", "fiyat", "gorsel",
 #               [[tarayici-onbellek-4saat]]) bu sabit 3 yapılır -> artefakt v3, kazanç
 #               (21.766 B) devreye girer, bayat istemci KALMADIĞI için kapak kaybı 0.
 # Yordam + doğrulama komutu: tools/paket-ozet-butce.md "FAZ 2b".
-# ⚠️ VARSAYILAN AÇIK (3) — bu AYRI ve BİLİNÇLİ bir yayındır. `--sadece-ozet` için
-# `--ozet-surum <2|3>` YALNIZCA ölçüm/kabul testi kolu; yayın yolunu ETKİLEMEZ.
-OZET_TEMSIL_SURUM = 3
+# ⚠️ VARSAYILAN AÇIK — bu AYRI ve BİLİNÇLİ bir yayındır. `--sadece-ozet` için
+# `--ozet-surum <2|3|4>` YALNIZCA ölçüm/kabul testi kolu; yayın yolunu ETKİLEMEZ.
+#
+# 🔴 v4 TEK YAYINDA ÇIKAR (okuyucu+yazıcı birlikte; mimar kararı 19 Eki 2026, halef-46).
+# NEDEN v3'teki iki aşamalı yordam GEREKMİYOR: v4 yalnız `konfigur` konumunun TEMSİLİNİ
+# değiştirir (nesne -> indeks dizisi) ve istemci o alanı YALNIZ TRUTHINESS ile okur
+# (index.html `konfigurSatirMi` + vitrin fiyat kolu, secenekler.js ön-seçim + beyan
+# kolları). Boş olmayan dizi JS'te DAİMA truthy -> bayat (v3) index.html v4 artefaktında
+# AYNI kararı verir. Öncül kabul testinde ölçülür: tools/ozet-temsil-test.js iddia 12
+# (dondurulmuş v3 ozetAc + v4 artefakt; mutant: konum 11'e 0 basan yazıcı KIRMIZI).
+# ÖLÇÜLDÜ (19 Eki, main 1ff4b6a6): v3 156.216 B > OZET_BUTCE; `yeniRef`in 48 tam kartının
+# konfigur nesneleri 17.431 B ve alt-değerlerin çoğu tek değer.
+OZET_TEMSIL_SURUM = 4
 # Kart kapak URL'lerinin ortak öneki. Kartta yalnız kalan parça taşınır; istemci öneki
 # geri ekler. ÖNEKİ TAŞIMAYAN değer (başka konak) OLDUĞU GİBİ kalır — istemcinin ayrımı
 # "://" içeriyor mu (mutlak = dokunma). Ölçüldü (11 Ağu, 271 kart): 34 B × 271 = 9.164 B.
 OZET_GORSEL_ONEK = "https://media.pruvo3d.com/urunler/"
 _OZET_I_GORSEL = OZET_KART_ALANLARI.index("gorsel")
+# v4 KONFİGUR SÖZLÜĞÜ — konfigur nesnesinin ANAHTAR ADLARI (sabit sıra; artefakt başlığına
+# `konfigurAlanlari` olarak basılır). Kartın konfigur konumu bu sıraya hizalı tamsayı
+# dizisidir: her öğe `konfigurDegerleri` listesinde bir İNDEKS, anahtar kartta yoksa null,
+# sondaki null'lar atılır. ⚠️ YENİ ANAHTAR SONA: katalogda burada OLMAYAN bir anahtar
+# doğarsa derleme onu artefaktta listenin SONUNA kendisi ekler (kayıp yok, duvar yok);
+# sabite eklemek yalnız artefaktı derlemeler arası kararlı tutar.
+OZET_KONFIGUR_ALANLARI = ("renkler", "renkGorselIndeks", "gorselOrnek", "boyutMm",
+                          "fiyatModu", "fiyatCapalari", "malzemeler", "varsayilanMalzeme",
+                          "hacim")
+_OZET_I_KONFIGUR = OZET_KART_ALANLARI.index("konfigur")
 
 # 🔴 `yeniRef` REFERANS YÜKLEMİ — index.html ile ORTAK JETON (12 Ağu 2026, çürütücü bulgusu).
 # ÖLÇÜLDÜ: derleme "id None değil mi" (Python), istemci "k.id truthy mi" (JS) diye soruyordu.
@@ -4992,7 +5014,42 @@ def kart_ozeti(p):
     return kart
 
 
-def ozet_karti_sikistir(kart, gorsel_onek=None):
+def _ozet_kanon(deger):
+    """v4 konfigur sözlüğünün EŞİTLİK anahtarı: anahtar sırasından bağımsız kanonik JSON.
+    (1 / 1.0 / true AYRI değerdir — json.dumps üçünü farklı yazar.) Listede kanon DEĞİL,
+    değerin KENDİSİ saklanır."""
+    return json.dumps(deger, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+
+
+def ozet_konfigur_sozlugu(kartlar):
+    """v4 başlığını kurar: (konfigurAlanlari, konfigurDegerleri, kanon->indeks dizini).
+
+    ``kartlar`` artefakta BASILACAK kart sözlükleridir (kart_ozeti çıktısı). Alanlar
+    ``OZET_KONFIGUR_ALANLARI`` sırasıyla başlar; katalogda doğan yeni anahtar SONA eklenir.
+    Değerler ilk görülme sırasıyla tekilleştirilir (eşitlik: ``_ozet_kanon``).
+    FAIL-CLOSED: konfigur SÖZLÜK değilse temsil çift-anlamlı olurdu (dizi değer istemcide
+    indeks dizisi sanılır) -> build KIRMIZI."""
+    alanlar = list(OZET_KONFIGUR_ALANLARI)
+    degerler, dizin = [], {}
+    for kart in kartlar:
+        if "konfigur" not in kart:
+            continue
+        nesne = kart["konfigur"]
+        if not isinstance(nesne, dict) or not nesne:
+            raise SystemExit("ozet.json v4: `konfigur` bos olmayan SOZLUK degil (id=%r, tip "
+                             "%s) — indeks temsili cift-anlamli olurdu."
+                             % (kart.get("id"), type(nesne).__name__))
+        for anahtar, deger in nesne.items():
+            if anahtar not in alanlar:
+                alanlar.append(anahtar)
+            kanon = _ozet_kanon(deger)
+            if kanon not in dizin:
+                dizin[kanon] = len(degerler)
+                degerler.append(deger)
+    return alanlar, degerler, dizin
+
+
+def ozet_karti_sikistir(kart, gorsel_onek=None, konfigur_sozlugu=None):
     """Tam kart sözlüğünü kayıpsız, sabit sıralı dizi temsiline çevirir.
 
     Sondaki koşullu alanlar yoksa taşınmaz; aradaki boş konumlar ``None`` kalır. Böylece
@@ -5002,6 +5059,11 @@ def ozet_karti_sikistir(kart, gorsel_onek=None):
     değer önekle başlıyorsa ve KALAN BOŞ DEĞİLSE olur; kalan "://" taşırsa temsil
     çift-anlamlı olurdu → fail-closed (build KIRMIZI). Öneki taşımayan mutlak URL
     olduğu gibi kalır ve istemci ona dokunmaz.
+
+    ``konfigur_sozlugu`` (v4) = ``ozet_konfigur_sozlugu``nun (alanlar, degerler, dizin)
+    çıktısı: konfigur nesnesi ``alanlar`` sırasına hizalı İNDEKS DİZİSİNE çevrilir
+    (anahtar yoksa null, sondaki null'lar atılır). Sözlükte karşılığı olmayan anahtar ya
+    da değer SESSİZCE düşmez -> build KIRMIZI.
     """
     son = max((i for i, alan in enumerate(OZET_KART_ALANLARI) if alan in kart), default=-1)
     dizi = [kart.get(alan) for alan in OZET_KART_ALANLARI[:son + 1]]
@@ -5014,15 +5076,57 @@ def ozet_karti_sikistir(kart, gorsel_onek=None):
             elif kalan and "://" in kalan:
                 raise SystemExit("ozet.json gorsel oneki cift-anlamli deger uretti "
                                  "(kalan parca '://' tasiyor): %r" % (deger,))
+    if (konfigur_sozlugu is not None and "konfigur" in kart
+            and len(dizi) > _OZET_I_KONFIGUR):
+        k_alanlar, _k_degerler, k_dizin = konfigur_sozlugu
+        nesne = kart["konfigur"]
+        if not isinstance(nesne, dict) or not nesne:
+            raise SystemExit("ozet.json v4: `konfigur` bos olmayan SOZLUK degil (id=%r)"
+                             % (kart.get("id"),))
+        fazla = [a for a in nesne if a not in k_alanlar]
+        if fazla:
+            raise SystemExit("ozet.json v4: konfigur anahtari sozlukte YOK (id=%r): %s"
+                             % (kart.get("id"), ", ".join(sorted(fazla))))
+        indeksler = []
+        for anahtar in k_alanlar:
+            if anahtar not in nesne:
+                indeksler.append(None)
+                continue
+            kanon = _ozet_kanon(nesne[anahtar])
+            if kanon not in k_dizin:
+                raise SystemExit("ozet.json v4: konfigur degeri sozlukte YOK (id=%r, "
+                                 "anahtar %s)" % (kart.get("id"), anahtar))
+            indeksler.append(k_dizin[kanon])
+        while indeksler and indeksler[-1] is None:
+            indeksler.pop()
+        dizi[_OZET_I_KONFIGUR] = indeksler
     return dizi
 
 
-def ozet_karti_ac(dizi, alanlar=None, gorsel_onek=""):
+def ozet_konfigur_ac(indeksler, konfigur_alanlari, konfigur_degerleri):
+    """v4 indeks dizisini konfigur NESNESİNE çevirir (index.html ozetAc ile AYNI kural:
+    null = anahtar yok). Geçersiz indeks (tamsayı değil / aralık dışı) SESSİZCE
+    atlanmaz -> SystemExit (build KIRMIZI)."""
+    nesne = {}
+    for sira, ix in enumerate(indeksler):
+        if ix is None:
+            continue
+        if (type(ix) is not int or ix < 0 or ix >= len(konfigur_degerleri)
+                or sira >= len(konfigur_alanlari)):
+            raise SystemExit("ozet.json v4: konfigur indeksi gecersiz: konum %d deger %r"
+                             % (sira, ix))
+        nesne[konfigur_alanlari[sira]] = konfigur_degerleri[ix]
+    return nesne
+
+
+def ozet_karti_ac(dizi, alanlar=None, gorsel_onek="", konfigur_alanlari=None,
+                  konfigur_degerleri=None):
     """``ozet_karti_sikistir``ın TERSİ — dizi temsilini tam kart sözlüğüne çevirir.
 
     index.html ``ozetAc`` ile AYNI yüklem: 8'inci konumdan sonraki ``None`` değerler
     "alan yok" demektir (koşullu alanlar), önündekiler korunur; öneki geri ekleme
-    yalnız BOŞ OLMAYAN ve "://" taşımayan dizede yapılır.
+    yalnız BOŞ OLMAYAN ve "://" taşımayan dizede yapılır. v4 (``konfigur_alanlari``
+    verilmişse): konfigur konumu DİZİ ise sözlükle nesneye çevrilir, değilse dokunulmaz.
     """
     alanlar = list(alanlar or OZET_KART_ALANLARI)
     if not isinstance(dizi, list):
@@ -5034,11 +5138,14 @@ def ozet_karti_ac(dizi, alanlar=None, gorsel_onek=""):
     g = kart.get("gorsel")
     if gorsel_onek and isinstance(g, str) and g and "://" not in g:
         kart["gorsel"] = gorsel_onek + g
+    if konfigur_alanlari is not None and isinstance(kart.get("konfigur"), list):
+        kart["konfigur"] = ozet_konfigur_ac(kart["konfigur"], konfigur_alanlari,
+                                            konfigur_degerleri or [])
     return kart
 
 
 def ozet_temsil_ac(ozet):
-    """Artefaktın TAMAMINI (v1/v2/v3) kart sözlüklerine geri açar — kayıpsızlık kanıtı
+    """Artefaktın TAMAMINI (v1/v2/v3/v4) kart sözlüklerine geri açar — kayıpsızlık kanıtı
     ve Python tarafındaki tüketiciler (kabul testleri) için TEK kaynak.
 
     Dönen sözlük: {"parametrik": [...], "bloklar": {kat: [...]}, "yeni": [...]}.
@@ -5051,7 +5158,9 @@ def ozet_temsil_ac(ozet):
         return {"parametrik": list(ozet.get("parametrik") or []),
                 "bloklar": {k: list(v) for k, v in (ozet.get("bloklar") or {}).items()},
                 "yeni": list(ozet.get("yeni") or []), "cozulemeyen": []}
-    ac = lambda k: ozet_karti_ac(k, alanlar, onek)
+    k_alanlar = ozet.get("konfigurAlanlari")          # v4 değilse None -> dokunulmaz
+    k_degerler = ozet.get("konfigurDegerleri") or []
+    ac = lambda k: ozet_karti_ac(k, alanlar, onek, k_alanlar, k_degerler)
     parametrik = [ac(k) for k in (ozet.get("parametrik") or [])]
     bloklar = {kat: [ac(k) for k in kartlar]
                for kat, kartlar in (ozet.get("bloklar") or {}).items()}
@@ -5081,7 +5190,7 @@ def ozet_temsil_ac(ozet):
             "cozulemeyen": cozulemeyen}
 
 
-def _temsil_konum_capasi(tel_dizileri, kartlar, alanlar, onek, etiket):
+def _temsil_konum_capasi(tel_dizileri, kartlar, alanlar, onek, etiket, konfigur_basligi=None):
     """🔴 BAĞIMSIZ ÇAPA — telin her KONUMUNU kaynak kartın alan sözlüğüyle DOĞRUDAN kıyaslar.
 
     NEDEN AYRI BİR ÇAPA ([[anahat-referans-tautolojisi]], 12 Ağu 2026 çürütücü bulgusu):
@@ -5095,7 +5204,11 @@ def _temsil_konum_capasi(tel_dizileri, kartlar, alanlar, onek, etiket):
       * konum i alan sözlüğündeki i'nci alanın değerini taşır;
       * telin SONUNDAN kırpılan konumların alanı kartta BULUNMAMALIDIR (kayıp yok);
       * `gorsel` konumunda önek düşülmüşse ("://" taşımayan boş olmayan dize) geri
-        eklendiğinde kaynak değeri vermelidir.
+        eklendiğinde kaynak değeri vermelidir;
+      * v4 (``konfigur_basligi`` = ARTEFAKT BAŞLIĞINDAKİ (konfigurAlanlari,
+        konfigurDegerleri) — sıkıştırıcının iç dizini DEĞİL): `konfigur` konumu tamsayı/null
+        DİZİSİ olmalı, her indeks başlıktaki listede bulunmalı ve başlıkla açılan nesne
+        kaynak nesneye KANONİK JSON ile eşit olmalıdır (1 / 1.0 / true ayrışması da yakalanır).
     """
     if len(tel_dizileri) != len(kartlar):
         raise SystemExit("ozet.json TEMSIL CAPASI (%s): tel %d kayit, kaynak %d kart — "
@@ -5130,6 +5243,27 @@ def _temsil_konum_capasi(tel_dizileri, kartlar, alanlar, onek, etiket):
             if (alan == "gorsel" and onek and isinstance(tel, str) and tel
                     and "://" not in tel):
                 tel = onek + tel
+            if alan == "konfigur" and konfigur_basligi is not None and tel is not None:
+                k_alanlar, k_degerler = konfigur_basligi
+                if (not isinstance(tel, list) or not tel or tel[-1] is None
+                        or len(tel) > len(k_alanlar)):
+                    raise SystemExit("ozet.json TEMSIL CAPASI (%s #%d): konum %d `konfigur` "
+                                     "v4 indeks dizisi DEGIL (bos/sonu null/fazla uzun): %r"
+                                     % (etiket, sira, i, tel))
+                nesne = {}
+                for j, ix in enumerate(tel):
+                    if ix is None:
+                        continue
+                    if type(ix) is not int or ix < 0 or ix >= len(k_degerler):
+                        raise SystemExit("ozet.json TEMSIL CAPASI (%s #%d): `konfigur` "
+                                         "indeksi %r basliktaki %d degerin DISINDA."
+                                         % (etiket, sira, ix, len(k_degerler)))
+                    nesne[k_alanlar[j]] = k_degerler[ix]
+                if _ozet_kanon(nesne) != _ozet_kanon(kart.get(alan)):
+                    raise SystemExit("ozet.json TEMSIL CAPASI (%s #%d, id=%r): `konfigur` "
+                                     "baslik sozluguyle acilinca kaynak nesneden AYRISIYOR "
+                                     "(telde %r)." % (etiket, sira, kart.get("id"), tel))
+                continue
             if tel != kart.get(alan):
                 raise SystemExit("ozet.json TEMSIL CAPASI (%s #%d): konum %d `%s` — telde %r, "
                                  "kaynak kartta %r (KONUM/DEGER AYRISMASI)."
@@ -5154,6 +5288,15 @@ def _ozet_surum_dogrula(ozet):
     if surum >= 3 and len(v3_alan) < 2:
         raise SystemExit("ozet.json surum=%r ama v3 alanlari EKSIK (%s) — temsil bayragi "
                          "yarim uygulanmis." % (surum, ", ".join(v3_alan) or "hicbiri"))
+    # v4 — aynı iki yön: konfigur sözlüğü basılıp sürüm 4'ün altındaysa bump düşmüştür;
+    # sürüm 4 iken sözlük eksikse istemci indeks dizisini nesneye ÇEVİREMEZ.
+    v4_alan = [a for a in ("konfigurAlanlari", "konfigurDegerleri") if a in ozet]
+    if v4_alan and surum < 4:
+        raise SystemExit("ozet.json v4 alani basildi (%s) ama surum=%r — SURUM BUMP "
+                         "DUSMUS." % (", ".join(v4_alan), surum))
+    if surum >= 4 and len(v4_alan) < 2:
+        raise SystemExit("ozet.json surum=%r ama v4 alanlari EKSIK (%s) — konfigur "
+                         "sozlugu yarim uygulanmis." % (surum, ", ".join(v4_alan) or "hicbiri"))
 
 
 # ------------------------------------ ANA SAYFA VİTRİN HİYERARŞİSİ (Okan kuralı, 31 Tem)
@@ -5233,8 +5376,8 @@ def render_ozet(products, temsil_surum=None):
     Parametre YALNIZCA ölçüm/kabul testi koludur (iki hâli de aynı koşumda ölçmek için);
     yayın yolu daima sabiti okur."""
     surum = OZET_TEMSIL_SURUM if temsil_surum is None else int(temsil_surum)
-    if surum not in (2, 3):
-        raise SystemExit("ozet temsil surumu gecersiz: %r (2 ya da 3 olmali)" % (surum,))
+    if surum not in (2, 3, 4):
+        raise SystemExit("ozet temsil surumu gecersiz: %r (2, 3 ya da 4 olmali)" % (surum,))
     # İki taraf "bu referans geçerli mi" sorusuna AYNI cevabı veriyor mu — bayrak KAPALI
     # iken de ölçülür: ayrışma, bayrak açıldığı gün değil BUGÜN kırmızı yanmalı.
     _index_ref_yuklemi_dogrula()
@@ -5300,8 +5443,15 @@ def render_ozet(products, temsil_surum=None):
         #        BİREBİR aynı temsille varsa verilir; yoksa TAM kart taşınır. Örtüşme bugün
         #        %100 ama yarın 0 olabilir (yeni ürün havuzsuz kategoriye düşerse) — iki hâl
         #        de aynı akışta çizilir.
+        #   v4 = + konfigur nesnesi başlıktaki sözlüğe (`konfigurAlanlari`/`konfigurDegerleri`)
+        #        İNDEKS dizisi olarak yazılır. Sözlük YALNIZ basılan kartlardan kurulur.
         onek = OZET_GORSEL_ONEK if surum >= 3 else None
-        sik = lambda k: ozet_karti_sikistir(k, onek)
+        k_sozluk = None
+        if surum >= 4:
+            k_sozluk = ozet_konfigur_sozlugu(
+                parametrik_kartlar + [k for liste in bloklar.values() for k in liste]
+                + yeni_kartlar)
+        sik = lambda k: ozet_karti_sikistir(k, onek, k_sozluk)
         s_parametrik = [sik(k) for k in parametrik_kartlar]
         s_bloklar = {kat: [sik(k) for k in kartlar] for kat, kartlar in bloklar.items()}
         s_yeni = [sik(k) for k in yeni_kartlar]
@@ -5321,6 +5471,9 @@ def render_ozet(products, temsil_surum=None):
         ozet = {"surum": surum, "kartAlanlari": list(OZET_KART_ALANLARI)}
         if surum >= 3:
             ozet["gorselOnek"] = OZET_GORSEL_ONEK
+        if k_sozluk is not None:
+            ozet["konfigurAlanlari"] = k_sozluk[0]
+            ozet["konfigurDegerleri"] = k_sozluk[1]
         ozet["uretim"] = TODAY
         ozet["toplam"] = len(products)
         ozet["kategoriler"] = kategoriler
@@ -5352,11 +5505,15 @@ def render_ozet(products, temsil_surum=None):
         # BURADA ölçülemez — onun bağımsız çapası tools/ozet-temsil-test.js'tir (CANLI
         # çözücüyü koşturur); ozet.json'un kart ALAN SÖZLEŞMESİ ise
         # tools/edge-kart-kapisi.py'dir (kartı bu telden geçirip canlı çözücüyle geri açar).
+        # v4 konfigur çapası sözlüğü ARTEFAKT BAŞLIĞINDAN okur (sıkıştırıcının iç dizininden
+        # DEĞİL): başlığa eksik/kaymış liste basılırsa telin indeksleri yanlış nesne açar.
+        _kb = ((ozet["konfigurAlanlari"], ozet["konfigurDegerleri"])
+               if "konfigurAlanlari" in ozet else None)
         _temsil_konum_capasi(s_parametrik, parametrik_kartlar,
-                             OZET_KART_ALANLARI, onek, "parametrik")
+                             OZET_KART_ALANLARI, onek, "parametrik", _kb)
         for _kat, _tel in s_bloklar.items():
             _temsil_konum_capasi(_tel, bloklar.get(_kat, []),
-                                 OZET_KART_ALANLARI, onek, "bloklar/%s" % _kat)
+                                 OZET_KART_ALANLARI, onek, "bloklar/%s" % _kat, _kb)
         # `yeni` kesiti referans TAŞIYABİLİR: konum çapası için referansı telin KENDİ
         # havuzundan (artefaktın basılmış kartlarından) çözeriz — çözücü yine devrede DEĞİL.
         _tel_havuz = {}
@@ -5372,7 +5529,7 @@ def render_ozet(products, temsil_surum=None):
             else:
                 raise SystemExit("ozet.json 'yeniRef' kaydi ne TAM KART ne de COZULEBILIR "
                                  "REFERANS: %r" % (_oge,))
-        _temsil_konum_capasi(_yeni_tel, yeni_kartlar, OZET_KART_ALANLARI, onek, "yeni")
+        _temsil_konum_capasi(_yeni_tel, yeni_kartlar, OZET_KART_ALANLARI, onek, "yeni", _kb)
         geri = ozet_temsil_ac(ozet)
         beklenen = {"parametrik": parametrik_kartlar,
                     "bloklar": bloklar, "yeni": yeni_kartlar}
@@ -5383,7 +5540,7 @@ def render_ozet(products, temsil_surum=None):
                 or geri["bloklar"] != beklenen["bloklar"]
                 or geri["yeni"] != beklenen["yeni"]):
             raise SystemExit("ozet.json temsili KAYIPLI — geri acilan kartlar kart_ozeti "
-                             "ciktisiyla ayrisiyor (v3 sikistirma bozuk).")
+                             "ciktisiyla ayrisiyor (v%d sikistirma bozuk)." % surum)
         return json.dumps(ozet, ensure_ascii=False, separators=(",", ":")), yetersiz, blok_sapma
 
     havuz_boyut = dict(havuz_n0)
@@ -5517,8 +5674,8 @@ def main():
             return sys.argv[i + 1] if 0 <= i < len(sys.argv) - 1 else varsayilan
         _katalog = _arg("--katalog", JSON_PATH)
         _cikti = _arg("--cikti", os.path.join(ROOT, OZET_JSON))
-        # --ozet-surum: TEMSİL bayrağının ÖLÇÜM kolu (2 = v2, 3 = v3). Yayın yolu (aşağıdaki
-        # tam build) bu bayrağı OKUMAZ, daima OZET_TEMSIL_SURUM sabitini kullanır — yani
+        # --ozet-surum: TEMSİL bayrağının ÖLÇÜM kolu (2 = v2, 3 = v3, 4 = v4). Yayın yolu
+        # (aşağıdaki tam build) bu bayrağı OKUMAZ, daima OZET_TEMSIL_SURUM sabitini kullanır — yani
         # bu lever bir "gizli açma düğmesi" DEĞİL, kabul testinin iki hâli de aynı koşumda
         # ölçebilmesi içindir.
         _surum = _arg("--ozet-surum", None)

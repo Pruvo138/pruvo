@@ -1384,7 +1384,7 @@ jobs:
       # NEDEN TAM BUILD DEGIL: tam `python3 tools/build.py` bu katalogda (25 965 urun) 232,6 s
       # surer ve 25 965 sayfa + sitemap + yasal sayfa damgasi yazar; iki dar kol 0,26 s.
       # YAN ETKISIZ: `--sadece-ozet` bayraksiz cagrildiginda temsil surumu build.py'nin TEK
-      # KAYNAK sabitinden (OZET_TEMSIL_SURUM = 3) gelir, yani deploy'un yayina koydugu
+      # KAYNAK sabitinden (OZET_TEMSIL_SURUM) gelir, yani deploy'un yayina koydugu
       # artefaktin AYNISI kalir — bu adim ozet.json'u v2'ye DUSURMEZ ve sonraki adimlara
       # bayat/yanlis surum birakmaz (kardes vitrin-kabul.js zaten kendi kopyasini yeniden uretir).
       # BLOKLAYICI: continue-on-error YOK. rc=1 iddia dustu, rc=2 OLCULEMEDI (index.html'den

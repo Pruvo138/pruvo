@@ -337,7 +337,7 @@ def sessiz_render(build, urunler):
 
 
 def v2_tabani(build, metin):
-    """v3 artefakt metnini FAZ 1 tabanına (v2: tam URL + `yeni` tam kart) geri açar.
+    """v3/v4 artefakt metnini FAZ 1 tabanına (v2: tam URL + `yeni` tam kart) geri açar.
 
     v2/v1 metin OLDUĞU GİBİ döner. Çözülemeyen referans SESSİZ geçmez — hata."""
     ozet = json.loads(metin)
@@ -350,7 +350,7 @@ def v2_tabani(build, metin):
     sik = build.ozet_karti_sikistir          # önek VERİLMEZ -> tam URL geri yazılır
     taban = {}
     for k, v in ozet.items():
-        if k == "gorselOnek":
+        if k in ("gorselOnek", "konfigurAlanlari", "konfigurDegerleri"):
             continue
         if k == "surum":
             taban[k] = 2

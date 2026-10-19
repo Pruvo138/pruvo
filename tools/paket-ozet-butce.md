@@ -82,6 +82,18 @@ KAPALI varsayılanını, iddia 9 gerçek katalogda iki hâli ve bayat istemci pe
 sayıyla ölçer; `--mutasyon` bayrağı yok sayan mutantı KIRMIZI yakar). Bayrak açıldıktan
 sonra `node tools/faz3-yuk.js` + `python3 tools/edge-kart-kapisi.py` yeniden koşulur.
 
+### FAZ 2c — TEMSİL v4: `konfigur` SÖZLÜĞÜ (19 Eki 2026, TEK YAYIN)
+
+Ölçüldü (main `1ff4b6a6`): v3 artefakt 156.216 B > `OZET_BUTCE`; `yeniRef`in 48 tam kartının
+`konfigur` nesneleri 17.431 B ve alt-değerlerin çoğu tek değer. v4 = v3 + başlıkta
+`konfigurAlanlari` (anahtar adları, yeni anahtar SONA) + `konfigurDegerleri` (benzersiz
+alt-değerler, eşitlik kanonik JSON); kartın konum 11'i bu iki listeye indeks dizisidir.
+**İki aşama GEREKMEDİ:** istemci `konfigur`u yalnız truthiness ile okur ve dizi daima
+truthy — bayat v3 `index.html` aynı kararı verir. Sonuç: 141.331 B (−14.885 B), 272/272 kart
+`kart_ozeti` ile birebir. Doğrulama: `node tools/ozet-temsil-test.js` iddia 11–13
+(12 = dondurulmuş v3 çözücü `tools/fikstur-ozetac-v3-19eki.txt` + v4 artefakt; veri
+mutantı "konum 11 = 0" KIRMIZI) · `--mutasyon` M-J/M-K (çapa) ve M-L (okuyucu).
+
 ### FAZ 3 — PAY NÖBETÇİSİ (kalıcı kol)
 Bugünkü kapı yalnız **tavan aşıldığında** konuşuyor; aşım anında iş zaten geç. Pay eksenini
 ölçen bir kol ekle: pay eşiğin altına düştüğünde **bayrak KAPALI iken de** görünür uyarı,
