@@ -647,6 +647,21 @@ BILEREK_DEGISEN_METIN = (
      "Politikası sayfasından geri alabilirsiniz.",
      "riza bandi reklam cerezini beyan eder oldu; yeni metnin varligini "
      "tools/reklam-etiket-kapisi.py SINIF C ekseni fail-closed olcer"),
+    # 2026-10-19 — RIZA BANDI METNI OKAN'IN TEK PARAGRAFI OLDU (Okan karari 16:1x, AYNEN
+    # "bunu yaz sadece"). SIRA ONEMLI: bir ustteki girisin YENI metnine uygulanir.
+    # 🔴 IDDIA TASINDI, KALDIRILMADI: reklam saglayicisi + geri alma hakki artik bantta
+    # degil /gizlilik/ sayfasinda; bant o sayfaya BAGLANIR. tools/reklam-etiket-kapisi.py
+    # SINIF C (bantta /gizlilik/ baglantisi) + SINIF C2 (gizlilik govdesinde Google Ads ·
+    # Meta Piksel · geri alabilirsiniz) fail-closed olcer.
+    ("Trafiği anlamak için analiz çerezleri (Google Analytics), reklamlarımızın ölçümü ve "
+     "kişiselleştirilmesi için reklam çerezleri (Google Ads) kullanmak istiyoruz. İkisi de "
+     "isteğe bağlıdır; onayınız olmadan çalışmazlar. Onayınızı istediğiniz zaman Gizlilik "
+     "Politikası sayfasından geri alabilirsiniz.",
+     "Alışveriş deneyiminizi iyileştirmek için yasal düzenlemelere uygun çerezler (cookies) "
+     "kullanıyoruz. Detaylı bilgiye Gizlilik ve Çerez Politikası sayfamızdan "
+     "erişebilirsiniz.",
+     "Okan 19 Eki bant metni; aydinlatma /gizlilik/'e tasindi — "
+     "tools/reklam-etiket-kapisi.py SINIF C + C2 fail-closed olcer"),
     # 2026-08-10 — OZEL URETIM URUN SAYFASINA TESLIM BEYANI EKLENDI.
     # NEDEN CIKARIM KAYBI DEGIL, EKLEME: 23.968 ozel uretim urununun sayfasinda
     # teslim suresi HIC yaziliydi degildi; ziyaretci "ne zaman elime gecer" bilmeden

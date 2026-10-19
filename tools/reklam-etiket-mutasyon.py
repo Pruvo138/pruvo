@@ -162,8 +162,14 @@ MUTANTLAR = [
     # degisimini beyan eder; o beyanin kosulu bu eksenin YASAMASIDIR. Metin reklam
     # cerezini beyan etmeyi birakirsa kapi KIRMIZI yanmali — yoksa oradaki beyan
     # sessizce SERBEST GECISE doner.
-    ("M13 bant metni reklam cerezini BEYAN ETMEYI birakir", True,
-     [("index.html", "reklam çerezleri (Google Ads) ", "")]),
+    # 19 Eki (Okan bant metni): aydinlatma /gizlilik/'e TASINDI -> M13 bantta baglantinin,
+    # M15 gizlilik govdesinde saglayici beyaninin dusmesini olcer.
+    ("M13 bant metni aydinlatma sayfasina BAGLANMAYI birakir", True,
+     [("index.html",
+       'Detaylı bilgiye <a href="/gizlilik/">Gizlilik ve Çerez Politikası</a>',
+       "Detaylı bilgiye Gizlilik ve Çerez Politikası")]),
+    ("M15 gizlilik sayfasi reklam saglayicisini (Google Ads) BEYAN ETMEYI birakir", True,
+     [("gizlilik/index.html", "<strong>Google Ads</strong> (Google) ve ", "")]),
     ("M14 Ads donusum etiketi yapilandirmasi sessizce kalkar", True,
      [("index.html", "  gtag('config', 'AW-18330673570');\n", "")]),
     # KONTROL: davranisi DEGISTIRMEYEN duzenleme -> YESIL KALMALI.

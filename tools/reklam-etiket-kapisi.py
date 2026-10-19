@@ -96,15 +96,37 @@ SABLON_CAPASI = "{ga_head}"
 DAR_GRANT = "gtag('consent','update',{'analytics_storage':'granted'})"
 KAPSAM_ANAHTARI = "pruvo_onay_kapsam"
 
-# Riza bandinin GORUNUR metninde bulunmasi ZORUNLU beyan jetonlari. Metin degisikligi
-# tools/varlik-test.py::BILEREK_DEGISEN_METIN'de beyan edildi; o beyanin kosulu bu eksenin
-# YASAMASIDIR. Jetonlar DAR secildi: aydinlatmanin cekirdegi (reklam cerezi + saglayici +
-# geri alma hakki). Uslup serbest, BU UC BILGI zorunlu.
+# Aydinlatmanin cekirdegi (reklam cerezi + saglayici + geri alma hakki) — Okan 19 Eki 16:1x
+# karariyla bant metni TEK PARAGRAF oldu ve bu bilgiler bantta YOK; aydinlatma BAGLANTIYLA
+# /gizlilik/ sayfasina TASINDI (kaldirilmadi). Iki yuzey ayri olculur:
+#   BANT_BEYAN_JETONLARI      -> her bant yuzeyinde: aydinlatma sayfasina baglanti.
+#   GIZLILIK_BEYAN_JETONLARI  -> gizlilik/index.html GORUNUR metninde (yorum/script/bant
+#                                HARIC): saglayicilar + geri alma hakki.
+# Metin degisikligi tools/varlik-test.py::BILEREK_DEGISEN_METIN'de beyan edildi; o beyanin
+# kosulu bu eksenin YASAMASIDIR.
 BANT_BEYAN_JETONLARI = (
-    "reklam çerezleri (Google Ads)",
-    "onayınız olmadan çalışmazlar",
+    '<a href="/gizlilik/">',
+)
+GIZLILIK_SAYFASI = "gizlilik/index.html"
+GIZLILIK_BEYAN_JETONLARI = (
+    "Google Ads",
+    "Meta Piksel",
     "geri alabilirsiniz",
 )
+_YORUM_RE = re.compile(r"<!--.*?-->", re.S)
+_SCRIPT_STYLE_RE = re.compile(r"<(script|style)\b.*?</\1>", re.S | re.I)
+# Bandin GORUNUR metni ilk <p>'sindedir (gercek bant 3 ic ice div, fikstur tek div).
+_BANT_BLOK_RE = re.compile(r'<div id="pruvo-cerez-onay"[^>]*>.*?</p>', re.S)
+
+
+def gorunur_govde(html):
+    """Aydinlatma iddiasi icin sayilan metin: yorum, script/style ve rıza BANDI disarida.
+    Bant haric tutulur: bant metni aydinlatmanin KENDISI sayilirsa sayfa govdesinden
+    dusen bir beyan banttaki ayni kelimeyle MASKELENIR."""
+    t = _YORUM_RE.sub(" ", html)
+    t = _SCRIPT_STYLE_RE.sub(" ", t)
+    t = _BANT_BLOK_RE.sub(" ", t)
+    return t
 
 
 class Olculemedi(Exception):
@@ -427,14 +449,35 @@ def degerlendir(kok):
         # Burasi metnin her bant yuzeyinde FIILEN durdugunu fail-closed olcer. Ikisi
         # birlikte: "metin degisti" serbest degil, "metin SU HALE geldi ve her yerde
         # OYLE duruyor" olculur. Bu eksen olurse orada beyan serbest gecise doner.
-        for jeton in BANT_BEYAN_JETONLARI:
-            if jeton not in metin:
-                bant_eksik.append("riza metni reklam cerezini BEYAN ETMIYOR "
-                                  "(eksik: %r)" % jeton[:48])
+        # Jeton BANT METNININ ICINDE aranir: sayfanin altbilgisindeki /gizlilik/ baglantisi
+        # bantta dusen baglantiyi MASKELEMESIN.
+        bant_metin = _BANT_BLOK_RE.search(metin)
+        if bant_metin is None:
+            bant_eksik.append("bant metin paragrafi BULUNAMADI")
+        else:
+            for jeton in BANT_BEYAN_JETONLARI:
+                if jeton not in bant_metin.group(0):
+                    bant_eksik.append("riza metni aydinlatma sayfasina BAGLANMIYOR "
+                                      "(eksik: %r)" % jeton[:48])
         if bant_eksik:
             hata_satir.append("  ❌ %s -> %s" % (rel, "; ".join(bant_eksik)))
         else:
             satir.append("  ok  %s  (grant yolu dort alani aciyor)" % rel)
+
+    # --- SINIF C2: aydinlatma sayfasi (banttan TASINAN beyan) -------------------
+    try:
+        gizlilik = gorunur_govde(_oku(kok, GIZLILIK_SAYFASI))
+    except Olculemedi as hata:
+        satir.append("OLCULEMEDI: %s" % hata)
+        return OLCULEMEDI, satir
+    giz_eksik = [j for j in GIZLILIK_BEYAN_JETONLARI if j not in gizlilik]
+    if giz_eksik:
+        hata_satir.append("  ❌ %s -> aydinlatma govdesinde EKSIK: %s"
+                          % (GIZLILIK_SAYFASI, ", ".join(repr(j) for j in giz_eksik)))
+    else:
+        satir.append("SINIF C2    %s  aydinlatma %d/%d jeton (yorum/script/bant haric)"
+                     % (GIZLILIK_SAYFASI, len(GIZLILIK_BEYAN_JETONLARI),
+                        len(GIZLILIK_BEYAN_JETONLARI)))
 
     # --- SINIF B: uretilen sayfa sablonlari ----------------------------------
     satir.append("SINIF B     yayin sayfa sablonu (turetilen): %d" % len(sablonlar))
@@ -533,8 +576,8 @@ _F_INDEX_KUYRUK = '''
 
 
 _F_BANNER = '''<div id="pruvo-cerez-onay" hidden>
-  <p>Analiz çerezleri ve reklam çerezleri (Google Ads) kullanmak istiyoruz;
-     onayınız olmadan çalışmazlar, onayınızı istediğiniz zaman geri alabilirsiniz.</p>
+  <p>Çerezler kullanıyoruz. Detaylı bilgiye <a href="/gizlilik/">Gizlilik ve Çerez
+     Politikası</a> sayfamızdan erişebilirsiniz.</p>
   <button type="button" id="pco-kabul">Kabul Et</button>
   <button type="button" id="pco-ret">Reddet</button>
 </div>
@@ -552,6 +595,13 @@ _F_BANNER = '''<div id="pruvo-cerez-onay" hidden>
 </script>'''
 
 
+# Aydinlatma sayfasi govdesi (banttan TASINAN beyan). Altbilgide AYRICA /gizlilik/ baglantisi
+# var: K17 bantta dusen baglantinin bununla MASKELENMEDIGINI olcer.
+_F_GIZLILIK_GOVDE = ('<h2>Çerezler</h2><ul><li>Reklam ölçümü: <strong>Google Ads</strong> ve '
+                     '<strong>Meta Piksel</strong>.</li><li>Onayınızı geri alabilirsiniz.</li>'
+                     '</ul><footer><a href="/gizlilik/">Gizlilik</a></footer>')
+
+
 def _fikstur_yaz(dizin, ad, icerik):
     tam = os.path.join(dizin, ad)
     os.makedirs(os.path.dirname(tam), exist_ok=True)
@@ -561,7 +611,7 @@ def _fikstur_yaz(dizin, ad, icerik):
 
 def _sentetik_agac(dizin, snippet=None, index_kuyruk=None, sablon_capa=True,
                    ekler=None, yasal_snippet=None, kardes_capa=True, kardes_ithal=True,
-                   bant=None):
+                   bant=None, gizlilik_govde=None):
     """Gercek agacin SEKLINI taklit eden mini depo (git ls-files calissin diye git init).
 
     `kardes_*`: yayin zinciri turetimini nobetler. Ayni kardes modul ITHAL EDILINCE
@@ -593,6 +643,11 @@ def _sentetik_agac(dizin, snippet=None, index_kuyruk=None, sablon_capa=True,
                  '<!DOCTYPE html>\n<html lang="tr">\n<head>\n' + yasal
                  + '\n<link rel="canonical" href="https://pruvo3d.com/sss/">\n'
                  + "</head><body>" + bant + "</body></html>")
+    govde = _F_GIZLILIK_GOVDE if gizlilik_govde is None else gizlilik_govde
+    _fikstur_yaz(dizin, "gizlilik/index.html",
+                 '<!DOCTYPE html>\n<html lang="tr">\n<head>\n' + yasal
+                 + '\n<link rel="canonical" href="https://pruvo3d.com/gizlilik/">\n'
+                 + "</head><body>" + govde + bant + "</body></html>")
     for ad, icerik in (ekler or {}).items():
         _fikstur_yaz(dizin, ad, icerik)
 
@@ -679,11 +734,19 @@ def _senaryolar():
              .replace('  var KAPSAM_ANAHTARI = "pruvo_onay_kapsam";\n', ""))),
         # K14: TASINAN IDDIA olur mu? varlik-test.py'deki gorunur-metin beyani ancak bu
         # eksen yasadigi surece "iddiayi tasir"; olurse orada beyan SERBEST GECISE doner.
-        ("K14 bant metni reklam cerezini BEYAN ETMEYI birakir", KIRMIZI,
-         dict(bant=_F_BANNER.replace("ve reklam çerezleri (Google Ads) ", ""))),
-        ("K15 bant metninden geri alma hakki dusurulur", KIRMIZI,
-         dict(bant=_F_BANNER.replace(", onayınızı istediğiniz zaman geri alabilirsiniz",
-                                     ""))),
+        # 19 Eki: aydinlatma banttan /gizlilik/ sayfasina TASINDI (Okan metni) — K14/K15
+        # ayni iddiayi yeni yuzeyde olcer; K17/K18 tasimanin MASKE deliklerini kapatir.
+        ("K14 gizlilik sayfasi reklam saglayicisini (Google Ads) BEYAN ETMEYI birakir", KIRMIZI,
+         dict(gizlilik_govde=_F_GIZLILIK_GOVDE.replace("<strong>Google Ads</strong> ve ", ""))),
+        ("K15 gizlilik sayfasindan geri alma hakki dusurulur", KIRMIZI,
+         dict(gizlilik_govde=_F_GIZLILIK_GOVDE.replace(
+             "<li>Onayınızı geri alabilirsiniz.</li>", ""))),
+        ("K17 bant /gizlilik/ baglantisini dusurur (altbilgi baglantisi MASKELEMEZ)", KIRMIZI,
+         dict(bant=_F_BANNER.replace('<a href="/gizlilik/">Gizlilik ve Çerez\n     Politikası</a>',
+                                     "Gizlilik ve Çerez Politikası"))),
+        ("K18 Meta Piksel yalniz HTML yorumunda kalir (gorunur govdede yok)", KIRMIZI,
+         dict(gizlilik_govde=_F_GIZLILIK_GOVDE.replace(
+             "<strong>Meta Piksel</strong>", "<!-- Meta Piksel -->"))),
         # K16: Ads donusum etiketi (f) ekseni — GA etiketi yerinde dururken bu satirin
         # dusmesi SESSIZDIR: sitede hicbir sey bozulmaz, yalniz Ads paneli "hatali
         # yapilandirilmis" der ve reklam butcesi yanlis okunur.
