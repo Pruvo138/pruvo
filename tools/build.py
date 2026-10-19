@@ -758,10 +758,9 @@ GA_BANNER_SNIPPET = """<!-- KVKK çerez onay banner'ı (vanilla JS/CSS — haric
 </style>
 <div id="pruvo-cerez-onay" role="dialog" aria-label="Çerez onayı" hidden>
   <div class="pco-inner">
-    <p>Trafiği anlamak için analiz çerezleri (Google Analytics), reklamlarımızın ölçümü ve
-       kişiselleştirilmesi için reklam çerezleri (Google Ads) kullanmak istiyoruz. İkisi de
-       isteğe bağlıdır; onayınız olmadan çalışmazlar. Onayınızı istediğiniz zaman
-       <a href="/gizlilik/">Gizlilik Politikası</a> sayfasından geri alabilirsiniz.</p>
+    <p>Alışveriş deneyiminizi iyileştirmek için yasal düzenlemelere uygun çerezler (cookies)
+       kullanıyoruz. Detaylı bilgiye <a href="/gizlilik/">Gizlilik ve Çerez Politikası</a>
+       sayfamızdan erişebilirsiniz.</p>
     <div class="pco-btns">
       <button type="button" class="pco-ret" id="pco-ret">Reddet</button>
       <button type="button" class="pco-kabul" id="pco-kabul">Kabul Et</button>
