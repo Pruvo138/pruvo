@@ -18,17 +18,20 @@ KAPSAM:
                      bir id verilir; üretici mevcut sabit şablonu kullanmalı
   • V7 gerçek küme  → gerçek 560 ürünün TAMAMI ≤60 (başlık) ve ≤160 (meta) — N/N
   • V8 yasak sonek   → "3D baskı"/"Özel Tasarım"/"Özel Üretim" sonekte 0
+  • V13 apostrof     → ≤60 GÖRÜNÜR uzunluk (html.unescape); kaçış (`&#x27;`) +5 sayılmaz
 
 MUTANT (--mutant-yok ile atlanır):
   • M1 parça list. Dekorasyon eklenirse → V2 KIRMIZI
   • M2 kesim karakter bazlı yapılırsa → V3 KIRMIZI
   • M3 küme kontrolü kaldırılırsa      → V6 KIRMIZI
+  • M5 ad kesimi kaldırılırsa          → V13 KIRMIZI
 
 🔴 FAIL-CLOSED: rc=0 SADECE TÜM vakalarda geçer. Çıktı:
     VAKA=<geçen>/<toplam>     MUTANT_OLDU=<kırmızı>/<toplam>
 V7 satırında sayı basılır: V7_DALGA1_BASLIK_OK=<n>/560  V7_DALGA1_META_OK=<n>/560.
 """
 
+import html
 import json
 import os
 import re
@@ -63,6 +66,10 @@ SENTETIK = [
     _p("kamera-v10", "Kamera", "Lens Kapagi"),               # V10: " | PRUVO Yedek Parça"
     _p("oto-v10", "Otomobil", "Vites Topuzu"),               # V10: " | PRUVO Yedek Parça"
     _p("disi-v1", "Bahçe", "Sukulent Saksısı"),              # KÜME DIŞI id
+    # V13: apostroflu gerçek ad (aya-park-etmis-ufo-figuru, 19 Eki SERİT B V7 kırmızısı)
+    _p("figur-v13", "Figür",
+       "Ay'a Park Etmiş UFO Figürü — Kraterli Ay Üzerinde Uçan Daire Heykeli "
+       "(6-25 cm Boyut Seçenekli)"),
 ]
 SENTETIK_BY_ID = {p["id"]: p for p in SENTETIK}
 
@@ -70,7 +77,7 @@ SENTETIK_BY_ID = {p["id"]: p for p in SENTETIK}
 # V6 "küme dışı" testi 'disi-v1'i DALGA1'den çıkarıp yoklar.
 _TEST_DALGA1 = frozenset({"oto-v1", "oto-v3", "oto-v4", "oto-v5",
                           "dekor-v2", "ofis-v2", "oyun-v2",
-                          "elek-v10", "kamera-v10", "oto-v10"})
+                          "elek-v10", "kamera-v10", "oto-v10", "figur-v13"})
 _ORJ_DALGA1 = build.DALGA1_IDLER
 build.DALGA1_IDLER = _TEST_DALGA1  # test sentetik id'leri dalga-1 olarak görsün
 
@@ -83,6 +90,13 @@ def _ensure_sabit_kategori_kumesi_temiz():
 # -------- vaka değerlendirme -------------------------------------------------
 def _vaka(gecti, aciklama=""):
     return (gecti, aciklama)
+
+
+def _gorunur_uzunluk(title):
+    """≤60 sınırı GÖRÜNEN başlık içindir (Google/tarayıcı `&#x27;`'yi `'` sayar).
+    build.esc() kaçışlı dizgeyi döndürür; ham `len` apostroflu adı +5 şişirir
+    (19 Eki: `Ay'a Park…` görünür 57, kaçışlı 62 → V7 SAHTE kırmızı)."""
+    return len(html.unescape(title))
 
 
 def _baslik_ogtitle_meta(pid, kategori, baslik, aciklama=""):
@@ -101,7 +115,7 @@ def v1_parca_kategori():
     title = r[0]
     if not title.endswith(" | PRUVO Yedek Parça"):
         return _vaka(False, f"sonek yanlış: {title!r}")
-    if len(title) > 60:
+    if _gorunur_uzunluk(title) > 60:
         return _vaka(False, f"başlık >60: {len(title)}")
     return _vaka(True, f"len={len(title)}")
 
@@ -119,7 +133,7 @@ def v2_diger_kategori():
             return _vaka(False, f"{pid}: sonek yanlış: {title!r}")
         if "Yedek Parça" in title:
             return _vaka(False, f"{pid}: parça sonek parça-dışı kategoriye sızmış: {title!r}")
-        if len(title) > 60:
+        if _gorunur_uzunluk(title) > 60:
             return _vaka(False, f"{pid}: başlık >60: {len(title)}")
     return _vaka(True, "Dekorasyon/Ofis/Oyun-Hobi = '| PRUVO'")
 
@@ -130,7 +144,7 @@ def v3_uzun_ad_kelime_sinirinda():
     if r is None:
         return _vaka(False, "dalga-1 dışı")
     title = r[0]
-    if len(title) > 60:
+    if _gorunur_uzunluk(title) > 60:
         return _vaka(False, f"başlık >60: {len(title)}: {title!r}")
     # Son boşluktan ÖNCE gelen kr: eğer kesim karakter ortasında yapıldıysa sondaki
     # kr ' ' DEĞİL, harf olur ve sonek 'PRUVO Yedek Parça' öncesinde bitiş boşluğu olur.
@@ -197,7 +211,7 @@ def v6_kume_disi_bayt_ayni():
     beklenen = b"Sukulent Saks\xc4\xb1s\xc4\xb1 \xe2\x80\x94 PRUVO \xc3\x96zel Tasar\xc4\xb1m Yedek Par\xc3\xa7a"
     if title_tag.encode("utf-8") != beklenen:
         return _vaka(False, f"şablon bayt-aynı değil: {title_tag!r}")
-    if len(title_tag) > 60:
+    if _gorunur_uzunluk(title_tag) > 60:
         return _vaka(False, f"mevcut şablon >60: {len(title_tag)}")
     return _vaka(True, f"küme dışı = None → eski şablon bayt-aynı")
 
@@ -237,8 +251,8 @@ def v7_gercek_dalga1_kumesi():
                 eksik_id.append(pid)
                 continue
             title, _, meta = r
-            if len(title) > 60:
-                baslik_asim.append((pid, len(title)))
+            if _gorunur_uzunluk(title) > 60:
+                baslik_asim.append((pid, _gorunur_uzunluk(title)))
             if len(meta) > 160:
                 meta_asim.append((pid, len(meta)))
         if eksik_id:
@@ -384,7 +398,7 @@ def v12_elektronik_sonek_diger_parca_ayni():
         return _vaka(False, f"Elektronik sonek yanlış: {title_e!r} (beklenen ' | PRUVO')")
     if "Yedek Parça" in title_e:
         return _vaka(False, f"Yedek Parça Elektronik'e sızdı: {title_e!r}")
-    if len(title_e) > 60:
+    if _gorunur_uzunluk(title_e) > 60:
         return _vaka(False, f"Elektronik başlık >60: {len(title_e)}: {title_e!r}")
     # 2) Kamera — parça sonek
     r_k = _baslik_ogtitle_meta("kamera-v10", "Kamera",
@@ -394,7 +408,7 @@ def v12_elektronik_sonek_diger_parca_ayni():
     title_k = r_k[0]
     if not title_k.endswith(" | PRUVO Yedek Parça"):
         return _vaka(False, f"Kamera sonek yanlış: {title_k!r} (beklenen ' | PRUVO Yedek Parça')")
-    if len(title_k) > 60:
+    if _gorunur_uzunluk(title_k) > 60:
         return _vaka(False, f"Kamera başlık >60: {len(title_k)}: {title_k!r}")
     # 3) Otomobil — parça sonek (regresyon: parça kategorisi değişmedi)
     r_o = _baslik_ogtitle_meta("oto-v10", "Otomobil",
@@ -404,10 +418,30 @@ def v12_elektronik_sonek_diger_parca_ayni():
     title_o = r_o[0]
     if not title_o.endswith(" | PRUVO Yedek Parça"):
         return _vaka(False, f"Otomobil sonek yanlış: {title_o!r} (beklenen ' | PRUVO Yedek Parça')")
-    if len(title_o) > 60:
+    if _gorunur_uzunluk(title_o) > 60:
         return _vaka(False, f"Otomobil başlık >60: {len(title_o)}: {title_o!r}")
     return _vaka(True,
                  f"Elektronik='{title_e!r}'  Kamera='{title_k!r}'  Otomobil='{title_o!r}'")
+
+
+def v13_apostrof_gorunur_uzunluk():
+    """Apostroflu ad: görünür başlık ≤60, ad kelime sınırında, kaçış bozulmamış.
+    Vaka AYRIMCI olmalı: kaçışlı uzunluk >60 değilse bu vaka ölçüm farkını sınamıyor."""
+    p = SENTETIK_BY_ID["figur-v13"]
+    r = _baslik_ogtitle_meta(p["id"], p["kategori"], p["baslik"])
+    if r is None:
+        return _vaka(False, "dalga-1 dışı")
+    title = r[0]
+    gorunur = html.unescape(title)
+    if _gorunur_uzunluk(title) > 60:
+        return _vaka(False, f"görünür başlık >60: {len(gorunur)}: {gorunur!r}")
+    if len(title) <= 60:
+        return _vaka(False, f"vaka ayrımcı değil: kaçışlı uzunluk {len(title)} ≤60")
+    if not gorunur.startswith("Ay'a Park Etmiş UFO") or not gorunur.endswith(" | PRUVO"):
+        return _vaka(False, f"ad/sonek beklenen değil: {gorunur!r}")
+    if "(" in gorunur:
+        return _vaka(False, f"parantez düşmedi: {gorunur!r}")
+    return _vaka(True, f"görünür={len(gorunur)} kaçışlı={len(title)}: {gorunur!r}")
 
 
 # -------- mutant'lar -----------------------------------------------------------
@@ -510,6 +544,19 @@ def mutant_render_title_ezildi():
                  f"mutant yakalandı: override ile title={title_mutant!r} → V9 kırmızı olur")
 
 
+def mutant_kesim_kaldirildi():
+    """M5 — ad kesimi kaldırılırsa (görünür ölçüme geçiş sınırı GEVŞETMEDİ) V13 KIRMIZI olmalı."""
+    orj = build._ad_kelime_kisalt
+    build._ad_kelime_kisalt = lambda ad, maks: ad
+    try:
+        gecti, aciklama = v13_apostrof_gorunur_uzunluk()
+        if gecti:
+            return _vaka(False, f"mutant etkisiz: V13 yine yeşil: {aciklama}")
+        return _vaka(True, f"mutant yakalandı: V13 kırmızı ({aciklama[:60]})")
+    finally:
+        build._ad_kelime_kisalt = orj
+
+
 # -------- ana akış ------------------------------------------------------------
 VAKALAR = [
     ("V1_parca_kategori", v1_parca_kategori),
@@ -524,12 +571,14 @@ VAKALAR = [
     ("V10_render_disi_eski_sablon_bayt_ayni", v10_render_disi_eski_sablon_bayt_ayni),
     ("V11_dalga1_turet_fallback_donmus", v11_dalga1_turet_fallback_donmus),
     ("V12_elektronik_sonek_diger_parca_ayni", v12_elektronik_sonek_diger_parca_ayni),
+    ("V13_apostrof_gorunur_uzunluk", v13_apostrof_gorunur_uzunluk),
 ]
 MUTANTLAR = [
     ("M1_parca_listesi_degisti", mutant_liste_degisti),
     ("M2_karakter_bazli_kesim", mutant_karakter_bazli_kesim),
     ("M3_kume_kontrolu_kaldirildi", mutant_kume_kontrolu_kaldirildi),
     ("M4_render_title_ezildi", mutant_render_title_ezildi),
+    ("M5_kesim_kaldirildi", mutant_kesim_kaldirildi),
 ]
 
 
