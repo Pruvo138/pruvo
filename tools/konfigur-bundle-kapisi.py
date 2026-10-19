@@ -466,20 +466,39 @@ def kendini_test():
             ham.append("    ❌ CLI cikis kodlari beklenenle uyusmuyor")
 
     # ---- (D) FAIL-CLOSED: bozuk sema uretimi REDDETMELI (yarim artefakt ship edilmesin).
+    # 🔴 19 Eki 2026 (SERIT B 39172988689 KIRMIZI): fikstur eskiden "ilk konfigurlu urun" idi;
+    # katalog basina dogrusal Figur/Fidget (hacim OPSIYONEL) eklenince "hacim silinmis" vakasi
+    # gecerli kaydi bozdu sanip SAHTE kirmizi yakti. Her vaka artik kendi SINIFINDAN secer;
+    # sinifta urun yoksa vaka KIRMIZI (fikstursuz "yesil" yok).
+    def _hacim_modu(k):
+        return "hacim" in k and k.get("fiyatModu") != "dogrusal"
+
+    def _hacimsiz_dogrusal(k):
+        return k.get("fiyatModu") == "dogrusal" and "hacim" not in k
+
+    def _her(k):
+        return True
     bozuk_vaka = [
-        ("hacim alani silinmis", lambda k: k.pop("hacim", None)),
-        ("fiyatCapalari tek capaya inmis", lambda k: k.__setitem__("fiyatCapalari", [[60, 500]])),
-        ("malzeme katsayisi 0", lambda k: k.__setitem__("malzemeler", [{"ad": "PLA", "katsayi": 0}])),
-        ("boyutMm.max metin olmus", lambda k: k["boyutMm"].__setitem__("max", "300")),
-        ("fiyatModu bilinmeyen", lambda k: k.__setitem__("fiyatModu", "dogrusal-x")),
+        ("hacim alani silinmis (hacim modu)", _hacim_modu, lambda k: k.pop("hacim", None)),
+        ("fiyatModu silinmis (hacimsiz dogrusal -> hacim moduna duser, hacim yok)",
+         _hacimsiz_dogrusal, lambda k: k.pop("fiyatModu", None)),
+        ("fiyatCapalari tek capaya inmis", _her,
+         lambda k: k.__setitem__("fiyatCapalari", [[60, 500]])),
+        ("malzeme katsayisi 0", _her,
+         lambda k: k.__setitem__("malzemeler", [{"ad": "PLA", "katsayi": 0}])),
+        ("boyutMm.max metin olmus", _her, lambda k: k["boyutMm"].__setitem__("max", "300")),
+        ("fiyatModu bilinmeyen", _her, lambda k: k.__setitem__("fiyatModu", "dogrusal-x")),
     ]
     reddedilmeyen = 0
-    for ad, boz in bozuk_vaka:
+    for ad, sart, boz in bozuk_vaka:
         s = kopya()
-        for u in s:
-            if isinstance(u, dict) and u.get("konfigur"):
-                boz(u["konfigur"])
-                break
+        hedef = next((u for u in s if isinstance(u, dict) and isinstance(u.get("konfigur"), dict)
+                      and sart(u["konfigur"])), None)
+        if hedef is None:
+            kirmizi += 1
+            ham.append("    ❌ FIKSTUR YOK: katalogda bu sinifta konfigurlu urun yok — " + ad)
+            continue
+        boz(hedef["konfigur"])
         try:
             turet(s)
             reddedilmeyen += 1
