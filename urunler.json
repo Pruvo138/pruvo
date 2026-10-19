@@ -1,5 +1,241 @@
 [
   {
+    "id": "fener-baligi-iskeleti-duvar-trofesi",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Fener Balığı İskeleti Duvar Trofesi — Plakalı Derin Deniz Balığı Dekoru (6-25 cm Boyut Seçenekli)",
+    "aciklama": "İskelet formunda derin deniz fener balığını arka plaka üzerinde sergileyen, duvara asılan bir trofe. Balığın ince kemik detayları ve plakanın çerçeve hatları, klasik bir av trofesi görünümünü gotik bir dokunuşla birleştiriyor.\n- Salon, çalışma odası ya da deniz temalı bir köşe için dikkat çekici bir duvar dekoru; balıkçılık ve gotik tema sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz boyutu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3danglerfish-skeleton-trophy-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3danglerfish-skeleton-trophy-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3danglerfish-skeleton-trophy-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Boyut"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "alev-hukumdari-fantastik-ates-tac",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "baslik": "Alev Hükümdarı Fantastik Ateş Tacı — Alev Biçimli Kostüm Tacı (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Sert bir taç tabanı üzerinde yontulmuş alev geometrisi taşıyan, ışığı ve renk geçişlerini özellikle iyi yakalayan fantastik bir ateş tacı. Alev uçları kıvrılarak yükselen bir ateş görünümü verir.\n- Kostüm, cosplay, fotoğraf çekimi ya da sergi için; fantastik ve rol yapma oyunu sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz çapı kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dfantasy-fire-crown-monarch-of-flame-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dfantasy-fire-crown-monarch-of-flame-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dfantasy-fire-crown-monarch-of-flame-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Çap"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "seytan-gargoyle-kapi-tokmagi",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Şeytan Gargoyle Kapı Tokmağı — Ağzında Dönen Halkalı Gotik Kapı Dekoru (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Ağzındaki halkayı tutan bir şeytan gargoyle başı biçiminde gotik bir kapı tokmağı. Halka hareketlidir; döndürülerek ya da çekilerek kullanılabilir.\n- Giriş kapısı, oyun odası ya da cadılar bayramı dekoru için karakterli bir aksesuar; gotik tema sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3ddevil-door-knocker-no-assembly-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3ddevil-door-knocker-no-assembly-2.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "kan-portali-duvar-mumlugu-ve-askisi",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Kan Portalı Duvar Mumluğu ve Askısı — Alev Sunan Lanetli El Dekoru (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Sıradan bir duvar lambası değil: eski, unutulmuş bir şeyin ölümlülerin kapısına bıraktığı bir hediye. Gölgelerden uzanan, alev sunan lanetli bir el. Mum ya da alevsiz LED ışık taşır; aynı zamanda kulaklık gibi küçük eşyaları asmak için askı olarak da kullanılabilir.\n- Salon, çalışma odası ya da cadılar bayramı köşesi için gotik duvar dekoru; fantastik ve gotik tema sevenlere hediye olarak uygun. Gerçek mum yerine alevsiz LED önerilir.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz boyutu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dblood-portal-wall-mounted-candle-holder-hanger-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dblood-portal-wall-mounted-candle-holder-hanger-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dblood-portal-wall-mounted-candle-holder-hanger-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dblood-portal-wall-mounted-candle-holder-hanger-4.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Boyut"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
     "id": "ates-ejderhasi-duvar-basi-heykeli",
     "kategori": "Dekorasyon",
     "marka": [],
