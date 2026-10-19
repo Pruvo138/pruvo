@@ -1,5 +1,238 @@
 [
   {
+    "id": "tas-cerceveli-prizma-minyatur-sergi-standi",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Taş Çerçeveli Prizma Standı — Küçük Obje Sergileme ve Zar Tutucu (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Basit ama tuhaf bir kırık üçgen prizma: önemli bir şeyi taşımak için yapılmış eski bir kalıntı gibi. Mistik bir sergi standı, zar tutucu ya da küçük bir led diskle birlikte minimal bir fantastik lamba olarak kullanılabilir. Çatlak taş görünümü, unutulmuş bir tapınaktan çıkmış gibi eskimiş, gizemli bir hava veriyor.\n- Masa, raf ya da oyun masası için küçük objeleri sergilemek isteyenlere; fantastik oyun ve koleksiyon meraklılarına hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dstoneframe-prism-miniature-display-stand-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dstoneframe-prism-miniature-display-stand-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dstoneframe-prism-miniature-display-stand-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "gizemli-alev-lambasi-fantastik-led-isik",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Gizemli Alev Lambası — Alev Biçimli Fantastik Led Işık Dekoru (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Standart bir led disk ışıkla birlikte kullanılan, iki parçalı modüler fantastik bir lamba. Alev biçimli kalıntı, ışık altında sihirli bir parıltı yayar.\n- Masa, raf ya da oyun odası için fantastik ve mistik bir ışık dekoru; fantastik tema ve koleksiyon sevenlere hediye olarak uygun. Led disk ışık ürüne dahil değildir.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3darcane-flame-lamp-printable-led-fantasy-light-1.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "biyomekanik-korku-duvar-rafi-sergi-askisi",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Biyomekanik Korku Duvar Rafı — Organik Makine Hatlı Sergi Askısı (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Biyomekanik korkunun grotesk güzelliğini odanıza taşıyan, duvara asılan bir raf. Organik ve mekanik hatları iç içe geçmiş karanlık bir sergi rafıdır; heykelcikler, küçük figürler ve maskeler için sahne olur.\n- Salon, çalışma odası ya da koleksiyon köşesi için karakterli bir sergi rafı; korku ve bilim kurgu koleksiyonerlerine hediye olarak uygun. Yalnız hafif objeler için.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz genişliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dxl-biohorror-wall-shelf-giger-inspired-display-mount-full-mini-versions-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dxl-biohorror-wall-shelf-giger-inspired-display-mount-full-mini-versions-2.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Genişlik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "yarim-yuz-kafatasi-maskesi-sessizlikte-dovulmus",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "baslik": "Yarım Yüz Kafatası Maskesi — Sessizlikte Dövülmüş Kostüm Maskesi (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Cosplay, kostüm ve sergi için tasarlanmış, yüzün alt yarısını kaplayan bir kafatası maskesi. Keskin dişleri ve dövülmüş görünümüyle karanlık bir kostüm aksesuarı ya da duvar objesi olarak kullanılır.\n- Kostüm, cosplay, cadılar bayramı ya da vitrin için; fantastik ve korku temasını sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3ddeadmoon-mask-forged-in-silence-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3ddeadmoon-mask-forged-in-silence-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3ddeadmoon-mask-forged-in-silence-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
     "id": "buyulu-mana-iksiri-sisesi",
     "kategori": "Dekorasyon",
     "marka": [],
