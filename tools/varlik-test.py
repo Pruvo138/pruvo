@@ -1497,8 +1497,18 @@ EKSENLER = (
 )
 
 
+def _referanstan_yeni_sema(p):
+    """Kiyas referansindan (eski uretici) SONRA dogan sema: konfigur.fiyatModu (dogrusal
+    Figur/Fidget, 18 Eki). Eski build.py bu alani bilmez ve konfigur_dogrula'da DUSER ->
+    ornek bu urunu secerse olcum OLCULEMEDI olur. Bu urunler kiyas ORNEGINE girmez (varlik
+    tasimasiyla ilgisizler; para/sayfa ekseni tools/konfigur-test.py (f)'de olculur)."""
+    k = p.get("konfigur")
+    return isinstance(k, dict) and "fiyatModu" in k
+
+
 def ornek_sec(urunler, hedef):
     secim, gorulen = [], set()
+    urunler = [p for p in urunler if not _referanstan_yeni_sema(p)]
     for ad, kosul in EKSENLER:
         for p in urunler:
             if p["id"] in gorulen:

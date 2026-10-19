@@ -486,11 +486,17 @@ def main():
         # Eskiden duz `random.sample(urunler, 20)` idi ve katalogtaki 806 fiziksel urun yuzunden
         # her kosumda ~%63 olasilikla anlamsiz kirmizi yaniyordu (olculdu).
         havuz = [u for u in urunler if baski_urunu_mu(u)]
+        # 🔴 19 Eki (SERIT B 39162510914 TEST 7/9 KIRMIZI): katalog basina konfigurlu
+        # Figur/Fidget eklendi; o sayfalarda kart-secim ve cip balonu BILEREK yok
+        # (kartlar_gizli, cipler `_konfigur_malzeme_html`den — TEST 28 + TEST 2 olcer).
+        # TEST 7/9 iddialari STANDART urun sayfasina aittir -> konfigurlu urun fikstur DISI.
         try:
-            ornek_urun = fikstur_sec(urunler, lambda u: not u.get("parametrik"),
-                                     "ornek urun sayfasi")
+            ornek_urun = fikstur_sec(
+                urunler, lambda u: not u.get("parametrik") and not u.get("konfigur"),
+                "ornek urun sayfasi")
             fonk_urun = fikstur_sec(
-                urunler, lambda u: u.get("kategori") in FONK and not u.get("parametrik"),
+                urunler, lambda u: u.get("kategori") in FONK and not u.get("parametrik")
+                and not u.get("konfigur"),
                 "fonksiyonel kart-secim sayfasi")
             par_u = fikstur_sec(urunler, lambda u: bool(u.get("parametrik")),
                                 "parametrik (sari) sayfa")

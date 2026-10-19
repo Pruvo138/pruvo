@@ -102,6 +102,8 @@
     "Dekorasyon": [{"ad": "PLA"}],
     "Skan Art": [{"ad": "PLA"}],
     "Oyun/Hobi": [{"ad": "PLA"}],
+    "Figür": [{"ad": "PLA"}],
+    "Fidget": [{"ad": "PLA"}],
     "Elektronik": [{"ad": "ABS"}, {"ad": "ASA", "not": "Isınan ortamda"}],
     "Kamera": [{"ad": "ABS"}, {"ad": "ASA", "not": "Isınan ortamda"}],
     "Tamirat": [{"ad": "ABS"}]
