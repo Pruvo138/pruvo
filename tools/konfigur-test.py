@@ -973,6 +973,15 @@ KATSAYI = {m["ad"]: m["katsayi"] for m in MALZEMELER}
 # indirilmez -> refHacimCm3 ÖLÇÜLEMEZ; uydurma değer yazılmaz. Doğrusal modda hacim opsiyonel.
 FIGUR_KONFIGUR_HACIMSIZ = {a: v for a, v in FIGUR_KONFIGUR.items() if a != "hacim"}
 KURT_KONFIGUR_HACIMSIZ = {a: v for a, v in KURT_KONFIGUR.items() if a != "hacim"}
+# TEK BOY (19 Eki 2026, BaBa 01:1x — değişiklik izni olmayan "ND" tasarım): boyutMm min = max =
+# doğal boy, iki çapa BİREBİR aynı [doğal boy, doğal cm × 100 TL]. Eski çekirdek (v2-v1)=0'a
+# bölüp NaN üretiyordu. Okan sayısı: 12 cm PLA = 1.200 TL (formülden türetilmez).
+TEK_KONFIGUR = dict(FIGUR_KONFIGUR_HACIMSIZ,
+                    boyutMm={"min": 120, "max": 120, "adim": 10, "varsayilan": 120,
+                             "etiket": "Yükseklik"},
+                    fiyatCapalari=[[120, 1200], [120, 1200]], gorselOrnek=True)
+TEK_KONFIGUR_CELISKI = dict(TEK_KONFIGUR, fiyatCapalari=[[120, 1200], [120, 1300]])
+TEK_PLA_KURUS = 120000
 
 # Her vaka try/catch'te: istisna "THROW", NaN/Infinity "NaN" döner (JSON.stringify NaN'ı null'a
 # çevirip fail-closed null'u TAKLİT etmesin — mutant sessizce sağ kalmasın).
@@ -1017,6 +1026,10 @@ DOGRUSAL_MUTANTLAR = [
      "if (v1 === null || v2 === null) { return null; }", ""),
     ("M8 hacim ekseni null'u sayıya çeviriyor (0 hacim)",
      "return v === null ? null : v / 1000;", "return v / 1000;"),
+    ("M9 tek boy korkuluğu yok ((v2-v1)=0 bölümü NaN)",
+     "    if (c[0][0] === c[1][0]) {\n", "    if (false) {\n"),
+    ("M10 tek boyda çelişkili çapa fiyat üretiyor (fail-open)",
+     "if (c[0][1] !== c[1][1]) { return null; }", ""),
 ]
 
 
@@ -1083,6 +1096,11 @@ def _dogrusal_js_iddialari(node, konfigur_js):
     etiket.append(("hmm3-h0", 150, "-"))
     vakalar.append({"k": KURT_KONFIGUR_HACIMSIZ, "boy": kb["min"], "kat": None})
     etiket.append(("hacim-h0", kb["min"], "PLA"))
+    for ad, kat in KATSAYI.items():
+        vakalar.append({"k": TEK_KONFIGUR, "boy": 120, "kat": kat})
+        etiket.append(("tek", 120, ad))
+    vakalar.append({"k": TEK_KONFIGUR_CELISKI, "boy": 120, "kat": 1.0})
+    etiket.append(("tek-celiski", 120, "PLA"))
     for b in range(kb["min"], kb["max"] + 1, kb["adim"]):
         vakalar.append({"k": KURT_KONFIGUR, "boy": b, "kat": None})
         etiket.append(("hacim-yok", b, "PLA"))
@@ -1122,6 +1140,15 @@ def _dogrusal_js_iddialari(node, konfigur_js):
     if t[("hacim-yok", kb["max"], "PLA")] != TAVAN_KR:
         ihlal.append("hacim modunda 3× tavan binmiyor (max boy %r != %d)"
                      % (t[("hacim-yok", kb["max"], "PLA")], TAVAN_KR))
+    if t[("tek", 120, "PLA")] != TEK_PLA_KURUS:
+        ihlal.append("tek boy 12 cm PLA: %r != %d" % (t[("tek", 120, "PLA")], TEK_PLA_KURUS))
+    for ad, kat in KATSAYI.items():
+        bek = int(math.floor(1200 * kat + 0.5)) * 100
+        if t[("tek", 120, ad)] != bek:
+            ihlal.append("tek boy 12 cm %s: %r != %d" % (ad, t[("tek", 120, ad)], bek))
+    if t[("tek-celiski", 120, "PLA")] is not None:
+        ihlal.append("tek boyda çelişkili çapa fiyat üretti (%r) — fail-open"
+                     % t[("tek-celiski", 120, "PLA")])
     return ihlal, t
 
 
@@ -1331,6 +1358,55 @@ def test_dogrusal():
             kontrol(len(vakalar) > 0 and sapan == 0,
                     "HACİM MODUNDA DEĞİŞİM 0: %d fikstür, %d kombinasyon, sapan %d "
                     "(referans %s)" % (len(konfler), len(vakalar), sapan, ref))
+
+    # TEK BOY (19 Eki 2026): build.py ikizi + Worker + şema + sayfa (kaydırıcı donar).
+    py_tek = [ad for ad, kat in KATSAYI.items()
+              if build.konfigur_fiyat_kurus(TEK_KONFIGUR, 120, kat) != t[("tek", 120, ad)]]
+    kontrol(not py_tek, "build.py tek boy == /konfigur.js (12 cm × 3 malzeme; sapan %s)" % py_tek)
+    try:
+        build.konfigur_fiyat_kurus(TEK_KONFIGUR_CELISKI, 120)
+        kontrol(False, "build.py tek boyda çelişkili çapada fiyat ÜRETMEMELİ (sessiz üretti)")
+    except ValueError:
+        kontrol(True, "build.py tek boyda çelişkili çapada fiyat üretmez (ValueError)")
+    tw, tw_hata = _worker_sonuc(node, [{"k": TEK_KONFIGUR, "boy": 250, "m": "PETG"},
+                                       {"k": TEK_KONFIGUR_CELISKI, "boy": 120, "m": "PLA"}])
+    kontrol(tw is not None, "Worker tek boy koşumu başarılı (%s)" % (tw_hata or "-"))
+    if tw is not None:
+        kontrol(tw[0].get("birimKurus") == t[("tek", 120, "PETG")] and
+                tw[0].get("parametreler") == {"boy_mm": 120},
+                "Worker tek boyda istemcinin 250 mm'sini 120'ye kırpar, fiyat = site (PETG): %r"
+                % tw[0])
+        kontrol(tw[1].get("hata") == "konfigur-fiyat-yok",
+                "Worker tek boyda çelişkili çapayı REDDEDER (konfigur-fiyat-yok): %r" % tw[1])
+    pt = urun(TEK_KONFIGUR, id="test-tek-boy", kategori="Figür", fiyat="1200 TL")
+    kontrol(build.konfigur_dogrula(pt) == [],
+            "konfigur_dogrula tek boy şemasını kabul eder: %r" % build.konfigur_dogrula(pt))
+    hc = build.konfigur_dogrula(urun(TEK_KONFIGUR_CELISKI, fiyat="1200 TL"))
+    kontrol(any("tek boyda" in h for h in hc),
+            "konfigur_dogrula tek boyda farklı çapaları reddeder: %r" % hc)
+    hv = build.konfigur_dogrula(urun(dict(TEK_KONFIGUR, boyutMm=dict(TEK_KONFIGUR["boyutMm"],
+                                                                    varsayilan=110)),
+                                     fiyat="1200 TL"))
+    kontrol(any("tek boy" in h for h in hv),
+            "konfigur_dogrula tek boyda varsayilan != min'i reddeder: %r" % hv)
+    hd = build.konfigur_dogrula(urun(dict(FIGUR_KONFIGUR, fiyatCapalari=[[60, 600], [60, 600]]),
+                                     fiyat="600 TL"))
+    kontrol(any("artan" in h for h in hd),
+            "konfigur_dogrula ARALIKLI üründe eşit çapaları hâlâ reddeder: %r" % hd)
+    kontrol(kbk._sema_dogrula("t", TEK_KONFIGUR) == "",
+            "bundle kapısı tek boy şemasını kabul eder: %r" % kbk._sema_dogrula("t", TEK_KONFIGUR))
+    html_t = build.render_product(pt, [pt])
+    boy_blok = re.search(r'id="konfigurBoy"[^>]*>', html_t)
+    kay_blok = re.search(r'id="konfigurKaydirici"[^>]*>', html_t)
+    kontrol(bool(boy_blok and kay_blok) and " disabled" in boy_blok.group(0) and
+            " disabled" in kay_blok.group(0),
+            "tek boy sayfasında sayı kutusu ve kaydırıcı DONUK (disabled)")
+    kontrol("tek boyda üretilir" in html_t and "arasında ayarlanabilir" not in html_t,
+            "tek boy sayfası aralık değil tek boy beyanı basar")
+    kontrol(('id="opsiyonFiyat">%s<' % build.taban_fiyat_metni(1200.0)) in html_t,
+            "tek boy sayfasında JS öncesi fiyat = 12 cm PLA (%s)" % build.taban_fiyat_metni(1200.0))
+    kontrol(" disabled" not in (re.search(r'id="konfigurKaydirici"[^>]*>', html).group(0)),
+            "aralıklı doğrusal sayfanın kaydırıcısı donuk DEĞİL (değişim yok)")
 
     # Mutantlar: her biri en az bir iddiayı KIRMIZI yakmalı; değişmemiş kopya (kontrol) yeşil.
     with open(gercek, encoding="utf-8") as f:

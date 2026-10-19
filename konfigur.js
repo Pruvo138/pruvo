@@ -70,6 +70,14 @@
     var v1 = fiyatEkseni(konfigur, mod, c[0][0]);
     var v2 = fiyatEkseni(konfigur, mod, c[1][0]);
     if (v1 === null || v2 === null) { return null; }   // FAIL-CLOSED (Worker reddeder)
+    // TEK BOY (19 Eki 2026, değişiklik izni olmayan tasarım): iki çapa AYNI boyda -> eğri
+    // yok, fiyat çapanın kendisi (boyDuzelt zaten min=max'a kırpar). Çapa fiyatları farklıysa
+    // şema çelişkili -> FAIL-CLOSED (null; (v2-v1)=0 bölümü NaN'a da düşmez). Koşul BOYDA
+    // (eksen değerinde DEĞİL): eksen null/0'a kayarsa bu kol üstteki korkulukları MASKELERDİ.
+    if (c[0][0] === c[1][0]) {
+      if (c[0][1] !== c[1][1]) { return null; }
+      return { birim: 0, sabit: c[0][1], mod: mod };
+    }
     var birim = (c[1][1] - c[0][1]) / (v2 - v1);
     return { birim: birim, sabit: c[0][1] - birim * v1, mod: mod };
   }
