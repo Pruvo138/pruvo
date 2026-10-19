@@ -1962,9 +1962,9 @@
     "id": "vampir-kafatasi-kitap-arasi-dekoru",
     "kategori": "Dekorasyon",
     "marka": [],
-    "baslik": "Vampir Kafatası Kitap Arası Dekoru — Kitapların Arasında Bekleyen Gotik Bakış (6-25 cm Boyut Seçenekli)",
-    "aciklama": "Sayfaların arasından size bakan bir şey var. Bu vampir kafatası kitap arası dekoru, kitapların arasına doğrudan sıkıştırılarak boş raf boşluğunu karanlık bir odak noktasına dönüştürüyor. Derin göz çukurları ve gerilmiş çene hatları ürkütücü bir ifade veriyor.\n- Kitaplık, çalışma odası ya da kütüphane köşesi için gotik temalı bir dekor; korku ve kitap sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz boyutu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
-    "fiyat": "600 TL",
+    "baslik": "Vampir Kafatası Kitap Arası Dekoru — Kitapların Arasında Bekleyen Gotik Bakış (12-25 cm Boyut Seçenekli)",
+    "aciklama": "Sayfaların arasından size bakan bir şey var. Bu vampir kafatası kitap arası dekoru, kitapların arasına doğrudan sıkıştırılarak boş raf boşluğunu karanlık bir odak noktasına dönüştürüyor. Derin göz çukurları ve gerilmiş çene hatları ürkütücü bir ifade veriyor.\n- Kitaplık, çalışma odası ya da kütüphane köşesi için gotik temalı bir dekor; korku ve kitap sevenlere hediye olarak uygun.\n- Boyut seçenekli: 12 ile 25 cm arasında dilediğiniz boyutu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "1200 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/c3dvampire-skull-book-nook-1.jpg",
       "https://media.pruvo3d.com/urunler/c3dvampire-skull-book-nook-2.jpg"
@@ -1982,7 +1982,7 @@
       },
       "gorselOrnek": true,
       "boyutMm": {
-        "min": 60,
+        "min": 120,
         "max": 250,
         "adim": 10,
         "varsayilan": 150,
@@ -1991,8 +1991,8 @@
       "fiyatModu": "dogrusal",
       "fiyatCapalari": [
         [
-          60,
-          600
+          120,
+          1200
         ],
         [
           250,
@@ -2672,9 +2672,9 @@
     "id": "gotik-kafatasi-kitap-arasi-dekoru",
     "kategori": "Dekorasyon",
     "marka": [],
-    "baslik": "Gotik Kafatası Kitap Arası Dekoru — Kitaplık Köşesi Kafatası Çerçevesi (6-25 cm Boyut Seçenekli)",
-    "aciklama": "Abartılı göz çukurları, keskin elmacık kemikleri ve sert ifadeli bir kafatasını dikdörtgen bir çerçevenin içinde sunan, kitaplığa kitapların arasına doğrudan sıkıştırılan karanlık bir raf dekoru. Gotik bir odak noktası oluşturur.\n- Kitaplık, çalışma odası ya da kütüphane köşesi için gotik temalı dekor; kitap kurtlarına ve koleksiyonculara hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz boyutu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
-    "fiyat": "600 TL",
+    "baslik": "Gotik Kafatası Kitap Arası Dekoru — Kitaplık Köşesi Kafatası Çerçevesi (12-25 cm Boyut Seçenekli)",
+    "aciklama": "Abartılı göz çukurları, keskin elmacık kemikleri ve sert ifadeli bir kafatasını dikdörtgen bir çerçevenin içinde sunan, kitaplığa kitapların arasına doğrudan sıkıştırılan karanlık bir raf dekoru. Gotik bir odak noktası oluşturur.\n- Kitaplık, çalışma odası ya da kütüphane köşesi için gotik temalı dekor; kitap kurtlarına ve koleksiyonculara hediye olarak uygun.\n- Boyut seçenekli: 12 ile 25 cm arasında dilediğiniz boyutu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "1200 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/c3dgothic-skull-book-nook-1.jpg",
       "https://media.pruvo3d.com/urunler/c3dgothic-skull-book-nook-2.jpg",
@@ -2693,7 +2693,7 @@
       },
       "gorselOrnek": true,
       "boyutMm": {
-        "min": 60,
+        "min": 120,
         "max": 250,
         "adim": 10,
         "varsayilan": 150,
@@ -2702,8 +2702,8 @@
       "fiyatModu": "dogrusal",
       "fiyatCapalari": [
         [
-          60,
-          600
+          120,
+          1200
         ],
         [
           250,

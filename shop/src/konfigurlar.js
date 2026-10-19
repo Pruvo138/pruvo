@@ -1830,13 +1830,13 @@ const VERI = {
       "adim": 10,
       "etiket": "Boyut",
       "max": 250,
-      "min": 60,
+      "min": 120,
       "varsayilan": 150
     },
     "fiyatCapalari": [
       [
-        60,
-        600
+        120,
+        1200
       ],
       [
         250,
@@ -4416,13 +4416,13 @@ const VERI = {
       "adim": 10,
       "etiket": "Boyut",
       "max": 250,
-      "min": 60,
+      "min": 120,
       "varsayilan": 150
     },
     "fiyatCapalari": [
       [
-        60,
-        600
+        120,
+        1200
       ],
       [
         250,
