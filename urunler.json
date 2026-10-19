@@ -1,5 +1,249 @@
 [
   {
+    "id": "kapi-ustu-uyari-tabelasi-kapi-gecme-yasak-bolge",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Gerçekliğin Dışına Çıkma Uyarı Tabelası — Esprili Sarı Kapı Dekoru (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Gerçeklikte tamamen işlenmiş kalmaya çalışanlar için mizahi bir uyarı tabelası: sarı zemin üzerinde siyah figür ve yazılı uyarı. Odanın kapısına ya da duvarına asılarak oyun odasında, atölyede ya da ofiste espri katar.\n- Oyun odası, ofis kapısı ya da atölye için esprili bir dekor; internet kültürü ve mizah sevenlere hediye olarak uygun. Gerçek bir güvenlik işareti değil, dekoratif bir plakadır.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz boyutu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dbackrooms-no-clipping-zone-caution-sign-deadmoon-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dbackrooms-no-clipping-zone-caution-sign-deadmoon-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DeadMoon",
+      "tur": "CC BY 4.0"
+    },
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Boyut"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "kafatasi-vazo-genis-agizli-heykelsi-vazo",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Kafatası Vazo — Geniş Boyunlu Heykelsi Gotik Vazo (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Pürüzsüz, heykelsi formlu ve temiz dikey akışlı, stilize bir kafatasını uzun, açılan bir vazo boynuyla birleştiren cesur bir vazo. Hem işlevli bir vazo hem de dekoratif bir obje olarak çalışır.\n- Kuru çiçek ve minik yapay bitkiler için masa, raf ya da cadılar bayramı dekoru; gotik tema sevenlere hediye olarak uygun. Su geçirmezliği garanti edilmez, taze çiçek için içine ayrı bir kap koymanız önerilir.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dskull-vase-no-supports-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dskull-vase-no-supports-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DeadMoon",
+      "tur": "CC BY 4.0"
+    },
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "sarmal-yumurta-lambasi-led-mum-icin",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Sarmal Yumurta Lambası — Led Mum ve Led Disk Işık İçin Dekor (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Herhangi bir led mum ile çalışacak şekilde tasarlanmış, tek parça sarmal desenli yumurta biçimli bir lamba. Sarmal kesiklerden süzülen ışık masada ya da rafta yumuşak bir parıltı yaratır.\n- Yatak odası, salon ya da çalışma masası için sakin bir ışık dekoru; ışık ve tasarım sevenlere hediye olarak uygun. Led mum ya da led disk ürüne dahil değildir; yalnız alevsiz led ile kullanılır.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dspiral-egg-lamp-for-led-tea-light-puck-light-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dspiral-egg-lamp-for-led-tea-light-puck-light-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DeadMoon",
+      "tur": "CC BY 4.0"
+    },
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "dort-yaprakli-yonca-anahtarlik",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Dört Yapraklı Yonca Anahtarlık — Şans Tılsımı Dekoru (6-25 cm Boyut Seçenekli)",
+    "aciklama": "İlkbahar pazarları ve şans temalı hediyeler için tasarlanmış sade bir dört yapraklı yonca anahtarlık. Şans tılsımı, parti hediyesi, sırt çantası aksesuarı ya da küçük bir dekor olarak kullanılabilir.\n- Anahtar, çanta ya da dekor için şans teması; bahar ve şans sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz boyutu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dst-patrick-s-day-four-leaf-clover-keychain-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dst-patrick-s-day-four-leaf-clover-keychain-2.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Boyut"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
     "id": "tas-cerceveli-prizma-minyatur-sergi-standi",
     "kategori": "Dekorasyon",
     "marka": [],
