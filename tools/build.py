@@ -1868,6 +1868,12 @@ def muhendislik_wa_not(p=None, url=None):
 # Malzeme/renk satırları — klasik opsiyon bloğu ve parametrik konfigüratör AYNI bileşeni
 # kullanır. Seçenekler ve "(+%30)" etiketleri secenekler.js'ten ÜRETİLİR (elle yazılmaz):
 # katsayı orada değişince etiket sessizce eskimesin.
+# "Diğer" serbest renk kutusunun notu (Okan 19 Eki: "4 renge kadar yazılabilir"). Kutunun hemen
+# ardında durur; kutu gizliyken (#renkOzel style display:none) CSS ile gizlenir — JS'e dokunmaz.
+# Kutu 60 karakter (Worker metin(k.renk_ozel, 1, 60) ile aynı sınır) 4 renk adını sığdırır.
+RENK_OZEL_NOT = '\n      <span class="renk-ozel-not">En fazla 4 renk yazılabilir.</span>'
+
+
 def _renk_html():
     """Renk seçici satırı (malzemeden bağımsız — hem konfigüratör hem kart-seçim ürünü kullanır)."""
     renk_opts = "".join(
@@ -1879,7 +1885,7 @@ def _renk_html():
         <label for="renkSec">Renk</label>
         <select id="renkSec">""" + renk_opts + """
         </select>
-        <input type="text" id="renkOzel" placeholder="istediğiniz rengi yazın" style="display:none">
+        <input type="text" id="renkOzel" maxlength="60" placeholder="istediğiniz rengi yazın" style="display:none">""" + RENK_OZEL_NOT + """
       </div>""")
 
 
@@ -1947,9 +1953,9 @@ def _renk_butonlari_html(renkler=None, renk_gorselleri=None, secili=None):
                 esc(r + (" (+%%%d)" % RENK_DIGER_YUZDE if r == "Diğer" else "")))
             for r in renkler)
         ozel = ("""
-      <input type="text" id="renkOzel" class="renk-ozel" maxlength="30"
+      <input type="text" id="renkOzel" class="renk-ozel" maxlength="60"
              placeholder="istediğiniz rengi yazın (ör. turuncu)" style="display:none">"""
-                if "Diğer" in renkler else "")
+                + RENK_OZEL_NOT if "Diğer" in renkler else "")
         return ("""
       <div class="opsiyon-row opsiyon-renk">
         <label>Renk</label>
@@ -1966,8 +1972,8 @@ def _renk_butonlari_html(renkler=None, renk_gorselleri=None, secili=None):
         <label>Renk</label>
         <div class="renk-butonlar" id="renkButonlar">""" + btns + """</div>
       </div>
-      <input type="text" id="renkOzel" class="renk-ozel" maxlength="30"
-             placeholder="istediğiniz rengi yazın (ör. turuncu)" style="display:none">""")
+      <input type="text" id="renkOzel" class="renk-ozel" maxlength="60"
+             placeholder="istediğiniz rengi yazın (ör. turuncu)" style="display:none">""" + RENK_OZEL_NOT)
 
 
 def _malzeme_renk_html(p=None, url=None):
@@ -2734,6 +2740,9 @@ PAGE_CSS = """
     #00d158,#00b3ff,#7a5cff,#ff004c)}
   .renk-ozel{padding:8px 10px;border:1px solid var(--gray-line);border-radius:7px;
     font-size:14px;background:#fff;color:var(--navy);margin:6px 0 0 74px;max-width:260px}
+  .renk-ozel-not{display:block;margin:4px 0 0 74px;font-size:12px;color:var(--gray-text)}
+  .opsiyon-row .renk-ozel-not{margin:0}
+  #renkOzel[style*="none"]+.renk-ozel-not{display:none}
 
   /* Secimsiz "Sepete Ekle" denemesi: eksik secim grubu titrer + cerceveleri kirmizi olur
      (gecici, ~0.4sn). Saf CSS/JS — malzeme kartlari, renk butonlari, renk metin kutusu ortak. */
@@ -3456,7 +3465,7 @@ function pv(el,src){{
     }} else if(KART_SECIM){{
       s.renk = seciliRenk;
       s.renk_ozel = (seciliRenk === "Diğer" && renkOzel)
-        ? renkOzel.value.trim().slice(0, 30) : "";
+        ? renkOzel.value.trim().slice(0, 60) : "";
     }}
     if(boySec){{ s.boy_etiket = boySec.value || null; }}
     if(adetSec){{ s.adet = PRUVO_SECENEK.adetDuzelt(adetSec.value); }}

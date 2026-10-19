@@ -851,9 +851,9 @@ def main():
              "else{console.error('birim',o.birimKurus,'bek',beklenen,'detay',o.detay);process.exit(1)}"],
             capture_output=True, text=True, cwd=ROOT)
         h18 = [] if r18.returncode == 0 else [(r18.stdout + r18.stderr).strip()]
-        # JS wiring: renk_ozel'i satira 30 karakterle yaziyor (istemci de sinirliyor)
-        if "renkOzel.value.trim().slice(0, 30)" not in fs:
-            h18.append("renkOzel istemci tarafi 30 karakter sinir yok")
+        # JS wiring: renk_ozel'i satira 60 karakterle yaziyor (istemci de sinirliyor)
+        if "renkOzel.value.trim().slice(0, 60)" not in fs:
+            h18.append("renkOzel istemci tarafi 60 karakter sinir yok")
         kayit(18, "(j) Diger + metin dolu -> renk_ozel not alaniyla sepete + fiyat +%15",
               not h18, "; ".join(h18[:3]) or "temiz")
 

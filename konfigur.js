@@ -142,7 +142,7 @@
   }
 
   function renkOzelMetni() {
-    return durum.renkOzelEl ? durum.renkOzelEl.value.trim().slice(0, 30) : "";
+    return durum.renkOzelEl ? durum.renkOzelEl.value.trim().slice(0, 60) : "";
   }
 
   // Fiyat göstergesi: kart-seçim sayfasıyla aynı dil — adet DAHİL toplam, kuruşuyla.
