@@ -1,5 +1,237 @@
 [
   {
+    "id": "kemik-ejderha-ouroboros-duvar-dekoru",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Kemik Ejderha Ouroboros Duvar Dekoru — Kuyruğunu Yiyen Karanlık Ejderha Halkası (6-25 cm Çap Seçenekli)",
+    "aciklama": "Cesur bir dairesel duvar parçası olarak tasarlanmış, kuyruğunu yiyen stilize bir kemik ejderha. Ejderhanın başı, dişleri, pulları ve dikenli gövdesi güçlü bir karanlık fantastik görünüm verirken siluet temiz kalıyor.\n- Salon, çalışma odası ya da oyun odası duvarı için dikkat çekici bir dekor; fantastik ve gotik tema sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz çapı kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dbone-dragon-ouroboros-dark-wall-decor-1.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Çap"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "kafatasi-patlamasi-kemik-yildiz-duvar-dekoru",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Kafatası Patlaması Kemik Yıldız Duvar Dekoru — Omurga Sivri Uçlu Gotik Güneş (6-25 cm Çap Seçenekli)",
+    "aciklama": "Yükseltilmiş bir kafatası merkezi ve omurga tarzı ışınsal sivri uçlarla kurulu gotik bir kemik yıldız duvar parçası. Temiz dairesel siluetiyle duvarda güçlü bir duruş sergiler.\n- Salon, çalışma odası ya da koridor duvarı için hafif ve dikkat çekici bir dekor; gotik tema sevenlere hediye olarak uygun. Uçları sivridir, dikkatli tutulmalıdır.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz çapı kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dskullburst-bone-star-wall-decor-1.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Çap"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "surukleme-ahsap-gemi-dumeni-duvar-heykeli",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Sürüklenmiş Ahşap Görünümlü Gemi Dümeni Duvar Heykeli — Korsan Dümeni Duvar Dekoru (6-25 cm Çap Seçenekli)",
+    "aciklama": "Derin oyulmuş sürüklenmiş ahşap oluklarıyla duvarda belirgin gölgeler oluşturan, iri ve stilize bir gemi dümeni duvar heykeli. Arkası düz olduğu için duvara kolayca monte edilen bir duvar parçası olarak tasarlanmıştır.\n- Salon, çalışma odası ya da deniz temalı bir köşe için karakterli bir dekor; denizcilik ve korsan teması sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz çapı kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3ddriftwood-pirate-wheel-wall-sculpture-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3ddriftwood-pirate-wheel-wall-sculpture-2.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Çap"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "gelecekci-ankh-duvar-heykeli",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Gelecekçi Ankh Duvar Heykeli — Kutsal Geometri ve Bilim Kurgu Panelli Yaşam Sembolü (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Antik yaşam sembolünün hassas biçimde yorumlanmış, bilim kurgu panelleriyle kutsal geometriyi birleştiren zarif ve gelecekçi bir duvar objesi.\n- Salon, çalışma odası ya da koridor için sade ama iddialı bir duvar dekoru; bilim kurgu, antik tema ve tasarım meraklılarına hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3daxiom-ankh-futuristic-wall-sculpture-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3daxiom-ankh-futuristic-wall-sculpture-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3daxiom-ankh-futuristic-wall-sculpture-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3daxiom-ankh-futuristic-wall-sculpture-4.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
     "id": "kizgin-yuzlu-cizgi-karakter-cosplay-maskesi",
     "kategori": "Oyun/Hobi",
     "marka": [],
