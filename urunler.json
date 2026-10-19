@@ -1,5 +1,247 @@
 [
   {
+    "id": "yakut-tilsim-anahtarligi-ve-kolye-ucu",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Yakut Kırmızısı Tılsım — Anahtarlık ve Kolye Ucu Olarak Fantastik Muska (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Sekizgen siyah çerçevesi içinde yüzeyli kırmızı bir mücevher taşıyan, büyülü bir kalıntı havasında tılsım. Anahtarlık, çanta süsü ya da zincire takılarak kolye ucu olarak kullanılabilir.\n- Anahtarlık, kolye ucu, kostüm aksesuarı ya da küçük dekor olarak kullanılabilir; fantastik tema, cosplay ve cadılar bayramı sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz boyutu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3djeweled-amulet-3d-printable-keychain-necklace-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3djeweled-amulet-3d-printable-keychain-necklace-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3djeweled-amulet-3d-printable-keychain-necklace-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Boyut"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "hayalet-govdeli-kutuk-saksi-ve-kalemlik",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Hayalet Yüzlü Kütük Saksı ve Kalemlik — Cadılar Bayramı Masa Dekoru (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Oyuk gözleri ve ağzıyla ürkütücü ama sevimli duran, yüzlü bir ağaç kütüğü. Küçük saksı, kalemlik, mini çöp kutusu ya da cadılar bayramı süsü olarak kullanılabilir.\n- Masa, raf ya da kapı girişi için saksı, kalemlik veya süs; cadılar bayramı ve gotik dekor sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dhaunted-stump-xl-mini-versions-deadmoon-2-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dhaunted-stump-xl-mini-versions-deadmoon-2-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dhaunted-stump-xl-mini-versions-deadmoon-2-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dhaunted-stump-xl-mini-versions-deadmoon-2-4.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "futuristik-akilli-saat-standi",
+    "kategori": "Ev",
+    "marka": [],
+    "baslik": "Fütüristik Akıllı Saat Standı — Şarj Kablolu Saatler İçin Masa Standı (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Akıllı saati yatık biçimde tutan, kararlı tabanlı ve fütüristik hatlı bir masa standı. Saat şarj kablosuyla bağlıyken de rahatça durur.\n- Masa, komodin ya da çalışma köşesi için akıllı saat standı; teknoloji sevenlere hediye olarak uygun. Saatinize uygun yuva ölçüsü için seçtiğiniz boyutu ona göre belirleyin.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dwatch-stand-for-amazfit-active-2-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dwatch-stand-for-amazfit-active-2-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dwatch-stand-for-amazfit-active-2-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dwatch-stand-for-amazfit-active-2-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Pentakoron",
+      "tur": "CC BY 4.0"
+    },
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "yazici-qr-kod-gizleme-kapagi",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "baslik": "3D Yazıcı QR Kod Gizleme Kapağı — Sade Beyaz Koruyucu Kapak (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Yazıcı gövdesindeki QR etiketini örten, yuvarlak köşeli sade bir kapak. Düz yüzeyi sayesinde dilerseniz kendi logonuzla özelleştirmeye uygundur.\n- Atölye, masaüstü yazıcı ya da küçük bir cihaz için gizleme kapağı; kendi işini yapan ve cihazını düzenli tutan kullanıcılara uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz genişliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dcreality-ender3-qr-code-cover-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dcreality-ender3-qr-code-cover-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dcreality-ender3-qr-code-cover-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Genişlik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
     "id": "buruk-govdeli-fantastik-bonsai-agaci",
     "kategori": "Dekorasyon",
     "marka": [],
