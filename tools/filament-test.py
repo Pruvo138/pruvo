@@ -830,7 +830,12 @@ def main():
         for parca in ['renkOzel.style.display = (seciliRenk === "Diğer") ? "block" : "none"',
                       'var eksikO = seciliRenk === "Diğer" && renkOzel && !renkOzel.value.trim();',
                       "if(eksikO){ titret(renkOzel); }",
-                      ".renk-ozel.hata{border-color:var(--red)"]:
+                      ".renk-ozel.hata{border-color:var(--red)",
+                      # Okan 19 Eki: kutunun ardında "4 renge kadar" notu; kutu gizliyken not da
+                      # gizli (CSS), kutu 4 renk adını sığdırır (Worker sınırı 60).
+                      'class="renk-ozel-not">En fazla 4 renk yazılabilir.</span>',
+                      '#renkOzel[style*="none"]+.renk-ozel-not{display:none}',
+                      'id="renkOzel" class="renk-ozel" maxlength="60"']:
             if parca not in fs:
                 h17.append("eksik: %s" % parca)
         kayit(17, "(i) Diger -> metin kutusu gorunur; bosken sepete eklenmez (titrer)",
