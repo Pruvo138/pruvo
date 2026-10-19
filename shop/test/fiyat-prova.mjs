@@ -536,11 +536,28 @@ baslik("== 2) 3x TAVAN (shop/src/konfigur.js:59 — 3 x fiyatCapalari[0][1]) hal
   const hatalar = [];
   let tavanVuran = 0;
   let dogrusalTavansiz = 0;
+  let tekBoy = 0;
   let hacimModlu = 0;
   for (const u of KONFIGUR_URUNLER) {
     const kf = u.konfigur;
     const tavan = 3 * kf.fiyatCapalari[0][1] * 100;
     const kat = (kf.malzemeler.find((m) => m.ad === "ASA") || {}).katsayi;
+    // TEK BOY (CU-ND, boyutMm min=max, 19 Eki): kaydirici DONAR, 300mm istegi dogal boya
+    // kirpilir -> "tavanin USTUNDE" iddiasi bu sinifta ANLAMSIZ (fiyat = dogal boy x kural,
+    // 3x tavanin altinda kalir). Ayri iddia: boy donmus + Worker = site = capa fiyati x katsayi.
+    if (kf.fiyatModu === "dogrusal" && kf.boyutMm && kf.boyutMm.min === kf.boyutMm.max) {
+      const dogal = kf.boyutMm.min;
+      const r = await baslat(YENI, [d1Satiri(u)],
+        [{ id: u.id, malzeme: "ASA", renk: "Siyah", adet: 1, parametreler: { boy_mm: 300 } }]);
+      const bek = FRONT.fiyatKurus(kf, dogal, kat);
+      const capa = Math.round(kf.fiyatCapalari[0][1] * kat) * 100;
+      const donmus = FRONT.boyDuzelt(kf, 300) === dogal && FRONT.boyDuzelt(kf, 1) === dogal;
+      if (!donmus || r.birimKurus !== bek || bek !== capa) {
+        hatalar.push(u.id + ": tek boy " + dogal + "mm 300mm/ASA = " + r.birimKurus +
+                     " (site " + bek + ", capa x kat " + capa + ", boy donmus=" + donmus + ")");
+      } else { tekBoy += 1; }
+      continue;
+    }
     // DOGRUSAL MOD (Figur/Fidget, 18 Eki): 3x tavan TASARIM GEREGI YOK. Burada tersini olc:
     // Worker tahsilati = site cekirdegi (kirpilmis boy) ve tavanin USTUNDE (kirpma yok).
     if (kf.fiyatModu === "dogrusal") {
@@ -566,7 +583,8 @@ baslik("== 2) 3x TAVAN (shop/src/konfigur.js:59 — 3 x fiyatCapalari[0][1]) hal
     } else { tavanVuran += 1; }
   }
   not("300mm/ASA'da tavana kirpilan urun: " + tavanVuran + "/" + hacimModlu + " hacim modlu" +
-      " (tavan = 3 x 500 TL = 150000 kurus) · dogrusal tavansiz: " + dogrusalTavansiz);
+      " (tavan = 3 x 500 TL = 150000 kurus) · dogrusal tavansiz: " + dogrusalTavansiz +
+      " · tek boy (donmus, capa fiyati): " + tekBoy);
   if (hacimModlu === 0) { hatalar.push("hacim modlu konfigur urunu YOK — tavan kolu vakum"); }
   if (hatalar.length) {
     kirmizi += 1;
@@ -574,7 +592,8 @@ baslik("== 2) 3x TAVAN (shop/src/konfigur.js:59 — 3 x fiyatCapalari[0][1]) hal
     ham.push("  ❌ KALDI — tavan");
   } else {
     ham.push("  ✅ GECTI — tavan " + tavanVuran + "/" + hacimModlu + " hacim modlu urunde " +
-             "uygulaniyor · dogrusal " + dogrusalTavansiz + " urunde tavan YOK (tasarim)");
+             "uygulaniyor · dogrusal " + dogrusalTavansiz + " urunde tavan YOK (tasarim)" +
+             " · tek boy " + tekBoy + " urunde boy donmus, fiyat = capa x katsayi");
   }
 }
 
@@ -1863,8 +1882,16 @@ baslik("== 8) KIRMIZI-MUTASYON (M1..M9) ==");
   // iddiasi ayni mutantta ikinci vakayla korunur: artefakt DA bos, D1 DA bos -> 400.
   // Artefakt id'ye gore SIRALI: ilk kaydi secmek blok deseninin (virgulle biten) tutmasini
   // garanti eder (son kayitta kapanis virgulsuzdur).
+  // 🔴 19 Eki: fail-closed iddiasi YALNIZ konfigurBeklenirMi sinyali tasiyan urunde gecerli.
+  // Kategori-disi dogrusal (or. Oyun/Hobi maske) belgelenmis SINIR: iki kaynak bosken sabit
+  // fiyata duser (konfigur-beklenen.js basligi). Kuyruk boyle bir kaydi alfabede basa
+  // aldiginda M1 sahte kirmiziya donuyordu -> secim sinyalli ilk kayit (tek kaynak: o dosya).
+  const { konfigurBeklenirMi } =
+    await import(pathToFileURL(path.join(SRC, "konfigur-beklenen.js")).href);
   let eksikKaynak = KAYNAKLAR["konfigurlar.js"];
-  const dusen = [...KONFIGUR_URUNLER].sort((a, b) => (a.id < b.id ? -1 : 1))[0];
+  const dusen = [...KONFIGUR_URUNLER].sort((a, b) => (a.id < b.id ? -1 : 1))
+    .find((u) => konfigurBeklenirMi(d1Satiri(u)));
+  if (!dusen) { throw new Error("M1: konfigurBeklenirMi sinyalli konfigur urunu YOK (vakum)"); }
   const blok = new RegExp('\\n  "' + dusen.id + '": \\{[\\s\\S]*?\\n  \\},');
   const kesildi = blok.test(eksikKaynak);
   eksikKaynak = eksikKaynak.replace(blok, "");

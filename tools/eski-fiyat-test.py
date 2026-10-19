@@ -747,7 +747,9 @@ def bolum_e1(urunler):
 
     # 2) IMZA NOBETI: fiyat fonksiyonu URUNU HIC ALMAZ -> alan ona yapisal olarak ULASAMAZ.
     imza = list(inspect.signature(build.konfigur_fiyat_kurus).parameters)
-    kontrol(imza == ["konfigur", "boy_mm", "katsayi"],
+    # 19 Eki: renk_yuzde ("Diğer" +%, secenekler.js RENK_DIGER_YUZDE) eklendi — sayısal yüzde,
+    # ürün değil; iddia (ürün kaydı fiyata yapısal olarak ulaşamaz) aynen geçerli.
+    kontrol(imza == ["konfigur", "boy_mm", "katsayi", "renk_yuzde"],
             "konfigur_fiyat_kurus imzasi urun ALMIYOR (%s) — alan fiyata YAPISAL olarak "
             "ulasamaz" % imza)
 

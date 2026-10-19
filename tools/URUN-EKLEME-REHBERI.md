@@ -403,7 +403,9 @@ Başka bir değer build'i ve bundle'ı düşürür, Worker da o kalemi reddeder.
 Doğrusal modda `hacim` alanı **opsiyoneldir**: model dosyası yoksa (ücretli kaynak) alanı hiç
 yazma, tahmini değer uydurma; fiyat boydan çözülür, sipariş satırında hacim boş kalır. Alan
 yazılırsa yine doğrulanır. Hacim modunda `hacim` zorunlu kalır.
-Render seti olmayan Figür/Fidget ürününde (kapak tasarımcının görseli, siyah render yok)
+Doğrusal sınıf **kategoriden bağımsızdır** (19 Eki 2026): Oyun/Hobi, Ev vb. kategorideki ürün de
+`"fiyatModu": "dogrusal"` taşıyabilir. Sınıftaki her üründe `"gorselOrnek": true` zorunludur.
+Render seti olmayan doğrusal üründe (kapak tasarımcının görseli, siyah render yok)
 şemaya `"gorselOrnek": true` yazılır: sayfa renk seçicinin altına "Görsel tasarımcı
 örneğidir — ürün seçtiğiniz tek renkte (Siyah/Beyaz/Gri) üretilir." etiketini basar. Renkler
 `["Siyah", "Beyaz", "Gri"]` sırasıyla yazılır, `renkGorselIndeks` hepsini `0`'a bağlar (önden

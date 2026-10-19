@@ -27,6 +27,9 @@ KARAR SIRASI (her sonuc TEK cikti satiri, `KUYRUK=` ile baslar):
      degisen= ; sonraki kapilar AYNEN kosar.
   4. kuyrugun main'e getirecegi NET fark ya da tek tek merge-disi commit'leri
      IZINLI_YOLLAR disina cikiyor -> KUYRUK=RED sebep=yabanci-yol rc1 (main degismez).
+     Tek istisna KONFIGUR_BUNDLE_YOLU (turetilmis ayna): aday agacinda uretecin ciktisiyla
+     bayt-esitse yabanci sayilmaz (satira worker-bundle=degisti); degilse
+     KUYRUK=RED sebep=konfigur-bundle hal=<bayat|sema-bozuk|okunamadi|...> rc1.
   4b. (K441) aday'da YENI olan bir `parametrik:true` kayit icin `jenerator/urunler/<id>.json`
      ADAY AGACINDA yoksa -> KUYRUK=RED sebep=semasiz-parametrik ids=<...> rc1 (main degismez).
      Kural tools/parametrik_sema.py'de (denetim-kapisi KAPI 12 ile TEK KAYNAK). Kuyruk yalniz
@@ -84,6 +87,15 @@ ACIK_DK = int(os.environ.get("PRUVO_KUYRUK_ACLIK_DK", "45"))  # MUTANT-CAPA:ESIK
 # (urunler.json 44 · arsiv/urunler-arsiv.json 2). Gorsel R2'de, git'e girmez; SEO/sitemap
 # CI'da uretilir. Bunun disindaki her yol KOD'dur ve kuyruktan main'e GECMEZ.
 IZINLI_YOLLAR = frozenset({"urunler.json", "arsiv/urunler-arsiv.json"})
+# KOSULLU IZINLI YOL (19 Eki 2026, BaBa 01:1x + 1. vaka 18 Eki: konfigurlu Figur partisi
+# `KUYRUK=RED sebep=yabanci-yol yollar=shop/src/konfigurlar.js`, 3 tur takildi). Bu dosya KOD
+# degil, urunler.json'dan TURETILEN bir aynadir (tools/konfigur-bundle-kapisi.py --yaz);
+# konfigurlu urun eklemek onu ZORUNLU degistirir. Gecis SARTI: aday agacindaki dosya, AYNI
+# agacin urunler.json'undan TEK KAYNAK uretecin (`turet`, bu deponun koduyla) urettigiyle
+# BAYT-BAYT ESIT. Esit degil / sema bozuk -> RED sebep=konfigur-bundle (main degismez).
+# Worker bundle'i CI yayinlamaz; ff sonrasi canli fiyat D1 konfigur kolonundan (d1-sync)
+# dogru kalir, `wrangler deploy` KraL'in isidir — satira `worker-bundle=degisti` eklenir.
+KONFIGUR_BUNDLE_YOLU = "shop/src/konfigurlar.js"
 # Push-tetikli ama BILEREK dispatch EDILMEYEN is akislari (gerekce ZORUNLU).
 DISPATCH_HARIC = {
     "nobet.yml": ("dispatch kolu her kosuma KENDI concurrency grubunu verir "
@@ -201,6 +213,33 @@ def yabanci_yollar(main_sha, aday, kuyruk_sha):
     tek = git("log", "--no-merges", "--format=", "--name-only",
               "%s..%s" % (main_sha, kuyruk_sha)).stdout.split()
     return sorted(set(net + tek) - IZINLI_YOLLAR)
+
+
+def konfigur_bundle_hukmu(aday):
+    """KONFIGUR_BUNDLE_YOLU aday agacinda, aday'in urunler.json'undan turetilenle BAYT-ESIT mi.
+    Doner: None (esit) ya da kisa sebep. Uretec bu deponun kodundadir (kuyruk tools/'a
+    dokunamaz — yabanci-yol); okunamayan/ayristirilamayan girdi ESIT SAYILMAZ (fail-closed)."""
+    spec = importlib.util.spec_from_file_location(
+        "konfigur_bundle_kapisi", os.path.join(DEPO, "tools", "konfigur-bundle-kapisi.py"))
+    kbk = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(kbk)
+    u = git("show", "%s:urunler.json" % aday, kontrol=False)
+    a = git("show", "%s:%s" % (aday, KONFIGUR_BUNDLE_YOLU), kontrol=False)
+    if u.returncode != 0 or a.returncode != 0:
+        return "okunamadi"
+    try:
+        veri = json.loads(u.stdout)
+    except ValueError:
+        return "urunler-json-ayristirilamadi"
+    if not isinstance(veri, list):
+        return "urunler-json-ayristirilamadi"
+    try:
+        beklenen = kbk.turet(veri)
+    except SystemExit:
+        return "sema-bozuk"
+    if a.stdout != beklenen:  # MUTANT-CAPA:BUNDLE
+        return "bayat"
+    return None
 
 
 def _parametrik_sema_modulu():
@@ -388,6 +427,14 @@ def tur(dispatch):
             yol_bilgi = " eklenen=%(eklenen)d silinen=%(silinen)d degisen=%(degisen)d" % sayim
         aday = git("rev-parse", "HEAD").stdout.strip()
     yabanci = yabanci_yollar(main_sha, aday, kuyruk_sha)
+    bundle_bilgi = ""
+    if KONFIGUR_BUNDLE_YOLU in yabanci:
+        sebep = konfigur_bundle_hukmu(aday)
+        if sebep:
+            return "KUYRUK=RED sebep=konfigur-bundle hal=%s yol=%s" % (
+                sebep, KONFIGUR_BUNDLE_YOLU), 1
+        yabanci = [y for y in yabanci if y != KONFIGUR_BUNDLE_YOLU]
+        bundle_bilgi = " worker-bundle=degisti"
     if yabanci:  # MUTANT-CAPA:YOL
         return "KUYRUK=RED sebep=yabanci-yol yollar=%s" % ",".join(yabanci[:5]), 1
     semasiz = semasiz_parametrikler(main_sha, aday)
@@ -409,8 +456,8 @@ def tur(dispatch):
     if hatali:
         return ("KUYRUK=DISPATCH-HATA sha=%s is-akisi=%s (main itildi, yayin TETIKLENMEDI)%s"
                 % (aday[:12], ",".join(hatali), aclik_bilgi)), 1
-    return "KUYRUK=BIRLESTI sha=%s yol=%s dispatch=%s%s%s" % (
-        aday[:12], yol, ",".join(dispatch), yol_bilgi, aclik_bilgi), 0
+    return "KUYRUK=BIRLESTI sha=%s yol=%s dispatch=%s%s%s%s" % (
+        aday[:12], yol, ",".join(dispatch), yol_bilgi, aclik_bilgi, bundle_bilgi), 0
 
 
 def calis():

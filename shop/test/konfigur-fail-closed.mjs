@@ -366,24 +366,51 @@ if (gercek.hata.length) {
   ham.push("  ✅ GECTI — gercek kaynak (a+b+c)");
 }
 
-// 2) TAHMIN KAPSAMI: konfigurBeklenirMi TUM katalogda konfigur urunleriyle birebir mi?
+// 2) KAPSAM: her konfigur urunu Worker'da BUNDLE (KONFIGURLAR) VEYA TAHMIN (konfigurBeklenirMi)
+// ile yakalaniyor mu; tahmin konfigursuz urune yanlis-pozitif vermiyor mu?
+// 🔴 19 Eki 2026 (BaBa 01:1x, KraL 01:0x olcumu): eski olcu "tahmin == konfigur kumesi" idi.
+// Kategori-disi dogrusal urunde (Pentakoron: Oyun/Hobi, Ev ...) `fiyatModu` tam da D1 konfigur
+// KOLONUNUN ICINDE -> tahmin (yalniz kategori/id gorur) onu YAPISAL olarak goremez. Koruma o
+// urunde 2 katmandir (D1 kolonu + bundle). Olcu bu yuzden "bundle VEYA tahmin": bundle'a
+// girmemis kategori-disi dogrusal kayit 3 katmanin ikisini kaybetmis demektir -> KIRMIZI.
 // Baslikta katalog boyutu CANLI okunur — sabit sayi yazilirsa katalog buyudukce bayatlar.
-baslik("== 2) konfigurBeklenirMi kapsami (" + URUNLER.length + " urunluk katalog taramasi) ==");
+baslik("== 2) bundle VEYA konfigurBeklenirMi kapsami (" + URUNLER.length + " urunluk katalog) ==");
 const KB = await import(pathToFileURL(path.join(SHOP, "src", "konfigur-beklenen.js")).href);
-const tahminEvet = URUNLER.filter((u) => KB.konfigurBeklenirMi(u));
-const konfigurluIdler = new Set(KONFIGUR_URUNLER.map((u) => u.id));
-const fazla = tahminEvet.filter((u) => !konfigurluIdler.has(u.id));
-const eksik = KONFIGUR_URUNLER.filter((u) => !KB.konfigurBeklenirMi(u));
-ham.push("    katalog=" + URUNLER.length + " urun; konfigur alanli=" + KONFIGUR_URUNLER.length +
-         "; tahmin 'konfigur beklenir'=" + tahminEvet.length +
-         "; fazla(yanlis-pozitif)=" + fazla.length + "; eksik(yanlis-negatif)=" + eksik.length);
-if (fazla.length || eksik.length) {
+const BUNDLE = (await import(pathToFileURL(path.join(SHOP, "src", "konfigurlar.js")).href)).KONFIGURLAR;
+function kapsamOlc(urunler) {
+  const konfigurlu = urunler.filter((u) => u && u.konfigur);
+  const idler = new Set(konfigurlu.map((u) => u.id));
+  return {
+    konfigurlu,
+    tahminEvet: urunler.filter((u) => KB.konfigurBeklenirMi(u)),
+    fazla: urunler.filter((u) => KB.konfigurBeklenirMi(u) && !idler.has(u.id)),
+    eksik: konfigurlu.filter((u) => !BUNDLE.has(u.id) && !KB.konfigurBeklenirMi(u)),
+    yalnizBundle: konfigurlu.filter((u) => BUNDLE.has(u.id) && !KB.konfigurBeklenirMi(u)),
+  };
+}
+const kp = kapsamOlc(URUNLER);
+ham.push("    katalog=" + URUNLER.length + " urun; konfigur alanli=" + kp.konfigurlu.length +
+         "; bundle=" + BUNDLE.size + "; tahmin 'konfigur beklenir'=" + kp.tahminEvet.length +
+         "; yalniz-bundle(2 katman)=" + kp.yalnizBundle.length +
+         "; fazla(yanlis-pozitif)=" + kp.fazla.length + "; eksik(bundle+tahmin YOK)=" + kp.eksik.length);
+// OZ-KONTROL (olcunun kendisi kor mu): bundle'a girmemis kategori-disi dogrusal SENTETIK kayit
+// eklenince olcu onu EKSIK saymali; saymazsa yukaridaki 0 "kapsam tam" DEMEZ.
+const SENTETIK = { id: "x-kategori-disi-dogrusal-bundlesiz", kategori: "Oyun/Hobi",
+                   konfigur: { fiyatModu: "dogrusal" } };
+const kpS = kapsamOlc(URUNLER.concat([SENTETIK]));
+const ozKontrol = kpS.eksik.length === kp.eksik.length + 1 &&
+  kpS.eksik.some((u) => u.id === SENTETIK.id);
+ham.push("    oz-kontrol: bundle'siz kategori-disi dogrusal sentetik kayit EKSIK sayildi=" +
+         (ozKontrol ? "EVET" : "HAYIR"));
+if (kp.fazla.length || kp.eksik.length || !ozKontrol) {
   kirmizi += 1;
-  ham.push("    ❌ fazla: " + fazla.map((u) => u.id).join(",") +
-           " | eksik: " + eksik.map((u) => u.id).join(","));
-  ham.push("  ❌ KALDI — tahmin kapsami");
+  ham.push("    ❌ fazla: " + kp.fazla.map((u) => u.id).join(",") +
+           " | eksik: " + kp.eksik.map((u) => u.id).join(",") +
+           (ozKontrol ? "" : " | OZ-KONTROL DUSTU (olcu kor)"));
+  ham.push("  ❌ KALDI — bundle VEYA tahmin kapsami");
 } else {
-  ham.push("  ✅ GECTI — tahmin kapsami 13/13 birebir, 0 yanlis-pozitif");
+  ham.push("  ✅ GECTI — " + kp.konfigurlu.length + "/" + kp.konfigurlu.length +
+           " konfigur urunu bundle VEYA tahminle yakalaniyor, 0 yanlis-pozitif, oz-kontrol KIRMIZI yakti");
 }
 
 // 3) ESKI KOD (git HEAD) — kapatilan delik SAYIYLA belgelenir (bilgi amacli; (b) kirmizi OLMALI).

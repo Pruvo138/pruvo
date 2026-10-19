@@ -1904,9 +1904,10 @@ def _konfigur_varsayilan_renk(konfigur):
 def _konfigur_gorsel_ornek_html(konfigur):
     if konfigur.get("gorselOrnek") is not True:
         return ""
-    renkler = [r for r in (konfigur.get("renkler") or []) if r != "Diğer"]
-    metin = ("Görsel tasarımcı örneğidir — ürün seçtiğiniz tek renkte (%s) üretilir."
-             % "/".join(renkler))
+    tum = konfigur.get("renkler") or []
+    renkler = [r for r in tum if r != "Diğer"]
+    metin = ("Görsel tasarımcı örneğidir — ürün seçtiğiniz tek renkte (%s%s) üretilir."
+             % ("/".join(renkler), " ya da yazdığınız renk" if "Diğer" in tum else ""))
     return '\n      <div class="konf-hacim konf-gorsel-ornek">%s</div>' % esc(metin)
 
 
@@ -1933,17 +1934,24 @@ def _renk_butonlari_html(renkler=None, renk_gorselleri=None, secili=None):
         return ' aria-pressed="true"' if (secili is not None and r == secili) else ""
 
     if renkler is not None:
+        # "Diğer" (Okan 19 Eki — Figür/Fidget): etiket yüzdeyi taşır + serbest renk kutusu.
+        # Listede "Diğer" yoksa çıktı bugünküyle BAYT-EŞİT.
         btns = "".join(
             '<button type="button" class="%s" data-renk="%s" data-gorsel="%s"%s>%s'
             '<span class="renk-ad">%s</span></button>' % (
                 _cls(r), esc(r), esc((renk_gorselleri or {}).get(r, "")), _ek(r),
-                ornek.get(r, ""), esc(r))
+                ornek.get(r, ""),
+                esc(r + (" (+%%%d)" % RENK_DIGER_YUZDE if r == "Diğer" else "")))
             for r in renkler)
+        ozel = ("""
+      <input type="text" id="renkOzel" class="renk-ozel" maxlength="30"
+             placeholder="istediğiniz rengi yazın (ör. turuncu)" style="display:none">"""
+                if "Diğer" in renkler else "")
         return ("""
       <div class="opsiyon-row opsiyon-renk">
         <label>Renk</label>
         <div class="renk-butonlar" id="renkButonlar">""" + btns + """</div>
-      </div>""")
+      </div>""" + ozel)
     btns = "".join(
         '<button type="button" class="%s" data-renk="%s"%s>%s'
         '<span class="renk-ad">%s</span></button>' % (
@@ -2080,8 +2088,8 @@ def konfigur_dogrula(p):
         for r in renkler:
             if not isinstance(r, str) or not r.strip():
                 hatalar.append("renkler içinde boş/dize-olmayan değer var")
-            elif r == "Diğer":
-                hatalar.append("renkler 'Diğer' içeremez (özel renk yüzdesi bu akışta hesaplanmıyor)")
+            # "Diğer" 19 Eki'den beri SERBEST (Okan — Figür/Fidget): yüzde /konfigur.js + Worker
+            # konfigurHesapla'da RENK_DIGER_YUZDE'den çarpılır, özel renk metni zorunlu.
             elif r not in RENK_SECENEKLERI:
                 hatalar.append("bilinmeyen renk: %r (secenekler.js RENK_SECENEKLERI dışı)" % r)
 
@@ -2096,7 +2104,12 @@ def konfigur_dogrula(p):
                 hatalar.append("boyutMm.%s pozitif sayı olmalı" % alan)
             else:
                 sayilar[alan] = float(v)
-        if len(sayilar) == 4:
+        if len(sayilar) == 4 and sayilar["min"] == sayilar["max"]:
+            # TEK BOY (19 Eki 2026, BaBa 01:1x — değişiklik izni olmayan "ND" tasarım): ürün
+            # yalnız doğal boyunda; kaydırıcı donar. min = varsayilan = max zorunlu.
+            if sayilar["varsayilan"] != sayilar["min"]:
+                hatalar.append("boyutMm tek boy (min = max): varsayilan da aynı olmalı")
+        elif len(sayilar) == 4:
             if not (sayilar["min"] < sayilar["varsayilan"] < sayilar["max"]):
                 hatalar.append("boyutMm sırası bozuk: min < varsayilan < max olmalı")
             for alan in ("varsayilan", "max"):
@@ -2153,11 +2166,20 @@ def konfigur_dogrula(p):
                     hatalar.append("fiyatCapalari değerleri pozitif sayı olmalı: %r" % (c,))
                     capa_gecerli = False
                     break
-    if capa_gecerli:
+    tek_boy = (isinstance(bm, dict) and isinstance(bm.get("min"), (int, float)) and
+               bm.get("min") == bm.get("max"))
+    if capa_gecerli and tek_boy:
+        # Tek boyda eğri yoktur: iki çapa BİREBİR aynı [doğal boy, fiyat] (fiyat çekirdeği
+        # v1 == v2'de çapanın kendisini basar; farklı fiyat = çelişki -> fiyat YOK).
+        if capalar[0] != capalar[1]:
+            hatalar.append("tek boyda (boyutMm min = max) iki fiyat çapası birebir aynı olmalı: %r"
+                           % (capalar,))
+    elif capa_gecerli:
         if not capalar[0][0] < capalar[1][0]:
             hatalar.append("fiyatCapalari boyları artan sırada olmalı (capa1.boy < capa2.boy)")
         if not capalar[0][1] < capalar[1][1]:
             hatalar.append("fiyatCapalari fiyatları artan olmalı (birim > 0 -> fiyat kesin artan)")
+    if capa_gecerli:
         if isinstance(bm, dict) and isinstance(bm.get("min"), (int, float)) and \
                 isinstance(bm.get("max"), (int, float)):
             if abs(capalar[0][0] - bm["min"]) > 1e-9:
@@ -2267,11 +2289,17 @@ def _konfigur_fiyat_modeli(konfigur):
         raise ValueError("konfigur fiyatModu geçersiz: %r" % (konfigur.get("fiyatModu"),))
     v1 = _konfigur_fiyat_ekseni(konfigur, mod, c[0][0])
     v2 = _konfigur_fiyat_ekseni(konfigur, mod, c[1][0])
+    # TEK BOY (19 Eki 2026): iki çapa aynı boyda -> sabit fiyat; fiyatlar farklıysa çelişki.
+    # Koşul BOYDA (JS ile birebir): eksen değerinde olsaydı null/0 kayması maskelenirdi.
+    if c[0][0] == c[1][0]:
+        if c[0][1] != c[1][1]:
+            raise ValueError("konfigur tek boy: çapa fiyatları farklı %r" % (c,))
+        return 0, c[0][1], mod
     birim = (c[1][1] - c[0][1]) / (v2 - v1)
     return birim, c[0][1] - birim * v1, mod
 
 
-def konfigur_fiyat_kurus(konfigur, boy_mm, katsayi=1.0):
+def konfigur_fiyat_kurus(konfigur, boy_mm, katsayi=1.0, renk_yuzde=0):
     """/konfigur.js fiyatKurus'un Python aynası: fiyat_TL = (sabit + birim × eksen) ×
     malzeme katsayısı, TAM TL'ye yuvarlanır (Math.round eşleniği floor(x+0.5)), kuruş = TL × 100.
     katsayi=1.0 (PLA / malzemesiz) => malzeme-öncesi kodla BİREBİR aynı (geri uyumluluk).
@@ -2281,6 +2309,10 @@ def konfigur_fiyat_kurus(konfigur, boy_mm, katsayi=1.0):
     k = katsayi if (isinstance(katsayi, (int, float)) and not isinstance(katsayi, bool)
                     and katsayi > 0) else 1.0
     tl = (sabit + birim * _konfigur_fiyat_ekseni(konfigur, mod, boy_mm)) * k
+    # "Diğer" renk yüzdesi (JS ile birebir: malzemeden sonra, tavandan önce).
+    if (isinstance(renk_yuzde, (int, float)) and not isinstance(renk_yuzde, bool)
+            and renk_yuzde > 0):
+        tl = tl * (1 + renk_yuzde / 100.0)
     if mod == "hacim":
         tavan = 3 * konfigur["fiyatCapalari"][0][1]   # 3× TAVAN (Okan)
         if tl > tavan:
@@ -2301,18 +2333,20 @@ def _konfigur_boy_html(konfigur):
     c_min, c_max = _sayi_metni(bm["min"] / 10.0), _sayi_metni(bm["max"] / 10.0)
     c_adim, c_var = _sayi_metni(bm["adim"] / 10.0), _sayi_metni(bm["varsayilan"] / 10.0)
     etiket = bm.get("etiket") or "Boy"
+    # TEK BOY (min = max, 19 Eki 2026): iki kontrol de DONAR (disabled) — ölçü değiştirilemez.
+    don = " disabled" if bm["min"] == bm["max"] else ""
     return ("""
       <div class="opsiyon-row konf-row">
         <label for="konfigurBoy">%s</label>
         <input type="number" id="konfigurBoy" class="konf-sayi" inputmode="decimal"
-               min="%s" max="%s" step="%s" value="%s">
+               min="%s" max="%s" step="%s" value="%s"%s>
         <span class="konf-birim">cm</span>
       </div>
       <div class="konf-kaydirici-satir">
         <input type="range" id="konfigurKaydirici" class="konf-kaydirici"
-               min="%s" max="%s" step="%s" value="%s" aria-hidden="true" tabindex="-1">
-      </div>""" % (esc(etiket), c_min, c_max, c_adim, c_var,
-                   c_min, c_max, c_adim, c_var))
+               min="%s" max="%s" step="%s" value="%s" aria-hidden="true" tabindex="-1"%s>
+      </div>""" % (esc(etiket), c_min, c_max, c_adim, c_var, don,
+                   c_min, c_max, c_adim, c_var, don))
 
 
 def _konfigur_malzeme_html(malzemeler, varsayilan, p):
@@ -4076,6 +4110,11 @@ def render_product(p, all_products, chip_map=None):
                     "hesaplanır." % (_bm.get("etiket") or "Boy", _boy_araligi)) if _malzemeler \
             else ("%s %s arasında ayarlanabilir; fiyat seçtiğiniz boyuta göre hesaplanır."
                   % (_bm.get("etiket") or "Boy", _boy_araligi))
+        if _bm["min"] == _bm["max"]:
+            # TEK BOY (19 Eki 2026): aralık yok; ürün yalnız doğal boyunda üretilir.
+            _boy_not = ("%s %s cm — bu tasarım tek boyda üretilir.%s"
+                        % (_bm.get("etiket") or "Boy", _sayi_metni(_bm["min"] / 10.0),
+                           " Fiyat seçtiğiniz malzemeye göre hesaplanır." if _malzemeler else ""))
         opsiyonlar_html = ("""
     <div class="opsiyonlar konf" id="opsiyonlar">
       <div class="konf-baslik">{konf_baslik}</div>
