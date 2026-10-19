@@ -1,5 +1,244 @@
 [
   {
+    "id": "kizgin-yuzlu-cizgi-karakter-cosplay-maskesi",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "baslik": "Kızgın Yüzlü Çizgi Karakter Cosplay Maskesi — Tam Yüz Kostüm Maskesi (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Tam yüzü kaplayan bir cosplay maskesine yontulmuş öfkeli bir çizgi film ifadesi. Göz açıklıklarının üzerine çöken ağır kaşlar, dişleri sıkılı geniş bir ifade ve yükselen yanak hatları suratı keskinleştiriyor.\n- Kostüm, cosplay, fotoğraf çekimi ya da duvar dekoru olarak kullanılabilir; kostüm ve fandom etkinliklerine hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dangry-anime-face-mask-cosplay-mask-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dangry-anime-face-mask-cosplay-mask-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dangry-anime-face-mask-cosplay-mask-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dangry-anime-face-mask-cosplay-mask-4.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "agac-kabuklu-orman-ruhu-kafatasi-maskesi",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "baslik": "Ağaç Kabuklu Orman Ruhu Kafatası Maskesi — Fantastik Kostüm Maskesi (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Oyulmuş ağaç kabuğu dokusu, keskin organik kabartmaları ve temiz bir fantastik aksesuar silueti olan, giyilebilir bir orman ruhu kafatası maskesi. Doğal, ağaç yaratığı görünümü kostüm, duvar sergisi, fotoğraf ve festival için çok uygun.\n- Kostüm, cosplay ve rol yapma etkinlikleri ya da duvar dekoru için; fantastik tema sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dskullbark-mask-wood-spirit-fantasy-costume-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dskullbark-mask-wood-spirit-fantasy-costume-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dskullbark-mask-wood-spirit-fantasy-costume-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dskullbark-mask-wood-spirit-fantasy-costume-4.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "voronoi-desenli-organik-delikli-maske",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "baslik": "Voronoi Desenli Organik Delikli Maske — Giyilebilir Cosplay Maskesi (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Temiz, ürkütücü ve pürüzsüz bir yüzeye sahip, akışkan açık kesikleri ile yabancı-biyomekanik bir görünüm veren Voronoi desenli bir maske. Giyilebilir bir sergi parçası, cosplay aksesuarı, cadılar bayramı maskesi ya da fotoğraf aksesuarı olarak kullanılabilir.\n- Kostüm, fotoğraf çekimi ya da vitrin için dikkat çekici bir obje; tasarım ve bilim kurgu meraklılarına hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dvoronoi-mask-organic-hollow-wearable-mask-for-cosplay-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dvoronoi-mask-organic-hollow-wearable-mask-for-cosplay-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dvoronoi-mask-organic-hollow-wearable-mask-for-cosplay-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "kurt-maskesi-acili-yirtici-cosplay-maskesi",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "baslik": "Kurt Maskesi — Açılı Hatlı Yırtıcı Cosplay ve Kostüm Maskesi (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Stilize açılı tasarımı ile yırtıcı bir kenar taşıyan bir kurt maskesi. Hatlar zayıf, düşük poligon bir estetik veriyor ama yine de canlı hissettiriyor; kurt ruhu ile şeytani bir koruyucu arasında bir görünüm.\n- Cadılar bayramı, kostüm partisi ya da cosplay için; fantastik ve kurt teması sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dwolf-mask-cosplay-costume-mask-for-halloween-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dwolf-mask-cosplay-costume-mask-for-halloween-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dwolf-mask-cosplay-costume-mask-for-halloween-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dwolf-mask-cosplay-costume-mask-for-halloween-4.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
     "id": "olu-kafali-guve-duvar-heykeli",
     "kategori": "Dekorasyon",
     "marka": [],
