@@ -1,5 +1,241 @@
 [
   {
+    "id": "tiki-kafatasi-led-mumluk",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Tiki Kafatası Led Mumluk — Çatlak Taş Detaylı Alevsiz Mum Tutucu (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Oyulmuş tiki esintili siluetiyle, çatlak taş ayrıntıları, ağır kaş plakaları, boş göz çukurları, üçgen burun açıklığı ve kare diş dizisi olan stilize bir kafatası biçimli led mum tutucu. İçine alevsiz bir led mum yerleştirilir.\n- Salon, bar köşesi ya da cadılar bayramı dekoru için karakterli bir ışık objesi; tiki ve gotik tema sevenlere hediye olarak uygun. Yalnız alevsiz led mum ile kullanılmalıdır.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dtiki-skull-led-tea-light-holder-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dtiki-skull-led-tea-light-holder-2.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "kalp-seklinde-led-mumluk",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Kalp Şeklinde Led Mumluk — Alevsiz Işıklı Romantik Dekor (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Açık alev riski olmadan yumuşak, sıcak bir ışık yaymak için tasarlanmış kalp biçimli led mum tutucu. Hafif kavisli duvarları ve içine oturan alevsiz led mumuyla ortama romantik bir atmosfer katar.\n- Sevgililer günü, yıldönümü masası, yatak odası ya da sofra dekoru için; sevgiliye hediye olarak uygun. Birkaç tanesi bir arada kullanılabilir.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz boyutu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dheart-shaped-led-tea-light-holder-deadmoon-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dheart-shaped-led-tea-light-holder-deadmoon-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dheart-shaped-led-tea-light-holder-deadmoon-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dheart-shaped-led-tea-light-holder-deadmoon-4.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Boyut"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "kar-tanesi-duvar-dekoru-ve-susu-seti",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Kar Tanesi Duvar Dekoru ve Süs Seti — Yılbaşı ve Kış Dekorasyonu (6-25 cm Çap Seçenekli)",
+    "aciklama": "Hem duvar sergisi hem yılbaşı süslemesi için tasarlanmış, ayrıntılı bir kar tanesi koleksiyonu. Dantel gibi ince hatlı kar tanesi desenleri duvara asılabilir, ağaca takılabilir ya da pencerede kullanılabilir.\n- Yılbaşı, kış teması ya da çocuk odası dekoru için; kış temasını sevenlere hediye olarak uygun.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz çapı kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dsnowflake-wall-decor-and-ornament-set-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dsnowflake-wall-decor-and-ornament-set-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dsnowflake-wall-decor-and-ornament-set-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dsnowflake-wall-decor-and-ornament-set-4.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Çap"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "kara-dikenli-canavar-kurt-duvar-heykeli",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Kara Dikenli Canavar Kurt Duvar Heykeli — Gotik Fantastik Kurt Başı (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Gotik ve fantastik dekor koleksiyonerleri için tasarlanmış, büyük boy duvara asılan bir kurt başı heykeli. Tüm tabla alanını dolduran bu yaratık, ışığı ve gölgeyi kıran sivri bir siluetle duvardan çıkıyor.\n- Salon, çalışma odası ya da oyun odası duvarı için iddialı bir dekor; fantastik ve kurt teması sevenlere hediye olarak uygun. Uçları sivridir, dikkatli tutulmalıdır.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dblackthorn-direwolf-wall-sculpture-deadmoon-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dblackthorn-direwolf-wall-sculpture-deadmoon-2.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
     "id": "fener-baligi-iskeleti-duvar-trofesi",
     "kategori": "Dekorasyon",
     "marka": [],
