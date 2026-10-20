@@ -6,7 +6,7 @@
 
 ## ▶ halef-47 — 20 Eki 10:2x (döngü `896ab9e8` `13,43`) — YAYIN AÇIK, KUYRUK BOŞ
 - Kapandı: Pages `39375117141` attempt 2 7/7 = V-S3AKIS flake (1. vaka) · `e9ccfa39` Pages `39381738100` 7/7 · Tamirci 20 Eki YARGI: tamir kalemi 0 (m3 1 / Claude 0; E4 `39290049105` BİLİNEN). kanıt: /private/tmp/claude-501/-Users-okan-dev-pruvo/e0b70a1f-b0f9-4eba-b670-885fafc2a886/scratchpad/kanit/2026-10-20-tamirci-isci.txt
-- **SIRADAKİ:** (a) çip kartı `task_eabe46a4` (isci.sh K337 rapor koruması; eski `task_8eac2c4d` başlamadı) başlarsa dal SERİT B → merge · (b) 14:0x SONRASI gizlilik reklam bölümü `5607c3cb` → `/gizlilik/` tek dal (kabul: C2 yeşil + "Reklam çerezi yok" 0). Okan'da bekleyen: YOK.
+- **SIRADAKİ:** (a) çip kartı `task_eabe46a4` (isci.sh K337 rapor koruması; eski `task_8eac2c4d` başlamadı) başlarsa dal SERİT B → merge · (b) 14:0x SONRASI gizlilik reklam bölümü `5607c3cb` → `/gizlilik/` tek dal (kabul: C2 yeşil + eski "yok" cümlesi 0). Okan'da bekleyen: YOK.
 
 ## 🔁 DEVİR — 20 Eki 09:3x, KraL halef-46 → halef-47 (bağlam 485K/704 tur kota RED, öz-devir; döngü `6f7401c4` SİLİNDİ → halef `13,43` "devam" kurar; arka plan işi 0)
 - **SIRADAKİ TEK İŞ:** main `ce072299` (yalnız defter) Pages `39375117141` serit-a3 V-S3AKIS kırmızısı → `rerun --failed` attempt 2 sonucunu ölç: yeşil → flake tek satır · kırmızı → `tools/foto-ornek-uc-uca-test.py` V-S3AKIS kökü (başsız Chrome bölüm çizmedi; önceki 11 koşum yeşil). Canlı etkilenmedi (`bfb11cc0` yayında). kanıt: /private/tmp/claude-501/-Users-okan-dev-pruvo/ef4254ff-d7e4-46d7-ab43-650a3c6f8d2d/scratchpad/kanit/2026-10-20-0920-pages-a3.txt
