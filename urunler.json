@@ -1,5 +1,250 @@
 [
   {
+    "id": "eklemli-kambur-balina",
+    "kategori": "Fidget",
+    "marka": [],
+    "baslik": "Eklemli Kambur Balina (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Uzun yüzgeçleri ve esneyen gövdesiyle kambur balina. Elde tutulduğunda dalgalanır.\n- Masa başında stres atmak, elde oynamak, koleksiyon ya da hediye olarak ideal.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz uzunluğu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dflexi-humpback-whale-mark-print-in-place-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dflexi-humpback-whale-mark-print-in-place-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dflexi-humpback-whale-mark-print-in-place-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri",
+        "Diğer"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0,
+        "Diğer": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Boy"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "eklemli-plesiosaurus-nessie",
+    "kategori": "Fidget",
+    "marka": [],
+    "baslik": "Eklemli Plesiosaurus Nessie (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Nessie efsanesiyle de bilinen uzun boyunlu deniz sürüngeni Plesiosaurus. Boynu ve gövdesi her yöne esner.\n- Masa başında stres atmak, elde oynamak, koleksiyon ya da hediye olarak ideal.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz uzunluğu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dflexi-plesiosaurus-nessie-mark-print-in-place-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dflexi-plesiosaurus-nessie-mark-print-in-place-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dflexi-plesiosaurus-nessie-mark-print-in-place-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dflexi-plesiosaurus-nessie-mark-print-in-place-4.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri",
+        "Diğer"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0,
+        "Diğer": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Boy"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "orta-boy-eklemli-cin-ejderhasi",
+    "kategori": "Fidget",
+    "marka": [],
+    "baslik": "Orta Boy Eklemli Çin Ejderhası (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Çin mitolojisindeki Mavi Ejderha'dan esinlenen eklemli ejderhanın orta boy sürümü. Balık benzeri pullar ve boynuzlar taşır.\n- Masa başında stres atmak, elde oynamak, koleksiyon ya da hediye olarak ideal.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz uzunluğu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dflexi-azure-dragon-medium-size-print-in-place-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dflexi-azure-dragon-medium-size-print-in-place-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dflexi-azure-dragon-medium-size-print-in-place-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dflexi-azure-dragon-medium-size-print-in-place-4.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri",
+        "Diğer"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0,
+        "Diğer": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Boy"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "eklemli-mosasaurus-kombo-seti",
+    "kategori": "Fidget",
+    "marka": [],
+    "baslik": "Eklemli Mosasaurus Kombo Seti (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Antik denizlerin avcısı Mosasaurus'un kombo sürümü; ayrıntılı pulları ve dişleriyle hareketli eklemli deniz canavarı.\n- Masa başında stres atmak, elde oynamak, koleksiyon ya da hediye olarak ideal.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz uzunluğu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dflexi-mosasaurus-combo-set-print-in-place-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dflexi-mosasaurus-combo-set-print-in-place-2.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri",
+        "Diğer"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0,
+        "Diğer": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Boy"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
     "id": "eklemli-japon-ejderhasi",
     "kategori": "Fidget",
     "marka": [],
