@@ -30,6 +30,12 @@ modul sozlugunde kosar. Her mutant icin capanin TAM 1 kez gectigi, eski metnin g
 ve yeni metnin geldigi UCU DE olculur; kosum sonunda canli dosyanin sha256'si bas=son
 karsilastirilir.
 
+EKSEN D (Okan 19-20 Eki, "Diğer" renk): Figur/Fidget + konfigur kaydinda sayfa "Diğer"
+dugmesini + serbest renk kutusunu basmiyorsa IHLAL. Bu yuzden Figur/Fidget fiksturleri
+(_rs) VARSAYILAN olarak "Diğer" tasir — tasimasalardi eksen D onlari once yakalar ve
+eksen B/C mutantlari (N-7, N-9, N-11) o ortak IHLAL'in arkasina saklanirdi
+([[fail-closed-kol-arkasindaki-kolu-maskeler]]). C13-C17 yalniz eksen D'yi olcer.
+
 FIKSTURLER SENTETIKTIR: urunler.json OKUNMAZ (kapinin kendi main()'i okur, batarya
 DEGIL). tools/build.py OKUNUR — cunku olculen sey tam da URETIM KODUNA capalanmis
 olmaktir; kopya bir yuklem yazmak bataryayi anlamsiz kilardi.
@@ -89,8 +95,8 @@ FIX_POZITIF = [_gecerli("x-1"), _gecerli("x-2"), _gecerli("x-3")]
 
 # RENDER-SETSIZ SINIF (BaBa 18 Eki 16:4x; 19 Eki kategoriden bagimsiz): fiyatModu=dogrusal. Kapak
 # tasarimci gorseli (tek gorsel, tum renkler 0'a capali); eksen B yerine etiket olculur.
-def _rs(uid, kategori="Figür", mod="dogrusal", etiket=True, renkler=("Siyah", "Beyaz", "Gri"),
-        rgi=None):
+def _rs(uid, kategori="Figür", mod="dogrusal", etiket=True,
+        renkler=("Siyah", "Beyaz", "Gri", "Diğer"), rgi=None):
     u = _urun(uid, renkler, rgi if rgi is not None else {r: 0 for r in renkler}, _g(1))
     u["kategori"] = kategori
     if mod is not None:
@@ -104,11 +110,11 @@ FIX_RS_GECERLI = [_rs("x-rs-figur"), _rs("x-rs-fidget", kategori="Fidget")]
 # C8 — etiketsiz render-setsiz urun (gorselOrnek yazilmamis).
 FIX_RS_ETIKETSIZ = [_rs("x-rs-etiketsiz", etiket=False)]
 # C9 — sinifta da on-secim Siyah aranir: renk sirasi Gri'yi one aldi.
-FIX_RS_GRI = [_rs("x-rs-gri", renkler=("Gri", "Siyah", "Beyaz"))]
+FIX_RS_GRI = [_rs("x-rs-gri", renkler=("Gri", "Siyah", "Beyaz", "Diğer"))]
 # C10/C11 KACIS fiksturu: hicbir renk 0'a capali DEGIL -> uretim fonksiyonu "listenin ilki"
 # (Siyah) doner, eksen A TEMIZ; siyah-render capasi yok -> YALNIZ eksen B yakalar. Boylece
 # sinif kosulu sokulurse (N-9) urun etiketle TAM'a kacar ve iddia duser.
-_KACIS_RGI = {"Siyah": 2, "Beyaz": 1, "Gri": 3}
+_KACIS_RGI = {"Siyah": 2, "Beyaz": 1, "Gri": 3, "Diğer": 4}
 # C10 — KATEGORIDEN BAGIMSIZ SINIF (19 Eki, BaBa 01:1x): Oyun/Hobi dogrusal + etiket, siyah
 # render capasi YOK -> TAM. Kategori kisiti geri gelirse (N-8) urun eksen B'ye duser -> IHLAL.
 FIX_RS_KATEGORI_DISI = [_rs("x-rs-oyun", kategori="Oyun/Hobi", rgi=_KACIS_RGI)]
@@ -117,6 +123,24 @@ FIX_RS_KACIS_MOD = [_rs("x-rs-kacis-m", mod=None, rgi=_KACIS_RGI)]
 # C12 — kategori-disi dogrusal ETIKETSIZ (tum renkler 0'a capali): sinifta -> eksen C IHLAL.
 # Taban "gorselOrnek ∧ dogrusal" olsaydi (N-11) eksen B'ye duser, rgi[Siyah]=0 ile GECERDI.
 FIX_RS_KATEGORI_DISI_ETIKETSIZ = [_rs("x-rs-ev-etiketsiz", kategori="Ev", etiket=False)]
+
+# EKSEN D — "Diğer" renk (Okan 19-20 Eki). Her fikstur A/B/C eksenlerinde TEMIZ: on-secim Siyah,
+# dogrusal + etiketli -> yalniz eksen D ayirt eder.
+_UC_RENK = ("Siyah", "Beyaz", "Gri")
+# C13 — tek kayittan "Diğer" silindi (Figur), komsular saglam -> YALNIZ o kayit IHLAL.
+FIX_D_FIGUR_EKSIK = [_rs("x-d-figur-ok"), _rs("x-d-fidget-ok", kategori="Fidget"),
+                     _rs("x-d-figur-eksik", renkler=_UC_RENK)]
+# C14 — Fidget'te "Diğer" silindi -> IHLAL (kategori kumesi Figur'e daralirsa KACAR).
+FIX_D_FIDGET_EKSIK = [_rs("x-d-fidget-eksik", kategori="Fidget", renkler=_UC_RENK)]
+# C15 — Figur/Fidget DISI kayitta "Diğer" yok -> YESIL (Oyun/Hobi dogrusal + Skan Art hacim).
+FIX_D_KATEGORI_DISI = [_rs("x-d-oyun", kategori="Oyun/Hobi", renkler=_UC_RENK),
+                       _rs("x-d-dekor", kategori="Dekorasyon", renkler=_UC_RENK),
+                       _gecerli("x-d-skan")]
+# C16 — konfigursuz Figur kaydi kapsam DISI (sayilmaz, OLCULEMEDI de olmaz).
+FIX_D_KONFIGURSUZ = [_rs("x-d-figur-ok"),
+                     {"id": "x-d-figur-duz", "kategori": "Figür", "gorseller": _g(2)}]
+# C17 — uretim fonksiyonu yoksa Figur kaydinda "gecti" DENMEZ -> OLCULEMEDI.
+FIX_D_FN_YOK = [_rs("x-d-fn-yok")]
 
 # C5 — KAPSAM: konfigur alani OLMAYAN urunler sayilmamali.
 FIX_KAPSAM = [_gecerli("x-1"),
@@ -207,6 +231,40 @@ def c11_rs_kacis_mod(mod):
     return (len(ihlal) == 1 and olc == [] and mod.JETON_IHLAL in satir), satir
 
 
+def c13_d_figur_eksik(mod):
+    """Tek Figur kaydindan 'Diğer' silindi -> YALNIZ o kayit IHLAL."""
+    satir, ihlal, olc, tam = mod.denetle(FIX_D_FIGUR_EKSIK, _turet(mod))
+    return ([i[0] for i in ihlal] == ["x-d-figur-eksik"] and olc == [] and tam == 2
+            and mod.JETON_IHLAL in satir), satir
+
+
+def c14_d_fidget_eksik(mod):
+    """Fidget kaydinda 'Diğer' yok -> IHLAL."""
+    satir, ihlal, olc, _ = mod.denetle(FIX_D_FIDGET_EKSIK, _turet(mod))
+    return (len(ihlal) == 1 and olc == [] and mod.JETON_IHLAL in satir), satir
+
+
+def c15_d_kategori_disi(mod):
+    """Figur/Fidget DISI kayitta 'Diğer' yokken -> YESIL (TAM)."""
+    satir, ihlal, olc, tam = mod.denetle(FIX_D_KATEGORI_DISI, _turet(mod))
+    return (ihlal == [] and olc == [] and tam == 3 and mod.JETON_TAM in satir), satir
+
+
+def c16_d_konfigursuz(mod):
+    """konfigursuz Figur kaydi kapsam DISI -> sayilmaz."""
+    satir, ihlal, olc, tam = mod.denetle(FIX_D_KONFIGURSUZ, _turet(mod))
+    return (tam == 1 and ihlal == [] and olc == [] and "1/1" in satir), satir
+
+
+def c17_d_fn_yok(mod):
+    """_renk_butonlari_html cozulemezse Figur kaydi OLCULEMEDI (sessiz yesil YOK)."""
+    turet = _turet(mod)
+    mod._RENK_BUTON_FN = None
+    satir, ihlal, olc, _ = mod.denetle(FIX_D_FN_YOK, turet)
+    return (len(olc) == 1 and mod.JETON_OLCULEMEDI in satir
+            and mod.JETON_TAM not in satir), satir
+
+
 IDDIALAR = [
     ("C1 POZITIF KOL   (gecerli siyah kapakli urun reddedilmiyor)", c1_pozitif),
     ("C2 EKSEN A       (capa 0 ama on-secim Gri -> IHLAL)", c2_eksen_a),
@@ -220,6 +278,11 @@ IDDIALAR = [
     ("C10 RS KATEGORI  (Oyun/Hobi dogrusal+etiket -> TAM; sinif kategoriden bagimsiz)", c10_rs_kategori_disi),
     ("C11 RS KACIS-M   (Figur modsuz+etiketle kapak capasindan kacamaz)", c11_rs_kacis_mod),
     ("C12 RS ETIKETSIZ-K (Ev dogrusal etiketsiz, renkler 0'a capali -> IHLAL)", c12_rs_kategori_disi_etiketsiz),
+    ("C13 D FIGUR      (tek Figur kaydindan Diğer silindi -> yalniz o IHLAL)", c13_d_figur_eksik),
+    ("C14 D FIDGET     (Fidget kaydinda Diğer yok -> IHLAL)", c14_d_fidget_eksik),
+    ("C15 D KATEGORI   (Figur/Fidget disi Diğer'siz kayit -> TAM)", c15_d_kategori_disi),
+    ("C16 D KONFIGURSUZ (konfigursuz Figur kapsam disi)", c16_d_konfigursuz),
+    ("C17 D OLCULEMEDI (renk dugmesi fonksiyonu yok -> OLCULEMEDI)", c17_d_fn_yok),
 ]
 
 # ------------------------------------------------------------------------ mutantlar
@@ -295,6 +358,32 @@ MUTANTLAR = [
      "            html = _ETIKET_FN(k)\n",
      '            html = "tasarımcı örneğidir tek renkte"\n',
      True, "C8"),
+    ("N-12 EKSEN D SOKULDU (Figur/Fidget'te Diğer artik olculmuyor)",
+     "        eksik_d = [c for c in DIGER_CAPALARI if c not in (html or \"\")]\n",
+     "        eksik_d = []\n",
+     True, "C13/C14"),
+    ("N-13 D KATEGORI KUMESI DARALDI (yalniz Figur; Fidget kacar)",
+     'DIGER_KATEGORILER = ("Figür", "Fidget")\n',
+     'DIGER_KATEGORILER = ("Figür",)\n',
+     True, "C14"),
+    ("N-14 D KATEGORI KISITI SOKULDU (her konfigur urunu Diğer ister)",
+     "    if u.get(\"kategori\") in DIGER_KATEGORILER:\n",
+     "    if True:\n",
+     True, "C15"),
+    ("N-15 KONFIGURSUZ KAYIT KAPSAMA ALINDI (konfigursuz Figur sayilir)",
+     '        if not isinstance(u, dict) or not isinstance(u.get("konfigur"), dict):\n',
+     '        if not isinstance(u, dict):\n',
+     True, "C16"),
+    ("N-16 D URETIM KODUNDAN KOPARILDI (sabit HTML'e baglandi)",
+     "            html = _RENK_BUTON_FN(renkler, {}, secili=None)\n",
+     "            html = 'data-renk=\"Diğer\" id=\"renkOzel\"'\n",
+     True, "C13/C14"),
+    ("N-17 D OLCULEMEDI kolu SESSIZ GECISE cevrildi (fonksiyon yoksa olcum atlanir)",
+     "        if _RENK_BUTON_FN is None:\n"
+     "            return \"OLCULEMEDI\", (\"build.py'de _renk_butonlari_html YOK — Figur/Fidget \"\n",
+     "        if _RENK_BUTON_FN is None:\n"
+     "            return \"TAM\", (\"build.py'de _renk_butonlari_html YOK — Figur/Fidget \"\n",
+     True, "C17"),
 ]
 
 
