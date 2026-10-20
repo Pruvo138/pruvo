@@ -1582,6 +1582,9 @@ jobs:
           node shop/test/eposta.mjs
           node shop/test/ref-route.mjs
           node shop/test/inis-sayac.mjs
+          # URETIM SAGLAYICI VEKIL UCU (20 Eki 2026): jeton yok/kisa/yanlis 404, izin kumesi 4
+          # islem, govde yeniden kurulur, gunluk tavan 1, kredi defteri; 6 mutant gecici kopyada.
+          node shop/test/uretim-vekil.mjs
 
       # FOTOGRAFTAN OZEL URETIM (5 Eki 2026, Okan karari). KREDI + ODEME + KISISEL VERI
       # sinifi: onizleme siniri (sinir+1 RED), bot kapisi fail-closed, havuz esigi tek

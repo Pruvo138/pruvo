@@ -37,6 +37,7 @@ import { KONFIGURLAR } from "./konfigurlar.js";
 import { konfigurBeklenirMi } from "./konfigur-beklenen.js";
 import { golgeKalem, golgeLogSatiri } from "./konfigur-golge.js";
 import { yonet, gecmiseEkle } from "./yonet.js";
+import { uretimVekil, VEKIL_ONEK } from "./uretim-vekil.js";
 // Siparis numarasi ureteci TEK KAYNAK (ortak modulde; 1 Agu 2026'da WhatsApp siparis ucu
 // icin ayrildi, uc 6 Eki 2026'da emekli — modul yine tek kaynak).
 import { yeniSiparisNo } from "./siparis-no.js";
@@ -1480,6 +1481,8 @@ export default {
       if (yol === "/inis" && request.method === "POST") return await inisKaydet(request, env);
       // FOTOGRAFTAN OZEL URETIM: /foto/acik · /foto/onizleme · /foto/durum · /foto/gorsel
       if (yol.startsWith("/foto/")) return await fotoUclari(request, env, url, yol, telegram);
+      // URETIM SAGLAYICI VEKILI (src/uretim-vekil.js): jetonsuz/yanlis jeton -> 404, 4 islem izinli.
+      if (yol.startsWith(VEKIL_ONEK)) return await uretimVekil(request, env, yol, Date.now());
       // Anahtar korumali yonetim (same-origin; anahtar yok/yanlis -> 404, telegram fallback icin
       // index.js'in telegram fonksiyonu gecirilir).
       if (yol === "/yonet" || yol.startsWith("/yonet/")) {
