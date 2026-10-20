@@ -20,6 +20,8 @@ basar ve KIRMIZI biter.
 
 RENDER-SETSIZ SINIF (BaBa 18 Eki 16:4x; 19 Eki 01:1x kategoriden bagimsiz): fiyatModu=dogrusal
 urunde eksen B yerine EKSEN C (gorsel ornek etiketi) olculur; ayrinti RENDER_SETSIZ_* ustunde.
+EKSEN D (Okan 19-20 Eki): kategori Figur/Fidget olan konfigur kaydinda sayfa "Diğer" renk
+dugmesini ve serbest renk kutusunu basiyor mu; ayrinti DIGER_* ustunde.
 IKI EKSEN (biri digerini KARSILAMAZ)
 ------------------------------------
   (A) TURETIM SONUCU : uretim fonksiyonunun dondurdugu renk "Siyah" mi.
@@ -74,13 +76,24 @@ RENDER_SETSIZ_FIYAT_MODU = "dogrusal"
 # Etiketin ANLAM capalari (metnin kopyasi DEGIL): ikisi de etiket HTML'inde gecmeli.
 ETIKET_CAPALARI = ("tasarımcı örneğidir", "tek renkte")
 
-# uretim_turetimi() build.py'yi yukleyince etiket fonksiyonunu da buraya koyar.
+# EKSEN D — "DİĞER" RENK ZORUNLU (Okan 19-20 Eki 2026: "figurlerde Diğer renk neden yok,
+# bundan sonra eklenenlerde cikacak mi"). Kok: kayitlara Diğer yazilmamisti ve hicbir kapi
+# yakalamadi. Sayfa "Diğer (+%15)" dugmesini, 60 karakterlik kutuyu ve "En fazla 4 renk" notunu
+# YALNIZ konfigur.renkler'de "Diğer" varsa basar; yoksa musteri kendi rengini SECEMEZ.
+# Kapsam: kategori Figur/Fidget VE konfigur tasiyan kayit (konfigursuz kayit denetle()'de zaten
+# kapsam disi; diger kategorilerde Diğer ARANMAZ). Olcum URETIM fonksiyonu
+# (build._renk_butonlari_html, konfigur dali) cagrilarak yapilir; capalar onun ciktisinda aranir.
+DIGER_KATEGORILER = ("Figür", "Fidget")
+DIGER_CAPALARI = ('data-renk="Diğer"', 'id="renkOzel"')
+
+# uretim_turetimi() build.py'yi yukleyince etiket ve renk dugmesi fonksiyonlarini da buraya koyar.
 _ETIKET_FN = None
+_RENK_BUTON_FN = None
 
 
 def uretim_turetimi():
     """(fn, sebep) — sayfayi basan GERCEK fonksiyon. Cozulemezse (None, sebep)."""
-    global _ETIKET_FN
+    global _ETIKET_FN, _RENK_BUTON_FN
     if not os.path.isfile(BUILD):
         return None, "tools/build.py bulunamadi (%s)" % BUILD
     try:
@@ -95,6 +108,8 @@ def uretim_turetimi():
                       "tasinmis/yeniden adlandirilmis olabilir")
     etiket = getattr(mod, "_konfigur_gorsel_ornek_html", None)
     _ETIKET_FN = etiket if callable(etiket) else None
+    buton = getattr(mod, "_renk_butonlari_html", None)
+    _RENK_BUTON_FN = buton if callable(buton) else None
     return fn, None
 
 
@@ -106,6 +121,8 @@ def render_setsiz_mi(u):
 def urun_hukmu(u, turet):
     """-> (durum, sebep); durum: TAM | IHLAL | OLCULEMEDI."""
     k = u.get("konfigur")
+    if not isinstance(k, dict):
+        return "OLCULEMEDI", "konfigur obje degil"
     renkler = k.get("renkler")
     rgi = k.get("renkGorselIndeks")
     g = u.get("gorseller")
@@ -116,6 +133,21 @@ def urun_hukmu(u, turet):
         return "OLCULEMEDI", "konfigur.renkGorselIndeks yok / obje degil"
     if not isinstance(g, list) or not g:
         return "OLCULEMEDI", "gorseller yok / bos"
+
+    # EKSEN D — Figur/Fidget'te sayfa "Diğer" dugmesini + serbest renk kutusunu basiyor mu.
+    if u.get("kategori") in DIGER_KATEGORILER:
+        if _RENK_BUTON_FN is None:
+            return "OLCULEMEDI", ("build.py'de _renk_butonlari_html YOK — Figur/Fidget "
+                                  "kaydinin 'Diğer' rengi olculemiyor")
+        try:
+            html = _RENK_BUTON_FN(renkler, {}, secili=None)
+        except Exception as e:                                   # noqa: BLE001
+            return "OLCULEMEDI", "renk dugmesi fonksiyonu patladi (%s: %s)" % (type(e).__name__, e)
+        eksik_d = [c for c in DIGER_CAPALARI if c not in (html or "")]
+        if eksik_d:
+            return "IHLAL", ("kategori %s ama konfigur.renkler %r — sayfa 'Diğer' rengini "
+                             "basmiyor (eksik capa: %s); renkler sonuna \"Diğer\" yazilmali "
+                             "(rehber 9.3b)" % (u.get("kategori"), renkler, ", ".join(eksik_d)))
 
     try:
         renk = turet(k)
@@ -206,6 +238,9 @@ def main():
     print("  turetim kaynagi  : tools/build.py::_konfigur_varsayilan_renk (URETIM KODU)")
     print("  kapsamdaki urun  : %d (konfigur alani tasiyan)" % (tam + len(ihlal) + len(olculemedi)))
     print("  on-secim '%s'  : %d" % (BEKLENEN_RENK, tam))
+    print("  'Diğer' kapsami  : %d (kategori %s + konfigur; eksen D)"
+          % (sum(1 for u in urunler if isinstance(u, dict) and isinstance(u.get("konfigur"), dict)
+                 and u.get("kategori") in DIGER_KATEGORILER), "/".join(DIGER_KATEGORILER)))
     print("  " + satir)
     for pid, s in olculemedi:
         print("    OLCULEMEDI %s :: %s" % (pid, s))
@@ -216,7 +251,7 @@ def main():
         print("SONUC: KIRMIZI ❌  (ihlal %d · olculemedi %d)" % (len(ihlal), len(olculemedi)))
         return 1
     print("SONUC: YESIL ✅ — konfigur urunlerinin TAMAMINDA onden secili renk '%s' ve "
-          "turetim kapak gorseline capali." % BEKLENEN_RENK)
+          "turetim kapak gorseline capali; Figur/Fidget'te 'Diğer' basiliyor." % BEKLENEN_RENK)
     return 0
 
 

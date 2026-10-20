@@ -412,7 +412,7 @@ etiketini basar. Renkler `["Siyah", "Beyaz", "Gri", "Diğer"]` sırasıyla yazı
 hepsini `0`'a bağlar (önden seçili renk Siyah olur). **Figür/Fidget'te `"Diğer"` ZORUNLUDUR**
 (Okan, 19-20 Eki 2026): sayfa "Diğer (+%15)" düğmesini, 60 karakterlik renk kutusunu ve
 "En fazla 4 renk yazılabilir." notunu yalnız listede `"Diğer"` varsa basar; yazılmazsa müşteri
-kendi rengini seçemez. Bu sınıfta siyah kapak şartı aranmaz ama etiket zorunludur; etiketsiz
+kendi rengini seçemez. `"Diğer"`siz Figür/Fidget konfigür kaydı `tools/konfigur-siyah-kapak-kapisi.py`'nin eksen D'sinde KIRMIZI yanar. Bu sınıfta siyah kapak şartı aranmaz ama etiket zorunludur; etiketsiz
 kayıt `tools/konfigur-siyah-kapak-kapisi.py`'de KIRMIZI yanar. Alan yalnız `true` olabilir.
 Kabul testi: `python3 tools/konfigur-test.py`, bölüm (f).
 

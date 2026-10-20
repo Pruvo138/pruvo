@@ -564,6 +564,16 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/isci-urun-kapisi-test.py
 
+      # ISCI RAPOR KORUMASI (20 Eki 2026, BaBa 08:1x (3)): K337 kapanis LLM cagrisi
+      # devraldigi dizindeki ortak isci raporunu EZDI (EyLuL 19 Eki: 356 KB -> 19 KB).
+      # isci.sh kapanis cagrisi `tools/isci-rapor-koru.py` once/sonra ile sarilir:
+      # yazim oncesi icerik bayt-oneki degilse RED + .bak'tan geri + yazilan icerik SONA.
+      # HERMETIK (gecici dizin, fikstur KAYNAK satirli; zsh yoksa bash). 11 vaka + 5
+      # mutant. SERIT B: kirmizisi yayini DURDURMAZ (makine kapisi).
+      - name: "Isci rapor korumasi — kabul testi (11 vaka + 5 mutant, hermetik)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/isci-rapor-koru-test.py
+
       # RECETE KAPISI — MIMAR-ICRA-KAPISI'NIN RECETE KONTROLCUSU (18 Agu 2026, K168).
       # Arac, tools/ dizinindeki HER .py icindeki "python3 ..." komutlarini mimar-icra-kapisi
       # uzerinden kuru kosuma yollar; REDDEDILEN sayisi > 0 ise rc=1. SERIT B kapsaminda — kirmizisi
