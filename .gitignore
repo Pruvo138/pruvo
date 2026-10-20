@@ -835,6 +835,8 @@ urun-gorsel-koken/
 shop/.dev.vars
 shop/.wrangler/
 shop/node_modules/
+# siparis dosyasi yoklama/indirme ciktilari (musteri fotografindan tureyebilir; repo PUBLIC — BaBa 20 Eki 13:4x)
+shop/cikti/
 # fiyat mutasyon kosumlarinin gecici src kopyalari (kosum sonunda atilir, uretilebilir)
 shop/src-fiyat-tmp-*/
 # shop/test/olcum.mjs refMutantYukle() gecici src kopyalari (process.on('exit') ile silinir;
