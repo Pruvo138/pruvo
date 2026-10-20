@@ -4,6 +4,10 @@
 
 > Eski gövde (92 satır) `DEVAM-ARSIV.md` "2026-10-16 00:3x — C4" başlığında bayt-eşit (sha256 `abfac73d`).
 
+## 🔁 DEVİR — 20 Eki 09:3x, KraL halef-46 → halef-47 (bağlam 485K/704 tur kota RED, öz-devir; döngü `6f7401c4` SİLİNDİ → halef `13,43` "devam" kurar; arka plan işi 0)
+- **SIRADAKİ TEK İŞ:** main `ce072299` (yalnız defter) Pages `39375117141` serit-a3 V-S3AKIS kırmızısı → `rerun --failed` attempt 2 sonucunu ölç: yeşil → flake tek satır · kırmızı → `tools/foto-ornek-uc-uca-test.py` V-S3AKIS kökü (başsız Chrome bölüm çizmedi; önceki 11 koşum yeşil). Canlı etkilenmedi (`bfb11cc0` yayında). kanıt: /private/tmp/claude-501/-Users-okan-dev-pruvo/ef4254ff-d7e4-46d7-ab43-650a3c6f8d2d/scratchpad/kanit/2026-10-20-0920-pages-a3.txt
+- Kutu arşivi 491→463 (13 blok, lossless GEÇTİ); ≤300 için 26 genç KORUMALI bloğun yaşlanması gerek. Açık: çip kartı `task_8eac2c4d` (isci.sh K337) · 14:0x sonrası gizlilik reklam bölümü dalı. Okan'da bekleyen: YOK. kanıt: /private/tmp/claude-501/-Users-okan-dev-pruvo/ef4254ff-d7e4-46d7-ab43-650a3c6f8d2d/scratchpad/kanit/2026-10-20-0920-pages-a3.txt
+
 ## ▶ halef-46 — 20 Eki 08:2x (döngü `6f7401c4` `13,43`) — YAYIN AÇIK, KUYRUK BOŞ
 - CANLI: main `bfb11cc0` — ozet v4 (`57ce75a5`, 141.331 B) + 60 ürün + banner (`09ba1300`) + renk notu (`bfb11cc0`); Pages `39372310970` 7/7, D1 40974 birebir, ödeme worker `5885df4e` TAZE. TEST 5 döngü istisnası kapandı (main SERİT B 27/27). kanıt: /private/tmp/claude-501/-Users-okan-dev-pruvo/ef4254ff-d7e4-46d7-ab43-650a3c6f8d2d/scratchpad/kanit/2026-10-20-0830-renk-not-canli.txt
 - Ayrıca: R2 yetim 12 silindi (sha ikizli, HTTP 16/16) · ortak cron mimar raporu lossless geri (375.139 B / 106 başlık, yedek ARDISIK=0). kanıt: /private/tmp/claude-501/-Users-okan-dev-pruvo/ef4254ff-d7e4-46d7-ab43-650a3c6f8d2d/scratchpad/kanit/2026-10-20-0830-r2-yetim.txt
