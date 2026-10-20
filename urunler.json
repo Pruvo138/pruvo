@@ -1,5 +1,632 @@
 [
   {
+    "id": "jeep-wrangler-tj-far-kaslari",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler TJ Far Kaşları",
+    "aciklama": "TJ far çerçevesinin üstüne oturan, farlara kızgın bakış görünümü veren kaş parçalarıdır.\nKaynakta her TJ'ye uyduğu belirtilmiştir.\nYaklaşık dış ölçüler: 192 × 104 × 6 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1003314-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1003314-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1003314-3.jpg",
+      "https://media.pruvo3d.com/urunler/th1003314-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "korykossick"
+    }
+  },
+  {
+    "id": "jeep-cift-din-torpido-cerceve-kiti",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep"
+      }
+    ],
+    "baslik": "Jeep Çift Din Torpido Çerçeve Kiti",
+    "aciklama": "Çift DIN boyutlu radyoyu torpidoya oturtan çerçeve kitidir.\nKaynak, uyumlu araç listesini verir; radyo montaj delikleri kullanıcı tarafından açılır.\nYaklaşık dış ölçüler: 235 × 106 × 38 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2603324-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2603324-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2603324-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "creatingMars"
+    }
+  },
+  {
+    "id": "jeep-wrangler-tj-vites-koruk-cercevesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler TJ Vites Körüğü Çerçevesi",
+    "aciklama": "1997-2004 Wrangler'da vites körüğünü çevreleyen çerçevenin yedek parçasıdır.\nYaklaşık dış ölçüler: 155 × 112 × 33 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th591781-1.jpg",
+      "https://media.pruvo3d.com/urunler/th591781-2.jpg",
+      "https://media.pruvo3d.com/urunler/th591781-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "3DCustomTech"
+    }
+  },
+  {
+    "id": "jeep-wrangler-jk-tahliye-tapasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler JK Tahliye Tapası",
+    "aciklama": "2009 Wrangler JK için çizilmiş tahliye tapasıdır.\nYaklaşık dış ölçüler: 61 × 42 × 8 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1738240-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1738240-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1738240-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "MechDezignGuy"
+    }
+  },
+  {
+    "id": "jeep-wrangler-jk-5-anahtarli-pod",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler JK 5 Anahtarlı Pod",
+    "aciklama": "Otomatik şanzımanlı JK'larda kullanılan piyasa pod'larına benzer çizilmiş, beş anahtar alan pod'dur.\nAnahtar delikleri, kullanılacak anahtarlara göre açılır.\nYaklaşık dış ölçüler: 240 × 151 × 81 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th999354-1.jpg",
+      "https://media.pruvo3d.com/urunler/th999354-2.jpg",
+      "https://media.pruvo3d.com/urunler/th999354-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "gkagan"
+    }
+  },
+  {
+    "id": "jeep-wrangler-jk-on-kapi-cebi-tek-parca",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler JK Ön Kapı Cebi (Tek Parça)",
+    "aciklama": "Eski tasarımın iki yarısının birleştirilmesiyle tek parça yapılmış ön kapı cebidir.\nYaklaşık dış ölçüler: 295 × 159 × 52 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3725398-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3725398-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3725398-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "liljoekaz"
+    }
+  },
+  {
+    "id": "jeep-wrangler-tj-yumusak-tavan-cubuk-mafsali",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler TJ Yumuşak Tavan Çubuk Mafsalı",
+    "aciklama": "Fabrika yumuşak tavanı yukarı katlanır tipe çevirmek için kullanılan, küçük çaplı tavan çubuğu mafsalıdır.\nYaklaşık dış ölçüler: 49 × 22 × 22 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1633431-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1633431-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1633431-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "hockeygeek21"
+    }
+  },
+  {
+    "id": "jeep-wrangler-jk-vites-cercevesi-2011",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler JK Vites Çerçevesi (2011)",
+    "aciklama": "2011 Wrangler JK'da vites topuzunun çevresine takılan çerçevedir.\nYaklaşık dış ölçüler: 50 × 50 × 23 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th143189-1.jpg",
+      "https://media.pruvo3d.com/urunler/th143189-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "JuliaTruchsess"
+    }
+  },
+  {
+    "id": "jeep-wrangler-tj-arka-tampon-uc-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler TJ Arka Tampon Uç Kapağı",
+    "aciklama": "1997 TJ'nin arka tampon ucunu kapatan yedek kapaktır.\nYaklaşık dış ölçüler: 122 × 109 × 35 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2340538-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2340538-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2340538-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "CCFLY"
+    }
+  },
+  {
+    "id": "jeep-stop-lambasi-kor-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep"
+      }
+    ],
+    "baslik": "Jeep Stop Lambası Kör Kapağı",
+    "aciklama": "Stop lambası yuvasını kapatan, delikleri olmayan kör kapaktır.\nYaklaşık dış ölçüler: 167 × 143 × 5 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4049015-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Vyrago"
+    }
+  },
+  {
+    "id": "jeep-wrangler-tj-cb-telsiz-montaji",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler TJ CB Telsiz Montajı",
+    "aciklama": "TJ'ye CB telsiz takmak için hazırlanmış montaj parçasıdır.\nYaklaşık dış ölçüler: 137 × 83 × 34 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4736269-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4736269-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4736269-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "sgiacci"
+    }
+  },
+  {
+    "id": "jeep-wrangler-jk-konsol-klipsi-surucu-tarafi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler JK Konsol Klipsi (Sürücü Tarafı)",
+    "aciklama": "2014 Wrangler JK'da sürücü tarafındaki konsolu tutan klipsin yedeğidir.\nYaklaşık dış ölçüler: 44 × 31 × 17 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5420416-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "skyybleu"
+    }
+  },
+  {
+    "id": "jeep-wrangler-jl-gunesluk-tamir-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler JL Güneşlik Tamir Parçası",
+    "aciklama": "JL ve JLU güneşliğinin bağlantısını toparlamak için çizilmiş küçük tutucudur.\nYaklaşık dış ölçüler: 69 × 22 × 4 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5510700-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5510700-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "BunnyTJ"
+    }
+  },
+  {
+    "id": "jeep-wrangler-jl-sis-fari-yerine-pod-lamba-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler JL Sis Farı Yerine Pod Lamba Braketi",
+    "aciklama": "JL ve Gladiator'da sis farı yuvasına 3 inçlik pod lamba takmak için braket.\nYaklaşık dış ölçüler: 160 × 129 × 33 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5377007-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5377007-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5377007-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "BunnyTJ"
+    }
+  },
+  {
+    "id": "jeep-compass-patriot-orta-konsol-tepsisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Compass"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Compass"
+      }
+    ],
+    "baslik": "Jeep Compass/Patriot Orta Konsol Tepsisi",
+    "aciklama": "2011-2016 Compass ve Patriot orta konsoluna oturan küçük eşya tepsisidir.\nYaklaşık dış ölçüler: 145 × 128 × 40 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6243901-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6243901-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6243901-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "WooHoo2You"
+    }
+  },
+  {
+    "id": "jeep-cherokee-xj-vites-topuzu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Cherokee"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Cherokee"
+      }
+    ],
+    "baslik": "Jeep Cherokee XJ Vites Topuzu",
+    "aciklama": "XJ'deki beş vitesli manuel şanzımana uygun vites topuzudur.\nYaklaşık dış ölçüler: 56 × 56 × 49 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2685831-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "dfector"
+    }
+  },
+  {
+    "id": "jeep-cherokee-xj-manuel-cam-kolu-topuzu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Cherokee"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Cherokee"
+      }
+    ],
+    "baslik": "Jeep Cherokee XJ Manuel Cam Kolu Topuzu",
+    "aciklama": "XJ manuel cam kolunun topuzu için yedek parçadır.\nYaklaşık dış ölçüler: 28 × 27 × 27 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2801973-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Qvoss96"
+    }
+  },
+  {
+    "id": "jeep-far-duyu-yuvasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep"
+      }
+    ],
+    "baslik": "Jeep Far Duyu Yuvası",
+    "aciklama": "Far ampulünün oturduğu yuva için yedek parçadır.\nYaklaşık dış ölçüler: 26 × 22 × 14 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3001748-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3001748-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "sjdannen"
+    }
+  },
+  {
+    "id": "jeep-wrangler-kul-tablasi-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler Kül Tablası Kapağı",
+    "aciklama": "Wrangler'da kül tablası yuvasını kapatan kapaktır.\nYaklaşık dış ölçüler: 110 × 108 × 18 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1246507-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1246507-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "jazzbassNick"
+    }
+  },
+  {
+    "id": "jeep-wrangler-tj-gunesluk-ucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler TJ Güneşlik Ucu",
+    "aciklama": "TJ güneşliğinin ucunu tamamlayan yedek parçadır.\nYaklaşık dış ölçüler: 21 × 7 × 7 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4548266-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4548266-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4548266-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "raissteven"
+    }
+  },
+  {
+    "id": "jeep-wrangler-tj-stop-lambasi-ara-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler TJ Stop Lambası Ara Parçası",
+    "aciklama": "TJ stop lambası ile gövde arasına oturan ara çerçevedir.\nYaklaşık dış ölçüler: 167 × 141 × 11 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3965648-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "sgiacci"
+    }
+  },
+  {
+    "id": "jeep-yj-on-sinyal-lambasi-govdesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep YJ Ön Sinyal Lambası Gövdesi",
+    "aciklama": "YJ ön sinyal lambası gövdesi için yedek parçadır.\nYaklaşık dış ölçüler: 113 × 80 × 8 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5149454-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5149454-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5149454-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "psychobillyman"
+    }
+  },
+  {
+    "id": "jeep-wrangler-2009-2014-cam-suyu-puskurtucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler 2009-2014 Cam Suyu Püskürtücü",
+    "aciklama": "2009-2014 Wrangler'ın ön cam suyu püskürtücüsünün yedek parçasıdır.\nYaklaşık dış ölçüler: 38 × 30 × 20 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5378792-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5378792-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "dhall419"
+    }
+  },
+  {
+    "id": "jeep-wrangler-2010-cihaz-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler 2010 Cihaz Tutucusu",
+    "aciklama": "2010 Wrangler'da telefon gibi cihazları torpido üstünde tutan aparattır.\nYaklaşık dış ölçüler: 163 × 135 × 25 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1611898-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1611898-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "jazzbassNick"
+    }
+  },
+  {
+    "id": "jeep-cherokee-xj-sis-fari-kor-kapaklari",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Cherokee"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Cherokee"
+      }
+    ],
+    "baslik": "Jeep Cherokee XJ Sis Farı Kör Kapakları",
+    "aciklama": "XJ'de sis farı yuvasını kapatan kör kapaklardır.\nYaklaşık dış ölçüler: 128 × 50 × 1 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6585152-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "mrmilkey66744"
+    }
+  },
+  {
     "id": "jeep-wrangler-hardtop-hizli-sokme-dugmeleri",
     "kategori": "Otomobil",
     "marka": [
