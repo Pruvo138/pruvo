@@ -381,13 +381,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 0,
+      "Diğer": 0,
       "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -475,13 +477,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 0,
+      "Diğer": 0,
       "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -893,13 +897,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 0,
+      "Diğer": 0,
       "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -985,13 +991,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 0,
+      "Diğer": 0,
       "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -1031,13 +1039,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 0,
+      "Diğer": 0,
       "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -1215,13 +1225,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 0,
+      "Diğer": 0,
       "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -1261,13 +1273,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 0,
+      "Diğer": 0,
       "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -1307,13 +1321,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 0,
+      "Diğer": 0,
       "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -1353,13 +1369,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 0,
+      "Diğer": 0,
       "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -1399,13 +1417,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 0,
+      "Diğer": 0,
       "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -1445,13 +1465,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 0,
+      "Diğer": 0,
       "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -1491,13 +1513,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 0,
+      "Diğer": 0,
       "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -1537,13 +1561,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 0,
+      "Diğer": 0,
       "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -1907,13 +1933,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 0,
+      "Diğer": 0,
       "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -2001,13 +2029,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 0,
+      "Diğer": 0,
       "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -2185,13 +2215,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 0,
+      "Diğer": 0,
       "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -2231,13 +2263,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 0,
+      "Diğer": 0,
       "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -2277,13 +2311,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 0,
+      "Diğer": 0,
       "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -2323,13 +2359,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 0,
+      "Diğer": 0,
       "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -2461,13 +2499,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 0,
+      "Diğer": 0,
       "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -2507,13 +2547,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 0,
+      "Diğer": 0,
       "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -2783,13 +2825,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 0,
+      "Diğer": 0,
       "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -2921,13 +2965,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 0,
+      "Diğer": 0,
       "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -3013,13 +3059,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 0,
+      "Diğer": 0,
       "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -3059,13 +3107,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 0,
+      "Diğer": 0,
       "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -3245,13 +3295,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 0,
+      "Diğer": 0,
       "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -3383,13 +3435,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 0,
+      "Diğer": 0,
       "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -3521,13 +3575,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 0,
+      "Diğer": 0,
       "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -3659,13 +3715,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 0,
+      "Diğer": 0,
       "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -3751,13 +3809,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 0,
+      "Diğer": 0,
       "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -3797,13 +3857,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 0,
+      "Diğer": 0,
       "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -3889,13 +3951,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 0,
+      "Diğer": 0,
       "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -4171,13 +4235,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 0,
+      "Diğer": 0,
       "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -4263,13 +4329,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 0,
+      "Diğer": 0,
       "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -4309,13 +4377,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 0,
+      "Diğer": 0,
       "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -4355,13 +4425,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 0,
+      "Diğer": 0,
       "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -4401,13 +4473,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 0,
+      "Diğer": 0,
       "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -4681,13 +4755,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 0,
+      "Diğer": 0,
       "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -4961,13 +5037,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 0,
+      "Diğer": 0,
       "Gri": 0,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   }
