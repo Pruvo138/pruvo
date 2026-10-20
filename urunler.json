@@ -1,5 +1,462 @@
 [
   {
+    "id": "jeep-patriot-2015-stop-grubu-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Patriot"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Patriot"
+      }
+    ],
+    "baslik": "Jeep Patriot Stop Grubu Klipsi (2015)",
+    "aciklama": "2015 Patriot'ta stop lambası grubunu tutan klipsin yedeğidir.\nYaklaşık dış ölçüler: 37 × 20 × 20 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5890927-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "volarne"
+    }
+  },
+  {
+    "id": "jeep-grand-cherokee-zj-zg-radyo-on-paneli",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Grand Cherokee"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Grand Cherokee"
+      }
+    ],
+    "baslik": "Jeep Grand Cherokee ZJ/ZG Radyo Ön Paneli",
+    "aciklama": "ZJ ve ZG Grand Cherokee'de radyo yuvasının ön paneli için hazırlanmıştır.\nYaklaşık dış ölçüler: 229 × 104 × 30 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4554484-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4554484-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "rausko"
+    }
+  },
+  {
+    "id": "jeep-cherokee-kj-liberty-cift-gosterge-podu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Liberty"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Liberty"
+      }
+    ],
+    "baslik": "Jeep Cherokee KJ / Liberty Çift Gösterge Pod'u",
+    "aciklama": "Cherokee KJ ve Liberty'de iki ek gösterge takmak için hazırlanmış pod'dur.\nYaklaşık dış ölçüler: 204 × 60 × 48 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4694114-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4694114-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Smitter"
+    }
+  },
+  {
+    "id": "jeep-wrangler-jlu-yedek-lastik-tampon-takozu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler JLU Yedek Lastik Tampon Takozu",
+    "aciklama": "JLU'da yedek lastiğin kapıya çarpmasını önleyen tampon takozudur.\nYaklaşık dış ölçüler: 90 × 60 × 60 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6024017-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "BunnyTJ"
+    }
+  },
+  {
+    "id": "jeep-cj-hoparlor-ara-halkalari",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep CJ Hoparlör Ara Halkaları",
+    "aciklama": "CJ hoparlör yuvalarında kullanılan ara halkalardır.\nYaklaşık dış ölçüler: 152 × 152 × 13 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5262046-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5262046-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5262046-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "3rdpig"
+    }
+  },
+  {
+    "id": "jeep-yj-el-telsizi-torpido-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep YJ El Telsizi Torpido Tutucusu",
+    "aciklama": "YJ torpidosuna oturan, el tipi CB telsizi için tutucudur.\nYaklaşık dış ölçüler: 129 × 74 × 62 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4007486-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4007486-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4007486-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "psychobillyman"
+    }
+  },
+  {
+    "id": "jeep-yj-buyuk-ekran-torpido-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep YJ Büyük Ekran Torpido Adaptörü",
+    "aciklama": "YJ torpidosuna 10,26 inçlik çok işlevli ekran takmak için adaptördür.\nYaklaşık dış ölçüler: 88 × 82 × 74 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6705383-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6705383-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6705383-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "psychobillyman"
+    }
+  },
+  {
+    "id": "jeep-cj-on-park-lambasi-cam-yuva-conta",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep CJ Ön Park Lambası Camı, Yuvası ve Contası",
+    "aciklama": "CJ ön park lambası için cam, yuva ve conta parçaları.\nYaklaşık dış ölçüler: 113 × 113 × 44 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4487527-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4487527-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4487527-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "3rdpig"
+    }
+  },
+  {
+    "id": "jeep-grand-cherokee-wj-isitici-kapakcigi-pimi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Grand Cherokee"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Grand Cherokee"
+      }
+    ],
+    "baslik": "Jeep Grand Cherokee WJ Isıtıcı Kapakçığı Pimi",
+    "aciklama": "WJ ısıtıcı kapakçığı için yedek pimdir.\nYaklaşık dış ölçüler: 48 × 19 × 19 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6789431-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6789431-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Der_Flo92"
+    }
+  },
+  {
+    "id": "jeep-yj-gosterge-paneli-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep YJ Gösterge Paneli Adaptörü",
+    "aciklama": "Hız göstergesi, devir saati ve gösterge ışıklarını YJ torpidosuna uyarlayan adaptördür.\nYaklaşık dış ölçüler: 146 × 53 × 15 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6651748-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6651748-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6651748-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "psychobillyman"
+    }
+  },
+  {
+    "id": "jeep-cherokee-xj-4x4-gosterge-plakasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Cherokee"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Cherokee"
+      }
+    ],
+    "baslik": "Jeep Cherokee XJ 4x4 Gösterge Plakası",
+    "aciklama": "XJ ve Comanche MJ modellerinde vites bölgesindeki 4x4 gösterge plakası için yedek parçadır.\nYaklaşık dış ölçüler: 116 × 70 × 14 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5378972-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5378972-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "jeepgeek"
+    }
+  },
+  {
+    "id": "jeep-wrangler-ayna-kaydirma-uzatma-kolu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler Ayna Kaydırma Uzatma Kolu",
+    "aciklama": "Wrangler yan aynasının konumunu uzatan kol parçasıdır.\nYaklaşık dış ölçüler: 123 × 38 × 35 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6988925-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6988925-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6988925-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Piranha72"
+    }
+  },
+  {
+    "id": "jeep-grand-cherokee-wj-isitici-kapagi-sagdan-direksiyon",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Grand Cherokee"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Grand Cherokee"
+      }
+    ],
+    "baslik": "Jeep Grand Cherokee WJ Isıtıcı Kapağı (Sağdan Direksiyon)",
+    "aciklama": "Sağdan direksiyonlu WJ'lerde ısıtıcı kapakçıklarının bulunduğu kutunun havalandırma kapağı için yedek parçadır.\nYaklaşık dış ölçüler: 121 × 107 × 50 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5529503-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5529503-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Der_Flo92"
+    }
+  },
+  {
+    "id": "jeep-wrangler-jku-bozuk-para-tepsisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler JKU Bozuk Para Tepsisi",
+    "aciklama": "JKU içinde bozuk paraların toplandığı küçük tepsidir.\nYaklaşık dış ölçüler: 89 × 86 × 25 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7182016-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Justice152"
+    }
+  },
+  {
+    "id": "jeep-wrangler-jk-sis-fari-cercevesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler JK Sis Farı Çerçeveleri",
+    "aciklama": "JK sis farlarını çevreleyen çerçeve parçalarıdır.\nYaklaşık dış ölçüler: 137 × 137 × 32 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4626898-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4626898-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4626898-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "BunnyTJ"
+    }
+  },
+  {
+    "id": "jeep-renegade-yakit-deposu-hunisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Renegade"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Renegade"
+      }
+    ],
+    "baslik": "Jeep Renegade Yakıt Deposu Hunisi",
+    "aciklama": "Renegade yakıt deposunu dökmeden doldurmaya yarayan hunidir.\nYaklaşık dış ölçüler: 140 × 51 × 51 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7216014-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7216014-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7216014-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "ronaldcaudillo"
+    }
+  },
+  {
+    "id": "jeep-cj-yj-kapi-kilidi-tj-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep CJ/YJ Kapı Kilidini TJ'ye Uyarlama Adaptörü",
+    "aciklama": "CJ ve YJ kapı kilidini TJ kapı mekanizmasına uyarlayan adaptördür.\nYaklaşık dış ölçüler: 101 × 54 × 24 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4905046-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4905046-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "mdlk51"
+    }
+  },
+  {
+    "id": "jeep-grand-cherokee-wk2-far-duyu-sokme-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Grand Cherokee"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Grand Cherokee"
+      }
+    ],
+    "baslik": "Jeep Grand Cherokee WK2 Far Duyu Sökme Adaptörü",
+    "aciklama": "WK2'de far duyunu 3/8 inçlik lokma takımıyla sökmek için hazırlanmış adaptördür.\nYaklaşık dış ölçüler: 52 × 31 × 30 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6298041-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6298041-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6298041-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6298041-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "anthonv78"
+    }
+  },
+  {
     "id": "jeep-wrangler-tj-far-kaslari",
     "kategori": "Otomobil",
     "marka": [
