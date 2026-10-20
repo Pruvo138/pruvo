@@ -407,9 +407,12 @@ Doğrusal sınıf **kategoriden bağımsızdır** (19 Eki 2026): Oyun/Hobi, Ev v
 `"fiyatModu": "dogrusal"` taşıyabilir. Sınıftaki her üründe `"gorselOrnek": true` zorunludur.
 Render seti olmayan doğrusal üründe (kapak tasarımcının görseli, siyah render yok)
 şemaya `"gorselOrnek": true` yazılır: sayfa renk seçicinin altına "Görsel tasarımcı
-örneğidir — ürün seçtiğiniz tek renkte (Siyah/Beyaz/Gri) üretilir." etiketini basar. Renkler
-`["Siyah", "Beyaz", "Gri"]` sırasıyla yazılır, `renkGorselIndeks` hepsini `0`'a bağlar (önden
-seçili renk Siyah olur). Bu sınıfta siyah kapak şartı aranmaz ama etiket zorunludur; etiketsiz
+örneğidir — ürün seçtiğiniz tek renkte (Siyah/Beyaz/Gri ya da yazdığınız renk) üretilir."
+etiketini basar. Renkler `["Siyah", "Beyaz", "Gri", "Diğer"]` sırasıyla yazılır, `renkGorselIndeks`
+hepsini `0`'a bağlar (önden seçili renk Siyah olur). **Figür/Fidget'te `"Diğer"` ZORUNLUDUR**
+(Okan, 19-20 Eki 2026): sayfa "Diğer (+%15)" düğmesini, 60 karakterlik renk kutusunu ve
+"En fazla 4 renk yazılabilir." notunu yalnız listede `"Diğer"` varsa basar; yazılmazsa müşteri
+kendi rengini seçemez. Bu sınıfta siyah kapak şartı aranmaz ama etiket zorunludur; etiketsiz
 kayıt `tools/konfigur-siyah-kapak-kapisi.py`'de KIRMIZI yanar. Alan yalnız `true` olabilir.
 Kabul testi: `python3 tools/konfigur-test.py`, bölüm (f).
 
