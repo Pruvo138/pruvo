@@ -507,7 +507,7 @@ export function acikTurler(acik) {
  * Saglayiciya tek cagri. Donus {kod, govde}; ag hatasi/zaman asimi -> {kod: 0}.
  * Hata METNI cagirana tasinir ama MUSTERIYE ASLA iletilmez (yalniz loga, kisaltilmis).
  */
-async function saglayici(env, yontem, yol, govde) {
+export async function saglayici(env, yontem, yol, govde) {
   const taban = String(env.URETIM_API_TABAN || "").replace(/\/+$/, "");
   const iptal = new AbortController();
   const saat = setTimeout(() => iptal.abort(), SAGLAYICI_ZAMAN_ASIMI_MS);
@@ -553,7 +553,7 @@ function turYolu(env, tur) {
     parca.replace(/^\/+|\/+$/g, "");
 }
 
-function gorevKimligi(g) {
+export function gorevKimligi(g) {
   const id = g && typeof g.result === "string" ? g.result : "";
   return /^[A-Za-z0-9-]{8,80}$/.test(id) ? id : "";
 }
