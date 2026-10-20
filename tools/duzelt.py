@@ -46,8 +46,9 @@ Platform kategorileri (Otomobil/Marin/...) HIC degerlendirilmez.
 OKAN KURALI (6 Eki 2026, tum kurallarin ustunde): urun GIZLENMEZ — `--alan gizli` RED
 (rc 2); eski gizli kaydi acmak: `python3 tools/duzelt.py <id> --alan-sil gizli`.
 URUNU TAMAMEN SILMEK yalniz Okan'in ACIK karariyla (13 Eyl 2026'dan beri izinsiz RED, rc 8;
-izin ve yordam: tools/urun-silme-yordami.md). Izinli `--sil`, urunu urunler.json'dan kaldirir, TAM kaydi arsiv/urunler-arsiv.json'a TASIR (gerekce
-public arsive YAZILMAZ) VE id'yi .urunler-sil-izin.json'a yazar ki guard onu HEAD'den geri
+izin ve yordam: tools/urun-silme-yordami.md). Izinli `--sil`, urunu urunler.json'dan kaldirir, arsiv/urunler-arsiv.json'a GOVDESIZ iz
+yazar (id + silinme_ts + silme_commit + govde_sha256 — tools/urun_arsivi.py; govde public
+arsive YAZILMAZ, git gecmisinde kalir; gerekce de YAZILMAZ) VE id'yi .urunler-sil-izin.json'a yazar ki guard onu HEAD'den geri
 eklemesin. Commit'e urunler.json + arsiv/urunler-arsiv.json BIRLIKTE girer; arsiv kaydi
 olmayan silme tools/urun-silme-kapisi.py (pre-commit adim 9 + CI serit-a3) ile KIRMIZI.
 `--toplu` "sil" islemi de ayni izni ister; arsivi CAGIRAN yazar (panel-uygulayici emsali).
@@ -144,6 +145,12 @@ _arspec = importlib.util.spec_from_file_location(
     "arama", os.path.join(os.path.dirname(os.path.abspath(__file__)), "arama.py"))
 arama = importlib.util.module_from_spec(_arspec)
 _arspec.loader.exec_module(arama)
+# URUN SILME ARSIVI SEKLI (BaBa 20 Eki: public arsivde govde YOK) TEK KAYNAK
+# tools/urun_arsivi.py — panel-uygulayici ile ayni giris_yap; ikinci kopya YAZILMAZ.
+_uaspec = importlib.util.spec_from_file_location(
+    "urun_arsivi", os.path.join(os.path.dirname(os.path.abspath(__file__)), "urun_arsivi.py"))
+urun_arsivi = importlib.util.module_from_spec(_uaspec)
+_uaspec.loader.exec_module(urun_arsivi)
 URUNLER = os.path.join(ROOT, "urunler.json")
 # TEST YUKU SIGORTASI (bkz veri_kok.test_kumu_denetle): `PRUVO_TEST_KUM` tanimliyken veri
 # koku kumun disindaysa ACILISTA durur — kilit dosyasi bile acilmaz. Tanimsizsa no-op.
@@ -991,8 +998,8 @@ def _sil(args):
         if idx is None:
             print("HATA: '%s' id'li urun urunler.json'da yok." % args.id, file=sys.stderr)
             return 1
-        # ARSIV DUZLEMI (13 Eyl 2026): kayit YOK EDILMEZ, TASINIR. Arsiv yazimdan ONCE
-        # okunur; bozuksa HICBIR SEY yazilmaz (sessiz sifirlama yok, veri ezilmez).
+        # ARSIV DUZLEMI (BaBa 20 Eki): arsive GOVDESIZ iz yazilir (govde git gecmisinde).
+        # Arsiv yazimdan ONCE okunur; bozuksa HICBIR SEY yazilmaz (sessiz sifirlama yok).
         arsiv = []
         if os.path.exists(ARSIV):
             try:
@@ -1023,11 +1030,13 @@ def _sil(args):
                 return 1
 
         _atomic_write(URUNLER, urunler)
-        # Arsiv girisi panel-uygulayici::arsiv_ekle ile AYNI sekil; GEREKCE public repoya
-        # YAZILMAZ (yalniz yerel guard logunda yasar). kuyruk_id yok: panel disi yol.
-        arsiv.append({"silinme_ts": datetime.datetime.now(datetime.timezone.utc)
-                      .strftime("%Y-%m-%dT%H:%M:%SZ"),
-                      "yazan": "duzelt.py", "kuyruk_id": None, "kayit": kayit})
+        # Arsiv girisi panel-uygulayici::arsiv_ekle ile AYNI sekil (urun_arsivi.giris_yap);
+        # GOVDE ve GEREKCE public repoya YAZILMAZ (gerekce yalniz yerel guard logunda).
+        # kuyruk_id yok: panel disi yol. Onceki girislerin bos silme_commit'i doldurulur.
+        urun_arsivi.bekleyenleri_doldur(ROOT, arsiv)
+        arsiv.append(urun_arsivi.giris_yap(
+            kayit, "duzelt.py", None,
+            datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")))
         os.makedirs(os.path.dirname(ARSIV), exist_ok=True)
         _atomic_write(ARSIV, arsiv)
 
@@ -1057,7 +1066,7 @@ def _sil(args):
     _log("sil: %s -> kaldirildi (%s) (izin=%s; arsive tasindi; silme manifestine yazildi)"
          % (args.id, args.sil, SIL_IZIN_DEGERI))
     print("Silindi: %s  (gerekce: %s)" % (args.id, args.sil))
-    print("ARSIV: TAM kayit arsiv/urunler-arsiv.json'a TASINDI — commit'e BIRLIKTE ekle: "
+    print("ARSIV: govdesiz iz arsiv/urunler-arsiv.json'a yazildi — commit'e BIRLIKTE ekle: "
           "git add urunler.json arsiv/urunler-arsiv.json")
     if kaynak_sonuc is not None:
         print("KAYNAK_SILINEN=%d ZATEN_YOK=%d KAYNAK_KALAN=%d"

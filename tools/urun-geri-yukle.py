@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
-"""urun-geri-yukle.py — arsiv/urunler-arsiv.json'dan TEK urunu tabana GERI yukler.
+"""urun-geri-yukle.py — silinen TEK urunu git gecmisinden tabana GERI yukler.
 
-BAGLAM (Okan emri 2 Eyl 2026 + BaBa cercevesi (2): silme GERI ALINABILIR olmali):
-panelin "Sil (arsive)" yolu (yonet.js /urun-sil -> panel_ustyazim alan='sil' ->
-tools/panel-uygulayici.py -> duzelt --toplu {"id","sil"}) taban kaydini YOK ETMEZ;
-TAM kaydi arsiv/urunler-arsiv.json'a tasir. Bu arac o kaydi tabana geri getirir.
+BAGLAM (Okan emri 2 Eyl 2026 + BaBa cercevesi (2): silme GERI ALINABILIR olmali;
+BaBa 20 Eki: public arsivde GOVDE YOK): silme yollari (panel "Sil" -> panel-uygulayici,
+izinli `duzelt.py --sil`) arsiv/urunler-arsiv.json'a yalniz GOVDESIZ iz yazar
+(id + silinme_ts + silme_commit + govde_sha256; sekil tools/urun_arsivi.py). Govde
+silme commit'inin EBEVEYNINDEDIR: `git show <silme_commit>^:urunler.json`.
 Yordamin tamami: tools/urun-silme-yordami.md.
 
 NE YAPAR (tek cagri, tek kilit):
-  1. Arsivdeki EN YENI kaydi bulur (ayni id birden fazla silinmisse son silinen).
+  1. Arsivdeki EN YENI girisi bulur (ayni id birden fazla silinmisse son silinen) ve
+     govdeyi `<silme_commit>^:urunler.json`dan alir (silme_commit bos ise girisi arsive
+     ekleyen commit'ten turetilir); govde govde_sha256 ile ESLESMEZSE hicbir sey
+     yazilmaz (GOVDE_DOGRULANAMADI, rc!=0).
   2. urunler.json'a BASA ekler (yeni urun kurali: dizi basi) — id zaten tabandaysa
      HICBIR SEY yazmaz (ZATEN_TABANDA, rc!=0).
   3. .diriltme-izin.json'a id-duzeyinde beyan yazar: diriltme-kapisi (EKSEN 1,
@@ -29,7 +33,8 @@ KIPLER:
   python3 tools/urun-geri-yukle.py <id> [--gerekce "kisa gerekce"]
   python3 tools/urun-geri-yukle.py --kendini-test
 
-TEST DIKISI (canli kosumda KAPALI): URUN_GERI_KOK=<yol> repo koku yerine fikstur.
+TEST DIKISI (canli kosumda KAPALI): URUN_GERI_KOK=<yol> repo koku yerine fikstur
+(git deposu olmali: govde git gecmisinden gelir).
 """
 import argparse
 import datetime
@@ -54,6 +59,12 @@ def _modul_yukle(yol, ad):
     return m
 
 
+def _urun_arsivi():
+    # Arsiv sekli + git cozumleyici TEK kaynak (tools/urun_arsivi.py).
+    return _modul_yukle(os.path.join(VARSAYILAN_KOK, "tools", "urun_arsivi.py"),
+                        "pruvo_urun_arsivi_gy")
+
+
 def _duzelt():
     # _atomic_write TEK kaynaktan (duzelt.py) gelir — yazim bicimi ayrisamaz.
     return _modul_yukle(os.path.join(VARSAYILAN_KOK, "tools", "duzelt.py"),
@@ -76,14 +87,18 @@ def geri_yukle(uid, gerekce):
         return 1
     with open(arsiv_yolu, encoding="utf-8") as f:
         arsiv = json.load(f)
-    adaylar = [e for e in arsiv
-               if isinstance(e, dict) and isinstance(e.get("kayit"), dict)
-               and e["kayit"].get("id") == uid]
+    ua = _urun_arsivi()
+    adaylar = [e for e in arsiv if ua.giris_id(e) == uid]
     if not adaylar:
         print("HATA: ARSIVDE_YOK — '%s' arsivde bulunamadi (%d kayit tarandi)."
               % (uid, len(arsiv)), file=sys.stderr)
         return 1
     aday = adaylar[-1]  # ayni id birden fazla silinmisse EN YENI silinen kazanir
+    try:
+        govde, silme_commit = ua.govde_getir(kok, aday)
+    except ua.ArsivHatasi as e:
+        print("HATA: GOVDE_DOGRULANAMADI — %s; hicbir sey yazilmadi." % e, file=sys.stderr)
+        return 1
 
     dz = _duzelt()
     lockf = open(kilit_yolu, "w")
@@ -96,7 +111,7 @@ def geri_yukle(uid, gerekce):
                   "yazilmadi." % uid, file=sys.stderr)
             return 1
         once = len(urunler)
-        urunler.insert(0, aday["kayit"])  # yeni urun kurali: dizi BASINA
+        urunler.insert(0, govde)  # yeni urun kurali: dizi BASINA
         dz._atomic_write(urunler_yolu, urunler)
 
         # Diriltme beyani — kapinin KENDI beyan yolu (kapi gevsetilmez).
@@ -104,10 +119,11 @@ def geri_yukle(uid, gerekce):
         if os.path.exists(izin_yolu):
             with open(izin_yolu, encoding="utf-8") as f:
                 izin = json.load(f)
-        izin[uid] = ("Mimar karari (tools/urun-geri-yukle.py, %s): panel silme "
-                     "arsivinden geri yukleme (silinme_ts=%s, kuyruk_id=%s). %s"
+        izin[uid] = ("Mimar karari (tools/urun-geri-yukle.py, %s): silme izinden geri "
+                     "yukleme (silinme_ts=%s, kuyruk_id=%s, silme_commit=%s). %s"
                      % (simdi_utc(), aday.get("silinme_ts", "?"),
-                        aday.get("kuyruk_id", "?"), (gerekce or "").strip())).strip()
+                        aday.get("kuyruk_id", "?"), silme_commit[:12],
+                        (gerekce or "").strip())).strip()
         gecici = izin_yolu + ".tmp"
         with open(gecici, "w", encoding="utf-8") as f:
             json.dump(izin, f, ensure_ascii=False, indent=2)
@@ -117,8 +133,8 @@ def geri_yukle(uid, gerekce):
         fcntl.flock(lockf, fcntl.LOCK_UN)
         lockf.close()
 
-    print("GERI_YUKLENDI: %s  (katalog %d -> %d; dizi basina eklendi)"
-          % (uid, once, once + 1))
+    print("GERI_YUKLENDI: %s  (katalog %d -> %d; dizi basina eklendi; govde %s^:urunler.json, "
+          "sha256 dogrulandi)" % (uid, once, once + 1, silme_commit[:12]))
     print("Diriltme beyani yazildi: .diriltme-izin.json['%s']" % uid)
     print("Arsiv kaydina DOKUNULMADI (append-only tarih).")
     print("SONRAKI ADIMLAR (mimar): git add urunler.json .diriltme-izin.json && "
@@ -138,6 +154,22 @@ def _kos(uid, kok, gerekce=None):
     return p.returncode, p.stdout + p.stderr
 
 
+def _fg(dizin, *args):
+    sys.path.insert(0, os.path.join(VARSAYILAN_KOK, "tools"))
+    from git_ortami import sentetik_git
+    p = sentetik_git(dizin, *args, ayarlar=("-c", "commit.gpgsign=false",
+                                            "-c", "core.hooksPath=/var/empty/yok"),
+                     capture_output=True, text=True)
+    if p.returncode != 0:
+        raise RuntimeError("git %s: %s" % (" ".join(args), p.stderr.strip()))
+    return p.stdout.strip()
+
+
+def _jyaz(yol, veri):
+    with open(yol, "w", encoding="utf-8") as f:
+        json.dump(veri, f, ensure_ascii=False, indent=2)
+
+
 def kendini_test():
     vaka, dusen = 0, []
 
@@ -150,37 +182,58 @@ def kendini_test():
             print("  HATA %s %s" % (ad, str(detay)[:300]))
             dusen.append(ad)
 
+    ua = _urun_arsivi()
     tmp = tempfile.mkdtemp(prefix="urun-geri-test-")
     try:
         KAYIT_ESKI = {"id": "test-sil", "kategori": "Ofis", "baslik": "Eski Surum",
                       "aciklama": "a", "fiyat": "90 TL", "marka": [], "uyum": [],
                       "gorseller": ["https://media.pruvo3d.com/urunler/ts-1.jpg"]}
         KAYIT_YENI = dict(KAYIT_ESKI, baslik="Yeni Surum", fiyat="100 TL")
-        TABAN = [{"id": "kalan-a", "baslik": "Kalan A"},
+        KALAN = [{"id": "kalan-a", "baslik": "Kalan A"},
                  {"id": "kalan-b", "baslik": "Kalan B"}]
         kok = os.path.join(tmp, "fikstur")
         os.makedirs(os.path.join(kok, "arsiv"))
-        with open(os.path.join(kok, "urunler.json"), "w", encoding="utf-8") as f:
-            json.dump(TABAN, f, ensure_ascii=False, indent=2)
-        with open(os.path.join(kok, ARSIV_GORELI), "w", encoding="utf-8") as f:
-            json.dump([
-                {"silinme_ts": "2026-09-01T00:00:00Z", "yazan": "panel-uygulayici",
-                 "kuyruk_id": 1, "kayit": KAYIT_ESKI},
-                {"silinme_ts": "2026-09-02T00:00:00Z", "yazan": "panel-uygulayici",
-                 "kuyruk_id": 2, "kayit": KAYIT_YENI},
-            ], f, ensure_ascii=False, indent=2)
+        _fg(kok, "init", "-q")
+        uyol = os.path.join(kok, "urunler.json")
+        ayol = os.path.join(kok, ARSIV_GORELI)
+        # Gercek silme gecmisi: ESKI surum silinir (giris 1, silme_commit DOLU sonradan),
+        # geri gelir, YENI surum olarak tekrar silinir (giris 2, silme_commit BOS).
+        _jyaz(uyol, [KAYIT_ESKI] + KALAN)
+        _jyaz(ayol, [])
+        _fg(kok, "add", "-A")
+        _fg(kok, "commit", "-q", "-m", "taban")
+        g1 = ua.giris_yap(KAYIT_ESKI, "panel-uygulayici", 1, "2026-09-01T00:00:00Z")
+        _jyaz(uyol, KALAN)
+        _jyaz(ayol, [g1])
+        _fg(kok, "add", "-A")
+        _fg(kok, "commit", "-q", "-m", "sil 1")
+        sil1 = _fg(kok, "rev-parse", "HEAD")
+        g1["silme_commit"] = sil1
+        _jyaz(uyol, [KAYIT_YENI] + KALAN)
+        _jyaz(ayol, [g1])
+        _fg(kok, "add", "-A")
+        _fg(kok, "commit", "-q", "-m", "geri + duzenleme")
+        g2 = ua.giris_yap(KAYIT_YENI, "panel-uygulayici", 2, "2026-09-02T00:00:00Z")
+        _jyaz(uyol, KALAN)
+        _jyaz(ayol, [g1, g2])
+        _fg(kok, "add", "-A")
+        _fg(kok, "commit", "-q", "-m", "sil 2")
         with open(os.path.join(kok, ".diriltme-izin.json"), "w", encoding="utf-8") as f:
             json.dump({"baska-urun#fiyat": "onceki beyan"}, f, ensure_ascii=False, indent=2)
             f.write("\n")
+        with open(ayol, "rb") as f:
+            arsiv_b = f.read()
+        ol("V0 fikstur arsivi GOVDESIZ (sekil ihlali 0, 'baslik' yok)",
+           not ua.govdeli_girisler(json.loads(arsiv_b)) and b"baslik" not in arsiv_b)
 
-        # V1: geri yukleme — basa eklenir, EN YENI arsiv kaydi kazanir, beyan yazilir.
+        # V1: geri yukleme — basa eklenir, EN YENI silinen surum git'ten gelir, beyan yazilir.
         rc, cikti = _kos("test-sil", kok, "kobay geri yukleme provasi")
-        with open(os.path.join(kok, "urunler.json"), encoding="utf-8") as f:
+        with open(uyol, encoding="utf-8") as f:
             taban = json.load(f)
         with open(os.path.join(kok, ".diriltme-izin.json"), encoding="utf-8") as f:
             izin = json.load(f)
         ol("V1a rc=0 + katalog 2->3", rc == 0 and len(taban) == 3, cikti)
-        ol("V1b kayit DIZI BASINDA ve EN YENI arsiv surumu",
+        ol("V1b kayit DIZI BASINDA ve EN YENI silinen surum (git gecmisinden)",
            taban[0] == KAYIT_YENI, json.dumps(taban[0], ensure_ascii=False))
         ol("V1c komsu kayitlar ayni sirada",
            taban[1]["id"] == "kalan-a" and taban[2]["id"] == "kalan-b")
@@ -188,25 +241,44 @@ def kendini_test():
            "test-sil" in izin and "kuyruk_id=2" in izin["test-sil"]
            and izin.get("baska-urun#fiyat") == "onceki beyan",
            json.dumps(izin, ensure_ascii=False))
-        with open(os.path.join(kok, ARSIV_GORELI), encoding="utf-8") as f:
-            ol("V1e arsiv dosyasina DOKUNULMADI (2 kayit durur)",
-               len(json.load(f)) == 2)
+        with open(ayol, "rb") as f:
+            ol("V1e arsiv dosyasina DOKUNULMADI (byte-esit)", f.read() == arsiv_b)
 
         # V2: id zaten tabanda -> rc!=0, urunler.json BYTE-esit.
-        with open(os.path.join(kok, "urunler.json"), "rb") as f:
+        with open(uyol, "rb") as f:
             once_b = f.read()
         rc, cikti = _kos("test-sil", kok)
-        with open(os.path.join(kok, "urunler.json"), "rb") as f:
+        with open(uyol, "rb") as f:
             sonra_b = f.read()
         ol("V2 ZATEN_TABANDA -> rc!=0 + taban byte-esit",
            rc != 0 and "ZATEN_TABANDA" in cikti and once_b == sonra_b, cikti)
 
         # V3: arsivde olmayan id -> rc!=0, hicbir dosya degismez.
         rc, cikti = _kos("hic-olmayan-urun", kok)
-        with open(os.path.join(kok, "urunler.json"), "rb") as f:
+        with open(uyol, "rb") as f:
             v3_b = f.read()
         ol("V3 ARSIVDE_YOK -> rc!=0 + taban byte-esit",
            rc != 0 and "ARSIVDE_YOK" in cikti and v3_b == once_b, cikti)
+
+        # V4: govde_sha256 git'teki govdeyle ESLESMEZ -> fail-closed, taban byte-esit.
+        _jyaz(uyol, KALAN)
+        with open(uyol, "rb") as f:
+            v4_once = f.read()
+        bozuk = [g1, dict(g2, govde_sha256="0" * 64)]
+        _jyaz(ayol, bozuk)
+        rc, cikti = _kos("test-sil", kok)
+        with open(uyol, "rb") as f:
+            v4_sonra = f.read()
+        ol("V4 parmak izi eslesmez -> GOVDE_DOGRULANAMADI rc!=0 + taban byte-esit",
+           rc != 0 and "GOVDE_DOGRULANAMADI" in cikti and v4_once == v4_sonra, cikti)
+
+        # V5: DOLU silme_commit yolu — ilk silinen (ESKI) surum <silme_commit>^'den gelir.
+        _jyaz(ayol, [g1])
+        rc, cikti = _kos("test-sil", kok)
+        with open(uyol, encoding="utf-8") as f:
+            taban5 = json.load(f)
+        ol("V5 silme_commit dolu -> govde %s^:urunler.json (ESKI surum)" % sil1[:8],
+           rc == 0 and taban5[0] == KAYIT_ESKI, cikti)
 
         print("SONUC: VAKA=%d DUSEN=%d" % (vaka, len(dusen)))
         return 0 if not dusen else 1

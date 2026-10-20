@@ -21,9 +21,11 @@ ALAN BEYAZ LISTESI UYGULAYICININ ICINDEDIR (ayri bir kapida degil — hakem hukm
 
 TEKIL SILME (Okan emri 2 Eyl 2026 + BaBa cercevesi): alan='sil' satiri (deger =
 GEREKCE; worker yalniz /urun-sil cift-onay ucundan yazar) duzelt --toplu'nun
-{"id","sil"} sekliyle tabandan DUSURULUR ve TAM taban kaydi arsiv/urunler-arsiv.json
-duzlemine eklenir (ayni commit; kayit YOK EDILMEZ — geri yukleme:
-tools/urun-geri-yukle.py + tools/urun-silme-yordami.md). GEREKCE PUBLIC repoya
+{"id","sil"} sekliyle tabandan DUSURULUR ve arsiv/urunler-arsiv.json duzlemine
+GOVDESIZ iz eklenir (ayni commit; id + silinme_ts + silme_commit + govde_sha256 —
+sekil TEK KAYNAK tools/urun_arsivi.py; BaBa 20 Eki: public repoda silinen urunun
+govdesi YASAMAZ, govde git gecmisindedir — geri yukleme: tools/urun-geri-yukle.py
++ tools/urun-silme-yordami.md). GEREKCE PUBLIC repoya
 YAZILMAZ (D1 satirinda + yerel guard logunda kalir). Ayni urunun bekleyen alan
 duzenlemesi sil kazananinin golgesinde URUN_SILINECEK sebebiyle hata kovasina duser
 (duzelt ayni id'de sil+alan karisimini reddeder; sessiz sira belirsizligi yerine
@@ -442,21 +444,29 @@ def tabana_isle(kok, uygulanacak, hata):
 ARSIV_DOSYASI = os.path.join("arsiv", "urunler-arsiv.json")
 
 
+def _urun_arsivi(kok):
+    # Arsiv girisinin sekli TEK KAYNAK (tools/urun_arsivi.py) — ikinci kopya YAZILMAZ.
+    return _modul_yukle(os.path.join(kok, "tools", "urun_arsivi.py"), "pruvo_urun_arsivi")
+
+
 def arsiv_ekle(kok, kayitlar):
-    """Silinen urunlerin TAM taban kaydini arsiv duzlemine ekler (BaBa cercevesi:
-    kayit YOK EDILMEZ, tasinir; geri yukleme tools/urun-geri-yukle.py). GEREKCE
-    BILEREK YAZILMAZ: repo PUBLIC — gerekce D1 kuyruk satirinda (kuyruk_id ile
-    bulunur) + yerel guard logunda yasar. kayitlar: [(urun_kaydi, kuyruk_id)].
+    """Silinen urunlerin GOVDESIZ izini arsiv duzlemine ekler (BaBa 20 Eki: public
+    repoda govde YASAMAZ; govde silme commit'inin ebeveynindedir, geri yukleme
+    tools/urun-geri-yukle.py). Onceki girislerin bos silme_commit'i git gecmisinden
+    doldurulur (urun_arsivi.bekleyenleri_doldur). GEREKCE BILEREK YAZILMAZ: repo
+    PUBLIC — gerekce D1 kuyruk satirinda (kuyruk_id ile bulunur) + yerel guard
+    logunda yasar. kayitlar: [(urun_kaydi, kuyruk_id)].
     Bozuk arsiv dosyasi SESSIZCE sifirlanmaz: json.load coker, kosum kirmizi olur,
     satirlar beklemede kalir (crash-guvenli sira korunur, veri ezilmez)."""
+    ua = _urun_arsivi(kok)
     yol = os.path.join(kok, ARSIV_DOSYASI)
     mevcut = []
     if os.path.exists(yol):
         with open(yol, encoding="utf-8") as f:
             mevcut = json.load(f)
+    ua.bekleyenleri_doldur(kok, mevcut)
     for kayit, kuyruk_id in kayitlar:
-        mevcut.append({"silinme_ts": simdi_utc(), "yazan": "panel-uygulayici",
-                       "kuyruk_id": int(kuyruk_id), "kayit": kayit})
+        mevcut.append(ua.giris_yap(kayit, "panel-uygulayici", int(kuyruk_id), simdi_utc()))
     os.makedirs(os.path.dirname(yol), exist_ok=True)
     gecici = yol + ".tmp"
     with open(gecici, "w", encoding="utf-8") as f:
@@ -464,9 +474,10 @@ def arsiv_ekle(kok, kayitlar):
     os.replace(gecici, yol)
 
 
-def _arsiv_kayit_idleri(girisler):
-    return {e["kayit"].get("id") for e in girisler
-            if isinstance(e, dict) and isinstance(e.get("kayit"), dict)}
+def _arsiv_kayit_idleri(kok, girisler):
+    # Govdesiz (`id`) ve eski govdeli (`kayit.id`) sekil — gecmis commit'ler de okunur.
+    ua = _urun_arsivi(kok)
+    return {i for i in (ua.giris_id(e) for e in girisler) if i}
 
 
 def arsiv_idleri(kok):
@@ -476,7 +487,7 @@ def arsiv_idleri(kok):
     if not os.path.exists(yol):
         return set()
     with open(yol, encoding="utf-8") as f:
-        return _arsiv_kayit_idleri(json.load(f))
+        return _arsiv_kayit_idleri(kok, json.load(f))
 
 
 def _commit_json(kok, rev, yol, yoksa=None):
@@ -497,9 +508,9 @@ def silinen_arsivli_idler(kok, commit):
     dusen = once - sonra
     eski = {json.dumps(e, sort_keys=True, ensure_ascii=False)
             for e in _commit_json(kok, commit + "^", ARSIV_DOSYASI, yoksa=[])}
-    eklenen = _arsiv_kayit_idleri(
+    eklenen = _arsiv_kayit_idleri(kok, [
         e for e in _commit_json(kok, commit, ARSIV_DOSYASI, yoksa=[])
-        if json.dumps(e, sort_keys=True, ensure_ascii=False) not in eski)
+        if json.dumps(e, sort_keys=True, ensure_ascii=False) not in eski])
     return sorted(i for i in dusen & eklenen if i)
 
 
@@ -1011,7 +1022,7 @@ def kendini_test():
            and dok[0]["sebep"] == "TABAN_ZATEN_ESIT", cikti + str(dok))
 
         # ── V13 (TEKIL SILME — Okan emri 2 Eyl): alan='sil' satiri tabani N->N-1
-        #    yapar; TAM taban kaydi arsiv dosyasina GEREKCESIZ duser (public repo),
+        #    yapar; GOVDESIZ iz (id+sha) arsiv dosyasina GEREKCESIZ duser (public repo),
         #    iki dosya AYNI commit'te push'lanir, satir islendi+commit damgali.
         repo12, bare12, db12 = _fikstur_kur(tmp)
         kat_once = _katalog_oku(repo12)
@@ -1030,9 +1041,13 @@ def kendini_test():
         ol("V13a sil: rc=0 + urun tabandan dustu (N->N-1)",
            rc == 0 and "test-urun-1" not in kat and len(kat) == len(kat_once) - 1,
            cikti)
-        ol("V13b arsiv kaydi TAM taban kaydi + gerekce arsive SIZMADI (public repo)",
-           len(arsiv) == 1 and arsiv[0].get("kayit") == kat_once["test-urun-1"]
+        ua13 = _urun_arsivi(VARSAYILAN_KOK)
+        ol("V13b arsiv kaydi GOVDESIZ (id+govde_sha256) + gerekce arsive SIZMADI",
+           len(arsiv) == 1 and ua13.sekil_ihlali(arsiv[0]) is None
+           and arsiv[0].get("id") == "test-urun-1"
+           and arsiv[0].get("govde_sha256") == ua13.govde_sha256(kat_once["test-urun-1"])
            and arsiv[0].get("kuyruk_id") == s13
+           and "baslik" not in json.dumps(arsiv[0], ensure_ascii=False)
            and "kobay" not in json.dumps(arsiv[0], ensure_ascii=False),
            json.dumps(arsiv, ensure_ascii=False)[:300])
         ol("V13c satir islendi + commit damgali + push uzakta",
@@ -1078,11 +1093,10 @@ def kendini_test():
 
         # ══ K430 (1 Eki 2026): silinen urun aramadan HEMEN duser + idempotent silme ══
         # Arsivde duran (tabanda olmayan) urunun bayat D1 satiri — keyfi id sinavi.
-        ARSIVLI = {"silinme_ts": "2026-10-01T13:57:00Z", "yazan": "panel-uygulayici",
-                   "kuyruk_id": 900, "kayit": {"id": "test-arsivli", "kategori": "Ofis",
-                                               "marka": [], "baslik": "Test Arsivli",
-                                               "aciklama": "a", "fiyat": "50 TL",
-                                               "gorseller": []}}
+        ARSIVLI = _urun_arsivi(VARSAYILAN_KOK).giris_yap(
+            {"id": "test-arsivli", "kategori": "Ofis", "marka": [],
+             "baslik": "Test Arsivli", "aciklama": "a", "fiyat": "50 TL",
+             "gorseller": []}, "panel-uygulayici", 900, "2026-10-01T13:57:00Z")
 
         # ── V16: sil push'lanir -> AYNI kosumda D1 yayinda=0 (yalniz silinen id),
         #    cikti izi D1_GIZLE=1, rc=0; komsu satirlar yayinda=1 KALIR.
@@ -1172,6 +1186,11 @@ def kendini_test():
                       ["config", "user.name", "panel-uyg-test"]):
                 _fg(d, *k, check=True)
             os.makedirs(os.path.join(d, "arsiv"))
+            # Arsiv sekli kok/tools'tan yuklenir (canli ile ayni yol).
+            os.makedirs(os.path.join(d, "tools"))
+            for ad in ("urun_arsivi.py", "git_ortami.py"):
+                shutil.copy(os.path.join(VARSAYILAN_KOK, "tools", ad),
+                            os.path.join(d, "tools", ad))
 
             def yaz(urunler, arsiv_):
                 with open(os.path.join(d, "urunler.json"), "w", encoding="utf-8") as f:

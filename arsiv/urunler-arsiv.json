@@ -1,1009 +1,338 @@
 [
   {
+    "id": "bisiklet-krank-civatasi-sokme-takma-ucu",
     "silinme_ts": "2026-09-02T10:57:09Z",
+    "silme_commit": "460d872634232aa9fa4fbe7f0d20f469031041a4",
+    "govde_sha256": "77e516477947863a92b60d4eae57b925d2444e86a52c2d0eb125b7ac286a49dc",
     "yazan": "panel-uygulayici",
-    "kuyruk_id": 9,
-    "kayit": {
-      "id": "bisiklet-krank-civatasi-sokme-takma-ucu",
-      "kategori": "Bisiklet",
-      "marka": [],
-      "uyum": [],
-      "baslik": "Bisiklet Krank Cıvatası Sökme/Takma Ucu",
-      "aciklama": "Krank cıvatasını sökmek/takmak için kullanılan özel uçtur.\n- Standart krank cıvatası başına oturur\n- Elle veya anahtarla döndürmeyi kolaylaştırır\n- Özel alet gerektirmeden bakım yapmayı sağlar\nYaklaşık dış ölçüler: 15 × 15 × 8 mm.",
-      "fiyat": "200 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/th92353-1.jpg",
-        "https://media.pruvo3d.com/urunler/th92353-2.jpg",
-        "https://media.pruvo3d.com/urunler/th92353-3.jpg"
-      ],
-      "lisans": {
-        "tasarimci": "fastryan",
-        "tur": "CC BY 4.0"
-      }
-    }
+    "kuyruk_id": 9
   },
   {
+    "id": "bisiklet-krank-civatasi-sokme-takma-ucu",
     "silinme_ts": "2026-09-03T07:16:44Z",
+    "silme_commit": "49ebe540048647dbf4682559bd9a4cb825d33226",
+    "govde_sha256": "77e516477947863a92b60d4eae57b925d2444e86a52c2d0eb125b7ac286a49dc",
     "yazan": "panel-uygulayici",
-    "kuyruk_id": 10,
-    "kayit": {
-      "id": "bisiklet-krank-civatasi-sokme-takma-ucu",
-      "kategori": "Bisiklet",
-      "marka": [],
-      "uyum": [],
-      "baslik": "Bisiklet Krank Cıvatası Sökme/Takma Ucu",
-      "aciklama": "Krank cıvatasını sökmek/takmak için kullanılan özel uçtur.\n- Standart krank cıvatası başına oturur\n- Elle veya anahtarla döndürmeyi kolaylaştırır\n- Özel alet gerektirmeden bakım yapmayı sağlar\nYaklaşık dış ölçüler: 15 × 15 × 8 mm.",
-      "fiyat": "200 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/th92353-1.jpg",
-        "https://media.pruvo3d.com/urunler/th92353-2.jpg",
-        "https://media.pruvo3d.com/urunler/th92353-3.jpg"
-      ],
-      "lisans": {
-        "tasarimci": "fastryan",
-        "tur": "CC BY 4.0"
-      }
-    }
+    "kuyruk_id": 10
   },
   {
+    "id": "bmw-e36-coupe-geni-amurluk-seti-motorsport",
     "silinme_ts": "2026-09-03T21:22:48Z",
+    "silme_commit": "b024d2d648ac9c43d884f39eb7217d2db722e96f",
+    "govde_sha256": "aef6c40b2cf2883a5909788d6f73d84276aef5cbac10905d4307565b5534601c",
     "yazan": "panel-uygulayici",
-    "kuyruk_id": 11,
-    "kayit": {
-      "id": "bmw-e36-coupe-geni-amurluk-seti-motorsport",
-      "kategori": "Otomobil",
-      "marka": [
-        "BMW",
-        "E36"
-      ],
-      "baslik": "BMW E36 Coupe Geniş Çamurluk Seti (Motorsport)",
-      "aciklama": "BMW E36 Coupe model aracınız için özel tasarım olarak üretilen geniş çamurluk (overfender) seti.\nAracınıza agresif ve sportif bir motorsport görünümü kazandırır.\nYüksek kaliteli malzemeden özel sipariş üzerine üretilmektedir.\nMontaj öncesi profesyonel uyumluluk kontrolü ve astarlama önerilir.\nYaklaşık dış ölçüler: 993 × 322 × 174 mm.",
-      "fiyat": "1150 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/bmw-e36-coupe-geni-amurluk-seti-motorsport-1.jpg",
-        "https://media.pruvo3d.com/urunler/bmw-e36-coupe-geni-amurluk-seti-motorsport-2.jpg",
-        "https://media.pruvo3d.com/urunler/bmw-e36-coupe-geni-amurluk-seti-motorsport-3.jpg",
-        "https://media.pruvo3d.com/urunler/bmw-e36-coupe-geni-amurluk-seti-motorsport-4.jpg"
-      ],
-      "altkategori": "Dış Aksam",
-      "uyum": [
-        {
-          "marka": "BMW"
-        },
-        {
-          "marka": "BMW",
-          "model": "E36"
-        }
-      ]
-    }
+    "kuyruk_id": 11
   },
   {
+    "id": "sisme-bot-tasima-tekerlegi",
     "silinme_ts": "2026-09-09T12:13:20Z",
+    "silme_commit": "21ebae75ee2d8f6fc3975c8fb11a8b90b494f03c",
+    "govde_sha256": "4f80f9a7e97f601b53080db0d1fe164e45fa5206db49009571d3bf2f1345c07a",
     "yazan": "panel-uygulayici",
-    "kuyruk_id": 18,
-    "kayit": {
-      "id": "sisme-bot-tasima-tekerlegi",
-      "kategori": "Marin",
-      "marka": [],
-      "baslik": "Şişme Bot (Dinghy) Taşıma Tekerleği",
-      "aciklama": "Küçük şişme botları (dinghy) kolayca hareket ettirmek için tekerlek seti.\n- Ölçüye özel olarak özelleştirilebilir.\n- Şişme bot transomuna monte edilir.\n- Sağlam ve geniş taban plakası içerir.\nYaklaşık dış ölçüler: 160 × 155 × 50 mm.",
-      "fiyat": "350 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/th4884657-1.jpg",
-        "https://media.pruvo3d.com/urunler/th4884657-2.jpg",
-        "https://media.pruvo3d.com/urunler/th4884657-3.jpg",
-        "https://media.pruvo3d.com/urunler/th4884657-4.jpg"
-      ],
-      "lisans": {
-        "tasarimci": "derrix",
-        "tur": "CC BY 4.0"
-      },
-      "altkategori": "Kano ve Kayak"
-    }
+    "kuyruk_id": 18
   },
   {
+    "id": "chassis-chevy-k30",
     "silinme_ts": "2026-09-16T18:43:17Z",
+    "silme_commit": "5bf06d6e9794852274491655186830c6379d396c",
+    "govde_sha256": "0751bdab5706090a71a4774d89b28be9fb0ea4f954c589c1ad4b414796602c36",
     "yazan": "duzelt.py",
-    "kuyruk_id": null,
-    "kayit": {
-      "id": "chassis-chevy-k30",
-      "kategori": "Otomobil",
-      "marka": [
-        "Chevrolet",
-        "K30"
-      ],
-      "baslik": "Chevy K30 Şasi",
-      "aciklama": "Ladder frame yapısı, travers ve süspansiyon bağlantı noktaları detaylandırılmıştır. kaynak CGTrader, özel üretim olarak listelenir.",
-      "fiyat": "5300 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/cgt2568870-1.jpg",
-        "https://media.pruvo3d.com/urunler/cgt2568870-2.jpg",
-        "https://media.pruvo3d.com/urunler/cgt2568870-3.jpg",
-        "https://media.pruvo3d.com/urunler/cgt2568870-4.jpg",
-        "https://media.pruvo3d.com/urunler/cgt2568870-5.jpg",
-        "https://media.pruvo3d.com/urunler/cgt2568870-6.jpg"
-      ],
-      "altkategori": "Dış Aksam"
-    }
+    "kuyruk_id": null
   },
   {
+    "id": "chevrolet-350-small-block-v8",
     "silinme_ts": "2026-09-16T18:43:22Z",
+    "silme_commit": "5bf06d6e9794852274491655186830c6379d396c",
+    "govde_sha256": "b712dc958d0878be608c78f8092e32b7646e743df7ac53c4952b097438465aa6",
     "yazan": "duzelt.py",
-    "kuyruk_id": null,
-    "kayit": {
-      "id": "chevrolet-350-small-block-v8",
-      "kategori": "Otomobil",
-      "marka": [
-        "Chevrolet",
-        "350 Small Block"
-      ],
-      "baslik": "Chevrolet 350 Small Block V8 Motor",
-      "aciklama": "Krank mili, silindir kapakları, subap kapakları ve egzoz manifoldı detaylı. Maket, görsel veya eğitim amaçlı kullanıma uygundur; kaynak CGTrader, özel üretim olarak hazırlanır.",
-      "fiyat": "1000 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/cgt5471608-1.jpg",
-        "https://media.pruvo3d.com/urunler/cgt5471608-2.jpg",
-        "https://media.pruvo3d.com/urunler/cgt5471608-3.jpg",
-        "https://media.pruvo3d.com/urunler/cgt5471608-4.jpg",
-        "https://media.pruvo3d.com/urunler/cgt5471608-5.jpg",
-        "https://media.pruvo3d.com/urunler/cgt5471608-6.jpg"
-      ],
-      "altkategori": "Motor Bölümü"
-    }
+    "kuyruk_id": null
   },
   {
+    "id": "chevrolet-big-block-454-supercharger",
     "silinme_ts": "2026-09-16T18:43:26Z",
+    "silme_commit": "5bf06d6e9794852274491655186830c6379d396c",
+    "govde_sha256": "94f6295f948501bebe7000ef7b80378ffa4c400e5e33b3c0fef1de13fd8f9f88",
     "yazan": "duzelt.py",
-    "kuyruk_id": null,
-    "kayit": {
-      "id": "chevrolet-big-block-454-supercharger",
-      "kategori": "Otomobil",
-      "marka": [
-        "Chevrolet",
-        "Big Block 454"
-      ],
-      "baslik": "Chevrolet Big Block 454 Supercharger",
-      "aciklama": "Krank kasnağı, kayış gergin düzeni ve üst plaka yapısı görünür durumda. kaynak CGTrader, özel üretim olarak listelenir.",
-      "fiyat": "1000 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/cgt4085497-1.jpg",
-        "https://media.pruvo3d.com/urunler/cgt4085497-2.jpg",
-        "https://media.pruvo3d.com/urunler/cgt4085497-3.jpg",
-        "https://media.pruvo3d.com/urunler/cgt4085497-4.jpg",
-        "https://media.pruvo3d.com/urunler/cgt4085497-5.jpg",
-        "https://media.pruvo3d.com/urunler/cgt4085497-6.jpg"
-      ],
-      "altkategori": "Motor Bölümü"
-    }
+    "kuyruk_id": null
   },
   {
+    "id": "chevy-klasik-jant",
     "silinme_ts": "2026-09-16T18:43:29Z",
+    "silme_commit": "5bf06d6e9794852274491655186830c6379d396c",
+    "govde_sha256": "161183309c721391c034bb21a525689813d9235f3136da92c96073c3bc552257",
     "yazan": "duzelt.py",
-    "kuyruk_id": null,
-    "kayit": {
-      "id": "chevy-klasik-jant",
-      "kategori": "Otomobil",
-      "marka": [
-        "Chevrolet"
-      ],
-      "baslik": "Chevy Klasik Jant",
-      "aciklama": "maket, OEM restorasyon veya görsel amaçlı kullanıma uygundur. kaynak CGTrader, özel üretim olarak hazırlanır.",
-      "fiyat": "600 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/cgt3131554-1.jpg",
-        "https://media.pruvo3d.com/urunler/cgt3131554-2.jpg",
-        "https://media.pruvo3d.com/urunler/cgt3131554-3.jpg",
-        "https://media.pruvo3d.com/urunler/cgt3131554-4.jpg",
-        "https://media.pruvo3d.com/urunler/cgt3131554-5.jpg",
-        "https://media.pruvo3d.com/urunler/cgt3131554-6.jpg"
-      ],
-      "altkategori": "Tekerlek ve Jant"
-    }
+    "kuyruk_id": null
   },
   {
+    "id": "chevy-small-block-v8-hilborn-intake",
     "silinme_ts": "2026-09-16T18:43:32Z",
+    "silme_commit": "5bf06d6e9794852274491655186830c6379d396c",
+    "govde_sha256": "fccb1428545a3855cf37f8bf271221c51cad8e31f8087966fe3272ec2744d01d",
     "yazan": "duzelt.py",
-    "kuyruk_id": null,
-    "kayit": {
-      "id": "chevy-small-block-v8-hilborn-intake",
-      "kategori": "Otomobil",
-      "marka": [
-        "Chevrolet",
-        "Small Block"
-      ],
-      "baslik": "Chevy Small Block V8 Hilborn Emme Manifoldu",
-      "aciklama": "Yarış motoru görünümü için intake crossover hatları ve tek nokta gaz kelebeği yapısı detaylı. Maket veya görsel amaçlı üretimde ölçek serbest; kaynak CGTrader, özel üretim olarak listelenir.",
-      "fiyat": "1000 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/cgt3458403-1.jpg",
-        "https://media.pruvo3d.com/urunler/cgt3458403-2.jpg",
-        "https://media.pruvo3d.com/urunler/cgt3458403-3.jpg",
-        "https://media.pruvo3d.com/urunler/cgt3458403-4.jpg",
-        "https://media.pruvo3d.com/urunler/cgt3458403-5.jpg",
-        "https://media.pruvo3d.com/urunler/cgt3458403-6.jpg"
-      ],
-      "altkategori": "Motor Bölümü"
-    }
+    "kuyruk_id": null
   },
   {
+    "id": "ford-fusion-jant-gobek-kapagi-logolu",
     "silinme_ts": "2026-09-18T07:57:06Z",
+    "silme_commit": "85673d2f05826fc603c57f25362c430436bba81b",
+    "govde_sha256": "861ad3c3ee3bd9274965c0ca2e512f6e30212d075eee55d096314d4e976ac79a",
     "yazan": "duzelt.py",
-    "kuyruk_id": null,
-    "kayit": {
-      "id": "ford-fusion-jant-gobek-kapagi-logolu",
-      "kategori": "Otomobil",
-      "marka": [
-        "Ford",
-        "Fusion"
-      ],
-      "baslik": "Ford Fusion Jant Göbek Kapağı (Logolu)",
-      "aciklama": "Ford Fusion jantlarının göbek kapağının yedek karşılığıdır.\nGövde ve taban sert malzemeyle, kancalar esnek malzemeyle üretilir (iki parçalı montaj, 4 esnek kanca ile takılır).\nKaybolan veya kırılan orijinal kapağın yerine takılabilir; montaj öncesi ölçü kontrolü önerilir.\nYaklaşık dış ölçüler: 55 × 22 × 55 mm.",
-      "fiyat": "250 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/ford-fusion-jant-gobek-kapagi-logolu-1.jpg",
-        "https://media.pruvo3d.com/urunler/ford-fusion-jant-gobek-kapagi-logolu-2.jpg",
-        "https://media.pruvo3d.com/urunler/ford-fusion-jant-gobek-kapagi-logolu-3.jpg",
-        "https://media.pruvo3d.com/urunler/ford-fusion-jant-gobek-kapagi-logolu-4.jpg"
-      ],
-      "altkategori": "Tekerlek ve Jant",
-      "uyum": [
-        {
-          "marka": "Ford",
-          "model": "Fusion"
-        }
-      ]
-    }
+    "kuyruk_id": null
   },
   {
+    "id": "mercedes-w212-e-class-on-yan-hava-girisi",
     "silinme_ts": "2026-09-29T12:08:30Z",
+    "silme_commit": "9c32fc150d42c52a632846db37c7fab04a8c1dbc",
+    "govde_sha256": "3f0c0fae829e2be3cc026da5b4b41883c1121734f7d3c9a8c442912c83e160d8",
     "yazan": "panel-uygulayici",
-    "kuyruk_id": 32,
-    "kayit": {
-      "id": "mercedes-w212-e-class-on-yan-hava-girisi",
-      "kategori": "Otomobil",
-      "marka": [
-        "Mercedes"
-      ],
-      "baslik": "Mercedes-Benz W212 E-Class Ön Yan Hava Girişi (W213 Tarzı)",
-      "aciklama": "Mercedes-Benz W212 E-Class Facelift Sport (2014-2016) için W213 tarzı ön tampon yan hava girişi paneli.\nÇift kanatlı tasarımıyla spor bir görünüm katar.\nABS/PETG malzemeyle üretilir.\nMevcut tampon boşluğuna uyacak şekilde tasarlanmıştır.\nYaklaşık dış ölçüler: 678 × 359 × 295 mm.",
-      "fiyat": "450 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/pr1730730-1.jpg",
-        "https://media.pruvo3d.com/urunler/pr1730730-2.jpg",
-        "https://media.pruvo3d.com/urunler/pr1730730-3.jpg"
-      ],
-      "lisans": {
-        "tasarimci": "auc7us",
-        "tur": "CC BY 4.0"
-      },
-      "altkategori": "Dış Aksam",
-      "uyum": [
-        {
-          "marka": "Mercedes"
-        }
-      ]
-    }
+    "kuyruk_id": 32
   },
   {
+    "id": "toyota-rav4-offroad-celik-on-tampon",
     "silinme_ts": "2026-10-01T13:57:55Z",
+    "silme_commit": "63821697a962eef2e39ab80b15a6b3d5bca30a5c",
+    "govde_sha256": "2b65695fc85e5364d4476741c9bdf4ba6c3fbca964accfcbe52cf5310c5fad02",
     "yazan": "panel-uygulayici",
-    "kuyruk_id": 33,
-    "kayit": {
-      "id": "toyota-rav4-offroad-celik-on-tampon",
-      "kategori": "Otomobil",
-      "marka": [
-        "Toyota"
-      ],
-      "uyum": [
-        {
-          "marka": "Toyota"
-        }
-      ],
-      "baslik": "Off-Road Çelik Ön Tampon (Toyota RAV4)",
-      "aciklama": "Toyota RAV4 için vinç destekli tam off-road çelik ön tampon tasarımıdır.\n- Komple tasarım dosyaları dahildir.\n- Arazi kullanımı için uygundur.\n- Siparişe göre özel tasarım üretimle hazırlanır.",
-      "fiyat": "500 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/th7198397-1.jpg",
-        "https://media.pruvo3d.com/urunler/th7198397-2.jpg",
-        "https://media.pruvo3d.com/urunler/th7198397-3.jpg",
-        "https://media.pruvo3d.com/urunler/th7198397-4.jpg"
-      ],
-      "lisans": {
-        "tasarimci": "Frame75",
-        "tur": "CC BY-SA 4.0"
-      }
-    }
+    "kuyruk_id": 33
   },
   {
+    "id": "toyota-rav4-off-road-elik-n-tampon",
     "silinme_ts": "2026-10-01T13:59:17Z",
+    "silme_commit": "783a8a04a03ed6745eca6972887137e2d2961fbb",
+    "govde_sha256": "f4768d2f87db6f7d76860c43e7b96fc2775d663a67e265ae29b080418358add0",
     "yazan": "panel-uygulayici",
-    "kuyruk_id": 34,
-    "kayit": {
-      "id": "toyota-rav4-off-road-elik-n-tampon",
-      "kategori": "Otomobil",
-      "marka": [
-        "Toyota",
-        "RAV4"
-      ],
-      "baslik": "Toyota RAV4 Off-Road Çelik Ön Tampon",
-      "aciklama": "Toyota RAV4 aracınız için özel olarak tasarlanan off-road ön tampon, zorlu arazi koşullarında üstün koruma sağlar.\nAracınızın ön bölümünü darbelere ve engellere karşı maksimum düzeyde korur.\nÖzel tasarım üretim yapısı sayesinde aracın orijinal hatlarına kusursuz uyum sağlar.\nVinç ve ek aydınlatma montajına uygun altyapıya sahiptir.\nYaklaşık dış ölçüler: 76 × 76 × 60 mm.",
-      "fiyat": "950 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/toyota-rav4-off-road-elik-n-tampon-1.jpg",
-        "https://media.pruvo3d.com/urunler/toyota-rav4-off-road-elik-n-tampon-2.jpg",
-        "https://media.pruvo3d.com/urunler/toyota-rav4-off-road-elik-n-tampon-3.jpg",
-        "https://media.pruvo3d.com/urunler/toyota-rav4-off-road-elik-n-tampon-4.jpg",
-        "https://media.pruvo3d.com/urunler/panel-f1bea8bbbd64d06d4f76.png"
-      ],
-      "lisans": {
-        "tasarimci": "Kadanae Industries",
-        "tur": "CC BY-SA 4.0"
-      },
-      "altkategori": "Aydınlatma"
-    }
+    "kuyruk_id": 34
   },
   {
+    "id": "yamaha-klavye-nota-sehpas",
     "silinme_ts": "2026-10-07T08:27:14Z",
+    "silme_commit": "7dce027c6a5d3a35850a87926818f1cab972e817",
+    "govde_sha256": "3afff2faa5fd692764c8e9c85bf0f121b621a44882cc75c6fbbd2e29c2c20c6d",
     "yazan": "panel-uygulayici",
-    "kuyruk_id": 41,
-    "kayit": {
-      "id": "yamaha-klavye-nota-sehpas",
-      "kategori": "Elektronik",
-      "marka": [
-        "Yamaha"
-      ],
-      "baslik": "Yamaha klavye nota sehpası",
-      "aciklama": "Klavye üzerinde notaları veya kağıtları sabit tutmak için kullanılan pratik bir nota sehpasıdır.\n- Yamaha uyumlu klavyelerde kullanım için uygundur.\n- Üstteki yuvasına yerleştirilerek kolayca takılır ve çıkarılır.\n- Evde pratik, prova ve sahne kullanımında düzen sağlar.\nYaklaşık dış ölçüler: 60 × 60 × 10 mm.",
-      "fiyat": "250 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/yamaha-klavye-nota-sehpas-1.jpg"
-      ],
-      "lisans": {
-        "tasarimci": "Mechatronics",
-        "tur": "CC BY 4.0"
-      },
-      "altkategori": "Ses ve Müzik",
-      "uyum": [
-        {
-          "marka": "Yamaha"
-        }
-      ]
-    }
+    "kuyruk_id": 41
   },
   {
+    "id": "vespa-vnb-125",
     "silinme_ts": "2026-10-11T17:10:16Z",
+    "silme_commit": "6e2c40ef0af6f2832d9346fd5b83b5d906382158",
+    "govde_sha256": "7e4ac69c4b6094fbff78f768bd754b217a42f83f45f6390c34337b22d1489a7f",
     "yazan": "duzelt.py",
-    "kuyruk_id": null,
-    "kayit": {
-      "id": "vespa-vnb-125",
-      "kategori": "Motosiklet",
-      "marka": [
-        "Vespa",
-        "VNB 125"
-      ],
-      "baslik": "Vespa VNB 125",
-      "aciklama": "Klasik Vespa VNB 125 için özel tasarım üretim odaklı ürün içeriği.\n- Vespa VNB 125 ile uyumlu, vintage çizgiyi koruyan parça/aksesuar kullanımı için uygundur.\n- Mevcut scooter üzerinde referans alınarak değerlendirilmiş görsel, ürünün genel formunu net gösterir.\n- Siparişe göre özel üretilir; uygulama ve montaj detayları ihtiyaç duyulan parçaya göre belirlenir.",
-      "fiyat": "1750 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/cgt3234097-1.jpg"
-      ]
-    }
+    "kuyruk_id": null
   },
   {
+    "id": "vespa-scooter",
     "silinme_ts": "2026-10-11T17:10:20Z",
+    "silme_commit": "6e2c40ef0af6f2832d9346fd5b83b5d906382158",
+    "govde_sha256": "02880f8d35786645ec4bacaeda0ca9cc3239c0cb6cc5c5b3333513b2fca689d1",
     "yazan": "duzelt.py",
-    "kuyruk_id": null,
-    "kayit": {
-      "id": "vespa-scooter",
-      "kategori": "Motosiklet",
-      "marka": [
-        "Vespa"
-      ],
-      "baslik": "Vespa scooter",
-      "aciklama": "Klasik Vespa formunu koruyan scooter tasarımı, sade ve karakteristik bir görünüm sunar.\n- Vespa tarzı gövde formu ile dikkat çekici bir kullanım alanı oluşturur.\n- Özel tasarım üretim mantığıyla ihtiyaca göre hazırlanabilir.\n- Tek görsellikte sunulan bu ürün için montaj ve uygulama detayları siparişe göre netleştirilir.",
-      "fiyat": "1750 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/cgt3234093-1.jpg"
-      ]
-    }
+    "kuyruk_id": null
   },
   {
+    "id": "yamaha-tricity-2015-model-motosiklet",
     "silinme_ts": "2026-10-11T17:10:23Z",
+    "silme_commit": "6e2c40ef0af6f2832d9346fd5b83b5d906382158",
+    "govde_sha256": "2f220dafe5fdc1fbecd3e1949d55344b9a85a1bcbac0cdbcd10fee79deed9e35",
     "yazan": "duzelt.py",
-    "kuyruk_id": null,
-    "kayit": {
-      "id": "yamaha-tricity-2015-model-motosiklet",
-      "kategori": "Oyun/Hobi",
-      "marka": [
-        "Yamaha",
-        "Tricity"
-      ],
-      "baslik": "Yamaha Tricity 2015 model motosiklet",
-      "aciklama": "Yamaha Tricity 2015 için hazırlanmış, sergilemeye uygun bir model motosiklettir. Temsili görünümü ve çok açılı detaylarıyla koleksiyon, maket ve hobi amaçlı kullanım için uygundur.\n- Modelin genel formunu ve gövde detaylarını net gösterir.\n- Sergi, koleksiyon ve referans amaçlı kullanılabilir.\n- Ozel tasarim uretim mantigiyla siparise gore hazirlanabilir.",
-      "fiyat": "500 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/cgt6898894-1.jpg",
-        "https://media.pruvo3d.com/urunler/cgt6898894-2.jpg",
-        "https://media.pruvo3d.com/urunler/cgt6898894-3.jpg",
-        "https://media.pruvo3d.com/urunler/cgt6898894-4.jpg"
-      ]
-    }
+    "kuyruk_id": null
   },
   {
+    "id": "th1762941-1299-panigale-model",
     "silinme_ts": "2026-10-11T17:10:26Z",
+    "silme_commit": "6e2c40ef0af6f2832d9346fd5b83b5d906382158",
+    "govde_sha256": "eee8a571ad0dc39b14c9e7ad088e90566494f2519587166bc9b76b726dcb2f2c",
     "yazan": "duzelt.py",
-    "kuyruk_id": null,
-    "kayit": {
-      "id": "th1762941-1299-panigale-model",
-      "kategori": "Motosiklet",
-      "marka": [
-        "Ducati",
-        "1299 Panigale"
-      ],
-      "baslik": "Ducati 1299 Panigale Superbike Modeli",
-      "aciklama": "Ducati 1299 Panigale Superbike'ın detaylı dekoratif modeli.\nYaklaşık dış ölçüler: 207 × 111 × 75 mm.",
-      "fiyat": "310 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/th1762941-1299-panigale-model-1.jpg",
-        "https://media.pruvo3d.com/urunler/th1762941-1299-panigale-model-2.jpg",
-        "https://media.pruvo3d.com/urunler/th1762941-1299-panigale-model-3.jpg",
-        "https://media.pruvo3d.com/urunler/th1762941-1299-panigale-model-4.jpg"
-      ],
-      "lisans": {
-        "tasarimci": "Jace1969",
-        "tur": "CC BY 4.0"
-      }
-    }
+    "kuyruk_id": null
   },
   {
+    "id": "3162441",
     "silinme_ts": "2026-10-11T17:10:29Z",
+    "silme_commit": "6e2c40ef0af6f2832d9346fd5b83b5d906382158",
+    "govde_sha256": "b7944d4f4f4d7bda4788d2ac20a161a6e5a2d848dcc6bb7be07b0efca3181441",
     "yazan": "duzelt.py",
-    "kuyruk_id": null,
-    "kayit": {
-      "id": "3162441",
-      "kategori": "Otomobil",
-      "marka": [
-        "Skoda"
-      ],
-      "uyum": [
-        {
-          "marka": "Skoda"
-        }
-      ],
-      "baslik": "Škoda Octavia Octavia",
-      "aciklama": "Octavia parça. Ace24 tasarımı; orijinal Škoda Octavia parça kırıldığında ya da kaybolduğunda değiştirmek için doğru boyutlu yedek. PETG malzemeden üretilir.\nYaklaşık dış ölçüler: 70 × 62 × 4 mm.",
-      "fiyat": "200 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/th3162441-1.jpg",
-        "https://media.pruvo3d.com/urunler/th3162441-2.jpg",
-        "https://media.pruvo3d.com/urunler/th3162441-3.jpg"
-      ],
-      "tavsiyeFilament": [
-        "PETG"
-      ],
-      "lisans": {
-        "tasarimci": "Ace24",
-        "tur": "kisisel"
-      }
-    }
+    "kuyruk_id": null
   },
   {
+    "id": "honda-cbr-125r-2011-motosiklet-modeli",
     "silinme_ts": "2026-10-12T19:14:07Z",
+    "silme_commit": "2db3a16158ea183aeb223a9ff695883ecd9c5dd6",
+    "govde_sha256": "6f5ebcc8ee2b3cb55c07bee99f3b66b61f3db5bf4d62eff30e97747b51a3c2fc",
     "yazan": "duzelt.py",
-    "kuyruk_id": null,
-    "kayit": {
-      "id": "honda-cbr-125r-2011-motosiklet-modeli",
-      "kategori": "Oyun/Hobi",
-      "marka": [
-        "Honda",
-        "CBR 125R"
-      ],
-      "baslik": "Honda CBR 125R 2011 motosiklet modeli",
-      "aciklama": "Honda CBR 125R 2011'e ait detaylı, özel tasarım üretim motosiklet modeli. Görsellerde farklı açılarıyla formu ve parça detayları net şekilde görülüyor.\n- Dekoratif ve koleksiyon amaçlı kullanıma uygundur.\n- Model görünümünü sergilemek için tercih edilir.\n- Özel siparişle üretilen parça mantığında hazırlanır.",
-      "fiyat": "500 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/cgt6784535-1.jpg",
-        "https://media.pruvo3d.com/urunler/cgt6784535-2.jpg",
-        "https://media.pruvo3d.com/urunler/cgt6784535-3.jpg",
-        "https://media.pruvo3d.com/urunler/cgt6784535-4.jpg"
-      ]
-    }
+    "kuyruk_id": null
   },
   {
+    "id": "ktm-duke-390-motosiklet-modeli",
     "silinme_ts": "2026-10-12T19:15:10Z",
+    "silme_commit": "2db3a16158ea183aeb223a9ff695883ecd9c5dd6",
+    "govde_sha256": "5e0752ff64e4b91eff233a5b90ee5380c633830f1fa71ef55d876864f991cffd",
     "yazan": "duzelt.py",
-    "kuyruk_id": null,
-    "kayit": {
-      "id": "ktm-duke-390-motosiklet-modeli",
-      "kategori": "Oyun/Hobi",
-      "marka": [
-        "KTM",
-        "Duke 390"
-      ],
-      "baslik": "KTM Duke 390 Motosiklet Modeli",
-      "aciklama": "KTM Duke 390 temalı, detaylı bir motosiklet modeli. Koleksiyon, hobi ve sergileme amaçlı kullanım için uygundur.\n- Modelin genel formunu ve agresif Duke çizgisini gösterir.\n- Tek parça dekor veya koleksiyon ürünü olarak değerlendirilebilir.\n- Özel siparişle üretim için referans görsel olarak kullanılabilir.",
-      "fiyat": "500 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/cgt6720114-1.jpg",
-        "https://media.pruvo3d.com/urunler/cgt6720114-2.jpg",
-        "https://media.pruvo3d.com/urunler/cgt6720114-3.jpg",
-        "https://media.pruvo3d.com/urunler/cgt6720114-4.jpg"
-      ]
-    }
+    "kuyruk_id": null
   },
   {
+    "id": "kawasaki-zx7-ninja-rc-g-vde",
     "silinme_ts": "2026-10-12T19:15:15Z",
+    "silme_commit": "2db3a16158ea183aeb223a9ff695883ecd9c5dd6",
+    "govde_sha256": "660f23040f86637ca8753484d578b021c9442cfd3ffb60c8093fa1e3322f0eaf",
     "yazan": "duzelt.py",
-    "kuyruk_id": null,
-    "kayit": {
-      "id": "kawasaki-zx7-ninja-rc-g-vde",
-      "kategori": "Oyun/Hobi",
-      "marka": [
-        "Kawasaki",
-        "ZX7",
-        "Ninja"
-      ],
-      "baslik": "Kawasaki ZX7 Ninja RC gövde",
-      "aciklama": "Kawasaki ZX7 Ninja için hazırlanmış RC gövde seti. Model, yarış tarzı bir görünüm sunar ve özel tasarım üretim için uygundur.\n- RC model projesinde dış gövde olarak kullanılır.\n- Görsellerde farklı açı ve detaylar gösterilir.\n- Montaj, şasi ve iç yerleşime göre yapılır.",
-      "fiyat": "475 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/cgt2797867-1.jpg",
-        "https://media.pruvo3d.com/urunler/cgt2797867-2.jpg",
-        "https://media.pruvo3d.com/urunler/cgt2797867-3.jpg",
-        "https://media.pruvo3d.com/urunler/cgt2797867-4.jpg"
-      ]
-    }
+    "kuyruk_id": null
   },
   {
+    "id": "artis-triumph-wheel",
     "silinme_ts": "2026-10-12T19:15:20Z",
+    "silme_commit": "2db3a16158ea183aeb223a9ff695883ecd9c5dd6",
+    "govde_sha256": "d8c5ef0b70d28fa1c1f01e44fd094ad0ad8ff28ff42705c44c0290e2e6de0db6",
     "yazan": "duzelt.py",
-    "kuyruk_id": null,
-    "kayit": {
-      "id": "artis-triumph-wheel",
-      "kategori": "Oyun/Hobi",
-      "marka": [
-        "ARTIS",
-        "Triumph"
-      ],
-      "baslik": "ARTIS Triumph Wheel",
-      "aciklama": "ARTIS Triumph Wheel için özel tasarım üretim parça/gövde görseli. Temiz metalik yüzey ve detaylı jant formu ile model sunumu için uygundur.\n- Model/sergileme amaçlı kullanım için uygundur.\n- Özel siparişle üretilen parça mantığındadır.\n- Görseldeki form, ön ve iç yüzey detaylarını net gösterir.",
-      "fiyat": "900 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/cgt6828889-1.jpg",
-        "https://media.pruvo3d.com/urunler/cgt6828889-2.jpg",
-        "https://media.pruvo3d.com/urunler/cgt6828889-3.jpg",
-        "https://media.pruvo3d.com/urunler/cgt6828889-4.jpg"
-      ]
-    }
+    "kuyruk_id": null
   },
   {
+    "id": "triumph-2000-2500-mk2-1969-1977-model-kasa-seti",
     "silinme_ts": "2026-10-12T19:15:24Z",
+    "silme_commit": "2db3a16158ea183aeb223a9ff695883ecd9c5dd6",
+    "govde_sha256": "1aff048c8e4c4aa46473fab707fe1a26a284e52148e34b75d43f44d3eed4d9ea",
     "yazan": "duzelt.py",
-    "kuyruk_id": null,
-    "kayit": {
-      "id": "triumph-2000-2500-mk2-1969-1977-model-kasa-seti",
-      "kategori": "Oyun/Hobi",
-      "marka": [
-        "Triumph"
-      ],
-      "baslik": "Triumph 2000/2500 Mk2 1969-1977 model kasa seti",
-      "aciklama": "Triumph 2000/2500 Mk2 icin ozel tasarim uretim model kasa setidir. Hobi ve olcekli proje calismalari icin hazirlanmistir.\n- Kasa ve ayri parcalar gorsellerde set halinde sunulur.\n- Model/olcekli arac calismalarinda kullanima uygundur.\n- Ozel siparisle uretilir; montaj ve uygulama proje ihtiyacina gore yapilir.",
-      "fiyat": "500 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/cgt2611244-1.jpg",
-        "https://media.pruvo3d.com/urunler/cgt2611244-2.jpg",
-        "https://media.pruvo3d.com/urunler/cgt2611244-3.jpg",
-        "https://media.pruvo3d.com/urunler/cgt2611244-4.jpg"
-      ]
-    }
+    "kuyruk_id": null
   },
   {
+    "id": "piaggio-beverly-tourer-300-2011-motorlu-scooter-modeli",
     "silinme_ts": "2026-10-12T19:15:28Z",
+    "silme_commit": "2db3a16158ea183aeb223a9ff695883ecd9c5dd6",
+    "govde_sha256": "3a08cd09369a8ce2b6dcc0453309c7f445f74c658d57749c93d7164b840eccbd",
     "yazan": "duzelt.py",
-    "kuyruk_id": null,
-    "kayit": {
-      "id": "piaggio-beverly-tourer-300-2011-motorlu-scooter-modeli",
-      "kategori": "Oyun/Hobi",
-      "marka": [
-        "Piaggio",
-        "Beverly Tourer 300"
-      ],
-      "baslik": "Piaggio Beverly Tourer 300 2011 motorlu scooter modeli",
-      "aciklama": "Piaggio Beverly Tourer 300 2011 için hazırlanmış özel tasarım üretim motorlu scooter modelidir. Koleksiyon, sunum ve konsept amaçlı değerlendirmeye uygundur.\n- Yan ve üç çeyrek açılar gövde formunu net gösterir.\n- Ön/arka detaylar setin genel görünümünü destekler.\n- Özel siparişle üretilen parça mantığıyla hazırlanır.",
-      "fiyat": "500 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/cgt6995146-1.jpg",
-        "https://media.pruvo3d.com/urunler/cgt6995146-2.jpg",
-        "https://media.pruvo3d.com/urunler/cgt6995146-3.jpg",
-        "https://media.pruvo3d.com/urunler/cgt6995146-4.jpg"
-      ]
-    }
+    "kuyruk_id": null
   },
   {
+    "id": "vespa-gts-300-super-2011-model-scooter",
     "silinme_ts": "2026-10-12T19:15:34Z",
+    "silme_commit": "2db3a16158ea183aeb223a9ff695883ecd9c5dd6",
+    "govde_sha256": "cfe851c292499b3d14d10cee36ec8f507710ab366ce72a5db38d99fd2d81888a",
     "yazan": "duzelt.py",
-    "kuyruk_id": null,
-    "kayit": {
-      "id": "vespa-gts-300-super-2011-model-scooter",
-      "kategori": "Oyun/Hobi",
-      "marka": [
-        "Vespa",
-        "GTS 300 Super"
-      ],
-      "baslik": "Vespa GTS 300 Super 2011 Model Scooter",
-      "aciklama": "Vespa GTS 300 Super 2011 temalı model scooter, koleksiyon ve sergileme amaçlı kullanıma uygundur. Ozel tasarim uretim mantigiyla hazirlanabilir ve gorseldeki formu referans alir.\n- Koleksiyon, maket ve sergileme için uygundur.\n- Talebe göre ozel uretilir.\n- Montaj ve yüzey detayı, secilen üretim opsiyonuna göre hazırlanır.",
-      "fiyat": "500 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/cgt6825745-1.jpg",
-        "https://media.pruvo3d.com/urunler/cgt6825745-2.jpg",
-        "https://media.pruvo3d.com/urunler/cgt6825745-3.jpg",
-        "https://media.pruvo3d.com/urunler/cgt6825745-4.jpg"
-      ]
-    }
+    "kuyruk_id": null
   },
   {
+    "id": "pr1699767-knucklehead-1938-model",
     "silinme_ts": "2026-10-12T19:44:29Z",
+    "silme_commit": "3b0ef045106f02d769ab5d27bedf0848e18aa4e7",
+    "govde_sha256": "084c037591d625b9bd489a2080234869d6a023da268ce7a26c1836df2ae50712",
     "yazan": "duzelt.py",
-    "kuyruk_id": null,
-    "kayit": {
-      "id": "pr1699767-knucklehead-1938-model",
-      "kategori": "Motosiklet",
-      "marka": [
-        "Harley-Davidson",
-        "Knucklehead"
-      ],
-      "baslik": "Harley-Davidson Knucklehead (1938) Motosiklet Modeli",
-      "aciklama": "1938 model Harley-Davidson Knucklehead'in dekoratif modeli.\nYaklaşık dış ölçüler: 165 × 91 × 72 mm.",
-      "fiyat": "280 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/pr1699767-1.jpg",
-        "https://media.pruvo3d.com/urunler/pr1699767-2.jpg"
-      ]
-    }
+    "kuyruk_id": null
   },
   {
+    "id": "pr1699357-kz900-1977-model",
     "silinme_ts": "2026-10-12T19:44:33Z",
+    "silme_commit": "3b0ef045106f02d769ab5d27bedf0848e18aa4e7",
+    "govde_sha256": "6dcd98847c4780387b28faf56668124cf28376dc1264ea1c4190d839e93a5726",
     "yazan": "duzelt.py",
-    "kuyruk_id": null,
-    "kayit": {
-      "id": "pr1699357-kz900-1977-model",
-      "kategori": "Motosiklet",
-      "marka": [
-        "Kawasaki",
-        "KZ900"
-      ],
-      "baslik": "Kawasaki KZ900 (1977) Motosiklet Modeli",
-      "aciklama": "1977 model Kawasaki KZ900'ün dekoratif modeli.\nYaklaşık dış ölçüler: 140 × 88 × 78 mm.",
-      "fiyat": "260 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/pr1699357-1.jpg"
-      ]
-    }
+    "kuyruk_id": null
   },
   {
+    "id": "th1759195-999-2003-model",
     "silinme_ts": "2026-10-12T19:44:37Z",
+    "silme_commit": "3b0ef045106f02d769ab5d27bedf0848e18aa4e7",
+    "govde_sha256": "22390ec3c693de321b155ce946e8b4781f216c2d19352c6208b0a389a0a4f9d1",
     "yazan": "duzelt.py",
-    "kuyruk_id": null,
-    "kayit": {
-      "id": "th1759195-999-2003-model",
-      "kategori": "Motosiklet",
-      "marka": [
-        "Ducati",
-        "999"
-      ],
-      "baslik": "Ducati 999 (2003) Motosiklet Modeli",
-      "aciklama": "2003 model Ducati 999'un detaylı dekoratif modeli.\nYaklaşık dış ölçüler: 216 × 117 × 73 mm.",
-      "fiyat": "320 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/th1759195-999-2003-model-1.jpg",
-        "https://media.pruvo3d.com/urunler/th1759195-999-2003-model-2.jpg",
-        "https://media.pruvo3d.com/urunler/th1759195-999-2003-model-3.jpg",
-        "https://media.pruvo3d.com/urunler/th1759195-999-2003-model-4.jpg"
-      ],
-      "lisans": {
-        "tasarimci": "Jace1969",
-        "tur": "CC BY 4.0"
-      }
-    }
+    "kuyruk_id": null
   },
   {
+    "id": "th6877290-panigalev4-model",
     "silinme_ts": "2026-10-12T19:44:40Z",
+    "silme_commit": "3b0ef045106f02d769ab5d27bedf0848e18aa4e7",
+    "govde_sha256": "9217e1b7984e36e14d317df509a97f76d6177e116c61878508b22a9c291c752f",
     "yazan": "duzelt.py",
-    "kuyruk_id": null,
-    "kayit": {
-      "id": "th6877290-panigalev4-model",
-      "kategori": "Motosiklet",
-      "marka": [
-        "Ducati",
-        "Panigale V4"
-      ],
-      "baslik": "Ducati Panigale V4 Modeli",
-      "aciklama": "Ducati Panigale V4'ün detaylı dekoratif modeli.\nYaklaşık dış ölçüler: 288 × 168 × 63 mm.",
-      "fiyat": "400 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/th6877290-panigalev4-model-1.jpg",
-        "https://media.pruvo3d.com/urunler/th6877290-panigalev4-model-2.jpg",
-        "https://media.pruvo3d.com/urunler/th6877290-panigalev4-model-3.jpg",
-        "https://media.pruvo3d.com/urunler/th6877290-panigalev4-model-4.jpg"
-      ],
-      "lisans": {
-        "tasarimci": "tmanning47",
-        "tur": "CC BY-SA 4.0"
-      }
-    }
+    "kuyruk_id": null
   },
   {
+    "id": "1992-honda-cbr900rr-fireblade-g-vde-seti",
     "silinme_ts": "2026-10-12T19:44:42Z",
+    "silme_commit": "3b0ef045106f02d769ab5d27bedf0848e18aa4e7",
+    "govde_sha256": "2eaf4c17535af768ba056db62b7ca25608e0d9c492437289359b8ce9353c0535",
     "yazan": "duzelt.py",
-    "kuyruk_id": null,
-    "kayit": {
-      "id": "1992-honda-cbr900rr-fireblade-g-vde-seti",
-      "kategori": "Motosiklet",
-      "marka": [
-        "Honda",
-        "CBR900RR"
-      ],
-      "baslik": "1992 Honda CBR900RR Fireblade gövde seti",
-      "aciklama": "1992 Honda CBR900RR Fireblade için özel üretilen gövde seti. Modelin dış formunu tamamlayan parçaları temiz ve bütünlüklü bir görünüm sunar.\n- Motosikletin üst kaporta görünümünü sağlar.\n- Özel siparişle, uyumlu ölçüde hazırlanır.\n- Montajda mevcut bağlantı noktaları esas alınır.\n- Görseldeki set, modelin genel formunu gösterir.\nYaklaşık dış ölçüler: 2 × 1 × 1 mm.",
-      "fiyat": "400 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/1992-honda-cbr900rr-fireblade-g-vde-seti-1.jpg"
-      ],
-      "altkategori": "Grenaj ve Kaporta",
-      "uyum": [
-        {
-          "marka": "Honda",
-          "model": "CBR900RR"
-        }
-      ]
-    }
+    "kuyruk_id": null
   },
   {
+    "id": "masaustu-kablo-duzenleyici-3-yuvali-4-mm",
     "silinme_ts": "2026-10-12T22:05:27Z",
+    "silme_commit": "232a0f0e17cbd2cea8fb9258724ec0d7ac5971c1",
+    "govde_sha256": "c99b0535ebfa6033ad3756c8adde36cbd161f1250c7f94122fe2e8eb1ae72375",
     "yazan": "duzelt.py",
-    "kuyruk_id": null,
-    "kayit": {
-      "id": "masaustu-kablo-duzenleyici-3-yuvali-4-mm",
-      "kategori": "Ofis",
-      "marka": [],
-      "baslik": "Masaüstü Kablo Düzenleyici (3 Yuvalı, 4 mm Kablo İçin)",
-      "aciklama": "Masa kenarına, monitör arkasına ya da duvara yapıştırılan, düz tabanlı kablo düzenleyici. Üstteki üç açık klips yuvası kabloları yan yana ve ayrı ayrı tutar; kablo yuvanın ağzından bastırılarak takılır, aynı yoldan çıkarılır.\n- Yuva iç çapı 4 mm (USB ve şarj kabloları gibi ince kablolar için)\n- Ağız genişliği 3,2 mm, kablo çapından dardır\n- 3 yuva; klips boyu 12 mm, halka et kalınlığı 2 mm, taban kalınlığı 2 mm\n- Düz taban çift taraflı bantla sabitlenir (bant dahil değildir)\n- Aynı modelin 6 mm ve 10 mm yuvalı boyları da vardır\nYaklaşık dış ölçüler: 33 × 12 × 6,7 mm.",
-      "fiyat": "250 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/masaustu-kablo-duzenleyici-3-yuvali-4-mm-1.jpg",
-        "https://media.pruvo3d.com/urunler/masaustu-kablo-duzenleyici-3-yuvali-4-mm-2.jpg",
-        "https://media.pruvo3d.com/urunler/masaustu-kablo-duzenleyici-3-yuvali-4-mm-3.jpg"
-      ],
-      "tavsiyeFilament": [
-        "PLA",
-        "PETG"
-      ]
-    }
+    "kuyruk_id": null
   },
   {
+    "id": "masaustu-kablo-duzenleyici-3-yuvali-6-mm",
     "silinme_ts": "2026-10-12T22:05:28Z",
+    "silme_commit": "232a0f0e17cbd2cea8fb9258724ec0d7ac5971c1",
+    "govde_sha256": "82502f95b78891d26844672b6311de16735dd5d5447a45c4bd3fca168abdc8d6",
     "yazan": "duzelt.py",
-    "kuyruk_id": null,
-    "kayit": {
-      "id": "masaustu-kablo-duzenleyici-3-yuvali-6-mm",
-      "kategori": "Ofis",
-      "marka": [],
-      "baslik": "Masaüstü Kablo Düzenleyici (3 Yuvalı, 6 mm Kablo İçin)",
-      "aciklama": "Masa kenarına, monitör arkasına ya da duvara yapıştırılan, düz tabanlı kablo düzenleyici. Üstteki üç açık klips yuvası kabloları yan yana ve ayrı ayrı tutar; kablo yuvanın ağzından bastırılarak takılır, aynı yoldan çıkarılır.\n- Yuva iç çapı 6 mm (HDMI ve kalın şarj kabloları gibi orta kalınlıktaki kablolar için)\n- Ağız genişliği 4,8 mm, kablo çapından dardır\n- 3 yuva; klips boyu 12 mm, halka et kalınlığı 2 mm, taban kalınlığı 2 mm\n- Düz taban çift taraflı bantla sabitlenir (bant dahil değildir)\n- Aynı modelin 4 mm ve 10 mm yuvalı boyları da vardır\nYaklaşık dış ölçüler: 39 × 12 × 8,3 mm.",
-      "fiyat": "250 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/masaustu-kablo-duzenleyici-3-yuvali-6-mm-1.jpg",
-        "https://media.pruvo3d.com/urunler/masaustu-kablo-duzenleyici-3-yuvali-6-mm-2.jpg",
-        "https://media.pruvo3d.com/urunler/masaustu-kablo-duzenleyici-3-yuvali-6-mm-3.jpg"
-      ],
-      "tavsiyeFilament": [
-        "PLA",
-        "PETG"
-      ]
-    }
+    "kuyruk_id": null
   },
   {
+    "id": "masaustu-kablo-duzenleyici-3-yuvali-10-mm",
     "silinme_ts": "2026-10-12T22:05:29Z",
+    "silme_commit": "232a0f0e17cbd2cea8fb9258724ec0d7ac5971c1",
+    "govde_sha256": "6b12151990585087dd4d9959c6b7f5c3753c24480ee45ed08bed54bd1d5ea371",
     "yazan": "duzelt.py",
-    "kuyruk_id": null,
-    "kayit": {
-      "id": "masaustu-kablo-duzenleyici-3-yuvali-10-mm",
-      "kategori": "Ofis",
-      "marka": [],
-      "baslik": "Masaüstü Kablo Düzenleyici (3 Yuvalı, 10 mm Kablo İçin)",
-      "aciklama": "Masa kenarına, monitör arkasına ya da duvara yapıştırılan, düz tabanlı kablo düzenleyici. Üstteki üç açık klips yuvası kabloları yan yana ve ayrı ayrı tutar; kablo yuvanın ağzından bastırılarak takılır, aynı yoldan çıkarılır.\n- Yuva iç çapı 10 mm (güç ve ağ kabloları gibi kalın kablolar için)\n- Ağız genişliği 8 mm, kablo çapından dardır\n- 3 yuva; klips boyu 12 mm, halka et kalınlığı 2 mm, taban kalınlığı 2 mm\n- Düz taban çift taraflı bantla sabitlenir (bant dahil değildir)\n- Aynı modelin 4 mm ve 6 mm yuvalı boyları da vardır\nYaklaşık dış ölçüler: 51 × 12 × 11,5 mm.",
-      "fiyat": "250 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/masaustu-kablo-duzenleyici-3-yuvali-10-mm-1.jpg",
-        "https://media.pruvo3d.com/urunler/masaustu-kablo-duzenleyici-3-yuvali-10-mm-2.jpg",
-        "https://media.pruvo3d.com/urunler/masaustu-kablo-duzenleyici-3-yuvali-10-mm-3.jpg"
-      ],
-      "tavsiyeFilament": [
-        "PLA",
-        "PETG"
-      ]
-    }
+    "kuyruk_id": null
   },
   {
+    "id": "masaustu-kalemlik-telefon-standi-s",
     "silinme_ts": "2026-10-12T22:05:30Z",
+    "silme_commit": "232a0f0e17cbd2cea8fb9258724ec0d7ac5971c1",
+    "govde_sha256": "b24debf5e29eb22f3ed6cd152e63e762ecbbce0befe1bf552f40e03da0812b13",
     "yazan": "duzelt.py",
-    "kuyruk_id": null,
-    "kayit": {
-      "id": "masaustu-kalemlik-telefon-standi-s",
-      "kategori": "Ofis",
-      "marka": [],
-      "baslik": "Masaüstü Kalemlik ve Telefon Standı (2 Kalem Ø10 mm, Telefon Kalınlığı 10 mm)",
-      "aciklama": "Telefonu masada dik tutan yuva ile kalemleri ayakta tutan gözleri tek gövdede birleştiren, düz tabanlı masaüstü düzenleyici. Telefon öndeki yuvaya oturur ve geriye eğimli sırtlığa yaslanır; arkadaki blokta kalemler dik durur. Tek parçadır.\n- Telefon yuvası iç genişliği 76 mm; kılıf dahil 10 mm kalınlığa kadar telefonlar için\n- Sırtlık yataydan 70° eğimli, yan duvarlar 20 mm yüksekliğinde\n- Yuvanın ortasında şarj kablosu için 8 mm genişliğinde kanal\n- 2 kalem gözü; göz iç çapı 10 mm, derinliği 60 mm\n- Aynı modelin 3 kalemli (12 mm telefon) ve 4 kalemli (16 mm telefon) boyları da vardır\nYaklaşık dış ölçüler: 88 × 51 × 62 mm.",
-      "fiyat": "300 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/masaustu-kalemlik-telefon-standi-s-1.jpg",
-        "https://media.pruvo3d.com/urunler/masaustu-kalemlik-telefon-standi-s-2.jpg",
-        "https://media.pruvo3d.com/urunler/masaustu-kalemlik-telefon-standi-s-3.jpg"
-      ],
-      "tavsiyeFilament": [
-        "PLA",
-        "PETG"
-      ]
-    }
+    "kuyruk_id": null
   },
   {
+    "id": "masaustu-kalemlik-telefon-standi-m",
     "silinme_ts": "2026-10-12T22:05:31Z",
+    "silme_commit": "232a0f0e17cbd2cea8fb9258724ec0d7ac5971c1",
+    "govde_sha256": "e454c7cbb331c6c567952eee367a6d46cf8802a350e2e62f3cc6129c8dff899a",
     "yazan": "duzelt.py",
-    "kuyruk_id": null,
-    "kayit": {
-      "id": "masaustu-kalemlik-telefon-standi-m",
-      "kategori": "Ofis",
-      "marka": [],
-      "baslik": "Masaüstü Kalemlik ve Telefon Standı (3 Kalem Ø11 mm, Telefon Kalınlığı 12 mm)",
-      "aciklama": "Telefonu masada dik tutan yuva ile kalemleri ayakta tutan gözleri tek gövdede birleştiren, düz tabanlı masaüstü düzenleyici. Telefon öndeki yuvaya oturur ve geriye eğimli sırtlığa yaslanır; arkadaki blokta kalemler dik durur. Tek parçadır.\n- Telefon yuvası iç genişliği 84 mm; kılıf dahil 12 mm kalınlığa kadar telefonlar için\n- Sırtlık yataydan 70° eğimli, yan duvarlar 20 mm yüksekliğinde\n- Yuvanın ortasında şarj kablosu için 8 mm genişliğinde kanal\n- 3 kalem gözü; göz iç çapı 11 mm, derinliği 60 mm\n- Aynı modelin 2 kalemli (10 mm telefon) ve 4 kalemli (16 mm telefon) boyları da vardır\nYaklaşık dış ölçüler: 96 × 54 × 62 mm.",
-      "fiyat": "350 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/masaustu-kalemlik-telefon-standi-m-1.jpg",
-        "https://media.pruvo3d.com/urunler/masaustu-kalemlik-telefon-standi-m-2.jpg",
-        "https://media.pruvo3d.com/urunler/masaustu-kalemlik-telefon-standi-m-3.jpg"
-      ],
-      "tavsiyeFilament": [
-        "PLA",
-        "PETG"
-      ]
-    }
+    "kuyruk_id": null
   },
   {
+    "id": "masaustu-kalemlik-telefon-standi-l",
     "silinme_ts": "2026-10-12T22:05:32Z",
+    "silme_commit": "232a0f0e17cbd2cea8fb9258724ec0d7ac5971c1",
+    "govde_sha256": "30a96a096f3dd4cb96f34b205641673347dfb10cf678a8773b417ef0c304637b",
     "yazan": "duzelt.py",
-    "kuyruk_id": null,
-    "kayit": {
-      "id": "masaustu-kalemlik-telefon-standi-l",
-      "kategori": "Ofis",
-      "marka": [],
-      "baslik": "Masaüstü Kalemlik ve Telefon Standı (4 Kalem Ø12 mm, Telefon Kalınlığı 16 mm)",
-      "aciklama": "Telefonu masada dik tutan yuva ile kalemleri ayakta tutan gözleri tek gövdede birleştiren, düz tabanlı masaüstü düzenleyici. Telefon öndeki yuvaya oturur ve geriye eğimli sırtlığa yaslanır; arkadaki blokta kalemler dik durur. Tek parçadır.\n- Telefon yuvası iç genişliği 96 mm; kılıf dahil 16 mm kalınlığa kadar telefonlar için\n- Sırtlık yataydan 70° eğimli, yan duvarlar 20 mm yüksekliğinde\n- Yuvanın ortasında şarj kablosu için 8 mm genişliğinde kanal\n- 4 kalem gözü; göz iç çapı 12 mm, derinliği 60 mm\n- Aynı modelin 2 kalemli (10 mm telefon) ve 3 kalemli (12 mm telefon) boyları da vardır\nYaklaşık dış ölçüler: 108 × 59 × 62 mm.",
-      "fiyat": "400 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/masaustu-kalemlik-telefon-standi-l-1.jpg",
-        "https://media.pruvo3d.com/urunler/masaustu-kalemlik-telefon-standi-l-2.jpg",
-        "https://media.pruvo3d.com/urunler/masaustu-kalemlik-telefon-standi-l-3.jpg"
-      ],
-      "tavsiyeFilament": [
-        "PLA",
-        "PETG"
-      ]
-    }
+    "kuyruk_id": null
   },
   {
+    "id": "olcuye-ozel-saksi-vazo",
     "silinme_ts": "2026-10-13T08:50:40Z",
+    "silme_commit": "c766ed032ff83b86055cc3e4e65e4a727a258bb4",
+    "govde_sha256": "5a1a27410e617de8a49f9044bd3bf4e1676ba9a72f9e070df351071b515f04e6",
     "yazan": "duzelt.py",
-    "kuyruk_id": null,
-    "kayit": {
-      "id": "olcuye-ozel-saksi-vazo",
-      "kategori": "Jeneratör",
-      "marka": [],
-      "baslik": "Ölçüye Özel Saksı / Vazo (Konik · Drenajlı · Altlık Seçenekli)",
-      "aciklama": "Tam istediğiniz çapta ve yükseklikte saksı ya da vazo üretiyoruz — balkon bitkisinden sofra çiçeğine, mevcut dış saksının içine oturan iç saksıya kadar. Çapı ve yüksekliği siz verirsiniz; saksı tam oturur.\n\nNeyi ayarlıyoruz?\n• Üst çap — 60–260 mm, alt çap — 40–200 mm (yan eğim 40°'yi aşmayacak şekilde konik gövde)\n• Yükseklik — 50–300 mm\n• Duvar kalınlığı — 1,6–4 mm, taban kalınlığı — 2–5 mm\n• Drenaj deliği — var/yok, çap 6–20 mm (su tutan vazo için deliksiz seçilebilir)\n• Alt tabak (altlık) — saksıya uygun ölçüde, ayrı parça olarak; seçmek isteğe bağlı\n• Hazır ölçüler — S (üst Ø100 · alt Ø70 · 90 mm), M (Ø140 · Ø100 · 120 mm), L (Ø180 · Ø130 · 160 mm)\n• Malzeme & renk — sağlam PETG/PLA; farklı renk seçenekleri\n\nKullanım: sukulent ve kaktüs saksıları, orkide iç saksısı, otlar ve baharatlar, masa üstü vazo.\n\nNasıl sipariş edilir?\nÜst çap, alt çap ve yükseklik ölçüsünü, drenaj ve altlık isteyip istemediğinizi seçin ya da hazır ölçülerden birini işaretleyin; ölçüye özel üretip adresinize gönderelim.\n\nNot: dış saksının içine oturacak bir iç saksı istiyorsanız dış saksının iç çapını ve derinliğini bize yazın; uygun payı birlikte hesaplarız.\n\nYaklaşık dış ölçüler (saksı gövdesi): S Ø100 × 90 mm · M Ø140 × 120 mm · L Ø180 × 160 mm.",
-      "fiyat": "",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/olcuye-ozel-saksi-vazo-1.jpg",
-        "https://media.pruvo3d.com/urunler/olcuye-ozel-saksi-vazo-2.jpg",
-        "https://media.pruvo3d.com/urunler/olcuye-ozel-saksi-vazo-3.jpg",
-        "https://media.pruvo3d.com/urunler/olcuye-ozel-saksi-vazo-4.jpg",
-        "https://media.pruvo3d.com/urunler/olcuye-ozel-saksi-vazo-5.jpg"
-      ],
-      "parametrik": true
-    }
+    "kuyruk_id": null
   },
   {
+    "id": "oyun-etiketli-satranc-tahtasi-40-mm-kareli-dort-plakali-pr1078478",
     "silinme_ts": "2026-10-13T10:32:58Z",
+    "silme_commit": "32878da9fc29cbc7c5a0686ba582221967293e9f",
+    "govde_sha256": "9cc5b0a2fa0fa905406418df30495c6c57cc1926ca104e21640085422e6b44ed",
     "yazan": "panel-uygulayici",
-    "kuyruk_id": 51,
-    "kayit": {
-      "id": "oyun-etiketli-satranc-tahtasi-40-mm-kareli-dort-plakali-pr1078478",
-      "kategori": "Oyun/Hobi",
-      "marka": [],
-      "uyum": [],
-      "baslik": "Satranç Tahtası (40 mm Kareli, Satır-Sütun Etiketli, Dört Plakalı, Yapıştırıcısız)",
-      "aciklama": "40 × 40 mm kareli, satır ve sütun etiketli satranç tahtası. Dört taban plakası bağlantı parçalarıyla birleşir; 32 koyu ve 32 açık renkli kare yapıştırıcı gerekmeden yuvalarına oturur. Etiketler kolay hamle takibi sağlar. Taşlar ürüne dahil değildir; fotoğraftaki taşlar örnektir. Fotoğraflarda ahşap zeminde kurulu tahta ve kare parçaları görülür.\nTaban plakası 175 × 175 × 6,6 mm, kare 40 × 40 × 4,6 mm, bağlantı parçası 16 × 6 × 3,4 mm'dir.\nYaklaşık dış ölçüler: 350 × 350 × 7 mm (birleşik tahta).",
-      "fiyat": "650 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/pr1078478-1.jpg",
-        "https://media.pruvo3d.com/urunler/pr1078478-2.jpg",
-        "https://media.pruvo3d.com/urunler/pr1078478-3.jpg",
-        "https://media.pruvo3d.com/urunler/pr1078478-4.jpg"
-      ],
-      "lisans": {
-        "tasarimci": "ErwinBrave",
-        "tur": "CC BY 4.0"
-      }
-    }
+    "kuyruk_id": 51
   },
   {
+    "id": "ev-esnek-baglama-kayisi-tokali-uc-boy-380-420-650-mm-pr1135454",
     "silinme_ts": "2026-10-19T05:15:30Z",
+    "silme_commit": "d755d1621729719d13fc30760f777821065907c9",
+    "govde_sha256": "0665686455722195af39adb2d841e5bfbb3cf932fd33b70bdfe4b05cf07261c8",
     "yazan": "panel-uygulayici",
-    "kuyruk_id": 54,
-    "kayit": {
-      "id": "ev-esnek-baglama-kayisi-tokali-uc-boy-380-420-650-mm-pr1135454",
-      "kategori": "Ev",
-      "marka": [],
-      "uyum": [],
-      "baslik": "Esnek Bağlama Kayışı (Tokalı, 380, 420 ve 650 mm)",
-      "aciklama": "Eşyaları ve parçaları sabitlemek için delikli, esnek bağlama kayışı. Kayışın ucundaki 18 mm genişlikli toka, delikli gövdenin istenen deliğine takılarak uzunluğu ayarlar. 380 mm, 420 mm ve 650 mm olmak üzere üç boyda hazırdır. Fotoğraflarda turuncu kayış masa ayağına bağlı ve düz serilmiş halde görülür.\nYaklaşık dış ölçüler: toka 34 × 27 × 16 mm; kayışlar 380, 420 ve 650 mm uzunluğundadır.",
-      "fiyat": "350 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/pr1135454-1.jpg",
-        "https://media.pruvo3d.com/urunler/pr1135454-2.jpg",
-        "https://media.pruvo3d.com/urunler/pr1135454-3.jpg",
-        "https://media.pruvo3d.com/urunler/pr1135454-4.jpg"
-      ],
-      "lisans": {
-        "tasarimci": "Hans Hiorth",
-        "tur": "CC BY-SA 4.0"
-      }
-    }
+    "kuyruk_id": 54
   },
   {
+    "id": "bahce-bitki-baglama-bandi-esnek-iki-boy-80-ve-130-mm-pr30967",
     "silinme_ts": "2026-10-19T05:18:11Z",
+    "silme_commit": "40110f1d8183a46f8e1a897b0a59429206a2dfda",
+    "govde_sha256": "e60a28c6358d4aa54c132b49478553fe34b297973e5d2a33a0c0e932d28607c6",
     "yazan": "panel-uygulayici",
-    "kuyruk_id": 55,
-    "kayit": {
-      "id": "bahce-bitki-baglama-bandi-esnek-iki-boy-80-ve-130-mm-pr30967",
-      "kategori": "Bahçe",
-      "marka": [],
-      "uyum": [],
-      "baslik": "Bitki Bağlama Bandı (Esnek, İki Boy)",
-      "aciklama": "Fide ve sebze gövdelerini çubuğa ya da ipe bağlamak için delikli esnek bant. Delikli yapısı sayesinde bant istenen uzunlukta bağlanır. Kısa (80 mm) ve uzun (130 mm) olmak üzere iki sürümü vardır. Domates ve benzeri tırmanan bitkilerde kullanılır. Fotoğraflarda turuncu bant bitki gövdesine bağlı görülür.\nYaklaşık dış ölçüler: uzun 130 × 16 mm; kısa 95 × 16 mm.",
-      "fiyat": "250 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/pr30967-1.jpg",
-        "https://media.pruvo3d.com/urunler/pr30967-2.jpg",
-        "https://media.pruvo3d.com/urunler/pr30967-3.jpg"
-      ]
-    }
+    "kuyruk_id": 55
   },
   {
+    "id": "bmw-r1250gs-adventure-ayak-basamak-lasti-i",
     "silinme_ts": "2026-10-20T10:16:31Z",
+    "silme_commit": "90e8c1ccc8b91f92fea12d3b0fe690d68da8dd42",
+    "govde_sha256": "aa1f47233c975d6a7ddd310764c5a14174da55a1ac70b659232cee8cd41dfc26",
     "yazan": "panel-uygulayici",
-    "kuyruk_id": 56,
-    "kayit": {
-      "id": "bmw-r1250gs-adventure-ayak-basamak-lasti-i",
-      "kategori": "Motosiklet",
-      "marka": [
-        "BMW",
-        "R1250GS"
-      ],
-      "baslik": "BMW R1250GS Adventure Ayak Basamak Lastiği",
-      "aciklama": "BMW R1250GS Adventure motosikletiniz için özel tasarlanıp üretilen dayanıklı ayak basamak lastiği.\n\nSürüş esnasında maksimum tutuş sağlayarak kaymayı önler.\nYıpranan veya kaybolan orijinal basamak lastiğinin yerine mükemmel uyum sağlar.\nZorlu yol şartlarına ve aşınmaya karşı yüksek mukavemetli malzemeden özel üretilmiştir.\nKolayca monte edilir ve ayaklığa tam oturur.",
-      "fiyat": "350 TL",
-      "gorseller": [
-        "https://media.pruvo3d.com/urunler/bmw-r1250gs-adventure-ayak-basamak-lasti-i-1.jpg",
-        "https://media.pruvo3d.com/urunler/bmw-r1250gs-adventure-ayak-basamak-lasti-i-2.jpg",
-        "https://media.pruvo3d.com/urunler/bmw-r1250gs-adventure-ayak-basamak-lasti-i-3.jpg"
-      ],
-      "altkategori": "Sele ve Sehpa",
-      "uyum": [
-        {
-          "marka": "BMW",
-          "model": "R1250GS"
-        }
-      ]
-    }
+    "kuyruk_id": 56
   }
 ]

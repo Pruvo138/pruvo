@@ -7,7 +7,10 @@ Olcer (hepsi IZOLE gecici depolarda; gercek ev yolunda yazim YOK, gercek repo ya
   tools/urun-silme-kapisi.py  — id kumesi kuculmesi: RENAME / ARSIVLI / IZINSIZ hukmu,
                                  --index (pre-commit adim 9), CI araligi, merge ebeveyni
   tools/duzelt.py             — `--sil` ve `--toplu` "sil" izinsiz RC_SIL_IZIN + care
-                                 `gizli:true`; izinli silme arsive TASIR ve kapidan gecer
+                                 `gizli:true`; izinli silme arsive GOVDESIZ iz yazar ve
+                                 kapidan gecer
+  tools/urun_arsivi.py        — GOVDESIZ arsiv sekli (BaBa 20 Eki): govdeli giris KIRMIZI,
+                                 gercek arsivin her girisi git gecmisinden dogrulanir
   kablolar                    — pre-commit adim 9 + deploy.yml serit-a3 + panel izni
 
 KABUL SORUSU ("bu satiri silsem hangi iddia kirmizi yanar?") mutantlarla CEVAPLANIR:
@@ -46,6 +49,15 @@ YOK_KANCA = "/var/empty/urun-silme-kapisi-test-kanca-yok"   # VAR OLMAYAN yol
 # kopya kanonik `tools/`e bakan `TOOLS`'u zaten tasir). Elle `subprocess.run(["git",...])`
 # YASAKTIR — `fikstur-git-sizinti-kapisi.py` onu SIZDIRIYOR olarak isaretler.
 from git_ortami import sentetik_git  # noqa: E402
+import urun_arsivi  # noqa: E402  (arsiv sekli TEK KAYNAK — fikstur girisleri buradan)
+
+ARSIVI = os.path.join(TOOLS, "urun_arsivi.py")
+GOVDESIZ_ARAC = os.path.join(TOOLS, "urun-arsiv-govdesiz.py")
+DIRILTME = os.path.join(TOOLS, "diriltme-kapisi.py")
+GERI_YUKLE = os.path.join(TOOLS, "urun-geri-yukle.py")
+# Kapinin `from urun_arsivi import` cozumu PRUVO_KANONIK_TOOLS'tan gelir; "arsivi" hedefli
+# mutant bu degeri mutant dizinine cevirir (kopya kapi mutant modulu yukler).
+KANONIK = [TOOLS]
 
 FIKSTUR_SHA = "aea5ccac"
 FIKSTUR_IDLER = ("nissan-ara-i-i-vape-tutucu-adapt-r",
@@ -70,7 +82,7 @@ def temiz_env(**ek):
                GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
     # Mutant/kopya kapi gecici dizinden kosar; `git_ortami` tek kaynagini burada SOYLENEN
     # kanonik tools/'tan bulur. Yoksa kopya import'ta coker (CI'da makineye ozel yol yok).
-    env["PRUVO_KANONIK_TOOLS"] = TOOLS
+    env["PRUVO_KANONIK_TOOLS"] = KANONIK[0]
     env.update(ek)
     return env
 
@@ -108,6 +120,11 @@ def yeni_depo(tmp, katalog, arsiv=None):
 
 
 def arsiv_girisi(kayit):
+    return urun_arsivi.giris_yap(kayit, "test", None, "2026-09-13T00:00:00Z")
+
+
+def govdeli_giris(kayit):
+    """ESKI (20 Eki oncesi) govdeli sekil — yeni uc noktada KIRMIZI olmali."""
     return {"silinme_ts": "2026-09-13T00:00:00Z", "yazan": "test", "kuyruk_id": None,
             "kayit": kayit}
 
@@ -419,7 +436,10 @@ def v15(kapi, duzelt, tmp):
     arsiv = json.loads(ham)
     git(d, "add", "urunler.json", "arsiv/urunler-arsiv.json")
     rck, outk = kapi_kos(kapi, d, ["--index"])
-    ok = ("urun-b" not in kalan and len(arsiv) == 1 and arsiv[0]["kayit"] == K2
+    ok = ("urun-b" not in kalan and len(arsiv) == 1
+          and urun_arsivi.sekil_ihlali(arsiv[0]) is None and arsiv[0]["id"] == "urun-b"
+          and arsiv[0]["govde_sha256"] == urun_arsivi.govde_sha256(K2)
+          and '"baslik"' not in ham
           and gerekce not in ham and rck == 0 and "ARSIVLI_SILME urun-b" in outk)
     return ok, "duzelt rc=%d kapi rc=%d arsiv=%d" % (rc, rck, len(arsiv))
 
@@ -455,6 +475,84 @@ def v17(kapi, duzelt, tmp):
     return bool(ok), "duzelt/panel/kapi ikiz tanim"
 
 
+def v25(kapi, duzelt, tmp):
+    # BaBa 20 Eki: commit arsive GOVDELI giris ekliyor (katalog DEGISMIYOR -> on-eleme
+    # kolu) -> INDEX KIRMIZI. Giris yeni seklin TUM alanlarini tasir + yaninda `kayit`
+    # (sizinti sinifi: yazici govdeyi "ek alan" olarak geri koyar). Govdesiz giris YESIL.
+    d, _ = yeni_depo(tmp, [K1, K3], arsiv=[])
+    yaz(d, [K1, K3], arsiv=[dict(arsiv_girisi(K2), kayit=K2)])
+    git(d, "add", "-A")
+    rc1, out1 = kapi_kos(kapi, d, ["--index"])
+    yaz(d, [K1, K3], arsiv=[arsiv_girisi(K2)])
+    git(d, "add", "-A")
+    rc2, out2 = kapi_kos(kapi, d, ["--index"])
+    ok = (rc1 == 1 and "GOVDELI_ARSIV=1" in out1 and "GOVDELI_ARSIV #0 urun-b" in out1
+          and rc2 == 0)
+    return ok, "govdeli rc=%d govdesiz rc=%d" % (rc1, rc2)
+
+
+def v26(kapi, duzelt, tmp):
+    # Silme + GOVDELI arsiv girisi ayni commit'te: ARSIVLI sayilsa bile (eski sekil gecmiste
+    # okunur) YENI uc noktada govde KIRMIZI; ayni silme govdesiz giristen YESIL. CI kolu da.
+    d, a = yeni_depo(tmp, [K1, K2, K3], arsiv=[])
+    yaz(d, [K1, K3], arsiv=[govdeli_giris(K2)])
+    b = commit(d, "govdeli silme")
+    rc1, out1 = kapi_kos(kapi, d, ["--taban", a, "--yeni", b])
+    rc2, out2 = kapi_kos(kapi, d, [], env=temiz_env(GITHUB_SHA=b))
+    yaz(d, [K1, K3], arsiv=[arsiv_girisi(K2)])
+    c = commit(d, "govdesize indirildi")
+    rc3, out3 = kapi_kos(kapi, d, ["--taban", a, "--yeni", c])
+    ok = (rc1 == 1 and "ARSIVLI_SILME urun-b" in out1 and "GOVDELI_ARSIV=1" in out1
+          and "IZINSIZ=0" in out1 and rc2 == 1 and "GOVDELI_ARSIV=1" in out2
+          and rc3 == 0 and "ARSIVLI_SILME urun-b" in out3 and "GOVDELI_ARSIV=0" in out3)
+    return ok, "aralik=%d ci=%d govdesiz=%d" % (rc1, rc2, rc3)
+
+
+def v27(kapi, duzelt, tmp):
+    # GERCEK ARSIV (KOK calisma agaci): govdeli giris 0 + HER girisin govdesi
+    # `git show <silme_commit>^:urunler.json`dan govde_sha256 ile dogrulanir (kayip 0).
+    p = subprocess.run([sys.executable, GOVDESIZ_ARAC, "--dogrula", "--depo", KOK],
+                       capture_output=True, text=True, env=temiz_env(), timeout=900)
+    out = p.stdout + p.stderr
+    m = re.search(r"ARSIV_DOGRULA: GIRIS=(\d+) GOVDELI=(\d+) DOGRULANAN=(\d+) "
+                  r"DOGRULANAMAYAN=(\d+)", out)
+    ok = (p.returncode == 0 and m is not None and m.group(2) == "0"
+          and m.group(4) == "0" and m.group(1) == m.group(3))
+    return ok, (m.group(0) if m else out.strip()[-200:])
+
+
+def v28(kapi, duzelt, tmp):
+    # DIRILTME KAPISI arsivi taban olarak KULLANMIYOR (olculdu 20 Eki: referans 0); geri
+    # yukleme onunla YALNIZ id-duzeyi beyanla (.diriltme-izin.json[<id>]) konusur. Kapi
+    # arsivi okumaya baslarsa bu vaka KIRMIZI -> govdesiz sekle gore yeniden olculur.
+    with open(DIRILTME, encoding="utf-8") as f:
+        dk = f.read()
+    with open(GERI_YUKLE, encoding="utf-8") as f:
+        gy = f.read()
+    ok = ("urunler-arsiv" not in dk and "urun_arsivi" not in dk
+          and "izin[uid] = (" in gy and '["kayit"]' not in gy)
+    return ok, "diriltme arsiv referansi=%d" % dk.count("urunler-arsiv")
+
+
+def v29(kapi, duzelt, tmp):
+    # silme_commit yazim aninda YOK (kayit o commit'in icinde dogar) -> null; SONRAKI
+    # silme onu git gecmisinden doldurur ve deger <c>^:urunler.json govdesiyle dogrulanir.
+    d = duzelt_sahte(tmp, duzelt, [K1, K2, K3])
+    git(d, "init", "-q", "-b", "main")
+    commit(d, "taban")
+    rc1, out1 = duzelt_kos(d, ["urun-b", "--sil", "t1"], izin=True)
+    git(d, "add", "urunler.json", "arsiv/urunler-arsiv.json")
+    c1 = commit(d, "sil b")
+    rc2, out2 = duzelt_kos(d, ["urun-c", "--sil", "t2"], izin=True)
+    with open(os.path.join(d, "arsiv", "urunler-arsiv.json"), encoding="utf-8") as f:
+        arsiv = json.load(f)
+    ok = (rc1 == 0 and rc2 == 0 and len(arsiv) == 2
+          and arsiv[0]["silme_commit"] == c1 and arsiv[1]["silme_commit"] is None
+          and urun_arsivi.govde_getir(d, arsiv[0]) == (K2, c1)
+          and not urun_arsivi.govdeli_girisler(arsiv))
+    return ok, "rc=%d/%d sc=%r" % (rc1, rc2, [g.get("silme_commit") for g in arsiv])
+
+
 VAKALAR = [
     ("V1_IZINSIZ_SILME", v1), ("V2_GIZLI_TRUE_KONTROL", v2), ("V3_BASA_EKLEME_KONTROL", v3),
     ("V4_ARSIVLI_SILME", v4), ("V5_ESKI_ARSIV_YETMEZ", v5), ("V6_ID_RENAME", v6),
@@ -467,6 +565,9 @@ VAKALAR = [
     ("V20_CI_PENCERE_IPTAL_BOSLUGU", v20), ("V21_PENCERE_ONARIM_KONTROL", v21),
     ("V22_MERGE_OURS_DAL_EKLEMESI_KAYBI", v22), ("V23_CI_RENAME_SONRASI_DUZENLEME", v23),
     ("V24_CI_DAL_COMMITI_KENDI_HUKMU", v24),
+    ("V25_INDEX_GOVDELI_ARSIV_GIRISI", v25), ("V26_SILME_GOVDELI_ARSIV_KIRMIZI", v26),
+    ("V27_GERCEK_ARSIV_GOVDESIZ_KAYIP_0", v27), ("V28_DIRILTME_ARSIVI_KULLANMIYOR", v28),
+    ("V29_SILME_COMMIT_SONRAKI_YAZIMDA_DOLAR", v29),
 ]
 VAKA = dict(VAKALAR)
 
@@ -493,8 +594,8 @@ MUTANTLAR = [
     ("M7_DUZELT_ARSIV_YAZIMI_SOKULDU", "duzelt",
      "        _atomic_write(ARSIV, arsiv)\n", "        pass\n", "V15_DUZELT_SIL_IZINLI_UCTAN_UCA"),
     ("M8_ARSIV_ICERIK_ESLESMESI_SOKULDU", "kapi",
-     "    return json.dumps(kayit, sort_keys=True, ensure_ascii=False)\n", '    return ""\n',
-     "V18_SAHTE_ARSIV_GIRISI"),
+     "    return govde_sha256(kayit)\n", '    return None\n',
+     "V4_ARSIVLI_SILME"),
     ("M9_CI_PENCERESI_SOKULDU", "kapi",
      "            and _ata_mi(depo, before, hedef) and _ata_mi(depo, before, pencere)):\n",
      "            and _ata_mi(depo, before, hedef)):\n", "V20_CI_PENCERE_IPTAL_BOSLUGU"),
@@ -511,13 +612,31 @@ MUTANTLAR = [
      '    rc, out, err = _git(depo, ["rev-list", "--reverse", "--parents", "%s..%s" % (taban, yeni)])\n',
      '    rc, out, err = _git(depo, ["rev-list", "--first-parent", "--reverse", "--parents", "%s..%s" % (taban, yeni)])\n',
      "V24_CI_DAL_COMMITI_KENDI_HUKMU"),
+    ("M14_GOVDELI_HUKMU_SOKULDU", "kapi",
+     "    if govdeli:\n", "    if False:\n", "V26_SILME_GOVDELI_ARSIV_KIRMIZI"),
+    ("M15_INDEX_GOVDE_DENETIMI_SOKULDU", "kapi",
+     '            govdeli = arsiv_govdeli(depo, "", True) if rca == 1 else []\n',
+     "            govdeli = []\n", "V25_INDEX_GOVDELI_ARSIV_GIRISI"),
+    ("M16_SEKIL_GOVDEYE_IZIN_VERIR", "arsivi",
+     "    fazla = sorted(set(giris) - IZINLI_ALANLAR)\n", "    fazla = []\n",
+     "V25_INDEX_GOVDELI_ARSIV_GIRISI"),
+    ("M17_DUZELT_GOVDELI_YAZIM", "duzelt",
+     "        arsiv.append(urun_arsivi.giris_yap(\n",
+     '        arsiv.append({"kayit": kayit} if True else urun_arsivi.giris_yap(\n',
+     "V15_DUZELT_SIL_IZINLI_UCTAN_UCA"),
+    ("M18_SAYAC_ESKI_SEKLI_OKUMUYOR", "arsivi",
+     '    if isinstance(giris.get("kayit"), dict):\n        return govde_sha256(giris["kayit"])\n',
+     "", "V26_SILME_GOVDELI_ARSIV_KIRMIZI"),
+    ("M19_DUZELT_BEKLEYEN_DOLDURMA_SOKULDU", "duzelt",
+     "        urun_arsivi.bekleyenleri_doldur(ROOT, arsiv)\n", "        pass\n",
+     "V29_SILME_COMMIT_SONRAKI_YAZIMDA_DOLAR"),
 ]
 KONTROL_MUTANT = ("K0_ZARARSIZ_YORUM", "kapi", "import argparse\n",
                   "import argparse  # kontrol mutanti: davranis DEGISMEZ\n")
 
 
 def mutant_kopya(tmp, hedef, capa, yerine):
-    kaynak = KAPI if hedef == "kapi" else DUZELT
+    kaynak = {"kapi": KAPI, "duzelt": DUZELT, "arsivi": ARSIVI}[hedef]
     with open(kaynak, encoding="utf-8") as f:
         govde = f.read()
     n = govde.count(capa)
@@ -527,6 +646,13 @@ def mutant_kopya(tmp, hedef, capa, yerine):
     yol = os.path.join(d, os.path.basename(kaynak))
     with open(yol, "w", encoding="utf-8") as f:
         f.write(govde.replace(capa, yerine))
+    if hedef == "arsivi":
+        # Kopya kapi + git_ortami mutant modulun YANINA; vaka KANONIK'i bu dizine cevirir.
+        for ad in ("git_ortami.py", os.path.basename(KAPI)):
+            with open(os.path.join(TOOLS, ad), encoding="utf-8") as f:
+                metin = f.read()
+            with open(os.path.join(d, ad), "w", encoding="utf-8") as f:
+                f.write(metin)
     return yol, ""
 
 
@@ -555,10 +681,13 @@ def main():
                 continue
             kapi = yol if hedef == "kapi" else KAPI
             duzelt = yol if hedef == "duzelt" else DUZELT
-            if hedef == "duzelt":
-                # sahte repo helper'lari TOOLS'tan kopyalar; mutant dosyanin adi duzelt.py kalir
-                pass
-            ok, detay = vaka_kos(hedef_vaka, kapi, duzelt, tmp)
+            if hedef == "arsivi":
+                kapi = os.path.join(os.path.dirname(yol), os.path.basename(KAPI))
+                KANONIK[0] = os.path.dirname(yol)
+            try:
+                ok, detay = vaka_kos(hedef_vaka, kapi, duzelt, tmp)
+            finally:
+                KANONIK[0] = TOOLS
             if not ok:
                 olen += 1
                 print("✅ MUTANT %s OLDU — hedef %s KIRMIZI (%s)" % (ad, hedef_vaka, detay))
