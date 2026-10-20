@@ -977,5 +977,33 @@
         "https://media.pruvo3d.com/urunler/pr30967-3.jpg"
       ]
     }
+  },
+  {
+    "silinme_ts": "2026-10-20T10:16:31Z",
+    "yazan": "panel-uygulayici",
+    "kuyruk_id": 56,
+    "kayit": {
+      "id": "bmw-r1250gs-adventure-ayak-basamak-lasti-i",
+      "kategori": "Motosiklet",
+      "marka": [
+        "BMW",
+        "R1250GS"
+      ],
+      "baslik": "BMW R1250GS Adventure Ayak Basamak Lastiği",
+      "aciklama": "BMW R1250GS Adventure motosikletiniz için özel tasarlanıp üretilen dayanıklı ayak basamak lastiği.\n\nSürüş esnasında maksimum tutuş sağlayarak kaymayı önler.\nYıpranan veya kaybolan orijinal basamak lastiğinin yerine mükemmel uyum sağlar.\nZorlu yol şartlarına ve aşınmaya karşı yüksek mukavemetli malzemeden özel üretilmiştir.\nKolayca monte edilir ve ayaklığa tam oturur.",
+      "fiyat": "350 TL",
+      "gorseller": [
+        "https://media.pruvo3d.com/urunler/bmw-r1250gs-adventure-ayak-basamak-lasti-i-1.jpg",
+        "https://media.pruvo3d.com/urunler/bmw-r1250gs-adventure-ayak-basamak-lasti-i-2.jpg",
+        "https://media.pruvo3d.com/urunler/bmw-r1250gs-adventure-ayak-basamak-lasti-i-3.jpg"
+      ],
+      "altkategori": "Sele ve Sehpa",
+      "uyum": [
+        {
+          "marka": "BMW",
+          "model": "R1250GS"
+        }
+      ]
+    }
   }
 ]
