@@ -345,6 +345,54 @@ const VERI = {
     ],
     "varsayilanMalzeme": "PLA"
   },
+  "ay-yiyen-asimetrik-korku-maskesi": {
+    "boyutMm": {
+      "adim": 10,
+      "etiket": "Boy",
+      "max": 246,
+      "min": 246,
+      "varsayilan": 246
+    },
+    "fiyatCapalari": [
+      [
+        246,
+        2460
+      ],
+      [
+        246,
+        2460
+      ]
+    ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
+    "malzemeler": [
+      {
+        "ad": "PLA",
+        "katsayi": 1
+      },
+      {
+        "ad": "PETG",
+        "katsayi": 1.3
+      },
+      {
+        "ad": "ASA",
+        "katsayi": 1.6
+      }
+    ],
+    "renkGorselIndeks": {
+      "Beyaz": 0,
+      "Diğer": 0,
+      "Gri": 0,
+      "Siyah": 0
+    },
+    "renkler": [
+      "Siyah",
+      "Beyaz",
+      "Gri",
+      "Diğer"
+    ],
+    "varsayilanMalzeme": "PLA"
+  },
   "aya-park-etmis-ufo-figuru": {
     "boyutMm": {
       "adim": 10,
@@ -1708,6 +1756,54 @@ const VERI = {
       "Siyah",
       "Beyaz",
       "Gri"
+    ],
+    "varsayilanMalzeme": "PLA"
+  },
+  "geometrik-gergedan-heykeli-modern-hayvan-dekoru": {
+    "boyutMm": {
+      "adim": 10,
+      "etiket": "Boy",
+      "max": 192,
+      "min": 192,
+      "varsayilan": 192
+    },
+    "fiyatCapalari": [
+      [
+        192,
+        1920
+      ],
+      [
+        192,
+        1920
+      ]
+    ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
+    "malzemeler": [
+      {
+        "ad": "PLA",
+        "katsayi": 1
+      },
+      {
+        "ad": "PETG",
+        "katsayi": 1.3
+      },
+      {
+        "ad": "ASA",
+        "katsayi": 1.6
+      }
+    ],
+    "renkGorselIndeks": {
+      "Beyaz": 0,
+      "Diğer": 0,
+      "Gri": 0,
+      "Siyah": 0
+    },
+    "renkler": [
+      "Siyah",
+      "Beyaz",
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
