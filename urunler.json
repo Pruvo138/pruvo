@@ -1,5 +1,126 @@
 [
   {
+    "id": "geometrik-gergedan-heykeli-modern-hayvan-dekoru",
+    "kategori": "Figür",
+    "marka": [],
+    "baslik": "Geometrik Gergedan Heykeli — Modern Hayvan Dekoru (19,2 cm)",
+    "aciklama": "Keskin yüzeyli, geometrik formlu modern bir gergedan heykeli. Öne eğik başı ve ileri duran boynuzuyla yere basan, güçlü bir duruş sergiler; açılı hatları ona galeri havasında bir sanat objesi görünümü verir.\n- Raf, çalışma masası ya da modern bir mekânda sergi parçası olarak; vahşi yaşam ve modern heykel sevenlere hediye olarak uygun.\n- Tek boyda üretilir: en büyük ölçüsü yaklaşık 19,2 cm; fiyat bu boya göre sabittir.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "1920 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dgeo-rhino-sculpture-modern-animal-art-piece-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dgeo-rhino-sculpture-modern-animal-art-piece-2.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri",
+        "Diğer"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0,
+        "Diğer": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 192,
+        "max": 192,
+        "adim": 10,
+        "varsayilan": 192,
+        "etiket": "Boy"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          192,
+          1920
+        ],
+        [
+          192,
+          1920
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "ay-yiyen-asimetrik-korku-maskesi",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "baslik": "Ay Yiyen Asimetrik Korku Maskesi — Çatlak Ay (24,6 cm)",
+    "aciklama": "Yarısı çatlamış bir ay kabuğu, yarısı çürümüş, kraterli ve dişleri açıkta bir yaratık olarak tasarlanmış, takılabilen asimetrik korku maskesi. Yanlarındaki yuvalar sayesinde lastik bant takılabilir.\n- Kostüm, cosplay, Cadılar Bayramı, sahne ya da sergi için; korku ve fantastik sevenlere hediye olarak uygun.\n- Tek boyda üretilir: en büyük ölçüsü yaklaşık 24,6 cm; fiyat bu boya göre sabittir.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir.\n- Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "2460 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dmooneater-mask-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dmooneater-mask-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dmooneater-mask-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri",
+        "Diğer"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0,
+        "Diğer": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 246,
+        "max": 246,
+        "adim": 10,
+        "varsayilan": 246,
+        "etiket": "Boy"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          246,
+          2460
+        ],
+        [
+          246,
+          2460
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
     "id": "yakut-tilsim-anahtarligi-ve-kolye-ucu",
     "kategori": "Dekorasyon",
     "marka": [],
