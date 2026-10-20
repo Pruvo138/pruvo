@@ -1,5 +1,620 @@
 [
   {
+    "id": "jeep-wrangler-jk-jku-kapi-kolu-sus-parcalari",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler JK/JKU Kapı Kolu Süs Parçaları",
+    "aciklama": "Wrangler JK ve JKU kapı kollarına takılan dekoratif ek parçalardır.\nDelik açmaya gerek kalmadan yerine takılır.\nYaklaşık dış ölçüler: 158 × 19 × 7 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr207204-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr207204-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr207204-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr207204-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "K2_Kevin"
+    }
+  },
+  {
+    "id": "jeep-gladiator-wrangler-jl-isik-zinciri-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Gladiator"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Gladiator"
+      }
+    ],
+    "baslik": "Jeep Gladiator/Wrangler JL Işık Zinciri Klipsleri",
+    "aciklama": "Gladiator JT ve Wrangler JL araçlarına ışık zincirini tutturmak için tasarlanmış küçük klipslerdir.\nKaynakta diğer modellere de uyabileceği belirtilmiştir.\nYaklaşık dış ölçüler: 24 × 15 × 8 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr337214-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr337214-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr337214-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "cj8scrambler"
+    }
+  },
+  {
+    "id": "jeep-wrangler-telsiz-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler Telsiz Klipsi",
+    "aciklama": "El telsizini, amatör telsizi ya da CB telsizini araç içinde tutan klipstir.\nKüçük ve tek parçadır.\nYaklaşık dış ölçüler: 45 × 37 × 26 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr87554-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr87554-2.jpg"
+    ]
+  },
+  {
+    "id": "jeep-wrangler-jk-gunesluk-tamir-tupu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler JK Güneşlik Tamir Tüpü",
+    "aciklama": "JK güneşliğinin metal çubuğuna sıkı oturan tamir tüpüdür.\nGevşeyen ya da kırılan güneşlik bağlantısını toparlamaya yarar.\nYaklaşık dış ölçüler: 47 × 8 × 8 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr554080-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr554080-2.jpg"
+    ],
+    "lisans": {
+      "tur": "GPL",
+      "tasarimci": "spencerjw"
+    }
+  },
+  {
+    "id": "jeep-wrangler-jk-yagmur-olugu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler JK Yağmur Oluğu",
+    "aciklama": "Wrangler JK için daha doğru ölçülerle yeniden çizilmiş yağmur oluğu parçasıdır.\nYaklaşık dış ölçüler: 151 × 54 × 17 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr925374-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr925374-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr925374-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "twaynee"
+    }
+  },
+  {
+    "id": "jeep-wrangler-jk-torpido-gozu-duzenleyici",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler JK Torpido Gözü Düzenleyici",
+    "aciklama": "2007-2018 Wrangler JK torpido gözüne oturan düzenleyici kutudur.\nKüçük eşyaları ayrı gözlerde toplar.\nYaklaşık dış ölçüler: 206 × 126 × 109 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1371450-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1371450-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1371450-3.jpg"
+    ]
+  },
+  {
+    "id": "jeep-cherokee-xj-kapi-tweeter-yuvasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Cherokee"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Cherokee"
+      }
+    ],
+    "baslik": "Jeep Cherokee XJ Kapı Tweeter Yuvası",
+    "aciklama": "1997-2001 Cherokee XJ kapılarına tweeter hoparlör takmak için hazırlanmış yuvadır.\nYaklaşık dış ölçüler: 134 × 114 × 19 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr212068-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr212068-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr212068-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr212068-4.jpg"
+    ]
+  },
+  {
+    "id": "jeep-wrangler-jk-havalandirma-iris-kutusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler JK Havalandırma İris Kutusu",
+    "aciklama": "Havalandırma ağzının yerine takılan, iris mekanizmalı küçük kutudur.\nTakması ve birleştirmesi kolaydır.\nYaklaşık dış ölçüler: 80 × 80 × 59 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr612322-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr612322-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr612322-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Razelak"
+    }
+  },
+  {
+    "id": "jeep-gladiator-kasa-paneli-anahtar-cakmak",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Gladiator"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Gladiator"
+      }
+    ],
+    "baslik": "Jeep Gladiator Kasa Paneli (Anahtar ve Çakmak Soketi)",
+    "aciklama": "Gladiator kasasına anahtar ve çakmak soketi eklemek için hazırlanmış paneldir.\nYaklaşık dış ölçüler: 88 × 86 × 6 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr305636-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr305636-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "cj8scrambler"
+    }
+  },
+  {
+    "id": "jeep-wrangler-jk-telefon-tablet-kamera-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler JK Telefon, Tablet ve Kamera Tutucu",
+    "aciklama": "Telefon, tablet ve aksiyon kamerasını tek yapıyla araca bağlayan, tamamı basılan tutucudur.\nKaynakta birkaç tutucu tasarımının birleştirilmesiyle çizildiği belirtilmiştir.\nYaklaşık dış ölçüler: 108 × 70 × 44 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr504330-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr504330-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr504330-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr504330-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "DaniRodes"
+    }
+  },
+  {
+    "id": "jeep-wrangler-jk-gozluk-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler JK Gözlük Klipsi",
+    "aciklama": "2008 Wrangler JK için çizilmiş güneş gözlüğü klipsidir.\nYaklaşık dış ölçüler: 124 × 40 × 15 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr68363-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr68363-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr68363-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "kperkins1982"
+    }
+  },
+  {
+    "id": "jeep-cj-yj-bardaklik",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep CJ/YJ Bardaklık",
+    "aciklama": "CJ ve YJ modellerindeki orijinal deliklere takılan bardaklıktır.\nKaynakta diğer modellere de uyabileceği belirtilmiştir.\nYaklaşık dış ölçüler: 107 × 94 × 87 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr186783-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr186783-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Chuck Bryant"
+    }
+  },
+  {
+    "id": "jeep-grand-cherokee-zj-orta-konsol-molle-paneli",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Grand Cherokee"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Grand Cherokee"
+      }
+    ],
+    "baslik": "Jeep Grand Cherokee ZJ Orta Konsol MOLLE Paneli",
+    "aciklama": "1996-1998 ZJ orta konsoluna oturan, MOLLE/PALS sistemine uygun sert paneldir.\nYaklaşık dış ölçüler: 210 × 130 × 14 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr731038-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr731038-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr731038-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr731038-4.jpg"
+    ]
+  },
+  {
+    "id": "jeep-wrangler-jk-geri-gorus-kamerasi-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler JK Geri Görüş Kamerası Braketi",
+    "aciklama": "Wrangler JK için geri görüş kamerasını lastik üzerine monte eden braket.\nYaklaşık dış ölçüler: 70 × 64 × 33 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr751507-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr751507-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr751507-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr751507-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "decent.gambier"
+    }
+  },
+  {
+    "id": "jeep-cherokee-xj-bardaklik-ek-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Cherokee"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Cherokee"
+      }
+    ],
+    "baslik": "Jeep Cherokee XJ Bardaklık Ek Parçası",
+    "aciklama": "Standart teneke kutuya göre çizilmiş XJ bardaklık ek parçasıdır.\nYaklaşık dış ölçüler: 89 × 89 × 42 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr720765-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr720765-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr720765-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "R3V9K"
+    }
+  },
+  {
+    "id": "jeep-cherokee-xj-4-0l-oval-atesduvari-lastigi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Cherokee"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Cherokee"
+      }
+    ],
+    "baslik": "Jeep Cherokee XJ 4.0L Oval Ateş Duvarı Lastiği",
+    "aciklama": "4.0 litre motorlu Cherokee ve Comanche XJ/MJ modellerinde motor kablo demetinin ateş duvarından geçtiği oval lastiktir.\nYaklaşık dış ölçüler: 91 × 54 × 32 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr928840-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr928840-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr928840-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr928840-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "salvagedcircuitry"
+    }
+  },
+  {
+    "id": "jeep-cherokee-2014-torpido-ustu-montaj-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Cherokee"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Cherokee"
+      }
+    ],
+    "baslik": "Jeep Cherokee 2014 Torpido Üstü Montaj Parçası",
+    "aciklama": "2014 Cherokee'de torpido üstündeki küçük kapağın içine oturan montaj parçasıdır.\nYapıştırıcı ya da bant gerekmeden takılır.\nYaklaşık dış ölçüler: 112 × 85 × 46 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr615125-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr615125-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr615125-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr615125-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "CaverAdam"
+    }
+  },
+  {
+    "id": "jeep-grand-cherokee-zj-gaz-kelebegi-hava-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Grand Cherokee"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Grand Cherokee"
+      }
+    ],
+    "baslik": "Jeep Grand Cherokee ZJ Gaz Kelebeği Hava Kapağı",
+    "aciklama": "5.2 ve 5.9 litre motorlu Grand Cherokee ZJ/ZG araçlarında gaz kelebeği gövdesi üstüne takılan hava giriş kapağıdır.\nOrijinal kaputun altına sığar.\nYaklaşık dış ölçüler: 354 × 161 × 105 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr464013-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr464013-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr464013-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr464013-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Jesse Smith"
+    }
+  },
+  {
+    "id": "jeep-cherokee-xj-gosterge-yuvali-havalandirma-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Cherokee"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Cherokee"
+      }
+    ],
+    "baslik": "Jeep Cherokee XJ Gösterge Yuvalı Havalandırma Kapağı",
+    "aciklama": "1997-2001 Cherokee XJ için yedek havalandırma kapağıdır.\n52 milimetre çaplı göstergeler için yuvası vardır.\nYaklaşık dış ölçüler: 96 × 64 × 25 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1303251-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1303251-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1303251-3.jpg"
+    ]
+  },
+  {
+    "id": "jeep-wrangler-jl-camurluk-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler JL Çamurluk Klipsi",
+    "aciklama": "Yerinden çıkan çamurluğu tekrar tutturmak için çizilmiş küçük klipstir.\n2018 Wrangler JL üzerinde denenmiştir.\nYaklaşık dış ölçüler: 38 × 17 × 13 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr361436-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr361436-2.jpg"
+    ]
+  },
+  {
+    "id": "jeep-grand-cherokee-trim-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Grand Cherokee"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Grand Cherokee"
+      }
+    ],
+    "baslik": "Jeep Grand Cherokee Trim Klipsi",
+    "aciklama": "2007 Grand Cherokee'de kaplamayı tutan klipslerdir.\nKaynakta birçok marka ve modelde de çalıştığı belirtilmiştir.\nYaklaşık dış ölçüler: 19 × 18 × 18 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr580664-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr580664-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "DGDockins"
+    }
+  },
+  {
+    "id": "jeep-wrangler-jk-usb-soket-tutucu-halka",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler JK USB Soket Tutucu Halka",
+    "aciklama": "Sağ taraftaki aksesuar soketine bir USB kitinin portlarını oturtmak için kullanılan tutucu halkadır.\nYaklaşık dış ölçüler: 39 × 39 × 4 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr254309-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr254309-2.jpg"
+    ]
+  },
+  {
+    "id": "jeep-cherokee-xj-yakit-pompasi-halka-sokme-aleti",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Cherokee"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Cherokee"
+      }
+    ],
+    "baslik": "Jeep Cherokee XJ Yakıt Pompası Halka Sökme Aleti",
+    "aciklama": "1997-2001 Cherokee XJ'de yakıt pompasının sıkışmış tutma halkasını gevşetmeye yardımcı olan alettir.\nYaklaşık dış ölçüler: 165 × 165 × 60 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1422669-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1422669-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1422669-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "cacao"
+    }
+  },
+  {
+    "id": "jeep-wrangler-jk-plaka-tasima-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler JK Plaka Taşıma Braketi",
+    "aciklama": "Wrangler JK'da plakanın yerini değiştirmek için çok basit bir braket.\nYaklaşık dış ölçüler: 168 × 130 × 45 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr642688-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr642688-2.jpg"
+    ]
+  },
+  {
+    "id": "jeep-wrangler-jk-manyetik-tablet-cercevesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler JK Manyetik Tablet Çerçevesi",
+    "aciklama": "2012-2018 Wrangler JK'ya tablet takmak için tasarlanmış manyetik çerçevedir.\nYaklaşık dış ölçüler: 216 × 109 × 7 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1178747-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1178747-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1178747-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1178747-4.jpg"
+    ]
+  },
+  {
     "id": "jeep-patriot-2015-stop-grubu-klipsi",
     "kategori": "Otomobil",
     "marka": [
