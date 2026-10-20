@@ -1,5 +1,132 @@
 [
   {
+    "id": "jeep-grand-cherokee-wj-isitici-kapakciklari",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Grand Cherokee"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Grand Cherokee"
+      }
+    ],
+    "baslik": "Jeep Grand Cherokee WJ Isıtıcı Kapakçıkları",
+    "aciklama": "WJ ısıtma ve klima kutusundaki hava yönlendirme kapakçıklarının yedek parçasıdır.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3djeep-wj-heater-doors-heizungsklappen-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3djeep-wj-heater-doors-heizungsklappen-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3djeep-wj-heater-doors-heizungsklappen-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Der_Flo92"
+    }
+  },
+  {
+    "id": "jeep-grand-cherokee-wj-isitici-kapakcigi-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Grand Cherokee"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Grand Cherokee"
+      }
+    ],
+    "baslik": "Jeep Grand Cherokee WJ Isıtıcı Kapakçığı Kapağı",
+    "aciklama": "WJ ısıtıcı kapakçıklarının bulunduğu kutunun havalandırma kapağı için yedek parçadır.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3djeep-wj-cover-for-heater-doors-lueftungsdeckel-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3djeep-wj-cover-for-heater-doors-lueftungsdeckel-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Der_Flo92"
+    }
+  },
+  {
+    "id": "jeep-grand-wagoneer-gunesluk-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wagoneer"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wagoneer"
+      }
+    ],
+    "baslik": "Jeep Grand Wagoneer Güneşlik Klipsi",
+    "aciklama": "Grand Wagoneer güneşliğini tutan klipsin yedeğidir.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3djeep-grand-wagoneer-visor-clip-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3djeep-grand-wagoneer-visor-clip-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "offbyjuan"
+    }
+  },
+  {
+    "id": "jeep-grand-cherokee-2013-kapi-bardakligi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Grand Cherokee"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Grand Cherokee"
+      }
+    ],
+    "baslik": "Jeep Grand Cherokee 2013 Kapı Bardaklığı",
+    "aciklama": "2013 Grand Cherokee kapısına takılan bardaklıktır.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3djeep-grand-cherokee-2013-door-cup-holder-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3djeep-grand-cherokee-2013-door-cup-holder-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3djeep-grand-cherokee-2013-door-cup-holder-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3djeep-grand-cherokee-2013-door-cup-holder-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "pavcom"
+    }
+  },
+  {
+    "id": "jeep-grand-cherokee-zj-bagaj-lambasi-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Grand Cherokee"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Grand Cherokee"
+      }
+    ],
+    "baslik": "Jeep Grand Cherokee ZJ Bagaj Lambası Kapağı",
+    "aciklama": "ZJ bagaj lambasının üzerini kapatan ızgaralı kapaktır.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dzj-trunk-light-cover-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "ArchAngel_es"
+    }
+  },
+  {
     "id": "jeep-compass-arka-havalandirma-uzatma-seti",
     "kategori": "Otomobil",
     "marka": [
