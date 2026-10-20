@@ -1813,6 +1813,54 @@ const VERI = {
     ],
     "varsayilanMalzeme": "PLA"
   },
+  "eklemli-kucak-kedisi": {
+    "boyutMm": {
+      "adim": 10,
+      "etiket": "Boy",
+      "max": 250,
+      "min": 60,
+      "varsayilan": 150
+    },
+    "fiyatCapalari": [
+      [
+        60,
+        600
+      ],
+      [
+        250,
+        2500
+      ]
+    ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
+    "malzemeler": [
+      {
+        "ad": "PLA",
+        "katsayi": 1
+      },
+      {
+        "ad": "PETG",
+        "katsayi": 1.3
+      },
+      {
+        "ad": "ASA",
+        "katsayi": 1.6
+      }
+    ],
+    "renkGorselIndeks": {
+      "Beyaz": 0,
+      "Diğer": 0,
+      "Gri": 0,
+      "Siyah": 0
+    },
+    "renkler": [
+      "Siyah",
+      "Beyaz",
+      "Gri",
+      "Diğer"
+    ],
+    "varsayilanMalzeme": "PLA"
+  },
   "eklemli-kucak-kedisi-seti": {
     "boyutMm": {
       "adim": 10,
@@ -1862,6 +1910,54 @@ const VERI = {
     "varsayilanMalzeme": "PLA"
   },
   "eklemli-leopar-gekosu": {
+    "boyutMm": {
+      "adim": 10,
+      "etiket": "Boy",
+      "max": 250,
+      "min": 60,
+      "varsayilan": 150
+    },
+    "fiyatCapalari": [
+      [
+        60,
+        600
+      ],
+      [
+        250,
+        2500
+      ]
+    ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
+    "malzemeler": [
+      {
+        "ad": "PLA",
+        "katsayi": 1
+      },
+      {
+        "ad": "PETG",
+        "katsayi": 1.3
+      },
+      {
+        "ad": "ASA",
+        "katsayi": 1.6
+      }
+    ],
+    "renkGorselIndeks": {
+      "Beyaz": 0,
+      "Diğer": 0,
+      "Gri": 0,
+      "Siyah": 0
+    },
+    "renkler": [
+      "Siyah",
+      "Beyaz",
+      "Gri",
+      "Diğer"
+    ],
+    "varsayilanMalzeme": "PLA"
+  },
+  "eklemli-liopleurodon": {
     "boyutMm": {
       "adim": 10,
       "etiket": "Boy",
@@ -4694,6 +4790,150 @@ const VERI = {
       "Siyah",
       "Beyaz",
       "Gri"
+    ],
+    "varsayilanMalzeme": "PLA"
+  },
+  "mini-eklemli-balina-kopekbaligi": {
+    "boyutMm": {
+      "adim": 10,
+      "etiket": "Boy",
+      "max": 250,
+      "min": 60,
+      "varsayilan": 150
+    },
+    "fiyatCapalari": [
+      [
+        60,
+        600
+      ],
+      [
+        250,
+        2500
+      ]
+    ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
+    "malzemeler": [
+      {
+        "ad": "PLA",
+        "katsayi": 1
+      },
+      {
+        "ad": "PETG",
+        "katsayi": 1.3
+      },
+      {
+        "ad": "ASA",
+        "katsayi": 1.6
+      }
+    ],
+    "renkGorselIndeks": {
+      "Beyaz": 0,
+      "Diğer": 0,
+      "Gri": 0,
+      "Siyah": 0
+    },
+    "renkler": [
+      "Siyah",
+      "Beyaz",
+      "Gri",
+      "Diğer"
+    ],
+    "varsayilanMalzeme": "PLA"
+  },
+  "mini-eklemli-japon-ejderhasi": {
+    "boyutMm": {
+      "adim": 10,
+      "etiket": "Boy",
+      "max": 250,
+      "min": 60,
+      "varsayilan": 150
+    },
+    "fiyatCapalari": [
+      [
+        60,
+        600
+      ],
+      [
+        250,
+        2500
+      ]
+    ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
+    "malzemeler": [
+      {
+        "ad": "PLA",
+        "katsayi": 1
+      },
+      {
+        "ad": "PETG",
+        "katsayi": 1.3
+      },
+      {
+        "ad": "ASA",
+        "katsayi": 1.6
+      }
+    ],
+    "renkGorselIndeks": {
+      "Beyaz": 0,
+      "Diğer": 0,
+      "Gri": 0,
+      "Siyah": 0
+    },
+    "renkler": [
+      "Siyah",
+      "Beyaz",
+      "Gri",
+      "Diğer"
+    ],
+    "varsayilanMalzeme": "PLA"
+  },
+  "mini-eklemli-kaplan-kopekbaligi": {
+    "boyutMm": {
+      "adim": 10,
+      "etiket": "Boy",
+      "max": 250,
+      "min": 60,
+      "varsayilan": 150
+    },
+    "fiyatCapalari": [
+      [
+        60,
+        600
+      ],
+      [
+        250,
+        2500
+      ]
+    ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
+    "malzemeler": [
+      {
+        "ad": "PLA",
+        "katsayi": 1
+      },
+      {
+        "ad": "PETG",
+        "katsayi": 1.3
+      },
+      {
+        "ad": "ASA",
+        "katsayi": 1.6
+      }
+    ],
+    "renkGorselIndeks": {
+      "Beyaz": 0,
+      "Diğer": 0,
+      "Gri": 0,
+      "Siyah": 0
+    },
+    "renkler": [
+      "Siyah",
+      "Beyaz",
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
