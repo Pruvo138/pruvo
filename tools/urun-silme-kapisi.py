@@ -16,11 +16,15 @@ NEDEN VAR (13 Eyl 2026, olculdu — 3. tekrarin OTESI, tekil yama YASAK):
 IDDIA: <taban> -> <yeni> arasinda katalogdan DUSEN her id su izinlerden BIRINI tasir:
   (1) ID-RENAME — dusen kayit, yeni eklenen bir kaydin `id` DISINDA birebir aynisidir
       (`duzelt.py --yeni-id` ve guard'in `_id_rename_haritasi` ile AYNI olcut).
-  (2) ARSIV — `arsiv/urunler-arsiv.json`da, dusen kaydin TAM iceriginin BIREBIR aynisini
-      tasiyan giris SAYISI yenide tabandakinden BUYUKTUR (kayit ayni aralikta arsive
-      TASINDI). Yalniz id tasiyan / icerigi farkli giris izin SAYILMAZ: kaydin kendisi
-      kaybolmamali (curutucu B2, 13 Eyl). Kaynak: Okan'in 2 Eyl panel yolu
-      (`tools/urun-silme-yordami.md`, "Sil (arsive)") ve izinli `duzelt.py --sil`.
+  (2) ARSIV — `arsiv/urunler-arsiv.json`da, dusen kaydin id'sini ve TAM iceriginin
+      parmak izini (`govde_sha256`) tasiyan giris SAYISI yenide tabandakinden BUYUKTUR
+      (silme ayni aralikta arsive ISLENDI). Yalniz id tasiyan / parmak izi farkli giris
+      izin SAYILMAZ: govde git gecmisinden geri gelebilmeli (curutucu B2, 13 Eyl). Kaynak:
+      Okan'in 2 Eyl panel yolu (`tools/urun-silme-yordami.md`) ve izinli `duzelt.py --sil`.
+  (4) GOVDESIZ ARSIV (BaBa 20 Eki; Okan kurali 6 Eki "sil = TAMAMEN silinir, arsiv YOK"):
+      YENI uc noktadaki arsivde GOVDE tasiyan (tools/urun_arsivi.py::IZINLI_ALANLAR disinda
+      alan tasiyan) giris -> GOVDELI_ARSIV -> KIRMIZI. Eski govdeli sekil GECMIS commit'lerde
+      okunur (sayac parmak izini govdeden hesaplar), yeni uc noktada kabul edilmez.
   (3) MERGE GETIRISI (yalniz --index + MERGE_HEAD): id ORTAK ATADA vardi ve ebeveynlerden
       BIRI onu silmisti. Bir tarafin YENI EKLEDIGI (atada olmayan) id'nin sonucta yoklugu
       KAYIPTIR -> KIRMIZI (curutucu B3: `checkout --theirs` cozumu yeni kaydi yutuyordu).
@@ -79,6 +83,8 @@ for _aday in (os.environ.get("PRUVO_KANONIK_TOOLS") or "", TOOLS_DIZINI):
         sys.path.insert(0, _aday)
         break
 from git_ortami import git_ortami  # noqa: E402
+# Arsiv girisi sekli + parmak izi TEK KAYNAK (yazicilar panel-uygulayici/duzelt ile ayni).
+from urun_arsivi import giris_id, giris_sha, govde_sha256, govdeli_girisler  # noqa: E402
 
 KATALOG_YOLU = "urunler.json"
 # TEK KAYNAK ile ayni yol: tools/panel-uygulayici.py::ARSIV_DOSYASI (test IKIZ-TANIM vakasi olcer)
@@ -151,26 +157,35 @@ def _kanon_idsiz(kayit):
 
 
 def _arsiv_anahtari(kayit):
-    """Arsiv girisi silinen kaydin TAM icerigini tasimali (id dahil)."""
-    return json.dumps(kayit, sort_keys=True, ensure_ascii=False)
+    """Arsiv girisi silinen kaydin TAM iceriginin parmak izini tasimali (id dahil)."""
+    return govde_sha256(kayit)
 
 
-def arsiv_sayaci(depo, ref, index_kipi=False):
-    """{id: {tam_icerik_anahtari: [yazan, ...]}} ; arsiv dosyasi YOKSA {}."""
+def _arsiv_oku(depo, ref, index_kipi=False):
+    """Arsiv dizisi ; dosya YOKSA []."""
     bayt = _dosya_oku(depo, ref, ARSIV_YOLU, index_kipi)
     if bayt is None:
-        return {}
+        return []
     veri = _json(bayt, "%s:%s" % (ref or "INDEX", ARSIV_YOLU))
     if not isinstance(veri, list):
         raise Olculemedi("%s:%s kok DIZI DEGIL" % (ref or "INDEX", ARSIV_YOLU))
+    return veri
+
+
+def arsiv_sayaci(depo, ref, index_kipi=False):
+    """{id: {govde_parmak_izi: [yazan, ...]}} ; arsiv dosyasi YOKSA {}."""
     sayac = {}
-    for giris in veri:
-        kayit = giris.get("kayit") if isinstance(giris, dict) else None
-        uid = kayit.get("id") if isinstance(kayit, dict) else None
-        if isinstance(uid, str):
+    for giris in _arsiv_oku(depo, ref, index_kipi):
+        uid, iz = giris_id(giris), giris_sha(giris)
+        if isinstance(uid, str) and isinstance(iz, str):
             yazan = giris.get("yazan") if isinstance(giris.get("yazan"), str) else "?"
-            sayac.setdefault(uid, {}).setdefault(_arsiv_anahtari(kayit), []).append(yazan)
+            sayac.setdefault(uid, {}).setdefault(iz, []).append(yazan)
     return sayac
+
+
+def arsiv_govdeli(depo, ref, index_kipi=False):
+    """YENI uc noktadaki arsivde GOVDESIZ sekle uymayan girisler [(sira, id, ihlal)]."""
+    return govdeli_girisler(_arsiv_oku(depo, ref, index_kipi))
 
 
 def _id_haritasi(liste):
@@ -336,11 +351,14 @@ def _depo_bul(verilen):
     return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-def _rapor(eksen, taban_ad, yeni_ad, sonuc):
+def _rapor(eksen, taban_ad, yeni_ad, sonuc, govdeli=()):
     print("URUN_SILME_KAPISI: eksen=%s taban=%s yeni=%s DUSEN=%d RENAME=%d ARSIVLI=%d "
-          "MERGE_GETIRISI=%d IZINSIZ=%d"
+          "MERGE_GETIRISI=%d IZINSIZ=%d GOVDELI_ARSIV=%d"
           % (eksen, taban_ad, yeni_ad, len(sonuc["dusen"]), len(sonuc["rename"]),
-             len(sonuc["arsivli"]), len(sonuc["merge"]), len(sonuc["izinsiz"])))
+             len(sonuc["arsivli"]), len(sonuc["merge"]), len(sonuc["izinsiz"]),
+             len(govdeli)))
+    for sira, uid, ihlal in list(govdeli)[:ORNEK_TAVAN]:
+        print("  GOVDELI_ARSIV #%d %s — %s" % (sira, uid, ihlal))
     for eski, yeni in sonuc["rename"][:ORNEK_TAVAN]:
         print("  RENAME %s -> %s" % (eski, yeni))
     for uid, yazan in sonuc["arsivli"][:ORNEK_TAVAN]:
@@ -361,6 +379,12 @@ def _rapor(eksen, taban_ad, yeni_ad, sonuc):
         print("CARE: kaydi GERI KOY ve gizle -> "
               "python3 tools/duzelt.py <id> --alan gizli --deger true")
         print("Silme yalniz Okan'in acik karariyla yapilir (yordam: tools/urun-silme-yordami.md).")
+        return KIRMIZI
+    if govdeli:
+        print("HUKUM: KIRMIZI — %s silinen urun GOVDESI tasiyan %d giris (repo PUBLIC; "
+              "Okan kurali 6 Eki: sil = TAMAMEN silinir)." % (ARSIV_YOLU, len(govdeli)))
+        print("CARE: python3 tools/urun-arsiv-govdesiz.py --uygula (govde git gecmisinden "
+              "dogrulanarak id + govde_sha256 + silme_commit'e indirilir).")
         return KIRMIZI
     print("HUKUM: YESIL")
     return YESIL
@@ -387,7 +411,17 @@ def main(argv=None):
             merge_var = bool(rc == 0 and out.strip())
             # MERGE'DE ON-ELEME YOK (curutucu N2): `checkout --ours` cozumu index'i HEAD'e
             # esitler ama dalin YENI ekledigi kaydi yutar; HEAD'e gore on-eleme onu gormezdi.
+            # GOVDESIZ ARSIV (4): commit arsive dokunuyorsa INDEX'teki arsiv govdesiz
+            # olmali — katalog degismese bile (elle eklenen govdeli giris on-elemeyi
+            # atlatmasin). Arsive dokunmayan commit bayat dalin gecmisinden sorumlu degil.
+            rca, _, _ = _git(depo, ["diff", "--cached", "--quiet", "HEAD", "--", ARSIV_YOLU], True)
+            if rca not in (0, 1):
+                raise Olculemedi("git diff --cached HEAD -- %s rc=%d" % (ARSIV_YOLU, rca))
+            govdeli = arsiv_govdeli(depo, "", True) if rca == 1 else []
             rc, _, _ = _git(depo, ["diff", "--cached", "--quiet", "HEAD", "--", KATALOG_YOLU], True)
+            if rc == 0 and not merge_var and govdeli:
+                return _rapor("INDEX", "HEAD", "INDEX", {"dusen": [], "rename": [],
+                              "arsivli": [], "merge": [], "izinsiz": []}, govdeli)
             if rc == 0 and not merge_var:
                 print("URUN_SILME_KAPISI: ATLANDI — %s index'te HEAD'e gore DEGISMEDI (on-eleme)."
                       % KATALOG_YOLU)
@@ -405,7 +439,8 @@ def main(argv=None):
             sonuc = degerlendir(katalog_oku(depo, "HEAD", True), katalog_oku(depo, "", True),
                                 arsiv_sayaci(depo, "HEAD", True), arsiv_sayaci(depo, "", True),
                                 ek, ata)
-            return _rapor("INDEX" + ("+MERGE_HEAD" if ek else ""), "HEAD", "INDEX", sonuc)
+            return _rapor("INDEX" + ("+MERGE_HEAD" if ek else ""), "HEAD", "INDEX", sonuc,
+                          govdeli)
         if args.yeni and not args.taban:
             print("URUN_SILME_KAPISI: HATA --yeni tek basina verilmez (--taban gerekli)")
             return OLCULEMEDI
@@ -414,13 +449,14 @@ def main(argv=None):
             for ref in (taban, yeni):
                 if not _commit_var(depo, ref):
                     raise Olculemedi("revizyon cozulemedi: %s" % ref)
-            return _rapor("ARALIK", taban, yeni, uc_nokta_hukmu(depo, taban, yeni))
+            return _rapor("ARALIK", taban, yeni, uc_nokta_hukmu(depo, taban, yeni),
+                          arsiv_govdeli(depo, yeni))
         taban, yeni, eksen = ci_araligi(depo)
         for ref in (taban, yeni):
             if not _commit_var(depo, ref):
                 raise Olculemedi("revizyon cozulemedi: %s" % ref)
         sonuc = pencere_hukmu(depo, taban, yeni)
-        return _rapor(eksen, taban, yeni, sonuc)
+        return _rapor(eksen, taban, yeni, sonuc, arsiv_govdeli(depo, yeni))
     except Olculemedi as e:
         print("URUN_SILME_KAPISI: OLCULEMEDI — %s" % e)
         print("HUKUM: OLCULEMEDI (rc 2) — olculemeyen sey YESIL sayilmaz.")

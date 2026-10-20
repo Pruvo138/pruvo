@@ -31,6 +31,7 @@ Kullanim:
 """
 import importlib.util
 import os
+import re
 import shutil
 import stat
 import subprocess
@@ -76,6 +77,40 @@ def ihlal_satiri(modul, onek="kanit"):
 # ---------------------------------------------------------------------------
 # Sentetik depo kurulumu
 # ---------------------------------------------------------------------------
+_IMPORT_RE = re.compile(r"^\s*(?:from\s+([A-Za-z_]\w*)\s+import\b|import\s+([A-Za-z_]\w*(?:\s*,\s*[A-Za-z_]\w*)*))",
+                        re.M)
+
+
+def tools_ici_importlar(yol):
+    """Bir .py dosyasinin tools/ icinde VAR OLAN modul adlarina giden importlari."""
+    with open(yol, encoding="utf-8", errors="replace") as f:
+        govde = f.read()
+    adlar = set()
+    for m in _IMPORT_RE.finditer(govde):
+        for ad in (m.group(1),) if m.group(1) else m.group(2).split(","):
+            ad = ad.strip()
+            if ad and os.path.isfile(os.path.join(TOOLS, ad + ".py")):
+                adlar.add(ad + ".py")
+    return adlar
+
+
+def _tools_ici_import_kapanisini_kopyala(hedef_tools):
+    """hedef_tools'taki her .py'nin tools/ ici import kapanisini kaynaktan kopyalar.
+    Var olan dosyanin USTUNE YAZMAZ (fikstur kasitli bozuk kopya koyduysa korunur)."""
+    kuyruk = [a for a in os.listdir(hedef_tools) if a.endswith(".py")]
+    gorulen = set(kuyruk)
+    while kuyruk:
+        ad = kuyruk.pop()
+        for dep in tools_ici_importlar(os.path.join(hedef_tools, ad)):
+            if dep in gorulen:
+                continue
+            gorulen.add(dep)
+            hedef = os.path.join(hedef_tools, dep)
+            if not os.path.exists(hedef):
+                shutil.copyfile(os.path.join(TOOLS, dep), hedef)
+            kuyruk.append(dep)
+
+
 def depo_kur(d, kol_var=True, kapi_var=True, kapi_eki=None):
     """Gecici git deposu + tools kopyalari. (hicbir sey commit ETMEZ)"""
     os.makedirs(os.path.join(d, "tools"), exist_ok=True)
@@ -109,6 +144,12 @@ def depo_kur(d, kol_var=True, kapi_var=True, kapi_eki=None):
         _kaynak = os.path.join(TOOLS, _bagimlilik)
         if os.path.exists(_kaynak):
             shutil.copyfile(_kaynak, os.path.join(d, "tools", _bagimlilik))
+    # 20 Eki 2026 — AYNI SINIF UCUNCU KEZ: urun-silme-kapisi.py yeni yardimci modul
+    # `urun_arsivi`'yi import etti, fikstur kopyalamadi -> B2/B5 "ModuleNotFoundError"
+    # ile KIRMIZI (SERIT B 39432042281, hijyen-a3). Ucuncu tekrarda tekil satir
+    # eklemek YASAK -> SINIF ONARIMI: kopyalanan her .py'nin tools/ ici import
+    # KAPANISI otomatik kopyalanir (elle tutulan liste yalniz giris noktalaridir).
+    _tools_ici_import_kapanisini_kopyala(os.path.join(d, "tools"))
     sentetik_git(d, "init", "-q", capture_output=True, text=True,
                  kimlik_ad="t", kimlik_eposta="t@t.local")
     return d
