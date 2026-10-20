@@ -157,6 +157,13 @@ BILEREK_DEGISEN = (
     ('serit.hidden = false; serit.removeAttribute("hidden");',
      "YENI: serit ANCAK delegasyon kurulduysa acilir + `serit-var` govde sinifi "
      "(fail-closed: calismayan bir CTA gosterilmez)"),
+    # 2026-10-19 — "Diğer" serbest renk metni 30 -> 60 karakter (Okan: "4 renge kadar
+    # yazılabilir"; Worker metin(k.renk_ozel, 1, 60) ile ayni sinir). Tek satir, iki yon.
+    # 🔴 IDDIA TASINDI: tools/filament-test.py TEST 17 (maxlength 60 + 4 renk notu).
+    ('? renkOzel.value.trim().slice(0, 30) : "";',
+     "ESKI: Diğer renk metni 30 karakterde kesiliyordu"),
+    ('? renkOzel.value.trim().slice(0, 60) : "";',
+     "YENI: Diğer renk metni 60 karakter — Worker siniriyla ayni (nobetci: filament-test.py TEST 17)"),
 )
 
 # TAM SATIR eslesmeli girisler. NEDEN AYRI: yukaridaki liste ALT DIZE arar; ayirt edici
@@ -547,6 +554,14 @@ BILEREK_DEGISEN_CSS = (
          "    body.serit-var.fab-var .top-btn{bottom:142px",
      "dar ekranda fiyat+CTA seridi + `serit-var` kancali dolgu "
      "(nobetci: ilk-ekran-kapisi.py A1/A7)"),
+    # 2026-10-19 — "Diğer" renk kutusunun notu ("En fazla 4 renk yazılabilir."): not
+    # kutunun ardinda durur, kutu gizliyken (`style` display:none) kardes secici gizler.
+    # Iddia tools/filament-test.py TEST 17'de fail-closed olculur (not + gizli-kutu CSS).
+    ("", "  .renk-ozel-not{display:block;margin:4px 0 0 74px;font-size:12px;"
+         "color:var(--gray-text)}\n"
+         "  .opsiyon-row .renk-ozel-not{margin:0}\n"
+         "  #renkOzel[style*=\"none\"]+.renk-ozel-not{display:none}\n",
+     "Diğer renk notu + kutu gizliyken not da gizli (nobetci: filament-test.py TEST 17)"),
 )
 
 
