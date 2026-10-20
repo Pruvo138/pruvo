@@ -171,7 +171,13 @@ MUTANTLAR = [
     ("M15 gizlilik sayfasi reklam saglayicisini (Google Ads) BEYAN ETMEYI birakir", True,
      [("gizlilik/index.html", "<strong>Google Ads</strong> (Google) ve ", ""),
       # ikinci gecis: BaBa 16:4x tutarli cumlesi (ayni kart) — biri kalirsa mutant SAG kalir
-      ("gizlilik/index.html", "(Google Ads, Meta Piksel)", "(Meta Piksel)")]),
+      ("gizlilik/index.html", "(Google Ads, Meta Piksel)", "(Meta Piksel)"),
+      # 20 Eki: "Reklam cerezleri" karti (ArTisT 5607c3cb) 4 gecis daha ekledi —
+      # uygula() tek degisim yapar, her gecis ayri capa (6/6 duser, biri kalirsa SAG kalir)
+      ("gizlilik/index.html", "<strong>Google Ads</strong> (Google) ve ", ""),
+      ("gizlilik/index.html", "(Google Ads, Meta Piksel)", "(Meta Piksel)"),
+      ("gizlilik/index.html", "(Google Ads)", "(Google)"),
+      ("gizlilik/index.html", "Google Ads'e", "Google'a")]),
     ("M14 Ads donusum etiketi yapilandirmasi sessizce kalkar", True,
      [("index.html", "  gtag('config', 'AW-18330673570');\n", "")]),
     # KONTROL: davranisi DEGISTIRMEYEN duzenleme -> YESIL KALMALI.
