@@ -1,5 +1,314 @@
 [
   {
+    "id": "eklemli-uzun-govdeli-kadim-kedi",
+    "kategori": "Fidget",
+    "marka": [],
+    "baslik": "Eklemli Uzun Gövdeli Kadim Kedi (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Eski çağlarda kedilerin ejderha gibi uzun gövdeli olduğu fikrinden doğan eklemli kedi. Fazladan gövde bölümleri ona esneyen uzun bir silüet kazandırır.\n- Masa başında stres atmak, elde oynamak, koleksiyon ya da hediye olarak ideal.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz uzunluğu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir. Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dflexi-ancient-cat-set-print-in-place-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dflexi-ancient-cat-set-print-in-place-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dflexi-ancient-cat-set-print-in-place-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dflexi-ancient-cat-set-print-in-place-4.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri",
+        "Diğer"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0,
+        "Diğer": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Boy"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "eklemli-capa-baslikli-su-ejderhasi",
+    "kategori": "Fidget",
+    "marka": [],
+    "baslik": "Eklemli Çapa Başlıklı Su Ejderhası (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Başında çapa biçimli bir süs taşıyan, pullu gövdeli, geniş yüzgeçli ve pençeli eklemli su ejderhası. Uzun kıvrımlı gövdesi her yöne esner.\n- Masa başında stres atmak, elde oynamak, koleksiyon ya da hediye olarak ideal.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz uzunluğu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir. Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dflexi-water-dragon-mark-combo-set-print-in-place-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dflexi-water-dragon-mark-combo-set-print-in-place-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dflexi-water-dragon-mark-combo-set-print-in-place-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dflexi-water-dragon-mark-combo-set-print-in-place-4.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri",
+        "Diğer"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0,
+        "Diğer": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Boy"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "eklemli-tanuki-rakun-kopegi",
+    "kategori": "Fidget",
+    "marka": [],
+    "baslik": "Eklemli Tanuki Rakun Köpeği (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Japon folklorunun sevimli yaratığı tanuki; yuvarlak hatları ve tatlı yüzüyle eklemli bir masa oyuncağı.\n- Masa başında stres atmak, elde oynamak, koleksiyon ya da hediye olarak ideal.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz uzunluğu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir. Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dflexi-tanuki-raccoon-dog-mark-print-in-place-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dflexi-tanuki-raccoon-dog-mark-print-in-place-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dflexi-tanuki-raccoon-dog-mark-print-in-place-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dflexi-tanuki-raccoon-dog-mark-print-in-place-4.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri",
+        "Diğer"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0,
+        "Diğer": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Boy"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "eklemli-tombul-kedi",
+    "kategori": "Fidget",
+    "marka": [],
+    "baslik": "Eklemli Tombul Kedi (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Tombul gövdesiyle dikkat çeken sevimli bir kedi. Elinize aldığınızda sarkar ve esner.\n- Masa başında stres atmak, elde oynamak, koleksiyon ya da hediye olarak ideal.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz uzunluğu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir. Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dflexi-chonky-cat-set-print-in-place-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dflexi-chonky-cat-set-print-in-place-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dflexi-chonky-cat-set-print-in-place-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri",
+        "Diğer"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0,
+        "Diğer": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Boy"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "eklemli-kaplan-kopekbaligi-seti",
+    "kategori": "Fidget",
+    "marka": [],
+    "baslik": "Eklemli Kaplan Köpekbalığı Seti (6-25 cm Boyut Seçenekli)",
+    "aciklama": "Yeni tip gövdesi ve çizgili sırt deseniyle ayrıntılı bir kaplan köpekbalığı. Gövdesi dalgalanır ve her yöne esner.\n- Masa başında stres atmak, elde oynamak, koleksiyon ya da hediye olarak ideal.\n- Boyut seçenekli: 6 ile 25 cm arasında dilediğiniz uzunluğu kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Renk seçenekleri: Siyah, Beyaz ve Gri; görsel örnek amaçlıdır, ürün seçtiğiniz tek renkte üretilir. Özel üretim, sipariş üzerine hazırlanır.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dflexi-tiger-shark-new-type-and-mini-set-print-in-place-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dflexi-tiger-shark-new-type-and-mini-set-print-in-place-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dflexi-tiger-shark-new-type-and-mini-set-print-in-place-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dflexi-tiger-shark-new-type-and-mini-set-print-in-place-4.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri",
+        "Diğer"
+      ],
+      "renkGorselIndeks": {
+        "Siyah": 0,
+        "Beyaz": 0,
+        "Gri": 0,
+        "Diğer": 0
+      },
+      "gorselOrnek": true,
+      "boyutMm": {
+        "min": 60,
+        "max": 250,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Boy"
+      },
+      "fiyatModu": "dogrusal",
+      "fiyatCapalari": [
+        [
+          60,
+          600
+        ],
+        [
+          250,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
     "id": "eklemli-uzun-tuylu-kedi",
     "kategori": "Fidget",
     "marka": [],
