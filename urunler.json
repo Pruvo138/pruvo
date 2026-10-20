@@ -1,5 +1,662 @@
 [
   {
+    "id": "jeep-wrangler-jk-buz-cozme-yonlendirici",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler JK Buz Çözme Yönlendirici",
+    "aciklama": "2007-2010 Jeep Wrangler JK'da ön cam buz çözme ızgarasının kısa kaldığı noktaya takılan yönlendiricidir.\nSıcak havayı camın kenarlarına doğru yönlendirerek buğu ve buzun kenarlarda da çözülmesine yardımcı olur.\nKüçük ve tek parçadır, ızgaraya takılarak kullanılır.\nYaklaşık dış ölçüler: 57 × 34 × 32 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th184101-1.jpg",
+      "https://media.pruvo3d.com/urunler/th184101-2.jpg",
+      "https://media.pruvo3d.com/urunler/th184101-3.jpg",
+      "https://media.pruvo3d.com/urunler/th184101-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "jvdillon"
+    }
+  },
+  {
+    "id": "jeep-wrangler-jk-a-direk-ram-baglanti-pimi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler JK A Direk RAM Bağlantı Pimi",
+    "aciklama": "Jeep Wrangler JK'nın A direğine vidalanan, RAM tipi tutucu kolu için top uçlu bağlantı pimidir.\nTelefon veya cihaz tutucusunu A direğine asmak için tasarlanmıştır; 5/16 inç uzun alyan başlı vida ile sabitlenir.\nYaklaşık dış ölçüler: 86 × 26 × 26 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2349301-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2349301-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "ToughToys"
+    }
+  },
+  {
+    "id": "jeep-wrangler-klima-kontrol-dugmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler Klima Kontrol Düğmesi",
+    "aciklama": "2006 Rubicon klima kontrol düğmeleri örnek alınarak çizilmiş yedek düğmedir.\nKırılan ya da kaybolan klima düğmesinin yerine geçer; iç oyuklu ve oyuksuz iki sürümü vardır.\nYaklaşık dış ölçüler: 38 × 30 × 24 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th615535-1.jpg",
+      "https://media.pruvo3d.com/urunler/th615535-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Ubergeekking"
+    }
+  },
+  {
+    "id": "jeep-bardak-adaptoru-telefon-cepli",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep"
+      }
+    ],
+    "baslik": "Jeep Bardak Adaptörü (Telefon Cepli)",
+    "aciklama": "Standart araç bardaklığına oturan, büyük içecekleri ve büyük ekranlı telefonları bir arada taşıyan adaptördür.\nGövdedeki delikler içeceğin havalanmasını sağlar; yan tarafta iki büyük telefona yetecek genişlikte cep bulunur.\nÜçüncü sürümde içecek hacmi artırılmış, yeniden çizilmiştir.\nYaklaşık dış ölçüler: 138 × 120 × 109 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th938134-1.jpg",
+      "https://media.pruvo3d.com/urunler/th938134-2.jpg",
+      "https://media.pruvo3d.com/urunler/th938134-3.jpg",
+      "https://media.pruvo3d.com/urunler/th938134-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "HarlemSquirrel"
+    }
+  },
+  {
+    "id": "jeep-wrangler-jk-on-izgara-ic-parcalari",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler JK Ön Izgara İç Parçaları",
+    "aciklama": "Jeep Wrangler JK'nın yedi dilimli ön ızgarasının aralarına geçen dekoratif ve havalandırmalı iç parçalar setidir.\nSol ve sağ parçalar ikişer adet, orta parça tek adet kullanılır; tasarım dosyası da paylaşılmıştır.\nKaynakta üç gün boyunca güçlü rüzgârda ve saatte 70 milin üzerindeki otoyol hızında denendiği, yerinde kaldığı belirtilmiştir.\nYaklaşık dış ölçüler: 278 × 60 × 4 mm.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2397907-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2397907-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Beanokazi"
+    }
+  },
+  {
+    "id": "jeep-wrangler-jl-kapi-askisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler JL Kapı Askısı",
+    "aciklama": "Sökülen JL kapılarını garaj duvarına asmaya yarayan askı takımıdır.\nJL kasa kapıları için tasarlanmıştır; farklı kuşak ya da ek donanımlı ağır kapılar için taşıma kapasitesi denenmemiştir.\nYaklaşık dış ölçüler: 203 × 156 × 112 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4586497-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4586497-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "ntschaub"
+    }
+  },
+  {
+    "id": "jeep-cherokee-gunesclik-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Cherokee"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Cherokee"
+      }
+    ],
+    "baslik": "Jeep Cherokee Güneşlik Klipsi",
+    "aciklama": "Eski Jeep Cherokee ve Grand Cherokee güneşliklerinde kırılan tutma klipsinin yerine geçen yedek parçadır.\nV96978 numaralı klipsin aslına yakın ölçülerle yeniden çizilmiş hâlidir.\nYaklaşık dış ölçüler: 36 × 33 × 27 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th114520-1.jpg",
+      "https://media.pruvo3d.com/urunler/th114520-2.jpg",
+      "https://media.pruvo3d.com/urunler/th114520-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "JoshuaSkelton"
+    }
+  },
+  {
+    "id": "jeep-wrangler-tj-orta-havalandirma",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler TJ Orta Havalandırma Izgarası",
+    "aciklama": "Jeep Wrangler TJ gösterge panelinin ortasındaki havalandırma bölümü için çizilmiş çok parçalı havalandırma setidir.\nKaynakta tüm TJ kasalara uyması hedeflenmiştir; geliştirme aşamasında paylaşılmış bir tasarımdır, takmadan önce ölçü kontrolü önerilir.\nYaklaşık dış ölçüler: 106 × 53 × 42 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2523126-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2523126-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2523126-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2523126-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "jpcormier"
+    }
+  },
+  {
+    "id": "jeep-wrangler-jku-orta-konsol-telefon-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler JKU Orta Konsol Telefon Tutucu",
+    "aciklama": "Jeep Wrangler JKU gösterge paneli üstüne oturan, kılıflı bir telefonu dik tutan ve kablosuz şarj cihazına yer bırakan tutucudur.\nSamsung Galaxy S7 ve benzer ebatlı telefonlar için ölçülmüştür.\nYaklaşık dış ölçüler: 160 × 80 × 22 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2769593-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2769593-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2769593-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2769593-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "chitwoob"
+    }
+  },
+  {
+    "id": "jeep-wrangler-jk-sis-fari-izgarasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler JK Sis Farı Izgarası",
+    "aciklama": "Jeep Wrangler JK sis farının önüne geçen yuvarlak koruma ve görünüm ızgarasıdır.\nKaynakta fiziksel bir koruma sağlamadığı, görünüm amaçlı olduğu belirtilmiştir.\nYaklaşık dış ölçüler: 92 × 88 × 16 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th187032-1.jpg",
+      "https://media.pruvo3d.com/urunler/th187032-2.jpg",
+      "https://media.pruvo3d.com/urunler/th187032-3.jpg",
+      "https://media.pruvo3d.com/urunler/th187032-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Summer_ride"
+    }
+  },
+  {
+    "id": "jeep-wrangler-stop-lambasi-kapagi-tj-yj-cj",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler Stop Lambası Kapağı (TJ/YJ/CJ)",
+    "aciklama": "TJ, YJ ve CJ kasalarda 91302 numaralı Grote stop lambasına uyan, ön görünümü Jeep silüeti şeklinde kesilmiş kapaktır.\nLambanın ışığı silüetin açık bölümlerinden görünür.\nYaklaşık dış ölçüler: 167 × 143 × 5 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th639300-1.jpg",
+      "https://media.pruvo3d.com/urunler/th639300-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "motorheadv10"
+    }
+  },
+  {
+    "id": "jeep-wrangler-yj-telsiz-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler YJ Telsiz Tutucu",
+    "aciklama": "1995 Jeep Wrangler YJ gösterge paneline takılan telefon tutucusunun içine kayarak oturan telsiz yuvasıdır.\nBaofeng UV-5R el telsizi için tasarlanmıştır; telsizin kemer klipsi yuvaya geçer.\nYaklaşık dış ölçüler: 67 × 40 × 23 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1886871-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1886871-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1886871-3.jpg",
+      "https://media.pruvo3d.com/urunler/th1886871-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "brotherjethro"
+    }
+  },
+  {
+    "id": "jeep-wrangler-yj-kapi-kilidi-mandal-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler YJ Kapı Kilidi Mandal Klipsi",
+    "aciklama": "Kapı kilit çubuklarını yerinde tutan ve soğukta ya da yaşlanmayla kırılabilen klipsin yerine geçen yedek parçadır.\nYJ kapısına tam oturduğu belirtilmiştir; orijinal klips Mopar 4658677 numarasıyla satılmaktadır.\nYaklaşık dış ölçüler: 24 × 18 × 10 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1086158-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1086158-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1086158-3.jpg",
+      "https://media.pruvo3d.com/urunler/th1086158-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "jed_campbell"
+    }
+  },
+  {
+    "id": "jeep-wrangler-emniyet-kemeri-kanali",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler Emniyet Kemeri Kanalı",
+    "aciklama": "Kapıları sökülmüş Wrangler'de rüzgârda çırpınan emniyet kemerini bir kanal içinde tutarak çırpınmayı azaltan parçadır.\nKemer kanal içinde serbestçe hareket eder; 2016 model için çizilmiştir, diğer yıllara uyması beklenir ancak denenmemiştir.\nYaklaşık dış ölçüler: 66 × 30 × 12 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3857068-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3857068-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3857068-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "MyopicChihuahua"
+    }
+  },
+  {
+    "id": "jeep-wrangler-bardak-tutucu-tj-jk",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler Bardak Tutucu (TJ/JK)",
+    "aciklama": "TJ ve JK Wrangler'a takılan, büyük boy içecekleri tutan bardaklıktır.\nGömme alandaki yuvaya uyan bir cıvata ve somunla sabitlenir; tasarım dosyası, çıkıntı üstte olacak şekilde döndürülerek kullanılır.\nYaklaşık dış ölçüler: 121 × 106 × 96 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3469980-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3469980-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3469980-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3469980-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "garyp53"
+    }
+  },
+  {
+    "id": "jeep-wrangler-jk-roll-bar-esya-kancasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler JK Roll Bar Eşya Kancası",
+    "aciklama": "Jeep Wrangler JK'nın yastıklı arka yatay roll bar çubuğuna takılan S biçimli eşya kancasıdır.\nBungee yerine kolayca takılıp çıkarılan bir kanca olarak tasarlanmıştır; eşyaların asılıp indirilmesini kolaylaştırır.\nYaklaşık dış ölçüler: 160 × 130 × 40 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2426951-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2426951-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2426951-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2426951-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "TyCreek"
+    }
+  },
+  {
+    "id": "jeep-wrangler-klima-izgarasi-teneke-sise-sogutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler Klima Izgarası Teneke/Şişe Tutucu",
+    "aciklama": "Klima havalandırma ızgarasına takılan, kutu ya da şişeyi soğuk hava akımında tutan tutucudur.\nİki sürümü vardır: şişeyi göstergelerden uzak tutan eğimli ve daha ince hatlı olan; her ikisi de 2001 Wrangler'da denenmiştir.\nYaklaşık dış ölçüler: 96 × 77 × 77 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th921014-1.jpg",
+      "https://media.pruvo3d.com/urunler/th921014-2.jpg",
+      "https://media.pruvo3d.com/urunler/th921014-3.jpg",
+      "https://media.pruvo3d.com/urunler/th921014-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "ninora"
+    }
+  },
+  {
+    "id": "jeep-wrangler-tj-gunesclik-montaj-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler TJ Güneşlik Montaj Parçası",
+    "aciklama": "Çatı takılırken kırılan TJ güneşlik montaj braketinin yerine geçen parçadır.\nOrijinal yay ve tutma rondelası yeniden kullanılır; rondelanın yerine takılması için hafifçe bükülmesi gerekebilir.\nYaklaşık dış ölçüler: 47 × 30 × 26 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1661752-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1661752-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1661752-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Mutiny"
+    }
+  },
+  {
+    "id": "jeep-wrangler-kaput-destek-cubugu-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler Kaput Destek Çubuğu Klipsi",
+    "aciklama": "Kaput açık tutma çubuğunu kaputun iç yüzüne bağlayan küçük klipstir.\n2006 Wrangler LJ üzerinde denenmiştir; TJ'lere uyması beklenir, yeni kasalara uyumu kesin değildir.\nYaklaşık dış ölçüler: 23 × 17 × 14 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1913613-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1913613-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "h3lpless"
+    }
+  },
+  {
+    "id": "jeep-wrangler-tj-5-25-inc-torpido-hoparlor-podu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler TJ 5,25 İnç Torpido Hoparlör Podu",
+    "aciklama": "Jeep Wrangler TJ torpidosuna oturan, 5,25 inç orta frekans hoparlörler için pod setidir.\nSes sistemine daha dolgun orta frekans kazandırmak için çizilmiştir; ses sönümleyici malzeme eklenmesi önerilmiştir.\nYaklaşık dış ölçüler: 150 × 145 × 55 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2947831-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2947831-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2947831-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Chase_C"
+    }
+  },
+  {
+    "id": "jeep-cherokee-xj-orta-konsol-kilidi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Cherokee"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Cherokee"
+      }
+    ],
+    "baslik": "Jeep Cherokee XJ Orta Konsol Kilidi (1997-2001)",
+    "aciklama": "97-01 Cherokee XJ orta konsol kapağının sık kırılan fabrika kilidinin yerine geçen yedek kilittir.\nEsnek menteşe kısımları ince olduğundan aşınabilir; çizim, elde kalan orijinal parçalar ölçü alınarak yapılmıştır.\nYaklaşık dış ölçüler: 84 × 72 × 26 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2910834-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2910834-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2910834-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2910834-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "andyjimb"
+    }
+  },
+  {
+    "id": "jeep-wrangler-jk-garmin-gps-tutucu-hardtop",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler JK Garmin GPS Tutucu (Hardtop Mandalı)",
+    "aciklama": "Wrangler JK hardtop mandalına klipsle oturan, GPS cihazını göz önünde ama kullanışlı tutan top uçlu tutucudur.\nİki parça hâlinde tasarlanmıştır; parçalar yapıştırılarak birleştirilir ve yerine oturduğunda belirgin bir tık sesi duyulur.\nYaklaşık dış ölçüler: 28 × 18 × 17 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2308688-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2308688-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2308688-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2308688-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "TyCreek"
+    }
+  },
+  {
+    "id": "jeep-wrangler-sokulen-kapi-saklama-askisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler Sökülen Kapı Saklama Askısı",
+    "aciklama": "Sökülen Wrangler kapılarını duvarda saklamak için askıdır.\nPencere çerçevesinden asan çözümlerin aksine cam contalarına zarar vermez; pahalı metal askı braketlerine alternatif olarak çizilmiştir.\nYaklaşık dış ölçüler: 130 × 90 × 54 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2566498-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2566498-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2566498-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2566498-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Mframe"
+    }
+  },
+  {
+    "id": "jeep-wrangler-yj-telefon-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler YJ Telefon Tutucu",
+    "aciklama": "Navigasyon için telefonu 1995 Wrangler YJ'nin gösterge paneline ve buz çözme açıklığına kavrayarak tutan tutucudur.\nEk bağlantı elemanı gerektirmez, kolayca takılır ve sökülür; iki parça yapıştırılarak birleştirilir (iPhone 6 için ölçülmüştür).\nYaklaşık dış ölçüler: 74 × 70 × 14 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1148280-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1148280-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1148280-3.jpg",
+      "https://media.pruvo3d.com/urunler/th1148280-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "brotherjethro"
+    }
+  },
+  {
+    "id": "jeep-wrangler-tj-kaput-cubugu-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jeep",
+      "Wrangler"
+    ],
+    "uyum": [
+      {
+        "marka": "Jeep",
+        "model": "Wrangler"
+      }
+    ],
+    "baslik": "Jeep Wrangler TJ Kaput Çubuğu Tutucusu",
+    "aciklama": "TJ Wrangler'da kaput destek çubuğunu kaputa bağlayan klips tutucudur.\nSomun için boşluklu bir sürümü de vardır; bu sürüm cıvatayı daha kolay yerleştirmeye yarar.\nYaklaşık dış ölçüler: 32 × 18 × 18 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2852748-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2852748-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2852748-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2852748-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "mgvpalma"
+    }
+  },
+  {
     "id": "mini-eklemli-kaplan-kopekbaligi",
     "kategori": "Fidget",
     "marka": [],
