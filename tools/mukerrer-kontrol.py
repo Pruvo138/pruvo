@@ -89,8 +89,19 @@ def _kaynak_linki(kayit):
     return link.strip() if isinstance(link, str) else ""
 
 
+def _kaynak_haritasi_olculemedi():
+    """🔴 FAIL-CLOSED (21 Eki 2026, MaCiT 03:15 + BaBa 04:4x): kaynak haritasi yok/bozukken
+    `_tara` KAYNAK eksenini SESSIZCE atliyor ve arac rc=0 "mukerrer yok" basiyordu — ayni
+    kaynak linkli iki urun kapidan geciyordu. Olculemeyen eksen yesil sayilmaz: rc=2.
+    Kapsam: yalniz urun dosyasi taranan yollar (pre-commit'in stage-disi on-elemesi ONCE kosar).
+    Nobetci: tools/mukerrer-kaynak-failclosed-test.py (4 vaka + 1 mutant)."""
+    print("MUKERRER KAYNAK HARITASI OKUNAMADI: %s (yok ya da bozuk) — kaynak ekseni "
+          "OLCULEMEDI, fail-closed rc=2" % KAYNAKLAR, file=sys.stderr)
+    return 2
+
+
 def _kaynaklari_oku(path):
-    """Kaynak haritasi yoksa veya bozuksa sessizce None dondurur."""
+    """Kaynak haritasi yoksa veya bozuksa None dondurur (cagiran fail-closed rc=2 verir)."""
     try:
         with open(path, encoding="utf-8") as f:
             kaynaklar = json.load(f)
@@ -408,6 +419,8 @@ def _pre_commit_tarama():
         return 0
 
     kaynaklar = _kaynaklari_oku(KAYNAKLAR)
+    if kaynaklar is None:
+        return _kaynak_haritasi_olculemedi()
     istisnalar = _istisnalari_oku(istisna_yolu())
     baslik_istisnalari = _baslik_istisnalari_oku(istisna_yolu())
     urunler, gerekce = _commit_katalogu(durum)
@@ -473,6 +486,8 @@ def main():
     with open(URUNLER, encoding="utf-8") as f:
         urunler = json.load(f)
     kaynaklar = _kaynaklari_oku(KAYNAKLAR)
+    if kaynaklar is None:
+        return _kaynak_haritasi_olculemedi()
     istisnalar = _istisnalari_oku(istisna_yolu())
     baslik_istisnalari = _baslik_istisnalari_oku(istisna_yolu())
     bulgular = _tara(urunler, kaynaklar, istisnalar, baslik_istisnalari)
