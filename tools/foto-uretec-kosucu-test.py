@@ -7,7 +7,7 @@ dizin), uretec yerine SAHTE komut. Gercek D1/R2/ev yolu YOK; her sey tempfile al
 EVREN (K3d, 9 Eki 2026; manifest foto-uretim-veri.js TEK KAYNAK): plaket · figur (motor M, saglayici; bu
 kosucunun ISI DEGIL) · bust (D, rolyef_uret) · yapboz (D, yapboz_uret). Silinen 15 tur (litofan, isimlik, qr, logo, ...) testte TUR olarak YOK; tarayici onizleyicisi YOK.
 
-Vakalar (CEKIRDEK tur = bust; uretec sahte §1 "sozlesme" CLI'ina yonlenir): T1 BOS rc=1 · T2 1 is -> ISLEDI +
+Vakalar (CEKIRDEK tur = bust; uretec sahte §1 "sozlesme" CLI'ina yonlenir): T1 BOS rc=0 · T2 1 is -> ISLEDI +
 hazir + 3 dosya R2'de · T3 rc 2 -> elle · T4 ariza x3 -> elle · T5 sizdirmaz:false -> elle, R2 yazimi 0 ·
 T6 CAS kaybi -> yazim yok · T7 D1/R2 erisim yok -> OLCULEMEDI rc=4 + satir DEGISMEDI · T8 kilit -> KILITLI
 rc=3 · T9 KURU -> yazim 0 · T10 onizleme kuyrugu -> onizleme-hazir · T11 log tavani · T12 KOPYA KOLU
@@ -29,6 +29,9 @@ boslugu · T36 palet disi bolge -> uretec KOSMAZ · T17 renk_sayisi 3MF'ten OLCU
 kenar geometriden · T21 yapboz araligi · T22/T23 ORNEK kolu.
 Manifest tutarliligi (V1-V9, node + kosucu modulu): 1 kopru satiri, metinler AYNEN, renk adlari RENK_HEX'te,
 tarayici onizleyicili tur 0, form alanlari uretec semasina eslenir, red metni, parametre dogrulamasi.
+KUYRUK YOKLAMA kolu (22 Eki, `--kuyruk-yokla`): KY1 BOS rc=10 + `HAL=BOS rc=0` + yazim 0 ·
+KY2 is var rc=0 + `HAL=KUYRUKTA is=1` + satir degismiyor · KY3 D1 kapali rc=4 ·
+KY4 yoklama sonrasi asil kosum isi bitirir.
 `--gercek [--json <yol>]`: CI DISI — 1 GERCEK uretec (yapboz) x min/orta/maks = 3 koşum (sahte D1/R2).
 """
 import fcntl
@@ -606,7 +609,7 @@ def vakalar(kosucu):
 
     def t1(o):
         rc, son, _ = o.kos("--uygula")
-        return rc == 1 and son == "HAL=BOS rc=1" and o.yazimlar() == 1, "%s yazim=%d" % (son, o.yazimlar())
+        return rc == 0 and son == "HAL=BOS rc=0" and o.yazimlar() == 1, "%s yazim=%d" % (son, o.yazimlar())
 
     def t2(o):
         o.siparis_is()
@@ -724,7 +727,7 @@ def vakalar(kosucu):
         rc, son, _ = o.kos("--log", log)
         b1 = os.path.getsize(log)
         b2 = os.path.getsize(log + ".1")
-        return (son == "HAL=BOS rc=1" and b1 < 1024 and b2 == 6 * 1024 * 1024 and
+        return (son == "HAL=BOS rc=0" and b1 < 1024 and b2 == 6 * 1024 * 1024 and
                 not os.path.exists(log + ".2")), "log=%d log.1=%d" % (b1, b2)
 
     # ---- tekin-ortak koprusu (yapboz): uretece giden JSON BIREBIR beklenen.
@@ -1098,7 +1101,7 @@ def vakalar(kosucu):
             t = datetime.strptime(d["deger"], "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc).timestamp()
         except (TypeError, ValueError):
             t = None
-        return (son == "HAL=BOS rc=1" and d is not None and t is not None and once - 2 <= t <= time.time() + 2
+        return (son == "HAL=BOS rc=0" and d is not None and t is not None and once - 2 <= t <= time.time() + 2
                 and abs(d["guncel"] / 1000.0 - t) < 2), "%s damga=%s" % (son, d)
 
     def k1b(o):
@@ -1109,12 +1112,41 @@ def vakalar(kosucu):
         rc, son, _ = o.kos()
         o.siparis_is()
         rc2, son2, _ = o.kos()
-        return (son == "HAL=BOS rc=1" and son2 == "HAL=PLAN is=1 rc=0" and damga(o) is None and
+        return (son == "HAL=BOS rc=0" and son2 == "HAL=PLAN is=1 rc=0" and damga(o) is None and
                 o.yazimlar() == 0), "%s | %s damga=%s" % (son, son2, damga(o))
+
+    # ---- KUYRUK YOKLAMA (22 Eki): sarmalayici TAM agaci acmadan once `--kuyruk-yokla` kosar.
+    # Sozlesme: BOS -> rc=10 + `HAL=BOS rc=0`; is var -> rc=0; D1 kapali -> rc=4 (is KUYRUKTA kalir).
+    def ky1(o):
+        rc, son, _ = o.kos("--uygula", "--kuyruk-yokla")
+        return (rc == 10 and son == "HAL=BOS rc=0" and o.yazimlar() == 0 and damga(o) is None,
+                "rc=%d %s yazim=%d" % (rc, son, o.yazimlar()))
+
+    def ky2(o):
+        o.siparis_is()
+        rc, son, _ = o.kos("--uygula", "--kuyruk-yokla")
+        u = o.uretim()
+        return (rc == 0 and son == "HAL=KUYRUKTA is=1 rc=0" and o.yazimlar() == 0
+                and u["asama"] == "uretec-bekliyor", "rc=%d %s %s" % (rc, son, u))
+
+    def ky3(o):
+        rc, son, _ = o.kos("--uygula", "--kuyruk-yokla", FAKE_D1_KAPALI="1")
+        return (rc == 4 and son.startswith("HAL=OLCULEMEDI sebep=d1") and o.yazimlar() == 0,
+                "rc=%d %s" % (rc, son))
+
+    def ky4(o):
+        o.siparis_is()
+        o.kos("--uygula", "--kuyruk-yokla")
+        rc, son, _ = o.kos("--uygula")
+        return rc == 0 and son.startswith("HAL=ISLEDI uretildi=1"), "%s" % (son,)
 
     vaka("K1", k1)
     vaka("K1b", k1b)
     vaka("K2", k2)
+    vaka("KY1", ky1)
+    vaka("KY2", ky2)
+    vaka("KY3", ky3)
+    vaka("KY4", ky4)
     vaka("RO3", renk_onarim(BOYA3, 3))   # boya durumlari {1}, {1,2}, {3} -> 3 renk
     vaka("RO4", renk_onarim(BOYA4, 4))   # + {4} -> 4 renk
 
@@ -1253,7 +1285,7 @@ def vakalar(kosucu):
         rc, son, c = o.kos("--uygula", **o.renk_env())
         o.onizleme_is()
         rc2, son2, c2 = o.kos("--uygula", **o.renk_env())
-        return (rc == 1 and son == "HAL=BOS rc=1" and rc2 == 0 and son2.startswith("HAL=ISLEDI uretildi=1")), \
+        return (rc == 0 and son == "HAL=BOS rc=0" and rc2 == 0 and son2.startswith("HAL=ISLEDI uretildi=1")), \
             "%s / %s" % (son, son2)
 
     def rr5(o):
