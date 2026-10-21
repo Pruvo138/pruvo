@@ -201,7 +201,7 @@ def vaka_b(agir):
 
 
 def vaka_c(agir):
-    """komut rc'si aynen doner + 3 slot birakilir."""
+    """komut rc'si aynen doner + SINIR slot birakilir."""
     d = Dunya(agir)
     try:
         rcler = []
@@ -242,8 +242,8 @@ def vaka_d(agir):
             return False, "agir is kosarken yeni isci slot aldi (dolu=%d)" % d.dolu()
         if not d.satirlar("HAL=BEKLIYOR", " etiket=i2 ", " sebep=slot "):
             return False, "yeni isci BEKLIYOR sebep=slot yazmadi (log: %r)" % d.log_metni()[-300:]
-        if d.dolu() != 3:
-            return False, "agir is kosarken dolu=%d (beklenen 3)" % d.dolu()
+        if d.dolu() != SINIR:
+            return False, "agir is kosarken dolu=%d (beklenen %d)" % (d.dolu(), SINIR)
         t0 = time.monotonic()
         os.kill(p.pid, signal.SIGTERM)
         p.wait(timeout=5)
