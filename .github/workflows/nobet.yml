@@ -414,7 +414,26 @@ jobs:
   # beyan edilmek ZORUNDADIR (joker `*` KABUL EDILMEZ). Beyansiz bir kapi
   # cagrisi bu job'da bulunursa Bolum D KIRMIZI yanar -> bir A kapisini
   # sessizce buraya kaydirmak MUMKUN DEGILDIR.
-  serit-b:
+  # ═══ SERIT B DORT PARALEL PARCA + TOPLAYICI (21 Eki 2026, cip kral-serit-b-matrix) ═══
+  # OLCULDU (kosum 39619854346, 3b199031): tek `serit-b` isi 256 SIRALI adimda
+  # 8402 sn kosu + 75 sn kurulum = 141 dk suruyordu; merge yordami her dal icin SERIT B
+  # yesili istedigi icin her merge 2 saatten fazla bekliyordu. KAPSAM AYNEN DURUR: ayni
+  # 252 kosu adimi, ayni sirayla, `serit-b-1..4` adli dort ardisik dilime bolundu
+  # (sinirlar olculen adim surelerinden: 2149 · 2276 · 2042 · 1935 sn — en agir tek adim
+  # "Marka model cipi kapisi mutasyon bataryasi" 2063 sn ile `serit-b-2`de).
+  # 🔴 SIRA BAGIMLILIGI DILIM ICINDE KALIR: kanonik yerel duzlem (sembolik bag + HOME) ->
+  # mimar bataryalari ve kanca-kur -> kanca nobeti ikilileri `serit-b-4` icindedir; kanca
+  # ikilisi hala JOB'UN SONUNDADIR. Dilim siniri yalniz `if: ${{ !cancelled() }}` tasiyan
+  # bagimsiz adimlar arasina konur.
+  # 🔴 KURULUM HER DILIMDE BIREBIR AYNIDIR (checkout fetch-depth: 0 · python 3.12 ·
+  # boto3+pyyaml · node 20) — ortam farki sessiz davranis farki uretirdi.
+  # 🔴 NEDEN `strategy.matrix` DEGIL: asagidaki bataryalar notuyla ayni gerekce —
+  # tools/is-akisi-kapisi.py :: kapi_cagrilari kapi cagrilarini `run:` SATIRLARINDAN kesfeder;
+  # matrix degiskeni arkasina giren cagri kapinin gozunden kaybolurdu.
+  # 🔴 AD `serit-b` KORUNUR: ~60 arac/belge bu adi okur; ad toplayici iste durur ve dort
+  # dilimin HEPSI `success` degilse KIRMIZI yanar (skipped/cancelled da KIRMIZI). Kabul +
+  # mutant: tools/serit-b-toplayici-test.py.
+  serit-b-1:
     runs-on: ubuntu-latest
     steps:
       # fetch-depth: 0 — diriltme kapisinin oz-nobetcisi ve ci-kapsam mutant
@@ -431,6 +450,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
+
+      # SERIT B TOPLAYICI (21 Eki 2026, cip kral-serit-b-matrix): `serit-b` adi toplayici
+      # iste durur; dilim kumesi == toplayici `needs`, `if: always()`, her
+      # `needs.*.result` == success, ortak kurulum birebir, sira bagimli ikililer ayni
+      # dilimde. 5 iddia + 6 mutant (bellekteki kopyada; canli dosyaya yazmaz).
+      - name: "SERIT B toplayici kabul testi (5 iddia + 6 mutant)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/serit-b-toplayici-test.py
 
       # K184 sihirbazi + `/talep` ucu 27 Agu 2026'da KOKUNDEN KALDIRILDI (Okan karari):
       # `talep.mjs` ve `talep-hatti-test.py` adimlari kaldirilan kodla BIRLIKTE dustu.
@@ -1833,6 +1860,24 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/lcp-sebep-turetimi-test.py
 
+  serit-b-2:
+    runs-on: ubuntu-latest
+    steps:
+      # fetch-depth: 0 — diriltme kapisinin oz-nobetcisi ve ci-kapsam mutant
+      # ureticileri git gecmisi/gercek depo dosyalari okur.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Python bagimliliklari (boto3 - R2 testleri icin; pyyaml - is akisi kapisi)
+        if: ${{ !cancelled() }}
+        run: pip install boto3 pyyaml
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
       # KAPININ KENDI NOBETCISI — ayri adim olmak ZORUNDA: yukaridaki kosum kapinin
       # KIRMIZI yolunu hic denemez (agac temizse daima yesil). Bu adim hermetik bir depo
       # kopyasinda 4 sayfayi tek tek bayatlatir (4/4 KIRMIZI bekler), kapsam daraltmayi
@@ -1901,6 +1946,24 @@ jobs:
       - name: Marka model cipi kapisi mutasyon bataryasi (5 oldurucu + 1 kontrol)
         if: ${{ !cancelled() }}
         run: python3 tools/marka-cip-mutasyon.py
+
+  serit-b-3:
+    runs-on: ubuntu-latest
+    steps:
+      # fetch-depth: 0 — diriltme kapisinin oz-nobetcisi ve ci-kapsam mutant
+      # ureticileri git gecmisi/gercek depo dosyalari okur.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Python bagimliliklari (boto3 - R2 testleri icin; pyyaml - is akisi kapisi)
+        if: ${{ !cancelled() }}
+        run: pip install boto3 pyyaml
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
 
       # MARKA SORGUSU CANLI JS YUKLEMI — mutasyon bataryasi (4 oldurucu + 1 kontrol).
       # Serit A'daki `marka-sorgusu-js-test.js`'in CANLILIGINI olcer: mutant index.html
@@ -2689,6 +2752,24 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/iletisim-baglam-mutasyon.py
 
+  serit-b-4:
+    runs-on: ubuntu-latest
+    steps:
+      # fetch-depth: 0 — diriltme kapisinin oz-nobetcisi ve ci-kapsam mutant
+      # ureticileri git gecmisi/gercek depo dosyalari okur.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Python bagimliliklari (boto3 - R2 testleri icin; pyyaml - is akisi kapisi)
+        if: ${{ !cancelled() }}
+        run: pip install boto3 pyyaml
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
       - name: "Gramer kisaltma kapisi mutasyon bataryasi"
         if: ${{ !cancelled() }}
         run: python3 tools/gramer-kisaltma-mutasyon.py
@@ -3330,6 +3411,24 @@ jobs:
       # ayni fail-closed cikis kodu — yalnizca AYRI JOB'DA ve PARALEL kosuyorlar.
       # Serit degismedi (nobet.yml'in TUM joblari serit B'dir) ve dordunun de
       # SERIT_B beyani tools/is-akisi-kapisi.py'de yeni job id'siyle DURUYOR.
+
+  # ═══ TOPLAYICI `serit-b` — dort dilimin TEK hukmu (21 Eki 2026) ═══
+  # `if: always()`: bir dilim dusse/atlansa/iptal edilse de toplayici KOSAR ve KIRMIZI
+  # yanar; `always()` olmasaydi GitHub toplayiciyi `skipped` yapardi ve `serit-b`
+  # adini okuyan arac "kirmizi yok" gorurdu (fail-open). Hukum `toJSON(needs)` uzerinden:
+  # dilim sayisi TAM 4 ve her `needs.*.result` == success. `needs` listesinden bir dilim
+  # cikarilirsa sayi 3'e duser -> KIRMIZI; statik ayna tools/serit-b-toplayici-test.py.
+  serit-b:
+    needs: [serit-b-1, serit-b-2, serit-b-3, serit-b-4]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: "SERIT B toplayici — dort dilimin hepsi success mi (skipped/cancelled KIRMIZI)"
+        env:
+          DILIM_SONUCLARI: ${{ toJSON(needs) }}
+        run: |
+          echo "$DILIM_SONUCLARI" | jq -r 'to_entries[] | "\(.key)=\(.value.result)"'
+          echo "$DILIM_SONUCLARI" | jq -e 'length == 4 and all(.[]; .result == "success")'
 
 
 

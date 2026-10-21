@@ -26,7 +26,8 @@ isareti durumunu olcer. Uc kusak var:
 
 KAPSAM (19 Agu 2026 GENISLETMESI — SERIT B onarimi, K178 sinifinin hijyen-a3
 tekrari olculdukten sonra): nobet.yml'in TUM alarm joblari taranir —
-`serit-b` + `hijyen-a2` + `hijyen-a3` + `hijyen-build` + `hijyen-a4`
+`serit-b-1..4` (21 Eki'den beri serit-b'nin adimlari bu dilimlerde; `serit-b` adi
+toplayici) + `hijyen-a2` + `hijyen-a3` + `hijyen-build` + `hijyen-a4`
 (TARANAN_JOBLAR). Onceki hal yalniz serit-b'ye bakiyordu; hijyen-a3'te
 Yayin-acligi kirmizisi Gramer adimini SKIP etti ve canli gramer kirmizisi
 CI'da MASKELI kaldi (kosum 32201776934'te olculdu) — kor bolge kapatildi.
@@ -77,10 +78,17 @@ NOBET_YML = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "..", ".github", "workflows", "nobet.yml"
 )
 
-SERIT_B_JOB_ADI = "serit-b"
+# 21 Eki 2026 (cip kral-serit-b-matrix): `serit-b` isinin adimlari dort paralel dilime
+# (`serit-b-1..4`) tasindi; `serit-b` adi artik TEK adimli TOPLAYICIDIR (`needs` + `if:
+# always()`, kabul: tools/serit-b-toplayici-test.py). Maskeleme sorusu adimlarin
+# YASADIGI dilimlerde sorulur; dosyada beliren her `serit-b-<n>` de taranir (yeni dilim
+# sessizce kapsam disi kalamaz).
+SERIT_B_DILIMLERI = ("serit-b-1", "serit-b-2", "serit-b-3", "serit-b-4")
+SERIT_B_DILIM_RE = re.compile(r"^serit-b-\d+$")
+SERIT_B_JOB_ADI = SERIT_B_DILIMLERI[0]
 # 19 Agu 2026 genislemesi: hijyen joblari da taranir (K178'in hijyen-a3 tekrari).
-TARANAN_JOBLAR = (SERIT_B_JOB_ADI, "hijyen-a2", "hijyen-a3", "hijyen-build",
-                  "hijyen-a4")
+TARANAN_JOBLAR = SERIT_B_DILIMLERI + ("hijyen-a2", "hijyen-a3", "hijyen-build",
+                                      "hijyen-a4")
 ALTYAPI_USES_ON_EK = ("actions/checkout", "actions/setup-")
 
 CIKIS_KIRMIZI_DAGILIM_BEKLENEN = "ADIM="
@@ -218,7 +226,9 @@ def maske_tara(veri):
     maskeleyen = []
     yutan = []
     eksik = []
-    for job_adi in TARANAN_JOBLAR:
+    ek_dilimler = tuple(sorted(k for k in joblar
+                               if SERIT_B_DILIM_RE.match(str(k)) and k not in TARANAN_JOBLAR))
+    for job_adi in TARANAN_JOBLAR + ek_dilimler:
         jb = joblar.get(job_adi)
         steps = jb.get("steps") if isinstance(jb, dict) else None
         if not steps:
@@ -260,7 +270,8 @@ def mutant_testleri_calistir():
         with open(kopya, "r", encoding="utf-8") as fh:
             metin = fh.read()
         sb_match = re.search(
-            r"^  serit-b:\s*\n(?:(?:    .*\n)|(?:    .*\n.*\n.*\n)){0,5000}",
+            r"^  " + re.escape(SERIT_B_JOB_ADI)
+            + r":\s*\n(?:(?:    .*\n)|(?:    .*\n.*\n.*\n)){0,5000}",
             metin, re.MULTILINE,
         )
         if sb_match:
@@ -313,7 +324,7 @@ def mutant_testleri_calistir():
                 veri = yaml.safe_load(fh)
 
             def m3_mutator(v):
-                v["jobs"]["serit-b"]["steps"] = []
+                v["jobs"][SERIT_B_JOB_ADI]["steps"] = []
 
             m3_mutator(veri)
             with open(kopya, "w", encoding="utf-8") as fh:
