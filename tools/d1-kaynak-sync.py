@@ -5,7 +5,7 @@
   python3 tools/d1-kaynak-sync.py --sema     # tabloyu kur (CREATE TABLE IF NOT EXISTS)
   python3 tools/d1-kaynak-sync.py --kuru     # yazmadan plani bas (yalniz SAYI)
   python3 tools/d1-kaynak-sync.py            # gercek senkron (diff-upsert)
-  python3 tools/d1-kaynak-sync.py --durum    # YEREL_LINK / D1_SATIR / EKSIK / FAZLA
+  python3 tools/d1-kaynak-sync.py --durum    # YEREL_LINK / D1_SATIR / EKSIK / FAZLA + YETIM sinifi
 
 NE ISE YARAR: yonetim panelinde (shop/src/yonet.js) her kalemin altinda "🔗 Üretici
 kaynağı" satiri cikar. Panel Okan'in KORUMALI ekranidir; bu satir orada yasar.
@@ -44,6 +44,9 @@ import sys
 
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 KAYNAKLAR = os.path.join(KOK, ".urun-kaynaklari.json")
+# YETIM SINIFLAMASI icin katalog (salt-okur): EKSIK bir linkin urunu katalogda yoksa
+# o eksik bir SILINMIS urunun eski kaydidir, kirmizi yakmaz.
+URUNLER = os.path.join(KOK, "urunler.json")
 TABLO = "urun_kaynak"
 
 # WRANGLER YOLU TEK KAYNAKTAN: d1-sync.py'nin wrangler sarmalayicisi yeniden kullanilir
@@ -203,18 +206,95 @@ def satirlari_sil(idler):
     return toplam
 
 
+def katalog_idleri(yol=None):
+    """Katalogdaki urun id kumesi; okunamaz/bicimsizse None (OLCULEMEDI).
+
+    FAIL-CLOSED: id'siz tek bir kayit bile kumeyi supheli yapar — o urunun eksik linki
+    yanlislikla SILINMIS sayilir ve gercek eksik gurultunun icinde yine gorunmez olurdu.
+    """
+    try:
+        with open(yol or URUNLER, encoding="utf-8") as f:
+            ham = json.load(f)
+    except (OSError, ValueError):
+        return None
+    if not isinstance(ham, list) or not ham:
+        return None
+    idler = set()
+    for urun in ham:
+        urun_id = urun.get("id") if isinstance(urun, dict) else None
+        if not isinstance(urun_id, str) or not urun_id.strip():
+            return None
+        idler.add(urun_id.strip())
+    return idler
+
+
+def yetim_sinifla(eksik_idler, katalog):
+    """EKSIK id'lerini {SILINMIS, GERCEK_EKSIK} olarak bol. SAF. katalog None -> None.
+
+      SILINMIS     : urun katalogda YOK — silinmis urunun gizli kayitta kalan eski linki
+                     YA DA kaydi yazilmis ama katalog commit'i henuz main'e girmemis urun
+                     (21 Eki olcumu: 20/20 boyleydi). Ikisi de panelde gorunmez; ikincisi
+                     katalog main'e girince kendiliginden GERCEK_EKSIK'e doner.
+      GERCEK_EKSIK : urun katalogda VAR ama linki D1'de yok/bayat — panelde eksik gorunur.
+    """
+    if katalog is None:
+        return None
+    sinif = {"SILINMIS": [], "GERCEK_EKSIK": []}
+    for urun_id in eksik_idler:
+        sinif["GERCEK_EKSIK" if urun_id in katalog else "SILINMIS"].append(urun_id)
+    return sinif
+
+
+def uzlasma(yerel, d1, katalog):
+    """Katalog <-> urun_kaynak tablo uzlastirmasi. SAF. Her katalog urunu TAM BIR kovaya:
+
+      TAM          : gizli kayitta linki var, D1'de AYNI link var.
+      GERCEK_EKSIK : gizli kayitta linki var, D1'de yok ya da bayat (YETIM ile ayni sayi).
+      LINKSIZ      : gizli kayitta kullanilabilir link yok (panel "kaynak kaydi yok" der).
+    KATALOG = TAM + GERCEK_EKSIK + LINKSIZ. D1 tarafi: D1_SATIR = KATALOGDA + KATALOG_DISI
+    (KATALOG_DISI = silinmis/henuz-main'de-olmayan urunun D1'de duran satiri).
+    """
+    u = {"TAM": 0, "GERCEK_EKSIK": 0, "LINKSIZ": 0}
+    for urun_id in katalog:
+        if urun_id not in yerel:
+            u["LINKSIZ"] += 1
+        elif d1.get(urun_id) == yerel[urun_id]:
+            u["TAM"] += 1
+        else:
+            u["GERCEK_EKSIK"] += 1
+    u["D1_KATALOGDA"] = sum(1 for k in d1 if k in katalog)
+    u["D1_KATALOG_DISI"] = len(d1) - u["D1_KATALOGDA"]
+    return u
+
+
 def durum():
     yerel = yerel_linkler()
     d1 = d1_linkler()
     eklenecek, degisen, silinecek = plan(yerel, d1)
+    eksik = eklenecek + degisen
     print("YEREL_LINK=%d" % len(yerel))
     print("D1_SATIR=%d" % len(d1))
-    print("EKSIK=%d" % (len(eklenecek) + len(degisen)))
+    print("EKSIK=%d" % len(eksik))
     print("FAZLA=%d" % len(silinecek))
     print("  ayrinti: D1'DE_YOK=%d BAYAT=%d" % (len(eklenecek), len(degisen)))
-    # HUKUM: EKSIK ve FAZLA sifirsa senkron TAMDIR.
-    print("HUKUM=%s" % ("SENKRON" if not (eklenecek or degisen or silinecek) else "SAPMA"))
-    return 0 if not (eklenecek or degisen or silinecek) else 1
+    # YETIM: EKSIK'in sinif kirilimi (katalog salt-okur).
+    katalog = katalog_idleri()
+    sinif = yetim_sinifla(eksik, katalog)
+    if sinif is None or len(sinif["SILINMIS"]) + len(sinif["GERCEK_EKSIK"]) != len(eksik):
+        print("YETIM OLCULEMEDI TOPLAM=%d (katalog okunamadi/bicimsiz)" % len(eksik))
+        print("HUKUM=OLCULEMEDI")
+        return 1
+    print("YETIM SILINMIS=%d GERCEK_EKSIK=%d TOPLAM=%d"
+          % (len(sinif["SILINMIS"]), len(sinif["GERCEK_EKSIK"]), len(eksik)))
+    u = uzlasma(yerel, d1, katalog)
+    print("UZLASMA KATALOG=%d TAM=%d GERCEK_EKSIK=%d LINKSIZ=%d"
+          % (len(katalog), u["TAM"], u["GERCEK_EKSIK"], u["LINKSIZ"]))
+    print("UZLASMA D1_SATIR=%d KATALOGDA=%d KATALOG_DISI=%d"
+          % (len(d1), u["D1_KATALOGDA"], u["D1_KATALOG_DISI"]))
+    # HUKUM: GERCEK_EKSIK ve FAZLA sifirsa senkron TAMDIR. SILINMIS raporlanir, kirmizi yakmaz.
+    sapma = sinif["GERCEK_EKSIK"] or silinecek
+    print("HUKUM=%s" % ("SAPMA" if sapma else "SENKRON"))
+    return 1 if sapma else 0
 
 
 def senkron(kuru, silmeye_izin):
@@ -257,7 +337,8 @@ def main():
     ap = argparse.ArgumentParser(
         description="Uretici kaynak linki senkronu (gizli kayit -> D1 urun_kaynak).")
     ap.add_argument("--sema", action="store_true", help="tabloyu kur (IF NOT EXISTS)")
-    ap.add_argument("--durum", action="store_true", help="YEREL_LINK/D1_SATIR/EKSIK/FAZLA")
+    ap.add_argument("--durum", action="store_true",
+                    help="YEREL_LINK/D1_SATIR/EKSIK/FAZLA + YETIM sinifi + UZLASMA")
     ap.add_argument("--kuru", action="store_true", help="yazmadan plani bas")
     ap.add_argument("--silmeye-izin", action="store_true",
                     help="buyuk silme planini onayla (emniyet tavani asildiginda)")

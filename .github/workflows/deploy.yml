@@ -469,7 +469,9 @@ jobs:
       # sonuc verdigini olcer, fail-closed dallari (yok dosya / bicimsiz kaynak / iki bayrak
       # birden) sinar ve 🔴 BAYRAKSIZ DAVRANISIN DEGISMEDIGINI iki yonlu olcer — 5 evin push
       # kancasi bugunku davranisa baglidir. Offline; D1'e/aga DOKUNMAZ.
-      # Mutasyon bataryasi: python3 tools/d1-kaynak-mutasyon.py (7 mutant).
+      # [D] (21 Eki) ayni test d1-kaynak-sync.py --durum YETIM siniflamasini da olcer
+      # (SILINMIS kirmizi yakmaz / GERCEK_EKSIK SAPMA / bozuk katalog OLCULEMEDI).
+      # Mutasyon bataryasi: python3 tools/d1-kaynak-mutasyon.py (12 mutant).
       - name: D1 katalog kaynagi kabul testi (commit'lenmemis urun canliya yazilmasin)
         run: python3 tools/d1-kaynak-test.py
 
