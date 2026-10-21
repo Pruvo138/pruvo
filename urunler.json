@@ -1,5 +1,647 @@
 [
   {
+    "id": "mini-cooper-r56-el-freni-buton-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper S R56"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper S R56"
+      }
+    ],
+    "baslik": "MINI Cooper R56 El Freni Buton Kapağı",
+    "aciklama": "MINI Cooper S R56 manuel vites modelinde kırılan el freni düğmesinin yerine takılan yedek buton kapağıdır; üst kısmındaki çentik sayesinde mevcut el freni koluna iterek oturur.\nYaklaşık dış ölçüler: 20 × 15 × 14 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6168439-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6168439-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6168439-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "DOAFLIPFPV"
+    }
+  },
+  {
+    "id": "mini-r50-r52-r53-telefon-tutucu-braket",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper R50"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper R50"
+      }
+    ],
+    "baslik": "MINI Cooper R50/R52/R53 Telefon Tutucu Braket",
+    "aciklama": "Birinci nesil MINI Cooper R50, R52 ve R53'ün krono paketli gösterge paneline takılan, sağ ve sol direksiyon seçenekleri bulunan telefon tutucu braketidir; arkasındaki dört milimetre vida yuvasıyla harici klips monte edilir.\nYaklaşık dış ölçüler: 193 × 107 × 17 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4864283-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4864283-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4864283-3.jpg"
+    ],
+    "lisans": {
+      "tur": "GPL 3.0",
+      "tasarimci": "MisterWh33l"
+    }
+  },
+  {
+    "id": "mini-r56-vites-topuzu-yan-kanca",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper R56"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper R56"
+      }
+    ],
+    "baslik": "MINI Cooper R56 Slip-Fit Vites Topuzu Adaptörü",
+    "aciklama": "R56 MINI Cooper için slip-fit (itme geçme) prensibiyle çalışan, hazır bir Mazda vites topuzunu mevcut kola bağlayan adaptördür; vites körüğü silme parçasıyla birlikte kullanılabilir.\nYaklaşık dış ölçüler: 70 × 50 × 50 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6909965-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "ddog6900"
+    }
+  },
+  {
+    "id": "mini-r56-takometre-montaj-braketi-set",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper R56"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper R56"
+      }
+    ],
+    "baslik": "MINI Cooper R56 Takometre Montaj Braketi Seti",
+    "aciklama": "2010 MINI Cooper S R56 takometresinin soluna yivli OBD2 ekran ve sağına on yedi milimetre top bağlantısı takmaya yarayan çift braket setidir; standart top sayesinde uyumlu CarPlay veya telefon tutucu da bağlanabilir.\nYaklaşık dış ölçüler: 357 × 125 × 31 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5898733-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5898733-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5898733-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "demonxdrag"
+    }
+  },
+  {
+    "id": "mini-cooper-r50-camurluk-trim-molding-klips",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper R50"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper R50"
+      }
+    ],
+    "baslik": "MINI Cooper R50 Çamurluk Trim Molding Klipsi",
+    "aciklama": "MINI Cooper R50 çamurluk kenarındaki trim molding şeridini yerinde tutan, zamanla kırılan orijinal klipsin yedek parçasıdır; çamurluk kenarına klipslenerek takılır.\nYaklaşık dış ölçüler: 20 × 20 × 8 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6454439-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "KMA3d"
+    }
+  },
+  {
+    "id": "mini-cooper-r50-r53-telefon-topuz-tek-parca",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper R50"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper R50"
+      }
+    ],
+    "baslik": "MINI Cooper R50/R53 Toplu Telefon Bağlantı Parçası",
+    "aciklama": "MINI Cooper R50 ile R53 arasındaki modellere uyan, top mafsalı ve montaj parçasını tek parça halinde birleştiren telefon tutucu bağlantısıdır.\nYaklaşık dış ölçüler: 108 × 96 × 35 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6985030-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6985030-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6985030-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Gregsterguy"
+    }
+  },
+  {
+    "id": "mini-cooper-countryman-bagaj-kapagi-donanim",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Countryman"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Countryman"
+      }
+    ],
+    "baslik": "MINI Cooper Countryman Bagaj Kapağı Donanım Parçası",
+    "aciklama": "MINI Cooper Countryman bagaj kapağı iç donanımının sol ya da sağ tarafına ayna çevirme yöntemiyle takılan montaj parçasıdır.\nYaklaşık dış ölçüler: 72 × 59 × 24 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6620060-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "24fisher"
+    }
+  },
+  {
+    "id": "mini-r50-r53-krank-kece-takim-aleti",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper R50"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper R50"
+      }
+    ],
+    "baslik": "MINI Cooper R50/R52/R53 Krank Keçesi Takım Aleti",
+    "aciklama": "MINI Cooper R53 süperşarjlı W11 motoru başta olmak üzere R50/R52 neslinin krank keçesi dış çapına (yüz on bir milimetre) uyarlanmış takım aletidir; Audi V8 FSI aletinin yeniden boyutlandırılmış halidir.\nYaklaşık dış ölçüler: 111 × 111 × 10 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4917496-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Fuzzyheed"
+    }
+  },
+  {
+    "id": "mini-cooper-r50-kapi-kilidi-trim-gromet",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper R50"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper R50"
+      }
+    ],
+    "baslik": "MINI Cooper R50 Kapı Kilit Trim Grometi",
+    "aciklama": "MINI Cooper R50 kapı triminin kilit mekanizmasıyla çalışan küçük gromet parçasıdır; orijinaliyle birebir aynı olmasa da kapı kilidi görevini yerine getirir.\nYaklaşık dış ölçüler: 17 × 17 × 13 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6224936-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6224936-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6224936-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6224936-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "lucamax"
+    }
+  },
+  {
+    "id": "mini-cooper-on-tiz-hoparlor-adaptoru-k165",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper"
+      }
+    ],
+    "baslik": "MINI Cooper Ön Tiz Hoparlör Adaptörü (Hertz K165)",
+    "aciklama": "MINI Cooper ön tiz hoparlör yuvasına Hertz K165 komponent setinin tiz hoparlörünü sığdırmak için yeniden boyutlandırılmış adaptör halkasıdır.\nYaklaşık dış ölçüler: 64 × 57 × 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7206776-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7206776-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "greganthony"
+    }
+  },
+  {
+    "id": "mini-cooper-s-r55-r57-noisemaker-delete-plug",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper S R55"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper S R55"
+      }
+    ],
+    "baslik": "MINI Cooper S R55/R56/R57 Noisemaker İptal Kiti",
+    "aciklama": "R56 MINI Cooper S motor bölmesindeki sahte egzoz sesi üreten parçayı iptal etmek için hortum tapası ve yangın duvarı tapasından oluşan iki parçalı kittir.\nYaklaşık dış ölçüler: 92 × 41 × 23 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7294121-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7294121-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7294121-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7294121-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Nike_Zeus"
+    }
+  },
+  {
+    "id": "mini-r50-r52-r53-radyator-spacer-plaka",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper R50"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper R50"
+      }
+    ],
+    "baslik": "MINI Cooper R50/R52/R53 Radyatör Mesafe Plakası",
+    "aciklama": "MINI Cooper R50, R52 ve R53'ün ön radyatörünü öne doğru bir, iki, üç ve beş milimetre kaydırmak için tasarlanmış düz mesafe plakalarıdır; orijinal bir milimetre plakaların üst üste konması yerine tek parça kullanılır.\nYaklaşık dış ölçüler: 149 × 118 × 5 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7203431-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7203431-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7203431-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7203431-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Fanning75"
+    }
+  },
+  {
+    "id": "mini-cooper-r52-cabrio-sunroof-klavuz-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper Cabrio R52"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper Cabrio R52"
+      }
+    ],
+    "baslik": "MINI Cooper R52 Cabrio Sunroof Klavuz Klipsi",
+    "aciklama": "MINI Cooper Cabrio R52'nin tavan rayı üzerindeki iki yan klipsin kırılan kılavuz parçaları için yedek klipstir; dört parçalık sette her ray için iki adet bulunur.\nYaklaşık dış ölçüler: 115 × 84 × 24 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7231333-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7231333-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7231333-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "jorgequintasw"
+    }
+  },
+  {
+    "id": "mini-r60-r61-uclu-gosterge-podu-montaj",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Countryman R60"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Countryman R60"
+      }
+    ],
+    "baslik": "MINI R60/R61 Üçlü Gösterge Podu Montaj Aparatı",
+    "aciklama": "MINI Countryman R60 ve Paceman R61'e elli iki buçuk milimetre (iki inç 1/16) çapında üç ek gösterge takmaya yarayan pod braketi montaj aparatıdır; kablo geçiş yarıklı arka plaka dahildir.\nYaklaşık dış ölçüler: 180 × 155 × 50 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6412012-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6412012-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6412012-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6412012-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "cavebatsofware"
+    }
+  },
+  {
+    "id": "mini-r53-vites-korugu-tutucu-v7",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper S R53"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper S R53"
+      }
+    ],
+    "baslik": "MINI Cooper S R53 Vites Körüğü Tutucu V7",
+    "aciklama": "MINI Cooper S R53 vites körüğünü yerinde tutan tutucu halkasının yedi numaralı yeniden ölçeklendirilmiş sürümüdür; dört noktasından birinde daha uzun ve geniş kilit çıkıntısı bulunur.\nYaklaşık dış ölçüler: 136 × 136 × 41 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7184868-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Lemon_Wedge"
+    }
+  },
+  {
+    "id": "mini-countryman-ozellestirilebilir-telefon-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Countryman"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Countryman"
+      }
+    ],
+    "baslik": "MINI Countryman Özelleştirilebilir Telefon Tutucu",
+    "aciklama": "MINI Countryman hız göstergesinin arkasındaki vidaları söküp aynı vidalarla takılan, kullanıcının kendi telefon ölçüsünü girebildiği özelleştirilebilir telefon tutucu brakettir; düz model versiyonudur.\nYaklaşık dış ölçüler: 196 × 159 × 16 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2117536-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2117536-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "sgonzalezlopez"
+    }
+  },
+  {
+    "id": "mini-r53-android-auto-mokpr-telefon-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper R53"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper R53"
+      }
+    ],
+    "baslik": "MINI Cooper R53 Android Auto/MOKPR Telefon Adaptoru",
+    "aciklama": "MINI Cooper R53 sol direksiyon kablosuz şarjlı telefon tutucusuna uyum sağlasın diye üzerine silindir ve küre eklenmiş adaptördür; uzun kolu sayesinde telefon ekranı sürücüye yaklaşır.\nYaklaşık dış ölçüler: 174 × 165 × 33 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5937113-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5937113-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5937113-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5937113-4.jpg"
+    ],
+    "lisans": {
+      "tur": "GPL 3.0",
+      "tasarimci": "sv0o"
+    }
+  },
+  {
+    "id": "mini-cooper-r53-8-inc-carplay-ekran-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper R53"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper R53"
+      }
+    ],
+    "baslik": "MINI Cooper R53 8 İnç CarPlay/Android Auto Ekran Braketi",
+    "aciklama": "2007 MINI Cooper R53'ün orijinal devir göstergesinin yerine dokuz santimetre taşınabilir CarPlay/Android Auto ekranı bağlamaya yarayan braket adaptörüdür.\nYaklaşık dış ölçüler: 81 × 30 × 16 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7184243-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7184243-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7184243-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7184243-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "psedog"
+    }
+  },
+  {
+    "id": "mini-countryman-f60-izgara-disleri-takimi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Countryman F60"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Countryman F60"
+      }
+    ],
+    "baslik": "MINI Countryman F60 Izgara Dişleri Takımı",
+    "aciklama": "MINI Countryman F60 ön ızgarasına iki siyah kablo bağı ile takılan, dekoratif diş takımıdır; istenirse mat siyaha boyanabilir.\nYaklaşık dış ölçüler: 92 × 56 × 10 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6600342-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6600342-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "MvRens"
+    }
+  },
+  {
+    "id": "mini-r55-r56-r57-vites-kablo-koruk-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper R55"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper R55"
+      }
+    ],
+    "baslik": "MINI Cooper R55/R56/R57 Vites Kablosu Körük Adaptoru",
+    "aciklama": "R55, R56 veya R57 MINI Cooper manuel vites kablosunun yangın duvarı geçişindeki yıpranmış körük kauçuk contasını söküp yerine evrensel kablo geçiş körüğü takmaya yarayan adaptör parçadır; T20 vidalarla sabitlenir.\nYaklaşık dış ölçüler: 65 × 58 × 22 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7294905-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7294905-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7294905-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7294905-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Nike_Zeus"
+    }
+  },
+  {
+    "id": "mini-cooper-r56-bagaj-kapagi-mikroswitch-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper R56"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper R56"
+      }
+    ],
+    "baslik": "MINI Cooper R56 Bagaj Kapağı Mikroswitch Kapağı",
+    "aciklama": "MINI Cooper R56 bagaj kapağı açma mekanizmasının mikroswitch kapağı için yedek parçadır.\nYaklaşık dış ölçüler: 10 × 10 × 8 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3666381-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3666381-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Magicfriend"
+    }
+  },
+  {
+    "id": "mini-cooper-r55-r56-debriyaj-merkezleme-aleti",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper R55"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper R55"
+      }
+    ],
+    "baslik": "MINI Cooper R55/R56 Debriyaj Merkezleme Aleti",
+    "aciklama": "2008 MINI Clubman R55 ve benzer Cooper R56 modellerinde tek kütleli volana sahip Cooper S olmayan versiyonlar için tasarlanmış debriyaj merkezleme aletidir.\nYaklaşık dış ölçüler: 98 × 17 × 17 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6563605-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Recorsi"
+    }
+  },
+  {
+    "id": "mini-cooper-f56-havalandirma-klipsi-telefon-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper F56"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper F56"
+      }
+    ],
+    "baslik": "MINI Cooper F56 Havalandırma Klipsli Telefon Tutucu",
+    "aciklama": "MINI Cooper F56 sağ direksiyon havalandırma ızgarasına takılan, otuz kırk milimetre delik aralığına uygun klipsli telefon tutucu aparattır; montaj için merkez ekran sökülür.\nYaklaşık dış ölçüler: 101 × 60 × 60 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6702566-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6702566-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6702566-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6702566-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "DarthMuppet"
+    }
+  },
+  {
+    "id": "mini-countryman-r60-sinyal-lambasi-tamir-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Countryman R60"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Countryman R60"
+      }
+    ],
+    "baslik": "MINI Countryman R60 Yan Sinyal Tamir Klipsi",
+    "aciklama": "2012 MINI Countryman R60'ın yan sinyal lambası klipsinin yarıçap ortasından kırılması durumunda kalan parçaya klipslenen tamir klipsidir.\nYaklaşık dış ölçüler: 29 × 21 × 15 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7145316-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7145316-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7145316-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Klechko"
+    }
+  },
+  {
+    "id": "mini-countryman-r60-orta-ray-bolme-duvari",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Countryman R60"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Countryman R60"
+      }
+    ],
+    "baslik": "MINI Countryman R60 Orta Ray Sürtünmeli Bölme Duvarı",
+    "aciklama": "MINI Countryman R60'ın orta konsol rayı üzerine sıkı geçme ile takılan küçük mendil kutusu gibi hafif eşyaları el freni koluna doğru kaymasını engelleyen bölme duvarıdır.\nYaklaşık dış ölçüler: 71 × 50 × 35 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7213295-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7213295-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7213295-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "y8s"
+    }
+  },
+  {
     "id": "mini-cooper-r50-r52-r53-ultragauge-montaj",
     "kategori": "Otomobil",
     "marka": [
