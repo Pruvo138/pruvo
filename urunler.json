@@ -1,5 +1,506 @@
 [
   {
+    "id": "chery-qq-1100-kapi-pimi-yuzey-kaplama",
+    "kategori": "Otomobil",
+    "marka": [
+      "Chery",
+      "QQ 1100cc"
+    ],
+    "uyum": [
+      {
+        "marka": "Chery",
+        "model": "QQ 1100cc"
+      }
+    ],
+    "baslik": "Chery QQ 1100cc Kapı Pimi Yüzey Kaplaması",
+    "aciklama": "Chery QQ 1100cc kapı kilit piminin kırılan dış yüzeyini yeniden kaplamak için tasarlanmış ince bir kaplama parçasıdır. Kilit mekanizmasının parçası değildir; yalnızca pimin dış kabuğunu sarar.\nYaklaşık dış ölçüler: 30 × 20 × 7 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr554049-1.jpg"
+    ]
+  },
+  {
+    "id": "chery-tiggo-2-kaput-cubugu-tutucu-klipi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Chery",
+      "Tiggo 2"
+    ],
+    "uyum": [
+      {
+        "marka": "Chery",
+        "model": "Tiggo 2"
+      }
+    ],
+    "baslik": "Chery Tiggo 2 Kaput Çubuğu Tutucu Klipsi",
+    "aciklama": "Chery Tiggo 2'de kaputu açık konumda tutan çubuğun kenarına geçen tutucu klipsidir; kırılan orijinal parçanın yerine geçecek şekilde tasarlanmıştır.\nYaklaşık dış ölçüler: 25 × 15 × 14 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1273085-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1273085-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1273085-3.jpg"
+    ],
+    "lisans": {
+      "tur": "LGPL",
+      "tasarimci": "molinadomotica"
+    }
+  },
+  {
+    "id": "chery-qq-1100-guneslik-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Chery",
+      "QQ 1100cc"
+    ],
+    "uyum": [
+      {
+        "marka": "Chery",
+        "model": "QQ 1100cc"
+      }
+    ],
+    "baslik": "Chery QQ 1100cc Güneşlik Tutucusu",
+    "aciklama": "Chery QQ 1100cc güneşliğini cam üzerinde sabit tutan küçük parçadır; kırılan orijinal parçanın yerine geçecek şekilde tasarlanmıştır.\nYaklaşık dış ölçüler: 34 × 30 × 18 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr554039-1.jpg"
+    ]
+  },
+  {
+    "id": "chery-tiggo-7-pro-hareketli-esik-koruyucu-kapak",
+    "kategori": "Otomobil",
+    "marka": [
+      "Chery",
+      "Tiggo 7 Pro"
+    ],
+    "uyum": [
+      {
+        "marka": "Chery",
+        "model": "Tiggo 7 Pro"
+      }
+    ],
+    "baslik": "Chery Tiggo 7 Pro Hareketli Eşik Koruyucu Kapağı",
+    "aciklama": "Chery Tiggo 7 Pro'nun çıkabilen yan eşiğinin üzerine oturan, sürtünen aksamın toz ve nemden korunmasını sağlayan kapaktır. Yük taşıyan bir parça değildir; yalnızca eşiğin hareketli yüzeyini örter.\nYaklaşık dış ölçüler: 45 × 30 × 7 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1692371-1.jpg"
+    ],
+    "lisans": {
+      "tur": "GPL 3.0",
+      "tasarimci": "Юра Шосталь"
+    }
+  },
+  {
+    "id": "chery-tiggo-4-5x-plaka-tutucu-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Chery",
+      "Tiggo 4/5x"
+    ],
+    "uyum": [
+      {
+        "marka": "Chery",
+        "model": "Tiggo 4/5x"
+      }
+    ],
+    "baslik": "Chery Tiggo 4/5x Plaka Tutucu Adaptörü",
+    "aciklama": "Chery Tiggo 4/5x'in fabrika plaka tutucusu ile Rus standartı numara çerçevesini birbirine bağlayan adaptördür. Gövdeye iki M6 cıvata, numara çerçevesine ise vida ve somun ile sabitlenir.\nYaklaşık dış ölçüler: 130 × 20 × 12 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4377955-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4377955-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4377955-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "ASVasin"
+    }
+  },
+  {
+    "id": "chery-tiggo-4-5x-plaka-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Chery",
+      "Tiggo 4/5x"
+    ],
+    "uyum": [
+      {
+        "marka": "Chery",
+        "model": "Tiggo 4/5x"
+      }
+    ],
+    "baslik": "Chery Tiggo 4/5x Plaka Adaptörü",
+    "aciklama": "Chery Tiggo 4/5x numara çerçevesini araca bağlayan adaptördür. Gövdeye iki M6 cıvata, çerçeveye M4 vida ve somun ile sabitlenir.\nYaklaşık dış ölçüler: 130 × 20 × 5 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4890781-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4890781-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "alekseev_ma"
+    }
+  },
+  {
+    "id": "chery-omoda-c5-koltuk-dayanagi-kutusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Chery",
+      "Omoda C5"
+    ],
+    "uyum": [
+      {
+        "marka": "Chery",
+        "model": "Omoda C5"
+      }
+    ],
+    "baslik": "Chery Omoda C5 Koltuk Dayanağı Kutusu",
+    "aciklama": "Chery Omoda C5 koltuk dayanağının üzerine oturan, küçük eşyaları düzenli tutmak için tasarlanmış kutu gövdesidir.\nYaklaşık dış ölçüler: 184 × 172 × 52 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6490137-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6490137-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6490137-3.jpg"
+    ],
+    "lisans": {
+      "tur": "GPL 3.0",
+      "tasarimci": "murashov_a"
+    }
+  },
+  {
+    "id": "chery-qq-96320156-ortak-yedek-parca",
+    "kategori": "Otomobil",
+    "marka": [
+      "Chery",
+      "QQ"
+    ],
+    "uyum": [
+      {
+        "marka": "Chery",
+        "model": "QQ"
+      }
+    ],
+    "baslik": "Chery QQ 96320156 Ortak Yedek Parça",
+    "aciklama": "Chery QQ ile Daewoo Matiz'in ortak kullandığı, üretici kodu 96320156 olan yedek parçadır. İki araç modelinde birbirinin yerine kullanılabilir.\nYaklaşık dış ölçüler: 22 × 22 × 5 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5148012-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5148012-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5148012-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "deuss999"
+    }
+  },
+  {
+    "id": "chery-tiggo-4-5x-kapi-hoparlor-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Chery",
+      "Tiggo 4/5x"
+    ],
+    "uyum": [
+      {
+        "marka": "Chery",
+        "model": "Tiggo 4/5x"
+      }
+    ],
+    "baslik": "Chery Tiggo 4/5x Kapı Hoparlör Adaptörü",
+    "aciklama": "Chery Tiggo 4/5x ön kapı takımına uygun, on altı santim çaplı hoparlör için modellenmiş yuvarlak adaptördür. Kapı kapağındaki gözüğün çapı farklıysa iç açıklığı 145 milimetreden kesilip yeniden ölçülendirilebilir.\nYaklaşık dış ölçüler: 192 × 185 × 5 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4888025-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "alekseev_ma"
+    }
+  },
+  {
+    "id": "chery-tiggo-8-pro-max-aski-kancasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Chery",
+      "Tiggo 8 Pro MAX"
+    ],
+    "uyum": [
+      {
+        "marka": "Chery",
+        "model": "Tiggo 8 Pro MAX"
+      }
+    ],
+    "baslik": "Chery Tiggo 8 Pro MAX Aski Kancası",
+    "aciklama": "Chery Tiggo 8 Pro MAX için tasarlanmış, kapı üstüne asılacak eşyalar için kullanılan kancadır. Kaynak, kancayı sol ve sağ taraf için ayrı iki parça olarak sunar.\nYaklaşık dış ölçüler: 63 × 42 × 14 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7060804-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7060804-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7060804-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7060804-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "sergeygals"
+    }
+  },
+  {
+    "id": "chery-tiggo-8-pro-camurluk-genisletici",
+    "kategori": "Otomobil",
+    "marka": [
+      "Chery",
+      "Tiggo 8 Pro"
+    ],
+    "uyum": [
+      {
+        "marka": "Chery",
+        "model": "Tiggo 8 Pro"
+      }
+    ],
+    "baslik": "Chery Tiggo 8 Pro Çamurluk Genişletici",
+    "aciklama": "Chery Tiggo 8 Pro'da kapı ile gövde arasındaki boşluğa takılarak çamurluk hattını genişleten lastik parçadır. Her takım üç bölümden oluşur ve toprak girmesini engeller. İnce toza karşı koruma sağlamaz.\nYaklaşık dış ölçüler: 228 × 138 × 31 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5975246-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5975246-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5975246-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5975246-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "managerdark"
+    }
+  },
+  {
+    "id": "chery-omoda-c5-orta-konsol-saklama-kutusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Chery",
+      "Omoda C5"
+    ],
+    "uyum": [
+      {
+        "marka": "Chery",
+        "model": "Omoda C5"
+      }
+    ],
+    "baslik": "Chery Omoda C5 Orta Konsol Saklama Kutusu",
+    "aciklama": "Chery Omoda C5 orta konsolundaki boşluğa oturan, küçük eşyaları gizli tutmak için kullanılan saklama kutusudur.\nYaklaşık dış ölçüler: 192 × 168 × 73 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6783686-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "federom"
+    }
+  },
+  {
+    "id": "chery-tiggo-7-koltuk-dayanagi-tepsisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Chery",
+      "Tiggo 7"
+    ],
+    "uyum": [
+      {
+        "marka": "Chery",
+        "model": "Tiggo 7"
+      }
+    ],
+    "baslik": "Chery Tiggo 7 Koltuk Dayanağı Tepsi",
+    "aciklama": "Chery Tiggo 7 koltuk dayanağının altındaki geniş boşluğa oturan ikinci kat tepsidir. Altındaki USB bağlantısına bağlı kabloların geçmesi için aralık bırakılmıştır.\nYaklaşık dış ölçüler: 155 × 155 × 49 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7183424-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "waynevercueil"
+    }
+  },
+  {
+    "id": "chery-qq6-s21-2-din-medya-cihazi-cercevesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Chery",
+      "QQ6 S21"
+    ],
+    "uyum": [
+      {
+        "marka": "Chery",
+        "model": "QQ6 S21"
+      }
+    ],
+    "baslik": "Chery QQ6 S21 2 DIN Medya Cihazı Çerçevesi",
+    "aciklama": "Chery QQ6 S21'in göğüs konsolundaki 2 DIN yuvasına oturan, yedi inçlik Android medya cihazını yerine oturtan çerçevedir.\nYaklaşık dış ölçüler: 188 × 112 × 23 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6996020-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6996020-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6996020-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Protius69"
+    }
+  },
+  {
+    "id": "mini-r56-r57-cift-usb-c-sarj-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper R56"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper R56"
+      }
+    ],
+    "baslik": "MINI Cooper R56/R57 Çift USB-C Şarj Adaptörü",
+    "aciklama": "MINI Cooper R56 ve R57 çakmak soketi yerine takılan, manyetik toz kapağına sahip iki USB-C portlu şarj adaptörü gövdesidir; elektronik bileşenler ürüne dahil değildir.\nYaklaşık dış ölçüler: 140 × 75 × 14 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7397075-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7397075-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7397075-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7397075-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Ebonix"
+    }
+  },
+  {
+    "id": "mini-cooper-r56-kolcak-uzatmasi-cupholder",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper R56"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper R56"
+      }
+    ],
+    "baslik": "MINI Cooper R56 Kolçak Uzatması ve Cupholder Sabitleyici",
+    "aciklama": "MINI Cooper R56'nın arka bardaklığını sabitleyen merkezi vidayı kullanarak üzerine oturan kolçak uzatması ve opsiyonel eklenti ile bardaklık sallanmasını önleyen plakadır.\nYaklaşık dış ölçüler: 253 × 225 × 87 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7417668-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7417668-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7417668-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7417668-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "actasci"
+    }
+  },
+  {
+    "id": "mini-countryman-roof-box-hatbox-baglanti-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Countryman"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Countryman"
+      }
+    ],
+    "baslik": "MINI Countryman Tavan Kutusu Bağlantı Adaptörü",
+    "aciklama": "MINI Countryman'ın tavan kutusu (hatbox) bağlantısı için özel üretilen adaptör gövdedir; silindir kısmında ince çıkıntılar bulunur.\nYaklaşık dış ölçüler: 70 × 68 × 55 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5589021-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "jacopo98"
+    }
+  },
+  {
+    "id": "mini-cooper-r57-tavan-trim-paneli-klips",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper R57"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper R57"
+      }
+    ],
+    "baslik": "MINI Cooper R57 Tavan Trim Paneli Klipsi",
+    "aciklama": "MINI Cooper R57 Cabrio'nun tavan orta trim panelini yerinde tutan dört adet kenet kenar klipsinin kırılması durumunda yenisiyle değiştirilen yedek klips setidir; takviyeli taban yapısıyla OEM klipslerin yerini alır.\nYaklaşık dış ölçüler: 21 × 18 × 6 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7377870-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7377870-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7377870-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7377870-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Ebonix"
+    }
+  },
+  {
+    "id": "mini-cooper-r50-r52-r53-yan-sun-visor-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper R50"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper R50"
+      }
+    ],
+    "baslik": "MINI Cooper R50/R52/R53 Yan Güneşlik Kapağı",
+    "aciklama": "Birinci nesil MINI Cooper R50, R52 ve R53 modellerinde zamanla çatlayıp düşen yan güneşlik ucunun yerine takılan yedek kapak parçasıdır.\nYaklaşık dış ölçüler: 25 × 16 × 14 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7409508-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7409508-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7409508-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Frengo92"
+    }
+  },
+  {
+    "id": "mini-moke-clubman-park-freni-fren-ariza-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Moke"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Moke"
+      }
+    ],
+    "baslik": "MINI Moke/Clubman Park Freni ve Fren Arıza Lambası Tutucu",
+    "aciklama": "MINI Moke ve Clubman modellerinde eksilen ya da çatlayan park freni ve fren arıza uyarı lambası yuvasının yerine takılan yedek tutucu gövdesidir; arkasındaki konumlandırma çıkıntısı kılıf adaptörü ile birlikte gelir.\nYaklaşık dış ölçüler: 20 × 20 × 11 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7420130-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7420130-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "chayharris"
+    }
+  },
+  {
     "id": "mini-cooper-r56-el-freni-buton-kapagi",
     "kategori": "Otomobil",
     "marka": [
