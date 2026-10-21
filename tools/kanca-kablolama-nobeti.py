@@ -193,6 +193,10 @@ FAIL_OPEN = {
     ("pre-push", "tools/d1-sync.py"):
         "D1 senkronu — patlarsa site yayini durmasin; diff bekledigi icin bir "
         "sonraki push kendiliginden tekrar dener.",
+    ("pre-push", "tools/d1-kaynak-sync.py"):
+        "gizli kaynak linki senkronu — D1/wrangler/ag hatasi urun push'unu "
+        "durdurmamali; sessiz DEGIL: KAYNAK_SYNC=OLCULEMEDI stderr'e ve git disi "
+        "loga duser, diff-upsert oldugu icin sonraki push tekrar dener.",
 }
 
 # 🔴 EKSEN G: her fail-closed kanca REDDEDINCE kendi gerekcesini de BASMALIDIR.

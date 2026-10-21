@@ -221,6 +221,16 @@ if [ -n "$pruvo_kok" ] && [ -f "$pruvo_kok/tools/kutu-arsivle.py" ]; then
   fi
 fi
 # <<< PRUVO YEDEK BLOGU <<<
+# >>> KAYNAK SENKRON BLOGU (gercek govdenin cagri bicimi; beyanli fail-open) >>>
+pruvo_ks_ortak=$(git rev-parse --git-common-dir 2>/dev/null)
+pruvo_ks_ana=$(cd "$pruvo_ks_ortak/.." 2>/dev/null && pwd -P)
+pruvo_ks_arac="$pruvo_ks_ana/tools/d1-kaynak-sync.py"
+if [ -f "$pruvo_ks_ana/.urun-kaynaklari.json" ] && [ -f "$pruvo_ks_arac" ]; then
+  pruvo_ks_cikti=$(python3 "$pruvo_ks_arac" --durum </dev/null 2>&1)
+  pruvo_ks_rc=$?
+  [ "$pruvo_ks_rc" = "0" ] || echo "KAYNAK_SYNC=OLCULEMEDI rc=$pruvo_ks_rc" >&2
+fi
+# <<< KAYNAK SENKRON BLOGU <<<
 # urunler.json main'e push edilirken D1'i OTOMATIK senkronla.
 root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
 sync="$root/tools/d1-sync.py"

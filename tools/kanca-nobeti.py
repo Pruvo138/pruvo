@@ -143,6 +143,13 @@ BEKLENEN = (
          "ortak posta kutusu tavan arsivi; kosmazsa kutu budanmaz"),
         ("tools/d1-sync.py",
          "D1 senkronu — EN PAHALISI: kosmazsa site urunu gosterir, EGE GOREMEZ"),
+        # 22 Eki 2026 eklendi. GEREKCE: gizli kaynak kaydi CI'da YOK; urun dilimleri
+        # push'landiktan sonra senkronu kimse kosmuyordu (21 Eki EKSIK=463, 22 Eki
+        # tek dilimden sonra EKSIK=38). Cagri satiri BURAYA KAYITLI OLMAZSA silinmesi
+        # hicbir yerde kirmizi yakmaz ([[nobetci-cagri-satiri-nobetsiz]]).
+        ("tools/d1-kaynak-sync.py",
+         "gizli kaynak linki senkronu (main/urun-kuyruk push'u); kosmazsa panelde "
+         "yeni urunlerin kaynak satiri SESSIZCE eksik kalir"),
         # 1 Agu 2026 eklendi (kurucu: tools/gecmis-geri-donus-hook-kur.py).
         # GEREKCE: `main`in gecmisi tedarikci adindan IKI KEZ temizlendi, IKI KEZ de
         # geri geldi — her seferinde temizlik ONCESI taban uzerine kurulmus bir dalin
