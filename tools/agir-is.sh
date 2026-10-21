@@ -5,11 +5,12 @@
 # NEDEN: 02:30'da Blender `-b` %541 CPU ile semafor DISINDA kostu, 1 dk yuku 37
 # oldu. isci-semafor.py yalniz isci.sh'yi kapsiyordu; bu sarmalayici agir isi
 # AYNI slot kokune (`~/.claude/cron/isci-slot`) baglar ve makinenin TAMAMINI
-# (3 slotun 3'unu) ATOMIK alir: agir is koşarken yeni isci baslamaz, isciler
-# koşarken agir is baslamaz.
+# (SINIR slotun hepsini; SINIR isci-semafor.py'den okunur, 21 Eki'den beri 2)
+# ATOMIK alir: agir is koşarken yeni isci baslamaz, isciler koşarken agir is
+# baslamaz.
 #
 # KULLANIM: agir-is.sh [--etiket X] [--tavan-dk 90] [--asili-dk 10] -- <komut…>
-#   * `isci-semafor.py al --adet 3 --yuk-esik 8 --tavan-sn 3600 --satir-sn 120
+#   * `isci-semafor.py al --adet SINIR --yuk-esik 8 --tavan-sn 3600 --satir-sn 120
 #     --tur agir` — 1 dk yuku >8 iken ya da slot/sira yoksa BEKLER; 120 sn'de bir
 #     isci.log'a `=== .. HAL=BEKLIYOR tur=agir .. etiket=.. sira=.. bekleme_dk=..
 #     sebep=slot|yuk|sira yuk=.. ===` satiri.
@@ -42,7 +43,10 @@ AGIR_CRON_KOKU="${AGIR_IS_CRON_KOKU:-$HOME/.claude/cron}"
 AGIR_SEMAFOR="${AGIR_IS_SEMAFOR:-$AGIR_CRON_KOKU/isci-semafor.py}"
 AGIR_SLOT_KOKU="${AGIR_IS_SLOT_KOKU:-$AGIR_CRON_KOKU/isci-slot}"
 AGIR_LOG="${AGIR_IS_LOG:-$AGIR_CRON_KOKU/isci.log}"
-AGIR_SINIR=3
+# SINIR tek kaynak: isci-semafor.py `sinir` (21 Eki 2026, 3->2). Okunamazsa bos
+# kalir -> `al` kullanim hatasi -> asagidaki FAIL-OPEN kolu (SEMAFOR=OLCULEMEDI).
+AGIR_SINIR=$(python3 "$AGIR_SEMAFOR" sinir 2>/dev/null)
+[[ "$AGIR_SINIR" == <-> ]] || AGIR_SINIR=
 AGIR_YUK_ESIK=8
 AGIR_TAVAN_SN="${AGIR_IS_TAVAN_SN:-3600}"
 AGIR_SATIR_SN="${AGIR_IS_SATIR_SN:-120}"

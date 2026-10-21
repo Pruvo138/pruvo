@@ -53,7 +53,10 @@ from pathlib import Path
 KOK = Path(__file__).resolve().parent
 AGIR = KOK / "agir-is.sh"
 YARDIMCI = KOK / "isci-semafor.py"
-ZSH = shutil.which("zsh") or "/bin/zsh"   # CI (ubuntu) adimi zsh'yi kurar
+# SINIR tek kaynak: yardimcinin `sinir` alt komutu (agir-is.sh de oradan okur).
+SINIR = int(subprocess.run(["python3", str(YARDIMCI), "sinir"], capture_output=True,
+                           text=True, timeout=10).stdout)
+ZSH =shutil.which("zsh") or "/bin/zsh"   # CI (ubuntu) adimi zsh'yi kurar
 
 UZUN = 'echo $$ > "$M"; sleep 60 & echo $! > "$T"; wait'
 TERMSIZ = 'trap "" TERM; echo $$ > "$M"; sleep 60 & echo $! > "$T"; wait'
@@ -258,9 +261,9 @@ def v4(yardimci):
             return False, "mesgul agir is bitirildi (rc=%s)" % d.sayi("rc", "v4")
         if d.satirlar("-OLDU"):
             return False, "mesgul is icin oldurme satiri: %r" % d.satirlar("-OLDU")
-        if not canli(d.sayi("torun", "v4")) or d.dolu() != 3:
+        if not canli(d.sayi("torun", "v4")) or d.dolu() != SINIR:
             return False, "mesgul is agaci/slotu dustu (dolu=%d)" % d.dolu()
-        return True, "CPU %50 ile 3.6 sn (asili 1.2 sn) kosum OLDURULMEDI, dolu=3"
+        return True, "CPU %%50 ile 3.6 sn (asili 1.2 sn) kosum OLDURULMEDI, dolu=%d" % SINIR
     finally:
         d.kapat()
 
