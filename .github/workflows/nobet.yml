@@ -2409,6 +2409,13 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/kanca-kablolama-test.py --mutasyon
 
+      # ISCI PUSH KAPISI (21 Eki 2026, BaBa 14:1x (2)): isci kosumu (PRUVO_ISCI_KOSUMU
+      # dolu) ISCI_PUSH_IZNI=<kendi etiketi> olmadan push edemez — pre-push 0- bolumu.
+      # 5 vaka + kablo (cagri 0) ile 0a) arasinda, `|| exit 1`) + 2 mutant.
+      - name: "Isci push kapisi kabul + kablo + mutant"
+        if: ${{ !cancelled() }}
+        run: python3 tools/isci-push-kapisi-test.py
+
       # IZIN MANIFESTI TUKETIMI (7 Eki 2026). post-commit eskiden uc izin manifestini
       # KOSULSUZ siliyordu: komsu evin commit'lenmemis duzelt.py izni baska bir evin
       # commit'inde gidiyor, guard o duzeltmeyi "izinsiz" sayip geri aliyordu (2 vaka,
