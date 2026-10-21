@@ -1,5 +1,648 @@
 [
   {
+    "id": "mini-cooper-07-15-camurluk-erisim-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper"
+      }
+    ],
+    "baslik": "MINI Cooper 07-15 İç Çamurluk Erişim Kapağı",
+    "aciklama": "2007-2015 MINI Cooper iç çamurluk erişim kapağının takviye kulplu replika parçasıdır; orijinal gibi takılır.\nYaklaşık dış ölçüler: 168 × 168 × 10 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5519557-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5519557-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5519557-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "15rlansing"
+    }
+  },
+  {
+    "id": "mini-cooper-on-izgara-whisker-klips",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper klasik"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper klasik"
+      }
+    ],
+    "baslik": "MINI Cooper Ön Izgara Whisker Klipsi",
+    "aciklama": "MINI Cooper klasik modelin ön ızgarasındaki whisker çıtasını yerinde tutan, dikey duruşta özel üretimle çalışan klipstir.\nYaklaşık dış ölçüler: 13 × 10 × 4 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3092620-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3092620-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "masterhobbyist"
+    }
+  },
+  {
+    "id": "mini-r50-r52-r53-torpido-kolu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "R50"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "R50"
+      }
+    ],
+    "baslik": "MINI R50/R52/R53 Torpido Kolu Yedeği",
+    "aciklama": "MINI R50, R52 ve R53'te sık kırılan torpido kapağı kolunun yerine takılan, mevcut yaylarla çalışan yedek kol parçasıdır; MK2 ve Accent olmak üzere iki varyantı vardır.\nYaklaşık dış ölçüler: 78 × 62 × 62 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4786606-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4786606-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Samrobmoe"
+    }
+  },
+  {
+    "id": "mini-r56-bmw-ahizesiz-ekran-aparati",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "R56"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "R56"
+      }
+    ],
+    "baslik": "MINI R56 BMW Ahizesiz Ekran Aparatı",
+    "aciklama": "BMW Mini R56'nın devir göstergesinin arkasına takılan, ahizesiz ekran braketi montaj elemanıdır.\nYaklaşık dış ölçüler: 195 × 83 × 15 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th326122-1.jpg",
+      "https://media.pruvo3d.com/urunler/th326122-2.jpg",
+      "https://media.pruvo3d.com/urunler/th326122-3.jpg",
+      "https://media.pruvo3d.com/urunler/th326122-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Thepoppydog"
+    }
+  },
+  {
+    "id": "mini-cooper-kumanda-uzatma-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper"
+      }
+    ],
+    "baslik": "MINI Cooper Kumanda Uzatma Aparatı",
+    "aciklama": "Direksiyon altındaki MINI Cooper kumanda düğmelerine daha kolay erişmek için takılan uzatma parçasıdır; beş adet komut için tasarlanmıştır.\nYaklaşık dış ölçüler: 28 × 13 × 10 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1437097-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1437097-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "tchitchou"
+    }
+  },
+  {
+    "id": "mini-cooper-bagaj-kapagi-buton",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper"
+      }
+    ],
+    "baslik": "MINI Cooper Bagaj Kapağı Butonu",
+    "aciklama": "MINI Cooper bagaj kapağının HAYON parçasıyla uyumlu, TPU malzemeden özel üretilen yedek butondur; PCB'yi neme karşı korumak için sıcak silikonla sabitlenir.\nYaklaşık dış ölçüler: 91 × 32 × 15 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4734313-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4734313-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4734313-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4734313-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Heuzef"
+    }
+  },
+  {
+    "id": "mini-countryman-top-mafsali-telefon-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Countryman"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Countryman"
+      }
+    ],
+    "baslik": "MINI Countryman Top Mafsalı Telefon Tutucu",
+    "aciklama": "MINI Countryman için mıknatıs top mafsal bağlantılı özelleştirilebilir telefon tutucudur; araç içi yapıyla uyumlu ölçülerde yapılabilir.\nYaklaşık dış ölçüler: 183 × 164 × 33 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2117513-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2117513-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2117513-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2117513-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "sgonzalezlopez"
+    }
+  },
+  {
+    "id": "mini-cooper-jcw-egzoz-valfi-bardaklik-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper JCW"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper JCW"
+      }
+    ],
+    "baslik": "MINI Cooper JCW Egzoz Valfi Bardaklık Tutucu",
+    "aciklama": "JCW Pro Kit egzoz valfinin kumandasını bardaklığa sabitleyen, bardaklığın başka amaçla kullanılmasını engelleyen tutucudur; F55/F56 MINI Cooper ile uyumludur.\nYaklaşık dış ölçüler: 63 × 36 × 30 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3060876-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3060876-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "barlowtj"
+    }
+  },
+  {
+    "id": "mini-cooper-r56-hava-seridi-uc-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper R56"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper R56"
+      }
+    ],
+    "baslik": "MINI Cooper R56 Hava Şeridi Uç Kapağı",
+    "aciklama": "R56 MINI Cooper pencere altındaki hava şeridinin uç kapağı yedeğidir; bu parça yoksa cam çerçevesi keskin kenarla kalır.\nYaklaşık dış ölçüler: 48 × 22 × 16 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6325365-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6325365-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "tinytrev1"
+    }
+  },
+  {
+    "id": "mini-r50-r52-r53-cift-din-cerceve-adaptor",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "R50"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "R50"
+      }
+    ],
+    "baslik": "MINI R50/R52/R53 Çift Din Çerçeve Adaptörü",
+    "aciklama": "R50, R52 ve R53 MINI'lara Sony XAV-AX6000 gibi çift din teyp takmak için sıfırdan tasarlanmış adaptör çerçevedir.\nYaklaşık dış ölçüler: 218 × 133 × 113 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6703417-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6703417-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6703417-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "T43D"
+    }
+  },
+  {
+    "id": "mini-cooper-cabrio-pencere-somunu-anahatar",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper"
+      }
+    ],
+    "baslik": "MINI Cooper / Cabrio Pencere Somunu Anahtarı",
+    "aciklama": "2002-2005 MINI Cooper ve Cabrio modellerinde pencere cam somununu söküp takmak için kullanılan özel anahtardır.\nYaklaşık dış ölçüler: 520 × 20 × 2 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5020135-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5020135-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5020135-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5020135-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "NiWark"
+    }
+  },
+  {
+    "id": "mini-r50-r52-r53-ikiz-gosterge-govdesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "R50"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "R50"
+      }
+    ],
+    "baslik": "MINI R50/R52/R53 İkiz Gösterge Gövdesi",
+    "aciklama": "MINI R50, R52 ve R53'e ikiz ek gösterge takarken devir saati yanına vidalı bağlantıyla monte edilen gösterge gövdesidir.\nYaklaşık dış ölçüler: 193 × 157 × 58 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5571081-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "seal515"
+    }
+  },
+  {
+    "id": "mini-cooper-r50-radyo-dugmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper"
+      }
+    ],
+    "baslik": "MINI Cooper Radyo Düğmesi Yedeği",
+    "aciklama": "MINI Cooper R53 için tasarlanmış olup benzer radyoya sahip tüm MINI Cooper'lara uyum sağlayan, metal insertin yeniden kullanıldığı yedek radyo düğmesidir.\nYaklaşık dış ölçüler: 18 × 15 × 14 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5228432-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5228432-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Jnwolf2000"
+    }
+  },
+  {
+    "id": "mini-cooper-r53-vites-kutusu-uzatmasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper R53"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper R53"
+      }
+    ],
+    "baslik": "MINI Cooper R53 Vites Kutusu Uzatma Parçası",
+    "aciklama": "R53 MINI Cooper'a kısa vites değiştirici takılırken karşılaşılan ölçü sorununu çözen vites kutusu uzatma parçasıdır.\nYaklaşık dış ölçüler: 123 × 90 × 21 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5429339-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5429339-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5429339-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "taggartalec"
+    }
+  },
+  {
+    "id": "mini-cooper-r50-r52-r53-torpido-klips",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper R50"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper R50"
+      }
+    ],
+    "baslik": "MINI Cooper R50/R52/R53 Torpido Klipsi",
+    "aciklama": "MINI Cooper, Cooper S ve Cabrio modellerinin gösterge paneli sabitleme klipsleridir; PLA veya PETG malzemeden özel üretilebilir.\nYaklaşık dış ölçüler: 16 × 16 × 10 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6973787-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6973787-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6973787-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "615sqn_Harry"
+    }
+  },
+  {
+    "id": "mini-cooper-seafoam-temizleme-portu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper turbo"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper turbo"
+      }
+    ],
+    "baslik": "MINI Cooper Seafoam Temizleme Portu",
+    "aciklama": "MINI Cooper turbo motorunda seafoam temizliği için hava kutusuna bağlanan basit port adaptörüdür; delikli ve düz iki seçenekle birlikte gelir.\nYaklaşık dış ölçüler: 70 × 37 × 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2941513-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2941513-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2941513-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2941513-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "NMotter"
+    }
+  },
+  {
+    "id": "mini-bardaklik-telefon-tutucu-aparati",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper"
+      }
+    ],
+    "baslik": "MINI Cooper Bardaklık Telefon Tutucu Aparatı",
+    "aciklama": "MINI Cooper döner bardaklığın kenarına takılan telefon tutucu aparattır; Nexus 5 ve 5X gibi belirli telefonlara özel ön ve arka braketlerle birlikte gelir.\nYaklaşık dış ölçüler: 76 × 25 × 22 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1280274-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1280274-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1280274-3.jpg",
+      "https://media.pruvo3d.com/urunler/th1280274-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "mbridak"
+    }
+  },
+  {
+    "id": "mini-cooper-r53-arac-ici-telefon-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper R53"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper R53"
+      }
+    ],
+    "baslik": "MINI Cooper R53 Araç İçi Telefon Tutucu",
+    "aciklama": "MINI Cooper R53 için tasarlanmış araç içi telefon tutucu parçadır; Baseus kablosuz şarjlı araç tutucusu ile birlikte kullanılmak üzere boyutlandırılmıştır.\nYaklaşık dış ölçüler: 52 × 37 × 37 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5567050-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5567050-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5567050-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5567050-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "minicooperR53"
+    }
+  },
+  {
+    "id": "mini-cooper-r56-sis-fari-plastik-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper R56"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper R56"
+      }
+    ],
+    "baslik": "MINI Cooper R56 Sis Farı Plastik Tutucu",
+    "aciklama": "MINI Cooper R56 ön sis farının plastik tutucu parçasıdır; orijinalden basitleştirilmiş mandalıyla birlikte gelir.\nYaklaşık dış ölçüler: 186 × 144 × 56 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6533524-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6533524-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6533524-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6533524-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "cookiemnstr1955"
+    }
+  },
+  {
+    "id": "mini-cooper-jcw-egzoz-buton-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper JCW"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper JCW"
+      }
+    ],
+    "baslik": "MINI Cooper JCW Egzoz Buton Tutucu",
+    "aciklama": "John Cooper Works egzoz sisteminin özel butonunu bardaklığa yerleştiren, kabloyu yuvasından geçiren tutucudur; böylece bardaklık başka amaçla kullanılabilir kalır.\nYaklaşık dış ölçüler: 106 × 87 × 35 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4015759-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4015759-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4015759-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4015759-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "TimboBr"
+    }
+  },
+  {
+    "id": "mini-cooper-s-r53-dortlu-spot-roleleri-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper S R53"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper S R53"
+      }
+    ],
+    "baslik": "MINI Cooper S R53 Dörtlü Spot Röle Tutucu",
+    "aciklama": "MINI Cooper S R53'e dörtlü spot lambası takılırken iki röle ve bir sigorta için tek gövdede yuvalayan tutucudur; R50/R52 ile birlikte kullanılabilir.\nYaklaşık dış ölçüler: 70 × 70 × 35 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4086034-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4086034-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "pheasant_plucker"
+    }
+  },
+  {
+    "id": "mini-countryman-r60-orta-ray-klips",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Countryman R60"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Countryman R60"
+      }
+    ],
+    "baslik": "MINI Countryman R60 Orta Ray Klips Profili",
+    "aciklama": "2014 MINI Countryman R60 orta rayındaki klips/koruyucu profili için yedek parçadır.\nYaklaşık dış ölçüler: 135 × 71 × 7 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3903526-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3903526-2.jpg"
+    ]
+  },
+  {
+    "id": "mini-cooper-r56-anahtar-buton-takami",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper R56"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper R56"
+      }
+    ],
+    "baslik": "MINI Cooper R56 Anahtar Buton Takımı",
+    "aciklama": "MINI Cooper R56 uzaktan kumanda anahtarının yıpranan butonlarını yenilemek için TPU malzemeden özel üretilen tamir takımıdır; taban kısmı için esnek malzeme uygundur.\nYaklaşık dış ölçüler: 42 × 20 × 3 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6771836-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6771836-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Znagy93"
+    }
+  },
+  {
+    "id": "mini-cooper-r53-arka-silecek-iptal-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper R53"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper R53"
+      }
+    ],
+    "baslik": "MINI Cooper R53 Arka Silecek İptal Kapağı",
+    "aciklama": "MINI Cooper R53'te arka sileceği söktükten sonra arka camda kalan deliği kapatan tapa ve arka plaka takımıdır.\nYaklaşık dış ölçüler: 50 × 50 × 11 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4057189-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4057189-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4057189-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4057189-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "boldhelvetica"
+    }
+  },
+  {
+    "id": "mini-cooper-f54-f55-f56-echo-auto-aparati",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper F54"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper F54"
+      }
+    ],
+    "baslik": "MINI Cooper F54/F55/F56 Echo Auto Aparatı",
+    "aciklama": "MINI Cooper F54, F55 ve F56 modellerinde Amazon Echo Auto'yu dört adet mıknatısla braket üzerinde tutan montaj parçasıdır.\nYaklaşık dış ölçüler: 190 × 107 × 6 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4605738-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "TMCBacklineAutomates"
+    }
+  },
+  {
     "id": "mini-cooper-f56-bardaklik-telefon-inserti",
     "kategori": "Otomobil",
     "marka": [
