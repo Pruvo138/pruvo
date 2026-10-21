@@ -18,6 +18,15 @@ Hukum (tek satir, jetonlar ayrik):
 Kontrol sirasi: is-akisi → dal → sha → durum → sonuc. SHA, durumdan ONCE: bayat bir
 kosumun sonucu ne olursa olsun bu dal ucu icin hukum tasimaz.
 
+PARITE SATIRI (21 Eki 2026, BaBa 22:4x): ESIT'ten sonra ikinci satir TEST 5'in
+(`hijyen-a3` logundaki `PARITE_TEST5=` jetonu, tools/filament-test.py) hukmunu tasir:
+  SERIT_PARITE=GECTI
+  SERIT_PARITE=OLCULEMEDI sebep=<yayin-kuyrugu|diger|jeton-yok|log-okunamadi> kapanis=deploy-nobeti
+OLCULEMEDI parite kabulu DEGILDIR: merge-kapisi §5 geregi deploy nobetinde kapanir,
+kapanmadan sonraki merge YOK. rc DEGISMEZ (ESIT = 0): RED donseydi merge Pages kuyrugunu
+beklerdi, yani TEK DENEME'nin kaldirdigi bekleme merge'e tasinirdi. Okunamayan log
+YESIL sayilmaz (OLCULEMEDI).
+
 Test icin `PRUVO_SERIT_GH` / `PRUVO_SERIT_GIT` sahte ikiliye yonlendirir (ag YOK).
 """
 import json
@@ -70,6 +79,32 @@ def kos(argv):
     return p.stdout
 
 
+PARITE_JOB = "hijyen-a3"
+PARITE_JETON = re.compile(r"PARITE_TEST5=(GECTI|KIRMIZI|OLCULEMEDI)(?: sebep=([a-z0-9-]+))?")
+
+
+def parite_satiri(run_id):
+    """TEST 5 hukmu: hijyen-a3 logundaki PARITE_TEST5 jetonu. GECTI disi her hal borctur."""
+    borc = "SERIT_PARITE=OLCULEMEDI sebep=%s kapanis=deploy-nobeti"
+    cikti = kos([GH, "run", "view", run_id, "--repo", REPO, "--json", "jobs"])
+    try:
+        joblar = json.loads(cikti)["jobs"] if cikti is not None else None
+        job_id = next((j["databaseId"] for j in joblar or []
+                       if j.get("name") == PARITE_JOB), None)
+    except (ValueError, KeyError, TypeError):
+        job_id = None
+    log = kos([GH, "api", f"repos/{REPO}/actions/jobs/{job_id}/logs"]) if job_id else None
+    if log is None:
+        return borc % "log-okunamadi"
+    jetonlar = PARITE_JETON.findall(log)
+    if not jetonlar:
+        return borc % "jeton-yok"
+    if all(h == "GECTI" for h, _ in jetonlar):
+        return "SERIT_PARITE=GECTI"
+    kotu = next((h, s) for h, s in jetonlar if h != "GECTI")
+    return borc % (kotu[1] or kotu[0].lower())
+
+
 def main(argv):
     if len(argv) != 3:
         print("kullanim: serit-b-uc-kapisi.py <dal> <run_id>", file=sys.stderr)
@@ -118,6 +153,7 @@ def main(argv):
         return red("basarisiz", f"conclusion={sonuc}")
 
     print(f"SERIT_UC=ESIT run={run_id} sha={uc[:12]}")
+    print(parite_satiri(run_id))
     return 0
 
 

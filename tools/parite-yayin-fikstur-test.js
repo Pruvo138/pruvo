@@ -73,7 +73,8 @@ function urunUret(n, onek) {
 // GIZLI kume = TASLAK satirin canli davranisi: satir D1'de DURUR ama `yayinda = 1`
 // sarti yuzunden /ara'da DA /katalog?ids='de DA /katalog sayiminda DA GORUNMEZ.
 // (Gercek uc bunu WHERE ile yapar; fikstur ayni GORUNUR sonucu uretir.)
-function sunucuKur({ yerel, gizli }) {
+function sunucuKur({ yerel, gizli, ekSayim }) {
+  // ekSayim: canli SAYIMA eklenen, yerelde olmayan satir sayisi (canli >= yerel imzasi).
   const gorunur = yerel.filter((p) => !gizli.has(p.id));
   const harita = new Map(gorunur.map((p) => [p.id, p]));
   // OLCUM ORTAMI IZI: her /ara isteginde `marka_kanon`un HANGI katalogtan turedigi
@@ -101,7 +102,7 @@ function sunucuKur({ yerel, gizli }) {
         const bulunan = ham.slice(0, IDS_TAVANI).map((i) => harita.get(i)).filter(Boolean);
         return gonder({ toplam: bulunan.length, urunler: bulunan.map((p) => ({ id: p.id })) });
       }
-      return gonder({ toplam: gorunur.length, sayfa: 1, urunler: [] });
+      return gonder({ toplam: gorunur.length + (ekSayim || 0), sayfa: 1, urunler: [] });
     }
     if (u.pathname === "/ara") {
       const q = u.searchParams.get("q") || "";
@@ -281,7 +282,7 @@ function birimOlc() {
 // ── BEKLE-YENIDEN-OLC (K438): onKosulOlc SUREC ICINDE, uyku ENJEKTE (gercek bekleme YOK) ──
 // Sahte uc: yerel id'lerin `gizli` olanlari ucun HICBIR yuzeyinde gorunmez (taslak).
 // `yayinla()` cagrilinca gizli kume bosalir = deploy'un `yayin` isi bitti.
-function beklemeSunucusu(yerelIdler, gizli) {
+function beklemeSunucusu(yerelIdler, gizli, ekSayim) {
   const iz = { sayimNonce: [] };
   const sunucu = http.createServer((req, res) => {
     const u = new URL(req.url, "http://127.0.0.1");
@@ -298,7 +299,7 @@ function beklemeSunucusu(yerelIdler, gizli) {
       return gonder({ toplam: bulunan.length, urunler: bulunan.map((id) => ({ id })) });
     }
     iz.sayimNonce.push(u.searchParams.get("_nonce"));
-    return gonder({ toplam: gorunur.length, sayfa: 1, urunler: [] });
+    return gonder({ toplam: gorunur.length + (ekSayim || 0), sayfa: 1, urunler: [] });
   });
   return new Promise((cozul) => {
     sunucu.listen(0, "127.0.0.1", () => cozul({
@@ -325,7 +326,7 @@ async function beklemeOlc() {
   const ARALIK = 60;
 
   // Tek vaka: sahte uc + hal komutu spec'i + enjekte uyku (k. uykuda yayin biter).
-  async function vaka({ halSpec, argvYok, ayar, yayinlaUykuda }) {
+  async function vaka({ halSpec, argvYok, ayar, yayinlaUykuda, ekSayim }) {
     for (const a of ENV_ADLARI) delete process.env[a];
     if (argvYok) {
       process.env.PARITE_URUNLER = path.join(gecici, "yok.json");    // fikstur -> argv null
@@ -334,7 +335,7 @@ async function beklemeOlc() {
       process.env.SAHTE_HAL_SPEC = JSON.stringify(halSpec || {});
     }
     const gizli = new Set(TASLAK);
-    const s = await beklemeSunucusu(YEREL, gizli);
+    const s = await beklemeSunucusu(YEREL, gizli, ekSayim);
     const uykular = [];
     const uyku = async (ms) => {
       uykular.push(ms);
@@ -387,11 +388,25 @@ async function beklemeOlc() {
     const bosAyar = ORTAK.yayinBekleAyari({});
     ONA(bosAyar.butceSn === 0 && ORTAK.yayinBekleAyari({ PARITE_YAYIN_BEKLE_SN: "0" }).butceSn === 0,
       "W3 env yok/0 -> butce 0", JSON.stringify(bosAyar));
-    const w3 = await vaka({ halSpec: { patla: true }, yayinlaUykuda: 1, ayar: bosAyar });
+    const w3 = await vaka({ halSpec: { patla: true }, yayinlaUykuda: 1, ayar: bosAyar,
+      ekSayim: TASLAK.length + 1 });
     ONA(w3.uykular.length === 0, "W3 uyku cagrisi 0", JSON.stringify(w3.uykular));
     ONA(w3.r.kirmizi !== null && /YAYIN HALI OKUNAMADI/.test(w3.r.kirmizi) &&
-        !/beklendi/.test(w3.r.kirmizi), "W3 KIRMIZI metni eski haliyle (bekleme eki YOK)",
-      metin(w3));
+        !/beklendi/.test(w3.r.kirmizi),
+      "W3 canli >= yerel: KIRMIZI metni eski haliyle (bekleme eki YOK)", metin(w3));
+
+    // W7 TEK DENEME (BaBa 21 Eki 22:4x): butce 0 + canli < yerel -> OLCULEMEDI, uyku 0.
+    // 🔴 YESIL DEGIL: durdu dolu (sorgu kosmaz) + olculemedi dolu -> sonucYaz 3 verir.
+    aktifSenaryo = "W7 TEK DENEME: butce 0 + canli < yerel -> OLCULEMEDI sebep=yayin-kuyrugu";
+    const w7 = await vaka({ halSpec: { patla: true }, yayinlaUykuda: 1, ayar: bosAyar });
+    ONA(w7.uykular.length === 0, "W7 uyku cagrisi 0 (bekleme 0 sn)", JSON.stringify(w7.uykular));
+    ONA(w7.r.kirmizi === null && typeof w7.r.durdu === "string" &&
+        /sebep=yayin-kuyrugu/.test(w7.r.durdu), "W7 KIRMIZI DEGIL, durdu=yayin-kuyrugu",
+      metin(w7));
+    ONA(w7.r.olculemedi.length > 0 && w7.r.gecikmeModu === false,
+      "W7 olculemedi DOLU -> YESIL'e donemez (on-kosul kapanmadi)", metin(w7));
+    ONA(w7.iz.sayimNonce.length === 1, "W7 canli sayi TEK kez olculdu",
+      w7.iz.sayimNonce.join(","));
 
     // W4 argv yok (fikstur modu, komut verilmedi) -> bekleme YOK.
     aktifSenaryo = "W4 BEKLE: argv YOK (fikstur) -> bekleme YOK";
@@ -548,9 +563,12 @@ async function main() {
   });
 
   // ── 3) FAIL-CLOSED: hal OKUNAMADI -> eski kati davranis AYNEN surer ─────────
+  // canli >= yerel iken (ekSayim) eksik id Pages kuyruguyla ACIKLANAMAZ -> KIRMIZI.
+  // canli < yerel hali (kuyruk imzasi) Y3K'dadir: TEK deneme, OLCULEMEDI.
+  const FAZLA = GIZLI.size + 1;
   senaryolar.push({
     ad: "Y3 FAIL-CLOSED (OKUNAMADI): yayin hali komutu patlar -> cikis 1 KIRMIZI",
-    dosya: PARITE_SITE, yerel: TABAN, gizli: GIZLI, spec: { patla: true },
+    dosya: PARITE_SITE, yerel: TABAN, gizli: GIZLI, ekSayim: FAZLA, spec: { patla: true },
     dogrula: (r) => {
       ONA(r.kod === 1, "cikis 1 KIRMIZI ('olcemedim' YESIL SAYILMAZ)", r.cikti.slice(-800));
       ONA(/YAYIN HALI OKUNAMADI/.test(r.cikti), "sebep: hal okunamadi");
@@ -558,8 +576,19 @@ async function main() {
     },
   });
   senaryolar.push({
+    ad: "Y3K TEK DENEME (yayin kuyrugu): canli < yerel + hal OKUNAMAZ -> cikis 3, bekleme 0",
+    dosya: PARITE_SITE, yerel: TABAN, gizli: GIZLI, spec: { patla: true },
+    dogrula: (r) => {
+      ONA(r.kod === 3, "cikis 3 OLCULEMEDI (ne KIRMIZI ne YESIL)", r.cikti.slice(-800));
+      ONA(/OLCULEMEDI sebep=yayin-kuyrugu/.test(r.cikti), "sebep jetonu: sebep=yayin-kuyrugu",
+        r.cikti.slice(-800));
+      ONA(kosanSorgu(r.cikti) === 0, "on-kosulda durdu (0 sorgu, TEK deneme)");
+      ONA(!/beklendi/.test(r.cikti), "bekleme YOK (beklendi eki basilmadi)");
+    },
+  });
+  senaryolar.push({
     ad: "Y4 FAIL-CLOSED (olculdu=false): komut 'olcemedim' derse -> cikis 1 KIRMIZI",
-    dosya: PARITE_SITE, yerel: TABAN, gizli: GIZLI, spec: { olculemedi: true },
+    dosya: PARITE_SITE, yerel: TABAN, gizli: GIZLI, ekSayim: FAZLA, spec: { olculemedi: true },
     dogrula: (r) => {
       ONA(r.kod === 1, "cikis 1 KIRMIZI", r.cikti.slice(-800));
       ONA(/YAYIN HALI OKUNAMADI/.test(r.cikti), "sebep: hal okunamadi");
@@ -567,7 +596,7 @@ async function main() {
   });
   senaryolar.push({
     ad: "Y5 FAIL-CLOSED (bozuk JSON): cikti ayristirilamaz -> cikis 1 KIRMIZI",
-    dosya: PARITE_SITE, yerel: TABAN, gizli: GIZLI, spec: { bozukJson: true },
+    dosya: PARITE_SITE, yerel: TABAN, gizli: GIZLI, ekSayim: FAZLA, spec: { bozukJson: true },
     dogrula: (r) => {
       ONA(r.kod === 1, "cikis 1 KIRMIZI", r.cikti.slice(-800));
       ONA(/YAYIN HALI OKUNAMADI/.test(r.cikti), "sebep: hal okunamadi");

@@ -236,6 +236,10 @@ def parite_sebep_ayikla(cikti):
     if "FIKSTUR MODU" in c:
         return ("olculemedi: FIKSTUR MODU (test-only env) — kanonik katalog/uc OLCULMEDI, "
                 "parite BELGELENMEDI")
+    # TEK DENEME (BaBa 21 Eki 22:4x): canli < yerel + yayin hali okunamadi -> beklenmez.
+    if "sebep=yayin-kuyrugu" in c:
+        return ("olculemedi: sebep=yayin-kuyrugu — canli sayi yerelin altinda, TEK deneme "
+                "(bekleme 0 sn); parite BELGELENMEDI, deploy nobetinde kapanir")
     if "WAF/UA" in c:
         return "olculemedi: WAF/UA duvari (403) — ayrisma SAYILMADI"
     if "HIZ SINIRI" in c:
@@ -267,6 +271,17 @@ def parite_exit_yorumla(exit_kodu, cikti=""):
                 "test KOSULAMADI (exit 2) — bot kaynagi VAR ama sozlesmesi KIRIK "
                 "(beklenen fonksiyon disa aktarilmiyor)")
     return (False, PARITE_KIRMIZI, "beklenmeyen cikis kodu: %s" % exit_kodu)
+
+
+def parite_jetonu(etiket, sebep):
+    """SAF. TEST 5'in makine okunur satiri; tools/serit-b-uc-kapisi.py bunu okur.
+    GECTI disindaki her hal parite BORCUDUR (deploy nobetinde kapanir)."""
+    if etiket == PARITE_GECTI:
+        return "PARITE_TEST5=GECTI"
+    if etiket == PARITE_ATLANDI:
+        return "PARITE_TEST5=OLCULEMEDI sebep=%s" % (
+            "yayin-kuyrugu" if "sebep=yayin-kuyrugu" in (sebep or "") else "diger")
+    return "PARITE_TEST5=KIRMIZI"
 
 
 def parite_eslem_testi():
@@ -315,6 +330,19 @@ def parite_eslem_testi():
     ok, et, sb = parite_exit_yorumla(3, "⚠️ FIKSTUR MODU: test-only env verildi (PARITE_URUNLER)")
     ona(ok and et == PARITE_ATLANDI and "FIKSTUR MODU" in sb,
         "exit 3 (PARITE_URUNLER/fikstur modu) -> ATLANDI + GORUNUR uyari (yutulmaz)")
+
+    # TEK DENEME: Pages kuyrugu ATLANDI'dir (yesil DEGIL) ve jetonu makine okunur kalir.
+    ok, et, sb = parite_exit_yorumla(
+        3, "   • OLCULEMEDI sebep=yayin-kuyrugu: canli=40 < yerel=43, 3 id canlida yok")
+    ona(ok and et == PARITE_ATLANDI and "sebep=yayin-kuyrugu" in sb,
+        "exit 3 (yayin kuyrugu) -> ATLANDI + sebep=yayin-kuyrugu")
+    ona(parite_jetonu(et, sb) == "PARITE_TEST5=OLCULEMEDI sebep=yayin-kuyrugu",
+        "yayin kuyrugu jetonu: PARITE_TEST5=OLCULEMEDI sebep=yayin-kuyrugu")
+    ona(parite_jetonu(PARITE_GECTI, "") == "PARITE_TEST5=GECTI",
+        "GECTI jetonu: PARITE_TEST5=GECTI")
+    ona(parite_jetonu(PARITE_ATLANDI, "olculemedi: WAF/UA duvari (403)") ==
+        "PARITE_TEST5=OLCULEMEDI sebep=diger",
+        "baska exit 3 jetonu OLCULEMEDI sebep=diger (GECTI'ye dusmez)")
 
     ok, et, sb = parite_exit_yorumla(2, "index.js'te urunAra() bulunamadi")
     ona((not ok) and et == PARITE_KIRMIZI, "exit 2 -> KIRMIZI (fail-closed, kosulamadi)")
@@ -601,6 +629,7 @@ def main():
         # ---- 5) parite testleri (ag gerekir; PARITE=0 ile atlanabilir)
         if os.environ.get("PARITE", "1") == "0":
             kayit(5, "parite testleri", True, "ATLANDI (PARITE=0)")
+            print(parite_jetonu(PARITE_ATLANDI, ""), flush=True)
         else:
             p1 = subprocess.run(["node", os.path.join(TOOLS, "parite-test.js"), "300"],
                                 capture_output=True, text=True, cwd=ROOT)
@@ -613,6 +642,8 @@ def main():
             if not ok:
                 det += " | " + (p1.stdout + p1.stderr).strip()[-300:]
             kayit(5, "parite (site) — aciklama degismedi kaniti", ok, det)
+            # Makine okunur satir (serit-b-uc-kapisi.py okur): GECTI disi = parite borcu.
+            print(parite_jetonu(et1, sb1), flush=True)
             # A15 NOBETI: ATLANDI sessizce "yesil" gorunmesin — STDERR'e de dusur.
             if et1 == PARITE_ATLANDI:
                 print("⚪ PARITE ATLANDI (parite BELGELENMEDI, cikis 3): %s" % det,

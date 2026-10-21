@@ -249,6 +249,29 @@ const MUTANTLAR = [
     ara: "  \"PARITE_YEREL_HEAD_YAS_SN\",    // yerel HEAD",
     yaz: "  \"PARITE_YEREL_HEAD_YAS_SN\", \"PARITE_YAYIN_BEKLE_SN\",    // yerel HEAD",
   },
+  // ── TEK DENEME (BaBa 21 Eki 22:4x): yayin fiksturunun W7/Y3/Y3K/Y6 vakalari yakalar ──
+  {
+    ad: "M-W5 ON-KOSUL KAPANMADAN GECTI: yayin kuyrugu OLCULEMEDI yerine temiz on-kosul " +
+      "doner (sorgular kosar, borc YAZILMAZ)",
+    dosya: "parite-ortak.js", fikstur: "parite-yayin-fikstur-test.js",
+    ara: "        return { gecikmeModu: false, kirmizi: null, durdu: n, notlar, olculemedi,\n" +
+      "          canliSayi, yerelSayi, acik: 0, taslakIdler };\n      }\n      if (!beklemeAcik)",
+    yaz: "        return { gecikmeModu: false, kirmizi: null, notlar: [], olculemedi: [],\n" +
+      "          canliSayi, yerelSayi, acik: 0, taslakIdler };\n      }\n      if (!beklemeAcik)",
+  },
+  {
+    ad: "M-W6 KUYRUK IMZASI GENISLEDI: canli >= yerel iken de OLCULEMEDI (eksik id " +
+      "kuyrukla aciklanamaz, KIRMIZI yutulur)",
+    dosya: "parite-ortak.js", fikstur: "parite-yayin-fikstur-test.js",
+    ara: "yayinHaliArgv() !== null && canliSayi < yerelSayi && !hal.kismi) {",
+    yaz: "yayinHaliArgv() !== null && !hal.kismi) {",
+  },
+  {
+    ad: "M-W7 KISMI OLCUM KUYRUGA KARISTI: D1 okundu ama id donmedi -> OLCULEMEDI",
+    dosya: "parite-ortak.js", fikstur: "parite-yayin-fikstur-test.js",
+    ara: "yayinHaliArgv() !== null && canliSayi < yerelSayi && !hal.kismi) {",
+    yaz: "yayinHaliArgv() !== null && canliSayi < yerelSayi) {",
+  },
   {
     ad: "K-W KONTROL: bekleme sayaci davranissiz yeniden yazildi -> YESIL kalmali",
     kontrol: true,

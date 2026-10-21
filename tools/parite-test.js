@@ -332,7 +332,8 @@ if (require.main === module) (async () => {
   // 🔴 SIRA: on-kosul KIRMIZISI yukarida dondu (1 > 3 > 0). Buradaki durus, katalog
   // farkiyla aciklanabilir sapmalari DAYANAKSIZ kirmiziya cevirmemek icindir.
   if (onKosul.durdu) {
-    OLCULEMEDI.push("supurme tavani -> 0/" + sorgular.length + " sorgu olculdu");
+    OLCULEMEDI.push((/sebep=yayin-kuyrugu/.test(onKosul.durdu) ? "yayin kuyrugu" :
+      "supurme tavani") + " -> 0/" + sorgular.length + " sorgu olculdu");
     return bitir(ortak.sonucYaz({
       etiket: UC_ETIKETI, gecti: 0, atlandi: 0, hatalar: [], onKosul,
       sayac: SAYAC, sn: ((Date.now() - t0) / 1000).toFixed(1),

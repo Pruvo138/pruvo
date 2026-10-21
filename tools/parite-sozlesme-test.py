@@ -124,6 +124,19 @@ ONA((not ok) and et == FT.PARITE_KIRMIZI and "sozlesmesi KIRIK" in sb,
 ONA("BOT KAYNAGI YOK" in ortak_metin,
     "sozlesme tablosu ucuncu sinifi ADIYLA sayiyor (tek kaynak guncel)")
 
+# ── 3c) TEK DENEME (BaBa 21 Eki 22:4x): yayin kuyrugu ATLANDI, jetonu GECTI DEGIL ──────
+ok, et, sb = FT.parite_exit_yorumla(
+    3, "   • OLCULEMEDI sebep=yayin-kuyrugu: canli=40 < yerel=43, 3 id canlida yok")
+ONA(ok and et == FT.PARITE_ATLANDI and "sebep=yayin-kuyrugu" in sb,
+    "exit 3 (yayin kuyrugu) -> ATLANDI + sebep=yayin-kuyrugu GORUNUR")
+ONA(FT.parite_jetonu(et, sb) == "PARITE_TEST5=OLCULEMEDI sebep=yayin-kuyrugu",
+    "yayin kuyrugu jetonu OLCULEMEDI (uc kapisi okur; GECTI DEGIL)")
+ONA(FT.parite_jetonu(FT.PARITE_GECTI, "") == "PARITE_TEST5=GECTI" and
+    FT.parite_jetonu(FT.PARITE_KIRMIZI, "x") == "PARITE_TEST5=KIRMIZI",
+    "GECTI/KIRMIZI jetonlari birebir")
+ONA("YAYIN KUYRUGU" in ortak_metin,
+    "sozlesme tablosu yayin kuyrugu sebebini ADIYLA sayiyor (tek kaynak guncel)")
+
 # ══ 4) ESLEME 2/4 — edge-flip-hazirlik.py: 3 -> BLOKLU (gerileme degil, GO da yok) ══
 print("\n4) ESLEME 2/4 — edge-flip-hazirlik.py")
 EF = yukle("edge_flip_hazirlik", TUKETICILER["edge-flip-hazirlik.py"])

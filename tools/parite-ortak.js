@@ -21,6 +21,7 @@
  * ║                          ayri (senkron gecikmesi / D1'de yetim satir — AYIRT        ║
  * ║                          EDILEMEZ) · FIKSTUR MODU (test-only env verilmis)          ║
  * ║                          · BOT KAYNAGI YOK (kardes depo bu ortamda MEVCUT DEGIL)    ║
+ * ║                          · YAYIN KUYRUGU (canli < yerel, hal okunamadi; TEK deneme) ║
  * ║                                                                                     ║
  * ║ 🔴 2 ile 3'un AYRIMI — 6 Eyl 2026'da OLCULEN kok (iki kovali siniflama UCUNCU       ║
  * ║    sinifi yutuyordu). Eskiden "bot kaynagi YOK" da "fonksiyonu YOK" da tek exit 2   ║
@@ -717,7 +718,7 @@ function yayinHaliOku(idler) {
   const kapsanan = new Set(yok.concat(yayinda, taslak.map((t) => t.id)));
   const eksikOlcum = idler.filter((id) => !kapsanan.has(id));
   if (eksikOlcum.length) {
-    return { olculdu: false, sebep: eksikOlcum.length + " id icin hal DONMEDI (kismi olcum " +
+    return { olculdu: false, kismi: true, sebep: eksikOlcum.length + " id icin hal DONMEDI (kismi olcum " +
       "KABUL EDILMEZ) — or. " + eksikOlcum.slice(0, 3).join(", ") };
   }
   return {
@@ -872,6 +873,23 @@ async function onKosulOlc({ uc, yerelIdler, sayac, nonce, bekleme }) {
         "EDILEMEDI, fail-closed KIRMIZI. 'Olcemedim' YESIL SAYILMAZ.";
       // K438 BEKLE-YENIDEN-OLC (bkz. yayinBekleAyari): yalniz komut VARKEN (fikstur degil).
       const beklemeAcik = bk.butceSn > 0 && yayinHaliArgv() !== null;
+      // 🔴 TEK DENEME (BaBa 21 Eki 22:4x): SERIT B'de bekleme 2846 sn'ye cikti ve run duvar
+      // saatini o belirledi (run 39644473279). Bekleme butcesi 0 iken, komut VARKEN ve
+      // canli sayi yerelin ALTINDAYKEN (Pages kuyrugunun imzasi: yerelde var, canlida
+      // henuz yok) hukum OLCULEMEDI'dir: ne KIRMIZI ne YESIL, sorgu KOSMAZ (durdu).
+      // Parite kabulu deploy nobetinde kapanir (merge-kapisi §5); kapanmadan sonraki
+      // merge YOK. canli >= yerel iken eksik id KUYRUKLA ACIKLANAMAZ -> KIRMIZI aynen;
+      // KISMI olcum (komut D1'i okudu ama bir id'yi dondurmedi) kuyruk imzasi DEGIL -> KIRMIZI.
+      if (bk.butceSn === 0 && yayinHaliArgv() !== null && canliSayi < yerelSayi && !hal.kismi) {
+        const n = "OLCULEMEDI sebep=yayin-kuyrugu: canli=" + canliSayi + " < yerel=" +
+          yerelSayi + ", " + eksik.length + " id canlida yok, yayin hali OKUNAMADI (" +
+          hal.sebep + ") -> TEK deneme, bekleme 0 sn. KIRMIZI DEGIL, YESIL DEGIL: parite " +
+          "kabulu deploy nobetinde kapanir | ornek: " + eksik.slice(0, 5).join(", ");
+        notlar.push(n);
+        olculemedi.push(n);
+        return { gecikmeModu: false, kirmizi: null, durdu: n, notlar, olculemedi,
+          canliSayi, yerelSayi, acik: 0, taslakIdler };
+      }
       if (!beklemeAcik) return kirmiziDon(okunamadi);
       let beklenen = 0;
       let kapandi = false;

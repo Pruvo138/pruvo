@@ -3678,8 +3678,8 @@ IZIN_LISTESI = {
         "OLCULEMEDI rc 2 verir (fail-closed), CI'da sabit bir dal/run cifti YOKTUR. "
         "Cagri yeri skill merge-kapisi §5 (merge oncesi SERIT B kosumu headSha == dal "
         "ucu). Kabul bataryasi CI'da adiyla kosar: nobet.yml `serit-b` -> "
-        "`tools/serit-b-uc-kapisi-test.py` (gh/git sahte ikili, 9 vaka + taban + "
-        "M1/M2 mutant, izole kopya)."),
+        "`tools/serit-b-uc-kapisi-test.py` (gh/git sahte ikili, 14 vaka + taban + "
+        "M1-M4 mutant, izole kopya)."),
     # (KraL-KapiSupurmesi-29Agu: nobet-gorev-jeton-kapisi muafiyeti kaldirildi —
     # kapi silindi.)
 }

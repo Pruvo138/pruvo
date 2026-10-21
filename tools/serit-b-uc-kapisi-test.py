@@ -9,7 +9,10 @@ kosulur — taban kirmiziysa her mutant "oldu" gorunurdu.
 Vakalar: V1 esit+success -> ESIT rc0 · V2 bayat sha -> RED bayat-sha · V3 surmekte ·
 V4 baska dal · V5 gh hatasi -> OLCULEMEDI rc2 · V6 is akisi farkli · V7 basarisiz ·
 V8 git hatasi -> OLCULEMEDI · V9 bayat+cancelled (10 Eki vakasi) -> bayat-sha.
-Mutantlar: M1 sha karsilastirmasi kalkar -> V2 yesil · M2 OLCULEMEDI rc 0 -> V5.
+Parite satiri (ikinci satir): V10 GECTI · V11 yayin-kuyrugu borcu · V12 jeton yok ·
+V13 log okunamadi · V14 hijyen-a3 isi yok -> hepsi rc 0, GECTI disi BORC.
+Mutantlar: M1 sha karsilastirmasi kalkar -> V2 yesil · M2 OLCULEMEDI rc 0 -> V5 ·
+M3 borc GECTI'ye cevrilir -> V11 · M4 okunamayan log GECTI -> V13.
 """
 import json
 import os
@@ -29,8 +32,19 @@ RUN = "123456"
 SAHTE_GH = """import os, sys
 if os.environ.get("SAHTE_GH_RC", "0") != "0":
     sys.stderr.write("gh: sahte hata\\n"); sys.exit(int(os.environ["SAHTE_GH_RC"]))
+if sys.argv[1:2] == ["api"]:
+    if "SAHTE_GH_LOG" not in os.environ:
+        sys.stderr.write("gh: log yok\\n"); sys.exit(1)
+    sys.stdout.write(os.environ["SAHTE_GH_LOG"]); sys.exit(0)
+if sys.argv[-1] == "jobs":
+    sys.stdout.write(os.environ.get("SAHTE_GH_JOBS",
+        '{"jobs":[{"name":"hijyen-a2","databaseId":76},{"name":"hijyen-a3","databaseId":77}]}'))
+    sys.exit(0)
 sys.stdout.write(os.environ["SAHTE_GH_JSON"])
 """
+LOG_GECTI = "2026-10-21T18:41:08Z   ✅ TEST 5 — parite\n2026-10-21T18:41:08Z PARITE_TEST5=GECTI\n"
+LOG_KUYRUK = "2026-10-21T18:41:08Z PARITE_TEST5=OLCULEMEDI sebep=yayin-kuyrugu\n"
+BORC = "SERIT_PARITE=OLCULEMEDI sebep=%s kapanis=deploy-nobeti"
 SAHTE_GIT = """import os, sys
 if os.environ.get("SAHTE_GIT_RC", "0") != "0":
     sys.exit(int(os.environ["SAHTE_GIT_RC"]))
@@ -82,6 +96,18 @@ def vakalar(ad):
          "SERIT_UC=OLCULEMEDI sebep=git-fetch"),
         ("V9", {"SAHTE_GH_JSON": kosum(ad, sha=BAYAT, conclusion="cancelled")}, 1,
          "SERIT_UC=RED sebep=bayat-sha"),
+        # PARITE SATIRI (ikinci satir): GECTI disi her hal borc; rc DEGISMEZ.
+        ("V10", {"SAHTE_GH_JSON": kosum(ad), "SAHTE_GH_LOG": LOG_GECTI}, 0,
+         f"SERIT_UC=ESIT run={RUN} sha={UC[:12]}", "SERIT_PARITE=GECTI"),
+        ("V11", {"SAHTE_GH_JSON": kosum(ad), "SAHTE_GH_LOG": LOG_GECTI + LOG_KUYRUK}, 0,
+         f"SERIT_UC=ESIT run={RUN} sha={UC[:12]}", BORC % "yayin-kuyrugu"),
+        ("V12", {"SAHTE_GH_JSON": kosum(ad), "SAHTE_GH_LOG": "TEST 5 yok\n"}, 0,
+         f"SERIT_UC=ESIT run={RUN} sha={UC[:12]}", BORC % "jeton-yok"),
+        ("V13", {"SAHTE_GH_JSON": kosum(ad)}, 0,
+         f"SERIT_UC=ESIT run={RUN} sha={UC[:12]}", BORC % "log-okunamadi"),
+        ("V14", {"SAHTE_GH_JSON": kosum(ad), "SAHTE_GH_LOG": LOG_GECTI,
+                 "SAHTE_GH_JOBS": '{"jobs":[{"name":"hijyen-a2","databaseId":76}]}'}, 0,
+         f"SERIT_UC=ESIT run={RUN} sha={UC[:12]}", BORC % "log-okunamadi"),
     ]
 
 
@@ -92,8 +118,14 @@ def calistir(kapi, sahte, env_ek):
     env.update(env_ek)
     p = subprocess.run([sys.executable, kapi, DAL, RUN], capture_output=True, text=True,
                        env=env, timeout=60)
-    ilk = (p.stdout.splitlines() or [""])[0]
-    return p.returncode, ilk
+    satirlar = p.stdout.splitlines() + ["", ""]
+    return p.returncode, satirlar[0], satirlar[1]
+
+
+def tutar(vaka, rc, ilk, ikinci):
+    """Vaka beklentisi: rc + ilk satir (+ verildiyse ikinci satir) birebir."""
+    _, _, b_rc, b_satir, *b_ikinci = vaka
+    return rc == b_rc and ilk == b_satir and (not b_ikinci or ikinci == b_ikinci[0])
 
 
 def izole_kopya(kok, mutasyon=None):
@@ -119,6 +151,11 @@ MUTANTLAR = [
     ("M2", "OLCULEMEDI rc 0'a cevrildi",
      ('print(f"SERIT_UC=OLCULEMEDI sebep={sebep}")\n    return 2',
       'print(f"SERIT_UC=OLCULEMEDI sebep={sebep}")\n    return 0'), "V5"),
+    # On-kosul kapanmadiginda (yayin kuyrugu) GECTI basan surum KIRMIZI yakmali.
+    ("M3", "parite borcu GECTI'ye cevrildi",
+     ('if all(h == "GECTI" for h, _ in jetonlar):', "if True:"), "V11"),
+    ("M4", "okunamayan log GECTI sayildi",
+     ('        return borc % "log-okunamadi"', '        return "SERIT_PARITE=GECTI"'), "V13"),
 ]
 
 
@@ -133,29 +170,28 @@ def main():
         sahte = sahte_kur(gecici)
         tablo = {v[0]: v for v in vakalar(ad)}
 
-        for kimlik, env_ek, b_rc, b_satir in tablo.values():
-            rc, ilk = calistir(KAPI, sahte, env_ek)
-            ok = rc == b_rc and ilk == b_satir
+        for vaka in tablo.values():
+            rc, ilk, ikinci = calistir(KAPI, sahte, vaka[1])
+            ok = tutar(vaka, rc, ilk, ikinci)
             hata += not ok
-            print(f"{'YESIL' if ok else 'KIRMIZI'} {kimlik} rc={rc} (beklenen {b_rc}) | {ilk}")
+            print(f"{'YESIL' if ok else 'KIRMIZI'} {vaka[0]} rc={rc} (beklenen {vaka[2]}) | "
+                  f"{ilk}{' | ' + ikinci if len(vaka) > 4 else ''}")
 
         # TABAN: mutasyonsuz izole kopya, mutantlarin hedef vakalarinda yesil olmali
         taban = izole_kopya(os.path.join(gecici, "taban"))
         for _, _, _, hedef in MUTANTLAR:
-            _, env_ek, b_rc, b_satir = tablo[hedef]
-            rc, ilk = calistir(taban, sahte, env_ek)
-            ok = rc == b_rc and ilk == b_satir
+            rc, ilk, ikinci = calistir(taban, sahte, tablo[hedef][1])
+            ok = tutar(tablo[hedef], rc, ilk, ikinci)
             hata += not ok
-            print(f"{'YESIL' if ok else 'KIRMIZI'} TABAN-{hedef} rc={rc} | {ilk}")
+            print(f"{'YESIL' if ok else 'KIRMIZI'} TABAN-{hedef} rc={rc} | {ilk} | {ikinci}")
 
         for kimlik, aciklama, mutasyon, hedef in MUTANTLAR:
             kopya = izole_kopya(os.path.join(gecici, kimlik), mutasyon)
-            _, env_ek, b_rc, b_satir = tablo[hedef]
-            rc, ilk = calistir(kopya, sahte, env_ek)
-            yakalandi = not (rc == b_rc and ilk == b_satir)
+            rc, ilk, ikinci = calistir(kopya, sahte, tablo[hedef][1])
+            yakalandi = not tutar(tablo[hedef], rc, ilk, ikinci)
             hata += not yakalandi
             print(f"{'YAKALANDI' if yakalandi else 'KACTI'} {kimlik} ({aciklama}) -> "
-                  f"{hedef} rc={rc} | {ilk}")
+                  f"{hedef} rc={rc} | {ilk} | {ikinci}")
     finally:
         shutil.rmtree(gecici, ignore_errors=True)
 
