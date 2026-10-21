@@ -6,9 +6,11 @@ NEDEN: 12 eszamanli cip + m3 iscileri `uptime` 1 dk yukunu 45-82'ye cikardi
 (esik <=8; 11 Eki host kesintisi dersi). `~/.claude/cron/isci.sh` her kosumda
 motoru cagirmadan ONCE bu yardimciyla slot alir:
 
-  * Ayni anda en fazla SINIR (3) isci (m3 + claude, tum evler). 4.+ isci
-    kuyrukta BEKLER (FIFO: yalniz kuyruk basi slot dener).
-  * 1 dk yuku > YUK_ESIK (12) iken yeni isci baslamaz (ayni bekleme dongusu).
+  * Ayni anda en fazla SINIR (2) isci (m3 + claude, `logo-*` dahil, tum
+    evler). 3.+ isci kuyrukta BEKLER (FIFO: yalniz kuyruk basi slot dener).
+  * 1 dk yuku > YUK_ESIK (6 = 12 cekirdek / 2) iken yeni isci baslamaz (ayni
+    bekleme dongusu); ARALIK_SN (60) sonra yeniden olcer.
+  * Her satir (ALINDI/BEKLIYOR/KUYRUK-TAVAN) `YUK_KAPISI=<esik>` beyanini tasir.
   * Beklerken her SATIR_SN'de (20 dk) isci.log'a tek satir
     `HAL=BEKLIYOR etiket=<..> sira=<n> bekleme_dk=<n>`; TAVAN_SN (90 dk)
     dolunca `HAL=KUYRUK-TAVAN` satiri + rc=64 (isci.sh rc=1'e cevirir).
@@ -55,6 +57,16 @@ grubu sahipsiz kaldiysa tutucu ayni oldurmeyi `HAL=SAHIPSIZ-OLDU` ile yapar
 RC (al): 0 slot alindi · 64 KUYRUK-TAVAN · 65 sahip beklerken oldu ·
 2 kullanim · 70 ic hata (isci.sh FAIL-OPEN: `SEMAFOR=OLCULEMEDI` satiri).
 
+ESIK DARALTMA (21 Eki 2026, BaBa 22:3x): SINIR 3->2, YUK_ESIK 12->6,
+ARALIK_SN 5->60. Olculen vaka: 22:06-22:08 ve 22:21-22:23 arasinda ucer m3
+iscisi esz kostu, 1 dk yuku 9,42/12 oldu. ARALIK 60 sn gerekcesi: 1 dk yuk
+ortalamasi yeni isciyi ancak ~1 dk'da yansitir; 5 sn'lik yoklama yuk esigin
+altina iner inmez iki isciyi arka arkaya acar (ikincisi birincinin yukunu
+gormeden). Slot bosalinca gecikme en cok 60 sn. TAVAN_SN 90 dk KORUNDU:
+tavan sessiz degildir (`HAL=KUYRUK-TAVAN ... sebep=yuk ... YUK_KAPISI=6`
+satiri + stderr + isci.sh rc=1). `sinir` alt komutu SINIR'i basar
+(agir-is.sh oradan okur — ikinci kopya tutulmaz).
+
 Kabul: tools/isci-semafor-test.py (hermetik). Kurulu kopya
 `~/.claude/cron/isci-semafor.py` bu dosyanin BIREBIR kopyasidir (test esitligi
 yerelde olcer; CI'da kurulu kopya yoktur).
@@ -68,11 +80,11 @@ import subprocess
 import sys
 import time
 
-SINIR = 3
-YUK_ESIK = 12.0
+SINIR = 2
+YUK_ESIK = 6.0
 TAVAN_SN = 90 * 60
 SATIR_SN = 20 * 60
-ARALIK_SN = 5.0
+ARALIK_SN = 60.0
 IZLE_SN = 2.0
 
 RC_TAVAN = 64
@@ -469,10 +481,11 @@ def al(a):
                         f.write("sahip=%d tutucu=%d slot=%d %s t=%s\n"
                                 % (a.sahip, cocuk, n, ortak, damga()))
                 girdiyi_sil()
-                log_yaz(a.log, "SEMAFOR=ALINDI slot=%s/%d%s bekleme_sn=%d yuk=%.2f %s pid=%d"
+                log_yaz(a.log, "SEMAFOR=ALINDI slot=%s/%d%s bekleme_sn=%d yuk=%.2f YUK_KAPISI=%g "
+                        "%s pid=%d"
                         % (",".join(str(n) for n in nler), a.sinir,
-                           " adet=%d" % a.adet if a.adet > 1 else "", bekleme, yuk, ortak,
-                           a.sahip))
+                           " adet=%d" % a.adet if a.adet > 1 else "", bekleme, yuk, a.yuk_esik,
+                           ortak, a.sahip))
                 return 0
             sebep = "slot"
         gecen = time.monotonic() - bas
@@ -480,18 +493,18 @@ def al(a):
         if gecen >= a.tavan_sn:
             girdiyi_sil()
             log_yaz(a.log, "=== %s HAL=KUYRUK-TAVAN %s sira=%d bekleme_dk=%d sebep=%s yuk=%.2f "
-                    "dolu=%d/%d tavan_dk=%d rc=1 pid=%d ==="
-                    % (damga(), ortak, sira, int(gecen // 60), sebep, yuk, dolu, a.sinir,
-                       int(a.tavan_sn // 60), a.sahip))
+                    "YUK_KAPISI=%g dolu=%d/%d tavan_dk=%d rc=1 pid=%d ==="
+                    % (damga(), ortak, sira, int(gecen // 60), sebep, yuk, a.yuk_esik, dolu,
+                       a.sinir, int(a.tavan_sn // 60), a.sahip))
             sys.stderr.write("HATA: HAL=KUYRUK-TAVAN rc=1 — %d dk bekledi (sebep=%s yuk=%.2f "
-                             "dolu=%d/%d), isci BASLATILMADI.\n"
-                             % (int(gecen // 60), sebep, yuk, dolu, a.sinir))
+                             "YUK_KAPISI=%g dolu=%d/%d), isci BASLATILMADI.\n"
+                             % (int(gecen // 60), sebep, yuk, a.yuk_esik, dolu, a.sinir))
             return RC_TAVAN
         if time.monotonic() >= sonraki_satir:
             log_yaz(a.log, "=== %s HAL=BEKLIYOR %s sira=%d bekleme_dk=%d sebep=%s yuk=%.2f "
-                    "dolu=%d/%d pid=%d TUTAN=%s ==="
-                    % (damga(), ortak, sira, int(gecen // 60), sebep, yuk, dolu, a.sinir,
-                       a.sahip, tutanlar(a.slot_koku, kilit_dizini, a.sinir)))
+                    "YUK_KAPISI=%g dolu=%d/%d pid=%d TUTAN=%s ==="
+                    % (damga(), ortak, sira, int(gecen // 60), sebep, yuk, a.yuk_esik, dolu,
+                       a.sinir, a.sahip, tutanlar(a.slot_koku, kilit_dizini, a.sinir)))
             sonraki_satir += a.satir_sn
         time.sleep(a.aralik_sn)
 
@@ -571,6 +584,9 @@ def main(argv=None):
         argv = sys.argv[1:]
     if argv and argv[0] == "grup":
         return grup(argv[1:])
+    if argv == ["sinir"]:   # agir-is.sh SINIR'i buradan okur (tek kaynak)
+        print(SINIR)
+        return 0
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     alt = p.add_subparsers(dest="komut", required=True)
     for ad in ("al", "birak", "durum"):

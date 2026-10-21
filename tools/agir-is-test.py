@@ -15,17 +15,18 @@ Yuk YARATILMAZ.
 VAKALAR
   (a) 1 isci slotu doluyken agir is BEKLER (sebep=slot), bosalinca baslar
   (b) yuk 8.5 iken bekler (sebep=yuk), 8.0'da baslar
-  (c) komut gecer -> rc AYNEN doner (0 ve 7) + 3 slot BIRAKILIR (DOLU=0)
+  (c) komut gecer -> rc AYNEN doner (0 ve 7) + SINIR slot BIRAKILIR (DOLU=0)
   (d) agir is kosarken yeni isci `al` (adet 1) BEKLER; agir is TERM'le
       oldurulunce trap slotlari birakir, isci baslar
   (e) tavan -> rc=1 + `HAL=KUYRUK-TAVAN tur=agir` satiri, komut KOSMAZ
   (f) `--adet 1` davranisi: tools/isci-semafor-test.py tum vakalarda YESIL
 EK (VAKA sayimina girmez, kirmizisi yine rc=1)
   (g) ic ice: isci.sh icinden (PRUVO_ISCI_SEMAFOR_SAHIBI canli, 1 slot tutuyor)
-      agir is KALAN 2 slotu alir, kendi iscisini beklemez (kilitlenme yok)
+      agir is KALAN SINIR-1 slotu alir, kendi iscisini beklemez (kilitlenme yok)
+  SINIR = isci-semafor.py `sinir` (tek kaynak; 21 Eki 2026'dan beri 2)
   (h) kurulu ~/.claude/cron/agir-is.sh repo kopyasiyla BIREBIR (CI'da ATLANDI)
 MUTANTLAR (agir-is.sh kopyasi uzerinde; beklenen KIRMIZI)
-  M1 --adet 3 -> 1        => (d) KIRMIZI
+  M1 --adet SINIR -> 1    => (d) KIRMIZI
   M2 yuk esigi kaldirildi => (b) KIRMIZI
 
 Cikis: hepsi YESIL ve iki mutant da OLDURULDU ise 0, aksi 1.
@@ -47,6 +48,10 @@ YARDIMCI = KOK / "isci-semafor.py"
 SEMAFOR_TEST = KOK / "isci-semafor-test.py"
 ZSH = shutil.which("zsh") or "/bin/zsh"   # CI (ubuntu) adimi zsh'yi kurar
 KURULU = Path(pwd.getpwuid(os.getuid()).pw_dir) / ".claude" / "cron" / "agir-is.sh"
+# SINIR tek kaynak: yardimcinin `sinir` alt komutu (agir-is.sh de oradan okur).
+SINIR = int(subprocess.run(["python3", str(YARDIMCI), "sinir"], capture_output=True,
+                           text=True, timeout=10).stdout)
+TUM_SLOT = "slot=%s/%d adet=%d " % (",".join(str(n) for n in range(1, SINIR + 1)), SINIR, SINIR)
 
 HIZ = ["--aralik-sn", "0.1", "--izle-sn", "0.2", "--satir-sn", "60"]
 
@@ -164,10 +169,11 @@ def vaka_a(agir):
         if not d.bekle(lambda: d.basladi("a"), 5):
             return False, "isci slotu bosaldiginda agir is baslamadi"
         alindi = d.satirlar("SEMAFOR=ALINDI", " etiket=a ")
-        if len(alindi) != 1 or "slot=1,2,3/3 adet=3 " not in alindi[0]:
-            return False, "ALINDI satiri 3 slot gostermiyor: %r" % alindi
+        if len(alindi) != 1 or TUM_SLOT not in alindi[0]:
+            return False, "ALINDI satiri %d slot gostermiyor: %r" % (SINIR, alindi)
         p.wait(timeout=10)
-        return True, "1 slot doluyken bekledi (sebep=slot, slot tutmadan), bosalinca 3/3 aldi"
+        return True, ("1 slot doluyken bekledi (sebep=slot, slot tutmadan), bosalinca %d/%d aldi"
+                      % (SINIR, SINIR))
     finally:
         d.kapat()
 
@@ -290,7 +296,7 @@ def vaka_f():
 
 
 def ek_g(agir):
-    """ic ice: 1 slot tutan iscinin icinden agir is kalan 2 slotu alir."""
+    """ic ice: 1 slot tutan iscinin icinden agir is kalan SINIR-1 slotu alir."""
     d = Dunya(agir)
     try:
         isci = d.isci("i3")
@@ -301,12 +307,16 @@ def ek_g(agir):
         if not d.bekle(lambda: d.basladi("g"), 5):
             return False, "ic ice agir is kendi iscisini bekledi (kilitlenme)"
         alindi = d.satirlar("SEMAFOR=ALINDI", " etiket=g ")
-        if len(alindi) != 1 or " adet=2 " not in alindi[0] or d.dolu() != 3:
-            return False, "ic ice alim 2 slot degil: %r dolu=%d" % (alindi, d.dolu())
+        kalan = SINIR - 1   # adet 1 iken ALINDI satiri `adet=` tasimaz (bayt-ayni bicim)
+        adet_ok = (" adet=%d " % kalan in alindi[0]) if alindi and kalan > 1 else (
+            bool(alindi) and " adet=" not in alindi[0])
+        if len(alindi) != 1 or not adet_ok or d.dolu() != SINIR:
+            return False, "ic ice alim %d slot degil: %r dolu=%d" % (kalan, alindi, d.dolu())
         p.wait(timeout=10)
         if p.returncode != 0:
             return False, "rc=%s" % p.returncode
-        return True, "ic ice agir is kalan 2 slotu aldi (toplam 3/3), kilitlenmedi"
+        return True, ("ic ice agir is kalan %d slotu aldi (toplam %d/%d), kilitlenmedi"
+                      % (kalan, SINIR, SINIR))
     finally:
         d.kapat()
 
