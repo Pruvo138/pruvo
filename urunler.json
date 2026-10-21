@@ -1,5 +1,525 @@
 [
   {
+    "id": "byd-shark-on-kamera-delik-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "BYD",
+      "Shark"
+    ],
+    "uyum": [
+      {
+        "marka": "BYD",
+        "model": "Shark"
+      }
+    ],
+    "baslik": "BYD Shark Ön Kamera Delik Kapağı",
+    "aciklama": "Ön kamera tampon koruma demirine taşındığında geride kalan deliği kapatan basit bir tapadır; sürüm 1.1'de ölçüler daha doğrudur.\nYaklaşık dış ölçüler: 17 × 17 × 4 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1334704-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "damien.d2"
+    }
+  },
+  {
+    "id": "byd-shark-6-ceki-demiri-kapak-plakasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "BYD",
+      "Shark 6"
+    ],
+    "uyum": [
+      {
+        "marka": "BYD",
+        "model": "Shark 6"
+      }
+    ],
+    "baslik": "BYD Shark 6 Çeki Demiri Kapak Plakası",
+    "aciklama": "Shark 6 çeki demiri bağlantısı için basit kapak plakasıdır; toz ve kumun girmesini azaltabilir, tasarımcıya göre arazi kullanımında kırılabilir.\nYaklaşık dış ölçüler: 225 × 105 × 73 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1453126-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Homerecordingodyssey"
+    }
+  },
+  {
+    "id": "byd-king-kolcak-tepsisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "BYD",
+      "King"
+    ],
+    "uyum": [
+      {
+        "marka": "BYD",
+        "model": "King"
+      }
+    ],
+    "baslik": "BYD King Kolçak Tepsisi",
+    "aciklama": "BYD King kolçağının üzerine oturan tepsidir.\nYaklaşık dış ölçüler: 174 × 170 × 33 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1641188-1.jpg"
+    ]
+  },
+  {
+    "id": "byd-king-kablosuz-sarj-telefon-sogutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "BYD",
+      "King"
+    ],
+    "uyum": [
+      {
+        "marka": "BYD",
+        "model": "King"
+      }
+    ],
+    "baslik": "BYD King Kablosuz Şarj Telefon Soğutucu Kanalı",
+    "aciklama": "Kablosuz şarj cihazının telefonu ısıtmasını azaltmak için tasarlanmış soğutma kanalıdır; montaj için 4 adet M3 vida ve somun gerekir.\nYaklaşık dış ölçüler: 112 × 106 × 45 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1716268-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1716268-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1716268-3.jpg"
+    ]
+  },
+  {
+    "id": "byd-seal-u-koltuk-top-baglantili-aksesuar-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "BYD",
+      "Seal U"
+    ],
+    "uyum": [
+      {
+        "marka": "BYD",
+        "model": "Seal U"
+      }
+    ],
+    "baslik": "BYD Seal U Koltuk Top Bağlantılı Aksesuar Tutucusu",
+    "aciklama": "Seal U koltuklarına takılan, bilyeli (top) bağlantılı aksesuarlar için tutucudur; tasarımcıya göre yalnız Seal U koltuklarında doğrulanmıştır.\nYaklaşık dış ölçüler: 101 × 40 × 26 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1816475-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1816475-2.jpg"
+    ]
+  },
+  {
+    "id": "byd-seal-u-telefon-sogutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "BYD",
+      "Seal U"
+    ],
+    "uyum": [
+      {
+        "marka": "BYD",
+        "model": "Seal U"
+      }
+    ],
+    "baslik": "BYD Seal U Telefon Soğutucu",
+    "aciklama": "Kablosuz şarj bölgesini ve telefonu soğutmaya yarayan hava kanalıdır; uzun bir sürümü de vardır.\nYaklaşık dış ölçüler: 60 × 42 × 42 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr948979-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr948979-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "kha khans"
+    }
+  },
+  {
+    "id": "byd-atto-3-sarj-tablasi-bozuk-para-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "BYD",
+      "Atto 3"
+    ],
+    "uyum": [
+      {
+        "marka": "BYD",
+        "model": "Atto 3"
+      }
+    ],
+    "baslik": "BYD Atto 3 Şarj Tablası Bozuk Para Tutucu",
+    "aciklama": "Atto 3 kablosuz şarj tablasına yerleştirilen bozuk para tutucudur.\nYaklaşık dış ölçüler: 79 × 58 × 35 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5736826-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5736826-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5736826-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5736826-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "baugp"
+    }
+  },
+  {
+    "id": "byd-atto-3-on-tampon-dolgu-tapasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "BYD",
+      "Atto 3"
+    ],
+    "uyum": [
+      {
+        "marka": "BYD",
+        "model": "Atto 3"
+      }
+    ],
+    "baslik": "BYD Atto 3 Ön Tampon Dolgu Tapası",
+    "aciklama": "Plaka çerçevesi sökülünce ön tamponda kalan iki dikdörtgen deliği kapatan tapadır; arkadan silikon gibi bir yapıştırıcıyla sabitlenir ve boyanabilir.\nYaklaşık dış ölçüler: 40 × 18 × 6 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5870102-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5870102-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "markusonfire"
+    }
+  },
+  {
+    "id": "byd-dolphin-bagaj-ortusu-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "BYD",
+      "Dolphin"
+    ],
+    "uyum": [
+      {
+        "marka": "BYD",
+        "model": "Dolphin"
+      }
+    ],
+    "baslik": "BYD Dolphin Bagaj Örtüsü Klipsi",
+    "aciklama": "Dolphin bagaj örtüsünün yerinden çıkmasını önleyen klipstir.\nYaklaşık dış ölçüler: 30 × 20 × 10 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6538273-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6538273-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "skding"
+    }
+  },
+  {
+    "id": "byd-atto-3-dolphin-bagaj-ortusu-sabitleyici",
+    "kategori": "Otomobil",
+    "marka": [
+      "BYD",
+      "Atto 3"
+    ],
+    "uyum": [
+      {
+        "marka": "BYD",
+        "model": "Atto 3"
+      }
+    ],
+    "baslik": "BYD Atto 3 / Dolphin Bagaj Örtüsü Sabitleyici",
+    "aciklama": "Atto 3 ve Dolphin bagaj örtüsünü yerinde sabitlemek için kullanılan parçadır.\nYaklaşık dış ölçüler: 37 × 26 × 14 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6647644-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "avshalog"
+    }
+  },
+  {
+    "id": "byd-ekran-golgeligi",
+    "kategori": "Otomobil",
+    "marka": [
+      "BYD"
+    ],
+    "uyum": [
+      {
+        "marka": "BYD"
+      }
+    ],
+    "baslik": "BYD Ekran Gölgeliği",
+    "aciklama": "BYD ekranının üzerine yapıştırıcı kullanmadan klipsle takılan gölgeliktir.\nYaklaşık dış ölçüler: 175 × 96 × 46 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6694766-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6694766-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6694766-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "yoelba"
+    }
+  },
+  {
+    "id": "byd-atto-3-bardaklik-yukseltici",
+    "kategori": "Otomobil",
+    "marka": [
+      "BYD",
+      "Atto 3"
+    ],
+    "uyum": [
+      {
+        "marka": "BYD",
+        "model": "Atto 3"
+      }
+    ],
+    "baslik": "BYD Atto 3 Bardaklık Yükseltici",
+    "aciklama": "Orta konsoldaki derin bardaklığın iki yanını da yükselten, A ve B olmak üzere iki parçalı yükseltici takımdır.\nYaklaşık dış ölçüler: 73 × 68 × 37 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6726628-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6726628-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6726628-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6726628-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "adlaws"
+    }
+  },
+  {
+    "id": "byd-song-pro-6-5-inc-hoparlor-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "BYD",
+      "Song Pro"
+    ],
+    "uyum": [
+      {
+        "marka": "BYD",
+        "model": "Song Pro"
+      }
+    ],
+    "baslik": "BYD Song Pro 6,5 İnç Hoparlör Adaptörü",
+    "aciklama": "Song Pro 2025'te orijinal hoparlörün yerine 6,5 inçlik hoparlör takmaya yarayan adaptördür; hoparlör bağlantı delikleri ve kablo deliği sonradan açılır.\nYaklaşık dış ölçüler: 190 × 175 × 41 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6782554-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6782554-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6782554-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "HellionMX"
+    }
+  },
+  {
+    "id": "byd-song-pro-tweeter-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "BYD",
+      "Song Pro"
+    ],
+    "uyum": [
+      {
+        "marka": "BYD",
+        "model": "Song Pro"
+      }
+    ],
+    "baslik": "BYD Song Pro Tweeter Adaptörü",
+    "aciklama": "Song Pro 2025'te orijinal tweeter yerine, vidalı montaj adaptörüyle 37 milimetrelik tweeter takmaya yarayan adaptördür.\nYaklaşık dış ölçüler: 81 × 50 × 6 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6782558-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6782558-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6782558-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "HellionMX"
+    }
+  },
+  {
+    "id": "byd-shark-6-uhf-telsiz-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "BYD",
+      "Shark 6"
+    ],
+    "uyum": [
+      {
+        "marka": "BYD",
+        "model": "Shark 6"
+      }
+    ],
+    "baslik": "BYD Shark 6 UHF Telsiz Tutucusu",
+    "aciklama": "Uniden UHF telsiz için montaj parçasıdır; panel arkasından az miktarda plastik kesmek gerekir, ahize yuvası birebir ölçüye değil tasarımcının yaklaşık ölçüsüne göre yapılmıştır.\nYaklaşık dış ölçüler: 32 × 31 × 15 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7147697-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7147697-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7147697-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7147697-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "cjmurray"
+    }
+  },
+  {
+    "id": "byd-dolphin-bagaj-kapagi-ortusu-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "BYD",
+      "Dolphin"
+    ],
+    "uyum": [
+      {
+        "marka": "BYD",
+        "model": "Dolphin"
+      }
+    ],
+    "baslik": "BYD Dolphin Bagaj Kapağı Örtüsü Klipsi",
+    "aciklama": "Dolphin GS/Plus bagaj kapağı örtüsünün gevşeyip ses yapmasını önleyen klipstir; sağ (R) ve sol (L) işaretlidir.\nYaklaşık dış ölçüler: 37 × 26 × 15 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7179206-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7179206-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7179206-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Renatopps"
+    }
+  },
+  {
+    "id": "byd-sealion-7-arka-orta-kemer-tokasi-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "BYD",
+      "Sealion 7"
+    ],
+    "uyum": [
+      {
+        "marka": "BYD",
+        "model": "Sealion 7"
+      }
+    ],
+    "baslik": "BYD Sealion 7 Arka Orta Kemer Tokası Tutucusu",
+    "aciklama": "Arka orta koltuktaki kemer tokasının koltuğun altına düşmesini önleyen tutucudur; emniyet kemerinin çalışmasına karışmaz, tasarımcı kaba bir taslak olarak paylaşmıştır.\nYaklaşık dış ölçüler: 35 × 30 × 27 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7324811-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7324811-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "gth"
+    }
+  },
+  {
+    "id": "byd-seal-6-dm-i-touring-bagaj-kutusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "BYD",
+      "Seal 6"
+    ],
+    "uyum": [
+      {
+        "marka": "BYD",
+        "model": "Seal 6"
+      }
+    ],
+    "baslik": "BYD Seal 6 DM-i Touring Bagaj Kutusu",
+    "aciklama": "Seal 6 DM-i Touring bagajı için cırt bantla sabitlenen bagaj düzenleyici kutudur.\nYaklaşık dış ölçüler: 283 × 282 × 120 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7336425-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7336425-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7336425-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "cynamon2"
+    }
+  },
+  {
+    "id": "byd-dolphin-mini-semsiyelik",
+    "kategori": "Otomobil",
+    "marka": [
+      "BYD",
+      "Dolphin Mini"
+    ],
+    "uyum": [
+      {
+        "marka": "BYD",
+        "model": "Dolphin Mini"
+      }
+    ],
+    "baslik": "BYD Dolphin Mini Şemsiyelik",
+    "aciklama": "Dolphin Mini (Seagull) üzerinde denenmiş, ISOFIX kancasına takılan şemsiyeliktir; aynı ISOFIX bağlantısı olan diğer araçlara uyumu garanti değildir.\nYaklaşık dış ölçüler: 131 × 124 × 27 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7358678-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7358678-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7358678-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "juanpf3d"
+    }
+  },
+  {
+    "id": "byd-dolphin-arka-raf-pivot-klips-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "BYD",
+      "Dolphin"
+    ],
+    "uyum": [
+      {
+        "marka": "BYD",
+        "model": "Dolphin"
+      }
+    ],
+    "baslik": "BYD Dolphin Arka Raf Pivot Klips Adaptörü",
+    "aciklama": "Arka rafın pivot çentiğindeki yumuşak keçe malzemenin üzerine geçen sert takviye adaptörüdür; raf bagaj açılıp kapanırken yerinden kolay çıkmaz, vida veya yapıştırıcı gerekmez.\nYaklaşık dış ölçüler: 52 × 29 × 15 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7387091-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7387091-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "nkladakis"
+    }
+  },
+  {
+    "id": "byd-shark-6-su-girisi-alet-kilavuzu",
+    "kategori": "Otomobil",
+    "marka": [
+      "BYD",
+      "Shark 6"
+    ],
+    "uyum": [
+      {
+        "marka": "BYD",
+        "model": "Shark 6"
+      }
+    ],
+    "baslik": "BYD Shark 6 Su Girişi İşlemi Alet Kılavuzu",
+    "aciklama": "Shark 6 geri çağırma işlemindeki su girişi kontrolü için 150 milimetrelik PH1 tornavidayla kullanılan alet kılavuzudur.\nYaklaşık dış ölçüler: 35 × 30 × 29 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7390674-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7390674-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "r3dback_03r1"
+    }
+  },
+  {
     "id": "jeep-grand-cherokee-wj-isitici-kapakciklari",
     "kategori": "Otomobil",
     "marka": [
