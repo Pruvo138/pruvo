@@ -536,31 +536,13 @@ function kosum() {
       + (gKapali.bayt - gAcik.bayt) + " B | BAYAT ISTEMCI: bos kart " + gBosKart
       + ", kapagi kaybolan kart " + gKapakKayip + " (yayin N->N+1 penceresi kapatir)");
 
-    // ---- 12: BAYAT v3 ISTEMCI + v4 ARTEFAKT (TEK YAYIN ONCULU) — gercek katalog
-    const gV4 = ozetUret(katalogYol, 4);
-    if (gV4.hata) { olculemedi("gercek katalog v4 kolu: " + gV4.hata); }
-    const bayatV3 = bayatV3Al();
-    const v3Ref = ozetAc(JSON.parse(gAcik.ham));            // CANLI istemci + v3 = bugunku ekran
-    const o12 = bayatV4Olc(bayatV3.fn, gV4.ham, v3Ref);
-    // VERI MUTANTI (iddianin disi var mi): konum 11'e 0 basan yazici -> bayat istemcide
-    // konfigur FALSY olur; ayni olcum KIRMIZI vermeli, yoksa iddia yuk tasimiyor demektir.
-    const sifirli = JSON.parse(gV4.ham);
-    const sifirla = (k) => { if (Array.isArray(k) && Array.isArray(k[11])) { k[11] = 0; } return k; };
-    sifirli.parametrik = (sifirli.parametrik || []).map(sifirla);
-    Object.keys(sifirli.bloklar || {}).forEach((kat) => { sifirli.bloklar[kat] = sifirli.bloklar[kat].map(sifirla); });
-    sifirli.yeniRef = (sifirli.yeniRef || []).map(sifirla);
-    const o12m = bayatV4Olc(bayatV3.fn, JSON.stringify(sifirli), v3Ref);
-    const yeniKonfigurlu = (v3Ref.yeni || []).filter((k) => k && k.konfigur).length;
-    rapor("12 BAYAT v3 ISTEMCI + v4 ARTEFAKT: konfigur karari DEGISMEZ, diger alanlar BIREBIR "
-      + "(+ veri mutanti `konum 11 = 0` KIRMIZI)",
-    bayatV4Tamam(o12) && !bayatV4Tamam(o12m),
-    "kart " + o12.kart + "/" + o12.refKart + " | konfigur'lu " + o12.konfigurlu + " (yeni kesiti "
-      + yeniKonfigurlu + ") -> !!konfigur true " + o12.truthy + " | diger alan sapmasi "
-      + o12.digerSapma + " | id/fiyat/gorsel " + (o12.idFiyatGorselEsit ? "BIREBIR" : "SAPTI ✘")
-      + " | MUTANT(0): truthy " + o12m.truthy + "/" + o12m.konfigurlu
-      + (bayatV4Tamam(o12m) ? " YESIL ✘ (iddia OLU)" : " KIRMIZI ✔") + " | fikstur " + bayatV3.teyit);
-
-    // ---- 13: GERCEK KATALOG v4 — bayt butcesi + TUM kartlar kart_ozeti ile BIREBIR
+    // 🔴 KONFIGUR KESITI (21 Eki 2026): 12/13'un konfigur iddialari "en yeni 48" kesitinde
+    // konfigur'lu kart OLMASINA bagliydi; 132 Jeep urunu pencereyi doldurunca kesit 0 konfigur
+    // tasidi ve iki iddia VERIYE bagli olarak dustu (main SERIT B 3 kosum KIRMIZI). Artik iki
+    // katalogda olculur: (G) GERCEK katalog AYNEN — kesitte konfigur olsun olmasin karar/alan
+    // birebirligi + butce; (K) KONFIGUR KESITI — GERCEK katalogun konfigur'lu urunlerinden
+    // ilk OZET_YENI/2'si one alinir (gerisi ayni sirada): iddia kesitten BAGIMSIZ ama yine
+    // GERCEK veriyle beslenir. Katalogda konfigur'lu urun yoksa OLCULEMEDI (fail-closed).
     const BUTCE = (function () {
       const src = fs.readFileSync(BUILD_YOL, "utf8");
       const m = src.match(/^OZET_BUTCE\s*=\s*(\d+)\s*\*\s*(\d+)/m);
@@ -568,31 +550,86 @@ function kosum() {
       return Number(m[1]) * Number(m[2]);
     })();
     const katalog = JSON.parse(fs.readFileSync(katalogYol, "utf8"));
-    const sira = new Map(katalog.map((p, i) => [p, i]));
-    const idxKesit = beklenenKesitler(katalog, (p) => sira.get(p));
-    const idxDuz = duzKartlar(idxKesit);
-    const kartlar = kartOzetiAl(katalogYol, idxDuz);
-    const ozIdx = new Map(idxDuz.map((ix, j) => [ix, kartlar[j]]));
-    const bek13 = beklenenKesitler(katalog, (p) => ozIdx.get(sira.get(p)));
-    const acik13 = ozetAc(JSON.parse(gV4.ham));
-    const bekDuz = duzKartlar(bek13);
-    const acikDuz = duzKartlar(acik13);
-    let sapan = 0, konfEsit = 0, konfSayi = 0;
-    bekDuz.forEach((b, i) => {
-      if (!esit(acikDuz[i], b)) { sapan++; }
-      if (b.konfigur) { konfSayi++; if (acikDuz[i] && esit(acikDuz[i].konfigur, b.konfigur)) { konfEsit++; } }
-    });
-    const telDizi = (gV4.ozet.yeniRef || []).filter((k) => Array.isArray(k) && Array.isArray(k[11])).length;
+    const konfUrun = katalog.filter((p) => p && p.konfigur);
+    if (konfUrun.length === 0) { olculemedi("gercek katalogda konfigur'lu urun YOK -> 12/13 konfigur kolu"); }
+    const one = konfUrun.slice(0, Math.max(1, Math.floor(OZET_YENI / 2)));
+    const oneKume = new Set(one);
+    const konfKatalog = one.concat(katalog.filter((p) => !oneKume.has(p)));
+    const konfYol = path.join(GECICI, "katalog-konfigur-kesit.json");
+    fs.writeFileSync(konfYol, JSON.stringify(konfKatalog), "utf8");
+    const kAcik = ozetUret(konfYol, 3);
+    if (kAcik.hata) { olculemedi("konfigur kesiti v3 kolu: " + kAcik.hata); }
+
+    /** 12'nin olcumu: bayat v3 istemci + v4 artefakt, + veri mutanti `konum 11 = 0`. */
+    function olc12(v3Ham, v4Ham, bayatFn) {
+      const v3Ref = ozetAc(JSON.parse(v3Ham));            // CANLI istemci + v3 = bugunku ekran
+      const o = bayatV4Olc(bayatFn, v4Ham, v3Ref);
+      // VERI MUTANTI (iddianin disi var mi): konum 11'e 0 basan yazici -> bayat istemcide
+      // konfigur FALSY olur; ayni olcum KIRMIZI vermeli, yoksa iddia yuk tasimiyor demektir.
+      const sifirli = JSON.parse(v4Ham);
+      const sifirla = (k) => { if (Array.isArray(k) && Array.isArray(k[11])) { k[11] = 0; } return k; };
+      sifirli.parametrik = (sifirli.parametrik || []).map(sifirla);
+      Object.keys(sifirli.bloklar || {}).forEach((kat) => { sifirli.bloklar[kat] = sifirli.bloklar[kat].map(sifirla); });
+      sifirli.yeniRef = (sifirli.yeniRef || []).map(sifirla);
+      const m = bayatV4Olc(bayatFn, JSON.stringify(sifirli), v3Ref);
+      const yeniKonf = (v3Ref.yeni || []).filter((k) => k && k.konfigur).length;
+      return { o, m, yeniKonf };
+    }
+    const kararBirebir = (o) => o.kart === o.refKart && o.truthy === o.konfigurlu
+      && o.digerSapma === 0 && o.idFiyatGorselEsit;
+    const ozet12 = (etiket, r) => etiket + ": kart " + r.o.kart + "/" + r.o.refKart + " | konfigur'lu "
+      + r.o.konfigurlu + " (yeni kesiti " + r.yeniKonf + ") -> !!konfigur true " + r.o.truthy
+      + " | diger alan sapmasi " + r.o.digerSapma + " | id/fiyat/gorsel "
+      + (r.o.idFiyatGorselEsit ? "BIREBIR" : "SAPTI ✘") + " | MUTANT(0): truthy " + r.m.truthy
+      + "/" + r.m.konfigurlu + (bayatV4Tamam(r.m) ? " YESIL ✘ (iddia OLU)" : " KIRMIZI ✔");
+
+    /** 13'un olcumu: TUM kartlar build.py `kart_ozeti` ile BIREBIR. */
+    function olc13(kYol, kat, v4) {
+      const sira = new Map(kat.map((p, i) => [p, i]));
+      const idxDuz = duzKartlar(beklenenKesitler(kat, (p) => sira.get(p)));
+      const kartlar = kartOzetiAl(kYol, idxDuz);
+      const ozIdx = new Map(idxDuz.map((ix, j) => [ix, kartlar[j]]));
+      const bekDuz = duzKartlar(beklenenKesitler(kat, (p) => ozIdx.get(sira.get(p))));
+      const acik = ozetAc(JSON.parse(v4.ham));
+      const acikDuz = duzKartlar(acik);
+      let sapan = 0, konfEsit = 0, konfSayi = 0;
+      bekDuz.forEach((b, i) => {
+        if (!esit(acikDuz[i], b)) { sapan++; }
+        if (b.konfigur) { konfSayi++; if (acikDuz[i] && esit(acikDuz[i].konfigur, b.konfigur)) { konfEsit++; } }
+      });
+      const telDizi = (v4.ozet.yeniRef || []).filter((k) => Array.isArray(k) && Array.isArray(k[11])).length;
+      const birebir = v4.ozet.surum === 4 && acikDuz.length === bekDuz.length && sapan === 0
+        && konfEsit === konfSayi && acik.yeniCozulemeyen === 0;
+      return { birebir, konfSayi, ozet: "kart " + acikDuz.length + "/" + bekDuz.length + " sapan "
+        + sapan + " | konfigur nesnesi esit " + konfEsit + "/" + konfSayi
+        + " | yeniRef tam kartta indeks dizisi " + telDizi + " | sozluk "
+        + (v4.ozet.konfigurAlanlari || []).length + " alan / "
+        + (v4.ozet.konfigurDegerleri || []).length + " deger" };
+    }
+
+    // ---- 12: BAYAT v3 ISTEMCI + v4 ARTEFAKT (TEK YAYIN ONCULU)
+    const gV4 = ozetUret(katalogYol, 4);
+    if (gV4.hata) { olculemedi("gercek katalog v4 kolu: " + gV4.hata); }
+    const kV4 = ozetUret(konfYol, 4);
+    if (kV4.hata) { olculemedi("konfigur kesiti v4 kolu: " + kV4.hata); }
+    const bayatV3 = bayatV3Al();
+    const g12 = olc12(gAcik.ham, gV4.ham, bayatV3.fn);
+    const k12 = olc12(kAcik.ham, kV4.ham, bayatV3.fn);
+    rapor("12 BAYAT v3 ISTEMCI + v4 ARTEFAKT: konfigur karari DEGISMEZ, diger alanlar BIREBIR "
+      + "(+ veri mutanti `konum 11 = 0` KIRMIZI)",
+    kararBirebir(g12.o) && bayatV4Tamam(k12.o) && !bayatV4Tamam(k12.m),
+    ozet12("GERCEK", g12) + " || " + ozet12("KONFIGUR KESITI (" + one.length + "/" + konfUrun.length
+      + " one)", k12) + " | fikstur " + bayatV3.teyit);
+
+    // ---- 13: v4 — bayt butcesi + TUM kartlar kart_ozeti ile BIREBIR; v4 kazanci konfigur kesitinde
+    const g13 = olc13(katalogYol, katalog, gV4);
+    const k13 = olc13(konfYol, konfKatalog, kV4);
     rapor("13 GERCEK KATALOG v4: bayt < OZET_BUTCE ve TUM kartlar kart_ozeti ile BIREBIR",
-      gV4.ozet.surum === 4 && gV4.bayt < BUTCE && gV4.bayt < gAcik.bayt
-      && acikDuz.length === bekDuz.length && sapan === 0 && konfSayi > 0 && konfEsit === konfSayi
-      && acik13.yeniCozulemeyen === 0,
-      "v3 " + gAcik.bayt + " B -> v4 " + gV4.bayt + " B (kazanc " + (gAcik.bayt - gV4.bayt)
-      + " B, butce " + BUTCE + ", pay " + (BUTCE - gV4.bayt) + " B) | kart " + acikDuz.length
-      + "/" + bekDuz.length + " sapan " + sapan + " | konfigur nesnesi esit " + konfEsit + "/"
-      + konfSayi + " | yeniRef tam kartta indeks dizisi " + telDizi + " | sozluk "
-      + (gV4.ozet.konfigurAlanlari || []).length + " alan / "
-      + (gV4.ozet.konfigurDegerleri || []).length + " deger");
+      gV4.bayt < BUTCE && g13.birebir
+      && k13.birebir && k13.konfSayi > 0 && kV4.bayt < kAcik.bayt,
+      "GERCEK: v3 " + gAcik.bayt + " B -> v4 " + gV4.bayt + " B (butce " + BUTCE + ", pay "
+      + (BUTCE - gV4.bayt) + " B) | " + g13.ozet + " || KONFIGUR KESITI: v3 " + kAcik.bayt
+      + " B -> v4 " + kV4.bayt + " B (kazanc " + (kAcik.bayt - kV4.bayt) + " B) | " + k13.ozet);
   }
 
   // ---- 10: PATOLOJIK ID — derleme ile istemcinin REFERANS YUKLEMI ayni mi?
