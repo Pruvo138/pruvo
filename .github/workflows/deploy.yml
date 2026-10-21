@@ -1171,6 +1171,10 @@ jobs:
       # baska oturumun yarim urunler.json'i HERKESIN commit'ini kilitler.
       - name: Mukerrer kapisi pre-commit kapsam testi
         run: python3 tools/mukerrer-kapsam-test.py
+      # MUKERRER KAYNAK HARITASI FAIL-CLOSED (21 Eki 2026): harita yok/bozukken kaynak ekseni
+      # sessizce atlanip rc=0 donuyordu -> artik rc=2. 4 vaka + 1 mutant, tempfile veri koku.
+      - name: Mukerrer kapisi kaynak haritasi fail-closed testi
+        run: python3 tools/mukerrer-kaynak-failclosed-test.py
 
       # K357 SABAH KURUCUSU TAM-KOPYA FAIL-CLOSED: tools/sabah-teslim/kur.py hedef
       # (~/.claude/cron) kaynaktan FARKLIYSA yazmaz, rc=4 (31 Agu: kaynak canlidan iki kusak
