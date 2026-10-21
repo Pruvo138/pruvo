@@ -23,9 +23,12 @@ VAKALAR (her biri izole CRON_KOKU + sahte claude/m3 ikilisi; GERCEK motor YOK):
   V5 m3 kosumu 30 sa once rc=1 -> RED (24 sa disi)
   V6 minimax-m3 + onarim-x -> kapi ETKILEMEZ (motor cagrildi, kapi satiri yok)
   V7 claude-api + onarim-x -> RED
+  V8 `logo-` (21 Eki, BaBa — gorsel/logo yargisi iscisi): claude + logo-gorsel-yargi
+     -> GECER (sebep=beyaz-liste); tiresiz `logox` -> RED (onek TIRE dahil eslesir)
 MUTANTLAR (izole kopya; mutant OLMELI = ilgili vaka KIRMIZI yanmali):
   M1 beyaz liste kontrolu kaldirilir (her etiket gecer) -> V1 KIRMIZI
   M2 24 sa penceresi kaldirilir -> V5 KIRMIZI
+  M3 `logo-` beyaz listeden cikarilir -> V8 KIRMIZI (logo- etiketi RED alir)
 
 IZOLASYON: gercek isci.log / karantina / anahtar dosyalarina DOKUNULMAZ —
 izole kokte yalniz `*.py`, `*.zsh` ve `isci-baglam` SEMBOLIK baglanir
@@ -35,7 +38,7 @@ Gecici agac is sonunda silinir.
 
 KOSUM:  python3 tools/isci-motor-kapisi-test.py
 CIKTI:  VAKA=<ad> ... SONUC=GECTI|KALDI · MUTANT=<ad> ... SONUC=OLDU|YASADI
-        son satir: MOTOR-KAPISI VAKA=<g>/7 MUTANT=<o>/2 (rc 0 yalniz 7/7 + 2/2)
+        son satir: MOTOR-KAPISI VAKA=<g>/8 MUTANT=<o>/3 (rc 0 yalniz 8/8 + 3/3)
 CI'da canli hat yoktur -> ONKOSUL_YOK + rc 3 (isci-*-test ailesinin kanonu).
 """
 import os
@@ -55,6 +58,8 @@ BEYAZ_LISTE_RE = re.compile(r"^MOTOR_KAPISI_BEYAZ_LISTE=\(([^)]*)\)$", re.M)
 M1_CAPA = ('    if [[ "$ETIKET" == "$MOTOR_KAPISI_ONEK"* ]]; then\n',
            "    if true; then\n")
 M2_CAPA = ("        if simdi - ts > PENCERE:\n            continue\n", "")
+M3_CAPA = ("olcum-canli- logo-)\n", "olcum-canli-)\n")
+LOGO_ETIKET = "logo-gorsel-yargi"
 M3_AD = "minimax-m3"
 SAHTE_PID = "424242"
 
@@ -234,7 +239,7 @@ def main():
     onekler = tanimlar[0].split() if len(tanimlar) == 1 else []
     if not onekler or "guvenlik-" not in onekler or any("onarim-x".startswith(o) for o in onekler):
         print("VAKA=kurulum OLCULEN=BEYAZ_LISTE_TANIMI=%r SONUC=KALDI" % tanimlar)
-        print("MOTOR-KAPISI VAKA=0/7 MUTANT=0/2")
+        print("MOTOR-KAPISI VAKA=0/8 MUTANT=0/3")
         return 1
     print("BEYAZ_LISTE=" + " ".join(onekler) + " (isci.sh tanimindan okundu)")
     tmp = tempfile.mkdtemp(prefix=TMP_ONEK)
@@ -267,30 +272,34 @@ def main():
             ("V5", red_olcut(kos("v5", log_tohum=_m3_log("onarim-x", 30, 1, "HATA")))),
             ("V6", etkilenmez_olcut(kos("v6", motor=M3_AD))),
             ("V7", red_olcut(kos("v7", motor="claude-api"))),
+            ("V8", (([] if "logo-" in onekler else ["logo- beyaz listede YOK"])
+                    + gecer_olcut("beyaz-liste")(kos("v8", etiket=LOGO_ETIKET))
+                    + ["logox: " + h for h in red_olcut(kos("v8-tiresiz", etiket="logox"))])),
         ]
         for ad, hata in sonuc:
             _yaz_sonuc(ad, hata)
             vaka_gecti += not hata
 
         # Mutantlar: ayri izole kok, canli govde DEGISMEZ.
-        for ad, capa, senaryo in (
-                ("M1", M1_CAPA, dict()),
-                ("M2", M2_CAPA, dict(log_tohum=_m3_log("onarim-x", 30, 1, "HATA")))):
+        for ad, capa, senaryo, olcut in (
+                ("M1", M1_CAPA, dict(), red_olcut),
+                ("M2", M2_CAPA, dict(log_tohum=_m3_log("onarim-x", 30, 1, "HATA")), red_olcut),
+                ("M3", M3_CAPA, dict(etiket=LOGO_ETIKET), gecer_olcut("beyaz-liste"))):
             m_govde = _mutant(govde, capa)
             m_tmp = os.path.join(tmp, "mutant-" + ad)
             m_kok = _izole_kok_kur(m_tmp, m_govde) if m_govde else None
             if m_kok is None:
                 print("MUTANT=%s OLCULEN=CAPA_TUTMADI SONUC=YASADI" % ad)
                 continue
-            hata = red_olcut(_kos(m_tmp, m_kok, ortak, ad.lower(), **senaryo))
+            hata = olcut(_kos(m_tmp, m_kok, ortak, ad.lower(), **senaryo))
             # Mutant OLDU = olcut KIRMIZI yandi (vaka mutanti yakaladi).
             print("MUTANT=%s OLCULEN=%s SONUC=%s" % (
                 ad, "; ".join(hata) or "vaka-yesil", "OLDU" if hata else "YASADI"))
             mutant_oldu += bool(hata)
     finally:
         _guvenli_sil(tmp)
-    print("MOTOR-KAPISI VAKA=%d/7 MUTANT=%d/2" % (vaka_gecti, mutant_oldu))
-    return 0 if vaka_gecti == 7 and mutant_oldu == 2 else 1
+    print("MOTOR-KAPISI VAKA=%d/8 MUTANT=%d/3" % (vaka_gecti, mutant_oldu))
+    return 0 if vaka_gecti == 8 and mutant_oldu == 3 else 1
 
 
 if __name__ == "__main__":
