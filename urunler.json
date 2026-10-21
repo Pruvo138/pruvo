@@ -1,5 +1,651 @@
 [
   {
+    "id": "mini-cooper-f56-bardaklik-telefon-inserti",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "F56"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "F56"
+      }
+    ],
+    "baslik": "MINI Cooper F56 Bardaklık Telefon İnserti",
+    "aciklama": "Yeni MINI Cooper F56 bardaklığa yerleşen ve bardaklığı boş bırakan evrensel tutucu inserttir; üzerine telefon, kamera veya kablo gibi küçük eşyalar takılabilir.\nYaklaşık dış ölçüler: 77 × 71 × 68 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1632242-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1632242-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1632242-3.jpg",
+      "https://media.pruvo3d.com/urunler/th1632242-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "dentikhval"
+    }
+  },
+  {
+    "id": "mini-cooper-r56-ipad-mini-entegrasyonu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper R56"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper R56"
+      }
+    ],
+    "baslik": "MINI Cooper R56 iPad Mini Entegrasyon Aparatı",
+    "aciklama": "MINI Cooper R56'da navigasyon yerine iPad Mini takmak için tasarlanmış aparattır; direksiyon arkasındaki boşluğa oturur.\nYaklaşık dış ölçüler: 220 × 220 × 15 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1524960-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1524960-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1524960-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Losicek"
+    }
+  },
+  {
+    "id": "mini-cooper-iphone-bardaklik-standi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper"
+      }
+    ],
+    "baslik": "MINI Cooper iPhone Bardaklık Standı",
+    "aciklama": "iPhone 6 Plus'ı MINI Cooper bardaklığına oturtan telefon standıdır.\nYaklaşık dış ölçüler: 104 × 88 × 74 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th607917-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "haqbany"
+    }
+  },
+  {
+    "id": "mini-cooper-s-r53-hava-kutusu-induksiyon-filtre",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper S R53"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper S R53"
+      }
+    ],
+    "baslik": "MINI Cooper S R53 Hava Kutusu İndüksiyon Filtre Aparatı",
+    "aciklama": "R53 MINI Cooper S'te indüksiyon filtresini hava kutusuna sıkı geçmeyle, dışarıdan görünmeden bağlayan aparattır.\nYaklaşık dış ölçüler: 72 × 72 × 45 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3648328-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3648328-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3648328-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3648328-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Rakaeon"
+    }
+  },
+  {
+    "id": "mini-cooper-r50-r53-52mm-gosterge-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper R50"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper R50"
+      }
+    ],
+    "baslik": "MINI Cooper R50/R53 52 Milimetre Gösterge Tutucu",
+    "aciklama": "MINI Cooper R50/R53'te orijinal devir göstergesinin yanına 52 milimetrelik ek gösterge takmaya yarayan aparattır.\nYaklaşık dış ölçüler: 149 × 78 × 58 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4065730-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "dzide"
+    }
+  },
+  {
+    "id": "mini-cooper-r53-bardaklik-uzatmasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper R53"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper R53"
+      }
+    ],
+    "baslik": "MINI Cooper R53 Bardaklık Uzatması",
+    "aciklama": "2003 MINI Cooper taban bardaklıklarına tam oturacak biçimde yeniden boyutlandırılmış bardaklık uzatma parçasıdır.\nYaklaşık dış ölçüler: 187 × 99 × 89 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3192676-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Mylez_"
+    }
+  },
+  {
+    "id": "mini-cooper-r56-el-freni-ust-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper R56"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper R56"
+      }
+    ],
+    "baslik": "MINI Cooper R56 El Freni Üst Kapağı",
+    "aciklama": "MINI Cooper R56 (2008) için kırılan orijinal el freni üst kapağının yerine takılan yedek parçadır; iç yüzeyine çift taraflı bant yapıştırılarak monte edilir.\nYaklaşık dış ölçüler: 33 × 33 × 26 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4809138-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4809138-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "LaOuelle"
+    }
+  },
+  {
+    "id": "mini-cooper-r56-takometre-telefon-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper R56"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper R56"
+      }
+    ],
+    "baslik": "MINI Cooper R56 Takometre Telefon Tutucu",
+    "aciklama": "MINI Cooper R56 takometrenin arkasına takılan, telefon tutuculuğa uygun aparattır; kablo deliği vidalı olarak sonradan açılır.\nYaklaşık dış ölçüler: 206 × 105 × 31 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2364777-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2364777-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2364777-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2364777-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "ericlmk"
+    }
+  },
+  {
+    "id": "mini-cooper-r50-r52-r54-on-kapi-165mm-hoparlor-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper R50"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper R50"
+      }
+    ],
+    "baslik": "MINI Cooper R50/R52/R54 Ön Kapı 165 Milimetre Hoparlör Adaptörü",
+    "aciklama": "Birinci nesil MINI Cooper R50, R52 ve R54'ün ön kapısına 165 milimetrelik hoparlör takmaya yarayan adaptör halkasıdır.\nYaklaşık dış ölçüler: 166 × 165 × 18 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4096522-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4096522-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "PepperNg"
+    }
+  },
+  {
+    "id": "mini-countryman-cd-yuvasi-telefon-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Countryman"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Countryman"
+      }
+    ],
+    "baslik": "MINI Countryman CD Yuvası Telefon Tutucu",
+    "aciklama": "2013 MINI Countryman CD yuvasına oturan, iPhone 6 Plus kılıfı ile uyumlu telefon tutucu aparattır; şarj kablosu geçişi için kesik Revizyon 5'te eklenmiştir.\nYaklaşık dış ölçüler: 166 × 89 × 47 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1807633-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1807633-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1807633-3.jpg",
+      "https://media.pruvo3d.com/urunler/th1807633-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "eric62"
+    }
+  },
+  {
+    "id": "mini-cooper-f54-f56-sise-tutucu-telefon",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper F54"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper F54"
+      }
+    ],
+    "baslik": "MINI Cooper F54/F56 Şişe Tutucu Telefon Aparatı",
+    "aciklama": "MINI Cooper F54/F56 şişe tutucuya oturan küçük telefon tutucu aparattır; güç kablosu geçişi için kablo delikli bir sürümü de vardır.\nYaklaşık dış ölçüler: 80 × 79 × 60 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3089549-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3089549-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3089549-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3089549-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "zauberflo"
+    }
+  },
+  {
+    "id": "mini-cooper-r53-yag-hunisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper S R53"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper S R53"
+      }
+    ],
+    "baslik": "MINI Cooper R53 Yağ Hunisi",
+    "aciklama": "MINI Cooper S R53 motoruna yağ doldururken dökülmeyi önleyen özel üretim yağ hunisidir.\nYaklaşık dış ölçüler: 108 × 108 × 80 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6763830-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6763830-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Jon1h"
+    }
+  },
+  {
+    "id": "mini-cooper-bardaklik-aparati",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper S"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper S"
+      }
+    ],
+    "baslik": "MINI Cooper Bardaklık Aparatı",
+    "aciklama": "2013 MINI Cooper S için XL boy soda ya da kahve kupalarını rahatça alabilen özel bardaklık aparatıdır.\nYaklaşık dış ölçüler: 170 × 84 × 65 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5982136-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5982136-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "50Shoebox"
+    }
+  },
+  {
+    "id": "mini-cooper-r53-on-cam-yikama-nozul-acisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper R53"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper R53"
+      }
+    ],
+    "baslik": "MINI Cooper R53 Ön Cam Yıkama Nozul Açı Parçası",
+    "aciklama": "MINI Cooper R53'te kaybolan ön cam sprey nozulunun açı parçasının yedeğidir; bir yandan model alınarak yeniden tasarlanmıştır.\nYaklaşık dış ölçüler: 30 × 17 × 9 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4927932-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4927932-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4927932-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4927932-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "samc5898"
+    }
+  },
+  {
+    "id": "mini-countryman-r60-izgara-disleri",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Countryman R60"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Countryman R60"
+      }
+    ],
+    "baslik": "MINI Countryman R60 Izgara Dişleri",
+    "aciklama": "MINI Countryman R60 ön ızgarasının üstüne plastik fermuar ile takılan, mat siyah özel üretildikten sonra boyanabilen dekoratif dişlerdir.\nYaklaşık dış ölçüler: 103 × 60 × 19 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2360843-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2360843-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Kty75"
+    }
+  },
+  {
+    "id": "mini-cooper-r56-bagaj-rafi-cubugu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper R56"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper R56"
+      }
+    ],
+    "baslik": "MINI Cooper R56 Bagaj Rafı Çubuğu",
+    "aciklama": "MINI Cooper R56 2007-2010 modelinin bagaj iç rafını yerinde tutan geçme yedek çubuktur.\nYaklaşık dış ölçüler: 46 × 19 × 19 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3297086-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3297086-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3297086-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "matx93"
+    }
+  },
+  {
+    "id": "mini-cooper-r55-r56-top-baglantili-telefon-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper R55"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper R55"
+      }
+    ],
+    "baslik": "MINI Cooper R55/R56 Top Bağlantılı Telefon Tutucu",
+    "aciklama": "Mıknatıs yerine top bağlantılı başlığa sahip, sol ve sağ direksiyon seçenekleri bulunan R55/R56 MINI Cooper telefon tutucu remikstir.\nYaklaşık dış ölçüler: 210 × 115 × 25 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3593661-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3593661-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3593661-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3593661-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "UninspiringUnicorn"
+    }
+  },
+  {
+    "id": "mini-cooper-r56-yag-toplama-hortum-adaptor",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper R56"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper R56"
+      }
+    ],
+    "baslik": "MINI Cooper R56 Yağ Toplama Hortum Adaptörü",
+    "aciklama": "R56 MINI Cooper motorunda turbo üzerine yağ toplama kabı takılırken kullanılan doksan, yüz on ve yüz seksen derecelik hortum adaptörleridir.\nYaklaşık dış ölçüler: 60 × 42 × 22 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2941506-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2941506-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2941506-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2941506-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "NMotter"
+    }
+  },
+  {
+    "id": "mini-cooper-market-poseti-kancasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper"
+      }
+    ],
+    "baslik": "MINI Cooper Market Poşeti Kancası",
+    "aciklama": "Bagaj ya da tabandaki market poşetlerinin kaymasını önleyen, MINI Cooper bardaklık aksesuarının tel çerçevesine oturan kancadır.\nYaklaşık dış ölçüler: 30 × 25 × 23 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th16284-1.jpg",
+      "https://media.pruvo3d.com/urunler/th16284-2.jpg",
+      "https://media.pruvo3d.com/urunler/th16284-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "VeryWetPaint"
+    }
+  },
+  {
+    "id": "mini-cooper-ahizesiz-telefon-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper"
+      }
+    ],
+    "baslik": "MINI Cooper Ahizesiz Telefon Tutucu Aparatı",
+    "aciklama": "MINI Cooper araçlarda ahizesiz telefon cihazını sabit tutan, araca uyumlu parçadır.\nYaklaşık dış ölçüler: 160 × 40 × 15 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1643728-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1643728-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1643728-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "g3org"
+    }
+  },
+  {
+    "id": "mini-cooper-s-mpi-hava-kutusu-induksiyon-kit",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper S MPI"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper S MPI"
+      }
+    ],
+    "baslik": "MINI Cooper S MPI Hava Kutusu İndüksiyon Kiti",
+    "aciklama": "Orijinal MINI Cooper MPI hava kutusuna dışarıdan bir değişiklik yapılmadan takılan indüksiyon kitidir; dayanıklılık için ABS malzeme uygundur.\nYaklaşık dış ölçüler: 145 × 71 × 47 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3055334-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3055334-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3055334-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "TeamFTP"
+    }
+  },
+  {
+    "id": "mini-cooper-s-r53-aku-terminal-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper S R53"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper S R53"
+      }
+    ],
+    "baslik": "MINI Cooper S R53 Akü Terminali Kapağı",
+    "aciklama": "2001-2006 MINI Cooper S R53 için şeffaf kırmızı PETG malzemeden özel üretilen akü artı kutup terminal kapağıdır; PLA ile de özel üretilebilir.\nYaklaşık dış ölçüler: 74 × 66 × 12 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3786209-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3786209-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3786209-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3786209-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "pheasant_plucker"
+    }
+  },
+  {
+    "id": "mini-cooper-cakmak-priz-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper"
+      }
+    ],
+    "baslik": "MINI Cooper Çakmak Priz Kapağı",
+    "aciklama": "MINI Cooper'da kaybolan çakmak ya da on iki voltluk prizin yerine takılan yedek kapaktır.\nYaklaşık dış ölçüler: 34 × 29 × 29 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1615920-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Nyles"
+    }
+  },
+  {
+    "id": "mini-cooper-r53-debriyaj-sikistirma-aleti",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper R53"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper R53"
+      }
+    ],
+    "baslik": "MINI Cooper R53 Debriyaj Sıkıştırma Aleti",
+    "aciklama": "MINI Cooper R53 debriyaj hidrolik silindirini sıkıştırmaya yarayan, M8 somunlarla kullanılan el aletidir; PLA malzeme bu yüke dayanmaz, ABS veya PETG ile yapılması uygundur.\nYaklaşık dış ölçüler: 108 × 75 × 25 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4788829-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4788829-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4788829-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4788829-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "littletitus"
+    }
+  },
+  {
+    "id": "mini-cooper-golf-topu-vites-topuzu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper G1"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper G1"
+      }
+    ],
+    "baslik": "MINI Cooper Golf Topu Vites Topuzu",
+    "aciklama": "MINI Cooper G1 için golf topu biçimli el yapımı vites topuzudur; orijinal topuzun yerine takılır.\nYaklaşık dış ölçüler: 55 × 55 × 52 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3873310-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3873310-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "mates31"
+    }
+  },
+  {
     "id": "byd-shark-on-kamera-delik-kapagi",
     "kategori": "Otomobil",
     "marka": [
