@@ -1,5 +1,603 @@
 [
   {
+    "id": "mini-r56-hiz-gostergesi-alti-montaj-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "R56"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "R56"
+      }
+    ],
+    "baslik": "MINI R56 Hız Göstergesi Altı Montaj Braketi",
+    "aciklama": "R56 modellerinde hız göstergesinin alt kenarına geçirilen, telefon şarj kablosunun sabitlenmesini sağlayan montaj braketidir. Kelepçeli yapısı kabloyu doğrudan hız göstergesinin alt dudağına oturtur.\nYaklaşık dış ölçüler: 66 × 60 × 48 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr171516-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Humeco"
+    }
+  },
+  {
+    "id": "mini-r56-bagaj-kulp-degistirme-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "R56"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "R56"
+      }
+    ],
+    "baslik": "MINI R56 Bagaj Kapağı Kulp Değişim Parçası",
+    "aciklama": "R56 bagaj kapağında zamanla esneyip parçalanan kulp ile yanındaki düğme kapağının yerine geçen, esnek malzemeye uygun yedek parçadır. Eski kulp yerine temas yapıştırıcıyla sabitlenir.\nYaklaşık dış ölçüler: 84 × 25 × 8 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr261251-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr261251-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr261251-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr261251-4.jpg"
+    ]
+  },
+  {
+    "id": "mini-f56-telefon-tutucu-kol-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "F56"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "F56"
+      }
+    ],
+    "baslik": "MINI F56 Telefon Tutucu Kol Braketi",
+    "aciklama": "F56 telefon tutucusuyla birlikte çalışan, tutucu kolunu araç gösterge paneline bağlayan braket parçasıdır. Kolun kıvrımında kayma olmaması için sert malzemeye uygundur.\nYaklaşık dış ölçüler: 177 × 84 × 11 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr286832-1.jpg"
+    ]
+  },
+  {
+    "id": "mini-r53-kyb-amortisor-takoz-kapak",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "R53"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "R53"
+      }
+    ],
+    "baslik": "MINI R53 KYB Amortisör Takoz Kapağı",
+    "aciklama": "R53'te KYB amortisör takozunun üzerine oturan, toz ve kirin aşağıdaki rulmanlara girmesini önleyen kapaktır. İki dereceli konikliği ve ezici ribaları üretim toleranslarını karşılar; farklı yıl ve marka takozlara da ölçekle uyum sağlar.\nYaklaşık dış ölçüler: 44 × 44 × 22 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr376616-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr376616-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr376616-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Christopher Rich"
+    }
+  },
+  {
+    "id": "mini-clubman-f54-arac-ici-cop-kutusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "F54 Clubman"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "F54 Clubman"
+      }
+    ],
+    "baslik": "MINI Clubman F54 Araç İçi Çöp Kutusu",
+    "aciklama": "Clubman F54 sürücü kapısı bölmesinin arkasına oturan iki parçalı çöp kutusudur. Kapak kısmı araç cep gözü lastiklerinden takviye edilerek toplamda yarım litreden fazla hacim kazanır.\nYaklaşık dış ölçüler: 103 × 94 × 15 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr382389-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr382389-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr382389-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Łukasz Wierzbicki"
+    }
+  },
+  {
+    "id": "mini-cooper-kapi-kilit-lastik-contasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper"
+      }
+    ],
+    "baslik": "MINI Cooper Kapı Kilidi Lastik Contası",
+    "aciklama": "Cooper kapısındaki kilit düğmesinin çevresini saran, kaybolan contanın yerine geçen yedek parçadır. Kapı trimindeki yuvaya tam oturur; düğme çevresindeki açıklık dar olduğunda bir miktar genişletilebilir.\nYaklaşık dış ölçüler: 17 × 16 × 13 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr436942-1.jpg"
+    ]
+  },
+  {
+    "id": "mini-r50-vites-kutusu-kablo-burcu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "R50"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "R50"
+      }
+    ],
+    "baslik": "MINI R50 Vites Kablosu Bağlantı Burcu",
+    "aciklama": "R50'de zamanla çatlayan vites kablosu bağlantısını tüm kabloyu değiştirmeden onarmak için tasarlanmış yedek burçtur. Alt ve üst gövde bölümleri sertleştirilmiş, orta bölüm küresel bağlantıya esneklik verecek şekilde farklı doluluklarla çözülmüştür.\nYaklaşık dış ölçüler: 25 × 25 × 16 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr859503-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr859503-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr859503-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr859503-4.jpg"
+    ]
+  },
+  {
+    "id": "mini-r50-r52-r53-cam-kriko-kablo-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "R50 R52 R53"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "R50 R52 R53"
+      }
+    ],
+    "baslik": "MINI R50 R52 R53 Cam Kriko Kablosu Klipsi",
+    "aciklama": "R50, R52 ve R53 modellerinde cam kriko kablosunu taşıyan orijinal klips kırıldığında yerine geçen yedek klipstir. Kablonun oturduğu kanal ve geçme tırnakları orijinal parçadan alınan ölçülere göre çözülmüştür.\nYaklaşık dış ölçüler: 57 × 26 × 10 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1243283-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "SpeedySpikes"
+    }
+  },
+  {
+    "id": "mini-r50-r52-r53-duz-radio-konsol-kiti",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "R50 R52 R53"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "R50 R52 R53"
+      }
+    ],
+    "baslik": "MINI R50 R52 R53 Düz Radyo Konsol Kiti",
+    "aciklama": "R50, R52 ve R53 modellerinde standart radyodan daha yüksek gövdeli bir başlığın konsola düz oturmasını sağlayan çerçeve kitidir. Alt ve üst kılavuzları bulunmadığı için başlık konsol yüzeyine tam hizalı monte edilir.\nYaklaşık dış ölçüler: 220 × 83 × 3 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1249402-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1249402-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1249402-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1249402-4.jpg"
+    ]
+  },
+  {
+    "id": "mini-r50-r52-r53-radio-kor-tapa-plakasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "R50 R52 R53"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "R50 R52 R53"
+      }
+    ],
+    "baslik": "MINI R50 R52 R53 Radyo Kör Tapa Plakası",
+    "aciklama": "Düz radyo konsol kiti kullanıldığında konsolda artan radyo boşluğunu kapatan kör tapa plakasıdır. Aynı konsol kitinin yanına gelen kardeş parçadır ve kutu açıklığıyla aynı genişlikte çözülmüştür.\nYaklaşık dış ölçüler: 220 × 83 × 3 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1249437-1.jpg"
+    ]
+  },
+  {
+    "id": "mini-countryman-u25-hiz-uyari-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Countryman U25"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Countryman U25"
+      }
+    ],
+    "baslik": "MINI Countryman U25 Hız Uyarı Tutucusu",
+    "aciklama": "Countryman U25 gösterge panelinde hız uyarı cihazının sabitleneceği uygun noktayı sağlayan montaj aparatıdır. Konumu, araç ortam aydınlatmasını ve cihazın projeksiyonunu kapatmayacak şekilde seçilmiştir.\nYaklaşık dış ölçüler: 36 × 35 × 13 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1281843-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1281843-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1281843-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Glenn"
+    }
+  },
+  {
+    "id": "mini-r50-r53-tavan-kaplama-uc-montaj-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "R50 R53"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "R50 R53"
+      }
+    ],
+    "baslik": "MINI R50 R53 Tavan Kaplama Uç Montaj Parçası",
+    "aciklama": "R50 ve R53 modellerinde yan tavan kaplama şeridinin sağ uç kısmına oturan montaj parçasıdır. Orijinal parçanın 7112080 referans ölçülerine göre çözülmüştür.\nYaklaşık dış ölçüler: 123 × 19 × 9 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1301043-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Bohdan Lysenko"
+    }
+  },
+  {
+    "id": "mini-r56-telefon-icecek-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "R56"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "R56"
+      }
+    ],
+    "baslik": "MINI R56 Telefon ve İçecek Tutucu",
+    "aciklama": "R56 orta konsolunda telefon ile kutu içeceği aynı anda taşıyan birleşik tutucudur. Telefon yuvası korumalı kılıfla birlikte ölçülmüştür; delme veya yapıştırma olmadan konsola oturur.\nYaklaşık dış ölçüler: 86 × 86 × 50 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1304777-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1304777-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "H44S"
+    }
+  },
+  {
+    "id": "mini-r56-cd-surucu-izgara-kapak",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "R56"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "R56"
+      }
+    ],
+    "baslik": "MINI R56 CD Sürücü Izgara Kapağı",
+    "aciklama": "R56'da stereo başlığı değiştirildiğinde boşalan yuvanın önünü kapatan tek parça ızgara kapağıdır. Kapağın genişliği stereo dolabı açıklığına göre ölçülmüştür.\nYaklaşık dış ölçüler: 226 × 62 × 40 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1339152-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Spencer Trott"
+    }
+  },
+  {
+    "id": "mini-f56-motor-kaputu-acma-kolu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "F56"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "F56"
+      }
+    ],
+    "baslik": "MINI F56 Motor Kaputu Açma Kolu",
+    "aciklama": "F56'da kırılan orijinal motor kaputu açma kolunun yerine geçen yedek parçadır. Katman sayısı artırılarak hem yan duvarları hem de açma yüzeyi güçlendirilmiştir.\nYaklaşık dış ölçüler: 99 × 58 × 50 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1380728-1.jpg"
+    ]
+  },
+  {
+    "id": "mini-f56-hava-kutusu-montaj-lastigi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "F55 F56"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "F55 F56"
+      }
+    ],
+    "baslik": "MINI F56 Hava Kutusu Montaj Lastiği",
+    "aciklama": "F55 ve F56 modellerinde akü tablasının bir parçası olan hava kutusu montaj lastiğinin yedek parçasıdır. BMW 61219387574 referans parçasıyla aynı ölçüdedir; BMW F39, F40, F44 ve F48 araçlarında da uyumludur.\nYaklaşık dış ölçüler: 30 × 30 × 16 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1381181-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "dudeku"
+    }
+  },
+  {
+    "id": "mini-klasik-fren-borusu-bukumle-aleti",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Classic"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Classic"
+      }
+    ],
+    "baslik": "MINI Klasik Fren Borusu Bükme Aleti",
+    "aciklama": "Klasik Mini'lerin ön şasi sağ tarafında fren borusunun bağlantıya çok yakın dar bir yay çizmesi için tasarlanmış bükme aletidir. Alet gövdesine gömülü on bir milimetrelik altıgen yuvası bükümün bağlantıya daha yakın yapılmasını sağlar; mengene sabitlenerek kullanılır.\nYaklaşık dış ölçüler: 36 × 33 × 19 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1412485-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1412485-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1412485-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1412485-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "George37176"
+    }
+  },
+  {
+    "id": "mini-r50-r52-r53-vites-kolu-korugu-montaj-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "R50 R52 R53"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "R50 R52 R53"
+      }
+    ],
+    "baslik": "MINI R50 R52 R53 Vites Kolu Körüğü Montaj Braketi",
+    "aciklama": "2001-2006 R50, R52 ve R53 modellerinde vites kolu körüğünü ve gümüş rengi trim parçasını orta konsola bağlayan yedek braket. Vites koluna geçirilir, pimleri konsoldaki deliklere, klipsleri trim parçasının kenarına oturur.\nYaklaşık dış ölçüler: 133 × 128 × 25 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1700630-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1700630-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1700630-3.jpg"
+    ],
+    "lisans": {
+      "tur": "GPL 3.0",
+      "tasarimci": "TotalRecall"
+    }
+  },
+  {
+    "id": "mini-r50-r52-r53-telsiz-tutucu-konsol",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "R50 R52 R53"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "R50 R52 R53"
+      }
+    ],
+    "baslik": "MINI R50 R52 R53 Telsiz Tutucu Konsol Aparatı",
+    "aciklama": "R50, R52 ve R53 modellerinde araç telsizinin gösterge konsoluna sabitlenmesini sağlayan aparattır. Konsolun üst yüzeyine oturacak şekilde konumlandırılmıştır.\nYaklaşık dış ölçüler: 25 × 16 × 16 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1552923-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1552923-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "dancaw23"
+    }
+  },
+  {
+    "id": "mini-r50-far-kapak-contasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "R50"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "R50"
+      }
+    ],
+    "baslik": "MINI R50 Far Kapağı ve Conta",
+    "aciklama": "R50 far kapağının orijinal lastik contasının yerine geçen yedek parçadır. Ana kapak gövdesi ile conta yuvası tek parçada çözülmüş, conta bölümü esnek malzemeye uygundur.\nYaklaşık dış ölçüler: 79 × 79 × 33 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1555612-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1555612-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1555612-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Meatsafe3D"
+    }
+  },
+  {
+    "id": "mini-cooper-jant-merkez-kapak",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper"
+      }
+    ],
+    "baslik": "MINI Cooper Jant Merkez Kapağı",
+    "aciklama": "Cooper jantlarının göbek kapağı kaybolduğunda veya kırıldığında yerine geçen yedek kaptır. Düz göbek yüzeyi ve çevresindeki vida delikleri sayesinde jant göbeğine geçmeli olarak oturur.\nYaklaşık dış ölçüler: 155 × 155 × 35 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1562333-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "TheMotoHippie Official"
+    }
+  },
+  {
+    "id": "mini-klasik-telefon-klips-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Classic"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Classic"
+      }
+    ],
+    "baslik": "MINI Klasik Telefon Klips Tutucu",
+    "aciklama": "2001 öncesi klasik Mini'lerin orta konsolundaki küllük gözüne oturan, pop-socket tipi telefon tutucusudur. Göz kenarına sıkışacak şekilde çözülmüştür; telefon klipsi gözün içinde tutulur.\nYaklaşık dış ölçüler: 74 × 54 × 50 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1694862-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1694862-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Lefooey"
+    }
+  },
+  {
+    "id": "mini-r56-hoparlor-kapak-tapasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "R56"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "R56"
+      }
+    ],
+    "baslik": "MINI R56 Hoparlör Kapağı Tapası",
+    "aciklama": "R56'da hoparlör kapağında yan ayna düğmesi için ayrılmış deliği kapatan yuvarlak tapadır. Sol direksiyonlu araçlarda delik açıkta kalan kapağa geçer ve yapıştırıcıyla sabitlenir.\nYaklaşık dış ölçüler: 71 × 42 × 42 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1720624-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1720624-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Lukas B"
+    }
+  },
+  {
+    "id": "mini-r53-kapi-trim-baglanti-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "R53"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "R53"
+      }
+    ],
+    "baslik": "MINI R53 Kapı Trim Bağlantı Braketi",
+    "aciklama": "R53'te kırılan plastik trim bağlantı braketinin yerine geçen yedek parçadır. Orijinal parçanın ölçüleri alınarak tersine mühendislikle yeniden tasarlanmıştır.\nYaklaşık dış ölçüler: 114 × 85 × 23 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1817629-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1817629-2.jpg"
+    ]
+  },
+  {
+    "id": "mini-r53-debriyaj-valf-silindiri-sikistirma-aparati",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "R53"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "R53"
+      }
+    ],
+    "baslik": "MINI R53 Debriyaj Valf Silindiri Sıkıştırma Aparatı",
+    "aciklama": "2001-2006 R53 Cooper S'te debriyaj hava alma işlemi sırasında debriyaj valf silindirinin yayını sıkıştırmak için kullanılan atölye aparatıdır. İki M8 cıvata ve somunla birlikte çalışır, ince ve kısa bir ikinci sürümü de vardır.\nYaklaşık dış ölçüler: 92 × 61 × 60 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1702681-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1702681-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1702681-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1702681-4.jpg"
+    ],
+    "lisans": {
+      "tur": "GPL 3.0",
+      "tasarimci": "TotalRecall"
+    }
+  },
+  {
     "id": "mini-cooper-07-15-camurluk-erisim-kapagi",
     "kategori": "Otomobil",
     "marka": [
