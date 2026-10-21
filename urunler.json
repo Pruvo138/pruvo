@@ -1,5 +1,583 @@
 [
   {
+    "id": "isuzu-d-max-colorado-koltuk-kolu-kulp",
+    "kategori": "Otomobil",
+    "marka": [
+      "Isuzu"
+    ],
+    "uyum": [
+      {
+        "marka": "Isuzu"
+      }
+    ],
+    "baslik": "Isuzu D-Max Koltuk Yan Ayar Kolu",
+    "aciklama": "Isuzu D-Max ile muadili Chevrolet Colorado ön koltuk yan ayar kolunun kırılan orijinal parça yerine geçen yedek koludur; sürücü ya da yolcu koltuğuna göre model ayna çevrilebilir.\nYaklaşık dış ölçüler: 80 × 78 × 28 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr515573-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr515573-2.jpg"
+    ]
+  },
+  {
+    "id": "isuzu-mux-a-sutunu-quadlock-telefon-montesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Isuzu"
+    ],
+    "uyum": [
+      {
+        "marka": "Isuzu"
+      }
+    ],
+    "baslik": "Isuzu MU-X A Sütunu Quad Lock Telefon Braketi",
+    "aciklama": "2021 model Isuzu MU-X'in A sütunu tutamağına M6 cıvata ile takılan, Quad Lock uyumlu telefon tutucu braketidir; iki farklı yükseklik seçeneğiyle kablosuz Android Auto veya USB şarj portuyla birlikte kullanılabilir.\nYaklaşık dış ölçüler: 97 × 37 × 25 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1338723-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1338723-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Healyhatman"
+    }
+  },
+  {
+    "id": "isuzu-trooper-anahtar-bosluk-4lu-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Isuzu"
+    ],
+    "uyum": [
+      {
+        "marka": "Isuzu"
+      }
+    ],
+    "baslik": "Isuzu Trooper Dörtlü Anahtar Boşluk Kapağı",
+    "aciklama": "2000 ve sonrası Isuzu Trooper orta konsolunda vitesin arkasındaki dört anahtar boşluğunu birden kapatan, dış kenardan iç kenara doğru artan derinliğe uygun hafif kama verilmiş tek parça kapaktır.\nYaklaşık dış ölçüler: 95 × 39 × 18 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7252964-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "johnthegoon"
+    }
+  },
+  {
+    "id": "isuzu-npr-guneslik-tutma-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Isuzu"
+    ],
+    "uyum": [
+      {
+        "marka": "Isuzu"
+      }
+    ],
+    "baslik": "Isuzu NPR Güneşlik Tutma Klipsi",
+    "aciklama": "Isuzu NPR kamyonet ve kamyon sürücü tavanındaki katlanır güneşliği mil ekseninde tutan küçük klipsin yedek parçasıdır; orijinal klipsin tek başına yedek parça olarak bulunması zor ve pahalı olduğu için tercih edilir.\nYaklaşık dış ölçüler: 25 × 8 × 8 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7078164-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "00_farms"
+    }
+  },
+  {
+    "id": "isuzu-skw-askeri-kamyon-bardak-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Isuzu"
+    ],
+    "uyum": [
+      {
+        "marka": "Isuzu"
+      }
+    ],
+    "baslik": "Isuzu SKW Askeri Kamyon Bardak Tutucu",
+    "aciklama": "Isuzu SKW askeri kamyon sürücü bölmesine geçme oturtmalı iki ayrı parça olarak takılan bardak tutucudur; özel üretilen dış gövde ile iç halka ayrı ayrı üretilip birbirine geçirilir.\nYaklaşık dış ölçüler: 129 × 87 × 44 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4753144-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4753144-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4753144-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4753144-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "itoshin"
+    }
+  },
+  {
+    "id": "isuzu-trooper-2000-guneslik-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Isuzu"
+    ],
+    "uyum": [
+      {
+        "marka": "Isuzu"
+      }
+    ],
+    "baslik": "Isuzu Trooper 2000 Güneşlik Klipsi",
+    "aciklama": "2000 model Isuzu Trooper güneşliğini tavana sabitleyen küçük klips yedek parçasıdır; kırılan ya da eskiyen orijinal klipsin yerine takılır.\nYaklaşık dış ölçüler: 40 × 33 × 30 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7257741-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7257741-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "johnthegoon"
+    }
+  },
+  {
+    "id": "isuzu-canyon-colorado-kaput-dikme-cubugu-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Isuzu"
+    ],
+    "uyum": [
+      {
+        "marka": "Isuzu"
+      }
+    ],
+    "baslik": "Isuzu D-Max Kaput Dikme Çubuğu Klipsi",
+    "aciklama": "2004-2012 arası Isuzu D-Max ile platform muadili Canyon ve Colorado modellerinin motor bölmesinde kaputu açık tutan dikme çubuğunu yerinde sabitleyen yedek klips parçasıdır.\nYaklaşık dış ölçüler: 44 × 22 × 10 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7041711-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7041711-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "joelove68"
+    }
+  },
+  {
+    "id": "isuzu-d-max-rg01-on-izgara-kamera-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Isuzu"
+    ],
+    "uyum": [
+      {
+        "marka": "Isuzu"
+      }
+    ],
+    "baslik": "Isuzu D-Max RG01 Ön Izgara Kamera Tutucu",
+    "aciklama": "Isuzu D-Max RG01 kasa ön ızgarasına isteğe bağlı olarak eklenen ön kamera tutucu aparattır; araç gövdesindeki orijinal Isuzu rozetine dokunmadan ızgaraya geçer.\nYaklaşık dış ölçüler: 104 × 56 × 36 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5839938-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5839938-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5839938-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5839938-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "double-j"
+    }
+  },
+  {
+    "id": "isuzu-rodeo-usb-yuvasi-blogu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Isuzu"
+    ],
+    "uyum": [
+      {
+        "marka": "Isuzu"
+      }
+    ],
+    "baslik": "Isuzu Rodeo USB Yuvası Bloğu",
+    "aciklama": "Isuzu Rodeo orta konsolundaki bozuk para/bölmelik yuvasının yerine geçen, USB carplay ya da android auto kablolarını geçirmek için kullanılan yuva bloğudur.\nYaklaşık dış ölçüler: 41 × 27 × 24 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5873377-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "superman43729"
+    }
+  },
+  {
+    "id": "isuzu-trooper-tekli-anahtar-bosluk-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Isuzu"
+    ],
+    "uyum": [
+      {
+        "marka": "Isuzu"
+      }
+    ],
+    "baslik": "Isuzu Trooper Tekli Anahtar Boşluk Kapağı",
+    "aciklama": "2000 Isuzu Trooper orta konsolunda yolcu tarafındaki dörtlü anahtar grubundaki tek bir boş yuvayı kapatan, paralel bozuk para gözlerine uymayan yedek anahtar kör kapağıdır.\nYaklaşık dış ölçüler: 39 × 23 × 18 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7257737-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7257737-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "johnthegoon"
+    }
+  },
+  {
+    "id": "isuzu-mu7-bardaklik-halkasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Isuzu"
+    ],
+    "uyum": [
+      {
+        "marka": "Isuzu"
+      }
+    ],
+    "baslik": "Isuzu MU7 Bardaklık Halkası",
+    "aciklama": "Isuzu MU7 orta konsol bardak yuvasına oturan halka bardaklık parçasıdır; kaybolan ya da kırılan orijinalin yerine geçer.\nYaklaşık dış ölçüler: 94 × 87 × 16 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5241731-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "cnatthawut"
+    }
+  },
+  {
+    "id": "isuzu-trooper-bozuk-para-gozu-kapama-plakasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Isuzu"
+    ],
+    "uyum": [
+      {
+        "marka": "Isuzu"
+      }
+    ],
+    "baslik": "Isuzu Trooper Bozuk Para Gözü Kapama Plakası",
+    "aciklama": "2000 ve sonrası Isuzu Trooper orta konsolundaki iki bozuk para gözü yerine geçen, yuvadan daha derin boşluğu kapatan tek parça boş plakadır.\nYaklaşık dış ölçüler: 41 × 25 × 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7252953-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "johnthegoon"
+    }
+  },
+  {
+    "id": "isuzu-trooper-kaput-dikme-cubugu-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Isuzu"
+    ],
+    "uyum": [
+      {
+        "marka": "Isuzu"
+      }
+    ],
+    "baslik": "Isuzu Trooper Kaput Dikme Çubuğu Klipsi",
+    "aciklama": "2000 ve sonrası Isuzu Trooper motor bölmesinde kaputu açık tutan dikme çubuğunu yerinde sabitleyen küçük plastik klipsin yedek parçasıdır.\nYaklaşık dış ölçüler: 31 × 24 × 11 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7252969-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "johnthegoon"
+    }
+  },
+  {
+    "id": "isuzu-arka-koltuk-dugmesi-topuz",
+    "kategori": "Otomobil",
+    "marka": [
+      "Isuzu"
+    ],
+    "uyum": [
+      {
+        "marka": "Isuzu"
+      }
+    ],
+    "baslik": "Isuzu Arka Koltuk Düğmesi",
+    "aciklama": "Isuzu araçlarda arka koltuk ayar mekanizmasının baş parmakla döndürülen düğme/topuz parçasıdır; kırılan ya da kaybolan orijinalin yerine geçer.\nYaklaşık dış ölçüler: 44 × 30 × 30 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5945221-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Jdelpino"
+    }
+  },
+  {
+    "id": "isuzu-guneslik-borusu-yarim-kovan",
+    "kategori": "Otomobil",
+    "marka": [
+      "Isuzu"
+    ],
+    "uyum": [
+      {
+        "marka": "Isuzu"
+      }
+    ],
+    "baslik": "Isuzu Güneşlik Borusu Yarım Kovan",
+    "aciklama": "90'ların sonu ile 2000'li yıllar arası Isuzu araçlarda güneşliği tüpün içinde tutan plastik parçanın yarım kovanlardan oluşan yedeğidir.\nYaklaşık dış ölçüler: 18 × 8 × 4 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5208450-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5208450-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5208450-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5208450-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "MarkBuildPrint"
+    }
+  },
+  {
+    "id": "isuzu-mu-x-oluk-pedal-koruma-plakasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Isuzu"
+    ],
+    "uyum": [
+      {
+        "marka": "Isuzu"
+      }
+    ],
+    "baslik": "Isuzu MU-X Ölü Pedal Koruma Plakası",
+    "aciklama": "MU-X sürücü ayak bölgesindeki ölü pedal kısmında halının aşınmasını önlemek için halıya velkro şeritlerle tutunan ince kapak plakasıdır; özellikle çamurlu bot ile inip çıkarken halıyı korur.\nYaklaşık dış ölçüler: 197 × 111 × 26 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7405993-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7405993-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7405993-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7405993-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Sneezy3D"
+    }
+  },
+  {
+    "id": "isuzu-rodeo-cift-din-radyo-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Isuzu"
+    ],
+    "uyum": [
+      {
+        "marka": "Isuzu"
+      }
+    ],
+    "baslik": "Isuzu Rodeo Çift Din Radyo Braketi",
+    "aciklama": "Isuzu Rodeo torpidosuna çift din ölçüsündeki radyo başlığını sabitleyen braketidir; radyo başlığı pakete dahil değildir.\nYaklaşık dış ölçüler: 74 × 24 × 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4940240-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4940240-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4940240-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Otaku_Greasemonkey"
+    }
+  },
+  {
+    "id": "isuzu-d-max-a-sutun-telefon-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Isuzu"
+    ],
+    "uyum": [
+      {
+        "marka": "Isuzu"
+      }
+    ],
+    "baslik": "Isuzu D-Max A Sütun Telefon Tutucu",
+    "aciklama": "Ön cam emiş yerine Isuzu D-Max ön A sütunundaki M6 dişini kullanan telefon tutucusudur; telefonu direksiyonun yanında sabit bir açıyla tutar. Ayrıca daha uzun bir M6 cıvata gerekir.\nYaklaşık dış ölçüler: 152 × 72 × 37 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3110671-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3110671-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "sportssedan"
+    }
+  },
+  {
+    "id": "isuzu-guneslik-montaj-braketi-gmt355",
+    "kategori": "Otomobil",
+    "marka": [
+      "Isuzu"
+    ],
+    "uyum": [
+      {
+        "marka": "Isuzu"
+      }
+    ],
+    "baslik": "Isuzu Güneşlik Montaj Braketi (GMT355)",
+    "aciklama": "2004-2012 model yılı Chevrolet Colorado ve GMC Canyon ile aynı platform paylaşan Isuzu araçlarda, güneşliğin düşmesine yol açan kırık vida yuvasının yenilenmiş montaj braketidir.\nYaklaşık dış ölçüler: 97 × 38 × 18 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6903074-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6903074-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "xxxEDxxx"
+    }
+  },
+  {
+    "id": "isuzu-trooper-1991-guneslik-klipi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Isuzu"
+    ],
+    "uyum": [
+      {
+        "marka": "Isuzu"
+      }
+    ],
+    "baslik": "Isuzu Trooper Güneşlik Klipsi (1991)",
+    "aciklama": "Isuzu Trooper 1991 modelinde güneşliği torpido üstünde tutan klipsin yedeğidir; aynı yerde kırılan orijinal klipsin yerine geçer.\nYaklaşık dış ölçüler: 34 × 32 × 28 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1738798-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1738798-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1738798-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Chexpylee"
+    }
+  },
+  {
+    "id": "isuzu-fob-uzaktan-kumanda-butonlari",
+    "kategori": "Otomobil",
+    "marka": [
+      "Isuzu"
+    ],
+    "uyum": [
+      {
+        "marka": "Isuzu"
+      }
+    ],
+    "baslik": "Isuzu Uzaktan Kumanda Yedek Buton Takımı",
+    "aciklama": "Bazı Isuzu uzaktan kumanda anahtarlarının yıpranan ya da kırılan butonları yerine geçen, küçük çeşitli düğmelerden oluşan yedek parça takımıdır.\nYaklaşık dış ölçüler: 47 × 32 × 4 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7087167-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7087167-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "FluffySquid02"
+    }
+  },
+  {
+    "id": "isuzu-trooper-1nesil-genis-gosterge-paneli-mesnedi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Isuzu"
+    ],
+    "uyum": [
+      {
+        "marka": "Isuzu"
+      }
+    ],
+    "baslik": "Isuzu Trooper 1. Nesil 6.86 İnç Gösterge Paneli Mesnedi",
+    "aciklama": "Birinci nesil Isuzu Trooper torpidosuna 6.86 inç geniş gösterge panelini sabitleyen mesnedir; üst kısmında anten bağlantı noktası bulunur. Gösterge paneli ve kablolama pakete dahil değildir.\nYaklaşık dış ölçüler: 220 × 102 × 99 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7065546-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7065546-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7065546-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "cablesquirrel"
+    }
+  },
+  {
+    "id": "isuzu-trooper-1nesil-gosterge-adaptoru-podu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Isuzu"
+    ],
+    "uyum": [
+      {
+        "marka": "Isuzu"
+      }
+    ],
+    "baslik": "Isuzu Trooper 1. Nesil Gösterge Adaptörü ve Podu",
+    "aciklama": "Birinci nesil Isuzu Trooper gösterge yuvalarına çapraz marka hız göstergesi takmak için tasarlanmış adaptör ve pod setidir. Gösterge, kablo demeti ve sensör pakete dahil değildir.\nYaklaşık dış ölçüler: 220 × 107 × 83 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6911733-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6911733-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6911733-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6911733-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "ArizonaZ"
+    }
+  },
+  {
+    "id": "isuzu-d-max-4x2-konsol-cep-kutusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Isuzu"
+    ],
+    "uyum": [
+      {
+        "marka": "Isuzu"
+      }
+    ],
+    "baslik": "Isuzu D-Max 4x2 Konsol Cep Kutusu",
+    "aciklama": "Dört çeker seçicisinin kapağı bulunmayan Isuzu D-Max 4x2 modellerinde konsolun boş kalan bölümüne oturan saklama kutusudur; USB bellek gibi küçük eşyaları konsolda tutar.\nYaklaşık dış ölçüler: 80 × 72 × 49 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2775620-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2775620-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2775620-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2775620-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Bedzplane"
+    }
+  },
+  {
+    "id": "isuzu-trooper-2nesil-arka-cam-motoru-burcu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Isuzu"
+    ],
+    "uyum": [
+      {
+        "marka": "Isuzu"
+      }
+    ],
+    "baslik": "Isuzu Trooper Arka Cam Motoru Burcu (2. Nesil)",
+    "aciklama": "İkinci nesil Isuzu Trooper arka cam kaldırma motorunun dişlisinde takılan aşınmış burcun yedeğidir.\nYaklaşık dış ölçüler: 49 × 49 × 8 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5154029-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "cgalbraith69"
+    }
+  },
+  {
     "id": "chery-qq-1100-kapi-pimi-yuzey-kaplama",
     "kategori": "Otomobil",
     "marka": [
