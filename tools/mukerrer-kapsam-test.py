@@ -95,6 +95,10 @@ def _depo(ilk=TEMIZ, commit=True, git=True):
     os.makedirs(os.path.join(kok, "tools"))
     _kapi_yaz(os.path.join(kok, "tools", "mukerrer-kontrol.py"))
     _yaz(os.path.join(kok, "urunler.json"), ilk)
+    # Kaynak haritasi (21 Eki 2026): kapi harita yok/bozukken fail-closed rc=2 verir
+    # (tools/mukerrer-kaynak-failclosed-test.py). Gercek depoda harita git-disi ama
+    # VAR; fikstur de bos-ama-gecerli haritayla kurulur, yoksa her iddia rc=2'ye duser.
+    _yaz(os.path.join(kok, ".urun-kaynaklari.json"), {})
     if not git:
         return gecici, kok
     _git(kok, "init", "-q")
