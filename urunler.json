@@ -1,5 +1,106 @@
 [
   {
+    "id": "mini-cooper-r50-r52-r53-ultragauge-montaj",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper R50"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper R50"
+      }
+    ],
+    "baslik": "MINI Cooper R50/R52/R53 Ultragauge Montaj Aparatı",
+    "aciklama": "Birinci nesil MINI Cooper R50, R52 ve R53 için Ultragauge'i devir saatinin sağına yirmi milimetre alçaltarak monte eden remikstir; daha uzun vidalar gerekir.\nYaklaşık dış ölçüler: 159 × 40 × 19 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6700582-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6700582-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Jon1h"
+    }
+  },
+  {
+    "id": "mini-cooper-iphone-magsafe-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper"
+      }
+    ],
+    "baslik": "MINI Cooper iPhone MagSafe Tutucu Aparatı",
+    "aciklama": "MINI Cooper için iPhone MagSafe manyetik telefon tutucu parçasıdır; kablo deliği tasarımcı tarafından opsiyonel bırakılmıştır.\nYaklaşık dış ölçüler: 102 × 94 × 31 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5465188-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5465188-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "gscaduto"
+    }
+  },
+  {
+    "id": "mini-r50-r53-tavan-on-koltuk-tutamagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "R50"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "R50"
+      }
+    ],
+    "baslik": "MINI R50/R53 Tavan Ön Koltuk Tutamak Yedeği",
+    "aciklama": "MINI R50 ve R53'ün ön koltuk üzerindeki tavan tutamağı kırıldığında yerine takılan yedek parçadır; ek taban kullanılabilir.\nYaklaşık dış ölçüler: 220 × 53 × 40 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7050053-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "smdanjm"
+    }
+  },
+  {
+    "id": "mini-rover-mini-telefon-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Rover Mini Cooper"
+    ],
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Rover Mini Cooper"
+      }
+    ],
+    "baslik": "Rover Mini Cooper Telefon Tutucu",
+    "aciklama": "Rover Mini Cooper kül tablasına klipsleyerek takılan, Essential PH1 ve iPhone 7 kılıflarıyla denenmiş telefon tutucudur; OnePlus 3T kılıflı ek parça da vardır.\nYaklaşık dış ölçüler: 74 × 37 × 33 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3806140-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3806140-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3806140-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3806140-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "mikehandsdown"
+    }
+  },
+  {
     "id": "mini-r56-hiz-gostergesi-alti-montaj-braketi",
     "kategori": "Otomobil",
     "marka": [
