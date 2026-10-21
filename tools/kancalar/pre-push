@@ -21,6 +21,17 @@ if [ -n "$pruvo_pp_kok" ] && [ -f "$pruvo_pp_kok/tools/kanca-kur.py" ]; then
   fi
 fi
 
+# --- 0-) ISCI PUSH KAPISI (FAIL-CLOSED, 21 Eki 2026, BaBa 14:1x (2)) ----------
+# Isci kosumu (PRUVO_ISCI_KOSUMU dolu) ISCI_PUSH_IZNI=<kendi etiketi> olmadan push
+# EDEMEZ. Mantik tools/isci-push-kapisi.sh'te; betik YOKSA ve isci kosumuysa DURUR.
+# Olcer: tools/isci-push-kapisi-test.py (vaka + mutant + bu kablo).
+if [ -n "$pruvo_pp_kok" ] && [ -f "$pruvo_pp_kok/tools/isci-push-kapisi.sh" ]; then
+  sh "$pruvo_pp_kok/tools/isci-push-kapisi.sh" </dev/null || exit 1
+elif [ -n "${PRUVO_ISCI_KOSUMU:-}" ]; then
+  echo "!! PUSH DURDURULDU — isci kosumu ama tools/isci-push-kapisi.sh bulunamadi (fail-closed)." >&2
+  exit 1
+fi
+
 # --- 0a) SENTETIK GIT SIZINTI KAPISI + KANARYA ONCESI (FAIL-CLOSED, 9 Eki 2026) ---
 # OLCULEN OLAY: pre-push icinde kosan bir oz-test vakasi miras GIT_DIR ile GERCEK
 # depoda `git init` kostu -> ortak .git/config core.bare=true + sahte origin ref'leri.
