@@ -2765,6 +2765,12 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/serit-b-dispatch-test.py
 
+      # SERIT B KATALOG AYNASI bataryasi (21 Eki 2026): sentetik git deposu, 6 vaka + 3 mutant
+      # (izole kopya). Arac hijyen-a3'te filament-test'ten once/sonra kosar.
+      - name: "SERIT B katalog aynasi kabul bataryasi (6 vaka + 3 mutant)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/serit-b-katalog-aynasi-test.py
+
       # URUN KUYRUGU BIRLESTIRICI (12 Eki 2026, BaBa "YAYIN ACLIGI") — urun push'lari
       # `urun-kuyruk` dalinda birikir, .github/workflows/urun-kuyruk.yml Pages YOKKEN
       # main'e alir. Burada HERMETIK batarya: gecici bare origin + sahte gh/git (AG YOK),
@@ -4953,6 +4959,15 @@ jobs:
       # tespiti; komsunun durumu kapıyı yakmaz, mutant olumu kanitlandi). 26 vakanin TAMAMI
       # calissin diye build.py'yi kendi icinden calistirir (yukariya ayri build adimi koymak
       # double-run olurdu). Bloklayici (kapsam kapisi `tools/ci-kapsam-test.py` da sayar).
+      # SERIT B KATALOG AYNASI (21 Eki 2026, BaBa 20 Eki 23:4x — ayni gun 3. vaka: gizlilik ·
+      # arsiv · vekil): dal main'in gerisindeyken TEST 5 dal UCUNDAKI katalogu CANLI D1 ile
+      # kiyasliyor, arada inen urun partisi "aciklanamayan ayrisim" diye KIRMIZI yakiyordu.
+      # Dal urunler.json'a DOKUNMADIYSA calisma agacina origin/main:urunler.json yazilir (canli
+      # eksen); dokunduysa ayna YOK (dalin kendi katalogu olculur). main'de no-op. Hemen
+      # sonraki adim HEAD haline geri doner. Batarya: tools/serit-b-katalog-aynasi-test.py.
+      - name: SERIT B katalog aynasi (dal kataloga dokunmadiysa parite ekseni = origin/main)
+        if: ${{ !cancelled() }}
+        run: python3 tools/serit-b-katalog-aynasi.py --uygula
       - name: Filament paketi kabul testleri (26 vaka; urunler.json'a YAZMAZ sha256 kapisi)
         if: ${{ !cancelled() }}
         # K438 (10 Eki 2026): bu iste CF jetonu YOK (bilerek) -> TEST 5 parite yayin halini
@@ -4963,6 +4978,9 @@ jobs:
         env:
           PARITE_YAYIN_BEKLE_SN: "2700"
         run: python3 tools/filament-test.py
+      - name: SERIT B katalog aynasi GERI (urunler.json HEAD haline)
+        if: ${{ always() }}
+        run: python3 tools/serit-b-katalog-aynasi.py --geri
 
       # STL R2 YUKLEYICI: anahtar turetme (yol-gezinme kapisi: ../ , mutlak yol, ters bolu,
       # NUL reddedilir) + 300 MiB ustu cok-parcali (multipart) yolun parca boyutu/sayisi ve
