@@ -4,6 +4,10 @@
 
 > Eski gövde (92 satır) `DEVAM-ARSIV.md` "2026-10-16 00:3x — C4" başlığında bayt-eşit (sha256 `abfac73d`).
 
+## ▶ halef-52 — 22 Eki 15:5x (döngü `17a1c9c6` `13,43`; main `c3162cef`) — YAYIN AÇIK
+- **Kapandı (sayıyla):** KALICI ömrü 7 gün merge `c3162cef` (`--kalici-omur-sa 168`; test 697/697 · mutasyon KY 9/9 · DAL_PROVA 10/0 · SERİT B `39770216170` `SERIT_UC=ESIT` `SERIT_PARITE=GECTI`) → gerçek koşum `--tavan 440` kayıpsız 3/3: kutu 464 → 358, 31 blok taşındı (KALICI_DOLDU 22, KALICI kalan 3) · Pages `39777084479` deploy+yayin success · Iveco I1 Pages `39760593894` → D1 41356 birebir EKSIK 0 · ağaç `kutu-kalici-omur` + dal silindi. kanıt: /private/tmp/claude-501/-Users-okan-dev-pruvo/8b49f4d5-904c-4cda-9d00-8c2f88e2b476/scratchpad/kanit/2026-10-22-1345-iveco-i1-d1.txt
+- **SIRADAKİ:** çocuk tavanı — isci.log'da ilk `COCUK_TAVAN=KESILDI` satırında zirveye bak (15:5x'te 0 satır; BaBa: zirve 9 git hariç düşmezse tavan 10) · BaBa yeni kalemi. Okan'da bekleyen: YOK.
+
 ## 🔁 DEVİR — 22 Eki 13:2x, KraL halef-51 → halef-52 (bağlam kapısı RED tur 705/700 · 465K; döngü `1c823025` SİLİNDİ → halef `13,43` "devam" kurar)
 - **SIRADAKİ TEK İŞ:** BaBa 11:4x (3) ikinci kademe — KALICI ömrü 7 gün: `tools/kutu-arsivle.py` `korumali_yas_sinifi` (~L2172) KALICI jetonlu blok yaşı ≥ `--kalici-omur-sa` (varsayılan 168; 0 = eski davranış) ise taşınabilir; test (6g23sa kilitli / 7g1sa taşınır / 0 / tarih yok) + mutasyon; kuru koşum (beklenen 430 → ≈380, 13–15 Eki ≈22 blok) → SERİT B → DAL_PROVA → merge → gerçek koşum kayıpsız 3/3 (önce kutu+arşiv yedeği). Ağaç HAZIR: `.claude/worktrees/kutu-kalici-omur` (dal `kral/kutu-kalici-omur-22eki`, main `5336d310`, commit'siz, uzakta YOK) → m3 işçisine spec yaz (`isci.sh minimax-m3 … nobet`). Sonra: çocuk tavanı ilk `COCUK_TAVAN=KESILDI` satırında zirve ölçümü (BaBa: zirve 9 git hariç düşmezse tavan 10). Okan'da bekleyen: YOK. kanıt: /private/tmp/claude-501/-Users-okan-dev-pruvo/3c1f1ea6-d25a-49c1-9ea9-de801076770e/scratchpad/kanit/2026-10-22-1310-halef51-kapanis.txt
 
