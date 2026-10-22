@@ -26,7 +26,7 @@ KARAR (her is): rc 0 + §3 dogrulamasi gecer -> R2'ye yaz -> CAS ile ilerlet · 
 CAS: is once KIRALANIR (siparis: `guncel`, onizleme: `son_kontrol` jetonu); jeton tutmazsa baska
 kosucu ilerletmistir -> o is icin HICBIR yazim yapilmaz. Son yazim da ayni jetona baglidir.
 
-CIKTI (son satir, tek): `HAL=BOS rc=1` · `HAL=PLAN is=<n> rc=0` (KURU, is var) ·
+CIKTI (son satir, tek): `HAL=BOS rc=0` · `HAL=PLAN is=<n> rc=0` (KURU, is var) ·
 `HAL=ISLEDI uretildi=<n> red=<n> ariza=<n> rc=0` · `HAL=KILITLI rc=3` ·
 `HAL=OLCULEMEDI sebep=<kod> rc=4` (D1/R2/wrangler erisilemedi — is KUYRUKTA kalir).
 Varsayilan KURU: plan basar, yazmaz. `--uygula` yazar (launchd kurulumu: tools/foto-kosucu-kur.py).
@@ -2048,6 +2048,27 @@ def damga_yaz(yaz):
         yaz("DAMGA yazilamadi (%s) — ekran hazirlayiciyi cevrimdisi gosterir" % e)
 
 
+# KUYRUK YOKLAMA (22 Eki 2026, olcu: kuyruk %99 bossa her kosum 69 MB agac yazip siliyordu):
+# sarmalayici (tools/kosucu-gecici-agac.sh) TAM agaci ACMADAN once bunu kosar.
+#   BOS            -> `HAL=BOS rc=0`, rc=YOKLAMA_BOS_RC (10) — agac ACILMAZ
+#   is var         -> `HAL=KUYRUKTA is=<n> rc=0`, rc=0 — sarmalayici tam agaci acar
+#   D1/wrangler kapali -> `HAL=OLCULEMEDI sebep=<kod> rc=4` — IS KUYRUKTA KALIR (fail-closed)
+# Sorgu kumesi `isleri_cek` ile AYNI (tek kaynak; manifest YOK — yalniz sayim/var-yok icin).
+YOKLAMA_BOS_RC = 10
+
+
+def kuyruk_yokla(yaz):
+    try:
+        isler = isleri_cek({})
+    except Erisilemedi as e:
+        return "HAL=OLCULEMEDI sebep=%s rc=4" % e, 4
+    if KUYRUK != "hepsi":
+        isler = [i for i in isler if i["kuyruk"] == KUYRUK]
+    if not isler:
+        return "HAL=BOS rc=0", YOKLAMA_BOS_RC
+    return "HAL=KUYRUKTA is=%d rc=0" % len(isler), 0
+
+
 def calistir(uygula, yaz):
     fd = kilit_al()
     if fd is None:
@@ -2071,7 +2092,7 @@ def tur_kos(uygula, yaz):
     if KUYRUK != "hepsi":
         isler = [i for i in isler if i["kuyruk"] == KUYRUK]
     if not isler:
-        return "HAL=BOS rc=1", 1
+        return "HAL=BOS rc=0", 0
     if not uygula:
         for i in isler:
             plan_bas(i, yaz)
@@ -2093,6 +2114,8 @@ def main(argv=None):
     ap.add_argument("--log", help="ciktiyi bu dosyaya ekle (5 MB tavan, eskisi silinir)")
     ap.add_argument("--hedef", choices=["canli", "onizleme"], default="canli",
                     help="D1/R2 hedefi (onizleme: shop/wrangler.onizleme.toml; varsayilan canli)")
+    ap.add_argument("--kuyruk-yokla", action="store_true",
+                    help="YALNIZ kuyrugu yokla (agac acilmadan): BOS->rc=10, is var->rc=0, erisilemezse rc=4")
     ap.add_argument("--donustur-litofan", nargs=3, metavar=("HAM", "CIKTI", "GIRDI"), help=argparse.SUPPRESS)
     ap.add_argument("--donustur-tekin", nargs=4, metavar=("HAM", "CIKTI", "GIRDI", "KOPRU"), help=argparse.SUPPRESS)
     ap.add_argument("--render", metavar="IS_NO",
@@ -2113,6 +2136,21 @@ def main(argv=None):
     if a.donustur_tekin:
         return donustur_tekin(*a.donustur_tekin)
     hedef_kur(a.hedef)
+    tampon = io.StringIO()
+
+    def yaz(s):
+        print(s)
+        tampon.write(s + "\n")
+
+    # --kuyruk-yokla: hicbir yazim YOK (kilit/damga/R2); yalniz kuyruk sayimi.
+    if a.kuyruk_yokla:
+        satir, rc = kuyruk_yokla(yaz)
+        yaz(satir)
+        if a.log:
+            log_dondur(a.log)
+            with open(a.log, "a", encoding="utf-8") as f:
+                f.write("# %s\n%s" % (simdi_iso(), tampon.getvalue()))
+        return rc
     if a.renk_cizim:
         satir, rc = renk_cizim_cli(a.renk_cizim, a.uygula, print, a.kaydet)
         print(satir)
@@ -2121,12 +2159,6 @@ def main(argv=None):
         satir, rc = render_cli(a.render, a.uc_mf, a.onizleme, a.renkler, a.uygula, print, a.kaydet)
         print(satir)
         return rc
-    tampon = io.StringIO()
-
-    def yaz(s):
-        print(s)
-        tampon.write(s + "\n")
-
     satir, rc = calistir(a.uygula, yaz)
     yaz(satir)
     if a.log:

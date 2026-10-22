@@ -187,7 +187,7 @@ for r in db.execute("SELECT siparis_no, kalem FROM foto_uretim WHERE asama='onar
         open(os.path.join(k, "onizleme.png"), "wb").write(png(1024, 1024))
     db.execute("UPDATE foto_uretim SET asama='hazir' WHERE siparis_no=?", (r["siparis_no"],)); n += 1
 db.commit()
-print("HAL=ISLEDI uretildi=%d red=0 ariza=0 rc=0" % n if n else "HAL=BOS rc=1")
+print("HAL=ISLEDI uretildi=%d red=0 ariza=0 rc=0" % n if n else "HAL=BOS rc=0")
 '''
 
 
