@@ -886,7 +886,7 @@ UYUM_MARKA_IZINLI = frozenset({
     "Speeduino", "SsangYong", "Stihl", "Suzuki", "TMC", "Tesla", "Thermomix", "Tofaş",
     "Tohatsu", "Toyota", "Twin Disc", "Vespa", "Vetus", "Volkswagen", "Volvo",
     "Weinsberg", "Xbox", "Xiaomi", "Yamaha", "Yunteng", "Zelmer", "Zodiac", "Zontes",
-    # ── MIMAR ELIYLE EKLENEN (asagidaki UYUM_MARKA_MIMAR_EKI ile AYNI 57 jeton) ──
+    # ── MIMAR ELIYLE EKLENEN (asagidaki UYUM_MARKA_MIMAR_EKI ile AYNI 59 jeton) ──
     # 🔴 BU SAYIYI HICBIR KAPI OLCMUYOR (olculdu 31 Agu): Raymarine ONCESINDE burada
     # "34" yaziyordu ama kumenin GERCEK boyu 41'di — 3./4./5. tur eklerinde
     # guncellenmemis, uc tur boyunca kirmizi yakmadan yasamis BAYAT bir sayi.
@@ -927,6 +927,13 @@ UYUM_MARKA_IZINLI = frozenset({
     # `len(UYUM_MARKA_MIMAR_EKI)` ile OLCULEREK dogrulandi (52 -> 57, esitlik TUTTU).
     # Ayni turda `len(UYUM_MARKA_IZINLI)` 191 -> 196 ve FARK (izinli − eki) 139 SABIT
     # kaldi -> besi de IKI kumeye girdi.
+    # 15. tur (22 Eki 2026, KraL halef-53, BaBa 20:5x): TEK jeton girdi (`MG`), sayi
+    # 57 -> 58 ELLE guncellendi ve `len(UYUM_MARKA_MIMAR_EKI)` ile OLCULEREK dogrulandi
+    # (57 -> 58, esitlik TUTTU). Ayni turda `len(UYUM_MARKA_IZINLI)` 196 -> 197 ve FARK
+    # (izinli − eki) 139 SABIT kaldi -> jeton IKI kumeye de girdi.
+    # 16. tur (22 Eki 2026, KraL halef-53): TEK jeton girdi (`DS`), sayi 58 -> 59 ELLE
+    # guncellendi ve `len(UYUM_MARKA_MIMAR_EKI)` ile OLCULEREK dogrulandi (58 -> 59,
+    # esitlik TUTTU). `len(UYUM_MARKA_IZINLI)` 197 -> 198, FARK 139 SABIT.
     # 🔴 KALEM HALA ACIK: bu bir MAKINE iddiasi degil, tek seferlik bir olcumdur —
     # bir sonraki tur yine guncellemeyi UNUTABILIR. Kalici cozum bu sayiyi `len()`ten
     # TURETMEK ya da bir kapiya iddia olarak KOYMAKTIR; ikisi de mimar hukmunu bekliyor
@@ -1619,6 +1626,56 @@ UYUM_MARKA_IZINLI = frozenset({
     #   `model-uyelik-kapisi.py` rc=0 30/30 = rc=0 30/30. Ek: `altkategori-sinifla-test`
     #   rc=0 145/0 · `marka-uyelik-test` rc=0 · `marka-arama-d1-test` rc=0 56/0.
     "Pentax", "Olympus", "Leica", "Blackmagic", "Insta360",
+    # 15. tur, A grubu (1) — BaBa hukmu 22 Eki 2026 20:5x (MaCiT MG dilim M1, thingiverse
+    #   25, bu jetonu bekliyordu). SINIF: OTOMOBIL marque'i (MGB/Midget/MGF/ZS/HS/MG4) —
+    #   EV SAHIBI, parca ONA takilir; `Rover`, `Mini`, `Vauxhall` ile ayni sinif.
+    #   KANONIK YAZIM `MG`; `MG Motor`/`MG Rover`/`mg`/`Mg`/`M.G.`/Kiril `МG` RED (takma ad
+    #   BILESIK_MARKA_KANONIK'e GIRMEDI: katalogda `MG Motor` 0 kayit -> buyume kuralinin
+    #   FAYDA ekseni 0, tablo TEK TOHUM kalir).
+    #   🔴 `DS` AYNI HUKUMDE ISTENDI, BU TURDA GIRMEDI — OLCULDU: `DS` kumeye girince
+    #   `marka_varyanti_sebebi("model", "DS")` klasik Citroen DS (1955–75, gercek Citroen
+    #   modeli) kayitlarini REDDEDIYOR -> uyum-kapisi A1 7 ihlal + model-uyelik K19
+    #   "envanterde var uretimde yok=['Citroen|ds']" = CANLI `/marka/citroen/ds/` OLUR.
+    #   Cozum (kapali `("Citroen","DS")` cift istisnasi) bes cagri noktasina yayiliyor
+    #   (uyum_ogesi_sebebi + marka_model_build x2 + cip-indeks x2 + model-uyelik ekseni);
+    #   AYRI dalda gelir.
+    #   Olculen katalog agirligi (41379 urun; TAM yazim, kelime sinirli): marka[] 1 ·
+    #   uyum[].marka 0 -> 1 · uyum[].model 1 -> 0 · baslik 1 · aciklama 3.
+    #   VERI DUZELTMESI (ayni commit, `duzelt.py`): `opel-c20ne-rover-mg-gaz-kelebe-i-
+    #   adapt-r-55mm` uyum `{"marka":"Rover","model":"MG"}` -> `{"marka":"Rover"},
+    #   {"marka":"MG"}` (MG Rover'in modeli DEGIL, marque'tir); `marka` turetimi AYNI
+    #   (`["Opel","Rover","MG"]`). Duzeltilmeseydi bu kayit V16 sinirinda RED olurdu.
+    #   `markasiz()` iki harfli jeton: `nrm` kucuk harfe indirdigi icin `5 mg` birimi de
+    #   silinir — OLCULDU: tum katalogda metni degisen 3 urun, ALT KATEGORI SINIFI DEGISEN
+    #   0/41379 (`siniflandir_toplu` ONCE/SONRA). `MGB`/`MG4`/`SMG`/`IMG` capali, YUTULMAZ.
+    #   Kabul: `tools/mg-marka-kabul-kapisi.py` (A1-A4 + KONTROL + M1/M2/KONTROL-MUTANT,
+    #   kirmizi kume beyana ESIT); uyum-kapisi 39/39 · k302 rc=0 · model-uyelik 30/30
+    #   (cikti ONCE=SONRA bayt bayt) · cip-indeks 129/129 · altkategori 145/0.
+    "MG",
+    # 16. tur, A grubu (1) — ayni BaBa hukmunun (22 Eki 20:5x) ikinci yarisi: `DS` (DS
+    #   Automobiles, 2014'ten beri ayri marque; DS3/DS4/DS7/DS9). 15. turda OLCULEN engel
+    #   (klasik Citroen DS'nin V16 + model ureteci yolundan olmesi) KAPALI cift istisnasiyla
+    #   kaldirildi: `MARKA_ADLI_MODEL_IZINLI = {("Citroen", "DS")}`, tek okuyucu
+    #   `marka_adli_model_mi()` (uyum_ogesi_sebebi) + `marka_model_build.MARKA_ADLI_MODEL`
+    #   (marka_jetonu_mu'ya `marka` baglami: uretec x2 + cip-indeks x2 + cip-indeks-test);
+    #   model-uyelik (a) ekseni tabloyu BAGIMSIZ okur. CANLI `/marka/citroen/ds/` 12 urunle
+    #   ONCE=SONRA ayni.
+    #   KANONIK YAZIM `DS`; `ds`/`Ds`/`D.S.`/`DS Automobiles`/Kiril `DЅ` RED (takma ad
+    #   BILESIK tabloya GIRMEDI: `DS Automobiles` 0 kayit, FAYDA ekseni 0).
+    #   VERI DUZELTMESI (ayni commit, `duzelt.py`): DS'yi MARKA olarak anan 2 kayit —
+    #   `peugeot-citroen-ds-uyumlu-n-cam-vin-numaras-kapat-c` ("Peugeot, Citroen ve DS
+    #   modelleri") `Citroen|DS` -> `{"marka":"DS"}`; `citroen-peugeot-ds-uyumlu-silecek-
+    #   klipsi` `Peugeot|DS` (zaten MODEL_OLMAYAN cift) -> `{"marka":"DS"}`; `marka`
+    #   turetimi AYNI. Sonuc: `Peugeot|DS` deny kovasi (3 urun, yayimsizdi) ERIDI, urunleri
+    #   Peugeot marka listesinde (kaybolan 0) -> `Citroen|ds` artik CAPRAZ cift degil ve
+    #   ROZET_CAPRAZ_IZINLI'den CIKTI (69 -> 68, iki imza kapinin hesabiyla).
+    #   Olculen katalog agirligi (41379; TAM yazim, kelime sinirli): marka[] 12 ·
+    #   uyum[].marka 0 -> 2 · uyum[].model 6 -> 4 (klasik Citroen DS) · baslik 15 ·
+    #   aciklama 18. `markasiz()`: metni degisen 18 urun, ALT KATEGORI SINIFI DEGISEN
+    #   0/41379; `DS3`/`3DS`/`DS18B20` capali, YUTULMAZ; `Nintendo DS` metni katalogda 0.
+    #   Kabul: `tools/ds-marka-kabul-kapisi.py` (A1-A5 + KONTROL + M1/M2/M3/KONTROL-MUTANT,
+    #   kirmizi kume beyana ESIT; M3 sayfa uretecini mutant arama ile YENIDEN yukler).
+    "DS",
 })
 
 # 🔴 ONERI DISINDAN, MIMAR ONAYIYLA eklenen jetonlar. AYRI tutulmalari SART: budama
@@ -1695,6 +1752,12 @@ UYUM_MARKA_MIMAR_EKI = frozenset({
     # menzil BOS) + 8. olcut (besi de TEK KELIME, ayna 19=19) + K220 DUYARLILIK mutanti.
     # UYUM_MARKA_IZINLI'nin "C grubu" 14. tur basliginda yazili. Burada TEKRAR EDILMEZ.
     "Pentax", "Olympus", "Leica", "Blackmagic", "Insta360",
+    # 15. tur (22 Eki 2026) — BaBa hukmu, MaCiT MG M1. Gerekce + olcum + DS'nin neden
+    # girmedigi UYUM_MARKA_IZINLI'nin "A grubu" 15. tur basliginda yazili. TEKRAR EDILMEZ.
+    "MG",
+    # 16. tur (22 Eki 2026) — ayni hukmun ikinci yarisi. Gerekce + Citroen|DS istisnasi +
+    # olcum UYUM_MARKA_IZINLI'nin "A grubu" 16. tur basliginda yazili. TEKRAR EDILMEZ.
+    "DS",
 })
 
 # 🔴 REDDEDILEN ADAYLAR (2 Agu, mimar karari) — kayda geciyor ki bir sonraki tur ayni
@@ -1988,7 +2051,6 @@ ROZET_CAPRAZ_IZINLI = {
     "Peugeot|boxer": ("ROZET", "Peugeot Boxer gercek rozet (SEVEL ucuzu; her marka KENDI adiyla)"),
     "Subaru|brz": ("ROZET", "Subaru BRZ gercek rozet"),
     "Citroen|c1": ("ROZET", "Citroen C1 gercek rozet"),
-    "Citroen|ds": ("ROZET", "Klasik Citroen DS + DS marque'inin cikis rozeti"),
     "Fiat|ducato": ("ROZET", "Fiat Ducato gercek rozet"),
     "Dacia|duster": ("ROZET", "Dacia Duster gercek rozet"),
     "Renault|duster": ("ROZET", "Renault Duster bazi pazarlarda gercek rozet (Rusya/Hindistan/"
@@ -2203,8 +2265,8 @@ ROZET_CAPRAZ_IZINLI = {
                              "— yalniz AD cakismasi"),
 }
 
-ROZET_CAPRAZ_IZINLI_SAYISI = 69
-ROZET_CAPRAZ_IZINLI_IMZA = "e1848cb5634dc504"  # 12 Eyl: 996 cifti eklendi (67->69), kapinin hesabiyla
+ROZET_CAPRAZ_IZINLI_SAYISI = 68
+ROZET_CAPRAZ_IZINLI_IMZA = "71e878eae6d90b02"  # 22 Eki: Citroen|ds cikti (69->68; DS kapali kumede, Peugeot|DS kovasi eridi -> capraz degil), kapinin hesabiyla
 
 
 def rozet_capraz_imzasi():
@@ -2224,7 +2286,7 @@ def rozet_capraz_imzasi():
 # (yargisiz cift) olcer, bu eksen HUKMUN KENDISINI olcer; ikisi AYRI kalir cunku tek
 # imzaya baglansaydi sinif mutanti anahtar imzasina sirtini dayardi (yukaridaki not).
 # GEREKCE METNI IMZAYA GIRMEZ: yazim duzeltmesi kapiyi yakmasin, HUKUM degisimi yaksin.
-ROZET_CAPRAZ_SINIF_IMZA = "dce117c7326c5af9"  # 12 Eyl: 996 cifti eklendi, kapinin hesabiyla
+ROZET_CAPRAZ_SINIF_IMZA = "f9813edaefd4bce1"  # 22 Eki: Citroen|ds cikti, kapinin hesabiyla
 
 
 def rozet_capraz_sinif_imzasi():
@@ -3006,6 +3068,28 @@ def marka_varyanti_sebebi(ad, deger):
             "`marka` alanina yazilir, model/motor alanina DEGIL" % (ad, deger, n))
 
 
+# 🔴 MARKA ADINI TASIYAN GERCEK MODEL — KAPALI CIFT TABLOSU (22 Eki 2026, 16. tur DS).
+# `DS` kumeye girince klasik Citroen DS (1955–75, Citroen rozetiyle satildi; DS Automobiles
+# 2014'te ayrildi) iki yoldan OLUYORDU (OLCULDU): `uyum_ogesi_sebebi` model "DS"yi marka
+# varyanti diye REDDETTI (uyum-kapisi A1 7 ihlal) ve model sayfa ureteci "DS" jetonunu
+# MARKA saydi -> CANLI `/marka/citroen/ds/` dogmadi (model-uyelik K19 "envanterde var
+# uretimde yok"). Istisna CIFT bazinda ve TAM yazimladir: `(marka, model)` tabloda AYNEN
+# yoksa kural aynen isler — baska marka (`Peugeot|DS`), varyant yazim (`Citroen|ds`,
+# `Citroen|D.S.`) ve `motor` alani bundan YARARLANAMAZ. Tablo ELLE ve KAPALIDIR; okuyucular:
+# `marka_adli_model_mi()` (uyum_ogesi_sebebi), `marka_model_build.MARKA_ADLI_MODEL`
+# (marka_jetonu_mu -> sayfa ureteci + cip indeksi) ve model-uyelik (a) ekseni (BAGIMSIZ).
+# Icerigi `tools/ds-marka-kabul-kapisi.py` KONTROL'u dondurur: sessiz buyume KIRMIZI.
+MARKA_ADLI_MODEL_IZINLI = frozenset({
+    ("Citroen", "DS"),
+})
+
+
+def marka_adli_model_mi(marka, model):
+    """(marka, model) KAPALI tabloda TAM yazimla var mi? Var ise model, ADI kapali kumedeki
+    bir markayla ayni olsa da o markanin GERCEK modelidir (marka jetonu sayilmaz)."""
+    return (marka, model) in MARKA_ADLI_MODEL_IZINLI
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # BILESIK MARKA ADI — `Mercedes-Benz` -> `Mercedes` (Okan hukmu, tools/paket-bilesik-marka.md)
 #
@@ -3341,6 +3425,8 @@ def uyum_ogesi_sebebi(oge):
         if sebep:
             return sebep
     for ad in ("model", "motor"):
+        if ad == "model" and marka_adli_model_mi(ham, oge.get(ad)):
+            continue
         sebep = marka_varyanti_sebebi(ad, oge.get(ad))
         if sebep:
             return sebep

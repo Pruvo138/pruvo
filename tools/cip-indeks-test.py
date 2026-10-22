@@ -390,7 +390,7 @@ def kabul(kok):
                                     % (kat, mk, gorulen[canon], md, canon))
                 gorulen[canon] = md
                 # (b)/(c) sinifi: marka jetonu · model-olmayan cift · rozet disi cift
-                if mmb.marka_jetonu_mu(md, mevren):
+                if mmb.marka_jetonu_mu(md, mevren, mk):
                     jeton_ihlal.append("%s/%s/%s: MARKA/grup jetonu" % (kat, mk, md))
                 if mmb.model_olmayan_cift_mi(mk, md):
                     jeton_ihlal.append("%s/%s/%s: MODEL OLMAYAN cift" % (kat, mk, md))
