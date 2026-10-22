@@ -1,5 +1,592 @@
 [
   {
+    "id": "mg-midget-1500-alt-camurluk-bosluk-kapaklari",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "Midget 1500"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "Midget 1500"
+      }
+    ],
+    "baslik": "MG Midget 1500 Alt Çamurluk Boşluk Kapağı",
+    "aciklama": "MG Midget 1500'in ön çamurluk panelinin alt kenarındaki kesik boşluğu kaplayan parçalardır. İki tarafta birer adet kullanılır ve parçalar oturdukları yere sıkıca geçer. Kapaklar sayesinde panelin alt kenarındaki açık boşluk kapanır.\nYaklaşık dış ölçüler: 222 × 66 × 6 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr867363-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr867363-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Kevin Wells"
+    }
+  },
+  {
+    "id": "mg-midget-ayak-boslugu-havalandirma-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "Midget"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "Midget"
+      }
+    ],
+    "baslik": "MG Midget Ayak Boşluğu Havalandırma Kapağı",
+    "aciklama": "Ayak boşluğundaki havalandırma kapağının açılıp kapanmasını kolaylaştıran tutamaklı kapaklardır. On milimetrelik it-çek hareketiyle kapak açılır ve yolcu tarafındaki havalandırma kapağı da elden rahatça kullanılır.\nYaklaşık dış ölçüler: 161 × 96 × 57 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr858235-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr858235-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr858235-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Kevin Wells"
+    }
+  },
+  {
+    "id": "mg-midget-1500-sinyal-lambasi-bosluk-kapaklari",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "Midget 1500"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "Midget 1500"
+      }
+    ],
+    "baslik": "MG Midget 1500 Sinyal Lambası Boşluk Kapağı",
+    "aciklama": "MG Midget 1500'in ön çamurluk panelindeki sinyal lambası kesiklerini kaplayan parçalardır. LED delikli, tamamen kapalı ve LED deliksiz olmak üzere üç ayrı sürümü vardır.\nYaklaşık dış ölçüler: 167 × 75 × 8 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr867361-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr867361-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Kevin Wells"
+    }
+  },
+  {
+    "id": "mg-zs-hybrid-kolcak-tepsisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "ZS Hybrid+"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "ZS Hybrid+"
+      }
+    ],
+    "baslik": "MG ZS Hybrid+ Kolçak Tepsisi",
+    "aciklama": "MG ZS Hybrid+ kolçağının üstüne oturan küçük bir tepsi parçasıdır. Kaynak, parçanın yalnızca 2024-2025 model yılı Hybrid+ sürümüne uyduğunu belirtir.\nYaklaşık dış ölçüler: 180 × 136 × 45 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1446539-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1446539-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1446539-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1446539-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "JlBarredo"
+    }
+  },
+  {
+    "id": "mg-mgf-mgtf-gosterge-binokulu",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "MGF/MGTF"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "MGF/MGTF"
+      }
+    ],
+    "baslik": "MGF/MGTF Gösterge Çerçevesi",
+    "aciklama": "MGF ve MGTF modellerinin gösterge panelinin çerçeve kısmıdır. Ön taraftaki iki vida için delik açılması gerekir; parça altı ayrı parça hâlinde sunulmuştur ve küçük masaüstü yazıcılarda sığacak boyuttadır.\nYaklaşık dış ölçüler: 155 × 120 × 113 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1161832-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1161832-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Łukasz Nowakowski"
+    }
+  },
+  {
+    "id": "mg-zs-bagaj-kapagi-mentese-kancasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "ZS"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "ZS"
+      }
+    ],
+    "baslik": "MG ZS Bagaj Kapağı Kancası",
+    "aciklama": "MG ZS bagaj kapağının açılıp kapanmasında görev alan küçük kanca parçasıdır.\nYaklaşık dış ölçüler: 18 × 18 × 14 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1081807-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1081807-2.jpg"
+    ]
+  },
+  {
+    "id": "mg-midget-1500-arka-stop-lambasi-bosluk-kapaklari",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "Midget 1500"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "Midget 1500"
+      }
+    ],
+    "baslik": "MG Midget 1500 Arka Stop Lambası Boşluk Kapağı",
+    "aciklama": "Lastik tampon çıkarıldığında stop lambalarının altında kalan boşluğu kaplayan parçalardır. İki parça kullanılır ve montaj için sekiz adet kağıt metal vida gerekir. A parçası iki tarafta aynıdır, B parçası yönlüdür.\nYaklaşık dış ölçüler: 157 × 95 × 46 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr869544-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr869544-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr869544-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Kevin Wells"
+    }
+  },
+  {
+    "id": "mg-midget-kapi-cekme-vida-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "Midget"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "Midget"
+      }
+    ],
+    "baslik": "MG Midget Kapı Çekme Vida Kapağı",
+    "aciklama": "MG Midget iç kapı kolunun vida başlıklarını örten kapaklardır. Kaynak, kapakların montaj sırasında bir miktar esnek olması gerektiğini belirtir.\nYaklaşık dış ölçüler: 30 × 26 × 11 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr799260-1.jpg"
+    ]
+  },
+  {
+    "id": "mg-midget-cam-kranki-rozet-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "Midget"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "Midget"
+      }
+    ],
+    "baslik": "MG Midget Cam Kolu Rozet Kapağı",
+    "aciklama": "MG Midget cam kolu milinin kapı iç panelindeki açıklığını çevreleyen dekoratif kapaktır. Orijinal rozet parçanın kopyasıdır.\nYaklaşık dış ölçüler: 54 × 54 × 8 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr799271-1.jpg"
+    ]
+  },
+  {
+    "id": "mg-zs-bagaj-ipi-kancasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "ZS"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "ZS"
+      }
+    ],
+    "baslik": "MG ZS Bagaj İpi Kancası",
+    "aciklama": "MG ZS bagaj kapağını açık tutan ip için tasarlanmış küçük kanca parçasıdır.\nYaklaşık dış ölçüler: 15 × 15 × 13 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1512653-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1512653-2.jpg"
+    ]
+  },
+  {
+    "id": "mg-zs-raf-mentese-kelepcesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "ZS"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "ZS"
+      }
+    ],
+    "baslik": "MG ZS Raf Menteşe Kelepçesi",
+    "aciklama": "MG ZS arka rafının menteşesini tutan küçük kelepçe parçasıdır. Kaynak, parçanın yalnızca yapıştırılarak yerine oturtulmasının yeterli olduğunu belirtir.\nYaklaşık dış ölçüler: 46 × 35 × 26 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1436824-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "MegaAndy"
+    }
+  },
+  {
+    "id": "mg-zs-ev-orta-konsol-govdesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "ZS EV"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "ZS EV"
+      }
+    ],
+    "baslik": "MG ZS EV Orta Konsol Gövdesi",
+    "aciklama": "MG ZS EV orta konsolunun üzerini kaplayan bir gövde parçasıdır. Kaynak, parçanın konsol düzenleyicisi olarak kullanıldığını belirtir.\nYaklaşık dış ölçüler: 150 × 135 × 45 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1575935-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1575935-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1575935-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "charles pflieger"
+    }
+  },
+  {
+    "id": "mg-midget-sprite-mgb-icecek-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "Midget"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "Midget"
+      }
+    ],
+    "baslik": "MG Midget/Sprite/MGB İçecek Tutucusu",
+    "aciklama": "MG Midget, MG Sprite ve MGB kabinlerinde kullanılabilen bir içecek tutucusudur. Tabanı, yolcu tarafındaki halı veya paspasın altına kaydırılarak sabitlenir.\nYaklaşık dış ölçüler: 130 × 120 × 98 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr581872-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr581872-2.jpg"
+    ]
+  },
+  {
+    "id": "mg-midget-sasi-uc-kapaklari",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "Midget"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "Midget"
+      }
+    ],
+    "baslik": "MG Midget Şasi Uç Kapağı",
+    "aciklama": "MG Midget'in son dönem şasi raylarının uçlarına takılan kapaklardır. Lastik tampon çıkarma uygulamasında raylar kesildiğinde açıkta kalan uçları kapatır.\nYaklaşık dış ölçüler: 74 × 52 × 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr540123-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr540123-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr540123-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "rreibel"
+    }
+  },
+  {
+    "id": "mg-midget-guneslik-tutucu-klastigi",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "Midget"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "Midget"
+      }
+    ],
+    "baslik": "MG Midget Güneşlik Tutucu Kelepçesi",
+    "aciklama": "1978 model MG Midget'in lastik güneşlik tutucusunun kopyasıdır. Kaynak, parçanın araç üzerinde ölçülmediğini ve başka bir araçtaki orijinal parçadan kopyalanarak hazırlandığını belirtir.\nYaklaşık dış ölçüler: 39 × 19 × 18 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr980067-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Kevin Wells"
+    }
+  },
+  {
+    "id": "mg-midget-kaput-tutucu-klipsleri",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "Midget"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "Midget"
+      }
+    ],
+    "baslik": "MG Midget Kaput Tutucu Klipleri",
+    "aciklama": "MG Midget kaputunun menteşelerine kayan klipslerdir. Dört adet klips menteşelere oturtulduğunda kaputu açık tutan çubuk çıkarıldıktan sonra kaput açık kalır ve kaputun sökülüp takılması kolaylaşır.\nYaklaşık dış ölçüler: 79 × 48 × 9 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr812528-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr812528-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr812528-3.jpg"
+    ]
+  },
+  {
+    "id": "mg-midget-bagaj-rafi-montaj-kaidesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "Midget"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "Midget"
+      }
+    ],
+    "baslik": "MG Midget Bagaj Rafı Montaj Kaidesi",
+    "aciklama": "MG Midget bagaj üstü rafının krom kapakların altında kalan plastik montaj parçasıdır. Rafın konumunu kilitleyen bu kaidenin orta dikmesi, tabanına yuvarlatılmış bir pah verilerek güçlendirilmiştir.\nYaklaşık dış ölçüler: 71 × 34 × 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr906856-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr906856-2.jpg"
+    ]
+  },
+  {
+    "id": "mg-mgf-yan-hava-girdi-kabugu",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "MGF"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "MGF"
+      }
+    ],
+    "baslik": "MGF Yan Hava Girdi Kabuğu",
+    "aciklama": "MGF'in yan hava girdi açıklıklarının üzerine takılan büyük spoiler parçalarıdır. Yan tarafları açık modeldir ve parça üzerindeki iki adet M6 Ericson vida yuvasıyla bağlanır.\nYaklaşık dış ölçüler: 333 × 331 × 40 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr681731-1.jpg"
+    ],
+    "lisans": {
+      "tur": "GPL 3.0",
+      "tasarimci": "Łukasz Nowakowski"
+    }
+  },
+  {
+    "id": "mg-mgf-tampon-alt-dudak-splitter",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "MGF"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "MGF"
+      }
+    ],
+    "baslik": "MGF Tampon Alt Dudak Parçası",
+    "aciklama": "MGF ön tamponunun alt kenarına eklenen bir dudak parçasıdır. Küçük yazıcılarda üretilebilecek boyuttadır.\nYaklaşık dış ölçüler: 209 × 171 × 148 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1109812-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1109812-2.jpg"
+    ]
+  },
+  {
+    "id": "mg-f-ruzgar-savrulma-uc-kelepcesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "MGF"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "MGF"
+      }
+    ],
+    "baslik": "MGF Rüzgar Savrulma Uç Kelepçesi",
+    "aciklama": "MGF rüzgar savrulma aparatının uçlarını birbirine bağlayan küçük kelepçe parçalarıdır.\nYaklaşık dış ölçüler: 61 × 58 × 11 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr207240-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Gert-Jan"
+    }
+  },
+  {
+    "id": "mg-mgb-guneslik-tespit-kapak",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "MGB"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "MGB"
+      }
+    ],
+    "baslik": "MGB Güneşlik Tespit Kapağı",
+    "aciklama": "MGB güneşliğinin orijinal lastik tutucusuna geçirilen bir kapaktır. Lastik tutucu eskidiğinde güneşliğin aşağı düşmesini önler. Kapak, tutucu çubuğunun üzerine oturtulup klipslenerek yerine alınır.\nYaklaşık dış ölçüler: 41 × 22 × 21 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr931867-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr931867-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr931867-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr931867-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Alex_P"
+    }
+  },
+  {
+    "id": "mg-midget-tehlike-dugmesi-isik-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "Midget"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "Midget"
+      }
+    ],
+    "baslik": "MG Midget Tehlike Düğmesi Işık Tutucu Braketi",
+    "aciklama": "MG Midget içinde tehlike düğmesinin üzerindeki küçük ışık kutusunu tutan braket parçasıdır. Fabrika parçasının kopyasıdır; kaynak, parçanın araç üzerinde denenemediğini belirtir.\nYaklaşık dış ölçüler: 62 × 33 × 22 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr702969-1.jpg"
+    ]
+  },
+  {
+    "id": "mg-mgb-harita-cebi",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "MGB"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "MGB"
+      }
+    ],
+    "baslik": "MGB Harita Çekmecesi",
+    "aciklama": "MGB kabininde ek saklama alanı sağlayan bir harita çekmecesidir. Sürücü tarafı için tasarlanmıştır; yolcu tarafı sürümü aynı parçanın aynalanmış hâlidir. Çekmece, ayak boşluğundaki halıya yapışkan bantla tutturulur.\nYaklaşık dış ölçüler: 394 × 188 × 57 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1381876-1.jpg"
+    ]
+  },
+  {
+    "id": "mg-midget-guneslik-montaj-acili",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "Midget"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "Midget"
+      }
+    ],
+    "baslik": "MG Midget Güneşlik Montajı Açılı",
+    "aciklama": "MG Midget güneşlik montajının açılı varyantıdır. Kaynak, ölçü için orijinal bir parça bulunamadığını, düz sürümün kendi aracından kopyalanıp açı ölçer ve orijinal açılı montaj fotoğrafı referans alınarak değiştirildiğini belirtir.\nYaklaşık dış ölçüler: 50 × 31 × 29 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr980090-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr980090-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Kevin Wells"
+    }
+  },
+  {
+    "id": "mg-mgb-cam-kranki-aralayici",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "MGB"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "MGB"
+      }
+    ],
+    "baslik": "MGB Cam Kolu Aralayıcı",
+    "aciklama": "Cam kolu tutamağını kapı iç panelinden uzaklaştıran iki adetlik aralayıcıdır. Dört milimetrelik yer değiştirmesi, tutamağın kapı iç panelini aşındırmasını önler. Altıgen saplı cam kolu tutamaklarıyla çalışır ve aynı mekanizmayı kullanan diğer MG ve BMC araçlarında da uyumludur.\nYaklaşık dış ölçüler: 50 × 50 × 9 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1227006-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1227006-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1227006-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "prusa-user"
+    }
+  },
+  {
     "id": "mg-mgb-roadster-mk1-anahtar-kapaklari",
     "kategori": "Otomobil",
     "marka": [
