@@ -1110,7 +1110,11 @@ MUTANTLAR = [
     # M11 — marka/model sinirindaki ikiz kapisi kalkar. `Kia` kumedeyken `KIA` model
     # olarak gecer ve ayni gercek IKI ayri sayfa uretir.
     ("M11", "arama.py",
+     # 16. tur (22 Eki): `Citroen|DS` cift istisnasi dongunun basina girdi -> capa onu da
+     # (opsiyonel) kapsar; mutant DONGUNUN TAMAMINI siler, istisna satiri tek basina kalmaz.
      re.compile(r"    for ad in \(\"model\", \"motor\"\):\n"
+                r"(?:        if ad == \"model\" and marka_adli_model_mi\(ham, oge\.get\(ad\)\):\n"
+                r"            continue\n)?"
                 r"        sebep = marka_varyanti_sebebi\(ad, oge\.get\(ad\)\)\n"
                 r"        if sebep:\n            return sebep\n"), "", ["V16"], "ESIT",
      "V16: marka/model sinirindaki ikiz kapisi kalkar -> `KIA` model olarak GECER"),
