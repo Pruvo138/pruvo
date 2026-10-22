@@ -1,5 +1,567 @@
 [
   {
+    "id": "husqvarna-vitpilen-401-far-lens-kapakligi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Husqvarna",
+      "Vitpilen 401"
+    ],
+    "uyum": [
+      {
+        "marka": "Husqvarna",
+        "model": "Vitpilen 401"
+      }
+    ],
+    "baslik": "Husqvarna Vitpilen 401 Far Kapaklığı",
+    "aciklama": "Vitpilen 401'in far ünitesi için paylaşılmış küçük bir kapak parçasıdır; modele özgüdür.\nYaklaşık dış ölçüler: 26 × 26 × 4 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1751350-1.jpg"
+    ]
+  },
+  {
+    "id": "triumph-thruxton-1200-r-motogadget-gosterge-ayna-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Triumph",
+      "Thruxton 1200 R"
+    ],
+    "uyum": [
+      {
+        "marka": "Triumph",
+        "model": "Thruxton 1200 R"
+      }
+    ],
+    "baslik": "Triumph Thruxton 1200 R Motogadget Gösterge ve Ayna Tutucusu",
+    "aciklama": "Thruxton 1200 R'da Motogadget gösterge ve aynalarının kablolarını sıkıştıran fabrika tutucusunun yerine geçen aparattır; gösterge ve aynalar pakete dahil değildir.\nYaklaşık dış ölçüler: 36 × 35 × 35 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1835781-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1835781-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1835781-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1835781-4.jpg"
+    ]
+  },
+  {
+    "id": "triumph-thruxton-1200-r-tomtom-rider-gps-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Triumph",
+      "Thruxton 1200 R"
+    ],
+    "uyum": [
+      {
+        "marka": "Triumph",
+        "model": "Thruxton 1200 R"
+      }
+    ],
+    "baslik": "Triumph Thruxton 1200 R Tomtom Rider 550 GPS Tutucusu",
+    "aciklama": "Tomtom Rider 550'yi Thruxton 1200 R'ın direksiyon sapındaki boşluğa oturtan tutucudur; fabrika şarj tutucusu sökülerek kullanılır. Navigasyon cihazı pakete dahil değildir.\nYaklaşık dış ölçüler: 60 × 60 × 16 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1830994-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1830994-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1830994-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1830994-4.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-rd350-kaide-kece-kesim-sablonu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "RD350"
+    ],
+    "uyum": [
+      {
+        "marka": "Yamaha",
+        "model": "RD350"
+      }
+    ],
+    "baslik": "Yamaha RD350 Kaide Keçe Kesim Şablonu",
+    "aciklama": "Yamaha RD350 motorunun kaide keçesini kendi malzemenizle kesmek için hazırlanmış şablondur. Şablon kaide yüzeyine yerleştirilir, keçe konturunu verir ve doğru ölçüde bir kaide keçesi elde edilir.\nYaklaşık dış ölçüler: 103 × 90 × 3 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3579586-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "quocle603"
+    }
+  },
+  {
+    "id": "triumph-street-twin-vites-pedi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Triumph",
+      "Street Twin"
+    ],
+    "uyum": [
+      {
+        "marka": "Triumph",
+        "model": "Street Twin"
+      }
+    ],
+    "baslik": "Triumph Street Twin Vites Pedi",
+    "aciklama": "Triumph Street Twin, Speed Twin ve Scrambler modellerinde eskimiş lastik vites pedini, ayakkabı tabanında siyah iz bırakmayan dişli görünümlü bir pedle değiştirmek için tasarlanmıştır. Ped vites kolunun ucuna takılır.\nYaklaşık dış ölçüler: 35 × 21 × 21 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4720062-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4720062-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "DSquire"
+    }
+  },
+  {
+    "id": "triumph-bonneville-t100-on-catal-koruyucu-kapak",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Triumph",
+      "Bonneville T100 EFI"
+    ],
+    "uyum": [
+      {
+        "marka": "Triumph",
+        "model": "Bonneville T100 EFI"
+      }
+    ],
+    "baslik": "Triumph Bonneville T100 Ön Çatal Koruyucu Kapak",
+    "aciklama": "Triumph Bonneville T100 EFI ön çatal borusunun 41 milimetrelik dış çapına geçirilen, çatal üzerindeki aşınmayı ve çizilmeyi önleyen koruyucu kaptır. Çatal üzerine oturtulur, aşağı kaydırılır ve M4 cıvata ile sıkılır.\nYaklaşık dış ölçüler: 84 × 76 × 69 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7155566-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7155566-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7155566-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7155566-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "robc84"
+    }
+  },
+  {
+    "id": "triumph-thruxton-r-satnav-tutucu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Triumph",
+      "Thruxton R"
+    ],
+    "uyum": [
+      {
+        "marka": "Triumph",
+        "model": "Thruxton R"
+      }
+    ],
+    "baslik": "Triumph Thruxton R Navigasyon Tutucusu",
+    "aciklama": "Beeline navigasyon cihazı için, Triumph Thruxton R'nin orta direksiyon sütunu somununa geçecek biçimde tasarlanmış tutucudur. Cihaz direksiyon başlığı üzerine sabitlenir ve gidilen yol boyunca görüş alanı içinde kalır.\nYaklaşık dış ölçüler: 61 × 58 × 29 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5427661-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5427661-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5427661-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5427661-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "a1sjb"
+    }
+  },
+  {
+    "id": "husqvarna-vitpilen-401-gidon-ucu-ayna-uzatici",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Husqvarna",
+      "Vitpilen 401"
+    ],
+    "uyum": [
+      {
+        "marka": "Husqvarna",
+        "model": "Vitpilen 401"
+      }
+    ],
+    "baslik": "Husqvarna Vitpilen 401 Gidon Ucu Ayna Uzaticısı",
+    "aciklama": "Husqvarna Vitpilen 401'in gidon ucuna ters tip aynaların takılabilmesi için ara parçadır. Gidon ucunun 22 milimetrelik dış çapına ve 7 milimetrelik altıgen vidalara göre tasarlanmıştır.\nYaklaşık dış ölçüler: 22 × 22 × 15 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5328468-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5328468-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Nigete"
+    }
+  },
+  {
+    "id": "yamaha-xsr900-quadlock-telefon-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "XSR900"
+    ],
+    "uyum": [
+      {
+        "marka": "Yamaha",
+        "model": "XSR900"
+      }
+    ],
+    "baslik": "Yamaha XSR900 Quadlock Telefon Tutucusu",
+    "aciklama": "Yamaha XSR900'a uyacak biçimde yeniden düzenlenmiş Quadlock tutucusudur. Birkaç motosiklet Quadlock tutucusu birleştirilerek bu modele oturacak genişlikte bir yuva elde edilmiştir.\nYaklaşık dış ölçüler: 133 × 56 × 19 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6791615-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Kamikazie3"
+    }
+  },
+  {
+    "id": "yamaha-rd350-emme-reed-kece-kesim-sablonu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "RD350"
+    ],
+    "uyum": [
+      {
+        "marka": "Yamaha",
+        "model": "RD350"
+      }
+    ],
+    "baslik": "Yamaha RD350 Emme-Reed Keçe Kesim Şablonu",
+    "aciklama": "1973-1975 model yılları arasında üretilen Yamaha RD350 için emme ve reed valfi keçelerini kendi malzemenizle kesmek üzere hazırlanmış şablondur. Şablon emme yüzeyine yerleştirilir ve keçe konturunu verir.\nYaklaşık dış ölçüler: 72 × 63 × 1 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4911083-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "quocle603"
+    }
+  },
+  {
+    "id": "yamaha-rd350-vites-gostergesi-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "RD350"
+    ],
+    "uyum": [
+      {
+        "marka": "Yamaha",
+        "model": "RD350"
+      }
+    ],
+    "baslik": "Yamaha RD350 Vites Göstergesi Kapağı",
+    "aciklama": "Yamaha RD350'de vites göstergesinin üzerini örten kapaktır. Kapak conta halkası üzerine oturur ve M3 vidalarla sabitlenir; gösterge mekanizmasını toz ve çarpmaya karşı örter.\nYaklaşık dış ölçüler: 58 × 51 × 14 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5222426-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "quocle603"
+    }
+  },
+  {
+    "id": "triumph-street-twin-vites-kolu-aralayici",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Triumph",
+      "Street Twin"
+    ],
+    "uyum": [
+      {
+        "marka": "Triumph",
+        "model": "Street Twin"
+      }
+    ],
+    "baslik": "Triumph Street Twin Vites Kolu Ara Parçası",
+    "aciklama": "2016 sonrası Triumph Street Twin'de vites kolunun iç mekanizmasının düşme sırasında eğilmesini önlemek için tasarlanmış ara parçadır. Dış çapı 25 milimetre, iç çapı 14 milimetre, kalınlığı 6 milimetredir.\nYaklaşık dış ölçüler: 26 × 26 × 6 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5475888-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "danthelion3"
+    }
+  },
+  {
+    "id": "husqvarna-svartpilen-401-2020-2023-arka-camurluk",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Husqvarna",
+      "Svartpilen 401"
+    ],
+    "uyum": [
+      {
+        "marka": "Husqvarna",
+        "model": "Svartpilen 401"
+      }
+    ],
+    "baslik": "Husqvarna Svartpilen 401 Arka Çamurluk Düzenleyici",
+    "aciklama": "2020-2023 model yılı Husqvarna Svartpilen 401 için arka çamurluk düzenleyicisidir. İç kanalına 3 ve 1 milimetre ölçüsünde karbon takviye çubuk yerleştirilerek kullanılır; model tek taraflıdır, aynada kullanım için ikinci taraf gerekir.\nYaklaşık dış ölçüler: 121 × 24 × 8 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7320999-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7320999-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7320999-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7320999-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "AdventurePiggy"
+    }
+  },
+  {
+    "id": "yamaha-xsr900-usb-sarj-montaj-braketi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "XSR900"
+    ],
+    "uyum": [
+      {
+        "marka": "Yamaha",
+        "model": "XSR900"
+      }
+    ],
+    "baslik": "Yamaha XSR900 USB Şarj Montaj Braketi",
+    "aciklama": "Yamaha XSR900'un far arkasındaki mevcut taşıyıcıya takılabilen USB şarj yuvası braketidir. M4 somun ve kilit halkası ile sabitlenir.\nYaklaşık dış ölçüler: 45 × 39 × 33 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5213045-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5213045-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "arduino20"
+    }
+  },
+  {
+    "id": "yamaha-xsr900-bar-end-ayna-mesafe-parcasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "XSR900"
+    ],
+    "uyum": [
+      {
+        "marka": "Yamaha",
+        "model": "XSR900"
+      }
+    ],
+    "baslik": "Yamaha XSR900 Bar-End Ayna Mesafe Parçası",
+    "aciklama": "XSR900'un fabrika gidon uçlarına sonradan takılan bar-end aynaların oturabilmesi için gereken ara mesafe parçasıdır.\nYaklaşık dış ölçüler: 30 × 30 × 15 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4820658-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "jakeyphil"
+    }
+  },
+  {
+    "id": "triumph-street-twin-bar-end-ayna-adaptoru",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Triumph",
+      "Street Twin"
+    ],
+    "uyum": [
+      {
+        "marka": "Triumph",
+        "model": "Street Twin"
+      }
+    ],
+    "baslik": "Triumph Street Twin Bar-End Ayna Adaptörü",
+    "aciklama": "Street Twin gidon ucundaki ayna yuvasını dolduran 22,2 milimetrelik bar-end ayna adaptörüdür.\nYaklaşık dış ölçüler: 34 × 34 × 13 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5360570-1.jpg"
+    ]
+  },
+  {
+    "id": "husqvarna-svartpilen-401-acerbis-el-koruma-takozu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Husqvarna",
+      "Svartpilen 401"
+    ],
+    "uyum": [
+      {
+        "marka": "Husqvarna",
+        "model": "Svartpilen 401"
+      }
+    ],
+    "baslik": "Husqvarna Svartpilen 401 Acerbis El Koruma Takozu",
+    "aciklama": "2023 Svartpilen 401'e Acerbis el koruması takabilmek için iç takoz ve dış bağlantı noktası için mesafe parçası içerir.\nYaklaşık dış ölçüler: 114 × 15 × 15 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7353514-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7353514-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "AdventurePiggy"
+    }
+  },
+  {
+    "id": "husqvarna-svartpilen-on-catal-plaka-braketi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Husqvarna",
+      "Svartpilen"
+    ],
+    "uyum": [
+      {
+        "marka": "Husqvarna",
+        "model": "Svartpilen"
+      }
+    ],
+    "baslik": "Husqvarna Svartpilen Ön Çatal Plaka Braketi",
+    "aciklama": "Svartpilen'in ön çatalına kablo bağıyla sabitlenen, plaka yapıştırmak veya vidalama için düz yüzey sunan brakettir; kaynakta Svartpilen 200 üzerinde denenmiştir.\nYaklaşık dış ölçüler: 65 × 40 × 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6224634-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6224634-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "kooshking"
+    }
+  },
+  {
+    "id": "triumph-bonneville-t120-lamba-yay-aleti",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Triumph",
+      "Bonneville T120"
+    ],
+    "uyum": [
+      {
+        "marka": "Triumph",
+        "model": "Bonneville T120"
+      }
+    ],
+    "baslik": "Triumph Bonneville T120 Lamba Yay Aleti",
+    "aciklama": "Bonneville T120 farındaki son tutamaç yayını yerine oturtmak için kullanılan el aletidir; gündüz farlı donanımda farklı bir kapak takıldığında işe yarar.\nYaklaşık dış ölçüler: 99 × 27 × 23 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7144396-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "WeRoRa"
+    }
+  },
+  {
+    "id": "husqvarna-svartpilen-go-pro-alt-bagaj-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Husqvarna",
+      "Svartpilen 401"
+    ],
+    "uyum": [
+      {
+        "marka": "Husqvarna",
+        "model": "Svartpilen 401"
+      }
+    ],
+    "baslik": "Husqvarna Svartpilen GoPro Alt Bağaj Tutucusu",
+    "aciklama": "Svartpilen'in alt bağaj noktasına vida ile sabitlenen, GoPro tipi eklemeli kamera için tasarlanmış tutucudur; kamera pakete dahil değildir.\nYaklaşık dış ölçüler: 31 × 19 × 16 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5484267-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5484267-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "craig12895"
+    }
+  },
+  {
+    "id": "husqvarna-vitpilen-401-plaka-tasiyici-2019-2023",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Husqvarna",
+      "Svartpilen/Vitpilen 401"
+    ],
+    "uyum": [
+      {
+        "marka": "Husqvarna",
+        "model": "Svartpilen/Vitpilen 401"
+      }
+    ],
+    "baslik": "Husqvarna Svartpilen / Vitpilen 401 Plaka Taşıyıcı (2019-2023)",
+    "aciklama": "2019-2023 model yılları arasındaki Svartpilen ve Vitpilen 401 için ABD plaka ölçüsüne uygun taşıyıcıdır; kaynakta üç farklı varyant sunulur.\nYaklaşık dış ölçüler: 177 × 141 × 10 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6948586-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6948586-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6948586-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "FlyingMachineFactory"
+    }
+  },
+  {
+    "id": "yamaha-xsr900-pebble-saat-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "XSR900"
+    ],
+    "uyum": [
+      {
+        "marka": "Yamaha",
+        "model": "XSR900"
+      }
+    ],
+    "baslik": "Yamaha XSR900 Pebble Saat Tutucusu",
+    "aciklama": "Pebble akıllı saatini XSR900'un gidonuna sabitleyen tutucudur; gidon üzerindeki boşluğa oturur. Saat pakete dahil değildir.\nYaklaşık dış ölçüler: 55 × 39 × 38 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1600220-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "santi521"
+    }
+  },
+  {
+    "id": "yamaha-xsr900-zincir-yaglayici-adaptor-braketi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "XSR900"
+    ],
+    "uyum": [
+      {
+        "marka": "Yamaha",
+        "model": "XSR900"
+      }
+    ],
+    "baslik": "Yamaha XSR900 Zincir Yağlayıcı Adaptör Braketi",
+    "aciklama": "XSR900'a takılacak otomatik zincir yağlayıcının kısa fabrika braketini uzatarak uyum sağlayan adaptördür; orijinal braketin içine geçecek şekilde tasarlanmıştır.\nYaklaşık dış ölçüler: 90 × 18 × 16 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5011925-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5011925-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5011925-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5011925-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "arduino20"
+    }
+  },
+  {
     "id": "iveco-daily-turbo-3510-merkezi-kilit-kapi-dugmesi",
     "kategori": "Otomobil",
     "marka": [
