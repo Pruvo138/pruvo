@@ -477,6 +477,16 @@ SAYFA_HTML = """<!doctype html><html lang="tr"><head><meta charset="utf-8">
 <script src="/foto-uretim-veri.js" defer></script>
 <script src="/foto-uretim.js" defer></script>
 </body></html>"""
+# V-S3CHROME: betigin tarayici_olc'unu SAHTE Chrome ile kosar (gercek Chrome gerekmez); sonuc + sure JSON.
+CHROME_SURUCU = r'''
+import importlib.util, json, sys, time
+sp = importlib.util.spec_from_file_location("uu", sys.argv[1])
+m = importlib.util.module_from_spec(sp)
+sp.loader.exec_module(m)
+t0 = time.time()
+v = m.tarayici_olc(["plaket"], {"plaket": "b" * 32}).get("plaket") or {}
+print(json.dumps({"v": v, "sn": round(time.time() - t0, 1)}, ensure_ascii=False))
+'''
 # Betigin tarayici_olc'unu (mutant kopyasi dahil) ayri surecte kosar + ③ TURETILMIS hukmunu GERCEK /foto/durum ile verir.
 SURUCU = r'''
 import importlib.util, json, sys
@@ -1369,11 +1379,43 @@ def vakalar(kaynak, sadece=None):
               ist[0].get("tur") == S3_TUR and ist[0].get("gorsel") is True and
               v.get("olculen_fiyat") == "123 mm → 1.230 TL" and o.sunucu.ayar["onizleme_post"] == 0 and
               r.get("olcut3", [False])[0] is True)
-        return ok, "akis=%s hata=%r bolum=%s kartlar=%s istek=%s fiyat=%r sunucu_post=%d olcut3=%s konsol=%s" % (
+        return ok, "tarayici=%r akis=%s hata=%r bolum=%s kartlar=%s istek=%s fiyat=%r sunucu_post=%d olcut3=%s konsol=%s" % (
+            v.get("hata"),
             v.get("s3_akis"), v.get("s3_hata"), v.get("s3_bolum"), v.get("s3_kartlar"), ist, v.get("olculen_fiyat"),
             o.sunucu.ayar["onizleme_post"],
             r.get("olcut3"), (v.get("konsol") or [])[:2])
     vaka("V-S3AKIS", vs3akis)
+
+    def vs3chrome(o):
+        # V-S3AKIS flake koku (22 Eki): Chrome CDP ucu sabit 10 sn'de acilmayinca tarayici_olc sebepsiz istisna
+        # basiyordu (akis=None konsol=[]). Simdi bekleme olaya bagli: ① surec olurse HEMEN sebep=chrome-baslamadi
+        # + stderr kuyrugu (tavani beklemez) · ② hic hazir olmayan Chrome tavanda sebep=chrome-port-zaman-asimi;
+        # ikisinde de S3 olcumu YOK (yanlis yesil yok).
+        surucu = os.path.join(o.d, "chrome-surucu.py")
+        with open(surucu, "w", encoding="utf-8") as f:
+            f.write(CHROME_SURUCU)
+        sonuc = []
+        for ad, ic, bek in (("olen", "#!/bin/sh\necho uu-chrome-coktu >&2\nexit 3\n", "sebep=chrome-baslamadi rc=3"),
+                            ("asili", "#!/bin/sh\nexec sleep 600\n", "sebep=chrome-port-zaman-asimi")):
+            sahte = os.path.join(o.d, "chrome-" + ad)
+            with open(sahte, "w") as f:
+                f.write(ic)
+            os.chmod(sahte, 0o755)
+            env = dict(o.env, FOTO_UU_CHROME=sahte, FOTO_UU_CHROME_TAVAN="4")
+            env.pop("FOTO_UU_TARAYICI_SAHTE", None)
+            p = subprocess.run([sys.executable, surucu, os.path.join(o.agac, "tools", "foto-ornek-uc-uca.py")],
+                               capture_output=True, text=True, env=env, timeout=60)
+            try:
+                r = json.loads((p.stdout.strip().splitlines() or ["{}"])[-1])
+            except ValueError:
+                return False, "surucu rc=%d %s" % (p.returncode, (p.stdout + p.stderr)[-400:])
+            v, sn = r.get("v") or {}, r.get("sn", 99)
+            h = str(v.get("hata", ""))
+            gecti = (bek in h and "s3_akis" not in v and
+                     (("uu-chrome-coktu" in h and sn < 3) if ad == "olen" else 3.5 <= sn < 15))
+            sonuc.append((gecti, "%s sn=%s hata=%r" % (ad, sn, h[:160])))
+        return all(g for g, _ in sonuc), " · ".join(a for _, a in sonuc)
+    vaka("V-S3CHROME", vs3chrome)
 
     # ---- 3MF cok-dosya (p:path, BambuStudio Production): saf vakalar P1/P2/P3. Sentetik 3MF yazici (yalniz
     # test, disk izi YOK): kok = object id="2" + build item <item objectid="2" scale=olcek>, alt =
@@ -1589,6 +1631,14 @@ MUTANTLAR = {
                   '                    c.js("sessionStorage.setItem(\'pruvo_foto_is\', %s); 1" % json.dumps(json.dumps(\n'
                   '                        {"is": prova[kod], "tur": kod})))\n', {"V-S3AKIS"}),
     "M-S3-TIK": ("  btn.click(); adim.push('istek');", "  adim.push('istek');", {"V-S3AKIS"}),
+    # V-S3AKIS FLAKE KOKU (22 Eki): M-S3-BEKLE olen Chrome'u gormez (tavana dek bekler, sebep yanlis) ·
+    # M-S3-YUT stderr'i yine yutar (kok kaybolur) · M-S3-TAVAN tavan asiminda sebep basmaz -> V-S3CHROME KIRMIZI.
+    "M-S3-BEKLE": ("        if p.poll() is not None:\n            raise Ayar(\"sebep=chrome-baslamadi",
+                   "        if False:\n            raise Ayar(\"sebep=chrome-baslamadi", {"V-S3CHROME"}),
+    "M-S3-YUT": ("stdout=subprocess.DEVNULL, stderr=g)", "stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)",
+                 {"V-S3CHROME"}),
+    "M-S3-TAVAN": ('    raise Ayar("sebep=chrome-port-zaman-asimi tavan=%ss stderr=%r" % (tavan, kuyruk()))',
+                   '    return "0"', {"V-S3CHROME"}),
     "M-S3-AKIS": ('    tr.koy("3", api_ok and esit and surgusuz and akis and kaynak == "turetilmis",',
                   '    tr.koy("3", api_ok and esit and surgusuz and kaynak == "turetilmis",', {"V-S3OLC"}),
     "MB0": ("# ------------------------------------------------------------------ HTTP",

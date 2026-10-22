@@ -749,6 +749,12 @@ class Cdp:
 
     def _mesaj(self):
         veri = b""
+        try:
+            return self._cerceve(veri)
+        except socket.timeout:
+            raise Ayar("sebep=cdp-yanit-yok yontem=%s tavan=%ss" % (getattr(self, "yontem", "?"), self.s.gettimeout()))
+
+    def _cerceve(self, veri):
         while True:
             b1, b2 = self._oku(2)
             n = b2 & 0x7f
@@ -762,6 +768,7 @@ class Cdp:
 
     def gonder(self, yontem, **param):
         self.no += 1
+        self.yontem = yontem
         b = json.dumps({"id": self.no, "method": yontem, "params": param}).encode()
         bas = bytes([0x81]) + (bytes([0x80 | len(b)]) if len(b) < 126 else
                                bytes([0x80 | 126]) + struct.pack(">H", len(b)) if len(b) < 65536 else
@@ -772,6 +779,27 @@ class Cdp:
             m = self._mesaj()
             if m.get("id") == self.no:
                 return m.get("result") or {}
+            if "method" in m:
+                self.olaylar.append(m)
+
+    def yuklendi(self, n0, tavan):
+        """Page.loadEventFired olayini bekler (olaylar[n0:] icinde ya da sokette). Olay = YENI belge yuklendi; eski
+        belgenin readyState'i ('complete') yenileme/gezinme baslamadan okunamaz. Tavan asilirsa Ayar (KIRMIZI)."""
+        son = time.time() + tavan
+        while True:
+            if any(o.get("method") == "Page.loadEventFired" for o in self.olaylar[n0:]):
+                return
+            kalan = son - time.time()
+            if kalan <= 0:
+                raise Ayar("sebep=sayfa-yuklenmedi yontem=%s tavan=%ss" % (getattr(self, "yontem", "?"), tavan))
+            eski = self.s.gettimeout()
+            self.s.settimeout(kalan)
+            try:
+                m = self._cerceve(b"")
+            except socket.timeout:
+                continue
+            finally:
+                self.s.settimeout(eski)
             if "method" in m:
                 self.olaylar.append(m)
 
@@ -933,6 +961,38 @@ TARAYICI_S3_JS = r"""
 """
 
 
+def chrome_hazir(p, veri, gunluk, tavan):
+    """Chrome'un CDP ucu hazir olana dek bekler: DevToolsActivePort iki satir (port + yol) VE /json/version 200.
+    Surec cikarsa sebep=chrome-baslamadi (rc + stderr kuyrugu), tavan asilirsa sebep=chrome-port-zaman-asimi —
+    ikisi de Ayar (olcum KIRMIZI kalir; yanlis yesil yok). Donus: port."""
+    port_dosya = os.path.join(veri, "DevToolsActivePort")
+    son = time.time() + tavan
+
+    def kuyruk():
+        try:
+            with open(gunluk, encoding="utf-8", errors="replace") as f:
+                return " ".join(f.read().split())[-300:]
+        except OSError:
+            return ""
+    while time.time() < son:
+        if p.poll() is not None:
+            raise Ayar("sebep=chrome-baslamadi rc=%s stderr=%r" % (p.returncode, kuyruk()))
+        try:
+            with open(port_dosya) as f:
+                satir = f.read().split()
+        except OSError:
+            satir = []
+        if len(satir) >= 2:
+            try:
+                with urllib.request.urlopen("http://127.0.0.1:%s/json/version" % satir[0], timeout=5) as y:
+                    if y.status == 200:
+                        return satir[0]
+            except (OSError, urllib.error.URLError):
+                pass
+        time.sleep(0.1)
+    raise Ayar("sebep=chrome-port-zaman-asimi tavan=%ss stderr=%r" % (tavan, kuyruk()))
+
+
 def tarayici_olc(kodlar, prova=None):
     """{kod: sonuc dict | {'hata': ...}}. Chrome yoksa {} (olcutler OLCULEMEDI). prova: {kod: prova is_no}
     (TURETILMIS ③: ayni sekme yenilenir, bolum akisla S3'e surulur; olcu + fiyat yazisi orada okunur)."""
@@ -945,24 +1005,25 @@ def tarayici_olc(kodlar, prova=None):
     if not yol:
         return {}
     veri = tempfile.mkdtemp(prefix="foto-uu-chrome-")
+    # TAVAN (22 Eki, V-S3AKIS flake): soguk baslatmada Chrome CDP ucunu 10 sn'den gec acabiliyor; bekleme olaya bagli,
+    # tavan yalniz ust sinir. stderr artik yutulmaz: chrome-baslamadi sebebi kuyrugu tasir.
+    tavan = float(os.environ.get("FOTO_UU_CHROME_TAVAN", "90"))
+    gunluk = os.path.join(veri, "chrome-stderr.log")
     p = None
     sonuc = {}
     try:
-        p = subprocess.Popen([yol, "--headless=new", "--remote-debugging-port=0", "--user-data-dir=" + veri,
-                              "--no-first-run", "--no-default-browser-check", "--disable-extensions"] +
-                             shlex.split(os.environ.get("FOTO_UU_CHROME_EK", "")) + ["about:blank"],
-                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        port_dosya = os.path.join(veri, "DevToolsActivePort")
-        for _ in range(100):
-            if os.path.isfile(port_dosya) and open(port_dosya).read().strip():
-                break
-            time.sleep(0.1)
-        port = open(port_dosya).read().split()[0]
+        with open(gunluk, "w") as g:
+            p = subprocess.Popen([yol, "--headless=new", "--remote-debugging-port=0", "--user-data-dir=" + veri,
+                                  "--no-first-run", "--no-default-browser-check", "--disable-extensions"] +
+                                 shlex.split(os.environ.get("FOTO_UU_CHROME_EK", "")) + ["about:blank"],
+                                 stdout=subprocess.DEVNULL, stderr=g)
+        port = chrome_hazir(p, veri, gunluk, tavan)
         for kod in kodlar:
             r = urllib.request.Request("http://127.0.0.1:%s/json/new?about:blank" % port, method="PUT")
             with urllib.request.urlopen(r, timeout=10) as y:
                 hedef = json.loads(y.read())
             c = Cdp(hedef["webSocketDebuggerUrl"])
+            c.s.settimeout(tavan)
             try:
                 c.gonder("Runtime.enable")
                 c.gonder("Log.enable")
@@ -970,22 +1031,17 @@ def tarayici_olc(kodlar, prova=None):
                 c.gonder("Emulation.setDeviceMetricsOverride", width=375, height=812, deviceScaleFactor=2,
                          mobile=True)
                 c.gonder("Emulation.setTouchEmulationEnabled", enabled=True)
+                n0 = len(c.olaylar)
                 c.gonder("Page.navigate", url=taban() + "/")
-                for _ in range(80):
-                    if c.js("document.readyState") == "complete":
-                        break
-                    time.sleep(0.25)
+                c.yuklendi(n0, tavan)
                 v = c.js(TARAYICI_JS % {"kod": json.dumps(kod)}) or {"hata": "js-sonuc-yok"}
                 if kod in prova:
                     # Kanca bundan sonraki her belgede sayfa betiklerinden ONCE kosar; yenilenen sayfa ①'den acilir.
                     c.gonder("Page.addScriptToEvaluateOnNewDocument",
                              source=TARAYICI_PROVA_KANCA_JS % {"is": json.dumps(prova[kod])})
+                    n0 = len(c.olaylar)
                     c.gonder("Page.reload")
-                    time.sleep(0.5)
-                    for _ in range(80):
-                        if c.js("document.readyState") == "complete":
-                            break
-                        time.sleep(0.25)
+                    c.yuklendi(n0, tavan)
                     v.update(c.js(TARAYICI_S3_JS % {"kod": json.dumps(kod)}) or {"s3_hata": "js-sonuc-yok"})
                 time.sleep(0.5)
                 c.js("1")  # bekleyen olaylari topla
