@@ -972,7 +972,7 @@ async function durumDegistir(request, env, ctx) {
   // 🔴 DORDUNCU KAPI — KANAL (1 Agu 2026, WhatsApp siparis ucu): reklam olcumu SITE
   // siparisleri icindir. WhatsApp siparisi tarayicidan gecmez -> `atif` BOSTUR: Meta
   // zaten atlar (user_data-bos) ama GA4 fallback client_id (siparis_no + ".0") ile
-  // Purchase'i YINE GONDERIRDI. Sonuc: web disi ciro GA4'te "direct" satis gibi gorunur
+  // Purchase'i YINE GONDERIRDI (fallback 22 Eki'de kaldirildi: _ga yoksa riza-yok). Sonuc: web disi ciro GA4'te "direct" satis gibi gorunur
   // ve site ROI raporunu sisirir. Bu yuzden kanal 'site' DEGILSE olcum tetiklenmez;
   // atlama SESSIZ DEGIL, olcumLog ile gorunur yazilir.
   // GERIYE UYUM: `kanal` kolonu yoksa (goc kosmadi) s.kanal undefined -> kapi ACIK kalir;

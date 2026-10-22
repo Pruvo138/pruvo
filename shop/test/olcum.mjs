@@ -224,11 +224,12 @@ async function patlayanFetch() { throw new Error("ag hatasi (timeout)"); }
     ev.params.medium === "cpc" && ev.params.campaign === "kirik-parca");
 }
 
-// ---- 8) GA4 client_id FALLBACK: gercek _ga yoksa siparis_no tabanli (ciro yine kaydedilir) ----
+// ---- 8) GA4 RIZASIZ KIMLIK URETILMEZ (BaBa 22 Eki): _ga yoksa govde KURULMAZ ----
+// Eski davranis `order_id + ".0"` uyduruyordu; ayrintili batarya + mutantlar: test31.
 {
   const olay = satinAlmaOlayi({ ...SIPARIS, atif: "" });
-  const g = ga4Govdesi({}, olay, {});
-  ol("8a client_id fallback = order_id + '.0'", g.client_id === SIPARIS.siparis_no + ".0");
+  ol("8a _ga yokken ga4Govdesi null (siparis_no tabanli kimlik URETILMEZ)",
+    ga4Govdesi({}, olay, {}) === null);
 }
 
 // ---- 9) SECRET-YOKSA-NO-OP (Meta): token/pixel yoksa fetch HIC cagrilmaz ----
@@ -435,7 +436,10 @@ async function test16() {
   ol("16a user_data bos -> Meta'ya POST YOK", metaCagri.length === 0, "cagri=" + metaCagri.length);
   ol("16b atlama SESSIZ degil (loglandi)",
     logMetni(satirlar).indexOf("user_data-bos") >= 0, logMetni(satirlar));
-  ol("16c GA4 bundan ETKILENMEZ (client_id fallback) -> POST edildi", ga4Cagri.length === 1);
+  // 22 Eki: bos atif = riza yok -> GA4 de GITMEZ (uydurma client_id fallback'i kaldirildi).
+  ol("16c bos atif (riza yok) -> GA4'e de POST YOK + riza-yok loglandi",
+    ga4Cagri.length === 0 && logMetni(satirlar).indexOf("riza-yok") >= 0,
+    "cagri=" + ga4Cagri.length);
   ol("16d sonuc dizisinde atlandi sebebi", (sonuc[0] || {}).atlandi === "user_data-bos");
 }
 
@@ -1310,7 +1314,7 @@ function test27() {
     cd.content_ids.every((x) => x.length <= 50), JSON.stringify(cd.content_ids.map((x) => x.length)));
   // main davranisi: GA4 item_id DE feedId'den gecer — GA4 items id, Merchant feed g:id ile
   // TEK KAYNAK (shop/src/olcum.js ~365). Ham slug BEKLENMEZ.
-  const g4 = ga4Govdesi({}, olay, {});
+  const g4 = ga4Govdesi({}, olay, { ga_client_id: "1234567890.1690000000" });
   ol("27j GA4 item_id da katalog kimligi (feed g:id ile tek kaynak — ham slug DEGIL)",
     (g4.events[0].params.items[0] || {}).item_id === UZUN_GID,
     JSON.stringify(g4.events[0].params.items[0]));
@@ -1484,17 +1488,21 @@ async function test28() {
  * sayilir -> 29f/29g/29h (+ mutant M4). */
 const OTURUM_ID = "1757500000";
 
+/** Rizali (_ga var) ama oturum kimligi OLMAYAN atif — 29'un negatif kolu. _ga'siz atif
+ *  22 Eki'den beri riza-yok dalina duser (test31), oturum eksenini olcmez. */
+const ATIF_OTURUMSUZ = { ga_client_id: "1234567890.1690000000", utm_source: "google" };
+
 /** Mutant bataryasinin olctugu DORT iddia — canonik govdeyle de mutantla da AYNI kolla
  *  kosar. Doner: [[ad, gecti_mi], ...] */
 async function ga4OturumIddialari(mod) {
   const olay = satinAlmaOlayi(SIPARIS);
   const atifTam = { ...JSON.parse(SIPARIS.atif), ga_session_id: OTURUM_ID };
   const gVar = mod.ga4Govdesi({}, olay, atifTam);
-  const gYok = mod.ga4Govdesi({}, olay, { utm_source: "google" });
+  const gYok = mod.ga4Govdesi({}, olay, ATIF_OTURUMSUZ);
   const env = { GA4_MEASUREMENT_ID: "G-TEST", GA4_API_SECRET: "SEC" };
   const f = sahteFetch();
   const log = logMetni(await logYakala(
-    () => mod.ga4Gonder(env, olay, { utm_source: "google" }, f, "kart")));
+    () => mod.ga4Gonder(env, olay, ATIF_OTURUMSUZ, f, "kart")));
   return [
     ["29a session_id basiliyor", gVar.events[0].params.session_id === OTURUM_ID],
     ["29b negatif kol: alan YOKKEN basilmiyor",
@@ -1508,7 +1516,7 @@ async function test29() {
   const olay = satinAlmaOlayi(SIPARIS);
   const atifTam = { ...JSON.parse(SIPARIS.atif), ga_session_id: OTURUM_ID };
   const gVar = ga4Govdesi({}, olay, atifTam);
-  const gYok = ga4Govdesi({}, olay, { utm_source: "google" });
+  const gYok = ga4Govdesi({}, olay, ATIF_OTURUMSUZ);
 
   ol("29a atif.ga_session_id VARKEN params.session_id BASILIYOR",
     gVar.events[0].params.session_id === OTURUM_ID, JSON.stringify(gVar.events[0].params));
@@ -1547,7 +1555,7 @@ async function test29() {
   const env = { GA4_MEASUREMENT_ID: "G-TEST", GA4_API_SECRET: "SEC" };
   const fYok = sahteFetch();
   const logYok = logMetni(await logYakala(
-    () => ga4Gonder(env, olay, { utm_source: "google" }, fYok, "kart")));
+    () => ga4Gonder(env, olay, ATIF_OTURUMSUZ, fYok, "kart")));
   ol("29f session_id YOKKEN dusus ADIYLA loglaniyor (oturum_atfi=yok)",
     logYok.indexOf('"oturum_atfi":"yok"') >= 0, logYok);
   ol("29f2 ...ve olay YINE GONDERILDI (ciro kaybolmuyor — dusus sessiz DEGIL, ENGEL de degil)",
@@ -1560,18 +1568,17 @@ async function test29() {
   ol("29f4 GIZLILIK: session_id DEGERI log satirina GIRMIYOR (yalniz 'var'/'yok')",
     logVar.indexOf(OTURUM_ID) < 0, logVar);
 
-  // ---- IKINCI KOL: SENTETIK client_id fallback'i ADIYLA sayiliyor mu ----
-  // `atif.ga_client_id || (order_id + ".0")` — _ga cerezi yoksa GA4 icin GECMISSIZ, hic
-  // gorulmemis bir kullanici uretiliyor. Oran BUGUNE KADAR HIC OLCULMUYORDU; artik her
-  // GA4 log satiri kaynagini beyan eder (ileriye donuk olculebilir).
+  // ---- IKINCI KOL: client_id kaynagi ADIYLA sayiliyor mu ----
+  // 22 Eki'ye kadar _ga yoksa `order_id + ".0"` uyduruluyordu ("uydurma"); artik olay
+  // GITMEZ (riza-yok) ve kaynak "yok" yazilir. Ayrintili riza bataryasi: test31.
   ol("29h client_id_kaynak=cerez (gercek _ga varken)",
     logVar.indexOf('"client_id_kaynak":"cerez"') >= 0, logVar);
   const fUyd = sahteFetch();
   const logUyd = logMetni(await logYakala(() => ga4Gonder(env, olay, {}, fUyd, "kart")));
-  ol("29h2 client_id_kaynak=uydurma (sentetik fallback ADIYLA sayiliyor)",
-    logUyd.indexOf('"client_id_kaynak":"uydurma"') >= 0, logUyd);
-  ol("29h3 sentetik fallback GERCEKTEN uretildi (29h2 tautoloji degil)",
-    ga4Govdesi({}, olay, {}).client_id === SIPARIS.siparis_no + ".0");
+  ol("29h2 client_id_kaynak=yok (_ga yokken kaynak ADIYLA, 'uydurma' artik YOK)",
+    logUyd.indexOf('"client_id_kaynak":"yok"') >= 0 && logUyd.indexOf("uydurma") < 0, logUyd);
+  ol("29h3 _ga yokken GA4'e HIC istek gitmedi (29h2 tautoloji degil)",
+    fUyd.cagrilar.length === 0, "cagri=" + fUyd.cagrilar.length);
 
   // ---- HALKA (2): sunucu beyaz-listesi — yoksa alan D1'e HIC ULASMAZ ----
   if (!indexModulu) { modulYok("29e SUNUCU BEYAZ-LISTESI (index.js)"); return; }
@@ -1683,10 +1690,83 @@ async function test30() {
     oldurucuYandi === oldurucuToplam && oldurucuToplam >= 3 && kontrolYandi === 0);
 }
 
+// ---- 31) 🔴 RIZASIZ KIMLIK URETILMEZ (BaBa 22 Eki 16:1x, hukuk sinifi) + mutantlar ----
+/* Olculen kok: GA4 `(not set)` 3/3 purchase = _ga'siz (riza yok) siparis; sunucu
+ * `order_id + ".0"` uydurup Purchase'i oturumsuz gonderiyordu. Kural: riza yoksa olay
+ * kimliksiz ya da HIC gonderilmez — GA4 MP kimliksiz olay almaz, yani GONDERILMEZ.
+ * Kabul: rizasiz sipariste GA4/Meta'ya giden kimlik alani 0 (istek 0). */
+const ENV_RIZA = { META_PIXEL_ID: "1", META_CAPI_TOKEN: "t",
+                   GA4_MEASUREMENT_ID: "G-TEST", GA4_API_SECRET: "SEC" };
+const RIZALI_CID = "1234567890.1690000000";
+
+async function rizaIddialari(mod) {
+  const olay = satinAlmaOlayi({ ...SIPARIS, atif: "" });
+  const f = sahteFetch();
+  const r = { ga4: null, meta: null };
+  const log = logMetni(await logYakala(async () => {
+    r.ga4 = await mod.ga4Gonder(ENV_RIZA, olay, {}, f, "kart");
+    r.meta = await mod.metaGonder(ENV_RIZA, olay, {}, f, { ip: "198.51.100.9", ua: "UA" }, "kart");
+  }));
+  const fR = sahteFetch();
+  const rR = await logYakala(() => mod.ga4Gonder(ENV_RIZA, olay, { ga_client_id: RIZALI_CID }, fR, "kart"));
+  const govdeR = (fR.cagrilar[0] || {}).govde || {};
+  const giden = JSON.stringify(f.cagrilar);
+  return [
+    ["31a rizasiz: ga4Govdesi null (kimlik URETILMEZ)", mod.ga4Govdesi({}, olay, {}) === null],
+    ["31b rizasiz: GA4+Meta'ya giden istek 0", f.cagrilar.length === 0],
+    ["31c rizasiz: GA4 atlamasi ADIYLA (atlandi=riza-yok, loglandi)",
+      r.ga4 && r.ga4.atlandi === "riza-yok" && log.indexOf('"atlandi":"riza-yok"') >= 0],
+    ["31d rizasiz: siparis_no tabanli kimlik HICBIR istekte YOK",
+      giden.indexOf(SIPARIS.siparis_no + ".0") < 0],
+    ["31e rizali: GA4'e TEK istek, client_id = tarayici _ga'si (kapi her seyi kesmiyor)",
+      fR.cagrilar.length === 1 && govdeR.client_id === RIZALI_CID && rR.length >= 1],
+  ];
+}
+
+const RIZA_MUTANTLARI = [
+  ["RM1 uydurma geri gelir (govdede fallback)",
+   "  if (!client_id) { return null; }", '  if (!client_id) { return { client_id: olay.order_id + ".0", events: [] }; }', true],
+  ["RM2 riza kapisi sokulur (null govde yine gonderilir)",
+   "  if (!govde) {\n", "  if (false) {\n", true],
+  ["RM3 kapi her seyi keser (rizali olay da gitmez)",
+   "  if (!client_id) { return null; }", "  return null;", true],
+  ["RM4 KONTROL — yalniz yorum metni degisir",
+   "🔴 RIZA KAPISI (BaBa 22 Eki)", "RIZA KAPISI (kontrol mutanti)", false],
+];
+
+async function test31() {
+  for (const [ad, gecti] of await rizaIddialari({ ga4Govdesi, ga4Gonder, metaGonder })) {
+    ol(ad, gecti);
+  }
+  let yandi = 0, toplam = 0, kontrolYandi = 0;
+  for (const [ad, capa, yerine, oldurucuMu] of RIZA_MUTANTLARI) {
+    const mut = await olcumMutantYukle(capa, yerine);
+    if (mut.capaYok) { ol("31 MUTASYON OLCULEMEDI — capa yok/coklu: " + ad, false, capa); continue; }
+    let kirmizi = [];
+    try {
+      for (const [iddia, gecti] of await rizaIddialari(mut.mod)) { if (!gecti) { kirmizi.push(iddia); } }
+    } catch (e) {
+      ol("31 MUTANT COKTU (olculemedi, oldurucu SAYILMAZ): " + ad, false, String(e));
+      continue;
+    }
+    if (oldurucuMu) {
+      toplam += 1;
+      if (kirmizi.length) { yandi += 1; }
+      ol("31 " + ad + " -> KIRMIZI (" + (kirmizi.map((x) => x.split(" ")[0]).join(" · ") || "HICBIRI") + ")",
+        kirmizi.length > 0, "SAG KALDI — 31 bu ekseni OLCMUYOR");
+    } else {
+      if (kirmizi.length) { kontrolYandi += 1; }
+      ol("31 " + ad + " -> YESIL kalmali", kirmizi.length === 0, kirmizi.join(" · "));
+    }
+  }
+  ol("31 SONUC: oldurucu " + yandi + "/" + toplam + " yandi, kontrol " + kontrolYandi + " yanma",
+    yandi === toplam && toplam === 3 && kontrolYandi === 0);
+}
+
 const testler = [test9, test10, test11, test12, test13,
                  test14, test15, test16, test17, test18, test19, test20,
                  test21, test22, test23, test24, test25, test26, test27, test28,
-                 test29, test30];
+                 test29, test30, test31];
 for (const t of testler) { await t(); }
 
 console.log("\nSONUC: " + gecen + " gecti, " + kalan + " kaldi" + (kalan ? "" : " — HEPSI YESIL ✅"));

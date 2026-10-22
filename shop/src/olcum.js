@@ -84,13 +84,13 @@ const LOG_ALANLARI = [
   // iyzico.js hataKodu()/hataMetni() — metin token maskesinden ve kirpmadan gecer).
   "errorCode",       // iyzico hata kodu (or. "1001") — yoksa "YOK"
   "errorMessage",    // iyzico hata metni, token maskeli + kirpik — yoksa "YOK"
-  // 🔴 K389 (10 Eyl 2026) — GA4 ATIF DUSUSU SESSIZ OLMASIN. Purchase olayi eksik atifla da
-  // GIDER (ciro kaybolmaz), ama neyin eksik gittigi ADIYLA sayilir; onceden bu dusus
+  // 🔴 K389 (10 Eyl 2026) — GA4 ATIF DUSUSU SESSIZ OLMASIN. Purchase olayi oturum atfi eksik
+  // de GIDER (_ga yoksa GITMEZ: riza-yok), ama neyin eksik gittigi ADIYLA sayilir; onceden bu dusus
   // hicbir yuzeye yazilmiyordu ve "Unassigned" 25 Isleme cikana kadar gorunmedi.
   // ⚠️ GIZLILIK: burada KIMLIGIN KENDISI degil VARLIGI loglanir — degerler ("1234.5678")
-  // asla log alanina konmaz, yalnizca "var"/"yok" ve "cerez"/"uydurma" sabitleri.
+  // asla log alanina konmaz, yalnizca "var"/"yok" ve "cerez"/"yok" sabitleri.
   "oturum_atfi",     // "var" | "yok"     — atif.ga_session_id gonderildi mi (GA4 oturum birlesmesi)
-  "client_id_kaynak",// "cerez" | "uydurma" — gercek _ga client_id mi, siparis_no tabanli sentetik mi
+  "client_id_kaynak",// "cerez" | "yok"   — gercek _ga client_id var mi (yoksa olay GITMEZ: riza-yok)
 ];
 
 /** Sir kalintisi maskele (savunma katmani — normalde govdede token OLMAZ, yine de). */
@@ -244,7 +244,8 @@ export function satinAlmaOlayi(siparis) {
  *
  * 🚫 BU KAPININ KAPSAMI DISINDA (bilerek — burada COZULMUYOR, yanlis guven vermesin):
  *   1) GA4 MP yolu: `ga_client_id` (_ga cerezi) + UTM parametreleri bu kapiya TABI DEGIL;
- *      ga4Govdesi() onlari fbp'den bagimsiz gonderir.
+ *      ga4Govdesi() onlari fbp'den bagimsiz gonderir. GA4'un KENDI riza kapisi
+ *      ga4Gonder()'dedir: _ga client_id yoksa olay GITMEZ (riza-yok, BaBa 22 Eki).
  *   2) ATIF YAKALAMA tarafi: index.html'deki PRUVO_ATIF fbclid'i riza kontrolu OLMADAN
  *      localStorage'a yaziyor, /baslat da onu D1 `atif` kolonuna kaydediyor. Yani "toplama"
  *      hala acik; bu fonksiyon yalnizca META'YA CIKISI kapatir. Toplama tarafinin
@@ -334,7 +335,7 @@ export async function metaGonder(env, olay, atif, fetchFn, istemci, kaynak) {
     // "gitti sanip" yanlis guven verir. Bu yuzden GONDERMIYORUZ — ama SESSIZCE degil:
     // atlama loglanir, boylece "bu siparisin Purchase'i neden yok?" sorusu cevaplanabilir.
     // (Eslesmeyi duzeltmenin dogru yolu riza kapisindan gecen tarayici pikselidir; fbp
-    // dogunca hem fbp hem IP/UA gider. GA4 bundan ETKILENMEZ — client_id fallback'i var.)
+    // dogunca hem fbp hem IP/UA gider. GA4'un ayri riza kapisi var: _ga yoksa o da gitmez.)
     olcumLog({ ...taban, atlandi: "user_data-bos" }, true);
     return { hedef: "meta", atlandi: "user_data-bos" };
   }
@@ -371,9 +372,16 @@ export async function metaGonder(env, olay, atif, fetchFn, istemci, kaynak) {
 
 // ---------------------------------------------------------------- GA4 Measurement Protocol
 
-/** GA4 MP govdesi (PURE). client_id atif icin ZORUNLU: gercek _ga client_id yoksa siparis_no
- *  tabanli sabit uydurulur (ciroyu yine de kaydet; sadece OTURUM atfi duser). */
+/** GA4 MP govdesi (PURE). client_id MP icin ZORUNLU ve YALNIZ tarayicinin _ga cerezinden
+ *  gelir; yoksa govde KURULMAZ (null).
+ *  🔴 RIZASIZ KIMLIK URETILMEZ (BaBa 22 Eki 16:1x, hukuk sinifi): eskiden _ga yokken
+ *  `order_id + ".0"` uydurulup Purchase yine gonderiliyordu. Tarayici _ga'yi YALNIZ cerez
+ *  rizasi "kabul" iken gonderir; rizasiz musteriye sunucuda kimlik uydurmak riza reddini
+ *  dolanmaktir (olculdu: GA4 `(not set)` 3/3 purchase bu daldan). Riza reddinde olcum
+ *  Consent Mode'un kimliksiz pingine birakilir. */
 export function ga4Govdesi(env, olay, atif) {
+  const client_id = atif && atif.ga_client_id;
+  if (!client_id) { return null; }
   const params = {
     transaction_id: olay.transaction_id,
     value: olay.value,
@@ -402,7 +410,6 @@ export function ga4Govdesi(env, olay, atif) {
   if (atif.utm_id) { params.campaign_id = atif.utm_id; }
   // DebugView'da gorunmesi icin (Okan canli kabul): env GA4_DEBUG=1 ise.
   if (env && env.GA4_DEBUG) { params.debug_mode = 1; }
-  const client_id = atif.ga_client_id || (olay.order_id + ".0");
   const g = { client_id: client_id, events: [{ name: "purchase", params: params }] };
   // Gercek odeme ani: GA4 timestamp_micros'u YALNIZ son 72 saat icin kabul eder; daha
   // eskisinde olay DUSER -> damgayi koymayiz (GA4 "simdi" sayar, ciro yine kaydedilir).
@@ -425,10 +432,17 @@ export async function ga4Gonder(env, olay, atif, fetchFn, kaynak) {
   const taban_log = { olay: "Purchase", hedef: "ga4", siparis_no: olay.transaction_id,
                       kaynak: kaynak,
                       oturum_atfi: a_.ga_session_id ? "var" : "yok",
-                      client_id_kaynak: a_.ga_client_id ? "cerez" : "uydurma" };
+                      client_id_kaynak: a_.ga_client_id ? "cerez" : "yok" };
   if (!mid || !gizli) {
     olcumLog({ ...taban_log, atlandi: "secret-yok" });
     return { hedef: "ga4", atlandi: "secret-yok" };
+  }
+  // 🔴 RIZA KAPISI (BaBa 22 Eki): _ga client_id yok = riza yok -> olay GITMEZ, ama SESSIZ
+  // DEGIL: "bu siparisin GA4 Purchase'i neden yok?" sorusu bu satirdan cevaplanir.
+  const govde = ga4Govdesi(env, olay, a_);
+  if (!govde) {
+    olcumLog({ ...taban_log, atlandi: "riza-yok" });
+    return { hedef: "ga4", atlandi: "riza-yok" };
   }
   const f = fetchFn || fetch;
   const taban = (env && env.GA4_DEBUG)
@@ -440,7 +454,7 @@ export async function ga4Gonder(env, olay, atif, fetchFn, kaynak) {
   const c = await f(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(ga4Govdesi(env, olay, atif)),
+    body: JSON.stringify(govde),
   });
   const kod = c && c.status;
   const ok = kod >= 200 && kod < 300;
