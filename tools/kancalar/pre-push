@@ -332,6 +332,93 @@ if [ -n "$pruvo_kok" ] && [ -f "$pruvo_kok/tools/kutu-arsivle.py" ]; then
   fi
 fi
 # <<< PRUVO YEDEK BLOGU <<<
+# >>> KAYNAK SENKRON BLOGU (22 Eki 2026 — olcer: tools/kaynak-kanca-test.py) >>>
+# NEDEN: tools/d1-kaynak-sync.py gizli kaynak kaydini (.urun-kaynaklari.json, git
+# DISI) D1 `urun_kaynak` tablosuna senkronlar. Kayit CI'da YOK -> arac yalniz yerelde
+# kosar ve urun dilimleri push'landiktan sonra onu kimse kosmuyordu (olculdu: 21 Eki
+# EKSIK=463 elle kapatildi; 22 Eki tek bir dilimden sonra EKSIK=38 yine dogdu).
+# TETIK: push edilen uzak ref `refs/heads/main` ya da `refs/heads/urun-kuyruk`
+# (urun dilimleri kuyruga gider; main'e birlestirme CI'da olur, oradan kosamaz).
+# KAYIT YERI: gizli kayit yalniz ANA checkout'ta durur (worktree'de YOK) -> ana
+# checkout ortak git dizininin (`--git-common-dir`) ustunden cozulur.
+# HIZLI YOL (olculdu 22 Eki: `--durum` ~5 sn; tam kosum iki tam D1 okumasi + yazma):
+# once `--durum`; HUKUM=SENKRON ise yazma kolu HIC kosmaz.
+# 🔴 BEYANLI FAIL-OPEN (tools/kanca-kablolama-nobeti.py FAIL_OPEN): D1/wrangler/ag
+# hatasi urun push'unu DURDURMAZ, ama SESSIZ de DEGILDIR -> `KAYNAK_SYNC=OLCULEMEDI
+# rc=<n>` stderr'e ve git disi loga ($HOME/.claude/cron/kaynak-sync.log) duser.
+# Kayit yoksa (baska makine/klon) tek satir `KAYNAK_SYNC=ATLANDI sebep=kayit-yok`.
+# SILME EMNIYETI: kanca `--silmeye-izin` VERMEZ; tavan asilirsa arac durur ve kanca
+# `KAYNAK_SYNC=SILME_TAVANI` uyarisi basar (hicbir satir SILINMEZ).
+# GIZLILIK: aracin ham ciktisi BASILMAZ; yalniz sayilar ve sinif adlari.
+# stdin (ref listesi) gecici dosyaya alinir, asagidaki D1 blogu icin AYNEN geri acilir.
+pruvo_ks_log() {
+  [ -d "$HOME/.claude/cron" ] || return 0
+  pruvo_ks_logyol="$HOME/.claude/cron/kaynak-sync.log"
+  printf '%s dal=%s %s\n' "$(date '+%Y-%m-%dT%H:%M:%S')" "$pruvo_ks_hedef" "$1" >> "$pruvo_ks_logyol"
+  # Tavanli: log 500 satiri asarsa son 300 satira budanir (makinede iz birikmez).
+  if [ "$(wc -l < "$pruvo_ks_logyol")" -gt 500 ]; then
+    tail -300 "$pruvo_ks_logyol" > "$pruvo_ks_logyol.yeni" && mv "$pruvo_ks_logyol.yeni" "$pruvo_ks_logyol"
+  fi
+}
+pruvo_ks_girdi=$(mktemp 2>/dev/null)
+if [ -z "$pruvo_ks_girdi" ] || [ ! -f "$pruvo_ks_girdi" ]; then
+  echo "KAYNAK_SYNC=OLCULEMEDI rc=- sebep=gecici-dosya (push DEVAM ediyor)" >&2
+else
+  cat > "$pruvo_ks_girdi"
+  pruvo_ks_hedef=""
+  while read -r pruvo_ks_lref pruvo_ks_lsha pruvo_ks_rref pruvo_ks_rsha; do
+    [ "$pruvo_ks_lsha" = "0000000000000000000000000000000000000000" ] && continue
+    case "$pruvo_ks_rref" in
+      refs/heads/main|refs/heads/urun-kuyruk) pruvo_ks_hedef="${pruvo_ks_rref#refs/heads/}" ;;
+    esac
+  done < "$pruvo_ks_girdi"
+  if [ -n "$pruvo_ks_hedef" ]; then
+    pruvo_ks_ortak=$(git rev-parse --git-common-dir 2>/dev/null)
+    pruvo_ks_ana=$(cd "$pruvo_ks_ortak/.." 2>/dev/null && pwd -P)
+    pruvo_ks_arac="$pruvo_ks_ana/tools/d1-kaynak-sync.py"
+    pruvo_ks_sonuc=""
+    if [ -z "$pruvo_ks_ana" ]; then
+      pruvo_ks_sonuc="KAYNAK_SYNC=OLCULEMEDI rc=- sebep=ana-checkout-cozulemedi"
+    elif [ ! -f "$pruvo_ks_ana/.urun-kaynaklari.json" ]; then
+      echo "KAYNAK_SYNC=ATLANDI sebep=kayit-yok"
+    elif [ ! -f "$pruvo_ks_arac" ]; then
+      pruvo_ks_sonuc="KAYNAK_SYNC=OLCULEMEDI rc=- sebep=arac-yok"
+    else
+      pruvo_ks_cikti=$(python3 "$pruvo_ks_arac" --durum </dev/null 2>&1)
+      pruvo_ks_rc=$?
+      if printf '%s\n' "$pruvo_ks_cikti" | grep -q '^HUKUM=SENKRON$'; then
+        pruvo_ks_sonuc="KAYNAK_SYNC=SENKRON eklenen=0"
+      elif printf '%s\n' "$pruvo_ks_cikti" | grep -q '^HUKUM=SAPMA$'; then
+        pruvo_ks_cikti=$(python3 "$pruvo_ks_arac" </dev/null 2>&1)
+        pruvo_ks_rc=$?
+        if [ "$pruvo_ks_rc" = "0" ]; then
+          pruvo_ks_n=$(printf '%s\n' "$pruvo_ks_cikti" | sed -n 's/^YAZILDI=\([0-9][0-9]*\).*/\1/p' | tail -1)
+          pruvo_ks_sonuc="KAYNAK_SYNC=SENKRON eklenen=${pruvo_ks_n:-0}"
+        elif printf '%s\n' "$pruvo_ks_cikti" | grep -q 'SILME EMNIYETI'; then
+          pruvo_ks_n=$(printf '%s\n' "$pruvo_ks_cikti" | sed -n 's/.*SILME EMNIYETI: \([0-9][0-9]*\) satir silinecekti (tavan \([0-9][0-9]*\)).*/silinecek=\1 tavan=\2/p' | tail -1)
+          pruvo_ks_sonuc="KAYNAK_SYNC=SILME_TAVANI rc=$pruvo_ks_rc ${pruvo_ks_n:-silinecek=? tavan=?} SILINMEDI"
+        else
+          pruvo_ks_sonuc="KAYNAK_SYNC=OLCULEMEDI rc=$pruvo_ks_rc asama=senkron"
+        fi
+      else
+        pruvo_ks_sonuc="KAYNAK_SYNC=OLCULEMEDI rc=$pruvo_ks_rc asama=durum"
+      fi
+    fi
+    case "$pruvo_ks_sonuc" in
+      "") ;;
+      KAYNAK_SYNC=SENKRON*)
+        echo "$pruvo_ks_sonuc"
+        pruvo_ks_log "$pruvo_ks_sonuc" ;;
+      *)
+        echo "$pruvo_ks_sonuc" >&2
+        echo "!!   push DEVAM ediyor — olcum: python3 tools/d1-kaynak-sync.py --durum (ana checkout'ta)" >&2
+        pruvo_ks_log "$pruvo_ks_sonuc" ;;
+    esac
+  fi
+  exec 0< "$pruvo_ks_girdi"
+  rm -f "$pruvo_ks_girdi"
+fi
+# <<< KAYNAK SENKRON BLOGU <<<
 # urunler.json main'e push edilirken D1'i OTOMATIK senkronla.
 #
 # NEDEN VAR: Ege (WhatsApp botu) urunleri artik urunler.json'dan degil D1'DEN okuyor

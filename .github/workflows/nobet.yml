@@ -2479,6 +2479,13 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/isci-push-kapisi-test.py
 
+      # GIZLI KAYNAK SENKRON BOLUMU (22 Eki 2026): pre-push main/urun-kuyruk push'unda
+      # d1-kaynak-sync'i kosar; push'u BLOKLAMAZ ama sessiz de kalmaz (OLCULEMEDI satiri).
+      # Sentetik depo + sahte arac (gercek D1'e DOKUNMAZ): 10 vaka + 5 mutant.
+      - name: "Kaynak senkron kancasi kabul + mutant"
+        if: ${{ !cancelled() }}
+        run: python3 tools/kaynak-kanca-test.py
+
       # IZIN MANIFESTI TUKETIMI (7 Eki 2026). post-commit eskiden uc izin manifestini
       # KOSULSUZ siliyordu: komsu evin commit'lenmemis duzelt.py izni baska bir evin
       # commit'inde gidiyor, guard o duzeltmeyi "izinsiz" sayip geri aliyordu (2 vaka,
