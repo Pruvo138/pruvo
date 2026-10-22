@@ -5238,6 +5238,16 @@ KSD_SIRA = ("konu_emir", "konu_ilke", "konu_karar", "konu_buyuk", "konu_bosluk",
             "atf_baba", "atf_ilkecil", "atf_doktrin")
 KSD_KONU = ("konu_emir", "konu_ilke", "konu_karar", "konu_buyuk", "konu_bosluk")
 KSD_ATIF = ("atf_baba", "atf_ilkecil", "atf_doktrin")
+
+# ---- KALICI OMRU 7 GUN (BaBa 22 Eki 11:4x — ikinci kademe) ---------------------------
+# Hepsi KONU basligi (KALICI sinif); `KALICI_SIMDI`ye gore yas: 6 g 23 sa KALIR,
+# 7 g 1 sa TASINIR, gecersiz tarih (30 Subat) KALIR (fail-closed).
+KC_BASLIKLAR = {
+    "kc_6g23": "## 2026-10-17 13:00 — 🔴 OKAN EMRİ (KORUMALI) 6 g 23 sa",
+    "kc_7g1": "## 2026-10-17 11:00 — 🔴 OKAN EMRİ (KORUMALI) 7 g 1 sa",
+    "kc_bozuk": "## 2026-02-30 10:00 — 🔴 OKAN EMRİ (KORUMALI) okunamayan gun",
+}
+KC_SIRA = ("kc_6g23", "kc_7g1", "kc_bozuk")
 # (mutant adi, capa, yeni, hedef iddia oneki)
 KY_MUTANTLARI = [
     ("KY-M1 yas kontrolu silindi", "    if simdi_dk - blok_dk >= yas_sa * 60:\n",
@@ -5251,6 +5261,19 @@ KY_MUTANTLARI = [
     ("KY-M4 kalici sinif deseni ozneke sabitlenmedi (eski hali)",
      'SAAT_BASLIK_RE.pattern + r"\\s*[—\\-]?\\s*[\\W_]*(?:OKAN\\s+EMRI|OKAN\\s+KARARI|ILKE|DOKTRIN)\\b",\n',
      'r"(?<!\\w)(?:OKAN\\s+EMRI|OKAN\\s+KARARI|ILKE|DOKTRIN)",\n', "KY19"),
+    # ---- KALICI OMRU (22 Eki) ----
+    ("KY-M5 kalici omur kontrolu silindi", "    if simdi_dk - blok_dk >= omur_sa * 60:\n",
+     "    if False:  # MUTANT\n", "KY23"),
+    ("KY-M6 kalici omur esigi kati (>)", "    if simdi_dk - blok_dk >= omur_sa * 60:\n",
+     "    if simdi_dk - blok_dk > omur_sa * 60:  # MUTANT\n", "KY27"),
+    ("KY-M7 `--kalici-omur-sa 0` kapatmiyor",
+     '    if omur_sa <= 0:\n        return "KALICI"\n',
+     '    if False:  # MUTANT\n        return "KALICI"\n', "KY26"),
+    ("KY-M8 okunamayan tarihli kalici DOLDU sayildi",
+     '    except ValueError:\n        return "KALICI"\n',
+     '    except ValueError:\n        return "KALICI_DOLDU"  # MUTANT\n', "KY24"),
+    ("KY-M9 kapi KALICI_DOLDU'yu kilitli tutuyor",
+     '(sinif not in ("ACIK", "KALICI_DOLDU")', '(sinif not in ("ACIK",)', "KY23"),
 ]
 
 
@@ -5366,6 +5389,44 @@ def _ky_vakalari(arac, kok, iddia_fn):
     iddia_fn("KY21 KAYIPSIZLIK: 8 blok basildi, 3 tasindi, SHA esit=3/3",
              "KAYIPSIZLIK blok: once=8 " in ck and "SHA blok: esit=3/3 eksik=0" in ck,
              ck[-900:])
+
+    # ---- 22 Eki 11:4x: KALICI OMRU 7 GUN (varsayilan `--kalici-omur-sa 168`) ----
+    kc_metin = "# kutu\n\n" + "".join("%s\n\ngovde %s\n\n" % (KC_BASLIKLAR[a], a)
+                                      for a in KC_SIRA)
+    rcc, cc, kc, ac = _ky_kos(arac, os.path.join(kok, "kc"), kc_metin, simdi=KALICI_SIMDI)
+
+    def ckaldi(ad, k=kc, a=ac):
+        return KC_BASLIKLAR[ad] in k and KC_BASLIKLAR[ad] not in a
+
+    iddia_fn("KY22 kalici omur kutusu rc=0 + lossless GECTI + SHA esit=1/1",
+             rcc == 0 and "lossless_dogrulama=GECTI" in cc
+             and "SHA blok: esit=1/1 eksik=0" in cc, "rc=%d\n%s" % (rcc, cc[-900:]))
+    iddia_fn("KY23 7 g 1 sa KALICI konu blogu TASINDI",
+             KC_BASLIKLAR["kc_7g1"] in ac and KC_BASLIKLAR["kc_7g1"] not in kc, cc[-900:])
+    iddia_fn("KY24 6 g 23 sa KALICI KALDI + okunamayan tarihli KALICI KALDI",
+             ckaldi("kc_6g23") and ckaldi("kc_bozuk"), cc[-900:])
+    iddia_fn("KY25 sayac: KALICI_SINIF=2 KALICI_DOLDU=1 kalici_omur_sa=168",
+             "KORUMALI_KALICI_SINIF=2 " in cc
+             and "KORUMALI_KALICI_DOLDU=1 kalici_omur_sa=168 " in cc, cc[-900:])
+    rc0, c0, k0, a0 = _ky_kos(arac, os.path.join(kok, "kc0"), kc_metin, simdi=KALICI_SIMDI,
+                              ek=("--kalici-omur-sa", "0"))
+    iddia_fn("KY26 `--kalici-omur-sa 0` -> 3 KALICI KALDI, DOLDU=0 (eski davranis)",
+             rc0 == 0 and not a0 and all(ckaldi(x, k0, a0) for x in KC_SIRA)
+             and "KORUMALI_KALICI_SINIF=3 " in c0
+             and "KORUMALI_KALICI_DOLDU=0 kalici_omur_sa=0 " in c0, c0[-900:])
+    # Esik: tam 168 sa'te DOLDU, 1 dk once KALICI.
+    esik_metin = "# kutu\n\n%s\n\ngovde\n" % KC_BASLIKLAR["kc_7g1"]
+    _r1, c1, _k1, _a1 = _ky_kos(arac, os.path.join(kok, "kc-e1"), esik_metin,
+                                simdi="2026-10-24 11:00", kuru=True)
+    _r2, c2, _k2, _a2 = _ky_kos(arac, os.path.join(kok, "kc-e2"), esik_metin,
+                                simdi="2026-10-24 10:59", kuru=True)
+    iddia_fn("KY27 esik: @168 sa DOLDU=1, @167 sa 59 dk DOLDU=0 + KALICI=1",
+             "KORUMALI_KALICI_DOLDU=1 " in c1 and "KORUMALI_KALICI_DOLDU=0 " in c2
+             and "KORUMALI_KALICI_SINIF=1 " in c2, c1[-500:] + c2[-500:])
+    rcn, cn, _kn, _an = _ky_kos(arac, os.path.join(kok, "kc-neg"), esik_metin,
+                                simdi=KALICI_SIMDI, ek=("--kalici-omur-sa", "-1"), kuru=True)
+    iddia_fn("KY28 `--kalici-omur-sa -1` -> rc!=0 + KIRMIZI",
+             rcn != 0 and "KIRMIZI: --kalici-omur-sa >= 0 olmali" in cn, cn[-500:])
 
 
 def korumali_yas_suiti(arac):

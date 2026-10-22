@@ -2171,10 +2171,38 @@ def kalici_sinif_mi(baslik):
     return bool(KALICI_SINIF_DESENI.search(_tr_normalize(baslik)))
 
 
-def korumali_yas_sinifi(baslik, simdi, yas_sa):
-    """"KALICI" | "TARIH_YOK" | "GENC" | "ACIK" — etiketli blogun yas karari (saf, IO yok)."""
-    if kalici_sinif_mi(baslik):
+# 🔴 KALICI OMRU 7 GUN (BaBa 22 Eki 11:4x — ikinci kademe)
+# OLCULEN VAKA: daraltma (konu/atif) sonrasi kutu 430'da kaldi; 25 KALICI konu blogu
+#   (13-20 Eki) yasla HIC dusmedigi icin ≤400 YAPISAL imkansizdi. Canli hukumler zaten
+#   memory/DEVAM'da; kutudaki konu blogu onlarin AKTARIMIDIR.
+# CARE: KALICI blok yasi >= `--kalici-omur-sa` (168) ise "KALICI_DOLDU" -> rotasyona ACIK
+#   (bayt-esit arsive, indeks satiri basligi tam tasir). Tarihi OKUNAMAYAN KALICI blok
+#   KALICI kalir (fail-closed). `0` = eski davranis BIREBIR (kalici asla dusmez).
+KALICI_OMUR_SAAT = 168
+
+
+def kalici_omur_sinifi(baslik, simdi, omur_sa):
+    """"KALICI" | "KALICI_DOLDU" — kalici sinif blogunun omur karari (saf, IO yok)."""
+    if omur_sa <= 0:
         return "KALICI"
+    gun, aralik = blok_araligi(baslik)
+    if gun is None:
+        return "KALICI"
+    try:
+        blok_dk = _dakika_damgasi(gun, (aralik or (TUM_GUN[1], TUM_GUN[1]))[0])
+        simdi_dk = _dakika_damgasi(simdi[0], simdi[1])
+    except ValueError:
+        return "KALICI"
+    if simdi_dk - blok_dk >= omur_sa * 60:
+        return "KALICI_DOLDU"
+    return "KALICI"
+
+
+def korumali_yas_sinifi(baslik, simdi, yas_sa, kalici_omur_sa=0):
+    """"KALICI" | "KALICI_DOLDU" | "TARIH_YOK" | "GENC" | "ACIK" — etiketli blogun yas
+    karari (saf, IO yok)."""
+    if kalici_sinif_mi(baslik):
+        return kalici_omur_sinifi(baslik, simdi, kalici_omur_sa)
     gun, aralik = blok_araligi(baslik)
     if gun is None:
         return "TARIH_YOK"
@@ -2312,14 +2340,15 @@ class Plan(object):
         self.simdi = None                  # (gun, dakika) — denetim kolu (D14/D17) AYNISINI okur
         self.koruma_dusen = {}             # {blok_idx: "YAS"|"KAPANDI"}
         self.korumali_yas_sa = 0           # 0 = etiket yas ekseni KAPALI (eski davranis)
-        self.korumali_yas = {}             # {etiket blok_idx: KALICI|TARIH_YOK|GENC|ACIK}
+        self.korumali_yas = {}             # {etiket blok_idx: KALICI|KALICI_DOLDU|TARIH_YOK|GENC|ACIK}
+        self.kalici_omur_sa = 0            # 0 = kalici omur ekseni KAPALI (eski davranis)
         self.en_az_yas_sa = 0              # 0 = en az yas tabani KAPALI (eski davranis)
         self.en_az_yas_tutulan = []        # tabanla SABIT'e eklenen blok indeksleri
         self.en_az_yas_tarih_yok = 0       # tarihi okunamayan etiketsiz blok sayisi
 
 
 def planla(kutu_metin, tavan, koru, arsiv_kayitlari=None, simdi=None,
-           korumali_yas_sa=0, en_az_yas_sa=0):
+           korumali_yas_sa=0, en_az_yas_sa=0, kalici_omur_sa=0):
     """Kutuyu tavana indirmek icin SONDAN kac blok tasinacagini hesapla.
 
     O1 (16 Agu 2026): eski davranis kutu tam tavanda (300) duruyor ve bir
@@ -2386,6 +2415,7 @@ def planla(kutu_metin, tavan, koru, arsiv_kayitlari=None, simdi=None,
     # kalici olmayan etiketli blogu eskisi gibi acar.
     yas_acik = korumali_yas_sa > 0 and simdi is not None
     p.korumali_yas_sa = korumali_yas_sa if yas_acik else 0
+    p.kalici_omur_sa = kalici_omur_sa if yas_acik else 0
     p.koruma_dusen = koruma_dusen_bloklar(
         satirlar, baslar, simdi,
         korumali_idx + acik_idx + ([] if yas_acik else etiket_idx))
@@ -2394,14 +2424,14 @@ def planla(kutu_metin, tavan, koru, arsiv_kayitlari=None, simdi=None,
     if yas_acik:
         for b, satir_no, _o in p.korumali_etiket:
             p.korumali_yas[b] = korumali_yas_sinifi(satirlar[satir_no - 1], simdi,
-                                                    korumali_yas_sa)
+                                                    korumali_yas_sa, p.kalici_omur_sa)
         # Omur sebebi (YAS/KAPANDI) yalniz ACILAN blok icin KORUMA_DUSTU'ya da yazilir;
         # kilitli kalan blok orada "rotasyona ACIK" diye BASILMAZ.
         etiket_omur = koruma_dusen_bloklar(satirlar, baslar, simdi, etiket_idx)
         kalan = []
         for b in etiket_idx:
             sinif = p.korumali_yas[b]
-            if sinif == "KALICI" or (sinif != "ACIK"
+            if sinif == "KALICI" or (sinif not in ("ACIK", "KALICI_DOLDU")
                                      and etiket_omur.get(b) != "KAPANDI"):
                 kalan.append(b)
             elif b in etiket_omur:
@@ -3294,6 +3324,11 @@ def main(argv=None):
                          "kalici sinif (Okan emri / OKAN KARARI / ILKE / DOKTRIN) varsa "
                          "yas aranmaz. Tarihsiz baslik KILITLI kalir. 0 = eski davranis "
                          "(varsayilan %d — BaBa 14 Eki)" % KORUMALI_YAS_SAAT)
+    ap.add_argument("--kalici-omur-sa", type=int, default=KALICI_OMUR_SAAT, metavar="N",
+                    help="kalici sinif KORUMALI blogu N saatten YASLI ise rotasyona acilir; "
+                         "tarihsiz kalici baslik KILITLI kalir. `--korumali-yas-sa 0` iken "
+                         "eksen KAPALI. 0 = eski davranis (varsayilan %d — BaBa 22 Eki)"
+                         % KALICI_OMUR_SAAT)
     ap.add_argument("--en-az-yas-sa", type=int, default=EN_AZ_YAS_SAAT, metavar="N",
                     help="basligi N saatten GENC olan HICBIR blok (etiketli/etiketsiz) "
                          "tasinmaz; tarihsiz baslik bu eksende tutulmaz ama sayilir "
@@ -3321,6 +3356,9 @@ def main(argv=None):
         return RC_KIRMIZI
     if a.en_az_yas_sa < 0:
         print("KIRMIZI: --en-az-yas-sa >= 0 olmali")
+        return RC_KIRMIZI
+    if a.kalici_omur_sa < 0:
+        print("KIRMIZI: --kalici-omur-sa >= 0 olmali")
         return RC_KIRMIZI
     if a.su_seviye_orani <= 0 or a.su_seviye_orani > 1:
         print("KIRMIZI: --su-seviye-orani (0, 1] araliginda olmali")
@@ -3469,7 +3507,7 @@ def main(argv=None):
         ars_kayit, ars_hata = arsiv_kapanis_kayitlari(arsiv_metin)
         p = planla(kutu_metin, a.tavan, a.koru, arsiv_kayitlari=ars_kayit,
                    simdi=simdi_t, korumali_yas_sa=a.korumali_yas_sa,
-                   en_az_yas_sa=a.en_az_yas_sa)
+                   en_az_yas_sa=a.en_az_yas_sa, kalici_omur_sa=a.kalici_omur_sa)
         p.arsiv_hatasi = ars_hata
         p.su_seviye = int(a.tavan * a.su_seviye_orani)
         if p.su_seviye < 1:
@@ -3526,11 +3564,13 @@ def main(argv=None):
               % (len(p.korumali_etiket), p.korumali_etiket_govde, p.etiket_kilitledi))
         # 🔴 KORUMALI ETIKETI YASI (BaBa 14 Eki) — HER kosumda basilir; 0 ile n AYNI satirdan.
         yas_sayi = dict((k, len([1 for v in p.korumali_yas.values() if v == k]))
-                        for k in ("ACIK", "KALICI", "GENC", "TARIH_YOK"))
+                        for k in ("ACIK", "KALICI", "KALICI_DOLDU", "GENC", "TARIH_YOK"))
         print("KORUMALI_YAS_ACILAN=%d KORUMALI_KALICI_SINIF=%d KORUMALI_GENC=%d "
-              "KORUMALI_TARIH_YOK=%d korumali_yas_sa=%d  [KAPI]"
+              "KORUMALI_TARIH_YOK=%d korumali_yas_sa=%d KORUMALI_KALICI_DOLDU=%d "
+              "kalici_omur_sa=%d  [KAPI]"
               % (yas_sayi["ACIK"], yas_sayi["KALICI"], yas_sayi["GENC"],
-                 yas_sayi["TARIH_YOK"], p.korumali_yas_sa))
+                 yas_sayi["TARIH_YOK"], p.korumali_yas_sa, yas_sayi["KALICI_DOLDU"],
+                 p.kalici_omur_sa))
         # 🔴 EN AZ YAS TABANI (BaBa 14 Eki 10:4x) — HER kosumda basilir; 0 ile n AYNI satirdan.
         print("EN_AZ_YAS_TUTULAN=%d EN_AZ_YAS_TARIH_YOK=%d en_az_yas_sa=%d  [KAPI]"
               % (len(p.en_az_yas_tutulan), p.en_az_yas_tarih_yok, p.en_az_yas_sa))
@@ -3540,6 +3580,11 @@ def main(argv=None):
                 print("  ~ KORUMALI YAS ACILDI blok %d/%d (satir %d, >= %d sa, kalici sinif "
                       "YOK) -> rotasyona ACIK | %s"
                       % (blok_idx + 1, p.blok_toplam, satir_no, p.korumali_yas_sa, ozet))
+                continue
+            if yas == "KALICI_DOLDU":
+                print("  ~ KALICI OMUR DOLDU blok %d/%d (satir %d, >= %d sa) -> rotasyona "
+                      "ACIK | %s"
+                      % (blok_idx + 1, p.blok_toplam, satir_no, p.kalici_omur_sa, ozet))
                 continue
             print("  * KORUMALI ETIKETI blok %d/%d (satir %d%s) -> ROTASYONA GIRMEZ "
                   "(YERINDE ATLANDI) | %s"
