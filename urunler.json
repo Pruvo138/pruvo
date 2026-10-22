@@ -1,5 +1,143 @@
 [
   {
+    "id": "iveco-daily-ucuncu-fren-lambasi-muhafazasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Iveco",
+      "Daily"
+    ],
+    "uyum": [
+      {
+        "marka": "Iveco",
+        "model": "Daily"
+      }
+    ],
+    "baslik": "Iveco Daily Üçüncü Fren Lambası Muhafazası",
+    "aciklama": "Daily kabin çatısındaki üçüncü fren lambası muhafazasıdır; arka görüş kamerası için geçiş deliği içerir, lamba ve kamera elektronik aksamı ürüne dahil değildir.\nYaklaşık dış ölçüler: 351 × 82 × 53 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1313633-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Nebulous"
+    }
+  },
+  {
+    "id": "iveco-stralis-bardak-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Iveco",
+      "Stralis"
+    ],
+    "uyum": [
+      {
+        "marka": "Iveco",
+        "model": "Stralis"
+      }
+    ],
+    "baslik": "Iveco Stralis Bardak Tutucusu",
+    "aciklama": "Stralis kabini için tasarlanmış, orijinal parçanın formunu taşıyan bardak tutucusudur.\nYaklaşık dış ölçüler: 135 × 90 × 55 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1528820-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "mehmet alay"
+    }
+  },
+  {
+    "id": "iveco-daily-dikdortgen-profil-uc-kapak",
+    "kategori": "Otomobil",
+    "marka": [
+      "Iveco",
+      "Daily"
+    ],
+    "uyum": [
+      {
+        "marka": "Iveco",
+        "model": "Daily"
+      }
+    ],
+    "baslik": "Iveco Daily Dikdörtgen Profil Uç Kapağı",
+    "aciklama": "Daily üzerindeki dikdörtgen çelik profilin ucunu kapatır; dış flanşı çelik kenarı örter ve yaklaşık 44 × 64 milimetrelik iç açıklığa uyacak biçimdedir.\nYaklaşık dış ölçüler: 72 × 52 × 23 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1877797-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1877797-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "PineappleAUT"
+    }
+  },
+  {
+    "id": "iveco-iki-parcali-bardak-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Iveco"
+    ],
+    "uyum": [
+      {
+        "marka": "Iveco"
+      }
+    ],
+    "baslik": "Iveco İki Parçalı Bardak Tutucu",
+    "aciklama": "İki parçadan oluşan bardak tutucusudur; parçalar birleştirilerek kabin içinde istenen konuma sabitlenebilir.\nYaklaşık dış ölçüler: 110 × 95 × 62 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr358711-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr358711-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr358711-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Sonic"
+    }
+  },
+  {
+    "id": "iveco-daily-iii-kayar-kapi-alt-tekerlek",
+    "kategori": "Otomobil",
+    "marka": [
+      "Iveco",
+      "Daily III"
+    ],
+    "uyum": [
+      {
+        "marka": "Iveco",
+        "model": "Daily III"
+      }
+    ],
+    "baslik": "Iveco Daily III Kayar Kapı Alt Tekerleği",
+    "aciklama": "Daily III ön kayar kapısının alt kolunda dönen tekerleğin yedek parçasıdır; kolay kırılan orijinalinin yerine geçer.\nYaklaşık dış ölçüler: 27 × 27 × 6 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr513354-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr513354-2.jpg"
+    ]
+  },
+  {
+    "id": "iveco-daily-yakit-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Iveco",
+      "Daily"
+    ],
+    "uyum": [
+      {
+        "marka": "Iveco",
+        "model": "Daily"
+      }
+    ],
+    "baslik": "Iveco Daily Yakıt Kapağı",
+    "aciklama": "Daily yakıt dolum ağzını örten kapağıdır; eksilen ya da kırılan parçanın yerine geçer.\nYaklaşık dış ölçüler: 101 × 99 × 34 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7374729-1.jpg"
+    ]
+  },
+  {
     "id": "isuzu-trooper-1nesil-kulluk-yeri-bardaklik",
     "kategori": "Otomobil",
     "marka": [
