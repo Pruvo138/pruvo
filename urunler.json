@@ -774073,8 +774073,10 @@
         "marka": "Opel"
       },
       {
-        "marka": "Rover",
-        "model": "MG"
+        "marka": "Rover"
+      },
+      {
+        "marka": "MG"
       }
     ],
     "tavsiyeFilament": [

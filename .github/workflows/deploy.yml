@@ -900,6 +900,11 @@ jobs:
       - name: "K302 marka kabul bataryasi"
         run: python3 tools/k302-marka-kabul-kapisi.py
 
+      # MG MARKA KABUL BATARYASI (15. tur, 22 Eki) — K302 kardesi: A1-A4 + KONTROL +
+      # M1/M2/KONTROL-MUTANT; her mutant AYNI eksenleri kosar, kirmizi kume beyana ESIT.
+      - name: "MG marka kabul bataryasi"
+        run: python3 tools/mg-marka-kabul-kapisi.py
+
       # YAZIM YOLU KOLU — yukaridaki IKI kapi (altkategori + uyum) KATALOG GENELINI
       # olcer ve YAYINDAN SONRA konusur; bu adim onlarin COMMIT ANINDAKI kardesini
       # (tools/katalog-alan-kapisi.py + pre-commit adim 5) olcer.
