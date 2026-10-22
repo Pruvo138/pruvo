@@ -216,7 +216,8 @@ def js_parite(uzun_pidler):
         + 'const olay = satinAlmaOlayi({ siparis_no: "TEST-1", tutar_kurus: 1000 * pidler.length, '
           'kargo_kurus: 0, urunler: JSON.stringify(satirlar) });\n'
         + 'const meta = metaGovdesi({}, olay, {}, null).data[0].custom_data;\n'
-        + 'const ga4 = ga4Govdesi({}, olay, {}).events[0].params;\n'
+        # _ga'siz atifta govde KURULMAZ (riza-yok, 22 Eki) -> rizali sahte _ga verilir.
+        + 'const ga4 = ga4Govdesi({}, olay, { ga_client_id: "1.1" }).events[0].params;\n'
         + 'cikti.meta_content_ids = meta.content_ids;\n'
         + 'cikti.meta_contents_id = meta.contents.map((c) => c.id);\n'
         + 'cikti.ga4_item_ids = ga4.items.map((i) => i.item_id);\n'
