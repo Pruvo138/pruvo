@@ -2150,9 +2150,20 @@ def koruma_dusen_bloklar(satirlar, baslar, simdi, adaylar):
 #   `KORUMALI_TARIH_YOK` sayacina yazilir (fail-closed). `0` = eski davranis BIREBIR.
 #   Bekleyen kapanis jetonu + acik cip eksenleri DEGISMEZ (yalniz etiket ekseni).
 KORUMALI_YAS_SAAT = 48
-# `_tr_normalize` SONRASI bicim; sol sinir kelime ici eslesmeyi keser, ek serbest.
-KALICI_SINIF_DESENI = re.compile(r"(?<!\w)(?:OKAN\s+EMRI|OKAN\s+KARARI|ILKE|DOKTRIN)",
-                                 re.UNICODE)
+# 🔴 KALICI SINIF = BASLIGIN KONUSU, atfi DEGIL (BaBa 22 Eki 10:1x olcumu)
+# OLCULEN VAKA: KORUMALI 84 basligin 65'i bu satir eski (sabitsiz) desenle KALICI
+#   sayiliyordu; yalniz ~25'i GERCEKTEN konu blogu (`## <tarih> <saat> — 🔴 OKAN
+#   EMRİ …`), ~40'i ATIF (`⚖️ BaBa → **KraL** (KORUMALI — Okan emri 20 Eki)`) — jeton
+#   atfin/govdenin icinde, basligin konusu degil. Kutu 492/500'de rotasyonu
+#   KORUMA_TUTTU: kirli etiketler yasla dusmuyor, gercek konular da tasinamiyor.
+# DEGISIM: desen BASLIK OZNEKINE sabitlendi. `## <tarih> <saat> —` sonrasi yalniz
+#   ikon/emoji/bosluk/`*` (kalin isareti) gelip HEMEN ardindan jeton gelmeli.
+#   Parantez ici, `→` sonrasi, govde atfi KALICI DEGILDIR — yasa gore duser.
+# Tarih/saat grameri `SAAT_BASLIK_RE`den TEK kaynakla gelir (ikinci yazim KOPYASI
+#   ACILMAZ). `_tr_normalize` SONRASI bicimde calisir; satir sonu JETON YOK.
+KALICI_SINIF_DESENI = re.compile(
+    SAAT_BASLIK_RE.pattern + r"\s*[—\-]?\s*[\W_]*(?:OKAN\s+EMRI|OKAN\s+KARARI|ILKE|DOKTRIN)\b",
+    re.UNICODE)
 
 
 def kalici_sinif_mi(baslik):
