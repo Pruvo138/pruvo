@@ -61,6 +61,13 @@ DAMGA_SONEKI = ".bildirildi"
 DAMGA_YAS_ESIGI_SN = 14 * 86400
 BILDIRIM_LOG = os.path.join(CRON_KOKU, "bekci-bildirim.log")
 
+# --- tamirci isci kostu kaniti (22 Eki kolu) ---------------------------------
+# Paylasilan isci logu (KraL + diger evler, etiket ayrimi `ev=` alanindadir)
+# ve mimar posta kutusu (kutuya YAZMAZ, yalniz OKUNUR).
+ISCI_LOG = os.path.join(CRON_KOKU, "isci.log")
+KUTU_DOSYASI = os.path.expanduser(
+    "~/.claude/projects/-Users-okan-dev-pruvo/memory/mimar-posta-kutusu.md")
+
 OSASCRIPT = "/usr/bin/osascript"
 TERMINAL_NOTIFIER_ADAYLARI = (
     "/opt/homebrew/bin/terminal-notifier",
@@ -432,12 +439,119 @@ def kapandi_damgasi_olc(yol):
     return False
 
 
+# ============================================================================
+# TAMIRCI ISCI KOSTU KOLU — 22 Eki (olculmus sahte KIRMIZI, 7. gun)
+# ----------------------------------------------------------------------------
+# Tamirci kalemi artik CIP DOGUMUYLE degil ISCI HATTIYLA kapaniyor:
+# `isci.sh minimax-m3 … tamir` kosar + kutuya `TAMİRCİ <gün> <Ay> YARGI`
+# satiri dusulur. Bekci yalniz cip dogumunu tanidigi icin
+# `KANIT_VAR_CIP_DOGMADI` KIRMIZI yakiyordu (21 Eki emsali: isci.log
+# 13:15:01Z BASLANGIC + kutu 17:3x "TAMİRCİ 21 Eki YARGI", bekci 19:53Z
+# hâlâ KIRMIZI).
+# YENI YESIL KOL `KANIT_VAR_TAMIRCI_ISCI_KOSTU`: iki olcum BIRDEN gerekir —
+#   (a) isci.log'da O GUNUN (yerel) `BASLANGIC` satiri, `ev=pruvo` +
+#       `etiket=tamir` TAM ALAN (kisa etiket + tireli uzantilar SAYILMAZ) ve
+#       UTC damga YEREL GUNE cevrilmis olmali;
+#   (b) kutuda `TAMİRCİ <gün> <Ay> YARGI` gecen bir `## ` BASLIK satiri
+#       olmali (govdedeki madde `## ` olmadigi icin YARGI SAYILMAZ).
+# Biri yoksa ya da okunamazsa ESKI KIRMIZI AYNEN doner (fail-closed: bir
+# eksik kanit YESIL'e DUSMEZ).
+# Yollar `karar()` parametresidir; canli kutu/isci.log'a YAZILMAZ.
+# ============================================================================
+_TAMIRCI_BASLANGIC_DESENI = re.compile(
+    r"^=== (?P<utc>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z) BASLANGIC(?:\s|$)")
+_TAMIRCI_ALAN_DESENI = re.compile(r"(?:^|\s)(?P<ad>[a-z_]+)=(?P<deger>\S*)")
+# Ay kisaltmasi `TESLIM_AYLARI` (12 ay, asagida tanimli) karsilastirilir:
+# desen yalniz YARGI'nin YAPISINI yakalar, ay ADINI kod DEGERLENDIRMEZ.
+# `TAM[İI]RC[İI]`: kutuda hem noktali hem ASCII I yazimi donusur.
+_TAMIRCI_YARGI_DESENI = re.compile(
+    r"TAM[İI]RC[İI]\s+(\d{1,2})\s+(\S+)\s+YARGI")
+
+
+def _yerel_tarih(utc_metin, cozucu):
+    """'YYYY-MM-DDThh:mm:ssZ' UTC damgasini YEREL tarihe cevirir.
+
+    Basarisizsa None (cagiran: bu satiri kanit SAYMAZ -> fail-closed).
+    """
+    try:
+        an = dt.datetime.strptime(utc_metin, "%Y-%m-%dT%H:%M:%SZ").replace(
+            tzinfo=dt.timezone.utc)
+        return cozucu(an.timestamp()).date()
+    except (ValueError, TypeError, OSError, OverflowError, AttributeError):
+        return None
+
+
+def tamirci_isci_kosti_olc(tarih, isci_log_yolu=None, kutu_yolu=None,
+                           yerel_cozucu=None):
+    """Tamirci kalemi isci hattiyla kapandi mi? Iki BAGIMSIZ olcum.
+
+    Doner: {"isci": bool|None, "yargi": bool|None}
+      · `True`  -> o gune ait kanit VAR.
+      · `False` -> kanit YOK (okundu, bulunamadi).
+      · `None`  -> dosya OKUNAMADI. "Olcemedim" YESIL DEGILDIR (fail-closed).
+    """
+    cozucu = yerel_cozucu or (lambda e: dt.datetime.fromtimestamp(e))
+    isci = _tamirci_isci_satiri(tarih, isci_log_yolu or ISCI_LOG, cozucu)
+    yargi = _tamirci_yargi_basligi(tarih, kutu_yolu or KUTU_DOSYASI)
+    return {"isci": isci, "yargi": yargi}
+
+
+def _tamirci_isci_satiri(tarih, yol, cozucu):
+    """isci.log'da O GUNUN `BASLANGIC … ev=pruvo etiket=tamir` satiri.
+
+    Damga UTC'dir: `13:15:01Z` yerel 16:15 -> ayni gun. Gun donusumu
+    `yerel_cozucu` ile yapilir, boylece test fiksturu verebilir.
+    """
+    try:
+        with open(yol, encoding="utf-8", errors="replace") as dosya:
+            for satir in dosya:
+                esles = _TAMIRCI_BASLANGIC_DESENI.match(satir)
+                if not esles:
+                    continue
+                alanlar = dict(_TAMIRCI_ALAN_DESENI.findall(satir))
+                if alanlar.get("ev") != "pruvo":
+                    continue
+                if alanlar.get("etiket") != "tamir":
+                    continue
+                if _yerel_tarih(esles.group("utc"), cozucu) != tarih:
+                    continue
+                return True
+    except (OSError, UnicodeDecodeError):
+        return None
+    return False
+
+
+def _tamirci_yargi_basligi(tarih, yol):
+    """Kutuda `TAMİRCİ <gün> <Ay> YARGI` gecen bir `## ` BASLIK satiri.
+
+    Yalniz basliklar sayilir: `## ` ile baslamayan satir (govde maddesi,
+    yanit blogu) YARGI DEGILDIR.
+    """
+    ay = TESLIM_AYLARI[tarih.month - 1]
+    try:
+        with open(yol, encoding="utf-8") as dosya:
+            for satir in dosya:
+                if not satir.startswith("## "):
+                    continue
+                esles = _TAMIRCI_YARGI_DESENI.search(satir)
+                if not esles:
+                    continue
+                if int(esles.group(1)) == tarih.day and esles.group(2) == ay:
+                    return True
+    except (OSError, UnicodeDecodeError):
+        return None
+    return False
+
+
 def karar(simdi=None, dizin=None, esik_saat=None, yerel_cozucu=None,
           teslim_kollari=None, teslim_kalp_yolu=None, teslim_bayatlik_saat=None,
-          log_yolu=None, anahtar_oneki=""):
+          log_yolu=None, anahtar_oneki="", tamir_log_yolu=None,
+          kutu_yolu=None):
     """SAF karar — dosya YAZMAZ, bildirim GONDERMEZ. Yalniz OKUR.
 
     Doner: {hukum, sebep, saat, tarih, kanit_yolu, boyut, esik, teslim, dogum}
+    `tamir_log_yolu`/`kutu_yolu`: tamirci isci kostu kolunun kaynaklari
+    (varsayilan = canli `isci.log` + posta kutusu); test fikstur verir.
     """
     simdi = simdi if simdi is not None else time.time()
     dizin = dizin or KANIT_DIZINI
@@ -520,6 +634,14 @@ def karar(simdi=None, dizin=None, esik_saat=None, yerel_cozucu=None,
         # `None` (okunamadi) YESIL'e DUSMEZ: asagidaki KIRMIZI'ya gider.
         if kapandi_damgasi_olc(yol) is True:
             return _don("YESIL", "KANIT_VAR_KAPANDI_DAMGASI", teslim, dogum)
+        # TAMIRCI ISCI HATTIYLA KAPANDI (22 Eki kolu): kalem artik cip
+        # dogumunu degil isci kosusunu + kutudaki YARGI satirini bekliyor.
+        # IKISI BIRDEN gerekir; biri yoksa/okunamazsa asagidaki KIRMIZI
+        # AYNIEN doner (fail-closed — yarim kanit YESIL'e DUSMEZ).
+        tamirci = tamirci_isci_kosti_olc(tarih, tamir_log_yolu, kutu_yolu,
+                                         yerel_cozucu)
+        if tamirci["isci"] is True and tamirci["yargi"] is True:
+            return _don("YESIL", "KANIT_VAR_TAMIRCI_ISCI_KOSTU", teslim, dogum)
         # Spec URETILDI ama cip KOSULMADI — K331'in gorunmez kildigi TAM HAL.
         return _don("KIRMIZI", "KANIT_VAR_CIP_DOGMADI", teslim, dogum)
 

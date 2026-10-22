@@ -20,14 +20,23 @@ VAKALAR (hepsi `karar()` uzerinden, uctan uca):
   D6  ev bicimi `09:4x` iki alanda         -> YESIL  KANIT_VAR_KAPANDI_DAMGASI (BaBa 16 Eki 15:2x)
   D7  tek haneli saat `9:4x`               -> KIRMIZI
   D8  eksik dakika `09:4`                  -> KIRMIZI
+  T1  isci `etiket=tamir` + kutu YARGI     -> YESIL  KANIT_VAR_TAMIRCI_ISCI_KOSTU
+  T2  yalniz isci satiri (kutu YARGI'siz)  -> KIRMIZI KANIT_VAR_CIP_DOGMADI
+  T3  yalniz kutu YARGI (isci etiketi baska)-> KIRMIZI
+  T4  DUNKU isci satiri + bugunku YARGI    -> KIRMIZI (UTC->yerel gun kurali)
+  T5  `etiket=tamir-x` + kutu YARGI        -> KIRMIZI (tam token kurali)
+  T6  isci.log OKUNAMAZ + kutu YARGI       -> KIRMIZI (fail-closed)
 MUTANTLAR (izole kopyada; canli kaynak sha'si once/sonra ESIT olmali):
   M1  damga kolu silinir                   -> D1 KIRMIZI (yakalanmali)
   M2  baslik siniri (5 satir) kaldirilir   -> D3a YESIL (yakalanmali)
   M3  `is True` -> `is not False`          -> D5 YESIL (fail-closed kolu)
   M4  `x` kabulu kapatilir (`\d{2}`)       -> D6 KIRMIZI (ev bicimi kolu)
+  M5  tamirci kolunun (b) sartı silinir    -> T2 YESIL (yakalanmali)
+  M6  tamirci kolunun (a) sartı silinir    -> T3 YESIL (yakalanmali)
 
-TAMAMI FIKSTURDEDIR: canli `tamirci-spec/`, bekci logu, damga dizini HIC
-okunmaz/yazilmaz; tum yollar `karar()` parametresiyle gecici dizine baglanir.
+TAMAMI FIKSTURDEDIR: canli `tamirci-spec/`, bekci logu, damga dizini,
+`isci.log` ve posta kutusu HIC okunmaz/yazilmaz; tum yollar `karar()`
+parametresiyle gecici dizine baglanir.
 Gecici dizin is bitince SILINIR (Okan disk kurali).
 
 KOSUM: python3 tools/sabah-teslim/bekci-damga-test.py   (rc=0 => YESIL)
@@ -61,6 +70,9 @@ M4_CAPA = ('    r"^KAPANDI: CANLI=0 \\d{2}:\\d[0-9x] '
 M4_YAMA = ('    r"^KAPANDI: CANLI=0 \\d{2}:\\d{2} '
            '\\(BaBa hükmü \\d{2}:\\d{2}\\)$")  # MUTANT M4\n')
 DAMGA_EV = "KAPANDI: CANLI=0 09:4x (BaBa hükmü 09:4x)"
+M5_CAPA = '        if tamirci["isci"] is True and tamirci["yargi"] is True:\n'
+M5_YAMA = '        if tamirci["isci"] is True:  # MUTANT M5: (b) sartı SILINDI\n'
+M6_YAMA = '        if tamirci["yargi"] is True:  # MUTANT M6: (a) sartı SILINDI\n'
 
 
 def _sha(yol):
@@ -87,7 +99,9 @@ def _spec_metni(vaka):
     govde = ["- satir %d" % i for i in range(20)]
     if vaka in ("D1", "D5", "K1"):
         satirlar = [DAMGA] + bas + govde
-    elif vaka == "D2":
+    elif vaka == "D2" or vaka.startswith("T"):
+        # T* vakalari da damgasiz spec kullanir: hedef tamirci ISCI KOSTU
+        # koludur (damgali spec onlari zaten YESIL'e cikarirdi).
         satirlar = bas + govde
     elif vaka == "D3a":
         satirlar = bas[:5] + [DAMGA] + bas[5:] + govde       # 6. satir
@@ -104,6 +118,67 @@ def _spec_metni(vaka):
     else:
         raise ValueError(vaka)
     return "\n".join(satirlar) + "\n"
+
+
+def _utc_iso(epoch):
+    """Epoch -> isci.log bicimi UTC damgasi (`...Z`)."""
+    return dt.datetime.fromtimestamp(epoch, dt.timezone.utc).strftime(
+        "%Y-%m-%dT%H:%M:%SZ")
+
+
+def _isci_satiri(utc, ev="pruvo", etiket="tamir"):
+    """Gercek `isci.sh` BASLANGIC biciminin bir satir kopyasi."""
+    return ("=== %s BASLANGIC motor=minimax-m3 ev=%s etiket=%s butce=YOK "
+            "model=MiniMax-M3[1m] pid=91129 ===" % (utc, ev, etiket))
+
+
+def _yargi_basligi(yerel, ay):
+    """Kutudaki `## … TAMİRCİ <gün> <Ay> YARGI` basligi."""
+    return ("## %s 17:3x — ⚖️ KraL halef-49 → **BaBa** — "
+            "**TAMİRCİ %d %s YARGI: tamir edilecek kalem 0, KABUL.** Fikstür.\n"
+            % (yerel.isoformat(), yerel.day, ay))
+
+
+def _tamirci_fikstur(vd, vaka, simdi, ay):
+    """isci.log + kutu fiksturu; (yol, yol) doner.
+
+    `ay` TEK KAYNAK'tan (`mod.TESLIM_AYLARI`) gelir, test ikinci bir ay
+    listesi TAZMAMAZ. T6'da isci.log yerine DIZIN olusturulur: `open()`
+    orada `OSError` verir (dosya YOK degil, okunamaz) — fail-closed kolu olcer.
+    """
+    yerel = dt.datetime.fromtimestamp(simdi)
+    bugun = _utc_iso(simdi)
+    dun = _utc_iso(simdi - 86400)
+
+    isci_satirlari = [_isci_satiri(bugun, etiket="kabul")]   # temiz taban
+    kutu_satirlari = ["## %s 06:20 — ✅ KraL halef-48 — açılış tamam.\n"
+                      % (yerel - dt.timedelta(days=1)).date().isoformat()]
+    if vaka == "T1":
+        isci_satirlari = [_isci_satiri(bugun)]
+        kutu_satirlari = [_yargi_basligi(yerel, ay)]
+    elif vaka == "T2":
+        isci_satirlari = [_isci_satiri(bugun)]
+    elif vaka == "T3":
+        kutu_satirlari = [_yargi_basligi(yerel, ay)]
+    elif vaka == "T4":
+        isci_satirlari = [_isci_satiri(dun)]
+        kutu_satirlari = [_yargi_basligi(yerel, ay)]
+    elif vaka == "T5":
+        isci_satirlari = [_isci_satiri(bugun, etiket="tamir-x")]
+        kutu_satirlari = [_yargi_basligi(yerel, ay)]
+    elif vaka == "T6":
+        kutu_satirlari = [_yargi_basligi(yerel, ay)]
+
+    isci_yol = os.path.join(vd, "isci.log")
+    if vaka == "T6":
+        os.makedirs(isci_yol)               # okunamaz (dizin) — yazma yok
+    else:
+        with open(isci_yol, "w", encoding="utf-8") as f:
+            f.write("\n".join(isci_satirlari) + "\n")
+    kutu_yol = os.path.join(vd, "mimar-posta-kutusu.md")
+    with open(kutu_yol, "w", encoding="utf-8") as f:
+        f.write("# FIKSTUR kutusu\n\n" + "".join(kutu_satirlari))
+    return isci_yol, kutu_yol
 
 
 def _vaka_kos(mod, td, vaka):
@@ -132,6 +207,8 @@ def _vaka_kos(mod, td, vaka):
             f.write("2026-10-16T09:01:00Z anahtar=%s kanal=cip rc=0 "
                     "teslim=BASARILI task_id=task_abcdef12\n"
                     % tarih.isoformat().replace("-", ""))
+    isci_yol, kutu_yol = _tamirci_fikstur(
+        vd, vaka, simdi, mod.TESLIM_AYLARI[tarih.month - 1])
 
     eski_open = getattr(mod, "open", None)
     if vaka == "D5":
@@ -144,7 +221,8 @@ def _vaka_kos(mod, td, vaka):
     try:
         k = mod.karar(simdi=simdi, dizin=kanit, esik_saat=0,
                       teslim_kollari=kollar, teslim_kalp_yolu=kalp,
-                      log_yolu=log_yolu)
+                      log_yolu=log_yolu, tamir_log_yolu=isci_yol,
+                      kutu_yolu=kutu_yol)
     finally:
         if vaka == "D5":
             if eski_open is None:
@@ -165,6 +243,12 @@ BEKLENEN = {
     "D6": ("YESIL", "KANIT_VAR_KAPANDI_DAMGASI"),
     "D7": ("KIRMIZI", "KANIT_VAR_CIP_DOGMADI"),
     "D8": ("KIRMIZI", "KANIT_VAR_CIP_DOGMADI"),
+    "T1": ("YESIL", "KANIT_VAR_TAMIRCI_ISCI_KOSTU"),
+    "T2": ("KIRMIZI", "KANIT_VAR_CIP_DOGMADI"),
+    "T3": ("KIRMIZI", "KANIT_VAR_CIP_DOGMADI"),
+    "T4": ("KIRMIZI", "KANIT_VAR_CIP_DOGMADI"),
+    "T5": ("KIRMIZI", "KANIT_VAR_CIP_DOGMADI"),
+    "T6": ("KIRMIZI", "KANIT_VAR_CIP_DOGMADI"),
 }
 # Mutant -> (hedef vaka, mutantta BEKLENEN yanlis hukum)
 MUTANTLAR = (
@@ -172,6 +256,8 @@ MUTANTLAR = (
     ("M2", M2_CAPA, M2_YAMA, "D3a", "YESIL"),
     ("M3", M3_CAPA, M3_YAMA, "D5", "YESIL"),
     ("M4", M4_CAPA, M4_YAMA, "D6", "KIRMIZI"),
+    ("M5", M5_CAPA, M5_YAMA, "T2", "YESIL"),
+    ("M6", M5_CAPA, M6_YAMA, "T3", "YESIL"),
 )
 
 
