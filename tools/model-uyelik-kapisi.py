@@ -850,6 +850,7 @@ def olc(kok, modul_yolu=None):
         kapali_n = set(_arama.model_normalize(m) for m in kapali)
         olmayan_n = set(_arama.model_normalize(m) for m in model_olmayan)
         cok_kelimeli = sorted(m for m in kapali if len(m.split()) > 1)
+        marka_adli = set(_arama.MARKA_ADLI_MODEL_IZINLI)   # (marka, model) TAM yazim istisnasi
         red_imza = (_arama.model_olmayan_imzasi(), _arama.MODEL_OLMAYAN_IMZA,
                     len(model_olmayan), _arama.MODEL_OLMAYAN_SAYISI)
     except Exception as e:                                          # noqa: BLE001
@@ -859,6 +860,8 @@ def olc(kok, modul_yolu=None):
     marka_kovasi = []
     for (marka, display), (_ids, canon) in sayfa.items():
         n = _arama.model_normalize(display)
+        if (marka, display) in marka_adli:
+            continue
         if n in kapali_n or n in olmayan_n:
             marka_kovasi.append((marka, display,
                                  model_olmayan.get(display, "KAPALI MARKA KÜMESİ üyesi")))

@@ -288,7 +288,7 @@ def model_uyeligi(marka, ham_liste, mevren):
 def _jeton_uyeligi(marka, t, mevren):
     """TEK jetonun (anahtar, onek siyrilmis yazim, katlanan taban kumesi) uclusu.
     Elenen jetonda anahtar BOS doner. Saf fonksiyon — model_uyeligi bunu bellekler."""
-    if _mmb.marka_jetonu_mu(t, mevren):
+    if _mmb.marka_jetonu_mu(t, mevren, marka):
         return ("", "", ())
     kalan = _model_kanon.onek_siyir(marka, t, mevren)
     if not kalan:
@@ -426,7 +426,7 @@ def indeks_uret(urunler, index_metni, uyelik=None):
             md = (oge.get("model") or "").strip()
             if not md or mk not in markalar:
                 continue
-            if _mmb.marka_jetonu_mu(md, mevren):
+            if _mmb.marka_jetonu_mu(md, mevren, mk):
                 continue
             kanon = mevren.model_anahtari(mk, md)
             if kanon and kanon != _model_kanon.kanon(mk):
