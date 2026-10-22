@@ -1,5 +1,308 @@
 [
   {
+    "id": "isuzu-trooper-1nesil-kulluk-yeri-bardaklik",
+    "kategori": "Otomobil",
+    "marka": [
+      "Isuzu"
+    ],
+    "uyum": [
+      {
+        "marka": "Isuzu"
+      }
+    ],
+    "baslik": "Isuzu Trooper Yanma Dolabı Yeri Bardaklık (1. Nesil)",
+    "aciklama": "Birinci nesil Isuzu Trooper'da küllüğün sökülüp yerine aynı vidalarla tutulan bardaklıktır; küllük yuvasını bardak tutucuya dönüştürür.\nYaklaşık dış ölçüler: 116 × 102 × 70 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6728846-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6728846-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6728846-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "motomule"
+    }
+  },
+  {
+    "id": "isuzu-trooper-1nesil-kaput-payandasi-klipi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Isuzu"
+    ],
+    "uyum": [
+      {
+        "marka": "Isuzu"
+      }
+    ],
+    "baslik": "Isuzu Trooper Kaput Payandası Klipsi (1. Nesil)",
+    "aciklama": "Birinci nesil Isuzu Trooper kaput payandasının oturduğu kırılmış klipsin yeniden tasarlanmış hâlidir; ölçüleri üretici parçasıyla birebir aynı olmayabilir.\nYaklaşık dış ölçüler: 38 × 37 × 15 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5702974-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5702974-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5702974-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5702974-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "cablesquirrel"
+    }
+  },
+  {
+    "id": "isuzu-sigorta-kutusu-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Isuzu"
+    ],
+    "uyum": [
+      {
+        "marka": "Isuzu"
+      }
+    ],
+    "baslik": "Isuzu Sigorta Kutusu Kapağı",
+    "aciklama": "Motor bölmesindeki sigorta kutusunun eksik veya kırık kapağının yerine geçen muhafaza kapağıdır; kutu ve sigortalar pakete dahil değildir.\nYaklaşık dış ölçüler: 260 × 100 × 64 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5113994-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "mrWolf1"
+    }
+  },
+  {
+    "id": "isuzu-trooper-mk1-torpido-aski-cubugu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Isuzu"
+    ],
+    "uyum": [
+      {
+        "marka": "Isuzu"
+      }
+    ],
+    "baslik": "Isuzu Trooper Mk1 Torpido Kapağı Askı Çubuğu",
+    "aciklama": "Birinci nesil Isuzu Trooper'da torpido kapağının açık kalmasını sağlayan askı çubuğunun yedeğidir; kırılan orijinali yerine geçer.\nYaklaşık dış ölçüler: 115 × 24 × 16 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4720807-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4720807-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4720807-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4720807-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "88Square"
+    }
+  },
+  {
+    "id": "isuzu-trooper-anahtar-kumanda-kabugu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Isuzu"
+    ],
+    "uyum": [
+      {
+        "marka": "Isuzu"
+      }
+    ],
+    "baslik": "Isuzu Trooper Anahtar Kumanda Kabuğu",
+    "aciklama": "Isuzu Trooper uzaktan kumanda kabuğunda aynı yerinden kırılan parçanın sağlamlaştırılarak yeniden tasarlanmış hâlidir. Elektronik ünite, anahtar frekansı ve pil pakete dahil değildir.\nYaklaşık dış ölçüler: 71 × 33 × 8 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th287241-1.jpg",
+      "https://media.pruvo3d.com/urunler/th287241-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "double0briscoe"
+    }
+  },
+  {
+    "id": "isuzu-bakkie-branda-tutucu-braket",
+    "kategori": "Otomobil",
+    "marka": [
+      "Isuzu"
+    ],
+    "uyum": [
+      {
+        "marka": "Isuzu"
+      }
+    ],
+    "baslik": "Isuzu Bakkie Branda Tutucu Braket",
+    "aciklama": "Isuzu bakkie/kamyonet kasası üzerindeki branda ya da kanvas örtüyü yerinde tutan küçük braket parçasıdır; eskiyen ya da kopan orijinalin yerine takılır.\nYaklaşık dış ölçüler: 57 × 30 × 5 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6726087-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "neelssnr"
+    }
+  },
+  {
+    "id": "isuzu-d-max-4x4-dugme-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Isuzu"
+    ],
+    "uyum": [
+      {
+        "marka": "Isuzu"
+      }
+    ],
+    "baslik": "Isuzu D-Max 4x4 Düğme Kapağı",
+    "aciklama": "D-Max konsolundaki 4x4 sürüş modu düğmesinin üzerine oturan küçük kapaktır; orijinal düğmeyi toz ve çizikten korur.\nYaklaşık dış ölçüler: 72 × 72 × 42 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4896714-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Daniedewaal"
+    }
+  },
+  {
+    "id": "isuzu-trooper-bighorn-kaput-cubugu-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Isuzu"
+    ],
+    "uyum": [
+      {
+        "marka": "Isuzu"
+      }
+    ],
+    "baslik": "Isuzu Trooper Bighorn Kaput Çubuğu Tutucu (87-91)",
+    "aciklama": "Isuzu Trooper ve Bighorn 87-91 modellerinde kaput çubuklarının oturduğu klips yuvasıdır; zayıf görülen noktalara takviye kabartmaları eklenmiştir.\nYaklaşık dış ölçüler: 38 × 38 × 15 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3713702-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3713702-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3713702-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3713702-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "logog"
+    }
+  },
+  {
+    "id": "isuzu-trooper-1nesil-bardaklik-adaptor-plakasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Isuzu"
+    ],
+    "uyum": [
+      {
+        "marka": "Isuzu"
+      }
+    ],
+    "baslik": "Isuzu Trooper Bardaklık Adaptör Plakası (1. Nesil)",
+    "aciklama": "Birinci nesil Isuzu Trooper'da küllük yuvasını bardak tutucuya dönüştüren adaptör plakasıdır; standart bardak tutucu bu plaka üzerine vidalar ve bardak tutucu pakete dahil değildir.\nYaklaşık dış ölçüler: 87 × 52 × 29 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6425873-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "ArizonaZ"
+    }
+  },
+  {
+    "id": "isuzu-d-max-oryjinal-radyo-dugmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Isuzu"
+    ],
+    "uyum": [
+      {
+        "marka": "Isuzu"
+      }
+    ],
+    "baslik": "Isuzu D-Max Orijinal Radyo Düğmesi",
+    "aciklama": "Isuzu D-Max'in orijinal radyo başlığında kayıp veya kırılan düğmenin yerine geçen yenileme düğmesidir.\nYaklaşık dış ölçüler: 27 × 27 × 12 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2662959-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2662959-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "jayser"
+    }
+  },
+  {
+    "id": "isuzu-hombre-debriyaj-pedali-eksen-burcu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Isuzu"
+    ],
+    "uyum": [
+      {
+        "marka": "Isuzu"
+      }
+    ],
+    "baslik": "Isuzu Hombre Debriyaj Pedalı Eksen Burcu",
+    "aciklama": "Isuzu Hombre debriyaj pedalının ekseninde aşınmış burcun yerine geçen yedek parçadır; kaynağında kalıcı onarım yerine geçici bir çözüm olarak önerilmiştir.\nYaklaşık dış ölçüler: 46 × 18 × 9 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7152641-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7152641-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "wrenching"
+    }
+  },
+  {
+    "id": "isuzu-d-max-konsol-alt-orta-parca",
+    "kategori": "Otomobil",
+    "marka": [
+      "Isuzu"
+    ],
+    "uyum": [
+      {
+        "marka": "Isuzu"
+      }
+    ],
+    "baslik": "Isuzu D-Max Konsol Alt Orta Parça",
+    "aciklama": "D-Max ön konsolun alt orta bölümündeki orijinal panelin yerine geçen, ön yüzü boş bırakılmış orta parçadır; farklı düğme ve bağlantılara göre yeniden düzenlenebilir.\nYaklaşık dış ölçüler: 122 × 91 × 52 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4849956-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4849956-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4849956-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4849956-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "3DPrintsBy_Chris"
+    }
+  },
+  {
+    "id": "isuzu-pickup-kapi-kolu-ayar-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Isuzu"
+    ],
+    "uyum": [
+      {
+        "marka": "Isuzu"
+      }
+    ],
+    "baslik": "Isuzu Pickup Kapi Kolu Ayar Parçası",
+    "aciklama": "Isuzu pickup kapısındaki kol tutamak parçasıdır; aracın ölçülerine göre ayarlanabilir şekilde tasarlanmıştır.\nYaklaşık dış ölçüler: 151 × 50 × 40 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3326879-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Diegosorace"
+    }
+  },
+  {
     "id": "isuzu-d-max-colorado-koltuk-kolu-kulp",
     "kategori": "Otomobil",
     "marka": [
