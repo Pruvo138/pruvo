@@ -1,5 +1,627 @@
 [
   {
+    "id": "iveco-daily-turbo-3510-merkezi-kilit-kapi-dugmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Iveco",
+      "Daily Turbo 3510"
+    ],
+    "uyum": [
+      {
+        "marka": "Iveco",
+        "model": "Daily Turbo 3510"
+      }
+    ],
+    "baslik": "Iveco Daily Turbo 3510 Merkezi Kilit Kapı Düğmesi",
+    "aciklama": "Iveco Daily Turbo 3510 panelvanında kırılan merkezi kilit düğmesinin yerine geçen yedek parçadır; düğme kapıdaki yuvasına çıktığı gibi oturur ve merkezi kilit mekanizmasıyla birlikte çalışır.\nYaklaşık dış ölçüler: 53 × 27 × 16 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th267673-1.jpg",
+      "https://media.pruvo3d.com/urunler/th267673-2.jpg",
+      "https://media.pruvo3d.com/urunler/th267673-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Jolly_Oli"
+    }
+  },
+  {
+    "id": "iveco-gkw1-gergi-kolu-raf-klipi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Iveco",
+      "GKW1"
+    ],
+    "uyum": [
+      {
+        "marka": "Iveco",
+        "model": "GKW1"
+      }
+    ],
+    "baslik": "Iveco GKW1 Gergi Kolu Raf Klipsi",
+    "aciklama": "2001 model Iveco GKW1'de donanım rafında taşınan gergi kollarının düzgün sabitlenmesi için geliştirilmiş klipslerdir; klipsi raya geçirip doksan derece döndürmek yeterlidir.\nYaklaşık dış ölçüler: 42 × 25 × 25 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2900524-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2900524-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2900524-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Jafix"
+    }
+  },
+  {
+    "id": "iveco-daily-koltuk-yukseklik-ayar-kolu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Iveco",
+      "Daily"
+    ],
+    "uyum": [
+      {
+        "marka": "Iveco",
+        "model": "Daily"
+      }
+    ],
+    "baslik": "Iveco Daily Koltuk Yükseklik Ayar Kolu",
+    "aciklama": "Iveco Daily koltuklarında kırılan yükseklik ayar kolunun yerine geçen yedek parçadır; orijinalinden bir ölçü küçük olsa da ayar işlevini sürdürür.\nYaklaşık dış ölçüler: 150 × 60 × 17 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3578709-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3578709-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3578709-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "tomaskutta"
+    }
+  },
+  {
+    "id": "iveco-daily-kapi-kilit-butonu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Iveco",
+      "Daily"
+    ],
+    "uyum": [
+      {
+        "marka": "Iveco",
+        "model": "Daily"
+      }
+    ],
+    "baslik": "Iveco Daily Kapı Kilit Butonu",
+    "aciklama": "Iveco Daily kapı döşemesindeki kilit butonunun yedeğidir; sökülen orijinali açtığı yuvaya oturur ve kapı kilitleme işlevini sürdürür.\nYaklaşık dış ölçüler: 56 × 27 × 16 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4091995-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4091995-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "ustam68"
+    }
+  },
+  {
+    "id": "iveco-daily-2-clarion-medya-konsolu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Iveco",
+      "Daily 2"
+    ],
+    "uyum": [
+      {
+        "marka": "Iveco",
+        "model": "Daily 2"
+      }
+    ],
+    "baslik": "Iveco Daily 2 Clarion Medya Konsolu",
+    "aciklama": "1998 model Iveco Daily 2'de Clarion marka radyo, DVD ve GPS ünitesinin yerleştirilmesi için tasarlanmış konsol kutusudur; araçta sökülen orijinal konsolun yerine geçecek biçimde hazırlanmıştır. Konsola takılacak radyo, DVD ve navigasyon cihazı ürüne dahil değildir.\nYaklaşık dış ölçüler: 280 × 214 × 110 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4551992-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "xelos"
+    }
+  },
+  {
+    "id": "iveco-daily-2-clarion-konsol-taban-plakasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Iveco",
+      "Daily 2"
+    ],
+    "uyum": [
+      {
+        "marka": "Iveco",
+        "model": "Daily 2"
+      }
+    ],
+    "baslik": "Iveco Daily 2 Clarion Konsol Taban Plakası",
+    "aciklama": "Iveco Daily 2'deki Clarion medya konsolunun alt kısmını tamamlayan taban plakasıdır; konsol kutusuyla birlikte kullanılır.\nYaklaşık dış ölçüler: 210 × 203 × 6 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4552035-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "xelos"
+    }
+  },
+  {
+    "id": "iveco-guneslik-yedek-klip-kapak",
+    "kategori": "Otomobil",
+    "marka": [
+      "Iveco"
+    ],
+    "uyum": [
+      {
+        "marka": "Iveco"
+      }
+    ],
+    "baslik": "Iveco Güneşlik Yedek Klips Kapağı",
+    "aciklama": "Iveco güneşliğini tavan rayında tutan klips kapağının yedeğidir; sökülen veya kırılan parçanın yerine geçer.\nYaklaşık dış ölçüler: 28 × 12 × 10 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4751943-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Noppe"
+    }
+  },
+  {
+    "id": "iveco-daily-mk4-kabin-hava-emis-aga",
+    "kategori": "Otomobil",
+    "marka": [
+      "Iveco",
+      "Daily Mk4"
+    ],
+    "uyum": [
+      {
+        "marka": "Iveco",
+        "model": "Daily Mk4"
+      }
+    ],
+    "baslik": "Iveco Daily Mk4 Kabin Hava Emiş Ağı",
+    "aciklama": "Iveco Daily Mk4 kabin soğuk hava emiş ağzındaki lastik çerçevenin içine oturan tel ağın yedeğidir; ağ, çerçevenin kenarına geçerek kabin içine düzenli hava akışı sağlar.\nYaklaşık dış ölçüler: 175 × 152 × 6 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4948321-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4948321-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4948321-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4948321-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Pugwash"
+    }
+  },
+  {
+    "id": "iveco-daily-4x4-serbest-donme-kova-aleti",
+    "kategori": "Otomobil",
+    "marka": [
+      "Iveco",
+      "Daily 4x4"
+    ],
+    "uyum": [
+      {
+        "marka": "Iveco",
+        "model": "Daily 4x4"
+      }
+    ],
+    "baslik": "Iveco Daily 4x4 Serbest Dönme Kova Aleti",
+    "aciklama": "Iveco Daily 4x4 araçlarda serbest dönme kovalarının açılıp kapatılmasında kullanılan el aletidir; kova bağlantısını çalıştırarak tekerleklerin serbest dönmesini açar ve kapatır.\nYaklaşık dış ölçüler: 97 × 71 × 67 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5110665-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5110665-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5110665-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5110665-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "anon6789"
+    }
+  },
+  {
+    "id": "iveco-eurocargo-el-freni-bolgesi-kapak",
+    "kategori": "Otomobil",
+    "marka": [
+      "Iveco",
+      "Eurocargo"
+    ],
+    "uyum": [
+      {
+        "marka": "Iveco",
+        "model": "Eurocargo"
+      }
+    ],
+    "baslik": "Iveco Eurocargo El Freni Bölgesi Kapak Parçası",
+    "aciklama": "Iveco Eurocargo kabininde el freni kolunun bulunduğu bölümün kapak parçasıdır; diferansiyel kilidi düğmesinin geçebilmesi için üzerinde boşluk bırakılmıştır.\nYaklaşık dış ölçüler: 220 × 87 × 10 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5243084-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5243084-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Sammy69"
+    }
+  },
+  {
+    "id": "iveco-orta-konsol-dikiz-ayna-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Iveco"
+    ],
+    "uyum": [
+      {
+        "marka": "Iveco"
+      }
+    ],
+    "baslik": "Iveco Orta Konsol Dikiz Aynası Tutucu",
+    "aciklama": "Iveco orta konsolunda dikiz aynasının ve araç içi kameranın monte edildiği tutucu braketidir; parça birden fazla parçadan oluşan bir takım olarak sunulur.\nYaklaşık dış ölçüler: 60 × 49 × 40 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5410630-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5410630-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5410630-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5410630-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "MarkusGri"
+    }
+  },
+  {
+    "id": "iveco-daily-vi-guneslik-tutucu-braket",
+    "kategori": "Otomobil",
+    "marka": [
+      "Iveco",
+      "Daily VI"
+    ],
+    "uyum": [
+      {
+        "marka": "Iveco",
+        "model": "Daily VI"
+      }
+    ],
+    "baslik": "Iveco Daily VI Güneşlik Tutucu Braket",
+    "aciklama": "2019 sonrası Iveco Daily VI güneşliğinin tavan rayına bağlandığı braketin yedeğidir; güneşliği taşıyacak biçimde sağlam tutar.\nYaklaşık dış ölçüler: 47 × 39 × 37 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5794767-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Rafalpyskiek"
+    }
+  },
+  {
+    "id": "iveco-daily-iv-doseme-rondelasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Iveco",
+      "Daily IV"
+    ],
+    "uyum": [
+      {
+        "marka": "Iveco",
+        "model": "Daily IV"
+      }
+    ],
+    "baslik": "Iveco Daily IV Döşeme Paneli Rondelası",
+    "aciklama": "2008 model Iveco Daily'de torpido ve kapı iç döşeme panellerini tutan vidaların altına geçen rondelanın yedeğidir.\nYaklaşık dış ölçüler: 23 × 23 × 7 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5895029-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "ClausKey"
+    }
+  },
+  {
+    "id": "iveco-daily-2013-bardak-tutucu-iki-parca",
+    "kategori": "Otomobil",
+    "marka": [
+      "Iveco",
+      "Daily 2013"
+    ],
+    "uyum": [
+      {
+        "marka": "Iveco",
+        "model": "Daily 2013"
+      }
+    ],
+    "baslik": "Iveco Daily 2013 İki Parçalı Bardak Tutucu",
+    "aciklama": "2013 model Iveco Daily'de standart tutucunun fazla dar kalması nedeniyle tasarlanan iki parçalı bardak tutucudur; alt iç parça yuvayı genişletir, üst kapak farklı ölçülerdeki bardak ve şişeleri kavrar.\nYaklaşık dış ölçüler: 126 × 86 × 86 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6173470-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6173470-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6173470-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6173470-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "discobean"
+    }
+  },
+  {
+    "id": "iveco-daily-mk3-direksiyon-yan-bardak-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Iveco",
+      "Daily Mk3"
+    ],
+    "uyum": [
+      {
+        "marka": "Iveco",
+        "model": "Daily Mk3"
+      }
+    ],
+    "baslik": "Iveco Daily Mk3 Direksiyon Yanı Bardak Tutucu",
+    "aciklama": "Bardak tutucusu bulunmayan Iveco Daily Mk3 araçlarda, direksiyonun yanındaki küçük göz boşluğuna oturan bardak tutucudur; iki basamaklı yapısıyla kutu ve termos şişe dik konumda tutulabilir.\nYaklaşık dış ölçüler: 198 × 191 × 100 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6309477-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6309477-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6309477-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "salmin36"
+    }
+  },
+  {
+    "id": "iveco-daily-hidrolik-yag-deposu-kapak-ic-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Iveco",
+      "Daily"
+    ],
+    "uyum": [
+      {
+        "marka": "Iveco",
+        "model": "Daily"
+      }
+    ],
+    "baslik": "Iveco Daily Hidrolik Yağ Deposu Kapağı İç Parçası",
+    "aciklama": "Iveco Daily'de sürücü kabinin hemen arkasında bulunan hidrolik yağ deposunun kapağına oturan, kapağı tamamlayan iç parçadır; kırılan parçanın yedeği olarak tasarlanmıştır.\nYaklaşık dış ölçüler: 105 × 105 × 20 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6358963-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "pricciardi"
+    }
+  },
+  {
+    "id": "iveco-evadys-koltuk-ayar-kolu-kam-kapak",
+    "kategori": "Otomobil",
+    "marka": [
+      "Iveco",
+      "Evadys"
+    ],
+    "uyum": [
+      {
+        "marka": "Iveco",
+        "model": "Evadys"
+      }
+    ],
+    "baslik": "Iveco Evadys Koltuk Ayar Kolu Kam Kapağı",
+    "aciklama": "Iveco Evadys otobüs koltuklarının ayar kolundaki kam düzeneğinin üst kapağıdır; aşınmış ya da kaybolmuş parçanın yerine geçer.\nYaklaşık dış ölçüler: 32 × 25 × 24 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6659065-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6659065-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "iquack"
+    }
+  },
+  {
+    "id": "iveco-eurocargo-bolme-mandal-kilidi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Iveco",
+      "Eurocargo IV"
+    ],
+    "uyum": [
+      {
+        "marka": "Iveco",
+        "model": "Eurocargo IV"
+      }
+    ],
+    "baslik": "Iveco Eurocargo IV Bölme Mandal Kilidi",
+    "aciklama": "Eurocargo IV kabin bölme kapağını kapalı tutan mandal kilididir; yay gerilimiyle yıpranan orijinallerin yerine geçer.\nYaklaşık dış ölçüler: 50 × 40 × 34 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6723252-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6723252-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6723252-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6723252-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "_EeveE_"
+    }
+  },
+  {
+    "id": "iveco-stralis-anahtar-boslugu-kapak",
+    "kategori": "Otomobil",
+    "marka": [
+      "Iveco",
+      "Stralis Hi-Way"
+    ],
+    "uyum": [
+      {
+        "marka": "Iveco",
+        "model": "Stralis Hi-Way"
+      }
+    ],
+    "baslik": "Iveco Stralis Hi-Way Anahtar Boşluğu Kapağı",
+    "aciklama": "Stralis Hi-Way kabin panelinde kullanılmayan anahtar yuvasının açık kalan deliğini kapatır; panel yüzeyini düzgün bir görünüme getirir.\nYaklaşık dış ölçüler: 50 × 32 × 27 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6923978-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "desmo_3d"
+    }
+  },
+  {
+    "id": "iveco-kapi-kilit-surgu-mandali",
+    "kategori": "Otomobil",
+    "marka": [
+      "Iveco"
+    ],
+    "uyum": [
+      {
+        "marka": "Iveco"
+      }
+    ],
+    "baslik": "Iveco Kapı Kilit Sürgü Mandalı",
+    "aciklama": "Iveco kabin kapılarının kilitlenmesinde görev alan sürgü mandalıdır; kırılan ya da gevşemiş parçanın yerine takılır.\nYaklaşık dış ölçüler: 53 × 27 × 16 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6971002-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "HQUARTAROLO"
+    }
+  },
+  {
+    "id": "iveco-daily-on-tampon-kapak",
+    "kategori": "Otomobil",
+    "marka": [
+      "Iveco",
+      "Daily 19+"
+    ],
+    "uyum": [
+      {
+        "marka": "Iveco",
+        "model": "Daily 19+"
+      }
+    ],
+    "baslik": "Iveco Daily 19 ve Sonrası Ön Tampon Kapağı",
+    "aciklama": "Daily 19 ve üzeri modellerin ön tampon yüzeyini örten kapağıdır; çizilen ya da eskiyen tamponun görünümünü yeniler.\nYaklaşık dış ölçüler: 159 × 95 × 15 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6984409-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6984409-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6984409-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "denislavnikolov"
+    }
+  },
+  {
+    "id": "iveco-kamyon-uhf-mikrofon-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Iveco"
+    ],
+    "uyum": [
+      {
+        "marka": "Iveco"
+      }
+    ],
+    "baslik": "Iveco Kamyon UHF Mikrofon Tutucusu",
+    "aciklama": "Yeni nesil Iveco kamyonların torpido panelindeki boş yuvaya oturan UHF mikrofon tutucusudur; harici UHF adaptörü ve mikrofon seti ürüne dahil değildir.\nYaklaşık dış ölçüler: 73 × 44 × 31 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7001830-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7001830-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7001830-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Talgomine"
+    }
+  },
+  {
+    "id": "iveco-daily-kayar-kapi-ust-tekerlek-kilavuzu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Iveco",
+      "Daily"
+    ],
+    "uyum": [
+      {
+        "marka": "Iveco",
+        "model": "Daily"
+      }
+    ],
+    "baslik": "Iveco Daily Kayar Kapı Üst Tekerlek Kılavuzu",
+    "aciklama": "Daily kayar kapısının üst tekerleğini ray üzerinde yönlendiren kılavuz parçasıdır; aşınmış ya da kırılmış parçanın yerine geçer.\nYaklaşık dış ölçüler: 20 × 18 × 18 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7100011-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "kevinburg0407"
+    }
+  },
+  {
+    "id": "iveco-daily-guneslik-tutucu-braket-kucuk",
+    "kategori": "Otomobil",
+    "marka": [
+      "Iveco",
+      "Daily"
+    ],
+    "uyum": [
+      {
+        "marka": "Iveco",
+        "model": "Daily"
+      }
+    ],
+    "baslik": "Iveco Daily Küçük Güneşlik Tutucu Braket",
+    "aciklama": "Daily kabin tavanındaki küçük güneşlik tutucusunun araca sabitlenen braketidir; eksilen parçanın yerine geçer.\nYaklaşık dış ölçüler: 27 × 24 × 24 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7155139-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Gusbatec"
+    }
+  },
+  {
+    "id": "iveco-eurocargo-torpido-goz-cekmecesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Iveco",
+      "Eurocargo IV"
+    ],
+    "uyum": [
+      {
+        "marka": "Iveco",
+        "model": "Eurocargo IV"
+      }
+    ],
+    "baslik": "Iveco Eurocargo IV Torpido Göz Çekmecesi",
+    "aciklama": "Eurocargo IV (2008 modeli) torpido panelindeki eşya gözünün yedek parçasıdır; kırılan gözün yerine geçer.\nYaklaşık dış ölçüler: 181 × 74 × 56 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7174664-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "_EeveE_"
+    }
+  },
+  {
     "id": "iveco-daily-ucuncu-fren-lambasi-muhafazasi",
     "kategori": "Otomobil",
     "marka": [
