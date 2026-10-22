@@ -543,13 +543,37 @@ K9 = ("K9", "ilgisiz: KIRMIZI TEYIDI blogunun MALIYET yorumuna kesim notu eklend
         "# MALIYET: yalniz kirmizi aday is akisinda (saglikli kosumda EK CAGRI SIFIR). (K431)")],
       False, set())
 
+# ══ 22 EKI 2026 — SUZGECLI SIFIR / SUZGECSIZ DOLU (V kolu, BaBa 19:1x) ══════════════
+# API `event=schedule` suzgeci 0 donerken suzgecsiz sayfada schedule kaydi var. Kapı
+# pencere ICINDE ise OLCULEMEDI der, disinda KIRMIZI kalir. Iki yon de ayri olculur.
+V1 = ("V1", "🔴 A3 TUTARSIZLIK KOLU KALKTI: suzgecsizdeki taze schedule yok sayilir -> sahte "
+            "'HIC ATESLENMEMIS' geri gelir", KAPI,
+      [('            elif (g.get("suzgecsiz_son_schedule") is not None and\n',
+        '            elif (False and\n')], True, {"SZ1"})
+V2 = ("V2", "🔴 A3 PENCERE SARTI KALKTI: suzgecsizde HERHANGI bir schedule (400 sa once) "
+            "gercek sessizligi OLCULEMEDI'ye cevirir", KAPI,
+      [('                  (simdi - g["suzgecsiz_son_schedule"]).total_seconds() / 3600.0 '
+        '<= n):\n',
+        '                  True):\n')], True, {"SZ2", "SZ6"})   # SZ6: A3 de OLCULEMEDI -> rc 2
+V3 = ("V3", "🔴 A0/A4 TUTARSIZLIK KOLU KALKTI: bos kume yine 'CRON YAPMADI' der", KAPI,
+      [("        if son is not None and son > pencere_basi:\n",
+        "        if False:\n")], True, {"SZ5"})
+V4 = ("V4", "🔴 A0/A4 PENCERE SARTI KALKTI: eski schedule kaydi gercek sessizligi gizler", KAPI,
+      [("        if son is not None and son > pencere_basi:\n",
+        "        if son is not None:\n")], True, {"SZ6"})
+K10 = ("K10", "ilgisiz: suzgecsiz bakis yorumuna kesim notu eklendi", KAPI,
+       [("# -> eski davranis (KIRMIZI). Ek API cagrisi YALNIZ sifir halinde yapilir.",
+         "# -> eski davranis (KIRMIZI). Ek API cagrisi YALNIZ sifir halinde yapilir. (V)")],
+       False, set())
+
 MUTANTLAR = (M1, M2, M3, M4, M5, M6, M7, M8, M9, M10, M11, M12,
              X4, X5, X6, X7, X8, X9, X10, X11, X12, X13,
              Y1, Y2, Y3, Y4, Y5, Y6, Y7,
              K1, K2, K3, K4, K5, K6,
              Z1, Z2, Z3, Z4, Z5, Z6, Z7, Z8, Z9, Z10, Z11, Z12, Z13, Z14, Z15, Z16,
              Z17, Z18, Z19, K7, K8,
-             W1, W2, W3, W4, W5, W6, W7, W8, W9, W10, W11, W12, W13, K9)
+             W1, W2, W3, W4, W5, W6, W7, W8, W9, W10, W11, W12, W13, K9,
+             V1, V2, V3, V4, K10)
 
 # 🔴 ALAN SAYISI NOBETI: 6 alani olmayan bir mutant sessizce "beyansiz" moda kayardi.
 _bozuk = [m[0] for m in MUTANTLAR if len(m) != 6]

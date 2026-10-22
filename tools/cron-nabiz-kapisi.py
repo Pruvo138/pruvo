@@ -1501,6 +1501,36 @@ def teyitli_degerlendir(dosyalar, gozlemler, getir=None, simdi=None, bekle=None,
     return degerlendir(dosyalar, gozlemler, simdi=simdi, **kw)
 
 
+# 🔴 SUZGECLI SIFIR / SUZGECSIZ DOLU (22 Eki 2026, BaBa 19:1x hukmu)
+# OLCULEN VAKA: `yayin-yasi-alarmi.yml` (wf 335504220) icin
+#   `runs?event=schedule` -> total_count 0 · donen 0
+#   `runs` (suzgecsiz)    -> total_count 542 · ilk kayit 2026-10-22T14:04:30Z event=schedule
+# Ayni anda 5 is akisi icin A3 "cron HIC ATESLENMEMIS" yakti; SERIT B `39801371404` iki
+# denemede kirmizi, oysa cron atesliyordu. API kendi icinde tutarsiz -> kesin hukum YOK.
+# CARE: suzgecli toplam 0 iken suzgecsiz ilk sayfadan EN YENI `schedule` kaydi okunur.
+# Hukum `degerlendir`de: o kayit nabiz penceresi (N) ICINDEYSE OLCULEMEDI; pencere disinda
+# ya da hic yoksa KIRMIZI AYNEN kalir (gercek sessizlik GIZLENMEZ). Cekim basarisizsa None
+# -> eski davranis (KIRMIZI). Ek API cagrisi YALNIZ sifir halinde yapilir.
+def _suzgecsiz_son_schedule(getir, wf_id):
+    """Suzgecsiz kosum sayfasindaki en yeni `event=schedule` kaydinin zamani | None."""
+    try:
+        yanit = getir("repos/%s/actions/workflows/%s/runs?per_page=%d"
+                      % (DEPO, wf_id, TESLIM_SAYFA))
+    except OlcumHatasi:
+        return None
+    kayitlar = yanit.get("workflow_runs") if isinstance(yanit, dict) else None
+    if not isinstance(kayitlar, list):
+        return None
+    damgalar = []
+    for k in kayitlar:
+        if isinstance(k, dict) and k.get("event") == "schedule" and k.get("created_at"):
+            try:
+                damgalar.append(_iso(k["created_at"]))
+            except (OlcumHatasi, ValueError):
+                continue
+    return max(damgalar) if damgalar else None
+
+
 def gozlem_topla(dosyalar, getir=api_getir, simdi=None,
                  pencere_saat=TESLIM_PENCERESI_SAAT, bekle=None,
                  ref_adi=None, main_olc=None):
@@ -1572,7 +1602,10 @@ def gozlem_topla(dosyalar, getir=api_getir, simdi=None,
              # kumesi. Bir damganin CRON teslimi olup olmadigi, damganin `workflow_run.id`
              # degerinin bu kumede olup olmamasiyla olculur. EK API CAGRISI YOK — bu
              # liste A5 icin ZATEN cekiliyor.
-             "schedule_kimlikleri": []}
+             "schedule_kimlikleri": [],
+             # SUZGECSIZ IKINCI BAKIS (22 Eki 2026) — yalniz `event=schedule` toplami 0
+             # iken doldurulur; bkz. `_suzgecsiz_son_schedule`. None = bakilmadi/bulunamadi.
+             "suzgecsiz_son_schedule": None}
         try:
             g["aralik"] = aralik_dakika(dakika_kumesi(cron) or {0})
         except OlcumHatasi:
@@ -1643,6 +1676,8 @@ def gozlem_topla(dosyalar, getir=api_getir, simdi=None,
                 g["pencere_gozlemi"] = _pencere_gozlemi(
                     getir, wf["id"], g, simdi, pencere_saat, bekle)
                 _pencereden_duzelt(g, g["pencere_gozlemi"])
+            else:
+                g["suzgecsiz_son_schedule"] = _suzgecsiz_son_schedule(getir, wf["id"])
             # GitHub cron tanimi degistiginde zamanlayici yeniden kaydedilir. Workflow API'sinin
             # `updated_at` alani bunu yansitmiyor (olculdu: dosya degisti, alan created_at ile
             # ayni kaldi); bu yuzden dosyaya dokunan son commit GitHub commits API'sinden okunur.
@@ -1787,6 +1822,11 @@ def _damga_kaynagi(gozlemler, dosya, simdi):
                     "kimlikler": set(g.get("schedule_kimlikleri") or ()),
                     "kirpik": bool(g.get("pencere_kirpildi")),
                     "tutarsiz": sayfa_tutarsizligi(g, simdi),
+                    # 22 Eki 2026: suzgecli toplam 0 iken suzgecsiz sayfadaki son
+                    # schedule kaydi (bkz. `_suzgecsiz_son_schedule`); kume BOSSA
+                    # "kumede yok" hukmu bu kayit pencere icindeyse verilemez.
+                    "suzgecsiz_son": (g.get("suzgecsiz_son_schedule")
+                                      if not g.get("kosum_sayisi") else None),
                     "en_eski": min(tum) if tum else None,
                     # 30 Eyl 2026: kimlik kumesi PENCERE kesitinden kurulduysa A0/A4
                     # satiri bunu SOYLER (A3/A5 ile ayni kural — sessiz ikame yok).
@@ -1839,6 +1879,17 @@ def _cron_kaynakli_damga(eksen, damga, kaynak, n, simdi):
                 "%s: damgayi yazan is akisinin kosum sayfasi KENDI ICINDE TUTARSIZ -> "
                 "damganin CRON teslimi mi elle mi oldugu SINIFLANDIRILAMAZ (eksik kume "
                 "'elle' hukmu uretirdi = sahte kirmizi). %s" % (eksen, kaynak["tutarsiz"]))
+        # 🔴 SUZGECLI SIFIR / SUZGECSIZ DOLU (22 Eki 2026): kume BOS cunku `event=schedule`
+        # suzgeci 0 dondu, ama suzgecsiz sayfada pencere ICINDE schedule kaydi var ->
+        # kume API tutarsizligindan bos; 'elle' hukmu sahte kirmizi olurdu. Pencere
+        # disindaysa (gercek sessizlik) bu kol DUSMEZ, KIRMIZI aynen yanar.
+        son = kaynak.get("suzgecsiz_son")
+        if son is not None and son > pencere_basi:
+            raise OlcumHatasi(
+                "%s: `event=schedule` suzgeci total_count 0 dondu ama suzgecsiz listede son "
+                "schedule kosumu %.1f saat once (esik N=%d sa ICINDE) -> API TUTARSIZ, damganin "
+                "CRON teslimi mi elle mi oldugu SINIFLANDIRILAMAZ"
+                % (eksen, (simdi - son).total_seconds() / 3600.0, n))
         # Kosum sayfasi DOLU ve damga, cekilen EN ESKI zamanlanmis kosumdan da eskiyse
         # "kumede yok" hukmu VERILEMEZ (kume o zamani KAPSAMIYOR olabilir).
         if kaynak["kirpik"] and (kaynak["en_eski"] is None
@@ -2082,6 +2133,16 @@ def degerlendir(dosyalar, gozlemler, simdi=None, damga=None, damga_esigi=None,
                                 "is akisi %.1f saat once kaydedildi (esik N=%d sa). "
                                 "Ilk tetikleme icin olculen teslim penceresi dolmadi; "
                                 "durum gorunur, alarm henuz yanmaz." % (etiket, kayit_yasi, n))
+            elif (g.get("suzgecsiz_son_schedule") is not None and
+                  (simdi - g["suzgecsiz_son_schedule"]).total_seconds() / 3600.0 <= n):
+                satirlar.append("🔴 A3 NABIZ %s -> OLCULEMEDI: API kendi icinde TUTARSIZ — "
+                                "`event=schedule` suzgeci total_count 0 dondu ama suzgecsiz "
+                                "listede son schedule kosumu %.1f saat once (esik N=%d sa "
+                                "ICINDE). Sessizlik kaniti YOK, cron calisiyor kaniti da "
+                                "suzgecli uctan alinamadi -> hukum yok."
+                                % (etiket, (simdi - g["suzgecsiz_son_schedule"])
+                                   .total_seconds() / 3600.0, n))
+                olculemedi = True
             else:
                 satirlar.append("🔴 A3 NABIZ %s -> event=schedule kosum sayisi SIFIR: "
                                 "cron HIC ATESLENMEMIS. Is akisi %.1f saattir kayitli ve aktif "
@@ -2338,7 +2399,8 @@ def _sahte_api(durum="active", kosum_sayisi=0, yas_saat=0.0, kayitli=True,
                kayit_yas_saat=24.0, yenileme_yas_saat=24.0,
                dosya="d1-uzlastirici.yml", bozuk=None, event="schedule",
                damgalar=None, kosum_yaslari=None, damga_kosum="schedule",
-               pencere_yaslari=None, pencere_dizisi=None, pencere_tutarsiz=False):
+               pencere_yaslari=None, pencere_dizisi=None, pencere_tutarsiz=False,
+               suzgecsiz_yaslar=None):
     """GERCEK govdenin ayni seklini ureten enjekte edilebilir `getir`.
 
     `damgalar`: artifact kayitlari listesi (None -> tek TAZE damga).
@@ -2367,7 +2429,11 @@ def _sahte_api(durum="active", kosum_sayisi=0, yas_saat=0.0, kayitli=True,
     `pencere_tutarsiz`: pencereli kesitin `total_count`u donen kayittan BUYUK (kesit de
       bayat/eksik) — sayilamayan kesit fiksturu.
     `damga_kosum="pencere"`: damgayi yazan kosum PENCERE kesitindeki EN YENI kosumdur
-      (ilk sayfa bayat oldugu icin kimlik ilk sayfada YOKTUR)."""
+      (ilk sayfa bayat oldugu icin kimlik ilk sayfada YOKTUR).
+    `suzgecsiz_yaslar` (22 Eki 2026): SUZGECSIZ `runs?per_page=` sorgusunun gordugu
+      `schedule` kosum yaslari (+ bir `push` kaydi). None -> bos sayfa (durust: suzgecli
+      0 ise suzgecsiz de schedule gostermez). Liste verilirse 22 Eki'de OLCULEN API
+      tutarsizligi modellenir (suzgecli 0, suzgecsizde schedule var)."""
     _kosum_onbellek = []
     _pencere_cagri = [0]
 
@@ -2485,6 +2551,16 @@ def _sahte_api(durum="active", kosum_sayisi=0, yas_saat=0.0, kayitli=True,
             havuz = (_kosum_kayitlari() if ogesi is None else _pencere_havuzu(ogesi))
             suzulen = [dict(k) for k in havuz if _iso(k["created_at"]) > sinir]
             return {"total_count": len(suzulen) + ekstra, "workflow_runs": suzulen}
+        if "/runs?" in yol and "event=" not in yol:
+            # SUZGECSIZ IKINCI BAKIS (22 Eki 2026) — yalniz suzgecli toplam 0 iken cagrilir.
+            if bozuk == "suzgecsiz-ag":
+                raise OlcumHatasi("GitHub API HTTP 502: suzgecsiz kosum sorgusu")
+            if suzgecsiz_yaslar is None:
+                return {"total_count": 0, "workflow_runs": []}
+            kayitlar = [_kosum_kaydi(y, "schedule", dosya, kimlik=7000 + i)
+                        for i, y in enumerate(suzgecsiz_yaslar)]
+            kayitlar.append(_kosum_kaydi(0.1, "push", dosya, kimlik=7999))
+            return {"total_count": len(kayitlar) + 500, "workflow_runs": kayitlar}
         if "/runs?" in yol:
             if bozuk == "kosum-sekli":
                 return {"workflow_runs": []}
@@ -4345,6 +4421,34 @@ def kendini_test():
           rc == 1, "rc=%d" % rc)
     iddia("A3 (a) teshis 'HIC ATESLENMEMIS' der (susma sinifi adlandirilir)",
           any("HIC ATESLENMEMIS" in x for x in s))
+    # ── 🔴 SUZGECLI SIFIR / SUZGECSIZ DOLU (22 Eki 2026, BaBa 19:1x) ──────────────
+    # OLCULDU: `runs?event=schedule` total 0, suzgecsiz ilk kayit 14:04Z schedule ->
+    # 7 is akisinda sahte "HIC ATESLENMEMIS". Hukum: suzgecsiz son schedule PENCERE
+    # ICINDEYSE OLCULEMEDI; disindaysa / yoksa / cekilemezse KIRMIZI AYNEN.
+    rc, s = kos(D, _sahte_api(kosum_sayisi=0, suzgecsiz_yaslar=[1.0, 5.0]))
+    iddia("SZ1 suzgecli 0 + suzgecsizde 1 sa onceki schedule -> OLCULEMEDI (rc 2), "
+          "'API ... TUTARSIZ' der, 'HIC ATESLENMEMIS' DEMEZ",
+          rc == 2 and any("A3 NABIZ" in x and "TUTARSIZ" in x for x in s)
+          and not any("HIC ATESLENMEMIS" in x for x in s), s)
+    rc, s = kos(D, _sahte_api(kosum_sayisi=0, suzgecsiz_yaslar=[400.0]))
+    iddia("SZ2 GERCEK SESSIZLIK: suzgecsizdeki son schedule 400 sa once (pencere DISI) -> "
+          "KIRMIZI aynen (sessizlik gizlenmez)",
+          rc == 1 and any("HIC ATESLENMEMIS" in x for x in s), s)
+    rc, s = kos(D, _sahte_api(kosum_sayisi=0, suzgecsiz_yaslar=[]))
+    iddia("SZ3 suzgecsizde yalniz push kaydi (schedule YOK) -> KIRMIZI aynen",
+          rc == 1 and any("HIC ATESLENMEMIS" in x for x in s), s)
+    rc, s = kos(D, _sahte_api(kosum_sayisi=0, bozuk="suzgecsiz-ag"))
+    iddia("SZ4 suzgecsiz sorgu HTTP 502 -> KIRMIZI aynen (kanit yoksa gevseme yok)",
+          rc == 1 and any("HIC ATESLENMEMIS" in x for x in s), s)
+    rc, s = kos(D, _sahte_api(kosum_sayisi=0, suzgecsiz_yaslar=[0.5]), damga_ile=True)
+    iddia("SZ5 A0: kume BOS (suzgecli 0) ama suzgecsizde 0,5 sa onceki schedule -> A0 "
+          "'CRON YAPMADI' DEMEZ, OLCULEMEDI 'API TUTARSIZ'",
+          rc == 2 and any("A0 DAMGA" in x and "API TUTARSIZ" in x for x in s)
+          and not any("A0 DAMGA" in x and "CRON YAPMADI" in x for x in s), s)
+    rc, s = kos(D, _sahte_api(kosum_sayisi=0, suzgecsiz_yaslar=[400.0]), damga_ile=True)
+    iddia("SZ6 A0 GERCEK SESSIZLIK: suzgecsizdeki son schedule pencere DISI -> A0 "
+          "'CRON YAPMADI' KIRMIZI aynen",
+          rc == 1 and any("A0 DAMGA" in x and "CRON YAPMADI" in x for x in s), s)
     # 🔴 A3 UZUN PERIYOT (18 Eki 2026, olculdu: gunluk rum-vekil ilk tetigini kaybetti,
     # "60 dk'lik cron" sanildi, N=18 sa -> main + tum dal SERIT B kosumlari kirmizi).
     iddia("PERIYOT: gunluk_periyot_dk saat alanini OKUR (37 3=1440, 47 */4=240, "
