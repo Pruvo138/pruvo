@@ -689,7 +689,9 @@ jobs:
       #     YAZMA YOK (400 gormek yetmez: SEBEP ve yazmama AYRI AYRI iddia edilir),
       #   ⑤ TEK ISTISNA geri alma: {uretimde,kargolandi,tamamlandi} -> 'odendi' 200, ve
       #     olcum izi ('o':1) varsa Purchase TEKRARLANMAZ,
-      #   ⑥ 'iptal' her durumdan (regresyon: bugunku davranis AYNEN),
+      #   ⑥ 'iptal' her durumdan (regresyon: bugunku davranis AYNEN) — 22 Eki 2026: bu
+      #     secim artik gecerli bir sebep kodu ile yapilir (iptal-sebep.mjs ①-③ kapiyi
+      #     olcer; bu adim yalnizca hedef KUMESI ve geri alma regresyonunu olcer),
       #   ⑦ PANEL/SUNUCU TEK KAYNAK: her mevcut durum icin ucun GERCEKTEN 200 dondurdugu
       #     hedefler kumesi == /liste'nin `izinli_gecisler`i == panelin bastigi <option>
       #     kumesi; 'Kargolandi' secicide 0 kez. Kume ucun DAVRANISINDAN olculur, saf
@@ -698,6 +700,26 @@ jobs:
       # cagrilir; panel JS'i HAM KAYNAKTAN vm'de kosar (kopya yazilmaz). continue-on-error YOK.
       - name: Siparis durum secici kabul kapisi (K252)
         run: node shop/test/siparis-durum-secici.mjs
+
+      # IPTAL SEBEP KODU (22 Eki 2026). OLCULEN HUKUM: panelden iptal edilen siparisin
+      # sebebi MAKINE-OKUNUR kod olarak durum_gecmisi'nin "s" alanina yazilir — sebepsiz
+      # iptal olculemezdi (iptal satirlari: vazgecti / odenemedi ayirt edilemiyordu).
+      #   ① sebep eksik/bos -> 400 'iptal-sebebi-gerekli' + D1 YAZMA 0 (fail-closed);
+      #   ② kume disi kod (ve panelden 'terk') -> 400 'bilinmeyen-iptal-sebebi' + yazma 0;
+      #   ③ 5 gecerli sebebin HER BIRI 200 ve iz s = o kod (200 gormek de yetmez);
+      #   ④ iptal disi hedefte sebep YOK SAYILIR (kapali degil, iz degismez);
+      #   ⑤ terk supurmesinin s:"terk" izi ETKILENMEZ (uretici koldan olculur);
+      #   ⑥ panelin bastigi 5 <option> == sunucunun IPTAL_SEBEPLERI kumesi, ilk option BOS;
+      #   ⑦ durumDegis sahte document/api ile GERCEKTEN cagrilir: sebep secilmeden /durum
+      #     istegi GONDERILMEZ; secilince govde.sebep tasinir, iptal disinda ALAN HIC GIDER;
+      #   ⑧ iptal satirinda sebep kodu gorunur (yoksa "—" — uydurma yok);
+      #   ⑨ 3 mutant gecici KOPYA uzerinde: zorunluluk kaldirilir · kume kaldirilir ·
+      #     sebep gecmiseEkle'ye gecirilmez -> test KIRMIZI. Canli yonet.js'e dokunulmaz.
+      # Ag/wrangler/D1 GEREKMEZ: yonet.js dogrudan import edilip GERCEK router sahte env ile
+      # cagrilir; panel JS'i HAM KAYNAKTAN vm'de kosar. Mutant aynasi os.tmpdir() altinda
+      # kurulur ve finally ile SILINIR. continue-on-error YOK.
+      - name: Iptal sebep kodu kabul kapisi (sebepsiz iptal olculemez)
+        run: node shop/test/iptal-sebep.mjs
 
       # K252 ONCE-KIRMIZI KANITI. Yukaridaki kapinin YESIL olmasi tek basina bir sey
       # kanitlamaz — iddialarin GERCEKTEN oldurucu oldugu mutasyonla olculur. Batarya

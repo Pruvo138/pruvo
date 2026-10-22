@@ -86,6 +86,17 @@ const ODEME_DURUMLARI = ["bekliyor", "basarisiz", "havale-bekliyor", "incele", "
 // donmek YALAN URETMEZ; yanlis ilerletmeyi geri alir.
 const ODENDI_GERI_ALMA = ["uretimde", "kargolandi", "tamamlandi"];
 
+// 🔴 TEK KAYNAK — iptal sebebi kumesi (22 Eki 2026). Panel bu kumenin AYNI kopyasini
+// `/liste` govdesinde alir ve OLDUGU GIBI basar; elle yazilmis ikinci liste YOKTUR
+// (izinli_gecisler deseni, bkz. [[ayni-alan-iki-hukum-biri-sessiz]]).
+// Sebepsiz iptal OLÇÜLEMEZDI: iptal satirlarinin bir kismi gercekten vazgectigi siparis,
+// diger kismi ise odemesi tamamlanmadan kapandi — rapor ikisini AYNI gosterirdi.
+// ⚠️ "terk" BURADA DEGILDIR ve OLAMAZ: terk bir musteri karari degil, odemesi DOGRULANAMAMIS
+// odeme sayfasinin otomatik sonucudur; `shop/src/terk-sabit.js` yazar, panel secmez ve
+// bu kume uzerinden /durum'a girilemez ([[ayni-alan-iki-hukum-biri-sessiz]]).
+export const IPTAL_SEBEPLERI = ["musteri-odemedi", "musteri-vazgecti",
+                                "dosya-gecikme", "stok", "diger"];
+
 // Paneldeki is akisi sirasi. Liste sorgusu en yeni N siparisi secmeye devam eder;
 // bu sira YALNIZ tarayicidaki goruntu katmaninda uygulanir.
 const PANEL_GRUP_SIRASI = [
@@ -767,6 +778,10 @@ async function liste(env, url) {
       // 🔴 TURETILMIS KUME (K252) — panel bunu OLDUGU GIBI basar. Elle yazilmis
       // ikinci liste YOK: kaynak `durumUcuKarari`, yani ucun kendi kabul kumesi.
       izinli_gecisler: izinliHedefler(s.durum),
+      // 🔴 TURETILMIS KUME (22 Eki 2026) — iptal sebebi secimi. Panel bunu OLDUGU GIBI
+      // basar; elle yazilmis ikinci sebep listesi YOK (yukaridaki yorumun ayni gerekcesi).
+      // Her siparis icin gonderilir (iptal her durumdan mumkun oldugu icin kume kosulmaz).
+      iptal_sebepleri: IPTAL_SEBEPLERI,
       musteri: { ad: s.musteri_ad, tel: s.musteri_tel, eposta: s.musteri_eposta,
                  adres: s.musteri_adres },
       musteri_notu: s.musteri_notu || "",
@@ -920,6 +935,21 @@ async function durumDegistir(request, env, ctx) {
   if (!karar.ok) {
     return yjson({ hata: karar.hata, mevcut: s.durum, hedef: hedef }, 400);
   }
+  // 🔴 IPTAL SEBEBİ ZORUNLU (22 Eki 2026) — kapi UCUN KENDI SIYIRINDA, D1'E YAZMADAN
+  // (fail-closed). Sebepsiz iptal olculemedigi icin panelden gondermek ZORUNLU; eksik ya da
+  // kume disi bir kod hicbir kosulda satiri degistirmez (400 gormek yetmez, yazma sayaci
+  // ile AYRI AYRI olculer). Iptal disi hedeflerde `sebep` YOK SAYILIR — gecmise girmez
+  // (gecmiseEkle bos dizede `s` YAZMAZ), yani bu kapi iptal disi akislari ETKILEMEZ.
+  // ⚠️ Sirasi: karar kontrolunden SONRA gelir; yani gecersiz gecis sebebinden ONCE reddedilir
+  // (bilgi sizintisi acilmaz, mevcut davranisin geri donusu bozulmaz).
+  let sebep = "";
+  if (hedef === "iptal") {
+    sebep = govde && typeof govde.sebep === "string" ? govde.sebep.trim() : "";
+    if (!sebep) { return yjson({ hata: "iptal-sebebi-gerekli" }, 400); }
+    if (!IPTAL_SEBEPLERI.includes(sebep)) {
+      return yjson({ hata: "bilinmeyen-iptal-sebebi" }, 400);
+    }
+  }
   // --- Purchase olcumu karari (yalniz 'odendi'ye gecis) --------------------------
   // IDEMPOTENS — UC KATMAN, hicbirine TEK basina guvenilmez:
   //  1) DURUM MAKINESI: K252'den sonra 'odendi' hedefi YALNIZ GERI ALMA olarak
@@ -950,7 +980,9 @@ async function durumDegistir(request, env, ctx) {
   // davranis DEGISMEZ.
   const { siteKanali, olcumluGecis, zatenDenendi, olcumTetikle } = olcumKarari(s, hedef);
 
-  const yeniGecmis = gecmiseEkle(s.durum_gecmisi, hedef, { olcumDenendi: olcumTetikle });
+  // `sebep` yalniz 'iptal' hedefinde doludur (yukarida dogrulandi); iptal disinda ""'dir ve
+  // gecmiseEkle bos dizeyi `s` olarak YAZMAZ — iz iptal disi akislarda DEGISMEX.
+  const yeniGecmis = gecmiseEkle(s.durum_gecmisi, hedef, { olcumDenendi: olcumTetikle, sebep });
   const g = await env.KATALOG.prepare(
     "UPDATE siparisler SET durum = ?, durum_gecmisi = ? WHERE siparis_no = ? AND durum = ?"
   ).bind(hedef, yeniGecmis, siparisNo, s.durum).run();
@@ -2480,6 +2512,33 @@ function kartHtml(s){
   ? '<div class="durumsecici"><select id="dd-'+s.siparis_no+'">'+secenekler+'</select>'+
     '<button onclick="durumUygula(\\''+s.siparis_no+'\\')">Uygula</button></div>'
   : '<div class="durumsecici"><span class="yok">uygulanabilir durum yok</span></div>';
+ // 🔴 IPTAL SEBEBİ KUTUSU (22 Eki 2026) — 'iptal' secilebilir oldugunda AYRI bir kutu basilir.
+ // Kume SUNUCUDAN gelir (s.iptal_sebepleri = IPTAL_SEBEPLERI); elle yazilmis ikinci bir
+ // sebep listesi YOKTUR (yoksa uc bir kodu reddederken panel onu sunmaya devam ederdi —
+ // [[ayni-alan-iki-hukum-biri-sessiz]]). Ilk option BOS: hicbir sebep varsayilan secilmez,
+ // istek ancak secim yapildiginda gider (durumDegis bos secimde api()'yi CAGIRMADAN doner).
+ // ⚠️ BU Kutu <div class="durumsecici"> ICINDE DEGILDIR: o blogun icindeki <option> kumesi
+ // DURUM secicisinin kumesidir (K252 kabul testi onu ucun kabul kumesiyle karsilastirir);
+ // sebep secimi oraya karistirilirsa o olcum sessizce yanlis gecer
+ // ([[kapi-ambiyansi-olcedence-komsu-kirmiziya-yakar]]).
+ var iptalSebepForm="";
+ if(s.izinli_gecisler.indexOf("iptal")>=0){
+  iptalSebepForm='<div class="kargoform"><b>İptal sebebi:</b> '+
+   '<select id="is-'+s.siparis_no+'"><option value="">seçin</option>'+
+   (s.iptal_sebepleri||[]).map(function(k){
+    return '<option value="'+esc(k)+'">'+esc(k)+'</option>';
+   }).join("")+'</select></div>';
+ }
+ // Satir basligindaki sebep rozeti: durum_gecmisi'ndeki SON iptal kaydinin "s" alani.
+ // Yoksa (eskiden sebepsiz iptal edilen satirlar, ya da terkin "s":"terk" izi degisse)
+ // olcum "—" gosterir — UYDURMA YOK.
+ var iptalSebebi="";
+ for(var gi=(s.durum_gecmisi||[]).length-1;gi>=0;gi--){
+  var gk=s.durum_gecmisi[gi];
+  if(gk&&gk.d==="iptal"){iptalSebebi=gk.s||"";break;}
+ }
+ var sebepRozet=s.durum==="iptal"
+  ? '<span class="kucuk">Sebep: '+(iptalSebebi?esc(iptalSebebi):"—")+'</span>' : "";
  var kargoForm="";
  if(s.durum==="uretimde"){
   kargoForm='<div class="kargoform">'+
@@ -2509,7 +2568,7 @@ function kartHtml(s){
  // toplam · kalem sayisi. Musteri adi/telefon/e-posta/adres BURAYA GIRMEZ — onlar
  // yalnizca kart ACILINCA (govdede) gorunur.
  var ozet='<summary class="ust"><span class="no">'+esc(s.siparis_no)+'</span>'+
-  durumRozet(s.durum)+kanalRozet+
+  durumRozet(s.durum)+kanalRozet+sebepRozet+
   '<span class="kucuk">'+esc((s.tarih||"").slice(0,16).replace("T"," "))+'</span>'+
   '<span class="kucuk">'+tl(s.tutar_kurus)+' · '+(s.kalemler||[]).length+' kalem</span>'+
   '</summary>';
@@ -2527,7 +2586,7 @@ function kartHtml(s){
   kalem+kargoBilgi+
   '<div class="eylemler">'+durumSecici+eylem+
    '<button class="ikincil" onclick="komutKopyala(\\''+esc(s.yazdir_komut)+'\\')">Yerel komut kopyala</button>'+
-  '</div>'+kargoForm+havaleForm+
+  '</div>'+iptalSebepForm+kargoForm+havaleForm+
   (gecmis?'<div class="gecmis">Geçmiş: '+gecmis+'</div>':'')+
   '</details>';
 }
@@ -2594,9 +2653,21 @@ async function durumUygula(no){
  durumDegis(no,el.value);
 }
 async function durumDegis(no,d){
- if(d==="iptal"&&!confirm("Sipariş iptal edilsin mi?"))return;
+ // 🔴 IPTAL SEBEBİ ZORUNLU (22 Eki 2026) — secim yapilmadan istek GİTMEZ. Iki gecis
+ // yolu (ayri 'iptal' butonu ve durum secicisinin 'iptal' degeri) AYNI fonksiyona girdigi
+ // icin kutu BURADA bir kez okunur; ikinci bir kontrol kopyasi yazilmaz. Bu bir UX kapisi;
+ // yetki karari SUNUCUDUR ve fail-closed dogrular (400 'iptal-sebebi-gerekli').
+ var sebep="";
+ if(d==="iptal"){
+  var sebepKutusu=document.getElementById("is-"+no);
+  sebep=sebepKutusu?String(sebepKutusu.value||"").trim():"";
+  if(!sebep){alert("İptal sebebi seçin.");return;}
+  if(!confirm("Sipariş iptal edilsin mi?"))return;
+ }
+ var govde={siparis_no:no,durum:d};
+ if(d==="iptal")govde.sebep=sebep;   // iptal disi hedeflerde alan HIC GONDERILMEZ
  var r=await api("/durum",{method:"POST",headers:{"Content-Type":"application/json"},
-  body:JSON.stringify({siparis_no:no,durum:d})});
+  body:JSON.stringify(govde)});
  if(r.kod!==200){alert("Olmadı: "+(r.govde&&r.govde.hata||r.kod));}
  yukle();
 }
