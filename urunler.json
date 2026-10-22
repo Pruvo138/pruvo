@@ -821473,8 +821473,10 @@
         "marka": "Peugeot"
       },
       {
-        "marka": "Citroen",
-        "model": "DS"
+        "marka": "Citroen"
+      },
+      {
+        "marka": "DS"
       }
     ],
     "tavsiyeFilament": [
@@ -822326,8 +822328,10 @@
         "marka": "Citroen"
       },
       {
-        "marka": "Peugeot",
-        "model": "DS"
+        "marka": "Peugeot"
+      },
+      {
+        "marka": "DS"
       }
     ]
   },

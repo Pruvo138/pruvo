@@ -517,6 +517,24 @@ def _rozet_disi_ciftler():
 ROZET_DISI = _rozet_disi_ciftler()
 
 
+def _marka_adli_model_ciftleri():
+    """tools/arama.py MARKA_ADLI_MODEL_IZINLI — adı kapalı kümedeki bir markayla AYNI olan
+    ama o marka altında GERÇEK model olan (marka, model) çiftleri (`Citroen|DS`).
+
+    TAM yazım korunur (kanonikleştirilmez): istisna dar tutulur, `ds`/`D.S.` yararlanamaz.
+    FAIL-CLOSED: tablo okunamazsa SystemExit (sessizce boş kümeye düşmek canlı
+    `/marka/citroen/ds/` sayfasını öldürürdü)."""
+    try:
+        import arama                                                # noqa: PLC0415
+        return frozenset(arama.MARKA_ADLI_MODEL_IZINLI)
+    except Exception as e:                                          # noqa: BLE001
+        raise SystemExit("HATA: tools/arama.py MARKA_ADLI_MODEL_IZINLI okunamadı (%r) — "
+                         "marka adlı gerçek modeller ayrılamaz (fail-closed)." % (e,))
+
+
+MARKA_ADLI_MODEL = _marka_adli_model_ciftleri()
+
+
 def _model_olmayan_ciftler():
     """tools/arama.py MODEL_OLMAYAN_CIFT — (marka, KANONİK jeton) çiftleri.
 
@@ -588,8 +606,11 @@ def model_olmayan_cift_mi(marka, deger):
     return (marka, model_kanon.kanon(toks[-1])) in MODEL_OLMAYAN_CIFTLER
 
 
-def marka_jetonu_mu(deger, evren):
+def marka_jetonu_mu(deger, evren, marka=None):
     """Değer BAŞLI BAŞINA bir MARKA mı (dolayısıyla MODEL olamaz)?
+
+    `marka` verilirse ve (marka, değer) TAM yazımla `MARKA_ADLI_MODEL`deyse değer o markanın
+    GERÇEK modelidir → False (`Citroen|DS`). Bağlamsız çağrı eski davranışı korur.
 
     Üç kaynak, üçü de MEVCUT küratörlükler (yeni yargı burada UYDURULMAZ):
       (1) index.html TANINMIS_MARKALAR (`marka_mi`),
@@ -602,6 +623,8 @@ def marka_jetonu_mu(deger, evren):
     ya da grup kısaltmasını MODEL diye sunuyordu."""
     t = (deger or "").strip()
     if not t:
+        return False
+    if marka is not None and (marka, t) in MARKA_ADLI_MODEL:
         return False
     return marka_mi(t, evren) or model_kanon._marka_norm(t) in KAPALI_MARKA_NORMLU
 
@@ -1005,7 +1028,7 @@ def model_jetonlari(marka, marka_dizisi, evren):
     marka_kanon = _canon(marka)
     for x in marka_dizisi:
         t = (x or "").strip()
-        if not t or marka_jetonu_mu(t, evren):
+        if not t or marka_jetonu_mu(t, evren, marka):
             continue
         kalan = _strip_marka_oneki(marka, t, evren)
         if not kalan:
@@ -1214,7 +1237,7 @@ def gruplandir(products, evren, ek_markalar=()):
         katlar = {}                              # taban canon -> {kaynak varyant canon}
         for x in m:
             t = (x or "").strip()
-            if not t or marka_jetonu_mu(t, evren):
+            if not t or marka_jetonu_mu(t, evren, kan):
                 continue
             kaynak = evren.model_anahtari(kan, t)
             if not kaynak:
