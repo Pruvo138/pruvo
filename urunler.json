@@ -1,5 +1,491 @@
 [
   {
+    "id": "mg-midget-guneslik-montaj-duz",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "Midget"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "Midget"
+      }
+    ],
+    "baslik": "MG Midget Güneşlik Montajı Düz",
+    "aciklama": "1978 model MG Midget güneşlik montajının düz sürümüdür. Kaynak, bazı araçlarda montajların açılı olduğunu, ancak hangi model yıllarına ait olduğunun kesin bilinmediğini belirtir.\nYaklaşık dış ölçüler: 50 × 22 × 22 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr980018-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Kevin Wells"
+    }
+  },
+  {
+    "id": "mg-mgf-ozel-dikiz-ayna-govdesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "MGF"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "MGF"
+      }
+    ],
+    "baslik": "MGF Özel Dikiz Aynası Gövdesi",
+    "aciklama": "MGF'in ön camının ortasına yerleşen fabrika dikiz aynasının, camın üst çerçevesine takılabilen yeniden tasarımıdır. Oturtma düğmesi için on altı milimetrelik, gösterge ışığı için on milimetrelik delik bulunur.\nYaklaşık dış ölçüler: 152 × 62 × 30 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr748131-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr748131-2.jpg"
+    ]
+  },
+  {
+    "id": "mg-mgf-kaput-cubuk-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "MGF"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "MGF"
+      }
+    ],
+    "baslik": "MG MGF Kaput Çubuğu Klipsi",
+    "aciklama": "MG F'nin kaputunu açık tutan çubuğun araç içinde sabitlenmesini sağlayan klipstir. Kullanılmadığı sırada çubuğu yerine oturtarak sallanmasını ve sürüş sırasında ses çıkarmasını önler. Mevcut montaj noktasına oturur ve standart kaput çubuğuyla uyumludur; yaşlı araçlarda sıklaşmış ya da eksik olan orijinal klips için tasarlanmıştır.\nYaklaşık dış ölçüler: 21 × 16 × 14 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7107666-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7107666-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7107666-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7107666-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Croninburg"
+    }
+  },
+  {
+    "id": "mg4-sarj-giris-kapak",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "MG4"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "MG4"
+      }
+    ],
+    "baslik": "MG4 Şarj Girişi Kapağı",
+    "aciklama": "MG4'ün AC şarj girişini örten kapağıdır; araç yalnız CC2 DC girişinde kapak bulunduğu için bu bölüm korumasız kalır. Kapak kıskaç noktalarına tutunacak biçimde tasarlanmıştır. Son güncellemelerde kıskaçlara daha fazla pay verilerek kırılma riski azaltılmış, menteşe bağlantıları inceltilerek şarj kapağının kapanmasını engellememek üzere yenilenmiştir.\nYaklaşık dış ölçüler: 88 × 54 × 38 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7377683-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7377683-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7377683-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7377683-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "mg4maker"
+    }
+  },
+  {
+    "id": "mg5-on-koltuk-arasi-para-tepsisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "MG5"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "MG5"
+      }
+    ],
+    "baslik": "MG5 Ön Koltuk Arası Para Tepsisi",
+    "aciklama": "MG5'in ön koltuklar arasındaki gözünde oturan bozuk para tepsisidir; dört adet bir sterlinlik madeni para ile İngiltere'deki diğer para birimlerinin aynı yükseklikteki karşılığını barındırır. Gözün en dibine, keçe astarın üzerine ya da astar kullanılmadan yerleştirilir. Tasarımda beş pence ve bir sterlin yuvaları yer değiştirmiştir.\nYaklaşık dış ölçüler: 120 × 91 × 13 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6972601-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6972601-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "MerseyViking"
+    }
+  },
+  {
+    "id": "mg-mgb-nmo-anten-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "MGB"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "MGB"
+      }
+    ],
+    "baslik": "MG MGB NMO Anten Adaptörü",
+    "aciklama": "Bazı MGB'lerde ön sağ çamurluk deliğinde bulunan, AM/FM anteninin yerini alan NMO anten kaidesine uyum sağlayan iki parçalı adaptördür. Parçalar çamurluk kıvrımını takip edecek biçimde eğimlidir; alttaki parça gövde boşluğuna üstten ya da tel deliğinden aşağıdan sokularak yerleştirilir.\nYaklaşık dış ölçüler: 34 × 34 × 5 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4814705-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4814705-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4814705-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "DisruptiveChaos1"
+    }
+  },
+  {
+    "id": "mg-mgb-havalandirma-cami-sabitleyici",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "MGB"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "MGB"
+      }
+    ],
+    "baslik": "MG MGB Havalandırma Camı Sabitleme Parçası",
+    "aciklama": "MGB havalandırma camını açık tutan yayların eskimesi, paslanması ya da kopmasıyla cam açık kalmadığında kullanılan sabitleme parçasıdır. Havalandırma camı koluna geçirilir, kutu biçimli gövdesindeki kola yaslanarak camı açık konumda tutar. Bir sol, bir sağ parçadan oluşur; parçalar 1971 ve 1977 modeli MGB Roadster için tasarlanmıştır, daha eski modellerin kol boyutları farklı olabilir.\nYaklaşık dış ölçüler: 12 × 11 × 2 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4599551-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "pjwhalen"
+    }
+  },
+  {
+    "id": "mg-mgb-orta-konsol-icecek-kutusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "MGB"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "MGB"
+      }
+    ],
+    "baslik": "MG MGB Orta Konsol İçecek Kutusu",
+    "aciklama": "MGB orta konsoluna, vites topuzu kapağının vidalarıyla bağlanan içecek tutucusudur. Tasarım bir taban plakadan ve 330 mililitre ile 500 mililitre kutu boyutuna tam oturan bir tutucu parçasından oluşur; tabandan bir adet, tutucu parçasından iki adet gerekir. Taban plaka yaklaşık 209 milimetreye 217 milimetre ölçüsündedir.\nYaklaşık dış ölçüler: 216 × 209 × 55 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7172703-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7172703-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7172703-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7172703-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Samrobmoe"
+    }
+  },
+  {
+    "id": "mg-mgb-direksiyon-kutusu-hizalama-aleti",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "MGB"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "MGB"
+      }
+    ],
+    "baslik": "MG MGB Direksiyon Kutusu Hizalama Aleti",
+    "aciklama": "MGB direksiyon kutusu hizalaması için tasarlanmış hizalama aletidir. Ortadaki delik lastik tamponlara, kenara en yakın delik ise krom tamponlara uygundur; kullanım için iki adet M4 vida gerekir.\nYaklaşık dış ölçüler: 55 × 26 × 26 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6584599-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6584599-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6584599-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6584599-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Doudou14"
+    }
+  },
+  {
+    "id": "mg-tf-direksiyon-alti-panel-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "MG TF"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "MG TF"
+      }
+    ],
+    "baslik": "MG TF Direksiyon Altı Panel Klipsi",
+    "aciklama": "MG TF'de direksiyonun hemen altında yer alan panelin yerinde tutulmasını sağlayan küçük bir klipstir.\nYaklaşık dış ölçüler: 19 × 16 × 13 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5556951-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "dccoops"
+    }
+  },
+  {
+    "id": "mg4-kayar-cekmece-ek-bardak-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "MG4"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "MG4"
+      }
+    ],
+    "baslik": "MG4 Kayar Çekmece Ek Bardak Tutucusu",
+    "aciklama": "MG4'te orijinal bardaklıkların arkasındaki kayar çekmeceye oturan ek bardak tutucudur. Çekmecenin üst kapağı, tutucular açıkta olsa bile kapanabilir.\nYaklaşık dış ölçüler: 223 × 155 × 70 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7048553-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7048553-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Tafka"
+    }
+  },
+  {
+    "id": "mg4-arka-lamba-grubu-kapak",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "MG4"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "MG4"
+      }
+    ],
+    "baslik": "MG4 Arka Lamba Grubu Kapakları",
+    "aciklama": "MG4 arka lamba grubunun ampulünü değiştirmek için grup sökülürken önce çıkarılması gereken küçük plastik kapaklardır. Kapaklar bagaj kapağının arkasında saklanır, her iki tarafta birer adettir ve açılarak dışarı alınır. Kaynakta, kapakların çıkarılırken kolayca düşüp arka boşluğa kayarak kaybolduğu belirtilir.\nYaklaşık dış ölçüler: 46 × 30 × 10 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7257443-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7257443-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7257443-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7257443-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "neilewis23"
+    }
+  },
+  {
+    "id": "mg-mgb-e10-ampul-yuvasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "MGB"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "MGB"
+      }
+    ],
+    "baslik": "MG MGB E10 Ampul Yuvası",
+    "aciklama": "MGB için E10 ampul yuvasıdır. Gövdeye yalıtılmış olarak tasarlanmıştır ve artı kablonun kütle hattına (toprak) bağlandığı düzen içindir.\nYaklaşık dış ölçüler: 57 × 25 × 23 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6327087-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6327087-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6327087-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Genervt49"
+    }
+  },
+  {
+    "id": "mg-mgf-tf-gaz-pedali-burcu",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "MGF/TF"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "MGF/TF"
+      }
+    ],
+    "baslik": "MG MGF/TF Gaz Pedali Burcu",
+    "aciklama": "MGF ve TF'de gaz pedalindeki aşınmayı gideren, değişim amacıyla modellenmiş burçtur. Pedal eksenindeki burç yuvasına oturur.\nYaklaşık dış ölçüler: 14 × 14 × 10 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7411258-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7411258-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "bengloss"
+    }
+  },
+  {
+    "id": "mg-mgf-tf-yan-hava-menfezi-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "MGF/TF"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "MGF/TF"
+      }
+    ],
+    "baslik": "MG MGF/TF Yan Hava Menfezi Adaptörü",
+    "aciklama": "MGF ve TF'de yan hava menfezinden motor bölgesine 70 milimetrelik iç çaplı bir borunun bağlanmasını sağlayan adaptördür. Adaptörün dış yüzeyi ile gövde panelindeki paslanmaz örgü arasına hava süzgeç malzemesi yerleştirilebilecek bir üçgen örgü içerir. Montaj, menfezin dış panelinin çıkarılmasıyla süzgeç malzemesinin temizlenip değiştirilmesini kolaylaştırır.\nYaklaşık dış ölçüler: 165 × 120 × 94 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6790469-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6790469-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6790469-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6790469-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "PythonesqueSpam"
+    }
+  },
+  {
+    "id": "mg-cyberster-bardaklik-ici-kovasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "Cyberster"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "Cyberster"
+      }
+    ],
+    "baslik": "MG Cyberster Bardaklık İç Kovası",
+    "aciklama": "MG Cyberster'da bardaklığın fazla derin olması nedeniyle küçük eşyaların dibe kaybolmasını önleyen iç kovadır. Kovaya konan eşyalar bardaklığın üst seviyesinde kalır.\nYaklaşık dış ölçüler: 76 × 76 × 64 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7115671-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7115671-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7115671-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "ChristophB"
+    }
+  },
+  {
+    "id": "mg-mgb-dikiz-ayni-konumlandirma",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "MGB"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "MGB"
+      }
+    ],
+    "baslik": "MG MGB Dikiz Aynası Konumlandırma Braketi",
+    "aciklama": "MGB dikiz aynasının ön camda büyük bir kör nokta bırakması nedeniyle aynayı torpido tabelasına yaklaştırmak amacıyla tasarlanmış braketleme parçasıdır. Parça, ön camın arkasındaki ayna çubuğuna oturur. Bütünü tamamlamak için orijinal ayna ile tabana yapışacak iki keçe ped gerekir.\nYaklaşık dış ölçüler: 116 × 30 × 16 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7252346-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7252346-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7252346-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7252346-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Jameyboy4"
+    }
+  },
+  {
+    "id": "mg-mgb-gt-el-freni-toz-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "MGB GT"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "MGB GT"
+      }
+    ],
+    "baslik": "MG MGB GT El Freni Toz Kapağı",
+    "aciklama": "MGB GT'de el freni gaiterinin zamanla parçalanması nedeniyle yenilenmesi için modellenen toz kapağıdır. El freni kolunun üzerine geçen kılıfın yerini alır.\nYaklaşık dış ölçüler: 47 × 30 × 25 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7377378-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7377378-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7377378-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7377378-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "gper93"
+    }
+  },
+  {
+    "id": "mg-mgb-kardan-aksi-conta-halkasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "MGB"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "MGB"
+      }
+    ],
+    "baslik": "MG MGB Kardan Aksı Conta Halkası Adaptörü",
+    "aciklama": "MGB'de kardan aksının üzerindeki mantar sızdırmazlığın yerine O-ring kullanılabilmesini sağlayan ara parçadır. Parça takılabilmesi için ikiye kesilmelidir.\nYaklaşık dış ölçüler: 32 × 32 × 10 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7191587-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Doudou14"
+    }
+  },
+  {
     "id": "mg-midget-1500-alt-camurluk-bosluk-kapaklari",
     "kategori": "Otomobil",
     "marka": [
