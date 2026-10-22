@@ -46,6 +46,7 @@ import { olcumGonder, olcumLog } from "./olcum.js";
 import { biletUret, biletDogrula } from "./olcum-bilet.js";
 import { refKaydet, REF_KALIBI } from "./ref.js";
 import { inisKaydet } from "./inis.js";
+import { rizaKaydet } from "./riza-sayac.js";
 // 🟢 ADLI EXPORT YASAGI: workerd giris modulundeki adli exportlari `function or
 // ExportedHandler` sanip reddediyor (olculdu 12 Eyl 2026, wrangler 4.131.1). Bu sabitler
 // ayrik modulde durur; burada SADECE local binding olarak okunur, RE-EXPORT EDILMEZ.
@@ -1479,6 +1480,8 @@ export default {
       if (yol === "/ref") return await refKaydet(request, env);
       // Riza bagimsiz reklam INIS sayaci (gun, kaynak, kampanya) — kisisel veri YOK (src/inis.js).
       if (yol === "/inis" && request.method === "POST") return await inisKaydet(request, env);
+      // Kimliksiz RIZA sayaci (gun, karar: kabul|ret|kapat) — kisisel veri YOK (src/riza-sayac.js).
+      if (yol === "/riza" && request.method === "POST") return await rizaKaydet(request, env);
       // FOTOGRAFTAN OZEL URETIM: /foto/acik · /foto/onizleme · /foto/durum · /foto/gorsel
       if (yol.startsWith("/foto/")) return await fotoUclari(request, env, url, yol, telegram);
       // URETIM SAGLAYICI VEKILI (src/uretim-vekil.js): jetonsuz/yanlis jeton -> 404, 4 islem izinli.

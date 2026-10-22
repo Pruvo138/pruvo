@@ -163,11 +163,12 @@ MUTANTLAR = [
     # cerezini beyan etmeyi birakirsa kapi KIRMIZI yanmali — yoksa oradaki beyan
     # sessizce SERBEST GECISE doner.
     # 19 Eki (Okan bant metni): aydinlatma /gizlilik/'e TASINDI -> M13 bantta baglantinin,
-    # M15 gizlilik govdesinde saglayici beyaninin dusmesini olcer.
+    # M15 gizlilik govdesinde saglayici beyaninin dusmesini olcer. 22 Eki: bant metni amac
+    # cumlesine dondu (BaBa 17:1x) -> capa "Ayrıntı:" satirina tasindi.
     ("M13 bant metni aydinlatma sayfasina BAGLANMAYI birakir", True,
      [("index.html",
-       'Detaylı bilgiye <a href="/gizlilik/">Gizlilik ve Çerez Politikası</a>',
-       "Detaylı bilgiye Gizlilik ve Çerez Politikası")]),
+       'Ayrıntı:\n       <a href="/gizlilik/">Gizlilik ve Çerez Politikası</a>',
+       "Ayrıntı:\n       Gizlilik ve Çerez Politikası")]),
     ("M15 gizlilik sayfasi reklam saglayicisini (Google Ads) BEYAN ETMEYI birakir", True,
      [("gizlilik/index.html", "<strong>Google Ads</strong> (Google) ve ", ""),
       # ikinci gecis: BaBa 16:4x tutarli cumlesi (ayni kart) — biri kalirsa mutant SAG kalir

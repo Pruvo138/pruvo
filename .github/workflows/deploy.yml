@@ -900,6 +900,16 @@ jobs:
       - name: "K302 marka kabul bataryasi"
         run: python3 tools/k302-marka-kabul-kapisi.py
 
+      # MG MARKA KABUL BATARYASI (15. tur, 22 Eki) — K302 kardesi: A1-A4 + KONTROL +
+      # M1/M2/KONTROL-MUTANT; her mutant AYNI eksenleri kosar, kirmizi kume beyana ESIT.
+      - name: "MG marka kabul bataryasi"
+        run: python3 tools/mg-marka-kabul-kapisi.py
+
+      # DS MARKA KABUL BATARYASI (16. tur, 22 Eki) — Citroen|DS cift istisnasi dahil:
+      # A1-A5 + KONTROL + M1/M2/M3/KONTROL-MUTANT; M3 sayfa uretecini mutant arama ile kurar.
+      - name: "DS marka kabul bataryasi"
+        run: python3 tools/ds-marka-kabul-kapisi.py
+
       # YAZIM YOLU KOLU — yukaridaki IKI kapi (altkategori + uyum) KATALOG GENELINI
       # olcer ve YAYINDAN SONRA konusur; bu adim onlarin COMMIT ANINDAKI kardesini
       # (tools/katalog-alan-kapisi.py + pre-commit adim 5) olcer.
@@ -1228,6 +1238,14 @@ jobs:
       # bloklayici); node yoksa adim FAIL eder (fail-closed). ~0,2 s.
       - name: Riza tik-kimligi kabul testi (gizlilik — 6 yuzeyde banner davranisi)
         run: node tools/riza-tikkimligi-test.js
+
+      # RIZA BANDI ESITLIGI (BaBa 22 Eki, KVKK esit kolaylik): 6 bant kopyasi (GA_BANNER_SNIPPET
+      # + 5 statik sayfa) BAYT-ESIT; Reddet Kabul ile ayni boyut/dolgu/yazi + dolu dugme + AA
+      # kontrast; x = Reddet yolu; metin amac+saglayici; sayac beacon'i yalniz {k}. Ag YOK,
+      # dosya YAZMAZ (9 mutant bellekte). Sessiz hata sinifi: bir kopya geri kayarsa uretilen
+      # binlerce sayfada Reddet yeniden baglanti gorunumune doner ve EKRANDA fark edilmez.
+      - name: Riza bandi esitlik testi (6 kopya + esit gorunurluk + 9 mutant)
+        run: python3 tools/riza-bandi-esitlik-test.py
 
       # ATIF (LISANS) REFERANS MODULU — ayni R_NODE muafiyet sinifindaydi, ayni yanlis
       # gerekceyle. NE KORUR: attribution-ref.js, CC lisansli urunlerde tasarimci adi +
@@ -1610,6 +1628,9 @@ jobs:
           node shop/test/eposta.mjs
           node shop/test/ref-route.mjs
           node shop/test/inis-sayac.mjs
+          # KIMLIKSIZ RIZA SAYACI (22 Eki 2026): POST /api/shop/riza — origin guard, karar beyaz
+          # listesi (kabul|ret|kapat), sunucu UTC gunu, IP/UA D1'e gitmez; 4 mutant gecici kopyada.
+          node shop/test/riza-sayac.mjs
           # URETIM SAGLAYICI VEKIL UCU (20 Eki 2026): jeton yok/kisa/yanlis 404, izin kumesi 4
           # islem, govde yeniden kurulur, gunluk tavan 1, kredi defteri; 6 mutant gecici kopyada.
           node shop/test/uretim-vekil.mjs
