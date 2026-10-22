@@ -5202,17 +5202,42 @@ def baslik_jeton_suiti(arac):
 # Bilerek VAKALAR'in DISINDA (`saat_suiti` emsali): K182 hedef-kol atif kumelerini
 # kaydirmaz. Mutantlari `--mutasyon` turunda IZOLE kopyada kosar ve ADIYLA basilir.
 KY_SIMDI = "2026-10-14 12:00"
+# 🔴 22 Eki: kalici sinif artik yalniz KONU basliginda (`— <ikon> JETON`) tutulur.
+# Bu dordusu KALICI SINIF temsil ettigi icin KONU bicimindedir; atif bicimi KY_KSD
+# altinda AYRI olarak (ve tasindiklari icin) olculuyor.
 KY_BASLIKLAR = {
     "genc47": "## 2026-10-12 13:00 — 📊 MimarA → MimarB (KORUMALI) bilgi, 47 sa",
     "yasli49": "## 2026-10-12 11:00 — 📊 MimarA → MimarB (KORUMALI) bilgi, 49 sa",
-    "karar": "## 2026-10-10 08:00 — ⚖️ BaBa → MimarA (KORUMALI) OKAN KARARI: 100 sa",
-    "ilke": "## 2026-10-10 08:00 — ⚖️ BaBa → MimarA (KORUMALI) İLKE: 100 sa",
-    "doktrin": "## 2026-10-10 08:00 — ⚖️ BaBa → MimarA (KORUMALI) kutu doktrini, 100 sa",
-    "emir": "## 2026-10-10 08:00 — 🔴 Okan emri [aktarım] (KORUMALI) 100 sa",
+    "karar": "## 2026-10-10 08:00 — 🔴 OKAN KARARI (KORUMALI) BaBa sekmesi, 100 sa",
+    "ilke": "## 2026-10-10 08:00 — **İLKE:** (KORUMALI) ölçüm yazılmadan kapanmaz, 100 sa",
+    "doktrin": "## 2026-10-10 08:00 — 📌 Doktrin: kutu anayasası (KORUMALI) 100 sa",
+    "emir": "## 2026-10-10 08:00 — 🔴 Okan emri (KORUMALI) aktarım, 100 sa",
     "tarihsiz": "## akşam — 📊 MimarA → MimarB (KORUMALI) tarihsiz",
     "duz": "## 2026-10-09 08:00 — 📊 MimarA → MimarB etiketsiz eski blok",
 }
 KY_SIRA = ("genc47", "yasli49", "karar", "ilke", "doktrin", "emir", "tarihsiz", "duz")
+
+# ---- KALICI SINIF: KONU mu ATIF mi? (BaBa 22 Eki 10:1x — 65/84 KALICI sayimi) --------
+# Ayni kutu, ayni `--korumali-yas-sa 48`: konu basliklari 94 sa, atif basliklari 60 sa.
+# KALICI olan KALIR (yasa dusmez), KALICI OLMAYAN yasa gore TASINIR.
+KALICI_SIMDI = "2026-10-24 12:00"
+KSD_BASLIKLAR = {
+    # (a) KONU: `— <ikon> JETON` — KALICI
+    "konu_emir": "## 2026-10-20 13:40 — 🔴🔴 OKAN EMRİ (KORUMALI) BaBa sekmesi, aynen",
+    "konu_ilke": "## 2026-10-20 13:40 — **İLKE:** (KORUMALI) ölçüm yazılmadan kapanmaz",
+    "konu_karar": "## 2026-10-20 13:40 — ⚖️ Okan kararı (KORUMALI): kutu tavanı 500",
+    # (b) ATIF: jeton atfin/govdenin icinde — KALICI DEGIL, yasa gore duser
+    "atf_baba": "## 2026-10-21 23:30 — ⚖️ BaBa → **KraL** (KORUMALI — Okan emri 20 Eki) halef-51",
+    "atf_ilkecil": "## 2026-10-21 23:30 — ⚖️ BaBa → **KraL** (KORUMALI) İLKESİ: parite borcu",
+    "atf_doktrin": "## 2026-10-21 23:30 — 📊 BaBa → KraL (KORUMALI) kutu doktrini",
+    # (c) Turkce I/ı + buyuk/kucuk varyantlari KONUDA — KALICI
+    "konu_buyuk": "## 2026-10-20 13:40 — 📌 DOKTRİN (KORUMALI) kutu anayasası",
+    "konu_bosluk": "## 2026-10-20 13:40 —  🔴 ilke  (KORUMALI) bosluk/ikon arasi",
+}
+KSD_SIRA = ("konu_emir", "konu_ilke", "konu_karar", "konu_buyuk", "konu_bosluk",
+            "atf_baba", "atf_ilkecil", "atf_doktrin")
+KSD_KONU = ("konu_emir", "konu_ilke", "konu_karar", "konu_buyuk", "konu_bosluk")
+KSD_ATIF = ("atf_baba", "atf_ilkecil", "atf_doktrin")
 # (mutant adi, capa, yeni, hedef iddia oneki)
 KY_MUTANTLARI = [
     ("KY-M1 yas kontrolu silindi", "    if simdi_dk - blok_dk >= yas_sa * 60:\n",
@@ -5221,11 +5246,20 @@ KY_MUTANTLARI = [
      "    if False:  # MUTANT\n", "KY4"),
     ("KY-M3 tarihsiz baslik acik sayildi", '        return "TARIH_YOK"\n    try:\n',
      '        return "ACIK"  # MUTANT\n    try:\n', "KY8"),
+    # ESKI sabitsiz desen: jeton basligin HER yerinde -> atif basligi da KALICI sayilir.
+    # KY19 (atif TASINDI) KIRMIZI yakmali.
+    ("KY-M4 kalici sinif deseni ozneke sabitlenmedi (eski hali)",
+     'SAAT_BASLIK_RE.pattern + r"\\s*[—\\-]?\\s*[\\W_]*(?:OKAN\\s+EMRI|OKAN\\s+KARARI|ILKE|DOKTRIN)\\b",\n',
+     'r"(?<!\\w)(?:OKAN\\s+EMRI|OKAN\\s+KARARI|ILKE|DOKTRIN)",\n', "KY19"),
 ]
 
 
 def _ky_kutu(adlar):
     return "# kutu\n\n" + "".join("%s\n\ngovde %s\n\n" % (KY_BASLIKLAR[a], a) for a in adlar)
+
+
+def _ksd_kutu(adlar):
+    return "# kutu\n\n" + "".join("%s\n\ngovde %s\n\n" % (KSD_BASLIKLAR[a], a) for a in adlar)
 
 
 def _ky_kos(arac, kok, metin, simdi=KY_SIMDI, ek=(), kuru=False):
@@ -5308,6 +5342,30 @@ def _ky_vakalari(arac, kok, iddia_fn):
                  % (14 + no, baslik[14:].split(" —")[0], esik[11:], once[11:]),
                  "KORUMALI_YAS_ACILAN=1 " in c1 and "KORUMALI_YAS_ACILAN=0 " in c2
                  and "KORUMALI_GENC=1 " in c2, c1[-500:] + c2[-500:])
+
+    # ---- 22 Eki: KALICI SINIF yalniz basligin KONUSU (BaBa 10:1x olcumu) ----
+    rck, ck, kk, ak = _ky_kos(arac, os.path.join(kok, "ksd"), _ksd_kutu(KSD_SIRA),
+                             simdi=KALICI_SIMDI)
+
+    def kkaldi(ad):
+        return KSD_BASLIKLAR[ad] in kk and KSD_BASLIKLAR[ad] not in ak
+
+    def ktasindi(ad):
+        return KSD_BASLIKLAR[ad] in ak and KSD_BASLIKLAR[ad] not in kk
+
+    iddia_fn("KY17 konu/atif kutusu rc=0 + lossless GECTI",
+             rck == 0 and "lossless_dogrulama=GECTI" in ck, "rc=%d\n%s" % (rck, ck[-900:]))
+    iddia_fn("KY18 94 sa KONU basligi (EMRI/ILKE/karari/DOKTRIN/ilke) KALDI",
+             all(kkaldi(a) for a in KSD_KONU), ck[-900:])
+    iddia_fn("KY19 60 sa ATIF basligi (emri/ILKESI/doktrini) TASINDI",
+             all(ktasindi(a) for a in KSD_ATIF), ck[-900:])
+    iddia_fn("KY20 sayac ayrik: KALICI=%d ACILAN=%d (GENC/TARIH_YOK=0)"
+             % (len(KSD_KONU), len(KSD_ATIF)),
+             "KORUMALI_YAS_ACILAN=%d KORUMALI_KALICI_SINIF=%d KORUMALI_GENC=0 "
+             "KORUMALI_TARIH_YOK=0 " % (len(KSD_ATIF), len(KSD_KONU)) in ck, ck[-900:])
+    iddia_fn("KY21 KAYIPSIZLIK: 8 blok basildi, 3 tasindi, SHA esit=3/3",
+             "KAYIPSIZLIK blok: once=8 " in ck and "SHA blok: esit=3/3 eksik=0" in ck,
+             ck[-900:])
 
 
 def korumali_yas_suiti(arac):
