@@ -1,5 +1,646 @@
 [
   {
+    "id": "mg-mgb-roadster-mk1-anahtar-kapaklari",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "MGB"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "MGB"
+      }
+    ],
+    "baslik": "MGB Roadster MK1 Anahtar Kapakları",
+    "aciklama": "MGB Roadster'ın 1965 MK1 sürümünde (1962-1968) kullanılan anahtar kutu kapaklarıdır. Kapaklarda L, W ve F gibi işlev harfleri oyularak düğmelerin görevi kolayca ayırt edilir; orijinal kapaklarda bu işaretler yoktur. Kaynakta, anahtar kutularının sonradan temin edilebildiği ancak yalnız kapakların ayrı olarak bulunmadığı belirtilir.\nYaklaşık dış ölçüler: 76 × 70 × 10 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1343919-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1343919-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1343919-3.jpg",
+      "https://media.pruvo3d.com/urunler/th1343919-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "pggibson"
+    }
+  },
+  {
+    "id": "mg4-bagaj-kancasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "MG4"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "MG4"
+      }
+    ],
+    "baslik": "MG4 Bagaj Kancası",
+    "aciklama": "MG4'ün arka koltuğunun başlığındaki metal bara geçirilen bagaj kancasıdır. İkinci sürümde kancanın üst kısmı, kırılma riski taşıyan kertik yerine başlık direğini saran bir delik olarak yeniden tasarlandı. Montaj için arka koltuk öne yatırılır, başlık çıkarılır, kanca metal barın arasına geçirilip başlık yerine oturtulur.\nYaklaşık dış ölçüler: 154 × 130 × 30 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6277421-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6277421-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6277421-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "dsimpkins"
+    }
+  },
+  {
+    "id": "mg-mgb-overdrive-vites-topuzu-kapaklari",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "MGB"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "MGB"
+      }
+    ],
+    "baslik": "MGB Overdrive Vites Topuzu Kapakları",
+    "aciklama": "Overdrive vites topuzunun üzerine oturan desen kapakları ve topuz kapağıdır; Triumph, MGB ve Leyland gibi araçlarda kullanılır. Kaynakta, parçanın restore edilen bir araçta bulunan overdrive topuzundan yararlanılarak geliştirildiği belirtilir. Üretim özel üretimle yapılır.\nYaklaşık dış ölçüler: 45 × 45 × 44 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5487854-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5487854-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5487854-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5487854-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "bugeye59"
+    }
+  },
+  {
+    "id": "mg-zr-klima-torpido-dugmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "ZR"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "ZR"
+      }
+    ],
+    "baslik": "MG ZR Klima Torpido Düğmesi",
+    "aciklama": "MG ZR torpido üzerindeki klima düğmesinin kırılan plastik kapağını yenilemek içindir. Düğme, üzerinde kalan metal iç parça sayesinde torpido milinin deliğine geçirilerek oturtulur. Karanlıkta bulunmasını kolaylaştırmak için düğmede ışık geçiren bir delik bulunur.\nYaklaşık dış ölçüler: 39 × 39 × 24 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th59849-1.jpg",
+      "https://media.pruvo3d.com/urunler/th59849-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "ringo1"
+    }
+  },
+  {
+    "id": "mg4-orta-konsol-telefon-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "MG4"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "MG4"
+      }
+    ],
+    "baslik": "MG4 Orta Konsol Telefon Tutucusu",
+    "aciklama": "MG4'ün orta konsolundaki alana oturan iki konumlu telefon tutucusudur. Telefon sürücü tarafından görülebilsin diye 45 derece eğik konuma ya da orijinali gibi düz konuma alınabilir; düz konumda konsolun eğimi telefonun kaymasını engeller. Tabanında USB kablosunun geçmesi için açık bir kanal bulunur.\nYaklaşık dış ölçüler: 95 × 30 × 18 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6313980-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6313980-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6313980-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6313980-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "B0b0x"
+    }
+  },
+  {
+    "id": "mg4-arka-koltuk-isik-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "MG4"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "MG4"
+      }
+    ],
+    "baslik": "MG4 Arka Koltuk Işık Tutucusu",
+    "aciklama": "MG4'ün arka koltuk başlığına LED ışık bağlanarak arka oturma bölümünü aydınlatmak için tasarlanmış tutucudur. Gövde, koltuk başlığının metal direğine kavrar. Ürün yalnız tutucudur, LED ışık dahil değildir.\nYaklaşık dış ölçüler: 125 × 125 × 32 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6090570-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6090570-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6090570-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6090570-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "infinity2"
+    }
+  },
+  {
+    "id": "mg-midget-guneslik-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "Midget"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "Midget"
+      }
+    ],
+    "baslik": "MG Midget Güneşlik Perdesi Klipsi",
+    "aciklama": "MG Midget'ta güneşlik perdesini tutan fabrika lastik klipsi yerine geçecek klipsidir. Kaynakta, sahibinin iki MG Midget aracında da orijinal klipslerin kırıldığı ve klipsin bu nedenle yeniden hazırlandığı belirtilir. Parça Austin Healey ve Triumph araçlarında da çalışmaktadır.\nYaklaşık dış ölçüler: 90 × 20 × 18 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5873242-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5873242-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5873242-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5873242-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "printy_peyton"
+    }
+  },
+  {
+    "id": "mg-hs-kol-arkasi-depolama-kutusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "HS"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "HS"
+      }
+    ],
+    "baslik": "MG HS Kol Arkası Depolama Kutusu",
+    "aciklama": "MG HS'in kol arası bölümüne oturan depolama kutusudur. Kutu özel üretimle hazırlanır.\nYaklaşık dış ölçüler: 143 × 140 × 53 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6258327-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6258327-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6258327-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Seccardino"
+    }
+  },
+  {
+    "id": "mg-zs-mg4-torpido-rafi-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "ZS"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "ZS"
+      }
+    ],
+    "baslik": "MG ZS ve MG4 Bagaj Rafı Klipsi",
+    "aciklama": "MG ZS ve MG4 bagaj bölmesindeki bagaj rafının kırılan klipsi için hazırlanmış basit bir yedek parçadır. Kaynak, parçanın yalnız kırılan klipsi değiştirmek amacıyla tasarlandığını belirtir.\nYaklaşık dış ölçüler: 18 × 18 × 17 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6327908-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6327908-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "infinity2"
+    }
+  },
+  {
+    "id": "mgb-1974-ayna-aralayici",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "MGB"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "MGB"
+      }
+    ],
+    "baslik": "MGB 1974 Ayna Aralayıcı",
+    "aciklama": "1974 model MGB'lerde yan ayna ile gövde arasında kullanılan, aradaki mesafeyi ayarlayan ara parçadır. Üretim özel üretimle yapılır.\nYaklaşık dış ölçüler: 82 × 34 × 6 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5142902-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5142902-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "GrooveIN3D"
+    }
+  },
+  {
+    "id": "mg-tf-hoparlor-adaptor-plakasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "TF"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "TF"
+      }
+    ],
+    "baslik": "MG TF Hoparlör Adaptör Plakası",
+    "aciklama": "MG TF'te hoparlörlerin bağlanması için gereken adaptör plakasıdır. Plaka özel üretimle hazırlanır.\nYaklaşık dış ölçüler: 189 × 174 × 20 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3146793-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3146793-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3146793-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "GKCdesign"
+    }
+  },
+  {
+    "id": "mg4-on-koltuk-kancasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "MG4"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "MG4"
+      }
+    ],
+    "baslik": "MG4 Ön Koltuk Kancası",
+    "aciklama": "MG4'ün ön koltuğunun başlık direğine klipslenerek arka kabin için ek bir askı noktası sağlayan kancadır. Kaynakta, tasarımın benzer bir başlık kancasından uyarlanarak MG4'e göre ölçülendirildiği belirtilir. Kanca yalnız koltuk başlığı direğini kavrar.\nYaklaşık dış ölçüler: 174 × 145 × 30 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6277451-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "dsimpkins"
+    }
+  },
+  {
+    "id": "mg-zs-ev-on-bagaj-kutusu-montaj",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "ZS EV"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "ZS EV"
+      }
+    ],
+    "baslik": "MG ZS EV Ön Bagaj Kutusu Montaj Seti",
+    "aciklama": "MG ZS EV 2022'nin altındaki boşluğa bir alt bagaj kutusu yerleştirilerek ön bagaj olarak kullanılmasını sağlayan dört parçalı montaj setidir. Parçalar aracın mevcut bağlantı noktalarına oturur; araçta değişiklik gerektirmez.\nYaklaşık dış ölçüler: 182 × 70 × 58 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6440500-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6440500-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6440500-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6440500-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "CrustyOldGit"
+    }
+  },
+  {
+    "id": "mg4-konsol-telefon-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "MG4"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "MG4"
+      }
+    ],
+    "baslik": "MG4 Konsol Telefon Tutucu Klipsi",
+    "aciklama": "MG4 konsolundaki mevcut telefon yastığına çift taraflı bantla sabitlenen, telefonu klipsle tutan bir tutucudur. Kaynakta tasarımın MG4 için geliştirildiği, düz bir yüzeye yerleştirilecek diğer telefonlar için de kullanılabileceği belirtilir.\nYaklaşık dış ölçüler: 160 × 76 × 68 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6796934-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6796934-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6796934-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6796934-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "misubisu"
+    }
+  },
+  {
+    "id": "mg-midget-minilite-tekerlek-kapak",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "MGB"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "MGB"
+      }
+    ],
+    "baslik": "MGB Minilite Tekerlek Göbek Kapağı",
+    "aciklama": "MGB Minilite tekerleklerinin göbek kapağıdır ve tekerleğin göbek bölümünü kapatır. Parça yük taşıyan bir bağlantı elemanı değildir.\nYaklaşık dış ölçüler: 128 × 66 × 42 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2883250-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Vstreignard"
+    }
+  },
+  {
+    "id": "mg-metro-tekerlek-gobek-kapak",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "Metro"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "Metro"
+      }
+    ],
+    "baslik": "MG Metro Tekerlek Göbek Kapağı",
+    "aciklama": "MG Metro'da kullanılan tekerlek göbek kapağıdır; aynı parça çeşitli MG araçlarında da kullanılır. Kaynak, orijinal plastik kapakların oldukça kırılgan olduğunu ve tutunma kulakçıklarının kırıldığını belirtir.\nYaklaşık dış ölçüler: 73 × 73 × 13 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1726975-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "daveb500"
+    }
+  },
+  {
+    "id": "mg4-tampon-alti-kanatciklar",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "MG4"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "MG4"
+      }
+    ],
+    "baslik": "MG4 Tampon Altı Hava Kanalı Kanatçıkları",
+    "aciklama": "MG4'ün (2022-2024) tampon altına, her bağlantı vidasının hizasına oturacak biçimde takılan dört parçalı kanatçık setidir. Kaynak, setin araç altındaki hava akışını iyileştirmek için tasarlandığını belirtir.\nYaklaşık dış ölçüler: 96 × 79 × 39 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7167868-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7167868-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7167868-3.jpg"
+    ]
+  },
+  {
+    "id": "mgb-1974-ayna-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "MGB"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "MGB"
+      }
+    ],
+    "baslik": "MGB 1974 Ayna Braketi",
+    "aciklama": "1974 model MGB'lerde yan aynayı gövdeye bağlayan braket parçasıdır. Kaynak, bu parçanın temini için çoğu durumda yeni bir ayna sipariş etmenin gerektiğini belirtir.\nYaklaşık dış ölçüler: 56 × 12 × 6 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5142892-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5142892-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "GrooveIN3D"
+    }
+  },
+  {
+    "id": "mg-zt-tavan-lambasi-onarim-takozu",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "ZT"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "ZT"
+      }
+    ],
+    "baslik": "MG ZT Tavan Lambası Onarım Takozu",
+    "aciklama": "MG ZT ve Rover 75'te tavan aydınlatma lambasının zamanla kırılan plastik uçları için hazırlanmış onarım takozlarıdır. Takozlar, kırılan uçların arasındaki boşluğa yapıştırılarak lambanın tavana düşmesi engellenir.\nYaklaşık dış ölçüler: 25 × 13 × 3 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4524996-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4524996-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4524996-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "grism"
+    }
+  },
+  {
+    "id": "mg4-mulan-kablosuz-sarj-onarim-plakasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "MG4"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "MG4"
+      }
+    ],
+    "baslik": "MG4 Mulan Kablosuz Şarj Tutucu Onarım Plakası",
+    "aciklama": "MG4 Mulan'ın kablosuz şarj tutucusu için hazırlanmış onarım plakasıdır. Kaynak, plakanın kablosuz Android Auto kurulumlarıyla birlikte kullanıldığında daha iyi çalıştığını belirtir.\nYaklaşık dış ölçüler: 206 × 100 × 6 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6066128-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6066128-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "kiss81"
+    }
+  },
+  {
+    "id": "mg-hs-bardaklik-duzenleyici",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "HS"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "HS"
+      }
+    ],
+    "baslik": "MG HS Bardaklık Düzenleyicisi",
+    "aciklama": "MG HS'te gözlük, kalem ve kart gibi eşyaları bir arada tutmak için tasarlanmış bardaklık düzenleyicisidir. İki bardaklıktan birini kullanılabilir bırakır; diğerinde su şişesi ve küçük eşyalar birlikte taşınabilir.\nYaklaşık dış ölçüler: 167 × 116 × 85 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6984656-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6984656-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6984656-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "XenonJohn"
+    }
+  },
+  {
+    "id": "mg-midget-cam-kaldirma-disli",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "MGB"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "MGB"
+      }
+    ],
+    "baslik": "MGB Cam Kaldırma Dişlisi",
+    "aciklama": "MGB'nin manuel cam kaldırma mekanizmasında kullanılan dişlidir; aşınan ya da kırılan dişlinin yerine geçecek biçimde tasarlanmıştır.\nYaklaşık dış ölçüler: 60 × 60 × 12 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6052939-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "frogfish_42"
+    }
+  },
+  {
+    "id": "mg-mgf-tf-alt-sase-delik-tapasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "MGF/TF"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "MGF/TF"
+      }
+    ],
+    "baslik": "MG MGF/TF Alt Şase Delik Kapakları",
+    "aciklama": "MGF ve TF'nin arka alt şasesindeki açık delikleri yağmur ve nem girmesini önlemek için kapatan kapaklardır. Set içinde iki stadyum biçimli, iki adet büyük yuvarlak (47 milimetrelik dış çap) ve altı adet yuvarlak (38 milimetrelik dış çap) kapak bulunur; çapraz üyede dört delik kapatılmayacaksa yalnız iki yuvarlak kapak gerekir. Kayış veya çekme halatının bağlandığı delikler için ayrıca oluklu bir varyant sunulur.\nYaklaşık dış ölçüler: 64 × 47 × 11 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6742185-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6742185-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6742185-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6742185-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "PythonesqueSpam"
+    }
+  },
+  {
+    "id": "mg-midget-orta-konsol-torpido-kutusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "Midget"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "Midget"
+      }
+    ],
+    "baslik": "MG Midget Orta Konsol Torpido Kutusu",
+    "aciklama": "1970'li yıllara ait MG Midget'in orta konsolunda radyonun normalde oturduğu boşluğa yerleşen torpido kutusudur. Yan tutma yöntemiyle konsola oturur. Kutu kapağı yapıştırılarak sabitlenebilir, çıkarılabilir biçimde bırakılabilir ya da hiç takılmayabilir.\nYaklaşık dış ölçüler: 173 × 84 × 66 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4948801-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4948801-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "CSW2"
+    }
+  },
+  {
+    "id": "mg-mgb-overdrive-anahtar-kapak-led",
+    "kategori": "Otomobil",
+    "marka": [
+      "MG",
+      "MGB"
+    ],
+    "uyum": [
+      {
+        "marka": "MG",
+        "model": "MGB"
+      }
+    ],
+    "baslik": "MG MGB Overdrive Anahtar Kapağı (LED)",
+    "aciklama": "1977-1980 arası MGB gösterge panelinde overdrive anahtarının bulunduğu yere geçen boş kapaktır. Ortasındaki 13 milimetrelik delik gösterge ışığı modülüne uygundur.\nYaklaşık dış ölçüler: 34 × 26 × 8 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5334652-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5334652-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5334652-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5334652-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Blastek"
+    }
+  },
+  {
     "id": "husqvarna-vitpilen-401-far-lens-kapakligi",
     "kategori": "Motosiklet",
     "marka": [
