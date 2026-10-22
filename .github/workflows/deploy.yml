@@ -1239,6 +1239,14 @@ jobs:
       - name: Riza tik-kimligi kabul testi (gizlilik — 6 yuzeyde banner davranisi)
         run: node tools/riza-tikkimligi-test.js
 
+      # RIZA BANDI ESITLIGI (BaBa 22 Eki, KVKK esit kolaylik): 6 bant kopyasi (GA_BANNER_SNIPPET
+      # + 5 statik sayfa) BAYT-ESIT; Reddet Kabul ile ayni boyut/dolgu/yazi + dolu dugme + AA
+      # kontrast; x = Reddet yolu; metin amac+saglayici; sayac beacon'i yalniz {k}. Ag YOK,
+      # dosya YAZMAZ (9 mutant bellekte). Sessiz hata sinifi: bir kopya geri kayarsa uretilen
+      # binlerce sayfada Reddet yeniden baglanti gorunumune doner ve EKRANDA fark edilmez.
+      - name: Riza bandi esitlik testi (6 kopya + esit gorunurluk + 9 mutant)
+        run: python3 tools/riza-bandi-esitlik-test.py
+
       # ATIF (LISANS) REFERANS MODULU — ayni R_NODE muafiyet sinifindaydi, ayni yanlis
       # gerekceyle. NE KORUR: attribution-ref.js, CC lisansli urunlerde tasarimci adi +
       # lisans linkinin sayfada DOGRU uretilmesini saglar; bozulursa atif SESSIZCE duser.
@@ -1620,6 +1628,9 @@ jobs:
           node shop/test/eposta.mjs
           node shop/test/ref-route.mjs
           node shop/test/inis-sayac.mjs
+          # KIMLIKSIZ RIZA SAYACI (22 Eki 2026): POST /api/shop/riza — origin guard, karar beyaz
+          # listesi (kabul|ret|kapat), sunucu UTC gunu, IP/UA D1'e gitmez; 4 mutant gecici kopyada.
+          node shop/test/riza-sayac.mjs
           # URETIM SAGLAYICI VEKIL UCU (20 Eki 2026): jeton yok/kisa/yanlis 404, izin kumesi 4
           # islem, govde yeniden kurulur, gunluk tavan 1, kredi defteri; 6 mutant gecici kopyada.
           node shop/test/uretim-vekil.mjs

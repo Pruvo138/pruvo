@@ -756,11 +756,14 @@ setTimeout(L,5000);})();
   </div>
 </footer>
 
-<!-- KVKK çerez onay banner'ı (vanilla JS/CSS — harici kütüphane YOK). analytics_storage için açık rıza.
-     TEK KAYNAK: aynı blok sayfa üretecinde (GA_BANNER_SNIPPET) + diğer statik sayfalarda birebir tekrar eder. -->
+<!-- KVKK çerez onay banner'ı (vanilla JS/CSS — harici kütüphane YOK). Ölçüm + reklam çerezleri için açık rıza.
+     TEK KAYNAK: bu blok 6 yerde BAYT-EŞİT durur (sayfa üreteci + 5 statik sayfa); eşitliği ve
+     Kabul/Reddet eşit görünürlüğünü bant eşitlik testi ölçer.
+     KVKK eşit kolaylık: Reddet, Kabul ile AYNI boyut/dolgu/yazı/köşe; ikisi de dolu düğme, ikisi de
+     AA (≥4,5:1) kontrast. × = Reddet ile AYNI yol (ret sayılır). Kaydırma/gezinme rıza DEĞİLDİR. -->
 <style>
   #pruvo-cerez-onay{position:fixed;left:0;right:0;top:0;z-index:2147483000;
-    background:#12294d;color:#fff;padding:15px 18px;box-shadow:0 2px 14px rgba(0,0,0,.28);
+    background:#12294d;color:#fff;padding:15px 58px 15px 18px;box-shadow:0 2px 14px rgba(0,0,0,.28);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     font-size:14px;line-height:1.5}
   #pruvo-cerez-onay[hidden]{display:none}
@@ -771,24 +774,28 @@ setTimeout(L,5000);})();
   #pruvo-cerez-onay .pco-btns{display:flex;gap:10px;flex:0 0 auto;align-items:center}
   #pruvo-cerez-onay button{cursor:pointer;border:none;border-radius:8px;font-family:inherit}
   #pruvo-cerez-onay .pco-kabul{background:#d1332e;color:#fff;padding:12px 28px;
-    font-size:15px;font-weight:700}
-  #pruvo-cerez-onay .pco-ret{background:none;color:#dbe4f2;padding:12px 10px;
-    font-size:14px;font-weight:400;text-decoration:underline}
+    font-size:15px;font-weight:700;border-radius:8px;min-width:128px;min-height:46px}
+  #pruvo-cerez-onay .pco-ret{background:#e9eef6;color:#12294d;padding:12px 28px;
+    font-size:15px;font-weight:700;border-radius:8px;min-width:128px;min-height:46px}
+  #pruvo-cerez-onay .pco-kapat{position:absolute;top:6px;right:6px;background:transparent;
+    color:#fff;font-size:24px;line-height:1;padding:0;width:44px;height:44px}
   #pruvo-cerez-onay button:focus-visible{outline:3px solid #ffd166;outline-offset:2px}
   @media (max-width:600px){
-    #pruvo-cerez-onay .pco-btns{flex:1 1 100%;flex-direction:column;align-items:stretch;gap:4px}
+    #pruvo-cerez-onay .pco-btns{flex:1 1 100%;flex-direction:column;align-items:stretch;gap:8px}
     #pruvo-cerez-onay .pco-kabul{width:100%}
+    #pruvo-cerez-onay .pco-ret{width:100%}
   }
 </style>
 <div id="pruvo-cerez-onay" role="dialog" aria-label="Çerez onayı" hidden>
   <div class="pco-inner">
-    <p>Alışveriş deneyiminizi iyileştirmek için yasal düzenlemelere uygun çerezler (cookies)
-       kullanıyoruz. Detaylı bilgiye <a href="/gizlilik/">Gizlilik ve Çerez Politikası</a>
-       sayfamızdan erişebilirsiniz.</p>
+    <p>Ölçüm ve reklam amacıyla (Google ve Meta) çerez kullanmak için onayınızı istiyoruz.
+       Reddederseniz yalnız zorunlu çerezler kullanılır. Ayrıntı:
+       <a href="/gizlilik/">Gizlilik ve Çerez Politikası</a>.</p>
     <div class="pco-btns">
       <button type="button" class="pco-kabul" id="pco-kabul">Kabul Et</button>
       <button type="button" class="pco-ret" id="pco-ret">Reddet</button>
     </div>
+    <button type="button" class="pco-kapat" id="pco-kapat" aria-label="Kapat (reddet)">×</button>
   </div>
 </div>
 <script>
@@ -798,29 +805,43 @@ setTimeout(L,5000);})();
   function kapsamAdi(){ return window.PRUVO_RIZA_KAPSAMI || ""; }   /* kaynak koşmadıysa "" -> fail-closed */
   var el = document.getElementById("pruvo-cerez-onay");
   if(!el){ return; }
-  var secim = null, kapsam = null;
-  try { secim = localStorage.getItem(ANAHTAR); kapsam = localStorage.getItem(KAPSAM_ANAHTARI); } catch(e){}
-  if(secim === "ret"){ return; }   /* reddedene TEKRAR SORULMAZ */
-  if(secim === "kabul" && kapsam && kapsam === kapsamAdi()){ return; }   /* güncel kapsamda onaylı */
-  el.hidden = false;
-  function kaydet(deger){ var k = deger === "kabul" ? kapsamAdi() : ""; try { localStorage.setItem(ANAHTAR, deger); if(k){ localStorage.setItem(KAPSAM_ANAHTARI, k); } else { localStorage.removeItem(KAPSAM_ANAHTARI); } } catch(e){} if(deger !== "kabul" && typeof window.pruvoRizaUygula === "function"){ window.pruvoRizaUygula('denied'); } el.hidden = true; }
   var kabul = document.getElementById("pco-kabul");
   var ret = document.getElementById("pco-ret");
-  /* Rıza değişimini tüm katmanlara duyur (rıza YAZILDIKTAN sonra çağrılır ki hepsi kapı
-     kontrolünden geçsin). Rıza yokken bu çağrı saklanmış tıklama kimliklerini VE ölçüm
-     çerezlerini (_fbp/_fbc/_ga) siler — mantık TEK KAYNAK: attribution-ref.js. */
-  function rizaYayinla(){
-    if(typeof window.pruvoAtifRiza === "function"){ window.pruvoAtifRiza(); }
-    if(typeof window.pruvoRefRiza === "function"){ window.pruvoRefRiza(); }
-  }
+  var kapat = document.getElementById("pco-kapat");
+  var degistir = document.getElementById("pco-degistir");   /* yalnız gizlilik sayfasında var */
+  /* TEK KAYNAK: banner görünürlüğü YALNIZCA saklı rıza değerinden türetilir. Ayrı bir
+     "gösterildi mi" bayrağı YOK → durum ile görünürlük birbirinden kayamaz. DAR kapsamlı
+     eski onay yeni kapsama SAYILMAZ. Kaydırma/sayfada gezinme rıza DEĞİLDİR: yalnız Kabul yazar. */
+  function secim(){ try { return localStorage.getItem(ANAHTAR); } catch(e){ return null; } }
+  function kapsamSecimi(){ try { return localStorage.getItem(KAPSAM_ANAHTARI); } catch(e){ return null; } }
+  function bannerTazele(){ var s = secim(), k = kapsamSecimi(); el.hidden = (s === "ret") || (s === "kabul" && !!k && k === kapsamAdi()); }
+  /* Kimliksiz rıza SAYACI: karar YAZILDIKTAN sonra TEK beacon; gövde YALNIZ {k} (kabul|ret|kapat).
+     Kimlik/ref/URL GÖNDERİLMEZ — sunucu yalnız gün+karar sayar. */
+  function rizaSay(k){ try { if(typeof navigator.sendBeacon === "function"){ navigator.sendBeacon("/api/shop/riza", JSON.stringify({k: k})); } } catch(e){} }
+  function kaydet(deger, sayac){ var k = deger === "kabul" ? kapsamAdi() : ""; try { localStorage.setItem(ANAHTAR, deger); if(k){ localStorage.setItem(KAPSAM_ANAHTARI, k); } else { localStorage.removeItem(KAPSAM_ANAHTARI); } } catch(e){} if(deger !== "kabul" && typeof window.pruvoRizaUygula === "function"){ window.pruvoRizaUygula('denied'); } bannerTazele(); rizaSay(sayac || deger); }
+  /* Rıza değişiminin tüm tüketicilerini tek yerden uyar (rıza YAZILDIKTAN sonra çağrılır ki
+     hepsi kapı kontrolünden geçsin). Yoklarsa (sayfada o katman yoksa) sessizce atlanır.
+     Rıza yokken bu çağrı saklanmış tıklama kimliklerini VE ölçüm çerezlerini (_fbp/_fbc/_ga)
+     siler — silme mantığı TEK KAYNAK: attribution-ref.js. */
+  function rizaYayinla(){ if(typeof window.pruvoAtifRiza === "function"){ window.pruvoAtifRiza(); } if(typeof window.pruvoRefRiza === "function"){ window.pruvoRefRiza(); } }
+  /* ── RIZAYI GERİ ALMA (KVKK: rıza, verildiği kadar KOLAY geri alınabilmeli) ──
+     Seçim SIFIRLANIR (anahtar silinir; "ret" YAZILMAZ) → ziyaretçi düğmeye basıp hiçbir şey
+     seçmeden çıkarsa rıza YOK sayılır (fail-closed; belirsizlik rıza değildir). Saklanmış
+     tıklama kimlikleri (pruvo_atif/pruvo_ref) + analiz/tıklama çerezleri silinir, banner
+     yeniden görünür — hepsi aynı tek kaynaktan (bannerTazele + rizaYayinla). */
+  function rizaGeriAl(){ try { localStorage.removeItem(ANAHTAR); localStorage.removeItem(KAPSAM_ANAHTARI); } catch(e){} if(typeof gtag === "function"){ gtag('consent','update',{'analytics_storage':'denied','ad_storage':'denied','ad_user_data':'denied','ad_personalization':'denied'}); } rizaYayinla(); bannerTazele(); try { kabul.focus(); } catch(e){} }
   kabul.addEventListener("click", function(){
     if(typeof window.pruvoRizaUygula === "function"){ window.pruvoRizaUygula('granted'); }
     kaydet("kabul");
-    if(typeof window.pruvoMetaBaslat === "function"){ window.pruvoMetaBaslat(); }
-    rizaYayinla();
+    if(typeof window.pruvoMetaBaslat === "function"){ window.pruvoMetaBaslat(); } rizaYayinla();
   });
-  ret.addEventListener("click", function(){ kaydet("ret"); rizaYayinla(); });  /* denied kalır */
-  try { kabul.focus(); } catch(e){}
+  ret.addEventListener("click", function(){
+    kaydet("ret"); rizaYayinla();   /* denied kalır */
+  });
+  /* × Reddet ile AYNI yol: "ret" yazılır, katmanlar uyarılır; sayaçta yalnız "kapat" diye ayrışır. */
+  if(kapat){ kapat.addEventListener("click", function(){ kaydet("ret", "kapat"); rizaYayinla(); }); }
+  if(degistir){ degistir.addEventListener("click", rizaGeriAl); }
+  bannerTazele(); if(!el.hidden){ try { kabul.focus(); } catch(e){} }
 })();
 </script>
 <!-- PRUVO yukari-cik oku: start -->
