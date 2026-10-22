@@ -886,7 +886,7 @@ UYUM_MARKA_IZINLI = frozenset({
     "Speeduino", "SsangYong", "Stihl", "Suzuki", "TMC", "Tesla", "Thermomix", "Tofaş",
     "Tohatsu", "Toyota", "Twin Disc", "Vespa", "Vetus", "Volkswagen", "Volvo",
     "Weinsberg", "Xbox", "Xiaomi", "Yamaha", "Yunteng", "Zelmer", "Zodiac", "Zontes",
-    # ── MIMAR ELIYLE EKLENEN (asagidaki UYUM_MARKA_MIMAR_EKI ile AYNI 57 jeton) ──
+    # ── MIMAR ELIYLE EKLENEN (asagidaki UYUM_MARKA_MIMAR_EKI ile AYNI 58 jeton) ──
     # 🔴 BU SAYIYI HICBIR KAPI OLCMUYOR (olculdu 31 Agu): Raymarine ONCESINDE burada
     # "34" yaziyordu ama kumenin GERCEK boyu 41'di — 3./4./5. tur eklerinde
     # guncellenmemis, uc tur boyunca kirmizi yakmadan yasamis BAYAT bir sayi.
@@ -927,6 +927,10 @@ UYUM_MARKA_IZINLI = frozenset({
     # `len(UYUM_MARKA_MIMAR_EKI)` ile OLCULEREK dogrulandi (52 -> 57, esitlik TUTTU).
     # Ayni turda `len(UYUM_MARKA_IZINLI)` 191 -> 196 ve FARK (izinli − eki) 139 SABIT
     # kaldi -> besi de IKI kumeye girdi.
+    # 15. tur (22 Eki 2026, KraL halef-53, BaBa 20:5x): TEK jeton girdi (`MG`), sayi
+    # 57 -> 58 ELLE guncellendi ve `len(UYUM_MARKA_MIMAR_EKI)` ile OLCULEREK dogrulandi
+    # (57 -> 58, esitlik TUTTU). Ayni turda `len(UYUM_MARKA_IZINLI)` 196 -> 197 ve FARK
+    # (izinli − eki) 139 SABIT kaldi -> jeton IKI kumeye de girdi.
     # 🔴 KALEM HALA ACIK: bu bir MAKINE iddiasi degil, tek seferlik bir olcumdur —
     # bir sonraki tur yine guncellemeyi UNUTABILIR. Kalici cozum bu sayiyi `len()`ten
     # TURETMEK ya da bir kapiya iddia olarak KOYMAKTIR; ikisi de mimar hukmunu bekliyor
@@ -1619,6 +1623,32 @@ UYUM_MARKA_IZINLI = frozenset({
     #   `model-uyelik-kapisi.py` rc=0 30/30 = rc=0 30/30. Ek: `altkategori-sinifla-test`
     #   rc=0 145/0 · `marka-uyelik-test` rc=0 · `marka-arama-d1-test` rc=0 56/0.
     "Pentax", "Olympus", "Leica", "Blackmagic", "Insta360",
+    # 15. tur, A grubu (1) — BaBa hukmu 22 Eki 2026 20:5x (MaCiT MG dilim M1, thingiverse
+    #   25, bu jetonu bekliyordu). SINIF: OTOMOBIL marque'i (MGB/Midget/MGF/ZS/HS/MG4) —
+    #   EV SAHIBI, parca ONA takilir; `Rover`, `Mini`, `Vauxhall` ile ayni sinif.
+    #   KANONIK YAZIM `MG`; `MG Motor`/`MG Rover`/`mg`/`Mg`/`M.G.`/Kiril `МG` RED (takma ad
+    #   BILESIK_MARKA_KANONIK'e GIRMEDI: katalogda `MG Motor` 0 kayit -> buyume kuralinin
+    #   FAYDA ekseni 0, tablo TEK TOHUM kalir).
+    #   🔴 `DS` AYNI HUKUMDE ISTENDI, BU TURDA GIRMEDI — OLCULDU: `DS` kumeye girince
+    #   `marka_varyanti_sebebi("model", "DS")` klasik Citroen DS (1955–75, gercek Citroen
+    #   modeli) kayitlarini REDDEDIYOR -> uyum-kapisi A1 7 ihlal + model-uyelik K19
+    #   "envanterde var uretimde yok=['Citroen|ds']" = CANLI `/marka/citroen/ds/` OLUR.
+    #   Cozum (kapali `("Citroen","DS")` cift istisnasi) bes cagri noktasina yayiliyor
+    #   (uyum_ogesi_sebebi + marka_model_build x2 + cip-indeks x2 + model-uyelik ekseni);
+    #   AYRI dalda gelir.
+    #   Olculen katalog agirligi (41379 urun; TAM yazim, kelime sinirli): marka[] 1 ·
+    #   uyum[].marka 0 -> 1 · uyum[].model 1 -> 0 · baslik 1 · aciklama 3.
+    #   VERI DUZELTMESI (ayni commit, `duzelt.py`): `opel-c20ne-rover-mg-gaz-kelebe-i-
+    #   adapt-r-55mm` uyum `{"marka":"Rover","model":"MG"}` -> `{"marka":"Rover"},
+    #   {"marka":"MG"}` (MG Rover'in modeli DEGIL, marque'tir); `marka` turetimi AYNI
+    #   (`["Opel","Rover","MG"]`). Duzeltilmeseydi bu kayit V16 sinirinda RED olurdu.
+    #   `markasiz()` iki harfli jeton: `nrm` kucuk harfe indirdigi icin `5 mg` birimi de
+    #   silinir — OLCULDU: tum katalogda metni degisen 3 urun, ALT KATEGORI SINIFI DEGISEN
+    #   0/41379 (`siniflandir_toplu` ONCE/SONRA). `MGB`/`MG4`/`SMG`/`IMG` capali, YUTULMAZ.
+    #   Kabul: `tools/mg-marka-kabul-kapisi.py` (A1-A4 + KONTROL + M1/M2/KONTROL-MUTANT,
+    #   kirmizi kume beyana ESIT); uyum-kapisi 39/39 · k302 rc=0 · model-uyelik 30/30
+    #   (cikti ONCE=SONRA bayt bayt) · cip-indeks 129/129 · altkategori 145/0.
+    "MG",
 })
 
 # 🔴 ONERI DISINDAN, MIMAR ONAYIYLA eklenen jetonlar. AYRI tutulmalari SART: budama
@@ -1695,6 +1725,9 @@ UYUM_MARKA_MIMAR_EKI = frozenset({
     # menzil BOS) + 8. olcut (besi de TEK KELIME, ayna 19=19) + K220 DUYARLILIK mutanti.
     # UYUM_MARKA_IZINLI'nin "C grubu" 14. tur basliginda yazili. Burada TEKRAR EDILMEZ.
     "Pentax", "Olympus", "Leica", "Blackmagic", "Insta360",
+    # 15. tur (22 Eki 2026) — BaBa hukmu, MaCiT MG M1. Gerekce + olcum + DS'nin neden
+    # girmedigi UYUM_MARKA_IZINLI'nin "A grubu" 15. tur basliginda yazili. TEKRAR EDILMEZ.
+    "MG",
 })
 
 # 🔴 REDDEDILEN ADAYLAR (2 Agu, mimar karari) — kayda geciyor ki bir sonraki tur ayni
