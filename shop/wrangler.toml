@@ -103,7 +103,7 @@ simple = { limit = 10, period = 60 }
 # basi 24 saat sayaci + bot dogrulamasidir. AYRI namespace: odeme/fiyat/beacon kotasini
 # tuketmez. namespace_id HESAP GENELINDE benzersiz: 1001-1003 shop · 1004 onizleme ·
 # 1005-1006 pruvo-bot -> foto 1007 (5 Eki: 1004 cakisti, derleme-hiz-siniri V7 yakaladi) ·
-# 1008 inis sayaci (INIS_RATE_LIMIT, asagida). SIR YOK.
+# 1008 inis sayaci (INIS_RATE_LIMIT, asagida) · 1009 riza sayaci (RIZA_RATE_LIMIT). SIR YOK.
 [[unsafe.bindings]]
 name = "FOTO_RATE_LIMIT"
 type = "ratelimit"
@@ -120,6 +120,17 @@ simple = { limit = 6, period = 60 }
 name = "INIS_RATE_LIMIT"
 type = "ratelimit"
 namespace_id = "1008"
+simple = { limit = 10, period = 60 }
+
+# KIMLIKSIZ RIZA SAYACI — POST /api/shop/riza (src/riza-sayac.js). AYRI ad + AYRI namespace (INIS/REF
+# ile PAYLASILMAZ — gerekce FIYAT blogundaki AYRI KOTA notu). Uc IP OKUMAZ (kisisel veri sifir) ->
+# anahtar = beyaz listeli KARAR (3 deger: kabul|ret|kapat): karar basina 10/60 sn, kolo basina
+# bolunur (EN IYI CABA, garantili sinir DEGIL). Kod FAIL-CLOSED-SESSIZ: binding yoksa ya da
+# limiter patlarsa 204 doner, D1'e YAZILMAZ. namespace 1009 (1001-1008 dolu, bkz. FOTO notu). SIR YOK.
+[[unsafe.bindings]]
+name = "RIZA_RATE_LIMIT"
+type = "ratelimit"
+namespace_id = "1009"
 simple = { limit = 10, period = 60 }
 
 # Uretim dosyalari (STL/3MF) OZEL R2 kovasinda (pruvo-media DEGIL — ticari dosya public'e

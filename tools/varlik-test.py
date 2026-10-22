@@ -427,6 +427,55 @@ BILEREK_DEGISEN_TAM = (
     ('if(label){ var eD = has ? "Sepette ✓ — çıkarmak için tıklayın" : "Sepete Ekle"; '
      'btn.setAttribute("aria-label", eD); btn.setAttribute("title", eD); }',
      "YENI: etiketli sepet butonunda aria/title durum senkronu (nobetci: cta-denge-kapisi.py)"),
+    # 2026-10-22 — RIZA BANDI ESIT GORUNURLUK + KIMLIKSIZ SAYAC (BaBa 22 Eki 17:1x + 16:4x (a)).
+    # TEK OLAY: 6 bant kopyasi (5 statik sayfa + GA_BANNER_SNIPPET) gizlilik sayfasindaki KANONIK
+    # betige esitlendi (bannerTazele + geri alma kolu + rizaYayinla), x dugmesi ve kaydet() icinde
+    # tek sayac beacon'i eklendi. Varliga-tasima kaybi DEGIL; bilerek yapilan riza davranisi degisimi.
+    # 🔴 SATIRLAR AYIRT EDICI SECILDI: kanonik betik BILEREK tek satirlik fonksiyonlarla yazildi;
+    # jenerik satir (`}` · `rizaYayinla();` · `bannerTazele();`) URETILMEDI, bu tabloya GIRMEDI.
+    # 🔴 IDDIA TASINDI: 6 kopyanin bayt-esitligi, Kabul/Reddet esit gorunurlugu, x = ret yolu ve
+    # beacon govdesi tools/riza-bandi-esitlik-test.py'de; davranis tools/riza-tikkimligi-test.js'de
+    # (node:vm tiklama) fail-closed olculur.
+    # --- ESKI (kiyas commit'inde) ---
+    ('el.hidden = false;',
+     'gorunurluk ilk karari dogrudan yaziliyordu — ESKI goster satiri (yerini bannerTazele aldi)'),
+    ('if(typeof window.pruvoMetaBaslat === "function"){ window.pruvoMetaBaslat(); }',
+     'Meta baslatma cagrisi tek basina satirdi — ESKI (artik rizaYayinla ile ayni satirda)'),
+    ('if(typeof window.pruvoRefRiza === "function"){ window.pruvoRefRiza(); }',
+     'bant yalniz ref katmanini uyariyordu — ESKI (artik rizaYayinla: atif + ref)'),
+    ('kaydet("ret");',
+     'Reddet yalniz kaydediyordu — ESKI (artik ayni satirda rizaYayinla)'),
+    ('try { kabul.focus(); } catch(e){}',
+     "odak kosulsuz Kabul'e veriliyordu — ESKI (artik yalniz bant gorunurken)"),
+    # --- YENI (kanonik bant betigi) ---
+    ('function secim(){ try { return localStorage.getItem(ANAHTAR); } catch(e){ return null; } }',
+     'YENI: sakli secim tek okuyucu (gorunurluk tek kaynak)'),
+    ('function kapsamSecimi(){ try { return localStorage.getItem(KAPSAM_ANAHTARI); } catch(e){ return null; } }',
+     'YENI: sakli kapsam tek okuyucu'),
+    ('function bannerTazele(){ var s = secim(), k = kapsamSecimi(); el.hidden = (s === "ret") || (s === "kabul" && !!k && k === kapsamAdi()); }',
+     'YENI: gorunurluk YALNIZ sakli rizadan turer (ayri bayrak yok)'),
+    ('function rizaSay(k){ try { if(typeof navigator.sendBeacon === "function"){ navigator.sendBeacon("/api/shop/riza", JSON.stringify({k: k})); } } catch(e){} }',
+     "YENI: kimliksiz riza sayaci beacon'i — govde yalniz {k} (nobetci: riza-bandi-esitlik-test.py E8)"),
+    ('function kaydet(deger, sayac){ var k = deger === "kabul" ? kapsamAdi() : ""; try { localStorage.setItem(ANAHTAR, deger); if(k){ localStorage.setItem(KAPSAM_ANAHTARI, k); } else { localStorage.removeItem(KAPSAM_ANAHTARI); } } catch(e){} if(deger !== "kabul" && typeof window.pruvoRizaUygula === "function"){ window.pruvoRizaUygula(\'denied\'); } bannerTazele(); rizaSay(sayac || deger); }',
+     "YENI kaydet(): karar YAZILDIKTAN sonra tek sayac beacon'i"),
+    ('function rizaYayinla(){ if(typeof window.pruvoAtifRiza === "function"){ window.pruvoAtifRiza(); } if(typeof window.pruvoRefRiza === "function"){ window.pruvoRefRiza(); } }',
+     "YENI: riza degisimi atif + ref katmanina (snippet'te eksik pruvoAtifRiza GELDI)"),
+    ('function rizaGeriAl(){ try { localStorage.removeItem(ANAHTAR); localStorage.removeItem(KAPSAM_ANAHTARI); } catch(e){} if(typeof gtag === "function"){ gtag(\'consent\',\'update\',{\'analytics_storage\':\'denied\',\'ad_storage\':\'denied\',\'ad_user_data\':\'denied\',\'ad_personalization\':\'denied\'}); } rizaYayinla(); bannerTazele(); try { kabul.focus(); } catch(e){} }',
+     'YENI: riza geri alma yolu (dugme yalniz gizlilik sayfasinda; yoksa baglanmaz)'),
+    ('if(typeof window.pruvoMetaBaslat === "function"){ window.pruvoMetaBaslat(); } rizaYayinla();',
+     "YENI: Kabul'de Meta baslar + katmanlar uyarilir"),
+    ('kaydet("ret"); rizaYayinla();',
+     'YENI: Reddet katmanlari uyarir (cerez/kimlik silinir)'),
+    ('if(kapat){ kapat.addEventListener("click", function(){ kaydet("ret", "kapat"); rizaYayinla(); }); }',
+     'YENI: x dugmesi = Reddet ile AYNI yol (nobetci: riza-bandi-esitlik-test.py E5)'),
+    ('var kapat = document.getElementById("pco-kapat");',
+     'YENI: x dugmesi referansi'),
+    ('var degistir = document.getElementById("pco-degistir");',
+     'YENI: geri alma dugmesi referansi'),
+    ('if(degistir){ degistir.addEventListener("click", rizaGeriAl); }',
+     'YENI: geri alma dugmesi baglantisi'),
+    ('bannerTazele(); if(!el.hidden){ try { kabul.focus(); } catch(e){} }',
+     'YENI: ilk gorunurluk + yalniz gorunurken odak'),
 )
 
 # ---------------------------------------------------------------- CSS BEYANI
@@ -576,11 +625,15 @@ BILEREK_DEGISEN_CSS_OZEL = (
     ("right:0;bottom:0;z-index:2147483000;\n"
      "    background:#12294d;color:#fff;padding:15px 18px;box-shadow:0 -2px 14px",
      "right:0;top:0;z-index:2147483000;\n"
-     "    background:#12294d;color:#fff;padding:15px 18px;box-shadow:0 2px 14px",
-     "riza bandi UST konum (nobetci: reklam-etiket-kapisi.py SINIF C, K19)"),
+     "    background:#12294d;color:#fff;padding:15px 58px 15px 18px;box-shadow:0 2px 14px",
+     "riza bandi UST konum; 22 Eki: sag dolgu x dugmesine yer acar "
+     "(nobetci: reklam-etiket-kapisi.py SINIF C, K19 · riza-bandi-esitlik-test.py E5)"),
     # 2026-10-19 — "TIKLAMAYA TESVIK" (Okan 16:2x): Kabul Et birincil (buyuk, mobilde tam
     # genislik, ilk sira); Reddet AYNI katmanda tek tik <button>, baglanti GORUNUMU.
     # Nobetci: reklam-etiket-kapisi.py SINIF C (Kabul DOM'da once K20 · Reddet <button> K21).
+    # 2026-10-22 (BaBa 17:1x, KVKK esit kolaylik): Reddet baglanti GORUNUMUNDEN cikti — Kabul ile
+    # AYNI dolgu/yazi/kose, ikisi de dolu dugme + AA kontrast, mobilde ikisi de tam genislik; x dugmesi.
+    # Nobetci: tools/riza-bandi-esitlik-test.py (E2 esit bildirim · E3 dolu+AA · E4 mobil · E5 x).
     ("  #pruvo-cerez-onay .pco-btns{display:flex;gap:10px;flex:0 0 auto}\n"
      "  #pruvo-cerez-onay button{cursor:pointer;border:none;border-radius:8px;padding:10px 18px;\n"
      "    font-size:14px;font-weight:700;font-family:inherit}\n"
@@ -591,13 +644,16 @@ BILEREK_DEGISEN_CSS_OZEL = (
      "  #pruvo-cerez-onay .pco-btns{display:flex;gap:10px;flex:0 0 auto;align-items:center}\n"
      "  #pruvo-cerez-onay button{cursor:pointer;border:none;border-radius:8px;font-family:inherit}\n"
      "  #pruvo-cerez-onay .pco-kabul{background:#d1332e;color:#fff;padding:12px 28px;\n"
-     "    font-size:15px;font-weight:700}\n"
-     "  #pruvo-cerez-onay .pco-ret{background:none;color:#dbe4f2;padding:12px 10px;\n"
-     "    font-size:14px;font-weight:400;text-decoration:underline}\n"
+     "    font-size:15px;font-weight:700;border-radius:8px;min-width:128px;min-height:46px}\n"
+     "  #pruvo-cerez-onay .pco-ret{background:#e9eef6;color:#12294d;padding:12px 28px;\n"
+     "    font-size:15px;font-weight:700;border-radius:8px;min-width:128px;min-height:46px}\n"
+     "  #pruvo-cerez-onay .pco-kapat{position:absolute;top:6px;right:6px;background:transparent;\n"
+     "    color:#fff;font-size:24px;line-height:1;padding:0;width:44px;height:44px}\n"
      "  #pruvo-cerez-onay button:focus-visible{outline:3px solid #ffd166;outline-offset:2px}\n"
      "  @media (max-width:600px){\n"
-     "    #pruvo-cerez-onay .pco-btns{flex:1 1 100%;flex-direction:column;align-items:stretch;gap:4px}\n"
+     "    #pruvo-cerez-onay .pco-btns{flex:1 1 100%;flex-direction:column;align-items:stretch;gap:8px}\n"
      "    #pruvo-cerez-onay .pco-kabul{width:100%}\n"
+     "    #pruvo-cerez-onay .pco-ret{width:100%}\n"
      "  }\n",
      "Kabul Et birincil, Reddet ayni katmanda tek tik (nobetci: reklam-etiket-kapisi.py "
      "SINIF C, K20/K21)"),
