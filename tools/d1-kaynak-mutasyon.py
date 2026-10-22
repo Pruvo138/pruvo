@@ -3,7 +3,7 @@
 """MUTASYON SURUCUSU — d1-sync KATALOG KAYNAGI bayragi (`--head` / `--kaynak`) gercekten
 olculuyor mu?
 
-  python3 tools/d1-kaynak-mutasyon.py
+  python3 tools/d1-kaynak-mutasyon.py   (M6-M9: d1-kaynak-sync.py --durum YETIM siniflamasi)
 
 NEDEN REPODA DURUYOR: anlatilan batarya kanit DEGILDIR
 ([[mutasyon-kaniti-yeniden-uretilebilir]]). Bu bayragin en buyuk riski SESSIZ ETKISIZLIK:
@@ -66,6 +66,34 @@ MUTANTLAR = [
      ["B1"],
      "BELIRSIZLIK KAPISI KALKAR: --kaynak ve --head birlikte kabul edilir, hangisinin "
      "kostugu koda gomulu sirayla belirlenir (operator goremez)"),
+    ("M6", "d1-kaynak-sync.py",
+     '        sinif["GERCEK_EKSIK" if urun_id in katalog else "SILINMIS"].append(urun_id)\n',
+     '        sinif["GERCEK_EKSIK"].append(urun_id)\n',
+     ["D3", "D4", "D5"],
+     "YETIM KORLUGU: silinmis urunun eski linki GERCEK_EKSIK sayilir -> --durum yine "
+     "kalici SAPMA basar, gercek eksik gurultunun icinde gorunmez olur"),
+    ("M7", "d1-kaynak-sync.py",
+     "    sapma = sinif[\"GERCEK_EKSIK\"] or silinecek\n",
+     "    sapma = eksik or silinecek\n",
+     ["D5"],
+     "HUKUM SILINMIS'I SAYAR: sinif dogru basilir ama hukum yine butun EKSIK'e bakar -> "
+     "yalniz silinmis kalan durum SAPMA yakar"),
+    ("M8", "d1-kaynak-sync.py",
+     "    except (OSError, ValueError):\n        return None\n",
+     "    except (OSError, ValueError):\n        return set()\n",
+     ["D2", "D6"],
+     "FAIL-OPEN: okunamayan katalog BOS kume olur -> her eksik SILINMIS sayilir ve hukum "
+     "SENKRON der (OLCULEMEDI olmasi gerekirken)"),
+    ("M9", "d1-kaynak-sync.py",
+     "    sapma = sinif[\"GERCEK_EKSIK\"] or silinecek\n",
+     "    sapma = sinif[\"GERCEK_EKSIK\"]\n",
+     ["D8"],
+     "FAZLA SUSTURULUR: D1'de gizli kayitta olmayan satir varken hukum SENKRON der"),
+    ("M10", "d1-kaynak-sync.py",
+     '    u["D1_KATALOG_DISI"] = len(d1) - u["D1_KATALOGDA"]\n',
+     '    u["D1_KATALOG_DISI"] = 0\n',
+     ["D10"],
+     "UZLASMA KORELIR: katalog disi D1 satirlari (silinmis urunun kalan linki) sifir gorunur"),
     ("K1", "d1-sync.py",
      '        return yol, "--kaynak %s" % yol, False\n',
      '        return yol, "--kaynak {}".format(yol), False\n',
@@ -107,8 +135,11 @@ def iddia_kodlari(cikti):
 
 
 def kos(kok):
+    # PRUVO_VERI_KOK=ayna: worktree'den kosulunca aynanin `.git` baglantisi veri kokunu ANA
+    # kopyaya cozer ve C2 mutantsiz kirmizi yanar (taban OLCULEMEDI) — 21 Eki olculdu.
     r = subprocess.run([sys.executable, os.path.join(kok, "tools", KAPI)],
-                       capture_output=True, text=True, cwd=kok)
+                       capture_output=True, text=True, cwd=kok,
+                       env=dict(os.environ, PRUVO_VERI_KOK=kok))
     return r, (r.stdout or "") + (r.stderr or "")
 
 

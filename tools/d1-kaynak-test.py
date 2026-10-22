@@ -19,6 +19,10 @@ BU TESTIN OLCTUGU IKI SEY:
      ([[fikstur-degeri-mutasyon-koru]]).
   2. BAYRAKSIZ DAVRANIS DEGISMEDI: bayrak verilmeyince modul sabitine DOKUNULMAZ ve
      cikti YENI BIR SATIR BASMAZ (kancalar bugunku davranisa bagli).
+  3. [D] `d1-kaynak-sync.py --durum` YETIM SINIFLAMASI (21 Eki): EKSIK link urunu
+     katalogda yoksa SILINMIS (kirmizi yakmaz), varsa GERCEK_EKSIK (SAPMA), katalog
+     okunamazsa OLCULEMEDI. Olcum oncesi 463 eksigin hepsi SAPMA'ydi; gercek eksik
+     gurultunun icinde gorunmuyordu.
 
 CANLI D1'e / wrangler'a / AGA DOKUNMAZ. Mutasyon surucusu: tools/d1-kaynak-mutasyon.py
 """
@@ -202,6 +206,96 @@ dogrula("C7 bayrak `--kendini-test` sonucunu DEGISTIRMEZ (iddia sayilari birebir
 
 import shutil                                                       # noqa: E402
 shutil.rmtree(tmp, ignore_errors=True)
+
+# ══ D) YETIM SINIFLAMASI — d1-kaynak-sync.py --durum EKSIK kirilimi ════════════════
+# EKSIK link urunu katalogda YOKSA SILINMIS (kirmizi yakmaz), VARSA GERCEK_EKSIK (SAPMA).
+# Gizli kayit, katalog ve D1 sahte: gecici dosyalar + ortak gercek wrangler zarfi. AGA CIKMAZ.
+print("\n[D] YETIM SINIFLAMASI — SILINMIS / GERCEK_EKSIK / OLCULEMEDI")
+import contextlib                                                   # noqa: E402
+import io                                                           # noqa: E402
+import d1_zarf_fikstur                                              # noqa: E402
+
+ks = yukle_modul("d1_kaynak_sync_yetim", "d1-kaynak-sync.py")
+tmp_d = tempfile.mkdtemp(prefix="d1-kaynak-yetim-")
+
+
+def _yaz(ad, veri):
+    yol = os.path.join(tmp_d, ad)
+    with open(yol, "w", encoding="utf-8") as f:
+        f.write(veri if isinstance(veri, str) else json.dumps(veri))
+    return yol
+
+
+def _durum(yerel_idler, d1_idler, katalog):
+    """durum()'u sahte gizli kayit + katalog + D1 zarfiyla kos -> (rc, cikti)."""
+    ks.KAYNAKLAR = _yaz("kaynaklar.json",
+                        {i: {"link": "https://example.com/%s" % i} for i in yerel_idler})
+    ks.URUNLER = _yaz("urunler.json", katalog)
+    satirlar = [{"id": i, "link": "https://example.com/%s" % i} for i in d1_idler]
+    ks.ds = type("DS", (), {"sorgu": staticmethod(
+        lambda sql: d1_zarf_fikstur.zarf(satirlar) if "FROM urun_kaynak" in sql
+        else d1_zarf_fikstur.zarf([{"name": "urun_kaynak"}]))})
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        rc = ks.durum()
+    return rc, buf.getvalue()
+
+
+def _katalog(*idler):
+    return [{"id": i, "baslik": i} for i in idler]
+
+
+_gercek_ds = ks.ds
+try:
+    dogrula("D1 katalog_idleri gecerli katalogdan id kumesini okur",
+            ks.katalog_idleri(_yaz("k.json", _katalog("a", "b"))) == {"a", "b"})
+    bozuklar = {"dizi-degil": {"id": "a"}, "json-degil": "{bozuk", "bos-dizi": [],
+                "idsiz-kayit": [{"id": "a"}, {"baslik": "id yok"}],
+                "dosya-yok": None}
+    sonuc_b = {ad: ks.katalog_idleri(_yaz("b-%s.json" % ad, v) if v is not None
+                                     else os.path.join(tmp_d, "__yok__.json"))
+               for ad, v in bozuklar.items()}
+    dogrula("D2 bozuk katalog (dizi degil / json degil / bos / id'siz kayit / dosya yok) "
+            "-> None (OLCULEMEDI, fail-closed)",
+            all(v is None for v in sonuc_b.values()), str(sonuc_b))
+    s3 = ks.yetim_sinifla(["silinmis-1", "var-1"], {"var-1", "baska"})
+    dogrula("D3 silinmis id -> SILINMIS, katalogda var-ama-D1'de-yok -> GERCEK_EKSIK",
+            s3 == {"SILINMIS": ["silinmis-1"], "GERCEK_EKSIK": ["var-1"]}, str(s3))
+
+    rc4, c4 = _durum(["a", "b", "c"], ["a"], _katalog("a", "b"))
+    dogrula("D4 durum: 1 silinmis + 1 gercek eksik -> 'YETIM SILINMIS=1 GERCEK_EKSIK=1 "
+            "TOPLAM=2', HUKUM=SAPMA rc=1",
+            "YETIM SILINMIS=1 GERCEK_EKSIK=1 TOPLAM=2" in c4 and "HUKUM=SAPMA" in c4
+            and rc4 == 1, "rc=%d %r" % (rc4, c4[-160:]))
+    rc5, c5 = _durum(["a", "c"], ["a"], _katalog("a", "b"))
+    dogrula("D5 🔴 yalniz SILINMIS kaldiysa kirmizi YAKMAZ: SILINMIS=1 GERCEK_EKSIK=0, "
+            "HUKUM=SENKRON rc=0",
+            "YETIM SILINMIS=1 GERCEK_EKSIK=0 TOPLAM=1" in c5 and "HUKUM=SENKRON" in c5
+            and rc5 == 0, "rc=%d %r" % (rc5, c5[-160:]))
+    rc6, c6 = _durum(["a", "c"], ["a"], "{bozuk")
+    dogrula("D6 katalog okunamazsa YETIM OLCULEMEDI + HUKUM=OLCULEMEDI rc=1 (SENKRON "
+            "denmez)",
+            "YETIM OLCULEMEDI" in c6 and "HUKUM=OLCULEMEDI" in c6 and rc6 == 1
+            and "HUKUM=SENKRON" not in c6, "rc=%d %r" % (rc6, c6[-160:]))
+    eksik4 = [s for s in c4.splitlines() if s.startswith("EKSIK=")]
+    dogrula("D7 sinif toplami = EKSIK satiri (TOPLAM=2 ve EKSIK=2)",
+            eksik4 == ["EKSIK=2"] and "TOPLAM=2" in c4, str(eksik4))
+    rc8, c8 = _durum(["a"], ["a", "z"], _katalog("a"))
+    dogrula("D8 FAZLA>0 iken GERCEK_EKSIK=0 olsa da HUKUM=SAPMA rc=1 (fazla satir "
+            "susturulmaz)",
+            "FAZLA=1" in c8 and "HUKUM=SAPMA" in c8 and rc8 == 1,
+            "rc=%d %r" % (rc8, c8[-160:]))
+    rc10, c10 = _durum(["a", "b", "c"], ["a", "c"], _katalog("a", "b", "d"))
+    dogrula("D10 UZLASMA: katalog = TAM + GERCEK_EKSIK + LINKSIZ, D1 = KATALOGDA + "
+            "KATALOG_DISI",
+            "UZLASMA KATALOG=3 TAM=1 GERCEK_EKSIK=1 LINKSIZ=1" in c10
+            and "UZLASMA D1_SATIR=2 KATALOGDA=1 KATALOG_DISI=1" in c10,
+            "rc=%d %r" % (rc10, c10[-200:]))
+    dogrula("D9 GIZLILIK: durum ciktisinda link yok (yalniz SAYI)",
+            all("://" not in c for c in (c4, c5, c6, c8, c10)))
+finally:
+    ks.ds = _gercek_ds
+    shutil.rmtree(tmp_d, ignore_errors=True)
 
 print("\nNE OLCULMEDI (beyan):")
 print("  1. CANLI SENKRON YOLU: --kaynak/--head ile fiilen D1'e yazan kosum burada")

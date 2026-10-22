@@ -10,10 +10,17 @@ ile beslenir; satir sayisi + en az bir alan degeri birebir beklenenle eslesmeli.
 MUTANT (M1): mutant kopyada ayristirma satiri `blok.get("results")` -> `[]` kirilir;
 Z vakasi KIRMIZI yanar (0 satir sayar).
 
-Son satir: KABUL <g>/1 MUTANT <m>/1  (YESIL icin 1/1 + 1/1; rc=0).
+VAKA (Y, 21 Eki): `--durum` YETIM siniflamasi ayni gercek zarf uzerinden uctan uca —
+silinmis id -> SILINMIS (kirmizi yakmaz), katalogda var-ama-D1'de-yok -> GERCEK_EKSIK
+(SAPMA), bozuk katalog -> OLCULEMEDI.
+MUTANT (M2): SILINMIS'i GERCEK_EKSIK sayan kopya -> Y KIRMIZI yanar.
+
+Son satir: KABUL <g>/2 MUTANT <m>/2  (YESIL icin 2/2 + 2/2; rc=0).
 """
+import contextlib
 import importlib
 import importlib.util
+import io
 import json as _json
 import os
 import shutil
@@ -77,6 +84,63 @@ def mutasyonla(yol, eski, yeni):
         raise AssertionError("MUTANT CAPASI BAYAT: %r govdede %d kez" % (eski, govde.count(eski)))
     with open(yol, "w", encoding="utf-8") as f:
         f.write(govde.replace(eski, yeni))
+
+
+_LOADER = ('_ds_spec = importlib.util.spec_from_file_location("d1_sync", _DS_YOL)\n'
+           'ds = importlib.util.module_from_spec(_ds_spec)\n'
+           '_ds_spec.loader.exec_module(ds)')
+
+
+def _mutant_ns(eski, yeni):
+    """Arac govdesini `eski`->`yeni` ile bozup ayri bir ad alaninda kur. Capa tek degilse None.
+    d1-sync gercek haliyle (yeniden yuklenmeden) baglanir; ag/subprocess bekcisi gecerli."""
+    with open(ARAC, encoding="utf-8") as f:
+        govde = f.read()
+    if govde.count(eski) != 1 or govde.count(_LOADER) != 1:
+        return None
+    if "d1_sync_mutant" not in sys.modules:
+        _yukle_isimle("d1_sync_mutant", os.path.join(TOOLS, "d1-sync.py"))
+    govde = govde.replace(eski, yeni, 1).replace(
+        _LOADER, 'ds = sys.modules["d1_sync_mutant"]', 1)
+    ns = {"__name__": "_mutant_", "__file__": ARAC}
+    exec(govde, ns)
+    return ns
+
+
+def _yetim_vakalari(durum_fn, ayarla, tmp):
+    """durum()'u sahte gizli kayit + katalog + GERCEK zarfla kos. Doner: sorun metni ya da ""."""
+    def kos(yerel_idler, d1_idler, katalog):
+        kay = os.path.join(tmp, "kaynaklar.json")
+        kat = os.path.join(tmp, "urunler.json")
+        with open(kay, "w", encoding="utf-8") as f:
+            _json.dump({i: {"link": "https://example.com/%s" % i} for i in yerel_idler}, f)
+        with open(kat, "w", encoding="utf-8") as f:
+            f.write(katalog if isinstance(katalog, str)
+                    else _json.dumps([{"id": i} for i in katalog]))
+        satir = [{"id": i, "link": "https://example.com/%s" % i} for i in d1_idler]
+        ayarla("KAYNAKLAR", kay)
+        ayarla("URUNLER", kat)
+        ayarla("ds", type("DS", (), {"sorgu": staticmethod(
+            lambda sql: d1_zarf_fikstur.zarf(satir) if "FROM urun_kaynak" in sql
+            else d1_zarf_fikstur.zarf([{"name": "urun_kaynak"}]))}))
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = durum_fn()
+        return rc, buf.getvalue()
+
+    beklenen = (
+        ("ikisi", (["silinmis", "var", "tam"], ["tam"], ["tam", "var"]), 1,
+         ["YETIM SILINMIS=1 GERCEK_EKSIK=1 TOPLAM=2", "HUKUM=SAPMA"]),
+        ("yalniz-silinmis", (["silinmis", "tam"], ["tam"], ["tam"]), 0,
+         ["YETIM SILINMIS=1 GERCEK_EKSIK=0 TOPLAM=1", "HUKUM=SENKRON"]),
+        ("bozuk-katalog", (["silinmis", "tam"], ["tam"], "{bozuk"), 1,
+         ["YETIM OLCULEMEDI", "HUKUM=OLCULEMEDI"]),
+    )
+    for ad, girdi, rc_bek, satirlar in beklenen:
+        rc, cikti = kos(*girdi)
+        if rc != rc_bek or any(s not in cikti for s in satirlar) or "://" in cikti:
+            return "%s: rc=%d (bek %d) cikti=%r" % (ad, rc, rc_bek, cikti[-160:])
+    return ""
 
 
 def main():
@@ -182,12 +246,35 @@ def main():
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 
-    z_n = len([g for g in gecen if g.startswith("Z")])
+    # ── Y: --durum YETIM siniflamasi gercek zarf uzerinden (uctan uca) ─────────
+    tmp_y = tempfile.mkdtemp(prefix="d1-kaynak-sync-yetim-")
+    asil = {k: getattr(m, k) for k in ("KAYNAKLAR", "URUNLER", "ds")}
+    try:
+        sorun = _yetim_vakalari(m.durum, lambda k, v: setattr(m, k, v), tmp_y)
+        (hata.append("Y " + sorun) if sorun else gecen.append("Y"))
+
+        # ── M2: SILINMIS'i GERCEK_EKSIK sayan kopya -> Y KIRMIZI yanmali ───────
+        ns = _mutant_ns(
+            '        sinif["GERCEK_EKSIK" if urun_id in katalog else "SILINMIS"]'
+            '.append(urun_id)\n',
+            '        sinif["GERCEK_EKSIK"].append(urun_id)\n')
+        if ns is None:
+            hata.append("M2 MUTANT CAPASI BAYAT (siniflama/yukleyici satiri govdede tek degil)")
+        elif _yetim_vakalari(ns["durum"], ns.__setitem__, tmp_y):
+            gecen.append("M2")
+        else:
+            hata.append("M2 SILINMIS->GERCEK_EKSIK mutanti Y vakalarini GECTI (kor test)")
+    finally:
+        for k, v in asil.items():
+            setattr(m, k, v)
+        shutil.rmtree(tmp_y, ignore_errors=True)
+
+    z_n = len([g for g in gecen if g in ("Z", "Y")])
     m_n = len([g for g in gecen if g.startswith("M")])
     for h in hata:
         print("KIRMIZI: %s" % h)
-    print("KABUL %d/1 MUTANT %d/1" % (z_n, m_n))
-    if hata or z_n != 1 or m_n != 1:
+    print("KABUL %d/2 MUTANT %d/2" % (z_n, m_n))
+    if hata or z_n != 2 or m_n != 2:
         print("HAL=KIRMIZI")
         return 1
     print("HAL=YESIL")
