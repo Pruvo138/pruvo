@@ -147,7 +147,13 @@ function istek(govde) {
 /** POST /yonet/durum — GERCEK router uzerinden. Doner {kod, govde, env}. */
 async function durumCagir(mevcut, hedef, ekstra) {
   const env = mockEnv(satir(mevcut, ekstra));
-  const c = await yonet(istek({ siparis_no: "PR-TEST-000001", durum: hedef }),
+  // 🔴 22 Eki 2026 — 'iptal' artigi ZORUNLU SEBEP ister (400 'iptal-sebebi-gerekli').
+  // Bu test ⑥'yi ("iptal her durumdan secilir") ve ⑦'yi (ucun kabul kumesi) OLCEYEN
+  // testtir; ikisi de gecerli bir sebeple Anlamli kalir. Sebepsiz denemek bu testin
+  // konusu DEGILDIR — o kapi `shop/test/iptal-sebep.mjs` ①'inin isi.
+  const istekGovdesi = { siparis_no: "PR-TEST-000001", durum: hedef };
+  if (hedef === "iptal") { istekGovdesi.sebep = "stok"; }
+  const c = await yonet(istek(istekGovdesi),
                         env, URL_YONET, ctxSahte, "/durum", undefined);
   let govde = null;
   try { govde = await c.json(); } catch (e) { govde = null; }
