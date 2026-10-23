@@ -1019,6 +1019,7 @@ jobs:
           python3 tools/k63-k64-mutasyon.py
           python3 tools/makerworld-lisans-test.py
           python3 tools/printables-lisans-test.py
+          python3 tools/printables-detail-tags-test.py
           python3 tools/lisans-havuz-test.py
           python3 tools/kaynak-entegrasyon-test.py
           python3 tools/thingiverse-gallery-test.py

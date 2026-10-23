@@ -709,6 +709,7 @@ query D($id: ID!) {
     filesCount imagesCount downloadCount likesCount ratingAvg thingiverseLink
     images { id order filePath }
     stls { id name fileSize }
+    tags { id name }
   }
 }
 """
