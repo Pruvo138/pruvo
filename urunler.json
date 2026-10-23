@@ -1,5 +1,30 @@
 [
   {
+    "id": "mondial-hps-plaka-lambasi-montaj-braketi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Mondial"
+    ],
+    "uyum": [
+      {
+        "marka": "Mondial"
+      }
+    ],
+    "baslik": "Mondial HPS Plaka Lambası Montaj Braketi",
+    "aciklama": "Mondial HPS motosikletinin arka plaka lambası montajı için hazırlanmış yedek braket. Orijinal montaj parçası kırıldığında aynı görevi görmesi için özel üretilir; lambayı plaka üzerindeki konumunda tutar.\nYaklaşık dış ölçüler: 48 × 42 × 10 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5641850-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5641850-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5641850-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5641850-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "iamandyf96"
+    }
+  },
+  {
     "id": "kymco-x-town-ayna-kapagi-yedek-parca",
     "kategori": "Motosiklet",
     "marka": [
