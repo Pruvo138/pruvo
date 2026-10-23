@@ -83,6 +83,20 @@ ADAPTORLER = [
     {"ad": "beta", "hostlar": ["ata-beta.example"], "kimlik": "bas-sayi:models",
      "ata_destegi": True, "yargi": "genel",
      "detaylar": {"7788": {"license": "Creative Commons - Attribution - Non-Commercial"}}},
+
+    # 🔴 ACIKLAMA EKSI fiksturu. Host `thingiverse.com` burada YALNIZCA bir COZUMLEME
+    # ANAHTARIDIR: adaptor sentetik-defterden gelir, AG'A CIKILMAZ. Gerekce: aciklamada
+    # URL'sIZ yazilan `thing:<N>` kimliginin kanonik site URL'sine cevrilmesi bu kuralin
+    # kendisidir; fikstur metinleri canli 4853978/7332849/7332847 aciklamalariyla birebir
+    # ayni sekilde yazilmistir.
+    {"ad": "tv", "hostlar": ["thingiverse.com"], "kimlik": "thing",
+     "ata_destegi": True, "yargi": "insan-adi",        # ND sozlukte SATILABILIR gorunur
+     "detaylar": {
+         "3543408": {"license": "Creative Commons - Attribution - Non-Commercial - "
+                                "No Derivatives"},
+         "3628594": {"license": "Creative Commons - Attribution"},
+         "9900001": {"license": "Attribution - NoDerivatives"},
+     }},
 ]
 
 # NC/tescilli hicbir yazimda gecmemeli (yanlis-negatif ekseni — KORU).
@@ -274,6 +288,51 @@ TESCILLI_EXCLUSIVE = ["MakerWorld Exclusive License", "Exclusive License",
                       "Attribution - Exclusive License"]
 
 
+# ---- ACIKLAMA EKSI (ucluca; ONCUL canli olcum 23 Eki 2026) ----
+# Yapisal ata alani (`ancestors`/`originals`) BOS; atif YALNIZ aciklamada. Onceki kapi
+# "ALAN-YOK" diyordu = CC BY-NC-ND turev SATILABILIR GECTI.
+A_ND = "https://www.thingiverse.com/thing:3543408"     # ata: CC BY-NC-ND
+A_CC = "https://www.thingiverse.com/thing:3628594"     # ata: CC BY
+A_NDONLY = "https://www.thingiverse.com/thing:9900001"  # ata: yalniz NoDerivatives
+
+
+def _ak(metin, **kw):
+    """Turev detayi: govde isaretli + aciklama alaninda metin (yapisal ata alani YOK)."""
+    return {"id": kw.get("id", 1), "license": "CC0", "title": "uydurma-turev",
+            kw.get("alan", "description"): metin}
+
+
+# (etiket, ad, detay, beklenen durum, beklenen rc)
+ACIKLAMA_VAKALARI = [
+    ("A1-ACIKLAMA-REMIX", "ACIKLAMA: 'Remix of <URL>' -> ata 3543408 -> IHLAL",
+     _ak("Remix of %s" % A_ND), K.DURUM_IHLAL, 1),
+    ("A2-ACIKLAMA-THING-KIMLIK",
+     "ACIKLAMA: 'based on thing:N' (URL YOK, kimlik deseni) -> IHLAL",
+     _ak("based on thing:3543408"), K.DURUM_IHLAL, 1),
+    ("A3-ACIKLAMA-ORIGINAL",
+     "ACIKLAMA: 'Original design: thing:N' -> IHLAL",
+     _ak("Original design: thing:3543408"), K.DURUM_IHLAL, 1),
+    ("A4-ACIKLAMA-CC-BY",
+     "ACIKLAMA: tetik + CC-BY ata 3628594 -> SATILABILIR (yanlis-ihlal yok)",
+     _ak("remixed from %s" % A_CC), K.DURUM_SATILABILIR, 0),
+    ("A5-ACIKLAMA-TETIKSIZ",
+     "ACIKLAMA: TETIKSIZ metindeki thing URL'si sayilmaz -> ALAN-YOK (yanlis-pozitif kapisi)",
+     _ak("kaynak: %s adresinden ilham alindi" % A_ND), K.DURUM_ALAN_YOK, 0),
+    ("A6-ACIKLAMA-OKUNAMAZ",
+     "ACIKLAMA: alan var ama str DEGIL (int) -> GECICI rc2, ALAN-YOK DEGIL",
+     _ak(123), K.DURUM_GECICI, 2),
+    ("A7-ACIKLAMA-OZ-ATIF",
+     "ACIKLAMA: oz-atif (thing:<kendi id>) -> ref 0, ALAN-YOK",
+     _ak("remix of thing:999", id=999), K.DURUM_ALAN_YOK, 0),
+    ("A8-ACIKLAMA-USED-THIS-DESIGN",
+     "ACIKLAMA: 'I used this design' (canli 4853978 metni) -> IHLAL",
+     _ak("For the lowerpart I used this design: %s" % A_ND), K.DURUM_IHLAL, 1),
+    ("A9-ATA-ND",
+     "ATA LISANSI: yalniz NoDerivatives (hicbir sozluk veto etmez) -> IHLAL",
+     _ak("based on %s" % A_NDONLY), K.DURUM_IHLAL, 1),
+]
+
+
 def _fikstur_yaz(dizin, ad, detaylar, kayitlar=None):
     yol = os.path.join(dizin, ad)
     with open(yol, "w", encoding="utf-8") as f:
@@ -337,6 +396,21 @@ def main():
             hatalar.append("[%s] %s -> rc=%s (bek %s) durumlar=%s (icinde bek %s)"
                            % (delik, ad, rc, beklenen_rc, durumlar, beklenen_durum))
         print("  %-4s %-5s %-84s rc=%s" % ("ok" if ok else "HATA", delik, ad[:84], rc))
+
+    # --- 2a) ACIKLAMA EKSI (yapisal alan bos, atif yalniz metinde) ---
+    print("  --- ACIKLAMA EKSI (tetik + aciklama; ND kurali) ---")
+    for etiket, ad, detay, beklenen_durum, beklenen_rc in ACIKLAMA_VAKALARI:
+        n += 1
+        sonuclar = _kos(detay)
+        durum = sonuclar[0]["durum"] if sonuclar else "(sonuc yok)"
+        rc = K.cikis_kodu(sonuclar)
+        ok = (durum == beklenen_durum and rc == beklenen_rc)
+        if rc == 0 and beklenen_rc != 0:
+            sessiz_gecis += 1
+        if not ok:
+            hatalar.append("[%s] %s -> durum=%s (bek %s) rc=%s (bek %s)"
+                           % (etiket, ad, durum, beklenen_durum, rc, beklenen_rc))
+        print("  %-4s %-90s durum=%-22s rc=%s" % ("ok" if ok else "HATA", ad[:90], durum, rc))
 
     # --- 2b) ZARF EKSENI TEK BASINA (her eksen AYRI oldurulebilmeli) ---
     # Bu iki iddia olmadan tavan/belirsizlik ekseni D18 (govde izi) tarafindan KAPATILIR ve

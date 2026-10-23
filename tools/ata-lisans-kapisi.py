@@ -197,6 +197,18 @@ _TESCILLI_METIN = ("standard digital file", "all rights reserved",
 # License" VETO'da KALIR. (Kalan tescilli ibareler bilerek genis birakildi: yon fail-closed.)
 _TESCILLI_DESEN = (re.compile(r"(?<!non)(?<!non[ -])\bexclusive\b"),)
 
+# 🔴 ND (NoDerivatives) KURASI: atanin lisansinda ND varsa TUREV YASAKTIR — lisansin
+# "satilabilir" olup olmadigi KONUSMAZ (ND = kullanim kisiti, satis kisiti DEGIL).
+# ONCUL OLCUM: ata thing:3543408 "Creative Commons - Attribution - Non-Commercial - No
+# Derivatives". NC zaten veto'yu tetikler; yalniz-ND yazimi ("Attribution - NoDerivatives",
+# "CC BY-ND") ise hicbir sozlukte SATILABILIR sayilirdi (olculdu) -> turev sizar.
+_ND_DESEN = re.compile(r"no[\s\-_]*deriv(?:ative)?s?\b|-\s*nd\b|\bnd\b", re.IGNORECASE)
+
+
+def lisans_nd_mi(ham):
+    """Lisans metninde NoDerivatives kisiti var mi? True -> turev hukmu ASLA satilamaz."""
+    return bool(ham) and bool(_ND_DESEN.search(str(ham)))
+
 
 def lisans_vetosu(ham):
     """NC / tescilli-kapali lisans mi? True -> HICBIR sozluk bunu satilabilir yapamaz."""
@@ -263,6 +275,36 @@ def coklu_sozluk_satilabilir(ham, kaynak_adaptor=None):
 # kavrama farkli ad veriyor; TEK ada bakmak sessiz gecistir (olculdu).
 ATA_ALANLARI = ("originals", "remixParents", "derivedFrom", "ancestors",
                 "originalDesigns", "remixOf")
+
+# 🔴 ACIKLAMA EKSI: bazi platformlarda turevin ATASI yalnizca serbest metinde yazar
+# (yapisal alan `ancestors` BOS gelir; atif yalniz aciklamada durur).
+# ONCUL OLCUM (23 Eki 2026, canli): Thingiverse 4853978 / 7332849 / 7332847 = thing:3543408
+# (CC BY-NC-ND) turleri; ucunun da `ancestors` alani YOK, atif YALNIZ `description` icinde.
+# Bu eksen olmadan kapi "ALAN-YOK" diyordu = SATILAMAZ turev GECIYORDU.
+ACIKLAMA_ALANLARI = ("description", "description_html", "details", "summary", "instructions")
+
+# 🔴 TETIK + LINK IKILISI: kelime YOKSA aciklamadaki URL SAYILMAZ. Aksi halde her aciklamada
+# geCEN bir kaynak linki (esinlenme/henuz uygulanmamis fikir) yanlis-pozitif uretirdi.
+# Sozcuk siniri ZORUNLU: alt-dize aramasi "remixOf"/"derivative" gibi alan adlarini da yakalar.
+ACIKLAMA_TETIKLERI = (
+    re.compile(r"\bremix(?:ed)?\b", re.IGNORECASE),
+    re.compile(r"\bremix\s+of\b", re.IGNORECASE),
+    re.compile(r"\bbased\s+on\b", re.IGNORECASE),
+    re.compile(r"\bmodified\b", re.IGNORECASE),
+    re.compile(r"\bmodification\s+of\b", re.IGNORECASE),
+    re.compile(r"\boriginal\s+(?:design|by|model|file)\b", re.IGNORECASE),
+    re.compile(r"\bderived\b", re.IGNORECASE),
+    re.compile(r"\bderivative\b", re.IGNORECASE),
+    re.compile(r"\binspired\s+by\b", re.IGNORECASE),
+    # MIMAR KARI (23 Eki 2026, canli olcum): 4853978'in aciklamasi tam olarak
+    # "For the lowerpart I used this design: <thing:3543408>" — yukaridaki9 desenin HICBIRI
+    # bunu yakalamaz ("design" kelimesi geciyor ama "original design" DEGIL).
+    re.compile(r"\bus(?:ed|ing|es)\s+(?:this|the|that|his|her|their|a|an)?\s*"
+               r"(?:design|model|part|file)s?\b", re.IGNORECASE),
+)
+
+# Metinde URL'siz yazilan kimlik ("based on thing:3543408") -> kanonik site URL'si.
+_THING_KIMLIK_RE = re.compile(r"thing:(\d+)", re.IGNORECASE)
 
 # Detay bazen zarfli gelir: {"data": {...}} / {"result": {...}}. Zarf acilmazsa ata alani
 # GORULMEZ ve kayit sessizce "ata yok" sayilir.
@@ -398,6 +440,52 @@ def ata_kayitlari(detay):
     return refs, hatalar
 
 
+def aciklama_ata_kayitlari(detay):
+    """Serbest-metin ACIKLAMA alanlarindan ata referansi cikarir -> (refs, okunamaz).
+
+    🔴 TETIK + LINK IKILISI: tetik kelimesi YOKSA o alandan 0 referans (yanlis-pozitif kapisi;
+    canli olcumde aciklamalarda tetiksiz kaynak linkleri geciyordu). Tetik VARSA:
+      (a) metindeki URL'lerden `host_coz` tanidigi olanlar,
+      (b) URL'siz yazilan `thing:<N>` kimligi -> kanonik site URL'si.
+
+    🔴 OKUNAMAZ ALAN fail-closed: alan var ama str DEGILSE (sayi/liste/sozluk) ATLANMAZ —
+    "okunamadigi icin ata yok" demek, olculmemis seyi olculmus saymaktir. Gerekce doner;
+    cagiran bunu OLCULEMEDI-GECICI'ye cevirir (rc 2, yesil sayilmaz).
+
+    Donen ref sekli `_referans_ac` ile AYNI (alan etiketi `aciklama:<alan>`), boylece ust
+    kademe zinciri ayni `ata_yargi`'dan gecer."""
+    if not isinstance(detay, dict):
+        return [], []
+    refs, okunamaz = [], []
+    for alan in ACIKLAMA_ALANLARI:
+        if alan not in detay:
+            continue
+        ham = detay[alan]
+        if ham is None or ham == "":
+            continue                                    # alan var ama BOS -> atla
+        if not isinstance(ham, str):
+            okunamaz.append("aciklama alani '%s' OKUNAMADI (%s)"
+                            % (alan, type(ham).__name__))
+            continue
+        if not any(d.search(ham) for d in ACIKLAMA_TETIKLERI):
+            continue                                    # tetik YOK -> bu alandan ref yok
+        adaylar = [u for u in urlleri_cikar(ham) if host_coz(u)]
+        adaylar += ["https://www.thingiverse.com/thing:%s" % n
+                    for n in _THING_KIMLIK_RE.findall(ham)]
+        for u in adaylar:
+            refs.append({"link": u, "license": "", "kimlik_alani": None,
+                         "alan": "aciklama:%s" % alan})
+    # Ayni link TEKRARLANMAZ: aciklamada iki kez yazilmis ya da URL + thing: ikilisi
+    # ayni kaydi iki kez uretir (cift yargi + cift IHLAL raporu).
+    tekil, gorulen = [], set()
+    for r in refs:
+        if r["link"] in gorulen:
+            continue
+        gorulen.add(r["link"])
+        tekil.append(r)
+    return tekil, okunamaz
+
+
 # ---------------------------------------------------------------- yargi
 def _sonuc(durum, gerekce, ata=None, host=None, kimlik=None, lisans=None, adaptor=None,
            derinlik=1):
@@ -483,6 +571,14 @@ def ata_yargi(ata, defter, gs, kaynak_adaptor=None, derinlik=1, gorulen=None):
         return [_sonuc(DURUM_KALICI, "ata lisansi BOS dondu", ata, host, kimlik, "",
                        adaptor.ad, derinlik)]
 
+    # 🔴 ND KURALI satilabilirlik SORGUSUNDAN ONCE gelir: "-ND" hicbir sozlukte veto degil,
+    # "Attribution - NoDerivatives" ise 'insan-adi' sozlugunde SATILABILIR sayiliyordu
+    # (olculdu) -> turev sizardi. ND bir KULLANIM kisitidir, satis kisiti DEGIL: turev
+    # uretilemez. Satilabilir sonucuna bakmadan IHLAL.
+    if lisans_nd_mi(lisans_metni):
+        return [_sonuc(DURUM_IHLAL, "ATA LISANSI ND — turev yasak",
+                       ata, host, kimlik, lisans_metni, adaptor.ad, derinlik)]
+
     if not satilabilir_ile(lisans_metni, adaptor.satilabilir):
         return [_sonuc(DURUM_IHLAL, "ATA LISANSI SATILAMAZ (turevin yeniden-lisansi gecersiz)",
                        ata, host, kimlik, lisans_metni, adaptor.ad, derinlik)]
@@ -491,7 +587,12 @@ def ata_yargi(ata, defter, gs, kaynak_adaptor=None, derinlik=1, gorulen=None):
                   ata, host, kimlik, lisans_metni, adaptor.ad, derinlik)]
 
     # --- UST KADEME (zincir): atanin kendi atalari da yargilanir ---
+    # ACIKLAMA ekseni ust kademede de okunur: atanin atasi yalniz metinde yaziliyorsa
+    # zincir TAMPAMLANMAZ (yalniz turev yakalanip ata'nin ust zinciri sessizce gecilirdi).
     ustler, sekil_hatalari = ata_kayitlari(detay)
+    ust_ak, ust_okunamaz = aciklama_ata_kayitlari(detay)
+    ustler = ustler + [r for r in ust_ak if r["link"] not in {x.get("link") for x in ustler}]
+    sekil_hatalari = sekil_hatalari + list(ust_okunamaz)
     if ustler or sekil_hatalari:
         if derinlik >= DERINLIK_TAVANI:
             out.append(_sonuc(DURUM_KALICI,
@@ -528,8 +629,21 @@ def kayit_yargi(urun_id, detay, defter, gs, kaynak_adaptor=None):
             out = [_sonuc(DURUM_KALICI, "turev detayi BOS (zarf acildiktan sonra da)")]
         else:
             atalar, sekil_hatalari = ata_kayitlari(acik)
+            # 🔴 ACIKLAMA EKSI: yapisal alan BOS olsa bile aciklama metni atayi TASIYABILIR
+            # (canli olcum: Thingiverse 4853978/7332849/7332847 -> `ancestors` BOS, atif
+            # yalniz `description` icinde). Iki kume BIRLESIR; ayni link iki kez yargilanmaz.
+            ak_refs, okunamaz = aciklama_ata_kayitlari(acik)
+            # Oz-atif: detayin KENDI kimligiyle ayni thing kimligi turevin atasi OLEMEZ.
+            # Dusulmezse her kayit kendi kimligini yazan aciklamayi "ata" sanirdi.
+            kendi = str(acik.get("id") or "").strip()
+            if kendi:
+                ak_refs = [r for r in ak_refs if _kimlik_thing(r["link"]) != kendi]
+            gorulen_link = {a.get("link") for a in atalar}
+            atalar = atalar + [r for r in ak_refs if r["link"] not in gorulen_link]
             out = [_sonuc(DURUM_KALICI, h) for h in sekil_hatalari]
-            if not atalar and not sekil_hatalari:
+            # Okunamaz aciklama alani "ata yok" DEMEZ: OLCULEMEDI-GECICI (rc 2, yesil sayilmaz).
+            out += [_sonuc(DURUM_GECICI, h) for h in okunamaz]
+            if not atalar and not sekil_hatalari and not okunamaz:
                 if govde_gorundu:
                     out = [_sonuc(DURUM_ALAN_YOK, "detay OLCULDU (govde TANINDI): ata alani yok")]
                 else:
@@ -722,6 +836,31 @@ def _veri_kok():
     vk = _modul("veri_kok.py", "ata_veri_kok")
     _kod, veri, _uyari = vk.cozumle(os.path.join(_HERE, "ata-lisans-kapisi.py"))
     return veri
+
+
+def canli_kosum(hedef):
+    """AG ISTER. TEK kaydi uretim defteriyle canli yargilar -> (sonuclar, 1).
+
+    Girdi: `thingiverse URL` · `thing:N` · `N` (yalniz thingiverse kimligi kabul edilir).
+    🔴 URL'de baska host varsa buraya GIRILMEZ: bu kip TEK platformun canli yolunu olcer;
+    yalniz sozluguyla haksiz hukum uretmemek icin evrensel bir arac DEGILDIR.
+    Veri dosyalarina DOKUNMAZ (rapor kipiyle ayni disiplin)."""
+    h = (hedef or "").strip()
+    m = re.match(r"^(?:thing:)?(\d+)$", h, re.IGNORECASE)
+    if m:
+        link = "https://www.thingiverse.com/thing:%s" % m.group(1)
+    else:
+        link = h if "//" in h else "https://" + h
+    host = host_coz(link)
+    if host != "thingiverse.com":
+        raise KaliciHata("--canli yalniz thingiverse.com kabul eder (verilen: %s)" % host)
+    defter = uretim_defteri()
+    adaptor = adaptor_bul(host, defter)
+    kimlik = adaptor.kimlik_cikar(link)
+    if not kimlik:
+        raise KaliciHata("kimlik cikarilamadi: %s" % link)
+    detay = adaptor.detay(kimlik)      # GeciciHata/KaliciHata main()'de yakalanir -> rc 2
+    return kayit_yargi(link, detay, defter, genel_satilabilir, adaptor), 1
 
 
 def uretim_defteri():
@@ -1085,6 +1224,68 @@ def kendini_test(yaz=None):
                          {"olculmedi_adaptorlu": ["a"]}) == 2))
     k.append(("derinlik tavani beyan edilmis", DERINLIK_TAVANI >= 2))
 
+    # --- ACIKLAMA EKSI (sentetik defter, AGSIZ) -------------------------------------
+    # ONCUL OLCUM (23 Eki 2026, canli): Thingiverse 4853978/7332849/7332847 = thing:3543408
+    # (CC BY-NC-ND) turleri; `ancestors` BOS, atif YALNIZ `description` icinde. Bu eksen
+    # olmadan kapi "ALAN-YOK" diyordu = SATILAMAZ turev GECIYORDU.
+    ak_defter = sentetik_defter([{
+        "ad": "tv", "hostlar": ["thingiverse.com", "thingiverse.example"], "kimlik": "thing",
+        "ata_destegi": True, "yargi": "insan-adi",           # ND satilabilir GORUNUR (olculdu)
+        "detaylar": {
+            "3543408": {"license": "Creative Commons - Attribution - Non-Commercial - "
+                                   "No Derivatives"},
+            "3628594": {"license": "Creative Commons - Attribution"},
+            "9900001": {"license": "Attribution - NoDerivatives"},
+        }}])
+    # 🔴 Host `thingiverse.com` burada YALNIZCA bir cozumleme ANAHTARIDIR: adaptor sentetik-
+    # defterden gelir, AG'A CIKILMAZ. URL'siz `thing:N` yaziminin kanonik site URL'sine
+    # cevrilmesi (ACIKLAMA kurali) ancak bu host cozumlenerek OLCULEBILIR; fiksturun metni
+    # canli 4853978 aciklamasiyla birebir ayni sekilde yazilmistir.
+
+    def _ak(metin, **kw):
+        d = {"id": kw.get("id", 1), "license": "CC0", "title": "uydurma-turev"}
+        d[kw.get("alan", "description")] = metin
+        return d
+
+    def _ak_durum(metin, **kw):
+        s = kayit_yargi("ak-fikstur", _ak(metin, **kw), ak_defter, genel_satilabilir)
+        return s[0]["durum"] if s else "(sonuc yok)"
+
+    ND = "https://www.thingiverse.com/thing:3543408"
+    BY = "https://www.thingiverse.com/thing:3628594"
+    # F1/F2/F3: ucu de ayni ata (CC BY-NC-ND) -> IHLAL. Tetikler: "Remix of <URL>",
+    # "based on thing:N" (URL YOK — kimlik deseni), "Original design: thing:N".
+    k.append(("F1 aciklama 'Remix of <URL>' -> ata yakalandi, IHLAL",
+              _ak_durum("Remix of %s" % ND) == DURUM_IHLAL))
+    k.append(("F2 aciklama 'based on thing:N' (URL'siz kimlik) -> IHLAL",
+              _ak_durum("based on thing:3543408") == DURUM_IHLAL))
+    k.append(("F3 aciklama 'Original design: thing:N' -> IHLAL",
+              _ak_durum("Original design: thing:3543408") == DURUM_IHLAL))
+    # F4: tetik + CC-BY ata -> SATILABILIR (aciklama ekseni yanlis-ihlal uretmez).
+    k.append(("F4 aciklama tetigi + CC-BY ata -> SATILABILIR",
+              _ak_durum("remixed from %s" % BY) == DURUM_SATILABILIR))
+    # F5: TETIKSIZ aciklamada thing URL'si -> 0 ref -> ALAN-YOK (yanlis-pozitif kapisi).
+    k.append(("F5 tetiksiz aciklamadaki URL yok sayilir -> ALAN-YOK",
+              _ak_durum("kaynak: %s adresinden ilham alindi" % ND) == DURUM_ALAN_YOK))
+    # F6: aciklama alani var ama str DEGIL -> OLCULEMEDI-GECICI (rc 2, yesil sayilmaz).
+    k.append(("F6 okunamaz aciklama alani -> GECICI (ALAN-YOK DEGIL)",
+              _ak_durum(123) == DURUM_GECICI))
+    # F7: oz-atif ("remix of thing:<kendi kimlik>") -> ref 0 -> ALAN-YOK.
+    k.append(("F7 oz-atif (thing:<kendi id>) -> ref 0, ALAN-YOK",
+              _ak_durum("remix of thing:999", id=999) == DURUM_ALAN_YOK))
+    # F8 (MIMAR KARI): 4853978'in aciklamasi TAM OLARAK bu -> ilk 9 desen YAKALAMAZ.
+    k.append(("F8 aciklama 'I used this design' (canli 4853978) -> IHLAL",
+              _ak_durum("For the lowerpart I used this design: %s" % ND) == DURUM_IHLAL))
+    # ND KURALI: yalniz-ND ata; hicbir sozluk bunu veto etmez ("insan-adi" SATILABILIR der).
+    k.append(("ND ata lisansi (yalniz NoDerivatives) -> IHLAL",
+              _ak_durum("based on %s" % "https://www.thingiverse.com/thing:9900001")
+              == DURUM_IHLAL))
+    k.append(("ND tespiti: 'CC BY-ND' ve 'NoDerivatives' yazimlari",
+              lisans_nd_mi("CC BY-ND") and lisans_nd_mi("Attribution - NoDerivatives")
+              and lisans_nd_mi("Creative Commons - Attribution - No Derivatives")
+              and not lisans_nd_mi("Creative Commons - Attribution - Share Alike")))
+    k.append(("aciklama alani listesi 5 ad", len(ACIKLAMA_ALANLARI) == 5))
+
     gecen = 0
     for ad, ok in k:
         yaz("  %-4s %s" % ("ok" if ok else "HATA", ad))
@@ -1100,6 +1301,8 @@ def main(argv=None):
     ap.add_argument("--kuru-kosum", action="store_true", help="gizli kaynak kayitlari (AG ISTER)")
     ap.add_argument("--limit", type=int, default=40, help="kuru kosumda taranacak kayit tavani")
     ap.add_argument("--kaynak", help="kuru kosumda kaynak adi filtresi")
+    ap.add_argument("--canli",
+                    help="TEK kayit canli yargi (<thingiverse URL | thing:N | N); veri YAZMAZ")
     a = ap.parse_args(argv)
 
     if a.kendini_test:
@@ -1116,6 +1319,15 @@ def main(argv=None):
         rapor_yaz(sonuclar, None, taranan)
         return cikis_kodu(sonuclar)
 
+    if a.canli:
+        try:
+            sonuclar, taranan = canli_kosum(a.canli)
+        except (GeciciHata, KaliciHata) as e:
+            print("OLCULEMEDI — %s" % e)
+            return 2
+        rapor_yaz(sonuclar, None, taranan)
+        return cikis_kodu(sonuclar)
+
     if a.kuru_kosum:
         try:
             sonuclar, taranan, kapsam = kuru_kosum(a.limit, a.kaynak)
@@ -1125,7 +1337,8 @@ def main(argv=None):
         rapor_yaz(sonuclar, kapsam, taranan)
         return cikis_kodu(sonuclar, kapsam)
 
-    print("OLCULEMEDI — kip secilmedi (--kendini-test | --fikstur <yol> | --kuru-kosum)")
+    print("OLCULEMEDI — kip secilmedi (--kendini-test | --fikstur <yol> | --kuru-kosum | "
+          "--canli <thing:N|URL>)")
     return 2
 
 

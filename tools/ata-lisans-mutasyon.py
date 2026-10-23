@@ -39,6 +39,31 @@ TEST_ADI = "ata-lisans-test.py"
 
 # (ad, aranan, yerine, beklenen_isaret, kanit_metni)
 MUTANTLAR = [
+    # ---------------- ACIKLAMA EKSI (23 Eki 2026) ----------------
+    # ONCUL: Thingiverse 4853978/7332849/7332847 = thing:3543408 (CC BY-NC-ND); `ancestors`
+    # BOS, atif YALNIZ aciklama metninde. Bu 4 mutant o eksenin KIRILAMAZ oldugunu olcer.
+    ("AK-01 tetik kontrolu kaldir",
+     '        if not any(d.search(ham) for d in ACIKLAMA_TETIKLERI):\n'
+     '            continue                                    # tetik YOK -> bu alandan ref yok',
+     '        pass',
+     "KIRMIZI", "[A5-ACIKLAMA-TETIKSIZ]"),
+    ("AK-02 thing: kimlik deseni kaldir",
+     '        adaylar += ["https://www.thingiverse.com/thing:%s" % n\n'
+     '                    for n in _THING_KIMLIK_RE.findall(ham)]',
+     '        adaylar = adaylar',
+     "KIRMIZI", "[A2-ACIKLAMA-THING-KIMLIK]"),
+    ("AK-03 ND kurali kaldir",
+     '    if lisans_nd_mi(lisans_metni):\n'
+     '        return [_sonuc(DURUM_IHLAL, "ATA LISANSI ND — turev yasak",\n'
+     '                       ata, host, kimlik, lisans_metni, adaptor.ad, derinlik)]',
+     '    if False:\n        pass',
+     "KIRMIZI", "[A9-ATA-ND]"),
+    ("AK-04 'I used this design' deseni kaldir (ilk 9 desen YETMEZ)",
+     '    re.compile(r"\\bus(?:ed|ing|es)\\s+(?:this|the|that|his|her|their|a|an)?\\s*"\n'
+     '               r"(?:design|model|part|file)s?\\b", re.IGNORECASE),\n',
+     '',
+     "KIRMIZI", "[A8-ACIKLAMA-USED-THIS-DESIGN]"),
+
     # ---------------- eksen: HOST cozumlemesi (kapinin yeni ekseni) ----------------
     ("OLD-01 host korlugu",
      '            if host == h or host.endswith("." + h):',
