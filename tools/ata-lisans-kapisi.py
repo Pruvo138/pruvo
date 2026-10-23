@@ -883,7 +883,7 @@ def canli_hedef_coz(hedef, defter=None):
     if m:
         link = "https://www.thingiverse.com/thing:%s" % m.group(1)
     else:
-        m_pr = re.match(r"^pr:(\d+)$", h, re.IGNORECASE)
+        m_pr = re.match(r"^(?:pr|printables):(\d+)$", h, re.IGNORECASE)   # BaBa 21:4x yazimi
         if m_pr:
             link = "https://www.printables.com/model/%s" % m_pr.group(1)
         else:

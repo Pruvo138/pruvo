@@ -691,6 +691,16 @@ def main():
     print("  %-4s P2    'pr:N' -> pr adaptoru + kimlik (CLI uctan-uca) rc=%d"
           % ("ok" if ok else "HATA", rc_p2))
 
+    # P2b: 'printables:N' (BaBa 21:4x hukmundeki yazim) -> P2 ile AYNI satir
+    n += 1
+    rc_p2b, out_p2b = _canli_cli(["--canli", "printables:1569795", "--tsv"])
+    ok = (rc_p2b == rc_p2 and out_p2b == out_p2)
+    if not ok:
+        hatalar.append("[P2B-PRINTABLES] 'printables:N' 'pr:N' ile ayni sonucu vermedi / rc=%d"
+                       % rc_p2b)
+    print("  %-4s P2b   'printables:N' == 'pr:N' (CLI uctan-uca) rc=%d"
+          % ("ok" if ok else "HATA", rc_p2b))
+
     # T1: --tsv basligi 6 sutun + her sonuc icin TEK satir (6 sutun)
     n += 1
     ok = (len(satirlar_p1) == 2
