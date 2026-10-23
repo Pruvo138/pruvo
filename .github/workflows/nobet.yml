@@ -4385,6 +4385,9 @@ jobs:
       - name: Marka uyelik kabul testi (katlanmis uyelik + anlamsiz URL nobeti)
         if: ${{ !cancelled() }}
         run: python3 tools/marka-uyelik-test.py
+      - name: Marka sayfasi dogum testi (TANINMIS marka sayfasi uretilir + mutant)
+        if: ${{ !cancelled() }}
+        run: python3 tools/marka-sayfa-dogum-test.py
 
       # MARKA INVARYANTI (Okan hukmu): "TUM markalarda sayfa ve arama urun adetlerinin
       # AYNI olmasi." Tek tek yama degil, INVARYANT. OLCULEN SESSIZ HATA (4 Agu): uctaki
