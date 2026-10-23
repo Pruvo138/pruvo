@@ -634,6 +634,8 @@ BILEREK_DEGISEN_CSS_OZEL = (
     # 2026-10-22 (BaBa 17:1x, KVKK esit kolaylik): Reddet baglanti GORUNUMUNDEN cikti — Kabul ile
     # AYNI dolgu/yazi/kose, ikisi de dolu dugme + AA kontrast, mobilde ikisi de tam genislik; x dugmesi.
     # Nobetci: tools/riza-bandi-esitlik-test.py (E2 esit bildirim · E3 dolu+AA · E4 mobil · E5 x).
+    # 2026-10-23 (BaBa 08:4x (3)): Reddet notr dolgun #707070 + beyaz yazi — iki dugmenin bant
+    # zeminine kontrasti ±%10 esit. Nobetci: riza-bandi-esitlik-test.py E3 (E3_KONTRAST oran).
     ("  #pruvo-cerez-onay .pco-btns{display:flex;gap:10px;flex:0 0 auto}\n"
      "  #pruvo-cerez-onay button{cursor:pointer;border:none;border-radius:8px;padding:10px 18px;\n"
      "    font-size:14px;font-weight:700;font-family:inherit}\n"
@@ -645,7 +647,7 @@ BILEREK_DEGISEN_CSS_OZEL = (
      "  #pruvo-cerez-onay button{cursor:pointer;border:none;border-radius:8px;font-family:inherit}\n"
      "  #pruvo-cerez-onay .pco-kabul{background:#d1332e;color:#fff;padding:12px 28px;\n"
      "    font-size:15px;font-weight:700;border-radius:8px;min-width:128px;min-height:46px}\n"
-     "  #pruvo-cerez-onay .pco-ret{background:#e9eef6;color:#12294d;padding:12px 28px;\n"
+     "  #pruvo-cerez-onay .pco-ret{background:#707070;color:#fff;padding:12px 28px;\n"
      "    font-size:15px;font-weight:700;border-radius:8px;min-width:128px;min-height:46px}\n"
      "  #pruvo-cerez-onay .pco-kapat{position:absolute;top:6px;right:6px;background:transparent;\n"
      "    color:#fff;font-size:24px;line-height:1;padding:0;width:44px;height:44px}\n"

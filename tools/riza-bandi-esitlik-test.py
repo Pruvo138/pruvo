@@ -11,7 +11,9 @@ build YOK) ve su iddialari fail-closed olcer:
   E2 .pco-kabul ve .pco-ret bildirimleri ESIT: padding · font-size · font-weight ·
      border-radius · min-height · min-width (ayni boyut, ayni yukseklik).
   E3 Reddet DOLU dugme: background:none/transparent YOK, text-decoration:underline YOK;
-     Kabul ve Reddet'in ikisi de AA (>= 4.5:1) kontrast (renkler farkli olabilir).
+     Kabul ve Reddet'in ikisi de AA (>= 4.5:1) yazi/zemin kontrastli (renkler farkli olabilir);
+     iki dugmenin background'unun bant zeminine (#pruvo-cerez-onay background) karsi kontrasti
+     ESIT gorunurlukte: oran(Reddet)/oran(Kabul) in [0.9 ; 1.1]; Reddet background NOTR (R=G=B).
   E4 Yerlesim: masaustunde iki dugme AYNI .pco-btns kabinda yan yana (flex, column DEGIL),
      DOM'da Kabul once; <=600px'te ikisi de width:100%.
   E5 x dugmesi: aria-label "Kapat (reddet)"; tiklamasi kaydet("ret", ...) + rizaYayinla()
@@ -39,6 +41,7 @@ SAYFALAR = ("index.html", "iletisim/index.html", "sss/index.html",
             "gizlilik/index.html", "hakkimizda/index.html")
 SNIPPET = "tools/build.py::GA_BANNER_SNIPPET"
 BLOK_BAS = "<!-- KVKK çerez onay banner"
+KONTRAST_ESIK = (0.9, 1.1)            # oran(Reddet zemin) / oran(Kabul zemin)
 ESIT_ALANLAR = ("padding", "font-size", "font-weight", "border-radius", "min-height", "min-width")
 METIN_JETONLARI = ("ölçüm", "reklam", "Google", "Meta")
 
@@ -126,13 +129,20 @@ def _kanal(c):
     return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
 
 
-def parlaklik(hexrenk):
-    h = hexrenk.strip().lstrip("#")
+def rgb(hexrenk):
+    h = hexrenk.strip().lower().lstrip("#")
     if re.fullmatch(r"[0-9a-f]{3}", h):
         h = "".join(ch * 2 for ch in h)
     if not re.fullmatch(r"[0-9a-f]{6}", h):
         return None                                   # hex olmayan renk -> olculemez (fail-closed)
-    r, g, b = (int(h[x:x + 2], 16) for x in (0, 2, 4))
+    return tuple(int(h[x:x + 2], 16) for x in (0, 2, 4))
+
+
+def parlaklik(hexrenk):
+    c = rgb(hexrenk)
+    if c is None:
+        return None
+    r, g, b = c
     return 0.2126 * _kanal(r) + 0.7152 * _kanal(g) + 0.0722 * _kanal(b)
 
 
@@ -142,6 +152,16 @@ def kontrast(on, arka):
         return 0.0
     a, b = max(a, b), min(a, b)
     return (a + 0.05) / (b + 0.05)
+
+
+def zemin_kontrasti(kur):
+    """(kabul, ret, ret/kabul) — iki dugme background'unun bant zeminine karsi WCAG orani."""
+    zemin = bildirimler(kur, "#pruvo-cerez-onay")
+    z = zemin.get("background", zemin.get("background-color", ""))
+    ok = [kontrast(bildirimler(kur, "#pruvo-cerez-onay .pco-%s" % d).get(
+              "background", bildirimler(kur, "#pruvo-cerez-onay .pco-%s" % d).get("background-color", "")), z)
+          for d in ("kabul", "ret")]
+    return ok[0], ok[1], (ok[1] / ok[0] if ok[0] else 0.0)
 
 
 # ------------------------------------------------------------------ eksenler
@@ -178,6 +198,13 @@ def olc(bloklar):
             if oran < 4.5:
                 h["E3"].append("%s: %s kontrasti %.2f < 4.5 (color=%r bg=%r)"
                                % (ad, etiket, oran, b.get("color"), arka))
+        zk, zr, zo = zemin_kontrasti(kur)
+        if not (KONTRAST_ESIK[0] <= zo <= KONTRAST_ESIK[1]):
+            h["E3"].append("%s: zemin kontrasti esit degil (kabul=%.2f ret=%.2f oran=%.3f, [%.1f;%.1f] disi)"
+                           % (ad, zk, zr, zo, KONTRAST_ESIK[0], KONTRAST_ESIK[1]))
+        rc = rgb(rb)
+        if rc is None or len(set(rc)) != 1:
+            h["E3"].append("%s: Reddet background notr degil (R=G=B beklenir, %r)" % (ad, rb))
         # E4 yerlesim
         kab = bildirimler(kur, "#pruvo-cerez-onay .pco-btns")
         if kab.get("display") != "flex" or kab.get("flex-direction", "row") != "row":
@@ -255,12 +282,12 @@ def _birine(bloklar, ad, eski, yeni):
     return out
 
 
-RET_CSS = ("#pruvo-cerez-onay .pco-ret{background:#e9eef6;color:#12294d;padding:12px 28px;\n"
+RET_CSS = ("#pruvo-cerez-onay .pco-ret{background:#707070;color:#fff;padding:12px 28px;\n"
            "    font-size:15px;font-weight:700;border-radius:8px;min-width:128px;min-height:46px}")
 MUTANTLAR = (
     ("M1 Reddet baglanti gorunumune doner (6 kopyada)", {"E3"},
      lambda b: _hepsine(b, RET_CSS, RET_CSS.replace(
-         "background:#e9eef6;color:#12294d", "background:none;color:#dbe4f2").replace(
+         "background:#707070;color:#fff", "background:none;color:#dbe4f2").replace(
          "min-height:46px}", "min-height:46px;text-decoration:underline}"))),
     ("M2 bir sayfa farkli (iletisim'de tek bayt)", {"E1"},
      lambda b: _birine(b, "iletisim/index.html", "Ayrıntı:", "Ayrıntı :")),
@@ -281,6 +308,13 @@ MUTANTLAR = (
      lambda b: _hepsine(b, "  bannerTazele(); if(!el.hidden)",
                         '  window.addEventListener("scroll", function(){ kaydet("kabul"); });\n'
                         "  bannerTazele(); if(!el.hidden)")),
+    ("M10 Reddet eski acik zemin #e9eef6 (6 kopyada)", {"E3"},
+     lambda b: _hepsine(b, RET_CSS, RET_CSS.replace(
+         "background:#707070;color:#fff", "background:#e9eef6;color:#12294d"))),
+    ("M11 Reddet cok koyu #4a4a4a (6 kopyada)", {"E3"},
+     lambda b: _hepsine(b, RET_CSS, RET_CSS.replace("background:#707070", "background:#4a4a4a"))),
+    ("M12 Reddet renkli ama esit kontrastli #6c7078 (6 kopyada)", {"E3"},
+     lambda b: _hepsine(b, RET_CSS, RET_CSS.replace("background:#707070", "background:#6c7078"))),
 )
 
 
@@ -303,6 +337,8 @@ def main():
         else:
             print("  ✅ %s" % e)
     print("EKSEN %d/%d yesil" % (len(h) - kirmizi, len(h)))
+    zk, zr, zo = zemin_kontrasti(css_kurallari(bloklar[SNIPPET]))
+    print("E3_KONTRAST kabul=%.3f ret=%.3f oran=%.3f" % (zk, zr, zo))
 
     survivor, eksik = 0, 0
     for ad, beklenen, uygula in MUTANTLAR:
