@@ -64,6 +64,15 @@ MUTANTLAR = [
      '',
      "KIRMIZI", "[A8-ACIKLAMA-USED-THIS-DESIGN]"),
 
+    # AK-05: "0 VURUS = TEMIZ" YASAGI. Once aciklama alanlarinin HICBIRINDE dolu metin
+    # yoksa kayit ALAN-YOK rc=0 ile "temiz" sayiliyordu (olculmedi sessizce yesile donuyordu).
+    ("AK-05 'hepsi bos' kontrolu kaldir",
+     '    if bos_aciklama_kurali and not dolu_metin:\n'
+     '        okunamaz.append("aciklama metni YOK (description/summary/... hepsi bos) — "\n'
+     '                        "0 vurus temiz sayilmaz")',
+     '    if False:\n        pass',
+     "KIRMIZI", "[B2-ACIKLAMA-YOK]"),
+
     # ---------------- eksen: HOST cozumlemesi (kapinin yeni ekseni) ----------------
     ("OLD-01 host korlugu",
      '            if host == h or host.endswith("." + h):',

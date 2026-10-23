@@ -330,6 +330,21 @@ ACIKLAMA_VAKALARI = [
     ("A9-ATA-ND",
      "ATA LISANSI: yalniz NoDerivatives (hicbir sozluk veto etmez) -> IHLAL",
      _ak("based on %s" % A_NDONLY), K.DURUM_IHLAL, 1),
+    # --- B1/B2/B3: "0 VURUS = TEMIZ" YASAGI (23 Eki 2026) ---
+    # Once aciklama alanlarinin HICBIRINDE metin yoksa kayit ALAN-YOK rc=0 ile "temiz"
+    # sayiliyordu: "olculmedi" sessizce yesile donuyordu.
+    ("B1-ACIKLAMA-BOS+SUMMARY",
+     "ACIKLAMA: description='' + summary='remix of thing:3543408' -> IHLAL "
+     "(bos alan tek basina engel DEGIL)",
+     {"id": 1, "license": "CC0", "title": "uydurma-turev", "description": "",
+      "summary": "remix of thing:3543408"}, K.DURUM_IHLAL, 1),
+    ("B2-ACIKLAMA-YOK",
+     "ACIKLAMA: hicbir aciklama alani dolu DEGIL -> GECICI rc2 (0 vurus temiz sayilmaz)",
+     {"id": 1, "license": "CC0", "title": "uydurma-turev"}, K.DURUM_GECICI, 2),
+    ("B3-ACIKLAMA-BOSLUK",
+     "ACIKLAMA: description='   ' (yalniz bosluk) -> GECICI rc2 (0 vurus temiz sayilmaz)",
+     {"id": 1, "license": "CC0", "title": "uydurma-turev", "description": "   "},
+     K.DURUM_GECICI, 2),
 ]
 
 

@@ -440,7 +440,7 @@ def ata_kayitlari(detay):
     return refs, hatalar
 
 
-def aciklama_ata_kayitlari(detay):
+def aciklama_ata_kayitlari(detay, bos_aciklama_kurali=False):
     """Serbest-metin ACIKLAMA alanlarindan ata referansi cikarir -> (refs, okunamaz).
 
     🔴 TETIK + LINK IKILISI: tetik kelimesi YOKSA o alandan 0 referans (yanlis-pozitif kapisi;
@@ -453,14 +453,22 @@ def aciklama_ata_kayitlari(detay):
     cagiran bunu OLCULEMEDI-GECICI'ye cevirir (rc 2, yesil sayilmaz).
 
     Donen ref sekli `_referans_ac` ile AYNI (alan etiketi `aciklama:<alan>`), boylece ust
-    kademe zinciri ayni `ata_yargi`'dan gecer."""
+    kademe zinciri ayni `ata_yargi`'dan gecer.
+
+    🔴 "0 VURUS = TEMIZ" YASAGI (`bos_aciklama_kurali=True`): ACIKLAMA_ALANLARI'nin
+    HICBIRINDE dolu metin yoksa (yok / None / "" / yalniz bosluk) okunamaz listesine
+    gerekce yazilir -> OLCULEMEDI-GECICI (rc 2, yesil sayilmaz). "0 vurus" (hicbir atif
+    bulunamadi) "temiz" DEMEZ: metin okunmadi, atif aranmadi."""
     if not isinstance(detay, dict):
         return [], []
     refs, okunamaz = [], []
+    dolu_metin = False
     for alan in ACIKLAMA_ALANLARI:
         if alan not in detay:
             continue
         ham = detay[alan]
+        if isinstance(ham, str) and ham.strip():
+            dolu_metin = True                          # alan DOLU (strip sonrasi bos degil)
         if ham is None or ham == "":
             continue                                    # alan var ama BOS -> atla
         if not isinstance(ham, str):
@@ -475,6 +483,12 @@ def aciklama_ata_kayitlari(detay):
         for u in adaylar:
             refs.append({"link": u, "license": "", "kimlik_alani": None,
                          "alan": "aciklama:%s" % alan})
+    # 🔴 "0 VURUS = TEMIZ" YASAGI (23 Eki 2026): aciklama alanlarinin HICBIRINDE dolu
+    # metin yoksa atif metni OKUNMADI -> "ata yok" (ALAN-YOK) DENMEZ, OLCULEMEDI-GECICI
+    # (rc 2) denir. Kural YALNIZ turev kaydin KENDISI icin ister (ust kademede UYGULANMAZ).
+    if bos_aciklama_kurali and not dolu_metin:
+        okunamaz.append("aciklama metni YOK (description/summary/... hepsi bos) — "
+                        "0 vurus temiz sayilmaz")
     # Ayni link TEKRARLANMAZ: aciklamada iki kez yazilmis ya da URL + thing: ikilisi
     # ayni kaydi iki kez uretir (cift yargi + cift IHLAL raporu).
     tekil, gorulen = [], set()
@@ -632,7 +646,12 @@ def kayit_yargi(urun_id, detay, defter, gs, kaynak_adaptor=None):
             # 🔴 ACIKLAMA EKSI: yapisal alan BOS olsa bile aciklama metni atayi TASIYABILIR
             # (canli olcum: Thingiverse 4853978/7332849/7332847 -> `ancestors` BOS, atif
             # yalniz `description` icinde). Iki kume BIRLESIR; ayni link iki kez yargilanmaz.
-            ak_refs, okunamaz = aciklama_ata_kayitlari(acik)
+            # 🔴 "0 vurus = temiz" YASAGI: YALNIZ TUREV KAYDIN KENDISINDE gecer — ust
+            # kademede (ata_yargi) UYGULANMAZ (atanin aciklamasi bos olabilir, atanin
+            # yapisal yargisi yeter; aksi her ata OLCULEMEDI olurdu). Yapisal ata
+            # bulunduysa da uygulanmaz: "vurus" var, temiz iddiasi 0 vurusa dayanmiyor.
+            ak_refs, okunamaz = aciklama_ata_kayitlari(
+                acik, bos_aciklama_kurali=govde_gorundu and not atalar)
             # Oz-atif: detayin KENDI kimligiyle ayni thing kimligi turevin atasi OLEMEZ.
             # Dusulmezse her kayit kendi kimligini yazan aciklamayi "ata" sanirdi.
             kendi = str(acik.get("id") or "").strip()
@@ -1190,9 +1209,9 @@ def kendini_test(yaz=None):
                   {"id": 1, "title": "x", "data": {"originals": []}})[0]) == ["originals"]))
     k.append(("govde izi ALAN-YOK'un on kosulu",
               _zarf_ac({"title": "x"})[2] is True and _zarf_ac({"foo": 1})[2] is False))
-    k.append(("taninan govde -> ALAN-YOK",
-              kayit_yargi("u", {"title": "x"}, defter, genel_satilabilir)[0]["durum"]
-              == DURUM_ALAN_YOK))
+    k.append(("taninan govde + aciklama metni -> ALAN-YOK",
+              kayit_yargi("u", {"title": "x", "description": "aciklama metni"},
+                          defter, genel_satilabilir)[0]["durum"] == DURUM_ALAN_YOK))
     k.append(("TANINMAYAN sekil -> ALAN-YOK DEGIL (SEKIL)",
               kayit_yargi("u", {"foo": 1}, defter, genel_satilabilir)[0]["durum"]
               == DURUM_SEKIL))
@@ -1207,7 +1226,8 @@ def kendini_test(yaz=None):
     k.append(("turev detayi BOS -> KALICI",
               kayit_yargi("u", {}, defter, genel_satilabilir)[0]["durum"] == DURUM_KALICI))
     k.append(("ALAN-YOK sonucunda urun kimligi VAR",
-              kayit_yargi("u", {"title": "x"}, defter, genel_satilabilir)[0].get("urun") == "u"))
+              kayit_yargi("u", {"title": "x", "description": "aciklama metni"},
+                          defter, genel_satilabilir)[0].get("urun") == "u"))
     bos_ata = {"link": "", "license": "", "alan": "originals"}
     k.append(("linksiz ata fail-closed",
               ata_yargi(bos_ata, defter, genel_satilabilir)[0]["durum"] == DURUM_KALICI))
@@ -1285,6 +1305,24 @@ def kendini_test(yaz=None):
               and lisans_nd_mi("Creative Commons - Attribution - No Derivatives")
               and not lisans_nd_mi("Creative Commons - Attribution - Share Alike")))
     k.append(("aciklama alani listesi 5 ad", len(ACIKLAMA_ALANLARI) == 5))
+
+    # --- B1/B2/B3: "0 VURUS = TEMIZ" YASAGI (23 Eki 2026) --------------------------------
+    # Once "0 vurus" (hicbir atif bulunamadi) ALAN-YOK rc=0 ile "temiz" sayiliyordu:
+    # aciklama alanlarinin HICBIRINDE metin yoksa "olculmedi" sessizce yesile donuyordu.
+    def _ak_durum_dic(dic):
+        s = kayit_yargi("ak-fikstur", dic, ak_defter, genel_satilabilir)
+        return s[0]["durum"] if s else "(sonuc yok)"
+
+    k.append(("B1 description='' + summary='remix of thing:3543408' -> IHLAL",
+              _ak_durum_dic({"id": 1, "license": "CC0", "title": "uydurma-turev",
+                             "description": "", "summary": "remix of thing:3543408"})
+              == DURUM_IHLAL))
+    k.append(("B2 hicbir aciklama alani dolu DEGIL -> GECICI (0 vurus temiz sayilmaz)",
+              _ak_durum_dic({"id": 1, "license": "CC0", "title": "uydurma-turev"})
+              == DURUM_GECICI))
+    k.append(("B3 description='   ' (yalniz bosluk) -> GECICI (0 vurus temiz sayilmaz)",
+              _ak_durum_dic({"id": 1, "license": "CC0", "title": "uydurma-turev",
+                             "description": "   "}) == DURUM_GECICI))
 
     gecen = 0
     for ad, ok in k:
