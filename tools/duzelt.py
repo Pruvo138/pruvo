@@ -906,6 +906,56 @@ def _kaynak_damga(idler, metin):
     return 0
 
 
+def _tasarimci_yer_tutucu(v):
+    """Gizli defterde `tasarimci` YER TUTUCU mu: alan yok/None, "", bosluk, "?"."""
+    return v is None or (isinstance(v, str) and v.strip() in ("", "?"))
+
+
+def _kaynak_tasarimci(uid, deger):
+    """`--kaynak-tasarimci ID DEGER`: gizli kaynak defterinde VAR olan kaydin yalniz
+    YER TUTUCU `tasarimci` alanini doldurur. urunler.json'a DOKUNMAZ.
+
+    Ayni flock altinda defter YENIDEN okunur, tek atomik yazim yapilir.
+      yok      : id defterde yok -> kayit YARATILMAZ (rc=3)
+      zaten    : ayni ad zaten yazili -> dokunulmaz, dosya YENIDEN YAZILMAZ (rc=0)
+      cakisma  : baska GERCEK ad var -> UZERINE YAZILMAZ (rc=4)
+      yazildi  : yer tutucu (alan yok/None/""/bosluk/"?") -> ad yazildi (rc=0)
+    GIZLILIK: stdout'a ve log'a yalniz sonuc basilir; ad/link/kayit govdesi YAZILMAZ.
+    """
+    lockf = open(LOCK, "w")
+    fcntl.flock(lockf, fcntl.LOCK_EX)
+    try:
+        try:
+            kaynaklar = _kaynak_yukle_guvenli(zorunlu=True)
+        except ValueError as e:
+            print("OLCULEMEDI: %s" % e, file=sys.stderr)
+            return 1
+        kayit = kaynaklar.get(uid)
+        if kayit is None:
+            sonuc = "yok"
+        elif not isinstance(kayit, dict):
+            print("HATA: kaynak defterinde kayit dict degil (hicbir sey yazilmadi)",
+                  file=sys.stderr)
+            return 1
+        else:
+            mevcut = kayit.get("tasarimci")
+            if mevcut == deger:
+                sonuc = "zaten"
+            elif not _tasarimci_yer_tutucu(mevcut):
+                sonuc = "cakisma"
+            else:
+                kayit["tasarimci"] = deger
+                _atomic_write(KAYNAKLAR, kaynaklar)
+                sonuc = "yazildi"
+    finally:
+        fcntl.flock(lockf, fcntl.LOCK_UN)
+        lockf.close()
+    if sonuc == "yazildi":
+        _log("kaynak-tasarimci: sonuc=%s" % sonuc)
+    print("KAYNAK_TASARIMCI sonuc=%s" % sonuc)
+    return {"yazildi": 0, "zaten": 0, "yok": 3, "cakisma": 4}[sonuc]
+
+
 def _canon(v):
     return json.dumps(v, sort_keys=True, ensure_ascii=False)
 
@@ -1404,7 +1454,30 @@ def main():
                          "damgasi yaz (--silindi ile ZORUNLU; baska argumanla kullanilmaz)")
     ap.add_argument("--silindi", metavar="METIN",
                     help="--kaynak-damga ile: yazilacak `silindi` metni (bos olamaz)")
+    ap.add_argument("--kaynak-tasarimci", nargs=2, metavar=("ID", "DEGER"),
+                    help="gizli kaynak defterinde VAR olan kaydin YER TUTUCU `tasarimci` "
+                         "alanini doldur (gercek ad uzerine yazilmaz; baska argumanla "
+                         "kullanilmaz)")
     args = ap.parse_args()
+
+    # --kaynak-tasarimci: kendi dispens; diger her arguman yasak (ilk kontrol edilir).
+    if args.kaynak_tasarimci is not None:
+        if (args.id or args.toplu is not None or args.alan or args.deger
+                or args.sil is not None or args.alan_sil or args.gerekce is not None
+                or args.yeni_id is not None or args.kaynak_temizle or args.kaynak_durum
+                or args.kaynak_damga is not None or args.silindi is not None):
+            print("HATA: --kaynak-tasarimci baska islem argumanlariyla birlikte "
+                  "kullanilamaz.", file=sys.stderr)
+            return 2
+        uid, deger = args.kaynak_tasarimci
+        if not uid.strip():
+            print("HATA: --kaynak-tasarimci bos id kabul etmez.", file=sys.stderr)
+            return 2
+        if _tasarimci_yer_tutucu(deger):
+            print("HATA: --kaynak-tasarimci bos/yer tutucu DEGER kabul etmez.",
+                  file=sys.stderr)
+            return 2
+        return _kaynak_tasarimci(uid, deger)
 
     # --kaynak-damga: kendi dispens; --silindi zorunlu, diger her arguman yasak.
     if args.kaynak_damga is not None or args.silindi is not None:

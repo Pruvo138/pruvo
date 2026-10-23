@@ -259,6 +259,154 @@ def damga_vakalari():
     VAKA[0] = "k"
 
 
+def tasarimci_vakalari():
+    """`--kaynak-tasarimci ID DEGER`: yalniz YER TUTUCU `tasarimci` doldurulur.
+    Her vaka KENDI `t-*` etiketiyle kirmizi yanar (mutasyon bataryasi kumeyi birebir olcer).
+    Gercek ad iceren tek kayit `t-cakisma` vakasindadir; ciktinin birebir bicimi yalniz
+    `t-gizlilik`te olculur (digerleri `sonuc=` alt dizesine bakar)."""
+    ad = "Gizli Tasarimci Z9"
+    tpl = {"p-1": {"link": "https://p1", "uyelik": "u-p1", "tasarimci": "?", "lisans": "CC0"},
+           "p-2": {"link": "https://p2"},
+           "p-3": {"link": "https://p3", "tasarimci": "  "}}
+
+    # ── [t-yaz] ─────────────────────────────────────────────────────────────
+    VAKA[0] = "t-yaz"
+    print("\n[t-yaz] — yer tutucu ('?', alan yok, bosluk) -> ad yazilir, rc=0")
+    repo = sahte_repo(kaynaklar=json.loads(json.dumps(tpl)), urunler=[_urun("u-var")])
+    try:
+        for uid in ("p-1", "p-2", "p-3"):
+            rc, out, err = cagir(repo, "--kaynak-tasarimci", uid, ad)
+            kontrol(rc == 0, "%s rc=0" % uid, "rc=%d err=%r" % (rc, err[-200:]))
+            kontrol("KAYNAK_TASARIMCI sonuc=yazildi" in out, "%s sonuc=yazildi" % uid,
+                    "out=%r" % out)
+            kontrol(_kaynak(repo)[uid].get("tasarimci") == ad, "%s tasarimci yazildi" % uid)
+    finally:
+        temizle(repo)
+
+    # ── [t-alanlar] ─────────────────────────────────────────────────────────
+    VAKA[0] = "t-alanlar"
+    print("\n[t-alanlar] — tasarimci disindaki alanlar/kayitlar bayt-esit")
+    repo = sahte_repo(kaynaklar=json.loads(json.dumps(tpl)), urunler=[_urun("u-var")])
+    try:
+        rc, _, _ = cagir(repo, "--kaynak-tasarimci", "p-1", ad)
+        kontrol(rc == 0, "rc=0", "rc=%d" % rc)
+        k = _kaynak(repo)
+        bek = dict(tpl["p-1"])
+        bek["tasarimci"] = ad
+        kontrol(json.dumps(k["p-1"]) == json.dumps(bek),
+                "p-1 yalniz tasarimci degisti, alan sirasi esit", "p1=%s" % sorted(k["p-1"]))
+        kontrol(json.dumps(k["p-2"]) == json.dumps(tpl["p-2"])
+                and json.dumps(k["p-3"]) == json.dumps(tpl["p-3"]), "komsu kayitlar esit")
+        kontrol(list(k.keys()) == list(tpl.keys()), "kayit sirasi/kumesi esit")
+    finally:
+        temizle(repo)
+
+    # ── [t-urunler] ─────────────────────────────────────────────────────────
+    VAKA[0] = "t-urunler"
+    print("\n[t-urunler] — urunler.json bayt-esit (yazildi yolunda bile)")
+    repo = sahte_repo(kaynaklar=json.loads(json.dumps(tpl)), urunler=[_urun("u-var")])
+    try:
+        urun_once = _oku(repo, "urunler.json")
+        rc, _, _ = cagir(repo, "--kaynak-tasarimci", "p-1", ad)
+        kontrol(rc == 0, "rc=0", "rc=%d" % rc)
+        kontrol(_oku(repo, "urunler.json") == urun_once, "urunler.json bayt-esit")
+    finally:
+        temizle(repo)
+
+    # ── [t-zaten] ───────────────────────────────────────────────────────────
+    VAKA[0] = "t-zaten"
+    print("\n[t-zaten] — ayni ad: dosya YENIDEN YAZILMAZ, rc=0")
+    kay = json.loads(json.dumps(tpl))
+    kay["p-1"]["tasarimci"] = ad
+    repo = sahte_repo(kaynaklar=kay, urunler=[_urun("u-var")])
+    try:
+        yol = os.path.join(repo, ".urun-kaynaklari.json")
+        st = os.stat(yol)
+        bayt = _oku(repo, ".urun-kaynaklari.json")
+        rc, out, _ = cagir(repo, "--kaynak-tasarimci", "p-1", ad)
+        kontrol(rc == 0, "rc=0", "rc=%d" % rc)
+        kontrol("KAYNAK_TASARIMCI sonuc=zaten" in out, "sonuc=zaten", "out=%r" % out)
+        kontrol(os.stat(yol).st_ino == st.st_ino and _oku(repo, ".urun-kaynaklari.json") == bayt,
+                "dosya yeniden yazilmadi (inode + bayt esit)")
+    finally:
+        temizle(repo)
+
+    # ── [t-yok] ─────────────────────────────────────────────────────────────
+    VAKA[0] = "t-yok"
+    print("\n[t-yok] — defterde olmayan id: kayit YARATILMAZ, rc=3")
+    repo = sahte_repo(kaynaklar=json.loads(json.dumps(tpl)), urunler=[_urun("u-var")])
+    try:
+        bayt = _oku(repo, ".urun-kaynaklari.json")
+        rc, out, _ = cagir(repo, "--kaynak-tasarimci", "z-yok", ad)
+        kontrol(rc == 3, "rc=3", "rc=%d" % rc)
+        kontrol("KAYNAK_TASARIMCI sonuc=yok" in out, "sonuc=yok", "out=%r" % out)
+        kontrol("z-yok" not in _kaynak(repo), "z-yok kaydi YARATILMADI")
+        kontrol(_oku(repo, ".urun-kaynaklari.json") == bayt, "defter bayt-esit")
+    finally:
+        temizle(repo)
+
+    # ── [t-cakisma] ─────────────────────────────────────────────────────────
+    VAKA[0] = "t-cakisma"
+    print("\n[t-cakisma] — baska gercek ad: UZERINE YAZILMAZ, rc=4")
+    kay = json.loads(json.dumps(tpl))
+    kay["p-1"]["tasarimci"] = "Eski Gercek Ad"
+    repo = sahte_repo(kaynaklar=kay, urunler=[_urun("u-var")])
+    try:
+        bayt = _oku(repo, ".urun-kaynaklari.json")
+        rc, out, _ = cagir(repo, "--kaynak-tasarimci", "p-1", ad)
+        kontrol(rc == 4, "rc=4", "rc=%d" % rc)
+        kontrol("KAYNAK_TASARIMCI sonuc=cakisma" in out, "sonuc=cakisma", "out=%r" % out)
+        kontrol(_kaynak(repo)["p-1"].get("tasarimci") == "Eski Gercek Ad", "eski ad duruyor")
+        kontrol(_oku(repo, ".urun-kaynaklari.json") == bayt, "defter bayt-esit")
+    finally:
+        temizle(repo)
+
+    # ── [t-gizlilik] ────────────────────────────────────────────────────────
+    VAKA[0] = "t-gizlilik"
+    print("\n[t-gizlilik] — stdout tek satir; DEGER/link/uyelik stdout/stderr/log'da YOK")
+    repo = sahte_repo(kaynaklar=json.loads(json.dumps(tpl)), urunler=[_urun("u-var")])
+    try:
+        for uid, bek in (("p-1", "yazildi"), ("p-1", "zaten"), ("z-yok", "yok")):
+            rc, out, err = cagir(repo, "--kaynak-tasarimci", uid, ad)
+            kontrol(out.strip() == "KAYNAK_TASARIMCI sonuc=%s" % bek,
+                    "%s/%s stdout birebir tek satir" % (uid, bek), "rc=%d" % rc)
+            kontrol(ad not in out and ad not in err, "%s/%s ciktida DEGER yok" % (uid, bek))
+            kontrol("https://p1" not in out + err and "u-p1" not in out + err,
+                    "%s/%s ciktida link/uyelik yok" % (uid, bek))
+        log = os.path.join(repo, ".urunler-guard.log")
+        metin = open(log, encoding="utf-8").read() if os.path.exists(log) else ""
+        kontrol("kaynak-tasarimci: sonuc=yazildi" in metin, "log satiri yazildi")
+        kontrol(ad not in metin, "log'da DEGER yok")
+    finally:
+        temizle(repo)
+
+    # ── [t-karisik] ─────────────────────────────────────────────────────────
+    VAKA[0] = "t-karisik"
+    print("\n[t-karisik] — bos ID/DEGER + karisik arguman: rc=2, yazim yok")
+    repo = sahte_repo(kaynaklar=json.loads(json.dumps(tpl)), urunler=[_urun("u-var")])
+    try:
+        bayt = _oku(repo, ".urun-kaynaklari.json")
+        urun_once = _oku(repo, "urunler.json")
+        for argv, etiket in ((["--kaynak-tasarimci", "", ad], "bos-id"),
+                             (["--kaynak-tasarimci", "  ", ad], "bosluk-id"),
+                             (["--kaynak-tasarimci", "p-1", ""], "bos-deger"),
+                             (["--kaynak-tasarimci", "p-1", "   "], "bosluk-deger"),
+                             (["--kaynak-tasarimci", "p-1", "?"], "yer-tutucu-deger"),
+                             (["--kaynak-tasarimci", "p-1", ad, "--kaynak-durum"],
+                              "karisik-durum"),
+                             (["--kaynak-tasarimci", "p-1", ad, "--kaynak-damga", "p-1",
+                               "--silindi", "x"], "karisik-damga"),
+                             (["u-var", "--alan", "baslik", "--deger", "y",
+                               "--kaynak-tasarimci", "p-1", ad], "karisik-alan")):
+            rc, _, _ = cagir(repo, *argv)
+            kontrol(rc == 2, "%s rc=2" % etiket, "rc=%d" % rc)
+        kontrol(_oku(repo, ".urun-kaynaklari.json") == bayt, "defter bayt-esit")
+        kontrol(_oku(repo, "urunler.json") == urun_once, "urunler.json bayt-esit")
+    finally:
+        temizle(repo)
+    VAKA[0] = "k"
+
+
 def main():
     print("K171 — --kaynak-durum / --kaynak-temizle kabul testi (sahte repo)\n")
 
@@ -427,6 +575,7 @@ def main():
         temizle(repo)
 
     damga_vakalari()
+    tasarimci_vakalari()
 
     print("\n" + ("-" * 78))
     print("KIRMIZI_VAKA=%s" % ",".join(sorted(KIRMIZI_VAKA)))

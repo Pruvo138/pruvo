@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""tools/duzelt-kaynak-mutasyon.py — K171 mutasyon bataryasi (4 mutant).
+"""tools/duzelt-kaynak-mutasyon.py — K171 mutasyon bataryasi (4 mutant + damga m1-m4 + tasarimci M-a/M-b).
 
 Spec:
   M1: KAYNAKLAR yazimini kaldir -> KAYNAK_KALAN dusmez, kabul kirmizi.
@@ -12,6 +12,9 @@ Spec:
   m2: cakismada uzerine yazar          -> [cakisma]
   m3: temizlik damgaliyi siler         -> [temizlik]
   m4: ARTIK damgaliyi sayar            -> [artik]
+  KAYNAK-TASARIMCI (M-a, M-b; ayni tam-kume olcutu):
+  M-a: cakisma kontrolu kaldirilir (gercek adin uzerine yazar) -> [t-cakisma]
+  M-b: stdout'a DEGER basilir                                 -> [t-gizlilik]
   Uygulanamayan mutant UYGULANAMADI yazilir, 0 SAYILMAZ.
 """
 import importlib.util
@@ -192,6 +195,16 @@ def main():
              [("             if k not in urun_id_set and not _kaynak_damgali(kaynaklar[k])]\n",
                "             if k not in urun_id_set]\n")],
              {"artik"}),
+            ("M-a", "tasarimci cakisma kontrolu KALDIRILIR (gercek adin uzerine yazar)",
+             [("            elif not _tasarimci_yer_tutucu(mevcut):\n"
+               "                sonuc = \"cakisma\"\n",
+               "            elif False:\n"
+               "                sonuc = \"cakisma\"\n")],
+             {"t-cakisma"}),
+            ("M-b", "tasarimci stdout'una DEGER basilir",
+             [('    print("KAYNAK_TASARIMCI sonuc=%s" % sonuc)\n',
+               '    print("KAYNAK_TASARIMCI sonuc=%s deger=%s" % (sonuc, deger))\n')],
+             {"t-gizlilik"}),
         ]
         for kod, ad, degisim, beklenen in damga_mutantlari:
             print("\n%s — %s" % (kod, ad))
