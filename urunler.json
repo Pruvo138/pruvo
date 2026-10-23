@@ -1,5 +1,116 @@
 [
   {
+    "id": "mondial-hps-plaka-lambasi-montaj-braketi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Mondial"
+    ],
+    "uyum": [
+      {
+        "marka": "Mondial"
+      }
+    ],
+    "baslik": "Mondial HPS Plaka Lambası Montaj Braketi",
+    "aciklama": "Mondial HPS motosikletinin arka plaka lambası montajı için hazırlanmış yedek braket. Orijinal montaj parçası kırıldığında aynı görevi görmesi için özel üretilir; lambayı plaka üzerindeki konumunda tutar.\nYaklaşık dış ölçüler: 48 × 42 × 10 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5641850-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5641850-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5641850-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5641850-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "iamandyf96"
+    }
+  },
+  {
+    "id": "kymco-x-town-ayna-kapagi-yedek-parca",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Kymco"
+    ],
+    "uyum": [
+      {
+        "marka": "Kymco"
+      }
+    ],
+    "baslik": "Kymco X-Town Ayna Kapağı",
+    "aciklama": "Kymco X-Town aynalarının üzerine oturan kapaktır. Orijinal aynalara tam oturur ve sürüş sırasında yerinde kalır; kaybolan ya da kırılan kapağın yerine kullanılır.\nYaklaşık dış ölçüler: 20 × 18 × 7 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr338153-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr338153-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr338153-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "SeriousMt"
+    }
+  },
+  {
+    "id": "kymco-canta-askisi-kancasi-tutucu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Kymco"
+    ],
+    "uyum": [
+      {
+        "marka": "Kymco"
+      }
+    ],
+    "baslik": "Kymco Çanta Askısı Kancası",
+    "aciklama": "Kymco scooter üzerinde çanta ya da poşet askısını asmak için kullanılan küçük bir kanca tutucusudur.\nYaklaşık dış ölçüler: 52 × 50 × 17 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr771760-1.jpg"
+    ]
+  },
+  {
+    "id": "kymco-x-town-torpido-kilit-mentesesi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Kymco"
+    ],
+    "uyum": [
+      {
+        "marka": "Kymco"
+      }
+    ],
+    "baslik": "Kymco X-Town Torpido Kilit Menteşesi",
+    "aciklama": "Kymco X-Town torpido bölmesi kapağının kilit menteşesidir. Orijinal menteşe kırıldığında yerine takılmak üzere yeniden tasarlanmıştır.\nYaklaşık dış ölçüler: 30 × 17 × 4 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr338155-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "SeriousMt"
+    }
+  },
+  {
+    "id": "kymco-sinyal-kolu-buton-unitesi-yedek-parca",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Kymco"
+    ],
+    "uyum": [
+      {
+        "marka": "Kymco"
+      }
+    ],
+    "baslik": "Kymco Sinyal Kolu (Tutamak Buton Ünitesi)",
+    "aciklama": "Kymco scooterlarda gidon tutamağındaki sinyal buton ünitesinin içinde bulunan elektrik anahtarı koludur. Orijinal kol kırıldığında yedek olarak kullanılır.\nYaklaşık dış ölçüler: 29 × 10 × 9 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1408669-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "meltedgyro"
+    }
+  },
+  {
     "id": "cfmoto-450mt-hiz-gostergesi-guneslik-siperi",
     "kategori": "Motosiklet",
     "marka": [
