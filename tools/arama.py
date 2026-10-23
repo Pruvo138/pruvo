@@ -886,7 +886,7 @@ UYUM_MARKA_IZINLI = frozenset({
     "Speeduino", "SsangYong", "Stihl", "Suzuki", "TMC", "Tesla", "Thermomix", "Tofaş",
     "Tohatsu", "Toyota", "Twin Disc", "Vespa", "Vetus", "Volkswagen", "Volvo",
     "Weinsberg", "Xbox", "Xiaomi", "Yamaha", "Yunteng", "Zelmer", "Zodiac", "Zontes",
-    # ── MIMAR ELIYLE EKLENEN (asagidaki UYUM_MARKA_MIMAR_EKI ile AYNI 59 jeton) ──
+    # ── MIMAR ELIYLE EKLENEN (asagidaki UYUM_MARKA_MIMAR_EKI ile AYNI 61 jeton) ──
     # 🔴 BU SAYIYI HICBIR KAPI OLCMUYOR (olculdu 31 Agu): Raymarine ONCESINDE burada
     # "34" yaziyordu ama kumenin GERCEK boyu 41'di — 3./4./5. tur eklerinde
     # guncellenmemis, uc tur boyunca kirmizi yakmadan yasamis BAYAT bir sayi.
@@ -934,6 +934,10 @@ UYUM_MARKA_IZINLI = frozenset({
     # 16. tur (22 Eki 2026, KraL halef-53): TEK jeton girdi (`DS`), sayi 58 -> 59 ELLE
     # guncellendi ve `len(UYUM_MARKA_MIMAR_EKI)` ile OLCULEREK dogrulandi (58 -> 59,
     # esitlik TUTTU). `len(UYUM_MARKA_IZINLI)` 197 -> 198, FARK 139 SABIT.
+    # 17. tur (23 Eki 2026, KraL halef-54, BaBa 11:1x): IKI jeton girdi (`Kymco`, `RKS`),
+    # sayi 59 -> 61 ELLE guncellendi ve `len(UYUM_MARKA_MIMAR_EKI)` ile OLCULEREK
+    # dogrulandi (59 -> 61, esitlik TUTTU). `len(UYUM_MARKA_IZINLI)` 198 -> 200, FARK
+    # 139 SABIT kaldi -> ikisi de IKI kumeye girdi, yargilanmis bolumleme kirilmadi.
     # 🔴 KALEM HALA ACIK: bu bir MAKINE iddiasi degil, tek seferlik bir olcumdur —
     # bir sonraki tur yine guncellemeyi UNUTABILIR. Kalici cozum bu sayiyi `len()`ten
     # TURETMEK ya da bir kapiya iddia olarak KOYMAKTIR; ikisi de mimar hukmunu bekliyor
@@ -1676,6 +1680,37 @@ UYUM_MARKA_IZINLI = frozenset({
     #   Kabul: `tools/ds-marka-kabul-kapisi.py` (A1-A5 + KONTROL + M1/M2/M3/KONTROL-MUTANT,
     #   kirmizi kume beyana ESIT; M3 sayfa uretecini mutant arama ile YENIDEN yukler).
     "DS",
+    # 17. tur (23 Eki 2026) — BaBa hukmu (23 Eki 11:1x), MaCiT KY1 sikinti. Iki jeton:
+    #   `Kymco` (motosiklet/scooter/ATV URETICISI: skuteri, jant, kontak anahtari kapağı,
+    #   hava emiş manifoldu ONA takilir — sinif emsali kumede ZATEN var: `Honda` (876),
+    #   `Yamaha` (888), `Piaggio` (888), `SYM` (14. tur), `Triumph` (11. tur), `Hero` (12.
+    #   tur). Bu ek YENI BIR SINIF ACMAZ, yarim kalmis sinifi TAMAMLAR — `Kymco` motorda
+    #   ureticidir, parca ONUN aracina gider.)
+    #   `RKS` (motosiklet/scooter markasi; ayni sinif). OLCULDU: katalogda 0 kayit — yani
+    #   bu jeton **sifir agirlikla** girdi (11. tur `SYM`/`Zero` ile ayni olcut, bkz. 1129).
+    #   Yine de kumeye alinir: kural, agirligi degil EV SAHIBI olup olmadigi.
+    #   Olcut ayrica 8. olcut (bilesik marka aynasi): `Kym`/`Kymco Motor`/`RKS` onekleri
+    #   KATALOGDA YOK (olculdu, kelime sinirli: 0) — hicbir jeton yutulmuyor.
+    #   OLCULEN katalog agirligi (41.472 urun; TAM yazim, kelime sinirli):
+    #     `Kymco` — marka[] 24 · uyum[].marka 0 · uyum[].model 0 · baslik 24 · aciklama 24.
+    #       marka[] ornek: `kymco-agility-50-2t-hava-emi-manifoldu-tuning`,
+    #       `kymco-atv-jant-g-bek-kapa-hubcap`, `kymco-scooter-kontak-anahtarl-kapa-2004`
+    #       (marka[] TAM yazimla `Kymco`; `uyum` bu 24 kayitta NULL — veri KATEGORISI degil,
+    #       uyum tablosu zaten bos).
+    #     `RKS` — marka[] 0 · uyum[].marka 0 · uyum[].model 0 · baslik 0 · aciklama 0.
+    #   YAZIM varyantlari OLCULDU (kelime sinirli, butun alanlar): `kymco` 24 (AYNI 24
+    #   kayit — buyuk/kucuk duyarsiz ayni kume degil, hepsi `Kymco` yazimiyla duruyor) ·
+    #   `KYMCO` 0 · `Kymco Motor` 0 · `KYM` 0 · `Kym` 0 · `RKS` 0. KANONIK YAZIM `Kymco` /
+    #   `RKS`; takma ad BILESIK tabloya GIRMEDI (`Kymco Motor` 0 kayit, FAYDA ekseni 0).
+    #   CAPRAZ: `Honda|Kymco` **katalogda YOK** (olculdu, uyum[].model == "Kymco" 0 kayit)
+    #   -> kapatilan istisna tablosu BOS kalir, `Honda` alttan gelen marka olarak degil,
+    #   `Kymco` model olarak REDDEDILIR (marka/model siniri).
+    #   KUME KAPALI KALIR: ikisi de yalnizca BU kumeye ve UYUM_MARKA_MIMAR_EKI'ne girer,
+    #   yargilanmis bolumleme (izinli−eki / uretici−eki / elenen) DEGISMEZ -> S2 aritmetigi
+    #   (UYUM_MARKA_ONERI_SAYISI=169) ve UYUM_MARKA_YARGI_IMZA AYNEN korunur.
+    #   Kabul: `tools/moto-marka-kabul-kapisi.py` (A1-A4 + KONTROL + M1/M2/KONTROL-MUTANT,
+    #   kirmizi kume beyana ESIT).
+    "Kymco", "RKS",
 })
 
 # 🔴 ONERI DISINDAN, MIMAR ONAYIYLA eklenen jetonlar. AYRI tutulmalari SART: budama
@@ -1758,6 +1793,10 @@ UYUM_MARKA_MIMAR_EKI = frozenset({
     # 16. tur (22 Eki 2026) — ayni hukmun ikinci yarisi. Gerekce + Citroen|DS istisnasi +
     # olcum UYUM_MARKA_IZINLI'nin "A grubu" 16. tur basliginda yazili. TEKRAR EDILMEZ.
     "DS",
+    # 17. tur (23 Eki 2026) — BaBa hukmu, MaCiT KY1 sikinti. Gerekce + olculen katalog
+    # agirligi + varyant/ayna olcumleri UYUM_MARKA_IZINLI'nin "A grubu" 17. tur basliginda
+    # yazili. Burada TEKRAR EDILMEZ (ikiz metin yasagi).
+    "Kymco", "RKS",
 })
 
 # 🔴 REDDEDILEN ADAYLAR (2 Agu, mimar karari) — kayda geciyor ki bir sonraki tur ayni

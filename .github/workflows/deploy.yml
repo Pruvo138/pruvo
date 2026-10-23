@@ -910,6 +910,12 @@ jobs:
       - name: "DS marka kabul bataryasi"
         run: python3 tools/ds-marka-kabul-kapisi.py
 
+      # MOTO MARKA KABUL BATARYASI (17. tur, 23 Eki) — MG/DS kardesi, HEDEF iki jeton
+      # (Kymco, RKS): A1-A4 + KONTROL + M1/M2/KONTROL-MUTANT; M1 iki jetonun birinden
+      # A4 dahil dort ekseni birden kirar (24 Kymco marka[] kaydi kanonikligini yitirir).
+      - name: "Moto marka kabul bataryasi (Kymco, RKS)"
+        run: python3 tools/moto-marka-kabul-kapisi.py
+
       # YAZIM YOLU KOLU — yukaridaki IKI kapi (altkategori + uyum) KATALOG GENELINI
       # olcer ve YAYINDAN SONRA konusur; bu adim onlarin COMMIT ANINDAKI kardesini
       # (tools/katalog-alan-kapisi.py + pre-commit adim 5) olcer.
