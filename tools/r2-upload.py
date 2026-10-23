@@ -82,8 +82,21 @@ R8 SİLİNMİŞ ÜRÜNÜN KENDİ GÖRSELLERİ (`--sil-urun <id>`, 23 Eki 2026) �
        kullanıyor) ve basılır
     K5 kalanlar `sil_ve_dogrula` (R5) ile silinir — listede olmayan anahtara dokunulmaz.
   Çıktı: `R2_SIL id=<id> plan=<n> atlanan=<n> silinen=<n> dogrulanan=<n> KIP=<KURU|UYGULA>`.
+
+R9 YETİM KİPİ (`--sil-urun <id> --yetim <YYYY-AA-GG> [--geri-al] [--uygula]`, 23 Eki 2026) —
+  lisans RED kaldırmalarında R2 KALICI SİLİNMEZ: anahtar `yetim/<tarih>/<anahtar>`'a
+  GERİ ALINABİLİR taşınır. K1-K4 AYNEN (`sil_urun_plani` tek kaynak); K5 yerine T5
+  (`tasi_ve_dogrula`), her adım fail-closed (rc=KOD_SIL_RED):
+    · hedef ZATEN VARSA ve boyut+ETag kaynakla farklıysa RED (ezme yok); eşitse kopya atlanır
+    · copy → hedef head boyut+ETag kaynakla EŞİT değilse RED (kaynağa DOKUNULMAZ)
+    · ancak ondan SONRA kaynak `sil_ve_dogrula` (R5) ile silinir, hedef yeniden teyit edilir.
+  `--geri-al` ters yön (yetim → orijinal), aynı ETag doğrulaması; orijinal ZATEN VARSA RED.
+  Tarih YYYY-AA-GG değilse rc=KOD_YETIM_ARG (2), kovaya da kimlik dosyasına da dokunulmaz.
+  Çıktı: `R2_YETIM id=<id> plan=<n> atlanan=<n> tasinan=<n> dogrulanan=<n>
+  hedef=yetim/<tarih>/ KIP=<KURU|UYGULA>` (geri-al: `R2_YETIM_GERI ... kaynak=yetim/<tarih>/`).
 """
 import argparse
+import datetime
 import importlib.util
 import re
 import sys, os, json, time, boto3
@@ -121,6 +134,13 @@ KOD_GELENEK_DISI = 5
 # R8 (23 Eki 2026): CLI çıkış kodu — `--sil-urun` bir fail-closed adımda (K1-K3) durdu,
 # R2'ye silme isteği GİTMEDİ.
 KOD_SIL_RED = 6
+
+# R9 (23 Eki 2026): CLI çıkış kodu — `--yetim`/`--geri-al` yanlış kullanıldı ya da tarih
+# YYYY-AA-GG değil; plan bile kurulmadı (argparse kullanım hatası geleneği: 2).
+KOD_YETIM_ARG = 2
+
+# R9: yetim taşıma öneki — `yetim/<YYYY-AA-GG>/<orijinal anahtar>`.
+YETIM_ONEK = "yetim/"
 
 # R8: silinecek anahtarlar YALNIZ bu önekle başlayan `gorseller` URL'lerinden çıkar;
 # başka uçtaki görsel bizim kovamız değildir, dokunulmaz.
@@ -530,6 +550,100 @@ def sil_urun(uid, kok, uygula=False, var_mi=None, sil=None, bekle=None, yaz=prin
     return ozet
 
 
+def yetim_tarihi_gecerli(tarih):
+    """R9: YALNIZ gerçek bir takvim günü olan 'YYYY-AA-GG' kabul (önek yol enjeksiyonu yok)."""
+    if not isinstance(tarih, str) or not re.match(r"^\d{4}-\d{2}-\d{2}$", tarih):
+        return False
+    try:
+        datetime.datetime.strptime(tarih, "%Y-%m-%d")
+    except ValueError:
+        return False
+    return True
+
+
+def s3_bilgi(s3, bucket):
+    """R9: bilgi(key) -> (boyut, etag) | None. 404 → None; başka hata YUTULMAZ (s3_var_mi
+    ile aynı yön: "yetkim yok" "nesne yok" sanılırsa taşıma doğrulaması fail-open olur)."""
+    def bilgi(key):
+        try:
+            h = s3.head_object(Bucket=bucket, Key=key)
+        except Exception as exc:
+            kod = (getattr(exc, "response", {}) or {}).get("Error", {}).get("Code", "")
+            durum = ((getattr(exc, "response", {}) or {})
+                     .get("ResponseMetadata", {}) or {}).get("HTTPStatusCode")
+            if str(kod) in ("404", "NoSuchKey", "NotFound") or durum == 404:
+                return None
+            raise
+        return h.get("ContentLength"), (h.get("ETag") or "").strip('"') or None
+    return bilgi
+
+
+def _ayni(a, b):
+    """İki (boyut, etag) EŞİT mi — eksik alan EŞİT SAYILMAZ (fail-closed)."""
+    return (a is not None and b is not None and None not in a and None not in b
+            and tuple(a) == tuple(b))
+
+
+def tasi_ve_dogrula(kaynak, hedef, bilgi, kopyala, var_mi, sil, bekle=None,
+                    esit_hedef_kabul=True):
+    """R9 T5: kaynak → hedef TAŞI. Sıra: hedef ezme kapısı → copy → boyut+ETag teyidi →
+    ANCAK SONRA kaynağı `sil_ve_dogrula` ile sil → hedef yeniden teyit. Aksi SilmeReddi.
+    esit_hedef_kabul=False (geri-al): hedef HİÇ var olmamalı.
+    Dönüş: "tasindi-dogrulandi" | "zaten-tasinmis" | "kaynak-yok"."""
+    kb = bilgi(kaynak)
+    if kb is None:
+        return "zaten-tasinmis" if bilgi(hedef) is not None else "kaynak-yok"
+    hb = bilgi(hedef)
+    if hb is None or not _ayni(hb, kb) or not esit_hedef_kabul:
+        if hb is not None:  # EZME KAPISI
+            raise SilmeReddi("T5", "hedef zaten var (%s), ezme yok" % hedef)
+        kopyala(kaynak, hedef)
+    hk = bilgi(hedef)
+    if hk is None or not _ayni(hk, kb):
+        raise SilmeReddi("T5", "kopya dogrulanamadi (%s boyut+ETag kaynakla esit degil), "
+                               "kaynak DOKUNULMADI" % hedef)
+    sil_ve_dogrula(kaynak, var_mi, sil, bekle=bekle)
+    if bilgi(hedef) is None:
+        raise SilmeReddi("T5", "kaynak silindi ama hedef gorunmuyor (%s)" % hedef)
+    return "tasindi-dogrulandi"
+
+
+def yetim_urun(uid, kok, tarih, uygula=False, geri_al=False, bilgi=None, kopyala=None,
+               var_mi=None, sil=None, bekle=None, yaz=print):
+    """R9: silinmiş ürünün KENDİ görsellerini `yetim/<tarih>/`'e taşı (geri_al: ters yön).
+    Plan K1-K4 `sil_urun_plani`'dan (tek kaynak). KURU kipte bağımlılıklar HİÇ çağrılmaz."""
+    if not yetim_tarihi_gecerli(tarih):
+        raise SilmeReddi("T0", "tarih YYYY-AA-GG degil")
+    plan, atlanan = sil_urun_plani(uid, kok)
+    onek = YETIM_ONEK + tarih + "/"
+    for key in atlanan:
+        yaz("R2_YETIM_ATLA %s (guncel katalogda baska urun kullaniyor)" % key)
+    tasinan = dogrulanan = 0
+    kalan = [key for key in plan if key not in atlanan]
+    for key in kalan:
+        kaynak, hedef = (onek + key, key) if geri_al else (key, onek + key)
+        if not uygula:
+            yaz("R2_YETIM_PLAN %s -> %s" % (kaynak, hedef))
+            continue
+        if None in (bilgi, kopyala, var_mi, sil):
+            raise SilmeReddi("T5", "sonda/kopya/silme baglanmadi")
+        sonuc = tasi_ve_dogrula(kaynak, hedef, bilgi, kopyala, var_mi, sil, bekle=bekle,
+                                esit_hedef_kabul=not geri_al)
+        if sonuc == "tasindi-dogrulandi":
+            tasinan += 1
+        if sonuc != "kaynak-yok":
+            dogrulanan += 1
+        yaz("R2_YETIM_ANAHTAR %s -> %s %s" % (kaynak, hedef, sonuc))
+    ozet = {"id": uid, "plan": len(plan), "atlanan": len(atlanan), "tasinan": tasinan,
+            "dogrulanan": dogrulanan, "onek": onek, "kip": "UYGULA" if uygula else "KURU",
+            "geri_al": geri_al}
+    yaz(("R2_YETIM_GERI id=%(id)s plan=%(plan)d atlanan=%(atlanan)d tasinan=%(tasinan)d "
+         "dogrulanan=%(dogrulanan)d kaynak=%(onek)s KIP=%(kip)s" if geri_al else
+         "R2_YETIM id=%(id)s plan=%(plan)d atlanan=%(atlanan)d tasinan=%(tasinan)d "
+         "dogrulanan=%(dogrulanan)d hedef=%(onek)s KIP=%(kip)s") % ozet)
+    return ozet
+
+
 def _v2_onerisi(key):
     """Ezme yerine kullanılacak YENİ anahtar önerisi (CLAUDE.md `-v2.jpg` deseni)."""
     kok, uzanti = os.path.splitext(key)
@@ -558,11 +672,23 @@ def parser_kur():
                          "(--uygula yoksa KURU: yalniz plan)")
     ap.add_argument("--uygula", dest="uygula", action="store_true",
                     help="R8: --sil-urun planini GERCEKTEN uygula (varsayilan KAPALI)")
+    ap.add_argument("--yetim", dest="yetim", metavar="<YYYY-AA-GG>", default=None,
+                    help="R9: --sil-urun ile — silmek yerine yetim/<tarih>/ onekine TASI "
+                         "(geri alinabilir)")
+    ap.add_argument("--geri-al", dest="geri_al", action="store_true",
+                    help="R9: --sil-urun <id> --yetim <tarih> ile — yetim/<tarih>/'ten "
+                         "orijinal anahtara geri tasi (orijinal varsa RED)")
     return ap
 
 
 def _sil_urun_cli(a):
     """R8 CLI: çıkış kodu döner. Kimlik dosyası YALNIZ --uygula'da okunur, basılmaz."""
+    if a.yetim is not None or a.geri_al:
+        if (not a.sil_urun or a.ciftler or a.yetim is None
+                or not yetim_tarihi_gecerli(a.yetim)):
+            print("Kullanim: r2-upload.py --sil-urun <id> --yetim <YYYY-AA-GG> [--geri-al] "
+                  "[--uygula] (tarih YYYY-AA-GG olmali)", file=sys.stderr)
+            return KOD_YETIM_ARG
     if not a.sil_urun or a.ciftler:
         print("Kullanim: r2-upload.py --sil-urun <id> [--uygula]", file=sys.stderr)
         return 1
@@ -580,6 +706,22 @@ def _sil_urun_cli(a):
 
         def sil(key):
             s3.delete_object(Bucket=cfg["bucket"], Key=key)
+    if a.yetim is not None:
+        bilgi = kopyala = None
+        if a.uygula:
+            bilgi = s3_bilgi(s3, cfg["bucket"])
+
+            def kopyala(kaynak, hedef):
+                s3.copy_object(Bucket=cfg["bucket"], Key=hedef,
+                               CopySource={"Bucket": cfg["bucket"], "Key": kaynak})
+        try:
+            yetim_urun(a.sil_urun, _VERI_KOK, a.yetim, uygula=a.uygula, geri_al=a.geri_al,
+                       bilgi=bilgi, kopyala=kopyala, var_mi=var_mi, sil=sil)
+        except SilmeReddi as exc:
+            print("R2_YETIM_RED id=%s adim=%s sebep=%s" % (a.sil_urun, exc.adim, exc.sebep),
+                  file=sys.stderr)
+            return KOD_SIL_RED
+        return 0
     try:
         sil_urun(a.sil_urun, _VERI_KOK, uygula=a.uygula, var_mi=var_mi, sil=sil)
     except SilmeReddi as exc:
@@ -592,7 +734,7 @@ def _sil_urun_cli(a):
 def main():
     ap = parser_kur()
     a = ap.parse_args()
-    if a.sil_urun is not None or a.uygula:
+    if a.sil_urun is not None or a.uygula or a.yetim is not None or a.geri_al:
         sys.exit(_sil_urun_cli(a))
     args = a.ciftler
     if len(args) < 2 or len(args) % 2 != 0:

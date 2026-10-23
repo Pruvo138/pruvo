@@ -1031,6 +1031,185 @@ def senaryo_S6(m):
              "S6: R2_SIL ozet satiri birebir")]
 
 
+# --- R9 --yetim: Y1-Y8 + YM1-YM3 ------------------------------------------------
+TARIH = "2026-10-23"
+YON = mod.YETIM_ONEK + TARIH + "/"
+MUTLU = ["urunler/mutlu-1.jpg", "urunler/mutlu-2.jpg", "urunler/mutlu-3.jpg"]
+
+
+def _meta(key):
+    return (4096, "etag-" + key.rsplit("/", 1)[-1])
+
+
+class YetimKova:
+    """Agsiz kova: anahtar -> (boyut, etag). `bozuk` kopyalar hedefe FARKLI ETag yazar
+    (yarim/bozuk copy_object). Kaynagi olmayan kopya NoSuchKey gibi FIRLAR."""
+    def __init__(self, nesneler=None, bozuk=False):
+        self.nesneler = dict(nesneler or {})
+        self.izler = []
+        self.bozuk = bozuk
+
+    def bilgi(self, key):
+        self.izler.append(("bilgi", key))
+        return self.nesneler.get(key)
+
+    def var_mi(self, key):
+        self.izler.append(("var_mi", key))
+        return key in self.nesneler
+
+    def kopyala(self, kaynak, hedef):
+        self.izler.append(("kopyala", kaynak, hedef))
+        boyut, etag = self.nesneler[kaynak]
+        self.nesneler[hedef] = (boyut, etag + "-bozuk") if self.bozuk else (boyut, etag)
+
+    def sil(self, key):
+        self.izler.append(("sil", key))
+        self.nesneler.pop(key, None)
+
+    def say(self, tur):
+        return len([iz for iz in self.izler if iz[0] == tur])
+
+
+def _yetim_kos(m, uid, uygula, kova, geri_al=False, tarih=TARIH):
+    cikti = []
+    try:
+        ozet = m.yetim_urun(uid, _sil_fiksturu(), tarih, uygula=uygula, geri_al=geri_al,
+                            bilgi=kova.bilgi, kopyala=kova.kopyala, var_mi=kova.var_mi,
+                            sil=kova.sil, bekle=_bekleme_yok, yaz=cikti.append)
+        return ozet, None, cikti
+    except Exception as exc:  # noqa — mutant cokmesi de IDDIA ile olculur (kova durumu)
+        return None, exc, cikti
+
+
+def senaryo_Y1(m):
+    kova = YetimKova({k: _meta(k) for k in MUTLU + ["urunler/canli-x-1.jpg"]})
+    ozet, red, cikti = _yetim_kos(m, "mutlu", True, kova)
+    sira_dogru = all(
+        kova.izler.index(("kopyala", k, YON + k)) < kova.izler.index(("sil", k))
+        for k in MUTLU if ("kopyala", k, YON + k) in kova.izler and ("sil", k) in kova.izler)
+    ozet2, red2, cikti2 = _yetim_kos(m, "mutlu", True, kova)
+    return [(red is None and bool(ozet) and ozet["tasinan"] == ozet["dogrulanan"] == 3
+             and ozet["kip"] == "UYGULA", "Y1: mutlu tasima tasinan=dogrulanan=3 KIP=UYGULA"),
+            (sorted(k for k in kova.nesneler if k.startswith(YON))
+             == sorted(YON + k for k in MUTLU), "Y1: hedefte (yetim/<tarih>/) 3 nesne"),
+            (not any(k in kova.nesneler for k in MUTLU), "Y1: kaynakta 0 nesne"),
+            (kova.nesneler.get("urunler/canli-x-1.jpg") == _meta("urunler/canli-x-1.jpg"),
+             "Y1: listede olmayan anahtar DURUYOR"),
+            (all(kova.nesneler.get(YON + k) == _meta(k) for k in MUTLU),
+             "Y1: hedef boyut+ETag kaynakla esit"),
+            (sira_dogru and kova.say("kopyala") == 3 and kova.say("sil") == 3,
+             "Y1: her anahtarda copy SILMEDEN ONCE"),
+            (bool(cikti) and cikti[-1] == "R2_YETIM id=mutlu plan=3 atlanan=0 tasinan=3 "
+                                          "dogrulanan=3 hedef=yetim/2026-10-23/ KIP=UYGULA",
+             "Y1: R2_YETIM ozet satiri birebir"),
+            (red2 is None and bool(ozet2) and ozet2["tasinan"] == 0
+             and ozet2["dogrulanan"] == 3,
+             "Y1: yeniden kosum idempotent (tasinan=0 dogrulanan=3, zaten-tasinmis)")]
+
+
+def senaryo_Y2(m):
+    kova = YetimKova({k: _meta(k) for k in MUTLU}, bozuk=True)
+    ozet, red, _c = _yetim_kos(m, "mutlu", True, kova)
+    return [(red is not None and getattr(red, "adim", None) == "T5" and "kopya dogrulanamadi" in getattr(red, "sebep", ""),
+             "Y2: ETag uyusmazligi RED T5 'kopya dogrulanamadi'"),
+            (all(kova.nesneler.get(k) == _meta(k) for k in MUTLU),
+             "Y2: kaynak DURUYOR (3/3, ETag ayni)"),
+            (kova.say("sil") == 0, "Y2: silme 0 cagri")]
+
+
+def senaryo_Y3(m):
+    yabanci = (4096, "baska-etag")
+    nesneler = {k: _meta(k) for k in MUTLU}
+    nesneler[YON + MUTLU[0]] = yabanci
+    kova = YetimKova(nesneler)
+    ozet, red, _c = _yetim_kos(m, "mutlu", True, kova)
+    return [(red is not None and getattr(red, "adim", None) == "T5" and "hedef zaten var" in getattr(red, "sebep", ""),
+             "Y3: hedef var + farkli ETag RED T5 'hedef zaten var'"),
+            (kova.nesneler.get(YON + MUTLU[0]) == yabanci, "Y3: mevcut hedef EZILMEDI"),
+            (kova.nesneler.get(MUTLU[0]) == _meta(MUTLU[0]), "Y3: kaynak DURUYOR"),
+            (kova.say("kopyala") == 0 and kova.say("sil") == 0,
+             "Y3: kopya 0 + silme 0 cagri")]
+
+
+def senaryo_Y4(m):
+    kova = YetimKova({k: _meta(k) for k in MUTLU})
+    ozet, red, cikti = _yetim_kos(m, "mutlu", False, kova)
+    return [(red is None and bool(ozet) and ozet["kip"] == "KURU" and ozet["plan"] == 3,
+             "Y4: --uygula yok -> KURU, plan=3"),
+            (not kova.izler and len(kova.nesneler) == 3, "Y4: kovaya 0 cagri, kova ayni"),
+            (sum(1 for c in cikti if c.startswith("R2_YETIM_PLAN urunler/mutlu-")) == 3,
+             "Y4: 3 plan satiri basildi"),
+            (bool(cikti) and cikti[-1] == "R2_YETIM id=mutlu plan=3 atlanan=0 tasinan=0 "
+                                          "dogrulanan=0 hedef=yetim/2026-10-23/ KIP=KURU",
+             "Y4: R2_YETIM ozet satiri birebir")]
+
+
+def senaryo_Y5(m):
+    kova = YetimKova({YON + k: _meta(k) for k in MUTLU})
+    ozet, red, cikti = _yetim_kos(m, "mutlu", True, kova, geri_al=True)
+    return [(red is None and bool(ozet) and ozet["tasinan"] == ozet["dogrulanan"] == 3,
+             "Y5: geri-al tasinan=dogrulanan=3"),
+            (sorted(kova.nesneler) == sorted(MUTLU)
+             and all(kova.nesneler[k] == _meta(k) for k in MUTLU),
+             "Y5: orijinaller ETag esit geri geldi, yetim/ bos"),
+            (bool(cikti) and cikti[-1] == "R2_YETIM_GERI id=mutlu plan=3 atlanan=0 tasinan=3 "
+                                          "dogrulanan=3 kaynak=yetim/2026-10-23/ KIP=UYGULA",
+             "Y5: R2_YETIM_GERI ozet satiri birebir")]
+
+
+def senaryo_Y6(m):
+    nesneler = {YON + k: _meta(k) for k in MUTLU}
+    nesneler[MUTLU[0]] = _meta(MUTLU[0])  # ETag ESIT olsa bile orijinal varsa RED
+    kova = YetimKova(nesneler)
+    ozet, red, _c = _yetim_kos(m, "mutlu", True, kova, geri_al=True)
+    return [(red is not None and getattr(red, "adim", None) == "T5" and "hedef zaten var" in getattr(red, "sebep", ""),
+             "Y6: geri-al orijinal varken RED T5"),
+            (all(YON + k in kova.nesneler for k in MUTLU), "Y6: yetim kopyalari DURUYOR"),
+            (kova.say("kopyala") == 0 and kova.say("sil") == 0,
+             "Y6: kopya 0 + silme 0 cagri")]
+
+
+def senaryo_Y8(m):
+    k1 = YetimKova({"urunler/geri-gelen-1.jpg": _meta("urunler/geri-gelen-1.jpg")})
+    _o1, red1, _c1 = _yetim_kos(m, "geri-gelen", True, k1)
+    k2 = YetimKova({"urunler/paylasan-1.jpg": _meta("urunler/paylasan-1.jpg"),
+                    "urunler/ortak-1.jpg": _meta("urunler/ortak-1.jpg")})
+    o2, red2, _c2 = _yetim_kos(m, "paylasan", True, k2)
+    return [(red1 is not None and getattr(red1, "adim", None) == "K1" and not k1.izler,
+             "Y8: yetim kipinde K1 'urun canli' AYNEN, kovaya 0 cagri"),
+            (red2 is None and bool(o2) and o2["atlanan"] == 1 and o2["tasinan"] == 1
+             and "urunler/ortak-1.jpg" in k2.nesneler
+             and not any(iz[0] == "kopyala" and iz[1] == "urunler/ortak-1.jpg"
+                         for iz in k2.izler),
+             "Y8: yetim kipinde K4 AYNEN (ortak anahtar tasinmadi)")]
+
+
+def vaka_Y7_bozuk_tarih():
+    a0 = mod.parser_kur().parse_args([])
+    onayla(a0.yetim is None and a0.geri_al is False,
+           "Y7: --yetim varsayilani None, --geri-al varsayilani False")
+    eski = mod.CFG_PATH
+    mod.CFG_PATH = os.path.join(tempfile.gettempdir(), "r2-yetim-test-YOK.json")
+    try:
+        for tarih in ("2026-13-01", "23-10-2026", "2026-02-30", "2026-10-23/../x", ""):
+            with _StderrYakala():
+                rc = mod._sil_urun_cli(mod.parser_kur().parse_args(
+                    ["--sil-urun", "mutlu", "--yetim", tarih, "--uygula"]))
+            onayla(rc == mod.KOD_YETIM_ARG == 2,
+                   "Y7: bozuk tarih %r -> rc=2 (kimlik dosyasi OKUNMADI)" % tarih)
+        for argv, ad in ((["--sil-urun", "mutlu", "--geri-al", "--uygula"], "--yetim'siz --geri-al"),
+                         (["--yetim", TARIH, "--uygula"], "--sil-urun'suz --yetim")):
+            with _StderrYakala():
+                rc = mod._sil_urun_cli(mod.parser_kur().parse_args(argv))
+            onayla(rc == 2, "Y7: %s -> rc=2" % ad)
+    finally:
+        mod.CFG_PATH = eski
+    kova = YetimKova({k: _meta(k) for k in MUTLU})
+    _o, red, _c = _yetim_kos(mod, "mutlu", True, kova, tarih="2026-1-1")
+    onayla(red is not None and getattr(red, "adim", None) == "T0" and not kova.izler,
+           "Y7: yetim_urun bozuk tarih RED T0, kovaya 0 cagri")
+
+
 def _senaryo_vaka(senaryo):
     def vaka():
         for kosul, etiket in senaryo(mod):
@@ -1047,6 +1226,13 @@ SIL_MUTANTLARI = (
     ("M2 K2 kaldir", "if not girisler:", "if False:", senaryo_S2),
     ("M3 K4 kaldir", "atlanan = [key for key in plan if katalog_metni.count(key) > 0]",
      "atlanan = []", senaryo_S4),
+    ("YM1 ETag kontrolu kaldir", "if hk is None or not _ayni(hk, kb):", "if False:",
+     senaryo_Y2),
+    ("YM2 ezme kontrolu kaldir", "if hb is not None:  # EZME KAPISI", "if False:",
+     senaryo_Y3),
+    ("YM3 sil copy'den once", "        kopyala(kaynak, hedef)\n    hk = bilgi(hedef)",
+     "        sil_ve_dogrula(kaynak, var_mi, sil, bekle=bekle)\n"
+     "        kopyala(kaynak, hedef)\n    hk = bilgi(hedef)", senaryo_Y2),
 )
 
 
@@ -1095,6 +1281,10 @@ def main():
                _senaryo_vaka(senaryo_S1), _senaryo_vaka(senaryo_S2),
                _senaryo_vaka(senaryo_S3), _senaryo_vaka(senaryo_S4),
                _senaryo_vaka(senaryo_S5), _senaryo_vaka(senaryo_S6),
+               _senaryo_vaka(senaryo_Y1), _senaryo_vaka(senaryo_Y2),
+               _senaryo_vaka(senaryo_Y3), _senaryo_vaka(senaryo_Y4),
+               _senaryo_vaka(senaryo_Y5), _senaryo_vaka(senaryo_Y6),
+               vaka_Y7_bozuk_tarih, _senaryo_vaka(senaryo_Y8),
                vaka_SM_mutantlar):
         # 🔴 VAKA IZOLASYONU: bir vakanin YAKALANMAYAN istisnasi tum kosumu COKERTMEMELI.
         # Cokme ile KIRMIZI ayni sey degildir ([[mutasyon-kaniti-yeniden-uretilebilir]]):
