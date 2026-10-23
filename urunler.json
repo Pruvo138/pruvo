@@ -1,5 +1,527 @@
 [
   {
+    "id": "cfmoto-450mt-hiz-gostergesi-guneslik-siperi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "CFMoto"
+    ],
+    "uyum": [
+      {
+        "marka": "CFMoto"
+      }
+    ],
+    "baslik": "CFMoto 450MT (IBEX) Hız Göstergesi Güneşlik Siperi",
+    "aciklama": "450MT hız göstergesinin üzerine sıkma yöntemiyle oturan güneşlik siperi. Güçlü güneşte ekran okunurluğunu artırır, toz ve çizilmeye karşı korur; iç tarafındaki pah sayesinde kendini göstergeye ortalar.\nYaklaşık dış ölçüler: 165 × 102 × 56 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1151192-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1151192-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1151192-3.jpg"
+    ]
+  },
+  {
+    "id": "cfmoto-450mt-on-abs-sensoru-toz-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "CFMoto"
+    ],
+    "uyum": [
+      {
+        "marka": "CFMoto"
+      }
+    ],
+    "baslik": "CFMoto 450MT (IBEX) Ön ABS Sensörü Toz Kapağı",
+    "aciklama": "450MT'nin ön tekerlek hız sensörünü toz ve taşa karşı koruyan kapak. M6 x 30 cıvata ile sabitlenir; kaynakta alt kısmı drenaj için kesilmiş bir varyant da paylaşılmıştır.\nYaklaşık dış ölçüler: 38 × 33 × 25 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1297231-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "kotana"
+    }
+  },
+  {
+    "id": "cfmoto-ibex-450mt-yardimci-far-anahtar-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "CFMoto"
+    ],
+    "uyum": [
+      {
+        "marka": "CFMoto"
+      }
+    ],
+    "baslik": "CFMoto Ibex 450 / 450MT Yardımcı Far Anahtar Tutucusu",
+    "aciklama": "Ibex 450 ve 450MT'nin ön tork vidasına geçen, yardımcı farların anahtarını tutan braket. Alt taraftaki yuvaya oturarak dönmeyi engeller.\nYaklaşık dış ölçüler: 48 × 26 × 19 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1329863-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Bonticus"
+    }
+  },
+  {
+    "id": "cfmoto-450mt-ayna-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "CFMoto"
+    ],
+    "uyum": [
+      {
+        "marka": "CFMoto"
+      }
+    ],
+    "baslik": "CFMoto 450MT (IBEX) Ayna Kapağı",
+    "aciklama": "450MT ayna ucunun üzerine oturan kozmetik kapak.\nYaklaşık dış ölçüler: 24 × 24 × 7 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1236196-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1236196-2.jpg"
+    ]
+  },
+  {
+    "id": "cfmoto-ibex-450mt-cerceve-ici-alet-tupu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "CFMoto"
+    ],
+    "uyum": [
+      {
+        "marka": "CFMoto"
+      }
+    ],
+    "baslik": "CFMoto Ibex 450MT Çerçeve İçi Alet Tüpü",
+    "aciklama": "Ibex 450MT şasi borusunun içine saklanan alet tüpü. Kısa tork anahtarı, çeyrek inç lokma seti ve on adet uç bitini barındıracak şekilde ölçülendirilmiştir; diğer uçta yaklaşık 80 milimetrelik boş alan bırakılmıştır.\nYaklaşık dış ölçüler: 121 × 111 × 46 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1779681-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1779681-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1779681-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1779681-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Bonticus"
+    }
+  },
+  {
+    "id": "cfmoto-cforce-montaj-deligi-tapa-seti",
+    "kategori": "Motosiklet",
+    "marka": [
+      "CFMoto"
+    ],
+    "uyum": [
+      {
+        "marka": "CFMoto"
+      }
+    ],
+    "baslik": "CFMoto CForce Montaj Deliği Kapakları (Gen 2 / Gen 3)",
+    "aciklama": "CForce'un ikinci ve üçüncü kuşak araçlarında montaj plakasındaki deliklere geçen tapa. Çamurlu sürüşlerden sonra deliklerde biriken çamur ve suyu önler.\nYaklaşık dış ölçüler: 42 × 26 × 17 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1376130-1.jpg"
+    ]
+  },
+  {
+    "id": "cfmoto-bullbar-kelepce-led-bar",
+    "kategori": "Motosiklet",
+    "marka": [
+      "CFMoto"
+    ],
+    "uyum": [
+      {
+        "marka": "CFMoto"
+      }
+    ],
+    "baslik": "CFMOTO Bullbar Kelepçesi (LED Bar)",
+    "aciklama": "Bullbar üzerine LED bar bağlamak için tasarlanmış kelepçe. Delikleri M3 sıcak kovanına göre ölçülüdür; M3x8 ve M3x15 cıvatalarla kullanılır.\nYaklaşık dış ölçüler: 68 × 35 × 31 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1011984-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1011984-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1011984-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1011984-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Dr.Layer"
+    }
+  },
+  {
+    "id": "cfmoto-450mt-garmin-xt2-navigasyon-plakasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "CFMoto"
+    ],
+    "uyum": [
+      {
+        "marka": "CFMoto"
+      }
+    ],
+    "baslik": "CFMoto 450MT Garmin XT2 Navigasyon Montaj Plakası",
+    "aciklama": "450MT'nin stok gösterge paneli cıvatalarına Garmin XT2'yi bağlayan montaj plakası. Şarj kablosu için M4x25 vida kullanılmıştır.\nYaklaşık dış ölçüler: 130 × 182 × 7 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1045216-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1045216-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1045216-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1045216-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Bencham95"
+    }
+  },
+  {
+    "id": "cfmoto-atv-koltuk-lastik-damperi-yedek",
+    "kategori": "Motosiklet",
+    "marka": [
+      "CFMoto"
+    ],
+    "uyum": [
+      {
+        "marka": "CFMoto"
+      }
+    ],
+    "baslik": "CFMoto ATV Koltuk Lastik Damperi Yedeği (800 / 850 / 1000)",
+    "aciklama": "CFMoto 800, 850 ve 1000 ATV koltuklarında kullanılan lastik damperin yedek parçası. Orijinal parça numarası 8030-130211'dir; zamanla sertleşen damperi değiştirir.\nYaklaşık dış ölçüler: 26 × 26 × 18 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr961041-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr961041-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "SlawoFu"
+    }
+  },
+  {
+    "id": "cfmoto-450mt-future-eyes-dugme-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "CFMoto"
+    ],
+    "uyum": [
+      {
+        "marka": "CFMoto"
+      }
+    ],
+    "baslik": "CFMoto 450MT IBEX Future Eyes Düğme Tutucusu",
+    "aciklama": "450MT IBEX üzerinde Future Eyes F20P düğmesini taşıyan tutucu.\nYaklaşık dış ölçüler: 44 × 30 × 19 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1495334-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "ArtTim Тимур"
+    }
+  },
+  {
+    "id": "cfmoto-450ss-450sr-radiator-koruma-kapaklari",
+    "kategori": "Motosiklet",
+    "marka": [
+      "CFMoto"
+    ],
+    "uyum": [
+      {
+        "marka": "CFMoto"
+      }
+    ],
+    "baslik": "CFMoto 450SS / 450SR Radyatör Koruma Kapakları",
+    "aciklama": "450SS ve 450SR radyatörünün ön tarafına yerleşen dekoratif plastik kapaklar; sağ ve sol için ayrı modeller içerir. Enjeksiyon döküm parçadaki tutamak bölümü bulunmaz.\nYaklaşık dış ölçüler: 127 × 35 × 8 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1717157-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1717157-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1717157-3.jpg"
+    ]
+  },
+  {
+    "id": "cfmoto-ibex-450mt-carpuride-w603d-braketi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "CFMoto"
+    ],
+    "uyum": [
+      {
+        "marka": "CFMoto"
+      }
+    ],
+    "baslik": "CFMoto Ibex 450 / 450MT Carpuride W603D Montaj Braketi",
+    "aciklama": "Ibex 450 ve 450MT'ye Carpuride seyyar cihazını ve lastik basınç sensörünü birlikte bağlayan braket. Ön kamera için ayrı bir tutucu içerir; cam, kamera kablosuyla çakışmadan ayarlanabilir.\nYaklaşık dış ölçüler: 120 × 87 × 80 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1329852-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Bonticus"
+    }
+  },
+  {
+    "id": "cfmoto-zforce-950-sport-led-mizrak-braketi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "CFMoto"
+    ],
+    "uyum": [
+      {
+        "marka": "CFMoto"
+      }
+    ],
+    "baslik": "CFMoto ZForce 950 Sport LED Mızrak Montaj Braketi",
+    "aciklama": "2024 ZForce 950 Sport'un koltuklarının arkasındaki boruya LED mızrakları yarım inç cıvata ile taşıyan braket. Mızrakları aracın içine, çamurdan uzak konuma almak için tasarlanmıştır.\nYaklaşık dış ölçüler: 86 × 20 × 20 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1658092-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1658092-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1658092-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1658092-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "SuperMidget"
+    }
+  },
+  {
+    "id": "cfmoto-650mt-adventura-arka-stop-sinyal-konsolu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "CFMoto"
+    ],
+    "uyum": [
+      {
+        "marka": "CFMoto"
+      }
+    ],
+    "baslik": "CFMoto 650 MT / Adventura Arka Stop ve Sinyal LED Konsolu",
+    "aciklama": "650 MT ve Adventura'da stok arka stop lambasını tek LED dizisiyle değiştiren konsol parçası. Kaynakta belirtildiği üzere LED ampuller pakete dâhil değildir.\nYaklaşık dış ölçüler: 126 × 62 × 32 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1321077-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1321077-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1321077-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1321077-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "JC"
+    }
+  },
+  {
+    "id": "cfmoto-450mt-sinyal-lambasi-repozisyon-braketi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "CFMoto"
+    ],
+    "uyum": [
+      {
+        "marka": "CFMoto"
+      }
+    ],
+    "baslik": "CFMoto 450MT (IBEX) Sinyal Lambası Repozisyon Braketleri",
+    "aciklama": "450MT'de bagaj rafıyla çakışan sinyal lambalarını yeniden konumlandıran braket seti. Sete su ve çamur girmesini önleyen kapak ve kalan delikleri kapatan bir tapa da dâhildir.\nYaklaşık dış ölçüler: 10 × 10 × 7 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1818431-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1818431-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1818431-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1818431-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Marius Mihasan"
+    }
+  },
+  {
+    "id": "cfmoto-clx700-gromet-rakoru-cerceve-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "CFMoto"
+    ],
+    "uyum": [
+      {
+        "marka": "CFMoto"
+      }
+    ],
+    "baslik": "CFMoto CLX 700 Gromet Rakoru (Çerçeve Kapağı)",
+    "aciklama": "CLX 700 çerçeve deliklerine takılan dekoratif kapakların lastik grommet içine oturmasını sağlayan rakor. Geçmeli ve yarım geçmeli olmak üzere iki varyantı vardır.\nYaklaşık dış ölçüler: 19 × 19 × 12 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr573018-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Cameron Payton"
+    }
+  },
+  {
+    "id": "cfmoto-cforce-450l-tasiyici-kapak-eklentisi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "CFMoto"
+    ],
+    "uyum": [
+      {
+        "marka": "CFMoto"
+      }
+    ],
+    "baslik": "CFMoto CForce 450L (2024) Taşıyıcı Kapak Eklentisi",
+    "aciklama": "CForce 450L'nin ön veya arka taşıyıcısının üzerine oturan kozmetik kapak eklentisi.\nYaklaşık dış ölçüler: 82 × 46 × 5 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1152193-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1152193-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Fichte"
+    }
+  },
+  {
+    "id": "cfmoto-clx700-gidon-ucu-ayna-gerdirici-ara-parca",
+    "kategori": "Motosiklet",
+    "marka": [
+      "CFMoto"
+    ],
+    "uyum": [
+      {
+        "marka": "CFMoto"
+      }
+    ],
+    "baslik": "CFMoto CLX 700 Gidon Ucu Ayna Gerdirici Ara Parçası",
+    "aciklama": "CLX 700'te gidon ucundaki stok ayna gerdiricileriyle birlikte çalışan mesafe ara parçası.\nYaklaşık dış ölçüler: 38 × 18 × 18 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr597274-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr597274-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Cameron Payton"
+    }
+  },
+  {
+    "id": "cfmoto-650mt-adventura-garmin-guc-anahtari-plakasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "CFMoto"
+    ],
+    "uyum": [
+      {
+        "marka": "CFMoto"
+      }
+    ],
+    "baslik": "CFMoto 650 MT / Adventura Garmin Güç Anahtarı Montaj Plakası",
+    "aciklama": "650 MT ve Adventura'da Garmin güç anahtarının koltuk altına sabitlenmesini sağlayan plaka. Stok GPS modülünün braketi sökülerek aynı konum kullanılır.\nYaklaşık dış ölçüler: 140 × 128 × 56 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1327241-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1327241-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1327241-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1327241-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "JC"
+    }
+  },
+  {
+    "id": "cfmoto-clx700-plaka-braketi-yatay",
+    "kategori": "Motosiklet",
+    "marka": [
+      "CFMoto"
+    ],
+    "uyum": [
+      {
+        "marka": "CFMoto"
+      }
+    ],
+    "baslik": "CFMoto CLX 700 Plaka Braketi (Yatay)",
+    "aciklama": "CLX 700'ün arka tamponundan sökülen montaj noktasını ve vidalarını kullanan yatay plaka braketi.\nYaklaşık dış ölçüler: 180 × 100 × 27 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1699930-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1699930-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "B Hare"
+    }
+  },
+  {
+    "id": "cfmoto-550u-force-43mm-kablo-klipi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "CFMoto"
+    ],
+    "uyum": [
+      {
+        "marka": "CFMoto"
+      }
+    ],
+    "baslik": "CFMoto 550 U-Force 43 mm Kablo Klipi",
+    "aciklama": "550 U-Force'un kabin ve kapı çerçevesi çevresindeki 43 milimetrelik çelik boruya takılan, iki adet üç milimetrelik kablosu bir arada tutan klip.\nYaklaşık dış ölçüler: 54 × 52 × 5 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1139400-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Emmanuel Cherrington"
+    }
+  },
+  {
+    "id": "cfmoto-550u-force-23mm-kablo-klipi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "CFMoto"
+    ],
+    "uyum": [
+      {
+        "marka": "CFMoto"
+      }
+    ],
+    "baslik": "CFMoto 550 U-Force 23 mm Kablo Klipi",
+    "aciklama": "550 U-Force'un yanlardaki bagaj bölümü çevresindeki 23 milimetrelik çelik boruya takılan, iki adet üç milimetrelik kablosu tutan klip.\nYaklaşık dış ölçüler: 30 × 26 × 5 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1139393-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1139393-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Emmanuel Cherrington"
+    }
+  },
+  {
+    "id": "cfmoto-450mt-koltuk-damperi-tapasi-6kj0-130204",
+    "kategori": "Motosiklet",
+    "marka": [
+      "CFMoto"
+    ],
+    "uyum": [
+      {
+        "marka": "CFMoto"
+      }
+    ],
+    "baslik": "CFMoto 450MT Koltuk Lastik Damperi Tapası (6KJ0-130204)",
+    "aciklama": "450MT koltuklarının çıkarılması sırasında kolayca kaybolan lastik damperin yedek tapası. Orijinal parça numarası 6KJ0-130204'tür.\nYaklaşık dış ölçüler: 20 × 20 × 16 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1828243-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1828243-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "TeknikFrik"
+    }
+  },
+  {
     "id": "ds5-bagaj-rafi-klipsi-ve-pimi",
     "kategori": "Otomobil",
     "marka": [
