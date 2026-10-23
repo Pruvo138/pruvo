@@ -2096,30 +2096,6 @@
     }
   },
   {
-    "id": "mg-midget-minilite-tekerlek-kapak",
-    "kategori": "Otomobil",
-    "marka": [
-      "MG",
-      "MGB"
-    ],
-    "uyum": [
-      {
-        "marka": "MG",
-        "model": "MGB"
-      }
-    ],
-    "baslik": "MGB Minilite Tekerlek Göbek Kapağı",
-    "aciklama": "MGB Minilite tekerleklerinin göbek kapağıdır ve tekerleğin göbek bölümünü kapatır. Parça yük taşıyan bir bağlantı elemanı değildir.\nYaklaşık dış ölçüler: 128 × 66 × 42 mm.",
-    "fiyat": "400 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th2883250-1.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY 4.0",
-      "tasarimci": "Vstreignard"
-    }
-  },
-  {
     "id": "mg-metro-tekerlek-gobek-kapak",
     "kategori": "Otomobil",
     "marka": [
@@ -4267,28 +4243,6 @@
     }
   },
   {
-    "id": "isuzu-trooper-kaput-dikme-cubugu-klipsi",
-    "kategori": "Otomobil",
-    "marka": [
-      "Isuzu"
-    ],
-    "uyum": [
-      {
-        "marka": "Isuzu"
-      }
-    ],
-    "baslik": "Isuzu Trooper Kaput Dikme Çubuğu Klipsi",
-    "aciklama": "2000 ve sonrası Isuzu Trooper motor bölmesinde kaputu açık tutan dikme çubuğunu yerinde sabitleyen küçük plastik klipsin yedek parçasıdır.\nYaklaşık dış ölçüler: 31 × 24 × 11 mm.",
-    "fiyat": "300 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th7252969-1.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY-SA 4.0",
-      "tasarimci": "johnthegoon"
-    }
-  },
-  {
     "id": "isuzu-arka-koltuk-dugmesi-topuz",
     "kategori": "Otomobil",
     "marka": [
@@ -5201,32 +5155,6 @@
     }
   },
   {
-    "id": "mini-cooper-r50-r53-telefon-topuz-tek-parca",
-    "kategori": "Otomobil",
-    "marka": [
-      "Mini",
-      "Cooper R50"
-    ],
-    "uyum": [
-      {
-        "marka": "Mini",
-        "model": "Cooper R50"
-      }
-    ],
-    "baslik": "MINI Cooper R50/R53 Toplu Telefon Bağlantı Parçası",
-    "aciklama": "MINI Cooper R50 ile R53 arasındaki modellere uyan, top mafsalı ve montaj parçasını tek parça halinde birleştiren telefon tutucu bağlantısıdır.\nYaklaşık dış ölçüler: 108 × 96 × 35 mm.",
-    "fiyat": "400 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6985030-1.jpg",
-      "https://media.pruvo3d.com/urunler/th6985030-2.jpg",
-      "https://media.pruvo3d.com/urunler/th6985030-3.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY-SA 4.0",
-      "tasarimci": "Gregsterguy"
-    }
-  },
-  {
     "id": "mini-cooper-countryman-bagaj-kapagi-donanim",
     "kategori": "Otomobil",
     "marka": [
@@ -5434,30 +5362,6 @@
     }
   },
   {
-    "id": "mini-r53-vites-korugu-tutucu-v7",
-    "kategori": "Otomobil",
-    "marka": [
-      "Mini",
-      "Cooper S R53"
-    ],
-    "uyum": [
-      {
-        "marka": "Mini",
-        "model": "Cooper S R53"
-      }
-    ],
-    "baslik": "MINI Cooper S R53 Vites Körüğü Tutucu V7",
-    "aciklama": "MINI Cooper S R53 vites körüğünü yerinde tutan tutucu halkasının yedi numaralı yeniden ölçeklendirilmiş sürümüdür; dört noktasından birinde daha uzun ve geniş kilit çıkıntısı bulunur.\nYaklaşık dış ölçüler: 136 × 136 × 41 mm.",
-    "fiyat": "450 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th7184868-1.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY-SA 4.0",
-      "tasarimci": "Lemon_Wedge"
-    }
-  },
-  {
     "id": "mini-countryman-ozellestirilebilir-telefon-tutucu",
     "kategori": "Otomobil",
     "marka": [
@@ -5611,30 +5515,6 @@
     "lisans": {
       "tur": "CC BY 4.0",
       "tasarimci": "Magicfriend"
-    }
-  },
-  {
-    "id": "mini-cooper-r55-r56-debriyaj-merkezleme-aleti",
-    "kategori": "Otomobil",
-    "marka": [
-      "Mini",
-      "Cooper R55"
-    ],
-    "uyum": [
-      {
-        "marka": "Mini",
-        "model": "Cooper R55"
-      }
-    ],
-    "baslik": "MINI Cooper R55/R56 Debriyaj Merkezleme Aleti",
-    "aciklama": "2008 MINI Clubman R55 ve benzer Cooper R56 modellerinde tek kütleli volana sahip Cooper S olmayan versiyonlar için tasarlanmış debriyaj merkezleme aletidir.\nYaklaşık dış ölçüler: 98 × 17 × 17 mm.",
-    "fiyat": "400 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6563605-1.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY-SA 4.0",
-      "tasarimci": "Recorsi"
     }
   },
   {
@@ -5862,26 +5742,6 @@
       "https://media.pruvo3d.com/urunler/pr261251-2.jpg",
       "https://media.pruvo3d.com/urunler/pr261251-3.jpg",
       "https://media.pruvo3d.com/urunler/pr261251-4.jpg"
-    ]
-  },
-  {
-    "id": "mini-f56-telefon-tutucu-kol-braketi",
-    "kategori": "Otomobil",
-    "marka": [
-      "Mini",
-      "F56"
-    ],
-    "uyum": [
-      {
-        "marka": "Mini",
-        "model": "F56"
-      }
-    ],
-    "baslik": "MINI F56 Telefon Tutucu Kol Braketi",
-    "aciklama": "F56 telefon tutucusuyla birlikte çalışan, tutucu kolunu araç gösterge paneline bağlayan braket parçasıdır. Kolun kıvrımında kayma olmaması için sert malzemeye uygundur.\nYaklaşık dış ölçüler: 177 × 84 × 11 mm.",
-    "fiyat": "450 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/pr286832-1.jpg"
     ]
   },
   {
@@ -7993,58 +7853,6 @@
     }
   },
   {
-    "id": "byd-song-pro-6-5-inc-hoparlor-adaptoru",
-    "kategori": "Otomobil",
-    "marka": [
-      "BYD",
-      "Song Pro"
-    ],
-    "uyum": [
-      {
-        "marka": "BYD",
-        "model": "Song Pro"
-      }
-    ],
-    "baslik": "BYD Song Pro 6,5 İnç Hoparlör Adaptörü",
-    "aciklama": "Song Pro 2025'te orijinal hoparlörün yerine 6,5 inçlik hoparlör takmaya yarayan adaptördür; hoparlör bağlantı delikleri ve kablo deliği sonradan açılır.\nYaklaşık dış ölçüler: 190 × 175 × 41 mm.",
-    "fiyat": "450 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6782554-1.jpg",
-      "https://media.pruvo3d.com/urunler/th6782554-2.jpg",
-      "https://media.pruvo3d.com/urunler/th6782554-3.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY-SA 4.0",
-      "tasarimci": "HellionMX"
-    }
-  },
-  {
-    "id": "byd-song-pro-tweeter-adaptoru",
-    "kategori": "Otomobil",
-    "marka": [
-      "BYD",
-      "Song Pro"
-    ],
-    "uyum": [
-      {
-        "marka": "BYD",
-        "model": "Song Pro"
-      }
-    ],
-    "baslik": "BYD Song Pro Tweeter Adaptörü",
-    "aciklama": "Song Pro 2025'te orijinal tweeter yerine, vidalı montaj adaptörüyle 37 milimetrelik tweeter takmaya yarayan adaptördür.\nYaklaşık dış ölçüler: 81 × 50 × 6 mm.",
-    "fiyat": "400 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6782558-1.jpg",
-      "https://media.pruvo3d.com/urunler/th6782558-2.jpg",
-      "https://media.pruvo3d.com/urunler/th6782558-3.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY-SA 4.0",
-      "tasarimci": "HellionMX"
-    }
-  },
-  {
     "id": "byd-shark-6-uhf-telsiz-tutucusu",
     "kategori": "Otomobil",
     "marka": [
@@ -10138,32 +9946,6 @@
     "lisans": {
       "tur": "CC BY 4.0",
       "tasarimci": "BunnyTJ"
-    }
-  },
-  {
-    "id": "jeep-compass-patriot-orta-konsol-tepsisi",
-    "kategori": "Otomobil",
-    "marka": [
-      "Jeep",
-      "Compass"
-    ],
-    "uyum": [
-      {
-        "marka": "Jeep",
-        "model": "Compass"
-      }
-    ],
-    "baslik": "Jeep Compass/Patriot Orta Konsol Tepsisi",
-    "aciklama": "2011-2016 Compass ve Patriot orta konsoluna oturan küçük eşya tepsisidir.\nYaklaşık dış ölçüler: 145 × 128 × 40 mm.",
-    "fiyat": "400 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6243901-1.jpg",
-      "https://media.pruvo3d.com/urunler/th6243901-2.jpg",
-      "https://media.pruvo3d.com/urunler/th6243901-3.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY-SA 4.0",
-      "tasarimci": "WooHoo2You"
     }
   },
   {
@@ -189628,31 +189410,6 @@
     }
   },
   {
-    "id": "th7357294-cfmoto-sirt-pulverizatoru-baglanti-braketi",
-    "kategori": "Motosiklet",
-    "marka": [
-      "CFMoto"
-    ],
-    "uyum": [
-      {
-        "marka": "CFMoto"
-      }
-    ],
-    "baslik": "CFMoto Sırt Pülverizatörü Bağlantı Braketi",
-    "aciklama": "CFMoto ATV/UTV gövdesine sırt tipi pülverizatör sabitlemek için bağlantı braketi.\nYaklaşık dış ölçüler: 149 × 89 × 69 mm.",
-    "fiyat": "450 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th7357294-1.jpg",
-      "https://media.pruvo3d.com/urunler/th7357294-2.jpg",
-      "https://media.pruvo3d.com/urunler/th7357294-3.jpg",
-      "https://media.pruvo3d.com/urunler/th7357294-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "oooPhilippooo",
-      "tur": "CC-BY-SA"
-    }
-  },
-  {
     "id": "th6790409-cfmoto-uforce-sinyal-lambasi-braketi",
     "kategori": "Motosiklet",
     "marka": [
@@ -190281,31 +190038,6 @@
     ],
     "lisans": {
       "tasarimci": "Po_temkin",
-      "tur": "CC-BY-SA"
-    }
-  },
-  {
-    "id": "th6665437-cfmoto-cforce-450-dlx-hizli-baglanti-aparati",
-    "kategori": "Motosiklet",
-    "marka": [
-      "CFMoto"
-    ],
-    "uyum": [
-      {
-        "marka": "CFMoto"
-      }
-    ],
-    "baslik": "CFMoto CForce 450 DLX Hızlı Bağlantı Aparatı",
-    "aciklama": "CFMoto CForce 450 DLX gövdesine aksesuar sabitlemek için hızlı bağlantı (quick-release) aparatı.\nYaklaşık dış ölçüler: 176 × 50 × 42 mm.",
-    "fiyat": "400 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6665437-1.jpg",
-      "https://media.pruvo3d.com/urunler/th6665437-2.jpg",
-      "https://media.pruvo3d.com/urunler/th6665437-3.jpg",
-      "https://media.pruvo3d.com/urunler/th6665437-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "JxxKal",
       "tur": "CC-BY-SA"
     }
   },
