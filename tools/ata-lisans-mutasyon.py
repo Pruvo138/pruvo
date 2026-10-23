@@ -89,6 +89,17 @@ MUTANTLAR = [
      '    if bulunan:',
      "KIRMIZI", "[RP1-PARENTPRINTID]"),
 
+    # AK-10/AK-11: uretim defteri ata_destegi (BaBa 24 Eki tik 87).
+    ("AK-10 PR ata_destegi False'a doner (PR dilimi toplu taramada OLCULMEDI)",
+     '            # alan sorgudan cikinca ikisi ALAN-YOK. Sekil olculmeden diger platformlar '
+     'CEVRILMEZ.\n            ata_destegi=True),',
+     '            ata_destegi=False),',
+     "KIRMIZI", "[PD2-PR-KAPSAM]"),
+    ("AK-11 TV ata_destegi olcumsuz True'ya cevrilir",
+     '            satilabilir=genel_satilabilir,\n            ata_destegi=False),',
+     '            satilabilir=genel_satilabilir,\n            ata_destegi=True),',
+     "KIRMIZI", "[PD1-BAYRAK]"),
+
     # ---------------- eksen: HOST cozumlemesi (kapinin yeni ekseni) ----------------
     ("OLD-01 host korlugu",
      '            if host == h or host.endswith("." + h):',

@@ -971,7 +971,10 @@ def uretim_defteri():
             detay=lambda k: _sarmala(pr.detail, k),
             lisans_cikar=lambda d: str(((d.get("license") or {}) or {}).get("abbreviation") or ""),
             satilabilir=pr.satilabilir,
-            ata_destegi=False),
+            # CANLI OLCULDU (24 Eki 2026, BaBa tik 87): DETAIL_Q `thingiverseLink` +
+            # `remixParents` — pr:1495334 ata pr:1329863 · pr:1694862 ata thing:3806140;
+            # alan sorgudan cikinca ikisi ALAN-YOK. Sekil olculmeden diger platformlar CEVRILMEZ.
+            ata_destegi=True),
         Adaptor(
             ad="tv", hostlar=("thingiverse.com",),
             kimlik_cikar=_kimlik_thing,
