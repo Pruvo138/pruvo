@@ -69,6 +69,19 @@ DOĞRULAMA (sessiz-yükleme kalkanı — put_object çağrısı REFAKTÖR EDİLM
   Bu yüzden R5 varlığı BAĞIMSIZ bir sonda (`var_mi`) ile ölçer ve hâlâ varsa KIRMIZI yanar;
   önbellekten gelen bayat "hâlâ var" cevabı da KIRMIZI üretir — yön bilinçli fail-closed'dır
   (sahte YEŞİL "silindi" demektense sahte KIRMIZI ile durmak yeğlenir).
+
+R8 SİLİNMİŞ ÜRÜNÜN KENDİ GÖRSELLERİ (`--sil-urun <id>`, 23 Eki 2026) — geçici silme
+  betiği yerine TEK yol. `--uygula` YOKSA KURU: yalnız plan basılır, R2'ye (ve kimlik
+  dosyasına) DOKUNULMAZ. Her adım fail-closed (rc=KOD_SIL_RED, silme YOK):
+    K1 id GÜNCEL urunler.json'da VARSA → RED "urun canli"
+    K2 id arsiv/urunler-arsiv.json'da YOKSA → RED "Okan silme izi yok" (arşiv girişi yalnız
+       panel ya da PRUVO_URUN_SIL_IZNI=OKAN yolundan doğar)
+    K3 silinen gövde git geçmişinden (`urun_arsivi.govde_getir`, govde_sha256 doğrulamalı)
+       okunur; `gorseller`den media anahtarları çıkar — boş/çözülemezse RED
+    K4 anahtar GÜNCEL urunler.json metninde TAM ad olarak geçiyorsa ATLANIR (başka ürün
+       kullanıyor) ve basılır
+    K5 kalanlar `sil_ve_dogrula` (R5) ile silinir — listede olmayan anahtara dokunulmaz.
+  Çıktı: `R2_SIL id=<id> plan=<n> atlanan=<n> silinen=<n> dogrulanan=<n> KIP=<KURU|UYGULA>`.
 """
 import argparse
 import importlib.util
@@ -104,6 +117,14 @@ KOD_EZME = 4
 # ([[r2-anahtar-gelenek-disi]]). Tek kaynak `r2_anahtar.anahtar_coz` — burada YENİDEN
 # kurallar YAZILMAZ, sadece "yazılmamalı" hükmü uygulanır.
 KOD_GELENEK_DISI = 5
+
+# R8 (23 Eki 2026): CLI çıkış kodu — `--sil-urun` bir fail-closed adımda (K1-K3) durdu,
+# R2'ye silme isteği GİTMEDİ.
+KOD_SIL_RED = 6
+
+# R8: silinecek anahtarlar YALNIZ bu önekle başlayan `gorseller` URL'lerinden çıkar;
+# başka uçtaki görsel bizim kovamız değildir, dokunulmaz.
+MEDIA_ONEK = "https://media.pruvo3d.com/"
 
 # R1 asgari boyut: 1024 bayt. Gerçek ürün görselleri (JPEG/PNG/WebP/AVIF) daima kByte'larca olur;
 # 0-bayt, kesik yazma ve Cloudflare-403 HTML gövdeleri bu eşiğin altında ya da geçerli-magic'siz kalır.
@@ -424,6 +445,91 @@ def dogrula_ve_yukle(s3, bucket, key, data, var_mi=None, ezmeye_izin_ver=False,
     return content_type
 
 
+class SilmeReddi(ValueError):
+    """R8: `--sil-urun` bir fail-closed adımda durdu; silme YAPILMADI."""
+    def __init__(self, adim, sebep):
+        ValueError.__init__(self, "%s: %s" % (adim, sebep))
+        self.adim = adim
+        self.sebep = sebep
+
+
+def _urun_arsivi():
+    """urun_arsivi.py — arşiv şekli + git geçmişinden gövde çözümü TEK KAYNAK (lazy)."""
+    yol = os.path.join(os.path.dirname(os.path.abspath(__file__)), "urun_arsivi.py")
+    sp = importlib.util.spec_from_file_location("_urun_arsivi", yol)
+    m = importlib.util.module_from_spec(sp)
+    sp.loader.exec_module(m)
+    return m
+
+
+def sil_urun_plani(uid, kok):
+    """K1-K4: (plan, atlanan) — plan: silinmiş gövdenin media anahtarları (sıralı,
+    tekil), atlanan: GÜNCEL katalogda hâlâ geçen anahtarlar. Aksi SilmeReddi."""
+    ua = _urun_arsivi()
+    try:
+        with open(os.path.join(kok, ua.KATALOG_YOLU), encoding="utf-8") as f:
+            katalog_metni = f.read()
+        katalog = json.loads(katalog_metni)
+    except (OSError, ValueError) as exc:
+        raise SilmeReddi("K1", "katalog okunamadi (%s)" % type(exc).__name__)
+    if not isinstance(katalog, list):
+        raise SilmeReddi("K1", "katalog liste degil")
+    if any(isinstance(k, dict) and k.get("id") == uid for k in katalog):
+        raise SilmeReddi("K1", "urun canli")
+    try:
+        with open(os.path.join(kok, ua.ARSIV_YOLU), encoding="utf-8") as f:
+            arsiv = json.load(f)
+    except (OSError, ValueError) as exc:
+        raise SilmeReddi("K2", "arsiv okunamadi (%s)" % type(exc).__name__)
+    girisler = [g for g in arsiv if ua.giris_id(g) == uid] if isinstance(arsiv, list) else []
+    if not girisler:
+        raise SilmeReddi("K2", "Okan silme izi yok")
+    try:
+        govde, _commit = ua.govde_getir(kok, girisler[-1])
+    except ua.ArsivHatasi as exc:
+        raise SilmeReddi("K3", "govde cozulemedi (%s)" % exc)
+    gorseller = govde.get("gorseller") if isinstance(govde, dict) else None
+    if not isinstance(gorseller, list):
+        raise SilmeReddi("K3", "govdede gorseller listesi yok")
+    plan = []
+    for url in gorseller:
+        if isinstance(url, str) and url.startswith(MEDIA_ONEK):
+            key = url[len(MEDIA_ONEK):]
+            if key and ".." not in key.split("/") and key not in plan:
+                plan.append(key)
+    if not plan:
+        raise SilmeReddi("K3", "govdede media anahtari yok")
+    atlanan = [key for key in plan if katalog_metni.count(key) > 0]
+    return plan, atlanan
+
+
+def sil_urun(uid, kok, uygula=False, var_mi=None, sil=None, bekle=None, yaz=print):
+    """R8: silinmiş ürünün KENDİ görsellerini sil (K1-K5). Dönüş: özet sözlüğü.
+    KURU (uygula=False) kipte var_mi/sil HİÇ çağrılmaz."""
+    plan, atlanan = sil_urun_plani(uid, kok)
+    for key in atlanan:
+        yaz("R2_SIL_ATLA %s (guncel katalogda baska urun kullaniyor)" % key)
+    silinen = dogrulanan = 0
+    kalan = [key for key in plan if key not in atlanan]
+    if uygula:
+        if var_mi is None or sil is None:
+            raise SilmeReddi("K5", "sonda/silme baglanmadi")
+        for key in kalan:
+            sonuc = sil_ve_dogrula(key, var_mi, sil, bekle=bekle)
+            if sonuc == "silindi-dogrulandi":
+                silinen += 1
+            dogrulanan += 1
+            yaz("R2_SIL_ANAHTAR %s %s" % (key, sonuc))
+    else:
+        for key in kalan:
+            yaz("R2_SIL_PLAN %s" % key)
+    ozet = {"id": uid, "plan": len(plan), "atlanan": len(atlanan), "silinen": silinen,
+            "dogrulanan": dogrulanan, "kip": "UYGULA" if uygula else "KURU"}
+    yaz("R2_SIL id=%(id)s plan=%(plan)d atlanan=%(atlanan)d silinen=%(silinen)d "
+        "dogrulanan=%(dogrulanan)d KIP=%(kip)s" % ozet)
+    return ozet
+
+
 def _v2_onerisi(key):
     """Ezme yerine kullanılacak YENİ anahtar önerisi (CLAUDE.md `-v2.jpg` deseni)."""
     kok, uzanti = os.path.splitext(key)
@@ -447,12 +553,47 @@ def parser_kur():
     ap.add_argument("--ham-anahtar", dest="ham_anahtar", action="store_true",
                     help="R7 one-kontrolunu BILEREK atla (ciplak 'th<id>-N' gibi anahtarlar; "
                          "varsayilan KAPALI — meşru yol 'urunler/<key>-<n>.jpg')")
+    ap.add_argument("--sil-urun", dest="sil_urun", metavar="<id>", default=None,
+                    help="R8: arsivdeki SILINMIS urunun kendi gorsellerini sil "
+                         "(--uygula yoksa KURU: yalniz plan)")
+    ap.add_argument("--uygula", dest="uygula", action="store_true",
+                    help="R8: --sil-urun planini GERCEKTEN uygula (varsayilan KAPALI)")
     return ap
+
+
+def _sil_urun_cli(a):
+    """R8 CLI: çıkış kodu döner. Kimlik dosyası YALNIZ --uygula'da okunur, basılmaz."""
+    if not a.sil_urun or a.ciftler:
+        print("Kullanim: r2-upload.py --sil-urun <id> [--uygula]", file=sys.stderr)
+        return 1
+    var_mi = sil = None
+    if a.uygula:
+        cfg = json.load(open(CFG_PATH))
+        s3 = boto3.client(
+            "s3",
+            endpoint_url=cfg["endpoint"],
+            aws_access_key_id=cfg["access_key"],
+            aws_secret_access_key=cfg["secret"],
+            region_name="auto",
+        )
+        var_mi = s3_var_mi(s3, cfg["bucket"])
+
+        def sil(key):
+            s3.delete_object(Bucket=cfg["bucket"], Key=key)
+    try:
+        sil_urun(a.sil_urun, _VERI_KOK, uygula=a.uygula, var_mi=var_mi, sil=sil)
+    except SilmeReddi as exc:
+        print("R2_SIL_RED id=%s adim=%s sebep=%s" % (a.sil_urun, exc.adim, exc.sebep),
+              file=sys.stderr)
+        return KOD_SIL_RED
+    return 0
 
 
 def main():
     ap = parser_kur()
     a = ap.parse_args()
+    if a.sil_urun is not None or a.uygula:
+        sys.exit(_sil_urun_cli(a))
     args = a.ciftler
     if len(args) < 2 or len(args) % 2 != 0:
         print("Kullanim: r2-upload.py <yerel_dosya> <r2_anahtari> [<yerel> <anahtar> ...] "

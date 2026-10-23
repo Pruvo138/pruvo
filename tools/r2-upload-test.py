@@ -78,8 +78,19 @@ KAPALI). Meşru yollar ("urunler/...jpg", "banner/...jpg") DEĞİŞMEDEN geçer:
   V3 'th6761486-1' + --ham-anahtar    → GEÇER (R7 bilerek atlandı; put IfNoneMatch ile)
   V4 'banner/skan-baykus-b5.jpg'       → GEÇER (meşru yol; '/' var, desen dışı)
   V5 KOD_GELENEK_DISI sıfır-dışı sabit → CLI çıkış kodu (sessiz başarı yok)
+
+R8 `--sil-urun` (23 Eki 2026) — silinmiş ürünün KENDİ görselleri. GEÇİCİ git deposu
+(sentetik_git) + ağsız sahte kova; GERÇEK R2/AĞ YOK, gerçek urunler.json okunmaz:
+  S1 canlı ürün (arşivde de var: geri yüklenmiş) → RED K1, sil() 0 çağrı
+  S2 arşivde yok                       → RED K2
+  S3 gövde görselsiz                   → RED K3
+  S4 bir anahtar başka canlı üründe    → o anahtar ATLANIR, diğeri silinir
+  S5 --uygula yok                      → KURU, var_mi/sil 0 çağrı
+  S6 mutlu yol                         → silinen=dogrulanan=n, media dışı URL'ye dokunulmaz
+  Mutantlar (izole kum, `veri_kok.kum_kur`): M1 K1 kaldır → S1 KIRMIZI ·
+  M2 K2 kaldır → S2 KIRMIZI · M3 K4 kaldır → S4 KIRMIZI
 """
-import sys, os, io, json, tempfile, importlib.util
+import sys, os, io, json, shutil, tempfile, importlib.util
 
 MOD_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "r2-upload.py")
 
@@ -856,6 +867,214 @@ def vaka_U_hatasiz_yol():
            "U: urun kaldirildi, kaldirilamayan YOK")
 
 
+# --- R8 --sil-urun: S1-S6 + M1-M3 -------------------------------------------------
+TOOLS = os.path.dirname(os.path.abspath(__file__))
+
+
+def _modul_yukle(ad, yol):
+    sp = importlib.util.spec_from_file_location(ad, yol)
+    m = importlib.util.module_from_spec(sp)
+    sp.loader.exec_module(m)
+    return m
+
+
+_gecici_dizinler = []
+_fikstur_kok = None
+M = mod.MEDIA_ONEK
+
+
+def _gorsel(*anahtarlar):
+    return [M + a for a in anahtarlar]
+
+
+def _sil_fiksturu():
+    """Gecici git deposu: c1 bes urun · c2 dort urun silinir + govdesiz arsiv girisi
+    (urun_arsivi.giris_yap) · c3 'geri-gelen' YENI gorselle geri yuklenir."""
+    global _fikstur_kok
+    if _fikstur_kok:
+        return _fikstur_kok
+    go = _modul_yukle("_go_test", os.path.join(TOOLS, "git_ortami.py"))
+    ua = mod._urun_arsivi()
+    kok = tempfile.mkdtemp(prefix="r2-sil-fikstur-")
+    _gecici_dizinler.append(kok)
+    os.makedirs(os.path.join(kok, "arsiv"))
+
+    def git(*a):
+        go.sentetik_git(kok, *a, check=True, capture_output=True)
+
+    def yaz(katalog, arsiv, mesaj):
+        with open(os.path.join(kok, "urunler.json"), "w", encoding="utf-8") as f:
+            json.dump(katalog, f, ensure_ascii=False, indent=2)
+        with open(os.path.join(kok, "arsiv", "urunler-arsiv.json"), "w", encoding="utf-8") as f:
+            json.dump(arsiv, f, ensure_ascii=False, indent=2)
+        git("add", "-A")
+        git("commit", "-q", "-m", mesaj)
+
+    canli = {"id": "canli-x", "gorseller": _gorsel("urunler/canli-x-1.jpg",
+                                                     "urunler/ortak-1.jpg")}
+    silinecek = [
+        {"id": "geri-gelen", "gorseller": _gorsel("urunler/geri-gelen-1.jpg")},
+        {"id": "gorselsiz", "gorseller": []},
+        {"id": "paylasan", "gorseller": _gorsel("urunler/paylasan-1.jpg",
+                                                  "urunler/ortak-1.jpg")},
+        {"id": "mutlu", "gorseller": _gorsel("urunler/mutlu-1.jpg", "urunler/mutlu-2.jpg",
+                                               "urunler/mutlu-3.jpg")
+                                     + ["https://baska.ornek/mutlu-dis.jpg"]},
+    ]
+    git("init", "-q")
+    yaz([canli] + silinecek, [], "c1")
+    arsiv = [ua.giris_yap(k, "fikstur", None, "2026-10-23T10:00:0%dZ" % i)
+             for i, k in enumerate(silinecek)]
+    yaz([canli], arsiv, "c2 sil")
+    geri = {"id": "geri-gelen", "gorseller": _gorsel("urunler/geri-gelen-1-v2.jpg")}
+    yaz([canli, geri], arsiv, "c3 geri yukle")
+    _fikstur_kok = kok
+    return kok
+
+
+class SilKova:
+    """Anahtar basina durum tutan agsiz kova (SahteKova tek silmeden sonra HER anahtari
+    'yok' sayar — cok anahtarli plan icin uygun degil)."""
+    def __init__(self, anahtarlar=()):
+        self.nesneler = set(anahtarlar)
+        self.izler = []
+
+    def var_mi(self, key):
+        self.izler.append(("var_mi", key))
+        return key in self.nesneler
+
+    def sil(self, key):
+        self.izler.append(("sil", key))
+        self.nesneler.discard(key)
+
+
+def _sil_kos(m, uid, uygula, kova):
+    """(ozet|None, red|None, cikti) — beklenmedik istisna YUKARI firlar."""
+    cikti = []
+    try:
+        ozet = m.sil_urun(uid, _sil_fiksturu(), uygula=uygula, var_mi=kova.var_mi,
+                          sil=kova.sil, bekle=_bekleme_yok, yaz=cikti.append)
+        return ozet, None, cikti
+    except m.SilmeReddi as exc:
+        return None, exc, cikti
+
+
+def _silme_sayisi(kova):
+    return len([iz for iz in kova.izler if iz[0] == "sil"])
+
+
+def senaryo_S1(m):
+    kova = SilKova(["urunler/geri-gelen-1.jpg", "urunler/geri-gelen-1-v2.jpg"])
+    ozet, red, _c = _sil_kos(m, "geri-gelen", True, kova)
+    return [(red is not None and red.adim == "K1" and red.sebep == "urun canli",
+             "S1: canli urun (arsivde de var) RED K1 'urun canli'"),
+            (_silme_sayisi(kova) == 0 and not kova.izler,
+             "S1: s3 silme 0 cagri, sonda bile cagrilmadi"),
+            (m.KOD_SIL_RED != 0, "S1: KOD_SIL_RED sifir-disi")]
+
+
+def senaryo_S2(m):
+    kova = SilKova(["urunler/hic-yok-1.jpg"])
+    ozet, red, _c = _sil_kos(m, "hic-yok", True, kova)
+    return [(red is not None and red.adim == "K2" and red.sebep == "Okan silme izi yok",
+             "S2: arsivde olmayan id RED K2 'Okan silme izi yok'"),
+            (_silme_sayisi(kova) == 0, "S2: s3 silme 0 cagri")]
+
+
+def senaryo_S3(m):
+    kova = SilKova()
+    ozet, red, _c = _sil_kos(m, "gorselsiz", True, kova)
+    return [(red is not None and red.adim == "K3", "S3: gorselsiz govde RED K3"),
+            (not kova.izler, "S3: kovaya hic cagri yok")]
+
+
+def senaryo_S4(m):
+    kova = SilKova(["urunler/paylasan-1.jpg", "urunler/ortak-1.jpg"])
+    ozet, red, cikti = _sil_kos(m, "paylasan", True, kova)
+    return [(red is None and ozet is not None, "S4: RED yok (yalniz paylasilan anahtar atlanir)"),
+            (("sil", "urunler/ortak-1.jpg") not in kova.izler
+             and "urunler/ortak-1.jpg" in kova.nesneler,
+             "S4: baska canli urunun kullandigi anahtar SILINMEDI"),
+            ("urunler/paylasan-1.jpg" not in kova.nesneler,
+             "S4: urunun kendi anahtari silindi"),
+            (bool(ozet) and ozet["plan"] == 2 and ozet["atlanan"] == 1
+             and ozet["silinen"] == 1 and ozet["dogrulanan"] == 1,
+             "S4: plan=2 atlanan=1 silinen=1 dogrulanan=1"),
+            (any(c.startswith("R2_SIL_ATLA urunler/ortak-1.jpg") for c in cikti),
+             "S4: atlanan anahtar rapora basildi")]
+
+
+def senaryo_S5(m):
+    kova = SilKova(["urunler/mutlu-1.jpg", "urunler/mutlu-2.jpg", "urunler/mutlu-3.jpg"])
+    ozet, red, cikti = _sil_kos(m, "mutlu", False, kova)
+    return [(red is None and bool(ozet) and ozet["kip"] == "KURU" and ozet["plan"] == 3,
+             "S5: --uygula yok -> KURU, plan=3"),
+            (not kova.izler and len(kova.nesneler) == 3, "S5: var_mi/sil 0 cagri, kova ayni"),
+            (bool(cikti) and cikti[-1] == "R2_SIL id=mutlu plan=3 atlanan=0 silinen=0 "
+                                          "dogrulanan=0 KIP=KURU",
+             "S5: R2_SIL ozet satiri birebir")]
+
+
+def senaryo_S6(m):
+    kova = SilKova(["urunler/mutlu-1.jpg", "urunler/mutlu-2.jpg", "urunler/mutlu-3.jpg",
+                    "urunler/canli-x-1.jpg"])
+    ozet, red, cikti = _sil_kos(m, "mutlu", True, kova)
+    silinen = [iz[1] for iz in kova.izler if iz[0] == "sil"]
+    return [(red is None and bool(ozet) and ozet["silinen"] == ozet["dogrulanan"] == 3
+             and ozet["kip"] == "UYGULA", "S6: mutlu yol silinen=dogrulanan=3 KIP=UYGULA"),
+            (kova.nesneler == {"urunler/canli-x-1.jpg"}, "S6: listede olmayan anahtar DURUYOR"),
+            (sorted(silinen) == ["urunler/mutlu-1.jpg", "urunler/mutlu-2.jpg",
+                                 "urunler/mutlu-3.jpg"],
+             "S6: yalniz plan anahtarlari silindi (media disi URL dokunulmadi)"),
+            (bool(cikti) and cikti[-1].startswith("R2_SIL id=mutlu plan=3 atlanan=0 silinen=3 "
+                                                   "dogrulanan=3 KIP=UYGULA"),
+             "S6: R2_SIL ozet satiri birebir")]
+
+
+def _senaryo_vaka(senaryo):
+    def vaka():
+        for kosul, etiket in senaryo(mod):
+            onayla(kosul, etiket)
+    vaka.__name__ = "vaka_" + senaryo.__name__.split("_", 1)[1]
+    return vaka
+
+
+# (ad, kaynaktaki TAM satir parcasi, yerine, kirmizi olmasi gereken senaryo)
+SIL_MUTANTLARI = (
+    ("M1 K1 kaldir",
+     'if any(isinstance(k, dict) and k.get("id") == uid for k in katalog):', "if False:",
+     senaryo_S1),
+    ("M2 K2 kaldir", "if not girisler:", "if False:", senaryo_S2),
+    ("M3 K4 kaldir", "atlanan = [key for key in plan if katalog_metni.count(key) > 0]",
+     "atlanan = []", senaryo_S4),
+)
+
+
+def vaka_SM_mutantlar():
+    with open(MOD_PATH, encoding="utf-8") as f:
+        kaynak = f.read()
+    kum_yardim = _modul_yukle("_vk_test", os.path.join(TOOLS, "veri_kok.py"))
+    for ad, parca, yerine, senaryo in SIL_MUTANTLARI:
+        onayla(kaynak.count(parca) == 1, "%s: mutasyon parcasi kaynakta TAM 1 kez" % ad)
+        kum = tempfile.mkdtemp(prefix="r2-sil-mutant-")
+        _gecici_dizinler.append(kum)
+        kum_yardim.kum_kur(kum, {"r2-upload.py": kaynak.replace(parca, yerine)}, TOOLS)
+        with _StderrYakala():
+            mutant = _modul_yukle("_r2_mutant", os.path.join(kum, "r2-upload.py"))
+        try:
+            kirmizi = not all(k for k, _e in senaryo(mutant))
+        except Exception:
+            kirmizi = True
+        onayla(kirmizi, "%s -> %s KIRMIZI (mutant olduruldu)"
+                        % (ad, senaryo.__name__.split("_", 1)[1]))
+
+
+def _gecicileri_temizle():
+    for d in _gecici_dizinler:
+        shutil.rmtree(d, ignore_errors=True)
+    del _gecici_dizinler[:]
+
+
 def main():
     print("== r2-upload doğrulama kabul testi ==")
     for fn in (vaka_A, vaka_B, vaka_B2_webp, vaka_C, vaka_D, vaka_E, vaka_F, vaka_G,
@@ -872,7 +1091,11 @@ def main():
                vaka_J, vaka_K, vaka_L, vaka_M, vaka_N_curutme, vaka_O_yetki,
                vaka_CDN_A_yok, vaka_CDN_B_var, vaka_CDN_C_yetki,
                vaka_P_409_urun_yine_kalkar, vaka_Q_hepsi_409, vaka_R_kuyruk_kalici,
-               vaka_S_kuyruk_supurucu, vaka_T_denetim_artiklari, vaka_U_hatasiz_yol):
+               vaka_S_kuyruk_supurucu, vaka_T_denetim_artiklari, vaka_U_hatasiz_yol,
+               _senaryo_vaka(senaryo_S1), _senaryo_vaka(senaryo_S2),
+               _senaryo_vaka(senaryo_S3), _senaryo_vaka(senaryo_S4),
+               _senaryo_vaka(senaryo_S5), _senaryo_vaka(senaryo_S6),
+               vaka_SM_mutantlar):
         # 🔴 VAKA IZOLASYONU: bir vakanin YAKALANMAYAN istisnasi tum kosumu COKERTMEMELI.
         # Cokme ile KIRMIZI ayni sey degildir ([[mutasyon-kaniti-yeniden-uretilebilir]]):
         # mutasyon bataryasi "SONUC:" satirini arar, cokmeyi AYRI sinifa koyar. Beklenmedik
@@ -882,6 +1105,7 @@ def main():
         except Exception as exc:
             onayla(False, "%s: BEKLENMEDIK ISTISNA %s: %s"
                           % (fn.__name__, type(exc).__name__, str(exc)[:200]))
+    _gecicileri_temizle()
     print("---")
     print("GECTI=%d  KALDI=%d" % (_gecti, _kaldi))
     if _kaldi:
