@@ -278,7 +278,10 @@ def coklu_sozluk_satilabilir(ham, kaynak_adaptor=None):
 # Turev kaydin detay JSON'unda ata listesi bu alanlardan birinde durur. Platformlar ayni
 # kavrama farkli ad veriyor; TEK ada bakmak sessiz gecistir (olculdu).
 ATA_ALANLARI = ("originals", "remixParents", "derivedFrom", "ancestors",
-                "originalDesigns", "remixOf")
+                "originalDesigns", "remixOf",
+                # Printables DETAIL_Q `thingiverseLink` = PR -> TV YAPISAL ata (BaBa 23 Eki 23:4x;
+                # olcum: 60 satirda FARK=4, hepsi PR, turev "temiz" sayiliyordu)
+                "thingiverseLink")
 
 # 🔴 ACIKLAMA EKSI: bazi platformlarda turevin ATASI yalnizca serbest metinde yazar
 # (yapisal alan `ancestors` BOS gelir; atif yalniz aciklamada durur).

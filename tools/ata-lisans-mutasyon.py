@@ -73,6 +73,12 @@ MUTANTLAR = [
      '    if False:\n        pass',
      "KIRMIZI", "[B2-ACIKLAMA-YOK]"),
 
+    # AK-07: Printables `thingiverseLink` yapisal ata ekseni (BaBa 23 Eki 23:4x).
+    ("AK-07 thingiverseLink ata alanindan cikar",
+     '                "thingiverseLink")',
+     '                )',
+     "KIRMIZI", "[TL1-THINGIVERSELINK]"),
+
     # ---------------- eksen: HOST cozumlemesi (kapinin yeni ekseni) ----------------
     ("OLD-01 host korlugu",
      '            if host == h or host.endswith("." + h):',
@@ -115,8 +121,8 @@ MUTANTLAR = [
     # ---------------- D2: ata alan adlari ----------------
     ("OLD-04 (D2) ata alan listesi TEK ada iner",
      'ATA_ALANLARI = ("originals", "remixParents", "derivedFrom", "ancestors",\n'
-     '                "originalDesigns", "remixOf")',
-     'ATA_ALANLARI = ("originals",)',
+     '                "originalDesigns", "remixOf",\n',
+     'ATA_ALANLARI = ("originals",\n',
      "KIRMIZI", "[D2a]"),
 
     # ---------------- D3: sekil varyasyonlari ----------------
