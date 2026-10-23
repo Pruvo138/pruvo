@@ -334,5 +334,13 @@
     "govde_sha256": "aa1f47233c975d6a7ddd310764c5a14174da55a1ac70b659232cee8cd41dfc26",
     "yazan": "panel-uygulayici",
     "kuyruk_id": 56
+  },
+  {
+    "id": "pr1328953-husqvarna-svartpilen-401-on-cam-flyscreen",
+    "silinme_ts": "2026-10-23T09:14:20Z",
+    "silme_commit": null,
+    "govde_sha256": "7322f9d5cea837004f1406d2c0b477fd5e9175264c0fbfa24e3ed7d1d77d9bb9",
+    "yazan": "panel-uygulayici",
+    "kuyruk_id": 57
   }
 ]
