@@ -24,8 +24,10 @@ KORUNAN EKSENLER (curutucu dogruladi, bozulmamali):
 
 Kosum:  python3 tools/ata-lisans-test.py
 """
+import contextlib
 import hashlib
 import importlib.util
+import io
 import json
 import os
 import subprocess
@@ -341,6 +343,15 @@ ACIKLAMA_VAKALARI = [
     ("B2-ACIKLAMA-YOK",
      "ACIKLAMA: hicbir aciklama alani dolu DEGIL -> GECICI rc2 (0 vurus temiz sayilmaz)",
      {"id": 1, "license": "CC0", "title": "uydurma-turev"}, K.DURUM_GECICI, 2),
+    # --- TL1/TL2: Printables `thingiverseLink` YAPISAL ata (BaBa 23 Eki 23:4x) ---
+    ("TL1-THINGIVERSELINK",
+     "YAPISAL: thingiverseLink -> NC-ND ata, aciklamada tetik YOK -> IHLAL",
+     {"id": 1, "license": "CC0", "title": "uydurma-turev", "summary": "duz metin",
+      "thingiverseLink": "https://www.thingiverse.com/thing:3543408"}, K.DURUM_IHLAL, 1),
+    ("TL2-THINGIVERSELINK-BOS",
+     "YAPISAL: thingiverseLink='' -> eski davranis (ALAN-YOK rc0)",
+     {"id": 1, "license": "CC0", "title": "uydurma-turev", "summary": "duz metin",
+      "thingiverseLink": ""}, K.DURUM_ALAN_YOK, 0),
     ("B3-ACIKLAMA-BOSLUK",
      "ACIKLAMA: description='   ' (yalniz bosluk) -> GECICI rc2 (0 vurus temiz sayilmaz)",
      {"id": 1, "license": "CC0", "title": "uydurma-turev", "description": "   "},
@@ -632,6 +643,137 @@ def main():
     if not ok:
         hatalar.append("[kendini-test] --kendini-test rc=%d" % r.returncode)
     print("  %-4s --kendini-test rc=0" % ("ok" if ok else "HATA"))
+
+    # --- 8) --canli COKLU PLATFORM + --tsv (23 Eki 2026) -----------------------------
+    # UCTAN-UCA (CLI duzeyinde) ve AGSIZ: `uretim_defteri` CAGRIYISI sahte defterle
+    # degistirilir; boylece "hedef cozumleme -> adaptor secimi -> kimlik -> detay ->
+    # yargi -> cikti" zincirinin TAMAMI ag olmadan kosulur. Sahte `pr` adaptoru gercek
+    # uretim defterindekiyle AYNI kimlik kuralini kullanir (`bas-sayi:model`).
+    # ONCUL OLCUM (canli 23 Eki): printables-api.detail(N) detay donuyor + description/
+    # summary dolu; MaCiT PR kayitlarinin `link` alani `printables.com/model/<N>`.
+    print("  --- CANLI KIPI (PR/Printables) + --tsv (UCTAN-UCA, AGSIZ) ---")
+    PR_LINK = "https://www.printables.com/model/1569795-ornek"
+    PR_DETAY = {"id": "1569795", "name": "uydurma-turev", "slug": "uydurma-turev",
+                "license": "CC-BY", "summary": "uydurma turev",
+                "description": "uydurma turev — ata linki yok"}
+    PR_ADAPTORLER = [{"ad": "pr", "hostlar": ["printables.com"], "kimlik": "bas-sayi:model",
+                      "ata_destegi": False, "yargi": "kisaltma",
+                      "detaylar": {"1569795": PR_DETAY}}]
+
+    def _pr_defter():
+        return K.sentetik_defter(PR_ADAPTORLER)
+
+    def _canli_cli(argv):
+        """CLI'yi IN-PROCESS cagir (uretim_defteri sahte) -> (rc, stdout)."""
+        eski = K.uretim_defteri
+        K.uretim_defteri = _pr_defter
+        buf = io.StringIO()
+        try:
+            with contextlib.redirect_stdout(buf):
+                rc = K.main(argv)
+        finally:
+            K.uretim_defteri = eski
+        return rc, buf.getvalue()
+
+    # P1: printables URL -> pr adaptoru secilir, kimlik cikarilir, detay cekilir.
+    n += 1
+    rc_p1, out_p1 = _canli_cli(["--canli", PR_LINK, "--tsv"])
+    satirlar_p1 = [s for s in out_p1.split("\n") if s != ""]
+    ok = (rc_p1 == 0 and len(satirlar_p1) == 2
+          and satirlar_p1[0].split("\t")[0] == "urun"
+          and satirlar_p1[1].split("\t")[1] == K.DURUM_ALAN_YOK)
+    if not ok:
+        hatalar.append("[P1-PR-HOST] printables URL -> pr adaptoru secilmedi / rc=%d "
+                       "satir=%s" % (rc_p1, satirlar_p1))
+    print("  %-4s P1    printables URL -> pr adaptoru + kimlik (CLI uctan-uca) rc=%d"
+          % ("ok" if ok else "HATA", rc_p1))
+
+    # P2: 'pr:N' -> ayni yol (PR->PR ata baglantisi bu bicimle de girer)
+    n += 1
+    rc_p2, out_p2 = _canli_cli(["--canli", "pr:1569795", "--tsv"])
+    satirlar_p2 = [s for s in out_p2.split("\n") if s != ""]
+    ok = (rc_p2 == 0 and len(satirlar_p2) == 2
+          and satirlar_p2[1].split("\t")[1] == K.DURUM_ALAN_YOK)
+    if not ok:
+        hatalar.append("[P2-PR-KISA] 'pr:N' -> pr adaptoru secilmedi / rc=%d satir=%s"
+                       % (rc_p2, satirlar_p2))
+    print("  %-4s P2    'pr:N' -> pr adaptoru + kimlik (CLI uctan-uca) rc=%d"
+          % ("ok" if ok else "HATA", rc_p2))
+
+    # P2b: 'printables:N' (BaBa 21:4x hukmundeki yazim) -> P2 ile AYNI satir
+    n += 1
+    rc_p2b, out_p2b = _canli_cli(["--canli", "printables:1569795", "--tsv"])
+    ok = (rc_p2b == rc_p2 and out_p2b == out_p2)
+    if not ok:
+        hatalar.append("[P2B-PRINTABLES] 'printables:N' 'pr:N' ile ayni sonucu vermedi / rc=%d"
+                       % rc_p2b)
+    print("  %-4s P2b   'printables:N' == 'pr:N' (CLI uctan-uca) rc=%d"
+          % ("ok" if ok else "HATA", rc_p2b))
+
+    # T1: --tsv basligi 6 sutun + her sonuc icin TEK satir (6 sutun)
+    n += 1
+    ok = (len(satirlar_p1) == 2
+          and satirlar_p1[0].split("\t") == ["urun", "durum", "ata_link", "ata_lisans",
+                                             "derinlik", "gerekce"]
+          and len(satirlar_p1[1].split("\t")) == 6)
+    if not ok:
+        hatalar.append("[T1-TSV] --tsv basligi/satiri 6 sutun DEGIL: %s" % (satirlar_p1,))
+    print("  %-4s T1    --tsv basligi + satir 6 sutun (rapor yerine makine ciktili)"
+          % ("ok" if ok else "HATA"))
+
+    # T1b: --tsv YOKSA insan raporu (rapor kipi) — bayraksiz cikti degismis olmaz
+    n += 1
+    rc_r, out_r = _canli_cli(["--canli", PR_LINK])
+    ok = (rc_r == 0 and "ATA-LISANS KAPISI" in out_r
+          and "urun\tdurum\tata_link" not in out_r)
+    if not ok:
+        hatalar.append("[T1b-TSV-YOK] --tsv bayraksiz cikti rapor kipi DEGIL: %s" % out_r[:300])
+    print("  %-4s T1b   --tsv bayraksiz cikti insan raporu (degismedi)"
+          % ("ok" if ok else "HATA"))
+
+    # P3: bilinmeyen host -> KaliciHata -> CLI rc=2 (adaptoru olmayan host ELLE-BAK DEGIL)
+    n += 1
+    rc_p3, out_p3 = _canli_cli(["--canli", "https://bilinmeyen-host.example/model/1"])
+    ok = (rc_p3 == 2 and "OLCULEMEDI" in out_p3)
+    if not ok:
+        hatalar.append("[P3-HOST-YOK] bilinmeyen host -> rc=2 olmadi (rc=%d)" % rc_p3)
+    print("  %-4s P3    bilinmeyen host -> KaliciHata -> CLI rc=2" % ("ok" if ok else "HATA"))
+
+    # T1c: --kuru-kosum --tsv -> stdout'TA SADECE TSV. `kuru_kosum`'un kapsam ilerleme
+    # satiri (rapor metni) makine ciktisini bozardi. Ucuncu taraf cagrilari sahte
+    # verilerek AGSIZ olculur (kuru_kosum -> ag + veri koku gerektirir).
+    n += 1
+    eski_kk = K.kuru_kosum
+
+    def _sahte_kuru(limit=40, kaynak_filtre=None, yaz=None):
+        # 🔴 GERCEK `kuru_kosum` ile AYNI varsayilan: yaz verilmezse STDOUT'a yazar
+        # (yutucu lambda degil) — mutant bu varsayilani bozunca ilerleme satiri
+        # stdout'a karisir ve T1c duser.
+        yaz = yaz or (lambda s: sys.stdout.write(s + "\n"))
+        yaz("  uygun (ata alani OLCULMUS): 1 · OLCULMEDI-adaptorlu: 2 "
+            "· OLCULMEDI-adaptorsuz: 3 · tavan: 1")
+        return ([{"urun": "u1", "durum": K.DURUM_ALAN_YOK, "ata_link": "",
+                  "ata_lisans": None, "derinlik": 1,
+                  "gerekce": "detay OLCULDU (govde TANINDI): ata alani yok"}],
+                1, {"olculmedi_adaptorlu": ["a"], "olculmedi_adaptorsuz": [],
+                    "taranmadi": 0, "uygun": 1})
+
+    K.kuru_kosum = _sahte_kuru
+    buf = io.StringIO()
+    try:
+        with contextlib.redirect_stdout(buf):
+            rc_kk = K.main(["--kuru-kosum", "--tsv"])
+    finally:
+        K.kuru_kosum = eski_kk
+    sat_kk = [s for s in buf.getvalue().split("\n") if s != ""]
+    ok = (rc_kk == 2 and len(sat_kk) == 2
+          and sat_kk[0].split("\t")[0] == "urun"
+          and all(len(s.split("\t")) == 6 for s in sat_kk))
+    if not ok:
+        hatalar.append("[T1c-TSV-KURU] --kuru-kosum --tsv stdout'u sadece TSV DEGIL: %s"
+                       % (sat_kk,))
+    print("  %-4s T1c   --kuru-kosum --tsv stdout'ta SADECE TSV (ilerleme satiri karismaz)"
+          % ("ok" if ok else "HATA"))
 
     print("")
     print("SESSIZ_GECIS=%d" % sessiz_gecis)

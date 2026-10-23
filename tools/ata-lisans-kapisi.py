@@ -86,10 +86,14 @@ Kullanim:
     python3 tools/ata-lisans-kapisi.py --kendini-test      # offline oz-denetim (CI kolu)
     python3 tools/ata-lisans-kapisi.py --fikstur <yol>     # agsiz, fikstur uzerinden
     python3 tools/ata-lisans-kapisi.py --kuru-kosum [--limit N] [--kaynak <ad>]   # AG ISTER
+    python3 tools/ata-lisans-kapisi.py --canli <thing:N | N | pr:N | URL>        # AG ISTER
+    ... --tsv  # makine ciktili TSV (satir basina sonuc; --canli/--kuru-kosum)
 """
 import argparse
 import collections
+import contextlib
 import importlib.util
+import io
 import json
 import os
 import re
@@ -274,7 +278,10 @@ def coklu_sozluk_satilabilir(ham, kaynak_adaptor=None):
 # Turev kaydin detay JSON'unda ata listesi bu alanlardan birinde durur. Platformlar ayni
 # kavrama farkli ad veriyor; TEK ada bakmak sessiz gecistir (olculdu).
 ATA_ALANLARI = ("originals", "remixParents", "derivedFrom", "ancestors",
-                "originalDesigns", "remixOf")
+                "originalDesigns", "remixOf",
+                # Printables DETAIL_Q `thingiverseLink` = PR -> TV YAPISAL ata (BaBa 23 Eki 23:4x;
+                # olcum: 60 satirda FARK=4, hepsi PR, turev "temiz" sayiliyordu)
+                "thingiverseLink")
 
 # 🔴 ACIKLAMA EKSI: bazi platformlarda turevin ATASI yalnizca serbest metinde yazar
 # (yapisal alan `ancestors` BOS gelir; atif yalniz aciklamada durur).
@@ -857,27 +864,54 @@ def _veri_kok():
     return veri
 
 
-def canli_kosum(hedef):
-    """AG ISTER. TEK kaydi uretim defteriyle canli yargilar -> (sonuclar, 1).
+def canli_hedef_coz(hedef, defter=None):
+    """Girdi -> (link, host, adaptor, kimlik). AG ISTERMEZ (yalniz yorum/cozumleme).
 
-    Girdi: `thingiverse URL` · `thing:N` · `N` (yalniz thingiverse kimligi kabul edilir).
-    🔴 URL'de baska host varsa buraya GIRILMEZ: bu kip TEK platformun canli yolunu olcer;
-    yalniz sozluguyla haksiz hukum uretmemek icin evrensel bir arac DEGILDIR.
-    Veri dosyalarina DOKUNMAZ (rapor kipiyle ayni disiplin)."""
+    Girdi bicimleri:
+      `thing:N` · `N`        -> Thingiverse (kanonik site URL'sine cevrilir)  [DEGISMEDI]
+      `pr:N`                 -> Printables (`https://www.printables.com/model/<N>`)
+      `https://<host>/...`   -> host cozulur; ADAPTORU OLAN platform secilir
+
+    🔴 HOST SECIMI TEK YERDE: `host_coz` + `adaptor_bul(host, defter)`. Yeni adaptor/sözlük
+    YAZILMAZ — mevcut uretim defteri tek kaynak. Adaptoru OLMAYAN host -> KaliciHata
+    (rc 2 yolu; detay CEKILMEDEN once durur, ag harcanmaz).
+
+    🔴 ONCUL OLCUM (23 Eki 2026, canli): (a) `printables-api.detail(N)` agdan model detayi
+    donuyor ve `description`/`summary` alanlarindan en az birini iceriyor (1569795 ->
+    description 580 karakter, summary 55); (b) MaCiT PR kayitlarinin `link` alani
+    `printables.com/model/<N>` biciminde. IKISI DE DOGRU — Printables PR->PR ata zinciri
+    bu kip ile kapidan girebilir (once yalniz thingiverse.com kabul ediliyordu)."""
     h = (hedef or "").strip()
     m = re.match(r"^(?:thing:)?(\d+)$", h, re.IGNORECASE)
     if m:
         link = "https://www.thingiverse.com/thing:%s" % m.group(1)
     else:
-        link = h if "//" in h else "https://" + h
+        m_pr = re.match(r"^(?:pr|printables):(\d+)$", h, re.IGNORECASE)   # BaBa 21:4x yazimi
+        if m_pr:
+            link = "https://www.printables.com/model/%s" % m_pr.group(1)
+        else:
+            link = h if "//" in h else "https://" + h
     host = host_coz(link)
-    if host != "thingiverse.com":
-        raise KaliciHata("--canli yalniz thingiverse.com kabul eder (verilen: %s)" % host)
-    defter = uretim_defteri()
+    defter = defter if defter is not None else uretim_defteri()
     adaptor = adaptor_bul(host, defter)
+    if adaptor is None:
+        raise KaliciHata("bu host icin adaptor YOK (verilen: %s)" % host)
     kimlik = adaptor.kimlik_cikar(link)
     if not kimlik:
         raise KaliciHata("kimlik cikarilamadi: %s" % link)
+    return link, host, adaptor, kimlik
+
+
+def canli_kosum(hedef):
+    """AG ISTER. TEK kaydi uretim defteriyle canli yargilar -> (sonuclar, 1).
+
+    Girdi: `thing:N` · `N` (thingiverse) · `pr:N` · `https://<host>/...` (adaptoru olan
+    platform). Host secimi `canli_hedef_coz` icinde TEK YERDE olur (host_coz +
+    adaptor_bul); adaptoru olmayan host KaliciHata -> rc 2.
+    `kaynak_adaptor` = SECILEN adaptordur (ata lisansi dogru sozlukle yargilanir).
+    Veri dosyalarina DOKUNMAZ (rapor kipiyle ayni disiplin)."""
+    defter = uretim_defteri()
+    link, host, adaptor, kimlik = canli_hedef_coz(hedef, defter)
     detay = adaptor.detay(kimlik)      # GeciciHata/KaliciHata main()'de yakalanir -> rc 2
     return kayit_yargi(link, detay, defter, genel_satilabilir, adaptor), 1
 
@@ -1088,6 +1122,35 @@ def rapor_yaz(sonuclar, kapsam=None, taranan=0, yaz=None):
         for s in gecici:
             yaz("  ~ %s | host=%s | %s" % (s.get("urun"), s.get("host") or "?", s["gerekce"]))
     return say
+
+
+# ---------------------------------------------------------------- TSV (makine ciktili)
+# 🔴 FAZ-2 (36K kayit, LLM'siz betik dongusu): `rapor_yaz` yerine SATIR BASINA makine
+# ciktili sekil. Baslik SABIT (6 sutun); alanlarda sekme/yeni satir -> BOSLUK (satir
+# kirilmasi olmaz, ayristirici bozulmaz). Bayraksiz cikti BAYT-ESIT kalir.
+TSV_BASLIK = "urun\tdurum\tata_link\tata_lisans\tderinlik\tgerekce"
+
+
+def _tsv_hucre(d):
+    """Tek TSV alani: None -> bos; sekme/yeni satir -> BOSLUK."""
+    if d is None:
+        return ""
+    return str(d).replace("\t", " ").replace("\r", " ").replace("\n", " ")
+
+
+def tsv_yaz(sonuclar, yaz=None):
+    """Baslik satiri + her sonuc icin TEK sekme-ayracli satir."""
+    yaz = yaz or (lambda s: sys.stdout.write(s + "\n"))
+    yaz(TSV_BASLIK)
+    for s in sonuclar:
+        yaz("\t".join((
+            _tsv_hucre(s.get("urun")),
+            _tsv_hucre(s.get("durum")),
+            _tsv_hucre(s.get("ata_link")),
+            _tsv_hucre(s.get("ata_lisans")),
+            _tsv_hucre(s.get("derinlik")),
+            _tsv_hucre(s.get("gerekce")),
+        )))
 
 
 # ---------------------------------------------------------------- kosum kipleri
@@ -1324,6 +1387,50 @@ def kendini_test(yaz=None):
               _ak_durum_dic({"id": 1, "license": "CC0", "title": "uydurma-turev",
                              "description": "   "}) == DURUM_GECICI))
 
+    # --- P1/P2/P3/T1: --canli COKLU PLATFORM + --tsv (23 Eki 2026) --------------------
+    # 🔴 ONCUL OLCUM (canli, 23 Eki 2026): (a) `printables-api.detail(N)` agdan model
+    # detayi donuyor, `description`/`summary` alanlarindan en az biri DOLU (1569795 ->
+    # description 580 karakter, summary 55); (b) MaCiT PR kayitlarinin `link` alani
+    # `printables.com/model/<N>` biciminde. IKISI DE DOGRU -> devam.
+    def _coz(hedef):
+        try:
+            return canli_hedef_coz(hedef)
+        except (KaliciHata, GeciciHata):
+            return None
+
+    _p1 = _coz("https://www.printables.com/model/1569795-ornek")
+    k.append(("P1 printables URL -> pr adaptoru secildi, kimlik N cikarildi",
+              _p1 is not None and _p1[1] == "printables.com" and _p1[2].ad == "pr"
+              and _p1[3] == "1569795" and _p1[0].endswith("/model/1569795-ornek")))
+    _p2 = _coz("pr:1569795")
+    k.append(("P2 'pr:N' -> pr adaptoru secildi, kimlik N cikarildi",
+              _p2 is not None and _p2[1] == "printables.com" and _p2[2].ad == "pr"
+              and _p2[3] == "1569795"
+              and _p2[0] == "https://www.printables.com/model/1569795"))
+    # thing:N / yalniz sayi -> thingiverse: DEGISMEDI (regresyon kilidi)
+    _p0 = _coz("thing:4853978")
+    _p0b = _coz("4853978")
+    k.append(("P0 'thing:N' ve yalniz sayi -> thingiverse adaptoru (degismedi)",
+              _p0 is not None and _p0[1] == "thingiverse.com" and _p0[2].ad == "tv"
+              and _p0[3] == "4853978" and _p0b is not None
+              and _p0b[1] == "thingiverse.com" and _p0b[3] == "4853978"))
+    # P3: bilinmeyen host -> KaliciHata -> CLI rc=2. AGSIZ: host eslesmesi detay
+    # CEKILMEDEN once dustugu icin ag harcanmaz.
+    _buf = io.StringIO()
+    with contextlib.redirect_stdout(_buf):
+        _rc3 = main(["--canli", "https://bilinmeyen-host.example/model/1"])
+    k.append(("P3 bilinmeyen host -> KaliciHata -> CLI rc=2", _rc3 == 2))
+    # T1: --tsv basligi + satir 6 sutun; alanlardaki sekme/yeni satir -> bosluk
+    _sat = []
+    tsv_yaz([{"urun": "u1", "durum": DURUM_ALAN_YOK, "ata_link": "https://x.example/1",
+              "ata_lisans": "CC-BY", "derinlik": 1,
+              "gerekce": "sekme\tve\nyeni satir"}], _sat.append)
+    _baslik = _sat[0].split("\t")
+    _govde = _sat[1].split("\t")
+    k.append(("T1 --tsv basligi 6 sutun + satir 6 sutun (sekme/satir sonu temiz)",
+              _baslik == ["urun", "durum", "ata_link", "ata_lisans", "derinlik", "gerekce"]
+              and len(_govde) == 6 and _govde[-1] == "sekme ve yeni satir"))
+
     gecen = 0
     for ad, ok in k:
         yaz("  %-4s %s" % ("ok" if ok else "HATA", ad))
@@ -1340,7 +1447,10 @@ def main(argv=None):
     ap.add_argument("--limit", type=int, default=40, help="kuru kosumda taranacak kayit tavani")
     ap.add_argument("--kaynak", help="kuru kosumda kaynak adi filtresi")
     ap.add_argument("--canli",
-                    help="TEK kayit canli yargi (<thingiverse URL | thing:N | N); veri YAZMAZ")
+                    help="TEK kayit canli yargi (<thingiverse URL | thing:N | N | pr:N | "
+                         "<printables URL>); veri YAZMAZ")
+    ap.add_argument("--tsv", action="store_true",
+                    help="makine ciktili TSV (--canli/--kuru-kosum): satir basina sonuc")
     a = ap.parse_args(argv)
 
     if a.kendini_test:
@@ -1363,20 +1473,29 @@ def main(argv=None):
         except (GeciciHata, KaliciHata) as e:
             print("OLCULEMEDI — %s" % e)
             return 2
-        rapor_yaz(sonuclar, None, taranan)
+        if a.tsv:
+            tsv_yaz(sonuclar)
+        else:
+            rapor_yaz(sonuclar, None, taranan)
         return cikis_kodu(sonuclar)
 
     if a.kuru_kosum:
         try:
-            sonuclar, taranan, kapsam = kuru_kosum(a.limit, a.kaynak)
+            # 🔴 TSV'de stdout SADEce TSV olmalidir: `kuru_kosum`'un kapsam ilerleme
+            # satiri (rapor metni) makine ciktisini bozardi — bastirilir (yalniz TSV kipinde).
+            sonuclar, taranan, kapsam = kuru_kosum(
+                a.limit, a.kaynak, yaz=(lambda _s: None) if a.tsv else None)
         except KaliciHata as e:
             print("OLCULEMEDI — %s" % e)
             return 2
-        rapor_yaz(sonuclar, kapsam, taranan)
+        if a.tsv:
+            tsv_yaz(sonuclar)
+        else:
+            rapor_yaz(sonuclar, kapsam, taranan)
         return cikis_kodu(sonuclar, kapsam)
 
     print("OLCULEMEDI — kip secilmedi (--kendini-test | --fikstur <yol> | --kuru-kosum | "
-          "--canli <thing:N|URL>)")
+          "--canli <thing:N|URL|pr:N>)")
     return 2
 
 

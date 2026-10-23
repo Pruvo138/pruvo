@@ -73,6 +73,12 @@ MUTANTLAR = [
      '    if False:\n        pass',
      "KIRMIZI", "[B2-ACIKLAMA-YOK]"),
 
+    # AK-07: Printables `thingiverseLink` yapisal ata ekseni (BaBa 23 Eki 23:4x).
+    ("AK-07 thingiverseLink ata alanindan cikar",
+     '                "thingiverseLink")',
+     '                )',
+     "KIRMIZI", "[TL1-THINGIVERSELINK]"),
+
     # ---------------- eksen: HOST cozumlemesi (kapinin yeni ekseni) ----------------
     ("OLD-01 host korlugu",
      '            if host == h or host.endswith("." + h):',
@@ -83,6 +89,29 @@ MUTANTLAR = [
      '    if satilabilir_ile(lisans_metni, adaptor.satilabilir):',
      "KIRMIZI", "[S-POZ-NCSA]"),
 
+    # ---------------- CANLI KIPI: host secimi (23 Eki 2026) ----------------
+    # 🔴 ONCUL OLCUM: (a) printables-api.detail(N) ağdan model detayı döndürüyor ve
+    # description/summary alanlarından en az birini içeriyor (1569795 -> description 580
+    # karakter, summary 55); (b) MaCiT PR kayıtlarının `link` alanı `printables.com/model/<N>`
+    # biçiminde. İKİSİ DE DOĞRU -> Printables PR->PR ata zinciri kapiya girebilir.
+    # Bu mutant: `--canli` host secimini thingiverse'e SABITLER (pr adaptörü secilemez).
+    # Beklenen: P1 (printables URL -> pr adaptörü + kimlik) KIRMIZI.
+    ("CANLI-01 canli host secimi thingiverse'e sabitlenir",
+     '    adaptor = adaptor_bul(host, defter)\n'
+     '    if adaptor is None:\n'
+     '        raise KaliciHata("bu host icin adaptor YOK (verilen: %s)" % host)',
+     '    adaptor = adaptor_bul("thingiverse.com", defter)\n'
+     '    if adaptor is None:\n'
+     '        raise KaliciHata("bu host icin adaptor YOK (verilen: %s)" % host)',
+     "KIRMIZI", "[P1-PR-HOST]"),
+
+    # TSV'de stdout SADEce TSV olmalidir: `kuru_kosum`'un kapsam ilerleme satiri (rapor
+    # metni) makine ciktisini bozardi -> ayristirici ilk satirdan kirilir.
+    ("TSV-01 --kuru-kosum --tsv kapsam satiri stdout'a karisir",
+     '                a.limit, a.kaynak, yaz=(lambda _s: None) if a.tsv else None)',
+     '                a.limit, a.kaynak, yaz=None)',
+     "KIRMIZI", "[T1c-TSV-KURU]"),
+
     # ---------------- D1: turev detayi None -> sessiz "ata yok" ----------------
     ("OLD-03 (D1) turev detayi None sessiz gecer",
      '        out = [_sonuc(DURUM_KALICI, "turev detayi YOK (API null / kayit silinmis-gizli)")]',
@@ -92,8 +121,8 @@ MUTANTLAR = [
     # ---------------- D2: ata alan adlari ----------------
     ("OLD-04 (D2) ata alan listesi TEK ada iner",
      'ATA_ALANLARI = ("originals", "remixParents", "derivedFrom", "ancestors",\n'
-     '                "originalDesigns", "remixOf")',
-     'ATA_ALANLARI = ("originals",)',
+     '                "originalDesigns", "remixOf",\n',
+     'ATA_ALANLARI = ("originals",\n',
      "KIRMIZI", "[D2a]"),
 
     # ---------------- D3: sekil varyasyonlari ----------------
