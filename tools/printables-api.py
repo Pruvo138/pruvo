@@ -707,6 +707,7 @@ query D($id: ID!) {
     license { name abbreviation }
     user { publicUsername }
     filesCount imagesCount downloadCount likesCount ratingAvg thingiverseLink
+    remixParents { parentPrintId url parentPrint { id license { abbreviation } } }
     images { id order filePath }
     stls { id name fileSize }
     tags { id name }

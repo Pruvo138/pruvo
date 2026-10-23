@@ -397,13 +397,17 @@ def _zarf_ac(detay, tavan=ZARF_TAVANI):
     return d, None, govde_gorundu
 
 
-def urlleri_cikar(metin):
+def urlleri_cikar(metin, yalniz_url=False):
     """Serbest-metin alandaki TUM URL'ler. Tek alanda birden fazla ata baglantisi olabilir;
-    yalniz ILKINE bakmak sessiz gecistir (olculdu)."""
+    yalniz ILKINE bakmak sessiz gecistir (olculdu).
+
+    yalniz_url=True: semasiz yedek (metnin TAMAMI host sayilir) KAPALI. Aciklama ekseni
+    bunu ister: 24 Eki canli (pr:1329863 "…in case you want to remix") tetik + URL'siz
+    metin, host_coz'un metinden sahte host okumasiyla ata_link = ACIKLAMA METNI oluyordu."""
     if not isinstance(metin, str) or not metin.strip():
         return []
     bulunan = [u.rstrip(".,);]}'\"") for u in _URL_RE.findall(metin)]
-    if bulunan:
+    if bulunan or yalniz_url:
         return bulunan
     t = metin.strip()
     return [t] if host_coz(t) else []
@@ -411,6 +415,22 @@ def urlleri_cikar(metin):
 
 def _referans_ac(el, alan):
     """Tek ata elemanindan (dict | str | taninmayan) normalize referans(lar)."""
+    if isinstance(el, dict) and ("parentPrintId" in el or "parentPrint" in el):
+        # Printables DETAIL_Q `remixParents` (BaBa 24 Eki tik 84): parentPrintId DOLU -> PR->PR
+        # ata (lisans parentPrint.license.abbreviation'da GOMULU); null + url -> url'nin
+        # platformuna yonlenir. Eski kod bu sekli tanimiyordu: link bos -> KALICI, PR dilimi
+        # "ata gorulmedi" diye sahte temiz okunuyordu.
+        ust = el.get("parentPrint") if isinstance(el.get("parentPrint"), dict) else {}
+        pid = el.get("parentPrintId") or ust.get("id")
+        lis = ust.get("license") if isinstance(ust.get("license"), dict) else {}
+        lis = str(lis.get("abbreviation") or "")
+        if pid:
+            return [{"link": "https://www.printables.com/model/%s" % pid, "license": lis,
+                     "kimlik_alani": pid, "alan": alan}]
+        urller = urlleri_cikar(str(el.get("url") or ""))
+        if not urller:
+            return [{"link": "", "license": lis, "kimlik_alani": None, "alan": alan}]
+        return [{"link": u, "license": lis, "kimlik_alani": None, "alan": alan} for u in urller]
     if isinstance(el, dict):
         metin = str(el.get("link") or el.get("url") or el.get("href") or "")
         lis = str(el.get("license") or el.get("licence") or "")
@@ -484,7 +504,7 @@ def aciklama_ata_kayitlari(detay, bos_aciklama_kurali=False):
             continue
         if not any(d.search(ham) for d in ACIKLAMA_TETIKLERI):
             continue                                    # tetik YOK -> bu alandan ref yok
-        adaylar = [u for u in urlleri_cikar(ham) if host_coz(u)]
+        adaylar = [u for u in urlleri_cikar(ham, yalniz_url=True) if host_coz(u)]
         adaylar += ["https://www.thingiverse.com/thing:%s" % n
                     for n in _THING_KIMLIK_RE.findall(ham)]
         for u in adaylar:

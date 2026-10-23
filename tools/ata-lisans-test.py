@@ -438,6 +438,77 @@ def main():
                            % (etiket, ad, durum, beklenen_durum, rc, beklenen_rc))
         print("  %-4s %-90s durum=%-22s rc=%s" % ("ok" if ok else "HATA", ad[:90], durum, rc))
 
+    # --- 2a-RP) Printables `remixParents` YAPISAL ata (BaBa 24 Eki tik 84) ---
+    # Canli olcum 24 Eki: DETAIL_Q `remixParents` sorgulamiyordu, sorgulansa da
+    # `{parentPrintId, url, parentPrint{license}}` sekli `_referans_ac`'ta link uretmiyordu
+    # -> PR->PR ve "parentPrintId null + url thing:N" atalari gorunmez, PR dilimi sahte temiz.
+    # Sekil canli 1495334 (ata pr:1329863 CC-BY) / 1694862 (url thing:3806140) ile ayni.
+    print("  --- REMIXPARENTS (PR yapisal ata; parentPrintId · url · gomulu lisans) ---")
+    rp_defter = defter + K.sentetik_defter([
+        {"ad": "pr", "hostlar": ["printables.com"], "kimlik": "bas-sayi:model",
+         "ata_destegi": True, "yargi": "kisaltma",
+         "detaylar": {
+             # ata aciklamasinda TETIK var ama URL YOK (canli 1329863 sekli): ust kademede
+             # metnin kendisi ata linki SAYILMAMALI (yalniz_url).
+             "1329863": {"license": "CC-BY", "name": "uydurma-ata",
+                         "description": "<p>Including the source file in case you want "
+                                        "to remix.</p>"},
+             "7700001": {"license": "CC-BY-NC", "name": "uydurma-nc-ata"},
+         }}])
+
+    def _rp(*elemanlar):
+        return {"id": "1", "license": "CC-BY", "name": "uydurma-turev",
+                "summary": "duz metin", "remixParents": list(elemanlar)}
+
+    RP_VAKALARI = [
+        ("RP1-PARENTPRINTID", "remixParents parentPrintId -> PR ata CC-BY -> SATILABILIR "
+         "(ust kademede aciklama metni link SAYILMAZ)",
+         _rp({"parentPrintId": "1329863", "url": None,
+              "parentPrint": {"id": "1329863", "license": {"abbreviation": "CC-BY"}}}),
+         K.DURUM_SATILABILIR, 0),
+        ("RP2-URL-THING", "remixParents parentPrintId null + url thing:N -> TV ata CC BY "
+         "-> SATILABILIR",
+         _rp({"parentPrintId": None, "url": A_CC, "parentPrint": None}),
+         K.DURUM_SATILABILIR, 0),
+        ("RP3-GOMULU-NC", "remixParents gomulu ata lisansi CC-BY-NC -> IHLAL",
+         _rp({"parentPrintId": "7700001", "url": None,
+              "parentPrint": {"id": "7700001", "license": {"abbreviation": "CC-BY-NC"}}}),
+         K.DURUM_IHLAL, 1),
+        ("RP4-BOS-ELEMAN", "remixParents elemani dolu ama id+url YOK -> KALICI (fail-closed)",
+         _rp({"parentPrintId": None, "url": None, "parentPrint": None}),
+         K.DURUM_KALICI, 1),
+    ]
+    for etiket, ad, detay, beklenen_durum, beklenen_rc in RP_VAKALARI:
+        n += 1
+        sonuclar = K.kayit_yargi("uydurma-urun", detay, rp_defter, K.genel_satilabilir)
+        durumlar = [s["durum"] for s in sonuclar]
+        rc = K.cikis_kodu(sonuclar)
+        # TUM satirlar beklenen durumda olmali: RP1'de ust kademeden sahte ELLE-BAK satiri
+        # dogarsa ilk satir SATILABILIR gorunse de kayit ELLE-BAK kuyruguna duser.
+        ok = (bool(durumlar) and all(d == beklenen_durum for d in durumlar)
+              and rc == beklenen_rc)
+        if rc == 0 and beklenen_rc != 0:
+            sessiz_gecis += 1
+        if not ok:
+            hatalar.append("[%s] %s -> durumlar=%s (bek hepsi %s) rc=%s (bek %s)"
+                           % (etiket, ad, durumlar, beklenen_durum, rc, beklenen_rc))
+        print("  %-4s %-90s durum=%-22s rc=%s" % ("ok" if ok else "HATA", ad[:90],
+                                                  ",".join(durumlar), rc))
+
+    # RP-Q: canli sorgu alani. Alan DETAIL_Q'dan cikarsa yukaridaki 4 vaka yine yesil kalir
+    # (fikstur alani elle verir) ama canlida tum PR kayitlari ALAN-YOK olur (24 Eki olculdu).
+    n += 1
+    with open(os.path.join(_HERE, "printables-api.py"), encoding="utf-8") as f:
+        _pa = f.read()
+    _dq = _pa.split('DETAIL_Q = """', 1)[-1].split('"""', 1)[0]
+    ok = ("remixParents { parentPrintId url parentPrint { id license { abbreviation } } }"
+          in _dq)
+    if not ok:
+        hatalar.append("[RP-Q-DETAIL] printables-api DETAIL_Q `remixParents` alt-alanlarini "
+                       "SORGULAMIYOR -> canlida PR atasi gorunmez")
+    print("  %-4s RP-Q  DETAIL_Q remixParents {parentPrintId url parentPrint{license}} sorgulaniyor"
+          % ("ok" if ok else "HATA"))
+
     # --- 2b) ZARF EKSENI TEK BASINA (her eksen AYRI oldurulebilmeli) ---
     # Bu iki iddia olmadan tavan/belirsizlik ekseni D18 (govde izi) tarafindan KAPATILIR ve
     # "savunma derinligi" beyan edilmis survivor'a doner ([[beyan-edilmis-survivor]]).

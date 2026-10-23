@@ -79,6 +79,16 @@ MUTANTLAR = [
      '                )',
      "KIRMIZI", "[TL1-THINGIVERSELINK]"),
 
+    # AK-08/AK-09: Printables `remixParents` yapisal ata (BaBa 24 Eki tik 84).
+    ("AK-08 remixParents sekli taninmaz (parentPrintId kolu kaldir)",
+     '    if isinstance(el, dict) and ("parentPrintId" in el or "parentPrint" in el):',
+     '    if False:',
+     "KIRMIZI", "[RP1-PARENTPRINTID]"),
+    ("AK-09 aciklama ekseninde semasiz yedek geri acilir (metin = ata linki)",
+     '    if bulunan or yalniz_url:',
+     '    if bulunan:',
+     "KIRMIZI", "[RP1-PARENTPRINTID]"),
+
     # ---------------- eksen: HOST cozumlemesi (kapinin yeni ekseni) ----------------
     ("OLD-01 host korlugu",
      '            if host == h or host.endswith("." + h):',
