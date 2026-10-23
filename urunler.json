@@ -1,5 +1,29 @@
 [
   {
+    "id": "ds5-bagaj-rafi-klipsi-ve-pimi",
+    "kategori": "Otomobil",
+    "marka": [
+      "DS",
+      "DS5"
+    ],
+    "uyum": [
+      {
+        "marka": "DS",
+        "model": "DS5"
+      }
+    ],
+    "baslik": "DS5 Bagaj Rafı Klipsi ve Pimi",
+    "aciklama": "Citroën DS5'in bagaj rafını yerinde tutan klips ve pim takımının özel üretim karşılığıdır. Pimin üzerinde, klipsin içinde kalmasını sağlayan küçük bir kenar çıkıntısı bulunur. Esnek yapıdaki klips pimi sıkıca kavrar.\nYaklaşık dış ölçüler: 22 × 22 × 14 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6953679-1-v2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Chrisprefix"
+    }
+  },
+  {
     "id": "mg-midget-guneslik-montaj-duz",
     "kategori": "Otomobil",
     "marka": [
