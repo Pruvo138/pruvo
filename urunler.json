@@ -45459,25 +45459,6 @@
     }
   },
   {
-    "id": "tamirat-mandalli-saglam-saklama-kutusu-120x60-pr637028",
-    "kategori": "Tamirat",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Mandallı Sağlam Saklama Kutusu (Menteşeli, Dudak Contalı, 120 × 60 ve Mini Boy)",
-    "aciklama": "Menteşeli, mandallı ve kapak kenarında sızdırmazlık dudağı bulunan sağlam yapılı saklama kutusu. Küçük el aletleri, ölçü aletleri, kablo ve ufak parçalar için uygundur. Menteşe ve mandallar için M3 × 40 mm vida gerekir. Yan yana ve üst üste dizilebilmesi için istifleme mandalları, kapak üzerinde kolay açma tutamağı seçenekleri vardır. 120 × 60 mm iç ölçülü boy, 60 × 30 mm iç ölçülü boy ve mini boy hazırdır. Fotoğraflarda yeşil kapaklı kutu masa üstünde ve açık hâlde görülür.\nYaklaşık dış ölçüler: 132 × 90 × 47 mm (120 × 60 mm iç ölçülü boy, kapak kapalı).",
-    "fiyat": "500 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/pr637028-1.jpg",
-      "https://media.pruvo3d.com/urunler/pr637028-2.jpg",
-      "https://media.pruvo3d.com/urunler/pr637028-3.jpg",
-      "https://media.pruvo3d.com/urunler/pr637028-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "bulbasaur0",
-      "tur": "CC BY-SA 4.0"
-    }
-  },
-  {
     "id": "tamirat-ust-uste-dizilebilen-cekmece-kasasi-sistemi-pr300896",
     "kategori": "Tamirat",
     "marka": [],
@@ -632570,34 +632551,6 @@
     ]
   },
   {
-    "id": "taurus-1992-hava-kanali-plaka",
-    "kategori": "Otomobil",
-    "marka": [
-      "Ford",
-      "Taurus"
-    ],
-    "baslik": "1992 Ford Taurus Hava Kanalı Kapak Parçası",
-    "aciklama": "1992 Taurus için ön hava çıkış bölgesinde kullanılacak vent parçası setidir.\nV1 ve V2 farklılıklarıyla birlikte kullanılmalı olduğundan, her iki varyant da birlikte değerlendirilmelidir.\nYakıt verimliliği değil, hava akışı estetiği ve kapak bütünlüğü odaklıdır.\nYaklaşık dış ölçüler: 108 × 20 × 4 mm.",
-    "fiyat": "300 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/pr221271-1.jpg",
-      "https://media.pruvo3d.com/urunler/pr221271-2.jpg",
-      "https://media.pruvo3d.com/urunler/pr221271-3.jpg",
-      "https://media.pruvo3d.com/urunler/pr221271-4.jpg",
-      "https://media.pruvo3d.com/urunler/pr221271-5.jpg"
-    ],
-    "altkategori": "Yakıt ve Egzoz",
-    "uyum": [
-      {
-        "marka": "Ford",
-        "model": "Taurus"
-      }
-    ],
-    "tavsiyeFilament": [
-      "ABS"
-    ]
-  },
-  {
     "id": "ranger-dashcam-mirror-braket",
     "kategori": "Otomobil",
     "marka": [
@@ -735951,32 +735904,6 @@
     "altkategori": "Motor Bölümü"
   },
   {
-    "id": "yamaha-e-piano-g-kayna-tutucu",
-    "kategori": "Elektronik",
-    "marka": [
-      "Yamaha"
-    ],
-    "baslik": "Yamaha E-Piano Güç Kaynağı Tutucu",
-    "aciklama": "Yamaha e-piyano güç adaptörünü kablolarıyla birlikte sabitlemek için hazırlanan özel tasarım bir tutucudur.\n- Adaptörü gövdede düzenli ve sabit tutmaya yardımcı olur.\n- Kablo karmaşasını azaltır, bağlantıyı daha toplu hale getirir.\n- Görseldeki ölçülere göre uyumlu kullanım için üretilmiştir.\n- Montaj, piyanonun uygun bölümüne konumlandırılarak yapılır.\nYaklaşık dış ölçüler: 159 × 51 × 30 mm.",
-    "fiyat": "450 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/yamaha-e-piano-g-kayna-tutucu-1.jpg",
-      "https://media.pruvo3d.com/urunler/yamaha-e-piano-g-kayna-tutucu-2.jpg",
-      "https://media.pruvo3d.com/urunler/yamaha-e-piano-g-kayna-tutucu-3.jpg",
-      "https://media.pruvo3d.com/urunler/yamaha-e-piano-g-kayna-tutucu-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Andun_HH",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Ses ve Müzik",
-    "uyum": [
-      {
-        "marka": "Yamaha"
-      }
-    ]
-  },
-  {
     "id": "yamaha-xsr700-mt-07-atal-kapak-seti",
     "kategori": "Motosiklet",
     "marka": [
@@ -736754,31 +736681,6 @@
       "tur": "GPL",
       "tasarimci": "Noel Holm"
     }
-  },
-  {
-    "id": "yamaha-o1v96-fader-d-mesi",
-    "kategori": "Elektronik",
-    "marka": [
-      "Yamaha",
-      "O1V96"
-    ],
-    "baslik": "Yamaha O1V96 Fader Düğmesi",
-    "aciklama": "Yamaha O1V96 mikser için fader düğmesi seti. Fader üzerinde daha rahat kavrama ve kontrollü kullanım sağlar.\n- Yamaha O1V96 ile uyumlu kontrol düğmesi olarak kullanılır.\n- Fader hareketini parmakla daha kolay ve stabil takip etmeye yardımcı olur.\n- Mevcut düğme kırıldıysa veya aşındıysa değişim parçası olarak değerlendirilebilir.\n- Tak-çıkar tipte, ölçüye uygun fader miline geçirilerek kullanılır.\nYaklaşık dış ölçüler: 24 × 11 × 9 mm.",
-    "fiyat": "250 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/yamaha-o1v96-fader-d-mesi-1.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "matieke",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Ses ve Müzik",
-    "uyum": [
-      {
-        "marka": "Yamaha",
-        "model": "O1V96"
-      }
-    ]
   },
   {
     "id": "yamaha-mt-07-ayna-kapa",
@@ -759283,37 +759185,6 @@
     "altkategori": "Bardaklık"
   },
   {
-    "id": "toyota-tacoma-arb-safari-norkel-izgara-kapa",
-    "kategori": "Otomobil",
-    "marka": [
-      "Toyota",
-      "Tacoma",
-      "ARB"
-    ],
-    "baslik": "Toyota Tacoma ARB Safari Şnorkel Izgara Kapağı",
-    "aciklama": "Toyota Tacoma araçlarındaki ARB Safari şnorkel sistemleri için özel tasarlanıp üretilen dayanıklı koruma kapağıdır.\nPetek dokulu yapısı sayesinde hava akışını engellemeden büyük yaprak, dal ve yabancı maddelerin şnorkel içine girmesini önler.\nAracınızın dış koşullarına ve zorlu arazi şartlarına uyum sağlayacak şekilde yüksek dayanımlı malzemeden özel üretilir.\nKolay montaj imkanı sunar ve şnorkelinize estetik bir görünüm kazandırır.\nYaklaşık dış ölçüler: 175 × 125 × 21 mm.",
-    "fiyat": "450 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/toyota-tacoma-arb-safari-norkel-izgara-kapa-1.jpg",
-      "https://media.pruvo3d.com/urunler/toyota-tacoma-arb-safari-norkel-izgara-kapa-2.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "PatrickWL",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Dış Aksam",
-    "uyum": [
-      {
-        "marka": "Toyota",
-        "model": "Tacoma"
-      },
-      {
-        "marka": "Toyota",
-        "model": "ARB"
-      }
-    ]
-  },
-  {
     "id": "toyota-tacoma-uyumlu-1-75-in-tweeter-hoparl-r-adapt-r",
     "kategori": "Otomobil",
     "marka": [
@@ -759549,31 +759420,6 @@
       },
       {
         "marka": "Ford"
-      }
-    ],
-    "tavsiyeFilament": [
-      "ABS"
-    ]
-  },
-  {
-    "id": "toyota-avensis-t25-kaput-i-stinat-ubu-u-klipsi",
-    "kategori": "Otomobil",
-    "marka": [
-      "Toyota",
-      "Avensis"
-    ],
-    "baslik": "Toyota Avensis T25 Kaput İstinat Çubuğu Klipsi",
-    "aciklama": "Toyota Avensis T25 model araçlar için özel olarak tasarlanan kaput istinat çubuğu tutucu klipsi, yıpranan veya kırılan orijinal parçanın yerine mükemmel bir alternatif sunar.\n\n- Kaput destek çubuğunun güvenli ve sabit bir şekilde durmasını sağlar.\n- Motor bölmesindeki yüksek sıcaklıklara ve titreşime dayanıklı malzemeden özel üretilir.\n- Orijinal montaj yuvasına doğrudan uyum sağlayarak kolayca takılır.\n\nYaklaşık dış ölçüler: 56 × 48 × 32 mm.",
-    "fiyat": "250 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/toyota-avensis-t25-kaput-i-stinat-ubu-u-klipsi-1.jpg",
-      "https://media.pruvo3d.com/urunler/toyota-avensis-t25-kaput-i-stinat-ubu-u-klipsi-2.jpg"
-    ],
-    "altkategori": "Motor Bölümü",
-    "uyum": [
-      {
-        "marka": "Toyota",
-        "model": "Avensis"
       }
     ],
     "tavsiyeFilament": [
@@ -760087,28 +759933,6 @@
     ]
   },
   {
-    "id": "toyota-uyumlu-bo-tu-yuvas-bozuk-para-kutusu",
-    "kategori": "Otomobil",
-    "marka": [
-      "Toyota"
-    ],
-    "baslik": "Toyota Uyumlu Boş Tuş Yuvası Bozuk Para Kutusu",
-    "aciklama": "Toyota araçlarındaki kullanılmayan boş tuş yuvalarını işlevsel bir depolama alanına dönüştürün. Bu özel tasarım ürün, bozuk paralarınızı düzenli bir şekilde saklamanızı sağlar.\n\n- Konsoldaki boş tuş kapaklarının yerine doğrudan takılır.\n- Bozuk paraların sürüş esnasında ses yapmasını ve dağılmasını önler.\n- Aracınızın orijinal iç tasarımına uyum sağlayacak şekilde özel üretilir.\n- Kolayca takılıp çıkarılabilir, montaj için ekstra bir alet gerektirmez.\n\nYaklaşık dış ölçüler: 61 × 37 × 22 mm.",
-    "fiyat": "350 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/toyota-uyumlu-bo-tu-yuvas-bozuk-para-kutusu-1.jpg",
-      "https://media.pruvo3d.com/urunler/toyota-uyumlu-bo-tu-yuvas-bozuk-para-kutusu-2.jpg",
-      "https://media.pruvo3d.com/urunler/toyota-uyumlu-bo-tu-yuvas-bozuk-para-kutusu-3.jpg",
-      "https://media.pruvo3d.com/urunler/toyota-uyumlu-bo-tu-yuvas-bozuk-para-kutusu-4.jpg"
-    ],
-    "altkategori": "İç Aksam",
-    "uyum": [
-      {
-        "marka": "Toyota"
-      }
-    ]
-  },
-  {
     "id": "toyota-mr2-sw20-silecek-izgaras-tamir-aparat",
     "kategori": "Otomobil",
     "marka": [
@@ -760331,34 +760155,6 @@
       {
         "marka": "Toyota",
         "model": "Highlander"
-      }
-    ]
-  },
-  {
-    "id": "toyota-corolla-ts-xii-e210-bagaj-al-veri-po-et-ask-s",
-    "kategori": "Otomobil",
-    "marka": [
-      "Toyota",
-      "Corolla"
-    ],
-    "baslik": "Toyota Corolla TS XII E210 Bagaj Alışveriş Poşet Askısı",
-    "aciklama": "Toyota Corolla TS XII E210 model araçların bagaj bölmesi için özel tasarlanıp üretilen pratik alışveriş poşeti askısıdır. Bagaj içindeki mevcut montaj noktalarına tam uyum sağlayarak poşetlerinizin ve çantalarınızın sürüş esnasında dağılmasını önler.\n\n- Dayanıklı yapısıyla günlük alışveriş yüklerini güvenle taşır.\n- Bagaj içi düzeni sağlar ve eşyaların savrulmasını engeller.\n- Herhangi bir delme veya vidalama işlemi gerektirmeden kolayca takılır.\n- Aracınızın orijinal bagaj yapısına tam uyum sağlayacak şekilde özel üretilmiştir.\n\nYaklaşık dış ölçüler: 48 × 44 × 30 mm.",
-    "fiyat": "250 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/toyota-corolla-ts-xii-e210-bagaj-al-veri-po-et-ask-s-1.jpg",
-      "https://media.pruvo3d.com/urunler/toyota-corolla-ts-xii-e210-bagaj-al-veri-po-et-ask-s-2.jpg",
-      "https://media.pruvo3d.com/urunler/toyota-corolla-ts-xii-e210-bagaj-al-veri-po-et-ask-s-3.jpg",
-      "https://media.pruvo3d.com/urunler/toyota-corolla-ts-xii-e210-bagaj-al-veri-po-et-ask-s-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Pavel Berka",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Bagaj ve Taşıma",
-    "uyum": [
-      {
-        "marka": "Toyota",
-        "model": "Corolla"
       }
     ]
   },
@@ -762162,33 +761958,6 @@
     ]
   },
   {
-    "id": "toyota-aygo-2010-kap-kilitleme-pimi",
-    "kategori": "Otomobil",
-    "marka": [
-      "Toyota",
-      "Aygo"
-    ],
-    "baslik": "Toyota Aygo (2010) Kapı Kilitleme Pimi",
-    "aciklama": "Toyota Aygo (2010) model araçlar için özel olarak tasarlanmış kapı kilitleme pimi yedek parçasıdır. Zamanla aşınan, kırılan veya kaybolan orijinal kapı piminizin yerine mükemmel uyum sağlar.\n\n- Toyota Aygo (2010) kapı kilit mekanizmalarıyla tam uyumludur.\n- Dayanıklı yapısıyla uzun ömürlü kullanım sunar.\n- Kolay montajı sayesinde eski pimin yerine doğrudan takılabilir.\n- Siparişiniz üzerine size özel üretilir.\n\nYaklaşık dış ölçüler: 55 × 8 × 7 mm.",
-    "fiyat": "250 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/toyota-aygo-2010-kap-kilitleme-pimi-1.jpg",
-      "https://media.pruvo3d.com/urunler/toyota-aygo-2010-kap-kilitleme-pimi-2.jpg",
-      "https://media.pruvo3d.com/urunler/toyota-aygo-2010-kap-kilitleme-pimi-3.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Cor ten Hoor",
-      "tur": "CC BY-ND 4.0"
-    },
-    "altkategori": "Kapı ve Cam",
-    "uyum": [
-      {
-        "marka": "Toyota",
-        "model": "Aygo"
-      }
-    ]
-  },
-  {
     "id": "toyota-rav-4-usb-k-l-aksesuar-soket-kapa",
     "kategori": "Otomobil",
     "marka": [
@@ -763888,31 +763657,6 @@
     "uyum": [
       {
         "marka": "Toyota"
-      }
-    ]
-  },
-  {
-    "id": "toyota-innova-2021-havaland-rma-izgaras-top-ba-l-kl-montaj-a",
-    "kategori": "Otomobil",
-    "marka": [
-      "Toyota",
-      "Innova"
-    ],
-    "baslik": "Toyota Innova (2021) Havalandırma Izgarası Top Başlıklı Montaj Aparatı",
-    "aciklama": "Toyota Innova 2021 model araçlar için özel olarak tasarlanmış, havalandırma ızgarasına tam uyumlu montaj aparatıdır. Aracınızın konsoluna zarar vermeden kolayca takılır ve güvenli bir tutuş sağlar.\n\n- Standart top başlık yapısı sayesinde uyumlu telefon tutucu veya cihaz hazneleriyle birlikte kullanılabilir.\n- Havalandırma ızgarasına tam oturarak sarsıntısız bir sürüş deneyimi sunar.\n- Dayanıklı yapısıyla uzun ömürlü kullanım için özel üretilmiştir.\n\nYaklaşık dış ölçüler: 39 × 33 × 18 mm.",
-    "fiyat": "350 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/toyota-innova-2021-havaland-rma-izgaras-top-ba-l-kl-montaj-a-1.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "slackdna",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Telefon ve Şarj",
-    "uyum": [
-      {
-        "marka": "Toyota",
-        "model": "Innova"
       }
     ]
   },
@@ -767221,30 +766965,6 @@
       {
         "marka": "Toyota",
         "model": "Sequoia"
-      }
-    ]
-  },
-  {
-    "id": "toyota-t100-orta-havaland-rma-izgaras-y-nlendirici-mili",
-    "kategori": "Otomobil",
-    "marka": [
-      "Toyota"
-    ],
-    "baslik": "Toyota T100 Orta Havalandırma Izgarası Yönlendirici Mili",
-    "aciklama": "Toyota T100 model araçların orta havalandırma ızgaralarında zamanla aşınan veya kırılan yönlendirici mil mekanizmasını yenilemek için özel olarak üretilmiştir.\n\nHavalandırma kanatçıklarının senkronize ve düzgün çalışmasını sağlar.\nYüksek dayanımlı malzemeden aracınıza tam uyumlu olarak özel üretilir.\nMontajı kolaydır, orijinal parça yerine doğrudan uygulanabilir.\n\nYaklaşık dış ölçüler: 3 × 0 × 0 mm.",
-    "fiyat": "350 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/toyota-t100-orta-havaland-rma-izgaras-y-nlendirici-mili-1.jpg",
-      "https://media.pruvo3d.com/urunler/toyota-t100-orta-havaland-rma-izgaras-y-nlendirici-mili-2.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Gabriel Hernandez",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Klima ve Havalandırma",
-    "uyum": [
-      {
-        "marka": "Toyota"
       }
     ]
   },
@@ -780424,34 +780144,6 @@
     ]
   },
   {
-    "id": "volvo-v70-anahtar-kab-g-lendirici-tutucu",
-    "kategori": "Otomobil",
-    "marka": [
-      "Volvo",
-      "V70"
-    ],
-    "baslik": "Volvo V70 Anahtar Kabı Güçlendirici Tutucu",
-    "aciklama": "Volvo V70 model araç anahtarları için özel olarak tasarlanmış, ergonomik kavrama sağlayan anahtar kabı güçlendirici aparat.\n\nYıpranmış veya kullanımı zorlaşan anahtarlarınıza daha sağlam bir tutuş kazandırır.\nDayanıklı yapısıyla uzun ömürlü kullanım sunar.\nAracınızın orijinal anahtar yapısıyla uyumlu, pratik montaj imkanı sağlar.\nÖzel tasarım üretim yöntemiyle yüksek kalitede üretilmiştir.\n\nYaklaşık dış ölçüler: 43 × 36 × 4 mm.",
-    "fiyat": "350 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/volvo-v70-anahtar-kab-g-lendirici-tutucu-1.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Schaffer.la",
-      "tur": "CC BY-SA 4.0"
-    },
-    "altkategori": "Montaj Parçaları ve Klipsler",
-    "uyum": [
-      {
-        "marka": "Volvo"
-      },
-      {
-        "marka": "Volvo",
-        "model": "V70"
-      }
-    ]
-  },
-  {
     "id": "volvo-v40-uyumlu-telefon-tutucu",
     "kategori": "Otomobil",
     "marka": [
@@ -783231,39 +782923,6 @@
     "altkategori": "Telefon ve Şarj"
   },
   {
-    "id": "volvo-xc90-arka-bardakl-k-adapt-r-60588",
-    "kategori": "Otomobil",
-    "marka": [
-      "Volvo",
-      "Hydro Flask",
-      "XC90"
-    ],
-    "baslik": "Volvo XC90 Arka Bardaklık Adaptörü (89 x 83 x 81 mm)",
-    "aciklama": "Volvo XC90 model araçların arka koltuk bardaklık alanını daha geniş termos ve şişelerle uyumlu hale getirmek için özel tasarlanmış bardaklık adaptörüdür. Hydro Flask ve benzeri geniş tabanlı termoslarınızı güvenle sabitlemenizi sağlar.\n\nAraç içi orijinal bardaklık yuvasına tam oturur.\nSürüş esnasında sallantıyı ve dökülmeleri önler.\nYüksek kaliteli malzemeden kişiye özel üretilir.\nKolayca takılıp çıkarılabilir, montaj gerektirmez.\n\nYaklaşık dış ölçüler: 89 × 83 × 81 mm.",
-    "fiyat": "350 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/pr60588-1.jpg",
-      "https://media.pruvo3d.com/urunler/pr60588-2.jpg",
-      "https://media.pruvo3d.com/urunler/pr60588-3.jpg",
-      "https://media.pruvo3d.com/urunler/pr60588-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "jgentry",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Bardaklık",
-    "uyum": [
-      {
-        "marka": "Volvo",
-        "model": "Hydro Flask"
-      },
-      {
-        "marka": "Volvo",
-        "model": "XC90"
-      }
-    ]
-  },
-  {
     "id": "volvo-850-tu-yuvas-kapa",
     "kategori": "Otomobil",
     "marka": [
@@ -783614,31 +783273,6 @@
     ]
   },
   {
-    "id": "volvo-xc90-telefon-tutucu-aparat",
-    "kategori": "Otomobil",
-    "marka": [
-      "Volvo",
-      "XC90"
-    ],
-    "baslik": "Volvo XC90 Telefon Tutucu Aparat",
-    "aciklama": "Volvo XC90 model araçların ön konsol tasarımıyla tam uyumlu, ergonomik telefon tutucu aparat.\n\nKonsol bütünlüğünü bozmadan kolayca monte edilir ve sürüş esnasında telefonunuzun güvenli ve sabit kalmasını sağlar.\nÖzel tasarım üretimi sayesinde aracınızın orijinal dokusuna uyum sağlar ve sarsıntılara karşı dayanıklıdır.\n\nYaklaşık dış ölçüler: 71 × 30 × 26 mm.",
-    "fiyat": "350 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/volvo-xc90-telefon-tutucu-aparat-1.jpg",
-      "https://media.pruvo3d.com/urunler/volvo-xc90-telefon-tutucu-aparat-2.jpg"
-    ],
-    "altkategori": "Telefon ve Şarj",
-    "uyum": [
-      {
-        "marka": "Volvo"
-      },
-      {
-        "marka": "Volvo",
-        "model": "XC90"
-      }
-    ]
-  },
-  {
     "id": "volvo-penta-uyumlu-rakor-ba-lant-par-as-23238467-3883597",
     "kategori": "Marin",
     "marka": [
@@ -783696,34 +783330,6 @@
     "fiyat": "250 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/9151566-uyumlu-klips-1.jpg"
-    ]
-  },
-  {
-    "id": "volvo-v40-anahtar-kab",
-    "kategori": "Otomobil",
-    "marka": [
-      "Volvo",
-      "V40"
-    ],
-    "baslik": "Volvo V40 Anahtar Kabı",
-    "aciklama": "Volvo V40 model araçlar için özel olarak tasarlanmış, yıpranmış veya kırılmış anahtar başlığını yenilemek için ideal yedek parça.\nOrijinal anahtar metal ucuna tam uyum sağlar.\nDayanıklı yapısıyla uzun ömürlü kullanım sunar.\nKolayca monte edilerek anahtarınızı yeniler.\nYaklaşık dış ölçüler: 37 × 36 × 6 mm.",
-    "fiyat": "250 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/volvo-v40-anahtar-kab-1.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Bernardo Ramos",
-      "tur": "CC BY-SA 4.0"
-    },
-    "altkategori": "Montaj Parçaları ve Klipsler",
-    "uyum": [
-      {
-        "marka": "Volvo"
-      },
-      {
-        "marka": "Volvo",
-        "model": "V40"
-      }
     ]
   },
   {
@@ -793193,38 +792799,6 @@
     ]
   },
   {
-    "id": "vw-ve-skoda-fabia-uyumlu-yak-t-depo-kapa-tutucu-lasti-i",
-    "kategori": "Otomobil",
-    "marka": [
-      "Volkswagen",
-      "Skoda",
-      "Fabia"
-    ],
-    "baslik": "VW ve Skoda Fabia Uyumlu Yakıt Depo Kapağı Tutucu Lastiği",
-    "aciklama": "Zamanla kopan veya yıpranan yakıt depo kapağı askı lastiğinizi yenilemek için ideal, dayanıklı yedek parça.\nDepo kapağının kaybolmasını veya düşerek aracınızın boyasını çizmesini engeller.\nEsnek yapısı sayesinde kolayca monte edilir ve uzun ömürlü kullanım sunar.\nAracınızın orijinal yuvalarına tam uyum sağlayacak şekilde özel tasarlanıp üretilmiştir.\nYaklaşık dış ölçüler: 123 × 12 × 3 mm.",
-    "fiyat": "250 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/vw-ve-skoda-fabia-uyumlu-yak-t-depo-kapa-tutucu-lasti-i-1.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Jan Tomášek",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Yakıt ve Egzoz",
-    "uyum": [
-      {
-        "marka": "Volkswagen"
-      },
-      {
-        "marka": "Skoda",
-        "model": "Fabia"
-      }
-    ],
-    "tavsiyeFilament": [
-      "ABS"
-    ]
-  },
-  {
     "id": "prusa-bal-pete-i-tasar-ml-plakal-k-er-evesi",
     "kategori": "Otomobil",
     "marka": [
@@ -794124,35 +793698,6 @@
     ]
   },
   {
-    "id": "volkswagen-t5-webasto-multicontrol-torpido-braketi",
-    "kategori": "Otomobil",
-    "marka": [
-      "Volkswagen",
-      "T5",
-      "Webasto"
-    ],
-    "baslik": "Volkswagen T5 Webasto Multicontrol Torpido Braketi",
-    "aciklama": "Volkswagen T5 Facelift araçlar için özel tasarlanmış Webasto Multicontrol kontrol paneli montaj aparatıdır. Kontrol ünitenizi torpido üzerine şık ve sağlam bir şekilde sabitlemenizi sağlar.\n\n- Aracın orijinal konsol hatlarıyla tam uyumludur.\n- Sürüş esnasında sarsıntı ve kaymaları önler.\n- Dayanıklı yapısıyla uzun ömürlü kullanım sunar.\n- Özel tasarım olarak sipariş üzerine üretilmektedir.\n\nYaklaşık dış ölçüler: 74 × 54 × 39 mm.",
-    "fiyat": "450 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/volkswagen-t5-webasto-multicontrol-torpido-braketi-1.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Schumo",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Konsol ve Torpido",
-    "uyum": [
-      {
-        "marka": "Volkswagen",
-        "model": "T5"
-      },
-      {
-        "marka": "Webasto"
-      }
-    ]
-  },
-  {
     "id": "volkswagen-klima-klape-motoru-di-li-kolu-v159",
     "kategori": "Otomobil",
     "marka": [
@@ -794673,39 +794218,6 @@
     ],
     "tavsiyeFilament": [
       "ABS"
-    ]
-  },
-  {
-    "id": "volkswagen-golf-7-auto-vox-ekran-tutucu-braketi",
-    "kategori": "Otomobil",
-    "marka": [
-      "Volkswagen",
-      "Golf",
-      "Auto-Vox"
-    ],
-    "baslik": "Volkswagen Golf 7 Auto-Vox Ekran Tutucu Braketi",
-    "aciklama": "Volkswagen Golf 7 araç içi havalandırma ızgarasına tam uyum sağlayan, Auto-Vox ekran montaj braketidir. Sürüş esnasında ekranınızın sarsılmadan, güvenli ve görüş açınızı kapatmayacak şekilde konumlandırılmasını sağlar.\n\n* Golf 7 konsol yapısına özel tasarlanmış ergonomik yapı\n* Havalandırma ızgaralarına zarar vermeden kolayca monte edilir\n* Dayanıklı ve uzun ömürlü malzemeden özel üretilir\n* Sarsıntı önleyici stabil tutuş mekanizması\n\nYaklaşık dış ölçüler: 32 × 6 × 6 mm.",
-    "fiyat": "450 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/volkswagen-golf-7-auto-vox-ekran-tutucu-braketi-1.jpg",
-      "https://media.pruvo3d.com/urunler/volkswagen-golf-7-auto-vox-ekran-tutucu-braketi-2.jpg",
-      "https://media.pruvo3d.com/urunler/volkswagen-golf-7-auto-vox-ekran-tutucu-braketi-3.jpg",
-      "https://media.pruvo3d.com/urunler/volkswagen-golf-7-auto-vox-ekran-tutucu-braketi-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "HerrRiebmann",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Klima ve Havalandırma",
-    "uyum": [
-      {
-        "marka": "Volkswagen",
-        "model": "Golf"
-      },
-      {
-        "marka": "Volkswagen",
-        "model": "Auto-Vox"
-      }
     ]
   },
   {
@@ -797493,32 +797005,6 @@
     "altkategori": "Kapı ve Cam"
   },
   {
-    "id": "vw-golf-mk5-mk6-mk7-mk8-vites-bur-seti",
-    "kategori": "Otomobil",
-    "marka": [
-      "Volkswagen",
-      "Golf"
-    ],
-    "baslik": "VW Golf MK5 MK6 MK7 MK8 Vites Burç Seti",
-    "aciklama": "Volkswagen Golf serisi araçlar için özel olarak tasarlanan vites mekanizması burç seti, vites geçişlerindeki boşlukları ve gevşekliği gidermek için mükemmel bir çözümdür. Zamanla aşınan orijinal burçların yerine takılarak daha net ve kararlı vites geçişleri sağlar.\n\n- VW Golf MK5, MK6, MK7 ve MK8 modelleriyle tam uyumludur.\n- Vites kolundaki boşluk hissini ortadan kaldırarak sürüş konforunu artırır.\n- Aşınmaya dayanıklı yüksek kaliteli malzemeden özel tasarım üretilmiştir.\n- Kolay montajı sayesinde vites mekanizmasını hızlıca yenilemenizi sağlar.\n\nYaklaşık dış ölçüler: 27 × 27 × 20 mm.",
-    "fiyat": "350 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/vw-golf-mk5-mk6-mk7-mk8-vites-bur-seti-1.jpg",
-      "https://media.pruvo3d.com/urunler/vw-golf-mk5-mk6-mk7-mk8-vites-bur-seti-2.jpg"
-    ],
-    "altkategori": "Sürüş Kumandaları",
-    "uyum": [
-      {
-        "marka": "Volkswagen",
-        "model": "Golf"
-      }
-    ],
-    "lisans": {
-      "tur": "GPL",
-      "tasarimci": "PennJE"
-    }
-  },
-  {
     "id": "volkswagen-uyumlu-d-eme-ve-panel-klipsi",
     "kategori": "Otomobil",
     "marka": [
@@ -797722,30 +797208,6 @@
     ],
     "tavsiyeFilament": [
       "ABS"
-    ]
-  },
-  {
-    "id": "vw-i-nce-profil-bijon-somun-kapa-28-mm",
-    "kategori": "Otomobil",
-    "marka": [
-      "Volkswagen"
-    ],
-    "baslik": "VW İnce Profil Bijon Somun Kapağı (28 mm)",
-    "aciklama": "Volkswagen araçlarınız için özel olarak tasarlanmış, şık ve ince profilli bijon somun kapağı.\n\n- Jantlarınızın görünümünü tamamlar ve bijon somunlarını dış etkenlerden korur.\n- 28 mm çapındaki ince profil tasarımı sayesinde jant yuvalarına mükemmel uyum sağlar.\n- Dayanıklı yapısıyla uzun ömürlü kullanım sunar ve kolayca monte edilir.\n- Aracınıza özel sipariş üzerine üretilir.\n\nYaklaşık dış ölçüler: 28 × 28 × 12 mm.",
-    "fiyat": "350 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/vw-i-nce-profil-bijon-somun-kapa-28-mm-1.jpg",
-      "https://media.pruvo3d.com/urunler/vw-i-nce-profil-bijon-somun-kapa-28-mm-2.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "arunkennedy3",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Tekerlek ve Jant",
-    "uyum": [
-      {
-        "marka": "Volkswagen"
-      }
     ]
   },
   {
