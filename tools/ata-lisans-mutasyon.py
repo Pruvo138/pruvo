@@ -53,10 +53,10 @@ MUTANTLAR = [
      '        adaylar = adaylar',
      "KIRMIZI", "[A2-ACIKLAMA-THING-KIMLIK]"),
     ("AK-03 ND kurali kaldir",
-     '    if lisans_nd_mi(lisans_metni):\n'
-     '        return [_sonuc(DURUM_IHLAL, "ATA LISANSI ND — turev yasak",\n'
-     '                       ata, host, kimlik, lisans_metni, adaptor.ad, derinlik)]',
-     '    if False:\n        pass',
+     '        if lisans_nd_mi(lisans_metni):\n'
+     '            return [_sonuc(DURUM_IHLAL, "ATA LISANSI ND — turev yasak",\n'
+     '                           ata, host, kimlik, lisans_metni, adaptor.ad, derinlik)]',
+     '        if False:\n            pass',
      "KIRMIZI", "[A9-ATA-ND]"),
     ("AK-04 'I used this design' deseni kaldir (ilk 9 desen YETMEZ)",
      '    re.compile(r"\\bus(?:ed|ing|es)\\s+(?:this|the|that|his|her|their|a|an)?\\s*"\n'
@@ -87,7 +87,8 @@ MUTANTLAR = [
     ("AK-09 aciklama ekseninde semasiz yedek geri acilir (metin = ata linki)",
      '    if bulunan or yalniz_url:',
      '    if bulunan:',
-     "KIRMIZI", "[RP1-PARENTPRINTID]"),
+     # RP1 bu kolu artik olcemez: host listesi (AK-15) sahte host'lu metni zaten dusurur.
+     "KIRMIZI", "[PO8-SEMASIZ-MODEL-HOST]"),
 
     # AK-10/AK-11: uretim defteri ata_destegi (BaBa 24 Eki tik 87).
     ("AK-10 PR ata_destegi False'a doner (PR dilimi toplu taramada OLCULMEDI)",
@@ -99,6 +100,39 @@ MUTANTLAR = [
      '            satilabilir=genel_satilabilir,\n            ata_destegi=False),',
      '            satilabilir=genel_satilabilir,\n            ata_destegi=True),',
      "KIRMIZI", "[PD1-BAYRAK]"),
+
+    # AK-12..AK-16: politika (BaBa 24 Eki tik 88 ③(a)(c) + ④).
+    ("AK-12 tetik koku daraltilir ('based' -> yalniz 'based on')",
+     '    re.compile(r"\\bbased\\b", re.IGNORECASE),',
+     '    re.compile(r"\\bbased\\s+on\\b", re.IGNORECASE),',
+     "KIRMIZI", "[PO1-BASED-KOK]"),
+    ("AK-13 oz-ata yazar kontrolu kapali (ata lisansina duser)",
+     '    oz = oz_aday and turev[0] == adaptor.ad and eser_yazari(detay) == turev[1]',
+     '    oz = False',
+     "KIRMIZI", "[PO2-OZ-ATA]"),
+    ("AK-14 oz-ata ust zinciri yargilamadan doner",
+     '                      ata, host, kimlik, lisans_metni or gomulu, adaptor.ad, derinlik)]\n'
+     '    else:',
+     '                      ata, host, kimlik, lisans_metni or gomulu, adaptor.ad, derinlik)]\n'
+     '        return out\n'
+     '    else:',
+     "KIRMIZI", "[PO3-OZ-ATA-UST-NC]"),
+    ("AK-15 ata adayi host listesi kaldirilir (dis host ELLE-BAK'a duser)",
+     '                   if ata_adayi_host_mu(host_coz(u), defter)]',
+     '                   if host_coz(u)]',
+     "KIRMIZI", "[PO5a-DIS-HOST-VIDEO]"),
+    ("AK-17 yapisal NOTR ayiklamasi kaldirilir (forum linki ELLE-BAK'a duser)",
+     '            atalar, notr_sayi = notr_ayikla(atalar, defter)',
+     '            notr_sayi = 0',
+     "KIRMIZI", "[PO9-YAPISAL-TVLINK-FORUM]"),
+    ("AK-18 NOTR alan siniri kaldirilir (originals'ta bilinmeyen host da NOTR olur)",
+     '        if (r.get("alan") in NOTR_ALANLARI and link and h and not r.get("license")',
+     '        if (link and h and not r.get("license")',
+     "KIRMIZI", "[S-FC-ADAPTORSUZ]"),
+    ("AK-16 printables.com/<N> kisa bicim kaldirilir",
+     '_kimlik_bas_sayi(u, "model") or _kimlik_kok_sayi(u),',
+     '_kimlik_bas_sayi(u, "model"),',
+     "KIRMIZI", "[PO7-KISA-BICIM]"),
 
     # ---------------- eksen: HOST cozumlemesi (kapinin yeni ekseni) ----------------
     ("OLD-01 host korlugu",
@@ -178,7 +212,7 @@ MUTANTLAR = [
     # ---------------- D5: zincir ----------------
     ("OLD-10 (D5a) zincir ozyinelemesi kapali",
      '        for ust in ustler:\n'
-     '            out.extend(ata_yargi(ust, defter, gs, adaptor, derinlik + 1, gorulen))',
+     '            out.extend(ata_yargi(ust, defter, gs, adaptor, derinlik + 1, gorulen, turev))',
      '        for ust in ustler:\n'
      '            pass',
      "KIRMIZI", "[D5a]"),
@@ -189,8 +223,8 @@ MUTANTLAR = [
 
     # ---------------- D6: gomulu lisans sozlugu ----------------
     ("OLD-12 (D6) gomulu lisans TEK sozlukle yargilanir",
-     '    if gomulu and not coklu_sozluk_satilabilir(gomulu, kaynak_adaptor):',
-     '    if gomulu and not genel_satilabilir(gomulu):',
+     '    gomulu_veto = bool(gomulu) and not coklu_sozluk_satilabilir(gomulu, kaynak_adaptor)',
+     '    gomulu_veto = bool(gomulu) and not genel_satilabilir(gomulu)',
      "KIRMIZI", "[D6-gomulu-yp]"),
     # VETO'nun KENDI BASINA olculebilmesi icin ayirt edici fikstur gerekir: alt sozluklerin
     # HICBIRININ yakalamadigi ama ticari kullanimi kapatan serbest-metin yazimlar

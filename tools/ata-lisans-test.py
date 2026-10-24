@@ -571,6 +571,101 @@ def main():
         print("  %-4s %-90s durum=%-22s rc=%s" % ("ok" if ok else "HATA", ad[:90],
                                                   ",".join(durumlar), rc))
 
+    # --- 2a-PO) POLITIKA (BaBa 24 Eki tik 88 ③(a)(c) + ④) ---
+    # Canli PR 145: 1249437 "is based my other model <pr:1249402>" ("on" yok, yazarin KENDI
+    # modeli) · 1371450 "Taking inspiration from ... <pr URL>" (ilham, ata DEGIL) · dis host
+    # swataralights / youtu.be / buymeacoffee ELLE-BAK'a dusuyordu · `printables.com/114037`
+    # kimlik cikmiyordu.
+    print("  --- POLITIKA (tetik koku · oz-ata · dis host notr · printables.com/<N>) ---")
+    po_defter = defter + K.sentetik_defter([
+        {"ad": "pr", "hostlar": ["printables.com"], "kimlik": "bas-sayi:model",
+         "ata_destegi": True, "yargi": "kisaltma",
+         "detaylar": {
+             "8800001": {"license": "CC-BY-NC", "name": "uydurma-ata",
+                         "user": {"publicUsername": "yazar-a"}},
+             # oz-ata ama KENDISI NC-ND bir modelden turemis: oz-ata zinciri AKLAMAZ
+             "8800002": {"license": "CC-BY-NC", "name": "uydurma-oz-ata",
+                         "user": {"publicUsername": "yazar-a"},
+                         "description": "remix of %s" % A_ND},
+         }}])
+    po_pr = K.adaptor_bul("printables.com", po_defter)
+
+    def _po(metin, yazar="yazar-b"):
+        return {"id": "1", "name": "uydurma-turev", "license": "CC-BY",
+                "user": {"publicUsername": yazar}, "description": metin}
+
+    PO_VAKALARI = [
+        ("PO1-BASED-KOK", "tetik KOKU: 'is based my other model <pr>' (on YOK), FARKLI yazar, "
+         "ata NC -> IHLAL",
+         _po("is based my other model https://www.printables.com/model/8800001-x"),
+         K.DURUM_IHLAL, 1),
+        ("PO2-OZ-ATA", "OZ-ATA: ayni platform + ayni yazar (buyuk/kucuk duyarsiz), ata NC -> "
+         "SATILABILIR (veto yok)",
+         _po("is based my other model https://www.printables.com/model/8800001-x",
+             yazar="Yazar-A"), K.DURUM_SATILABILIR, 0),
+        ("PO3-OZ-ATA-UST-NC", "OZ-ATA zinciri aklamaz: kendi modeli NC-ND atadan turemis -> IHLAL",
+         _po("modified version of https://www.printables.com/model/8800002", yazar="yazar-a"),
+         K.DURUM_IHLAL, 1),
+        ("PO4-ILHAM", "'Taking inspiration from ... <pr URL>' -> ata DEGIL -> ALAN-YOK",
+         _po("Taking inspiration from someone's JL design "
+             "https://www.printables.com/model/8800001"), K.DURUM_ALAN_YOK, 0),
+        ("PO5a-DIS-HOST-VIDEO", "tetik + VIDEO linki (youtu.be) -> NOTR -> ALAN-YOK",
+         _po("remixed it, build video: https://youtu.be/abcd123"), K.DURUM_ALAN_YOK, 0),
+        ("PO5b-DIS-HOST-BAGIS", "tetik + BAGIS linki (buymeacoffee) -> NOTR -> ALAN-YOK",
+         _po("based on my own work, support me: https://www.buymeacoffee.com/ornek"),
+         K.DURUM_ALAN_YOK, 0),
+        ("PO5c-DIS-HOST-MARKA", "tetik + MARKA sitesi -> NOTR -> ALAN-YOK",
+         _po("modified to fit https://swataralights.com/products/ornek"), K.DURUM_ALAN_YOK, 0),
+        # PO8: semasiz metin MODEL HOST'uyla bitiyor ("... www.printables.com"): host listesi
+        # metni gecirir; yalniz yalniz_url yedegi metni ata linki yapmaktan alikoyar (AK-09).
+        ("PO8-SEMASIZ-MODEL-HOST", "tetik + semasiz 'www.printables.com' metni -> URL DEGIL "
+         "-> ALAN-YOK (metin ata linki SAYILMAZ)",
+         _po("Remix welcome, more models at www.printables.com"), K.DURUM_ALAN_YOK, 0),
+        # PO9/PO10: YAPISAL Printables alanina yazilmis model-disi link (canli pr:1018857
+        # thingiverseLink = forum) -> NOTR. `originals`'taki bilinmeyen host ELLE-BAK kalir (S-FC).
+        ("PO9-YAPISAL-TVLINK-FORUM", "YAPISAL thingiverseLink = forum linki -> NOTR -> ALAN-YOK",
+         dict(_po("duz metin"), thingiverseLink="https://www.ornek-forum.net/topic/1/page/3/"),
+         K.DURUM_ALAN_YOK, 0),
+        ("PO10-YAPISAL-REMIX-VIDEO", "YAPISAL remixParents url = video, parentPrintId null -> "
+         "NOTR -> ALAN-YOK",
+         dict(_po("duz metin"), remixParents=[{"parentPrintId": None,
+                                                "url": "https://youtu.be/abcd123",
+                                                "parentPrint": None}]),
+         K.DURUM_ALAN_YOK, 0),
+        ("PO6-MODEL-HOST-ADAPTORSUZ", "tetik + adaptoru OLMAYAN model sitesi (thangs) -> "
+         "ADAPTORSUZ (fail-closed KORUNUR)",
+         _po("remix of https://thangs.com/designer/ornek/3d-model/parca-123"),
+         K.DURUM_ADAPTORSUZ, 1),
+    ]
+    for etiket, ad, detay, beklenen_durum, beklenen_rc in PO_VAKALARI:
+        n += 1
+        sonuclar = K.kayit_yargi("uydurma-urun", detay, po_defter, K.genel_satilabilir, po_pr)
+        durumlar = [s["durum"] for s in sonuclar]
+        rc = K.cikis_kodu(sonuclar)
+        ok = beklenen_durum in durumlar and rc == beklenen_rc
+        if beklenen_durum == K.DURUM_SATILABILIR:
+            ok = ok and all(d == K.DURUM_SATILABILIR for d in durumlar) and \
+                sonuclar[0]["gerekce"].startswith("OZ-ATA")
+        if rc == 0 and beklenen_rc != 0:
+            sessiz_gecis += 1
+        if not ok:
+            hatalar.append("[%s] %s -> durumlar=%s rc=%s (bek %s rc %s)"
+                           % (etiket, ad, durumlar, rc, beklenen_durum, beklenen_rc))
+        print("  %-4s %-90s durum=%-22s rc=%s" % ("ok" if ok else "HATA", ad[:90],
+                                                  ",".join(durumlar), rc))
+
+    # PO7: `printables.com/<N>` KISA bicim -> uretim pr adaptoru kimligi cikarir (canli 114037).
+    n += 1
+    pr_uretim = K.adaptor_bul("printables.com", K.uretim_defteri())
+    kis = {u: pr_uretim.kimlik_cikar(u) for u in (
+        "https://www.printables.com/114037", "https://www.printables.com/114037-ornek",
+        "https://www.printables.com/model/1249402-x", "https://www.printables.com/social/123")}
+    ok = list(kis.values()) == ["114037", "114037", "1249402", None]
+    if not ok:
+        hatalar.append("[PO7-KISA-BICIM] printables kimlik: %s" % kis)
+    print("  %-4s PO7   printables.com/<N> kisa bicim -> kimlik (model/ ve social/ ayrimi) %s"
+          % ("ok" if ok else "HATA", list(kis.values())))
+
     # --- 2b) ZARF EKSENI TEK BASINA (her eksen AYRI oldurulebilmeli) ---
     # Bu iki iddia olmadan tavan/belirsizlik ekseni D18 (govde izi) tarafindan KAPATILIR ve
     # "savunma derinligi" beyan edilmis survivor'a doner ([[beyan-edilmis-survivor]]).

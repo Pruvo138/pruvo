@@ -290,18 +290,28 @@ ATA_ALANLARI = ("originals", "remixParents", "derivedFrom", "ancestors",
 # Bu eksen olmadan kapi "ALAN-YOK" diyordu = SATILAMAZ turev GECIYORDU.
 ACIKLAMA_ALANLARI = ("description", "description_html", "details", "summary", "instructions")
 
+# 🔴 ATA ADAYI HOST LISTESI (BaBa 24 Eki tik 88 ③(a)): aciklamadaki URL yalniz bir MODEL
+# PLATFORMUNA gidiyorsa ata adayidir. Video / bagis / marka / forum linki (canli PR 145:
+# swataralights · youtu.be · buymeacoffee) ata DEGIL -> NOTR (OLCULEMEDI tetiklemez).
+# Listede olup adaptoru OLMAYAN model platformu (thangs, grabcad ...) ADAPTORSUZ kalir:
+# model sitesine giden ata linki sessizce dusurulmez (fail-closed korunur).
+ATA_ADAYI_HOSTLARI = ("thingiverse.com", "printables.com", "prusaprinters.org",
+                      "makerworld.com", "cults3d.com", "myminifactory.com", "thangs.com",
+                      "grabcad.com", "cgtrader.com", "sketchfab.com", "turbosquid.com",
+                      "pinshape.com", "youmagine.com", "3dexport.com", "crealitycloud.com")
+
 # 🔴 TETIK + LINK IKILISI: kelime YOKSA aciklamadaki URL SAYILMAZ. Aksi halde her aciklamada
 # geCEN bir kaynak linki (esinlenme/henuz uygulanmamis fikir) yanlis-pozitif uretirdi.
 # Sozcuk siniri ZORUNLU: alt-dize aramasi "remixOf"/"derivative" gibi alan adlarini da yakalar.
 ACIKLAMA_TETIKLERI = (
-    re.compile(r"\bremix(?:ed)?\b", re.IGNORECASE),
-    re.compile(r"\bremix\s+of\b", re.IGNORECASE),
-    re.compile(r"\bbased\s+on\b", re.IGNORECASE),
-    re.compile(r"\bmodified\b", re.IGNORECASE),
-    re.compile(r"\bmodification\s+of\b", re.IGNORECASE),
+    # KOK desenleri (BaBa 24 Eki tik 88 ④(i)): canli PR 1249437 "is based my other model <URL>"
+    # ("on" YOK) eski "based\s+on" deseninden kaciyordu. remix·based·modif·deriv KOKU + model
+    # URL'si ata adayidir, lisansi OLCULUR. "inspiration" ata DEGIL (desen yok).
+    re.compile(r"\bremix\w*", re.IGNORECASE),
+    re.compile(r"\bbased\b", re.IGNORECASE),
+    re.compile(r"\bmodif\w*", re.IGNORECASE),
     re.compile(r"\boriginal\s+(?:design|by|model|file)\b", re.IGNORECASE),
-    re.compile(r"\bderived\b", re.IGNORECASE),
-    re.compile(r"\bderivative\b", re.IGNORECASE),
+    re.compile(r"\bderiv\w*", re.IGNORECASE),
     re.compile(r"\binspired\s+by\b", re.IGNORECASE),
     # MIMAR KARI (23 Eki 2026, canli olcum): 4853978'in aciklamasi tam olarak
     # "For the lowerpart I used this design: <thing:3543408>" — yukaridaki9 desenin HICBIRI
@@ -467,7 +477,40 @@ def ata_kayitlari(detay):
     return refs, hatalar
 
 
-def aciklama_ata_kayitlari(detay, bos_aciklama_kurali=False):
+def ata_adayi_host_mu(host, defter=None):
+    """Aciklamadaki URL'nin host'u ata adayi mi: ATA_ADAYI_HOSTLARI ya da defterde adaptoru var."""
+    if not host:
+        return False
+    if any(host == h or host.endswith("." + h) for h in ATA_ADAYI_HOSTLARI):
+        return True
+    return defter is not None and adaptor_bul(host, defter) is not None
+
+
+NOTR_ALANLARI = ("thingiverseLink", "remixParents")
+
+
+def notr_ayikla(refs, defter=None):
+    """YAPISAL ata referanslarindan model-disi host'a gidenleri NOTR sayip dusurur -> (kalan, n).
+
+    Canli: Printables `thingiverseLink` / `remixParents.url` alanina yazar forum/video/marka
+    linki yaziyor (pr:1018857 -> briskoda.net forumu) -> ELLE-BAK yigini. Linksiz/host'suz ref
+    KALIR (fail-closed yargida); gomulu lisans tasiyan ref KALIR (veto yargida).
+
+    🔴 YALNIZ NOTR_ALANLARI (yazarin serbest URL yazdigi Printables alanlari): `originals` /
+    `ancestors` gibi platformun KENDI ata alaninda bilinmeyen host ELLE-BAK KALIR (S-FC)."""
+    kalan, notr = [], 0
+    for r in refs:
+        link = r.get("link") or ""
+        h = host_coz(link)
+        if (r.get("alan") in NOTR_ALANLARI and link and h and not r.get("license")
+                and not ata_adayi_host_mu(h, defter)):
+            notr += 1
+            continue
+        kalan.append(r)
+    return kalan, notr
+
+
+def aciklama_ata_kayitlari(detay, bos_aciklama_kurali=False, defter=None):
     """Serbest-metin ACIKLAMA alanlarindan ata referansi cikarir -> (refs, okunamaz).
 
     🔴 TETIK + LINK IKILISI: tetik kelimesi YOKSA o alandan 0 referans (yanlis-pozitif kapisi;
@@ -504,7 +547,8 @@ def aciklama_ata_kayitlari(detay, bos_aciklama_kurali=False):
             continue
         if not any(d.search(ham) for d in ACIKLAMA_TETIKLERI):
             continue                                    # tetik YOK -> bu alandan ref yok
-        adaylar = [u for u in urlleri_cikar(ham, yalniz_url=True) if host_coz(u)]
+        adaylar = [u for u in urlleri_cikar(ham, yalniz_url=True)
+                   if ata_adayi_host_mu(host_coz(u), defter)]
         adaylar += ["https://www.thingiverse.com/thing:%s" % n
                     for n in _THING_KIMLIK_RE.findall(ham)]
         for u in adaylar:
@@ -543,11 +587,23 @@ def _sonuc(durum, gerekce, ata=None, host=None, kimlik=None, lisans=None, adapto
     }
 
 
-def ata_yargi(ata, defter, gs, kaynak_adaptor=None, derinlik=1, gorulen=None):
+def eser_yazari(detay):
+    """Detaydaki yazar adi (kucuk harf) — yalniz Printables DETAIL_Q `user.publicUsername`.
+    Baska platformun yazar alani OLCULMEDI -> bos doner (oz-ata hukmu VERILMEZ)."""
+    u = detay.get("user") if isinstance(detay, dict) else None
+    return str(u.get("publicUsername") or "").strip().lower() if isinstance(u, dict) else ""
+
+
+def ata_yargi(ata, defter, gs, kaynak_adaptor=None, derinlik=1, gorulen=None, turev=None):
     """TEK ata referansi + ONUN ATALARI icin yargi LISTESI (zincir yukari).
 
     kaynak_adaptor: ata referansini BASAN platformun adaptoru (gomulu lisans onun
-    sozlugunde yazilabilir; ama sozluk garanti DEGIL -> coklu sozluk yargisi)."""
+    sozlugunde yazilabilir; ama sozluk garanti DEGIL -> coklu sozluk yargisi).
+
+    turev: (platform adi, yazar) — turev kaydin kendisi. 🔴 OZ-ATA (BaBa 24 Eki tik 88
+    ④(ii)): ata AYNI platformda ve yazari turevin yazariyla AYNI ise yazar kendi modelini
+    turetmistir -> ata lisans vetosu YOK (turevin lisansi hukmeder). Oz-atanin KENDI
+    atalari yine yargilanir: kendi modeli baskasinin NC modelinden turemisse IHLAL dogar."""
     gorulen = gorulen if gorulen is not None else set()
 
     if ata.get("_sekil_hatasi"):
@@ -558,80 +614,101 @@ def ata_yargi(ata, defter, gs, kaynak_adaptor=None, derinlik=1, gorulen=None):
 
     # 1) Gomulu lisans DOLU ve SATILAMAZ ise ag'a cikmadan ihlal (siki yon).
     #    DOLU ve satilabilir ise hukum VERILMEZ -> host cozumlemesi yine kosar.
-    if gomulu and not coklu_sozluk_satilabilir(gomulu, kaynak_adaptor):
-        return [_sonuc(DURUM_IHLAL, "ata referansindaki lisans satilamaz (gomulu alan)",
-                       ata, host_coz(link), None, gomulu, derinlik=derinlik)]
+    #    Turevin yazari biliniyorsa oz-ata olabilir: veto, ata detayi okununcaya dek
+    #    ERTELENIR; detay okunamazsa (her erken donuste) veto yine IHLAL olarak doner.
+    gomulu_veto = bool(gomulu) and not coklu_sozluk_satilabilir(gomulu, kaynak_adaptor)
+    oz_aday = bool(turev and turev[1])
+
+    def _veto_ya_da(sonuclar):
+        if gomulu_veto:
+            return [_sonuc(DURUM_IHLAL, "ata referansindaki lisans satilamaz (gomulu alan)",
+                           ata, host_coz(link), None, gomulu, derinlik=derinlik)]
+        return sonuclar
+
+    if gomulu_veto and not oz_aday:
+        return _veto_ya_da([])
 
     if not link:
-        return [_sonuc(DURUM_KALICI, "ata baglantisi YOK; host okunamiyor", ata,
-                       derinlik=derinlik)]
+        return _veto_ya_da([_sonuc(DURUM_KALICI, "ata baglantisi YOK; host okunamiyor", ata,
+                                   derinlik=derinlik)])
 
     host = host_coz(link)
     if not host:
-        return [_sonuc(DURUM_KALICI, "ata baglantisi URL olarak ayristirilamadi", ata,
-                       derinlik=derinlik)]
+        return _veto_ya_da([_sonuc(DURUM_KALICI, "ata baglantisi URL olarak ayristirilamadi",
+                                   ata, derinlik=derinlik)])
 
     adaptor = adaptor_bul(host, defter)
     if adaptor is None:
-        return [_sonuc(DURUM_ADAPTORSUZ, "bu host icin adaptor YOK -> ELLE-BAK", ata, host,
-                       derinlik=derinlik)]
+        return _veto_ya_da([_sonuc(DURUM_ADAPTORSUZ, "bu host icin adaptor YOK -> ELLE-BAK",
+                                   ata, host, derinlik=derinlik)])
 
     kimlik = adaptor.kimlik_cikar(link)
     if not kimlik:
-        return [_sonuc(DURUM_KALICI, "host taniniyor ama kimlik cikarilamadi",
-                       ata, host, None, None, adaptor.ad, derinlik)]
+        return _veto_ya_da([_sonuc(DURUM_KALICI, "host taniniyor ama kimlik cikarilamadi",
+                                   ata, host, None, None, adaptor.ad, derinlik)])
 
     anahtar = (host, str(kimlik))
     if anahtar in gorulen:
-        return []                                       # dongu: bu dugum zaten yargilandi
+        return _veto_ya_da([])                          # dongu: bu dugum zaten yargilandi
     gorulen.add(anahtar)
 
     try:
         detay = adaptor.detay(kimlik)
     except GeciciHata as e:
-        return [_sonuc(DURUM_GECICI, "gecici API hatasi: %s" % e, ata, host, kimlik, None,
-                       adaptor.ad, derinlik)]
+        return _veto_ya_da([_sonuc(DURUM_GECICI, "gecici API hatasi: %s" % e, ata, host,
+                                   kimlik, None, adaptor.ad, derinlik)])
     except KaliciHata as e:
-        return [_sonuc(DURUM_KALICI, "kalici API hatasi: %s" % e, ata, host, kimlik, None,
-                       adaptor.ad, derinlik)]
+        return _veto_ya_da([_sonuc(DURUM_KALICI, "kalici API hatasi: %s" % e, ata, host,
+                                   kimlik, None, adaptor.ad, derinlik)])
 
     if detay is None:
-        return [_sonuc(DURUM_KALICI, "API null dondu (kayit yok/erisilemez)",
-                       ata, host, kimlik, None, adaptor.ad, derinlik)]
+        return _veto_ya_da([_sonuc(DURUM_KALICI, "API null dondu (kayit yok/erisilemez)",
+                                   ata, host, kimlik, None, adaptor.ad, derinlik)])
 
     detay, zarf_hatasi, _iz = _zarf_ac(detay)
     if zarf_hatasi:
-        return [_sonuc(DURUM_SEKIL, "ata detayi: " + zarf_hatasi,
-                       ata, host, kimlik, None, adaptor.ad, derinlik)]
+        return _veto_ya_da([_sonuc(DURUM_SEKIL, "ata detayi: " + zarf_hatasi,
+                                   ata, host, kimlik, None, adaptor.ad, derinlik)])
     if not isinstance(detay, dict) or not detay:
-        return [_sonuc(DURUM_KALICI, "ata detayi BOS ya da taninmayan sekilde",
-                       ata, host, kimlik, None, adaptor.ad, derinlik)]
+        return _veto_ya_da([_sonuc(DURUM_KALICI, "ata detayi BOS ya da taninmayan sekilde",
+                                   ata, host, kimlik, None, adaptor.ad, derinlik)])
 
     lisans_metni = (adaptor.lisans_cikar(detay) or "").strip()
-    if not lisans_metni:
-        return [_sonuc(DURUM_KALICI, "ata lisansi BOS dondu", ata, host, kimlik, "",
-                       adaptor.ad, derinlik)]
+    oz = oz_aday and turev[0] == adaptor.ad and eser_yazari(detay) == turev[1]
+    if oz:
+        out = [_sonuc(DURUM_SATILABILIR,
+                      "OZ-ATA: kendi modeli %s:%s — ata lisans vetosu YOK, turevin lisansi "
+                      "hukmeder" % (adaptor.ad, kimlik),
+                      ata, host, kimlik, lisans_metni or gomulu, adaptor.ad, derinlik)]
+    else:
+        if gomulu_veto:
+            return _veto_ya_da([])
+        if not lisans_metni:
+            return [_sonuc(DURUM_KALICI, "ata lisansi BOS dondu", ata, host, kimlik, "",
+                           adaptor.ad, derinlik)]
 
-    # 🔴 ND KURALI satilabilirlik SORGUSUNDAN ONCE gelir: "-ND" hicbir sozlukte veto degil,
-    # "Attribution - NoDerivatives" ise 'insan-adi' sozlugunde SATILABILIR sayiliyordu
-    # (olculdu) -> turev sizardi. ND bir KULLANIM kisitidir, satis kisiti DEGIL: turev
-    # uretilemez. Satilabilir sonucuna bakmadan IHLAL.
-    if lisans_nd_mi(lisans_metni):
-        return [_sonuc(DURUM_IHLAL, "ATA LISANSI ND — turev yasak",
-                       ata, host, kimlik, lisans_metni, adaptor.ad, derinlik)]
+        # 🔴 ND KURALI satilabilirlik SORGUSUNDAN ONCE gelir: "-ND" hicbir sozlukte veto
+        # degil, "Attribution - NoDerivatives" ise 'insan-adi' sozlugunde SATILABILIR
+        # sayiliyordu (olculdu) -> turev sizardi. ND bir KULLANIM kisitidir, satis kisiti
+        # DEGIL: turev uretilemez. Satilabilir sonucuna bakmadan IHLAL.
+        if lisans_nd_mi(lisans_metni):
+            return [_sonuc(DURUM_IHLAL, "ATA LISANSI ND — turev yasak",
+                           ata, host, kimlik, lisans_metni, adaptor.ad, derinlik)]
 
-    if not satilabilir_ile(lisans_metni, adaptor.satilabilir):
-        return [_sonuc(DURUM_IHLAL, "ATA LISANSI SATILAMAZ (turevin yeniden-lisansi gecersiz)",
-                       ata, host, kimlik, lisans_metni, adaptor.ad, derinlik)]
+        if not satilabilir_ile(lisans_metni, adaptor.satilabilir):
+            return [_sonuc(DURUM_IHLAL,
+                           "ATA LISANSI SATILAMAZ (turevin yeniden-lisansi gecersiz)",
+                           ata, host, kimlik, lisans_metni, adaptor.ad, derinlik)]
 
-    out = [_sonuc(DURUM_SATILABILIR, "ata lisansi ticari satisa uygun",
-                  ata, host, kimlik, lisans_metni, adaptor.ad, derinlik)]
+        out = [_sonuc(DURUM_SATILABILIR, "ata lisansi ticari satisa uygun",
+                      ata, host, kimlik, lisans_metni, adaptor.ad, derinlik)]
 
     # --- UST KADEME (zincir): atanin kendi atalari da yargilanir ---
     # ACIKLAMA ekseni ust kademede de okunur: atanin atasi yalniz metinde yaziliyorsa
     # zincir TAMPAMLANMAZ (yalniz turev yakalanip ata'nin ust zinciri sessizce gecilirdi).
     ustler, sekil_hatalari = ata_kayitlari(detay)
-    ust_ak, ust_okunamaz = aciklama_ata_kayitlari(detay)
+    ustler, _notr = notr_ayikla(ustler, defter)
+    ust_ak, ust_okunamaz = aciklama_ata_kayitlari(detay, defter=defter)
     ustler = ustler + [r for r in ust_ak if r["link"] not in {x.get("link") for x in ustler}]
     sekil_hatalari = sekil_hatalari + list(ust_okunamaz)
     if ustler or sekil_hatalari:
@@ -645,7 +722,7 @@ def ata_yargi(ata, defter, gs, kaynak_adaptor=None, derinlik=1, gorulen=None):
             out.append(_sonuc(DURUM_KALICI, "ust kademe: " + h, ata, host, kimlik, None,
                               adaptor.ad, derinlik + 1))
         for ust in ustler:
-            out.extend(ata_yargi(ust, defter, gs, adaptor, derinlik + 1, gorulen))
+            out.extend(ata_yargi(ust, defter, gs, adaptor, derinlik + 1, gorulen, turev))
     return out
 
 
@@ -670,6 +747,7 @@ def kayit_yargi(urun_id, detay, defter, gs, kaynak_adaptor=None):
             out = [_sonuc(DURUM_KALICI, "turev detayi BOS (zarf acildiktan sonra da)")]
         else:
             atalar, sekil_hatalari = ata_kayitlari(acik)
+            atalar, notr_sayi = notr_ayikla(atalar, defter)
             # 🔴 ACIKLAMA EKSI: yapisal alan BOS olsa bile aciklama metni atayi TASIYABILIR
             # (canli olcum: Thingiverse 4853978/7332849/7332847 -> `ancestors` BOS, atif
             # yalniz `description` icinde). Iki kume BIRLESIR; ayni link iki kez yargilanmaz.
@@ -678,7 +756,7 @@ def kayit_yargi(urun_id, detay, defter, gs, kaynak_adaptor=None):
             # yapisal yargisi yeter; aksi her ata OLCULEMEDI olurdu). Yapisal ata
             # bulunduysa da uygulanmaz: "vurus" var, temiz iddiasi 0 vurusa dayanmiyor.
             ak_refs, okunamaz = aciklama_ata_kayitlari(
-                acik, bos_aciklama_kurali=govde_gorundu and not atalar)
+                acik, bos_aciklama_kurali=govde_gorundu and not atalar, defter=defter)
             # Oz-atif: detayin KENDI kimligiyle ayni thing kimligi turevin atasi OLEMEZ.
             # Dusulmezse her kayit kendi kimligini yazan aciklamayi "ata" sanirdi.
             kendi = str(acik.get("id") or "").strip()
@@ -691,15 +769,19 @@ def kayit_yargi(urun_id, detay, defter, gs, kaynak_adaptor=None):
             out += [_sonuc(DURUM_GECICI, h) for h in okunamaz]
             if not atalar and not sekil_hatalari and not okunamaz:
                 if govde_gorundu:
-                    out = [_sonuc(DURUM_ALAN_YOK, "detay OLCULDU (govde TANINDI): ata alani yok")]
+                    gerekce = "detay OLCULDU (govde TANINDI): ata alani yok"
+                    if notr_sayi:
+                        gerekce += " (model-disi link %d NOTR)" % notr_sayi
+                    out = [_sonuc(DURUM_ALAN_YOK, gerekce)]
                 else:
                     out = [_sonuc(DURUM_SEKIL,
                                   "turev detayi TANINMAYAN sekilde (govde isareti yok) — "
                                   "'ata alani yok' DENEMEZ; bu platformun sekli OLCULMEMIS")]
             else:
                 gorulen = set()
+                turev = ((kaynak_adaptor.ad if kaynak_adaptor else None), eser_yazari(acik))
                 for ata in atalar:
-                    out.extend(ata_yargi(ata, defter, gs, kaynak_adaptor, 1, gorulen))
+                    out.extend(ata_yargi(ata, defter, gs, kaynak_adaptor, 1, gorulen, turev))
     if not out:
         # zincir dongusu hukum uretmeden bosa dustu -> fail-closed
         out = [_sonuc(DURUM_KALICI, "zincir hukum URETMEDI (dongu) — fail-closed")]
@@ -804,6 +886,17 @@ def _kimlik_bas_sayi(url, isaret):
             m = re.match(r"(\d+)", p[i + 1])
             if m:
                 return m.group(1)
+    return None
+
+
+def _kimlik_kok_sayi(url):
+    """<host>/<sayi>[-slug] KISA bicim (canli PR 145: `printables.com/114037`) -> sayi.
+    Ilk yol parcasi rakamla baslamiyorsa None (kok-duzey sayfalar kimlik sanilmaz)."""
+    p = _yol_parcalari(url)
+    if p:
+        m = re.fullmatch(r"(\d+)(?:-[^/]*)?", p[0])
+        if m:
+            return m.group(1)
     return None
 
 
@@ -967,7 +1060,7 @@ def uretim_defteri():
             ata_destegi=True),
         Adaptor(
             ad="pr", hostlar=("printables.com",),
-            kimlik_cikar=lambda u: _kimlik_bas_sayi(u, "model"),
+            kimlik_cikar=lambda u: _kimlik_bas_sayi(u, "model") or _kimlik_kok_sayi(u),
             detay=lambda k: _sarmala(pr.detail, k),
             lisans_cikar=lambda d: str(((d.get("license") or {}) or {}).get("abbreviation") or ""),
             satilabilir=pr.satilabilir,
