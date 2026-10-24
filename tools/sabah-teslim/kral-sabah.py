@@ -842,7 +842,10 @@ def bugunun_kirmizilari() -> tuple[str, str, int | None, str]:
     #      elle yazılmaz; çözülemezse `None`dır, uydurulmaz.
     #   ② `cwd=REPO`  — argv çivisi hiç kurulamasa bile çağrı repo kökünden koşar.
     # Ölçen: `tools/gh-civi-nobetcisi.py` (AST, üç kova, mutant 4/4).
-    argv = [yol, "run", "list", "--limit", "30",
+    # 🔴 PENCERE (24 Eki 2026, KraL-Tamirci-24Eki ③ · BaBa tik 110): `--limit 30` günün
+    # yalnız son ~4 saatini görüyordu (24 Eki UTC 88 koşum → 58'i pencere dışı) ve 04:55Z'deki
+    # CANLI kırmızıyı ADET=0 diye kaçırıyordu. 300 = birkaç günün tamamı; kabul V36.
+    argv = [yol, "run", "list", "--limit", "300",
             "--json", "conclusion,name,createdAt,headBranch,status,headSha,databaseId"]
     slug = _repo_slug()
     if slug:

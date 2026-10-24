@@ -76,6 +76,12 @@ BİREBİR aynı. Ardıl artık İÇERİKTEN de okunur (`icerik_mi`, gerçekte `i
   M19 MUTANT git: merge-base hatası=True (None değil) -> V34 KIRMIZI
   M20 MUTANT bugunun_kirmizilari icerik_mi'yi geçirmez -> V35 KIRMIZI
 
+24 Eki 2026 (KraL-Tamirci-24Eki ③, BaBa tik 110) — `gh run list --limit 30` günün yalnız son
+~4 saatini görüyordu: 24 Eki UTC 88 koşum, CANLI kırmızı (04:55Z) pencerenin 2 sa önünde ->
+spec ADET=0 basacaktı. Sahte gh artık `--limit N`'e UYAR (ilk N kaydı verir):
+  V36 bugün 61 koşum, kırmızı EN ESKİSİ (61. sıra) -> ADET=1 ∧ CANLI=1
+  M21 MUTANT pencere 300 -> 30                      -> V36 KIRMIZI
+
 Koşum: python3 tools/sabah-ardil-kova-test.py   (rc=0 = hepsi beklenen)
 """
 
@@ -140,6 +146,9 @@ MUTANTLAR = {
             "V34"),
     "M20": ("kirmizi_siniflandir(\n            data, bugun, ata_mi_git, icerik_main_de_mi_git)\n",
             "kirmizi_siniflandir(\n            data, bugun, ata_mi_git)  # MUTANT\n", "V35"),
+    # 24 Eki — gh run list penceresi günün tamamını görmeli
+    "M21": ('"run", "list", "--limit", "300",\n',
+            '"run", "list", "--limit", "30",  # MUTANT\n', "V36"),
 }
 
 
@@ -585,6 +594,34 @@ def v15_devreden_uctan_uca(mod):
     return ok, (hukum, adet, blok[-240:])
 
 
+def v36_pencere_uctan_uca(mod):
+    """24 Eki: sahte gh `--limit N`'e uyar. Bugün 60 yeni success (başka iş akışı, ardıl
+    DEĞİL) + en eskide 1 failure -> pencere günü kapsıyorsa ADET=1 ∧ CANLI=1; 30'luk
+    pencerede kırmızı görünmez (ADET=0)."""
+    import json
+    bugun = dt.datetime.now(dt.timezone.utc).date()
+    data = [k(BD, "23:%02d:%02d" % (59 - i // 60, 59 - i % 60), "success", "bbbbbbbb", 1000 - i,
+              gun=bugun) for i in range(60)]
+    data.append(k("Reklam OCI kosucu", "04:55:23", "failure", "aaaaaaaa", 1, gun=bugun))
+    with tempfile.TemporaryDirectory() as td:
+        sahte = os.path.join(td, "gh")
+        with open(sahte, "w", encoding="utf-8") as f:
+            f.write("#!%s\nimport json, sys\nd = json.loads(%r)\n"
+                    "n = int(sys.argv[sys.argv.index('--limit') + 1])\n"
+                    "sys.stdout.write(json.dumps(d[:n]))\n" % (sys.executable, json.dumps(data)))
+        os.chmod(sahte, 0o700)
+        eski = (mod.gh_yolu, mod._repo_slug, mod.REPO)
+        mod.gh_yolu = lambda: (sahte, "test")
+        mod._repo_slug = lambda: None
+        mod.REPO = type(mod.REPO)(td)
+        try:
+            hukum, blok, adet, _ = mod.bugunun_kirmizilari()
+        finally:
+            mod.gh_yolu, mod._repo_slug, mod.REPO = eski
+    ok = (hukum == "OK" and adet == 1 and "**CANLI=1**" in blok)
+    return ok, (hukum, adet, blok[:200])
+
+
 def main():
     mod = modul_yukle(KAYNAK, "kral_sabah_test")
     kirmizi = 0
@@ -607,6 +644,9 @@ def main():
     ok, kanit = v35_icerik_uctan_uca(mod)
     print("%s V35 %s" % ("YESIL " if ok else "KIRMIZI", "" if ok else kanit))
     kirmizi += 0 if ok else 1
+    ok, kanit = v36_pencere_uctan_uca(mod)
+    print("%s V36 %s" % ("YESIL " if ok else "KIRMIZI", "" if ok else kanit))
+    kirmizi += 0 if ok else 1
 
     with open(KAYNAK, encoding="utf-8") as f:
         govde = f.read()
@@ -626,6 +666,7 @@ def main():
             sonuc["V25"] = v25_ata_uctan_uca(mm)
             sonuc["V29"] = v29_ardil_suruyor_uctan_uca(mm)
             sonuc["V35"] = v35_icerik_uctan_uca(mm)
+            sonuc["V36"] = v36_pencere_uctan_uca(mm)
         hedef_dustu = not sonuc[hedef][0]
         kontrol = sonuc["V2"][0]
         ok = hedef_dustu and kontrol
@@ -634,7 +675,7 @@ def main():
             "YESIL " if ok else "KIRMIZI", mad, hedef, int(hedef_dustu), int(kontrol)))
         kirmizi += 0 if ok else 1
 
-    print("SABAH_ARDIL_KOVA VAKA=35 MUTANT_OLDU=%d/%d KIRMIZI=%d rc=%d" % (
+    print("SABAH_ARDIL_KOVA VAKA=36 MUTANT_OLDU=%d/%d KIRMIZI=%d rc=%d" % (
         oldu, len(MUTANTLAR), kirmizi, 1 if kirmizi else 0))
     return 1 if kirmizi else 0
 
