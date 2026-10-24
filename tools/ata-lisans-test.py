@@ -584,6 +584,8 @@ def main():
              "8800001": {"license": "CC-BY-NC", "name": "uydurma-ata",
                          "user": {"publicUsername": "yazar-a"}},
              # oz-ata ama KENDISI NC-ND bir modelden turemis: oz-ata zinciri AKLAMAZ
+             "8800003": {"license": "CC-BY", "name": "uydurma-cc-ata",
+                         "user": {"publicUsername": "yazar-c"}},
              "8800002": {"license": "CC-BY-NC", "name": "uydurma-oz-ata",
                          "user": {"publicUsername": "yazar-a"},
                          "description": "remix of %s" % A_ND},
@@ -632,6 +634,21 @@ def main():
                                                 "url": "https://youtu.be/abcd123",
                                                 "parentPrint": None}]),
          K.DURUM_ALAN_YOK, 0),
+        # PO11/PO12 (BaBa tik 97): Printables'in KENDI model-disi URL siniflari — gorsel CDN
+        # (canli pr:1321077 aciklama gorselleri) ve profil `@<kullanici>` (canli pr:1339152).
+        ("PO11-PR-GORSEL-CDN", "tetik + media.printables.com gorsel linki -> NOTR -> ALAN-YOK",
+         _po("remixed version, photos: https://media.printables.com/media/prints/1/"
+             "rich_content/abc/img_0242.jpeg"), K.DURUM_ALAN_YOK, 0),
+        ("PO12-PR-PROFIL", "remixParents gercek ata (CC-BY) + profil @kullanici linki -> "
+         "yalniz ata yargilanir -> SATILABILIR",
+         dict(_po("remix of my friend's part, see https://www.printables.com/@ornek_114037"),
+              remixParents=[{"parentPrintId": "8800003", "url": None,
+                             "parentPrint": {"id": "8800003",
+                                             "license": {"abbreviation": "CC-BY"}}},
+                            {"parentPrintId": None,
+                             "url": "https://www.printables.com/@ornek_114037",
+                             "parentPrint": None}]),
+         K.DURUM_SATILABILIR, 0),
         ("PO6-MODEL-HOST-ADAPTORSUZ", "tetik + adaptoru OLMAYAN model sitesi (thangs) -> "
          "ADAPTORSUZ (fail-closed KORUNUR)",
          _po("remix of https://thangs.com/designer/ornek/3d-model/parca-123"),
@@ -644,8 +661,9 @@ def main():
         rc = K.cikis_kodu(sonuclar)
         ok = beklenen_durum in durumlar and rc == beklenen_rc
         if beklenen_durum == K.DURUM_SATILABILIR:
-            ok = ok and all(d == K.DURUM_SATILABILIR for d in durumlar) and \
-                sonuclar[0]["gerekce"].startswith("OZ-ATA")
+            ok = ok and all(d == K.DURUM_SATILABILIR for d in durumlar)
+        if etiket == "PO2-OZ-ATA":
+            ok = ok and sonuclar[0]["gerekce"].startswith("OZ-ATA")
         if rc == 0 and beklenen_rc != 0:
             sessiz_gecis += 1
         if not ok:

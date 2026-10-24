@@ -503,11 +503,31 @@ def notr_ayikla(refs, defter=None):
         link = r.get("link") or ""
         h = host_coz(link)
         if (r.get("alan") in NOTR_ALANLARI and link and h and not r.get("license")
-                and not ata_adayi_host_mu(h, defter)):
+                and not ata_adayi_url_mu(link, defter)):
             notr += 1
             continue
         kalan.append(r)
     return kalan, notr
+
+
+def model_disi_url_mu(url):
+    """Model platformunun KENDI model-disi URL siniflari (BaBa 24 Eki tik 97): Printables
+    gorsel CDN'i `media.printables.com/**` (canli pr:1321077 aciklama gorselleri) ve profil
+    `printables.com/@**` (canli pr:1339152 `@<kullanici>_<N>`). Ata tasimazlar -> NOTR;
+    aksi halde pr adaptoru kimlik cikaramaz -> KALICI yigini."""
+    h = host_coz(url) or ""
+    if h == "media.printables.com" or h.endswith(".media.printables.com"):
+        return True
+    if h == "printables.com" or h.endswith(".printables.com"):
+        p = _yol_parcalari(url)
+        return bool(p) and p[0].startswith("@")
+    return False
+
+
+def ata_adayi_url_mu(url, defter=None):
+    """URL ata adayi mi: host model platformu (ya da adaptorlu) VE platformun model-disi
+    sinifi DEGIL."""
+    return ata_adayi_host_mu(host_coz(url), defter) and not model_disi_url_mu(url)
 
 
 def aciklama_ata_kayitlari(detay, bos_aciklama_kurali=False, defter=None):
@@ -548,7 +568,7 @@ def aciklama_ata_kayitlari(detay, bos_aciklama_kurali=False, defter=None):
         if not any(d.search(ham) for d in ACIKLAMA_TETIKLERI):
             continue                                    # tetik YOK -> bu alandan ref yok
         adaylar = [u for u in urlleri_cikar(ham, yalniz_url=True)
-                   if ata_adayi_host_mu(host_coz(u), defter)]
+                   if ata_adayi_url_mu(u, defter)]
         adaylar += ["https://www.thingiverse.com/thing:%s" % n
                     for n in _THING_KIMLIK_RE.findall(ham)]
         for u in adaylar:
