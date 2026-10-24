@@ -346,7 +346,7 @@
   {
     "id": "mini-f56-telefon-tutucu-kol-braketi",
     "silinme_ts": "2026-10-23T19:17:39Z",
-    "silme_commit": null,
+    "silme_commit": "5c1b012b631812596f1b0184017cbbfe453f982e",
     "govde_sha256": "73a8fa36a0b6e69e8e45c0a3a9f4b739416e4976661df05c085f24db80b58ba5",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -354,7 +354,7 @@
   {
     "id": "byd-song-pro-6-5-inc-hoparlor-adaptoru",
     "silinme_ts": "2026-10-23T19:17:47Z",
-    "silme_commit": null,
+    "silme_commit": "5c1b012b631812596f1b0184017cbbfe453f982e",
     "govde_sha256": "e02f647108d377a95bce182195823efa75e1591369374e5afa99b0cb8b184adc",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -362,7 +362,7 @@
   {
     "id": "byd-song-pro-tweeter-adaptoru",
     "silinme_ts": "2026-10-23T19:17:47Z",
-    "silme_commit": null,
+    "silme_commit": "5c1b012b631812596f1b0184017cbbfe453f982e",
     "govde_sha256": "7e24698217cb1dde088dce6c66e277eea01b00badb9c4118b7e74855514e7501",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -370,7 +370,7 @@
   {
     "id": "isuzu-trooper-kaput-dikme-cubugu-klipsi",
     "silinme_ts": "2026-10-23T19:17:48Z",
-    "silme_commit": null,
+    "silme_commit": "5c1b012b631812596f1b0184017cbbfe453f982e",
     "govde_sha256": "4abf768d3c6056754dd7f2882c0a6f5ed1c44c7bd6b247d0834aa29ab65e102c",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -378,7 +378,7 @@
   {
     "id": "jeep-compass-patriot-orta-konsol-tepsisi",
     "silinme_ts": "2026-10-23T19:17:49Z",
-    "silme_commit": null,
+    "silme_commit": "5c1b012b631812596f1b0184017cbbfe453f982e",
     "govde_sha256": "874a4fb084a73a50d2434f075b2c5b07bdd343db05c7ad5ea5614f5fb3b1bf61",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -386,7 +386,7 @@
   {
     "id": "mg-midget-minilite-tekerlek-kapak",
     "silinme_ts": "2026-10-23T19:17:50Z",
-    "silme_commit": null,
+    "silme_commit": "5c1b012b631812596f1b0184017cbbfe453f982e",
     "govde_sha256": "cab1b70cb66a26928fd68fda03a95fb7b8e4170c88de90df9c46d6a47a17ff2a",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -394,7 +394,7 @@
   {
     "id": "mini-cooper-r50-r53-telefon-topuz-tek-parca",
     "silinme_ts": "2026-10-23T19:17:51Z",
-    "silme_commit": null,
+    "silme_commit": "5c1b012b631812596f1b0184017cbbfe453f982e",
     "govde_sha256": "466a8e350cd0344cc319809c47184174f67d892386f60705e74c90dcc334f27a",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -402,7 +402,7 @@
   {
     "id": "mini-cooper-r55-r56-debriyaj-merkezleme-aleti",
     "silinme_ts": "2026-10-23T19:17:52Z",
-    "silme_commit": null,
+    "silme_commit": "5c1b012b631812596f1b0184017cbbfe453f982e",
     "govde_sha256": "073a06fefe5afd83144a239980251dbd3a9d413cc2d5b42334476989599743fe",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -410,7 +410,7 @@
   {
     "id": "mini-r53-vites-korugu-tutucu-v7",
     "silinme_ts": "2026-10-23T19:17:53Z",
-    "silme_commit": null,
+    "silme_commit": "5c1b012b631812596f1b0184017cbbfe453f982e",
     "govde_sha256": "a395f7b72ebeafd84fb3f9ce13e94ad267c66a9792d9cbc12a74c312f494721a",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -418,7 +418,7 @@
   {
     "id": "th6665437-cfmoto-cforce-450-dlx-hizli-baglanti-aparati",
     "silinme_ts": "2026-10-23T19:17:53Z",
-    "silme_commit": null,
+    "silme_commit": "5c1b012b631812596f1b0184017cbbfe453f982e",
     "govde_sha256": "0fc9e8e86cc6213ccd0e8e3343451524c450cf6d961d1b1d137c99752f657d4c",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -426,8 +426,24 @@
   {
     "id": "th7357294-cfmoto-sirt-pulverizatoru-baglanti-braketi",
     "silinme_ts": "2026-10-23T19:17:54Z",
-    "silme_commit": null,
+    "silme_commit": "5c1b012b631812596f1b0184017cbbfe453f982e",
     "govde_sha256": "1b405d512bb490968287b0e8dd2528d81a4882ce0a07e78f1e58b140361d0e46",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "jeep-wrangler-jk-telefon-tablet-kamera-tutucu",
+    "silinme_ts": "2026-10-24T01:32:00Z",
+    "silme_commit": null,
+    "govde_sha256": "94bb98b40cdc4f7cb8e5f2623941e75ffd2913f680246d416ad58c891ed4b8f5",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "mini-r50-r52-r53-telsiz-tutucu-konsol",
+    "silinme_ts": "2026-10-24T01:32:01Z",
+    "silme_commit": null,
+    "govde_sha256": "1264567aa58483e13420ae8d76a362d87644a94cd82481563603f65b8f4b2e42",
     "yazan": "duzelt.py",
     "kuyruk_id": null
   }

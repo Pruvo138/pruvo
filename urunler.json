@@ -6103,31 +6103,6 @@
     }
   },
   {
-    "id": "mini-r50-r52-r53-telsiz-tutucu-konsol",
-    "kategori": "Otomobil",
-    "marka": [
-      "Mini",
-      "R50 R52 R53"
-    ],
-    "uyum": [
-      {
-        "marka": "Mini",
-        "model": "R50 R52 R53"
-      }
-    ],
-    "baslik": "MINI R50 R52 R53 Telsiz Tutucu Konsol Aparatı",
-    "aciklama": "R50, R52 ve R53 modellerinde araç telsizinin gösterge konsoluna sabitlenmesini sağlayan aparattır. Konsolun üst yüzeyine oturacak şekilde konumlandırılmıştır.\nYaklaşık dış ölçüler: 25 × 16 × 16 mm.",
-    "fiyat": "300 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/pr1552923-1.jpg",
-      "https://media.pruvo3d.com/urunler/pr1552923-2.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY 4.0",
-      "tasarimci": "dancaw23"
-    }
-  },
-  {
     "id": "mini-r50-far-kapak-contasi",
     "kategori": "Otomobil",
     "marka": [
@@ -8740,33 +8715,6 @@
     "lisans": {
       "tur": "CC BY 4.0",
       "tasarimci": "cj8scrambler"
-    }
-  },
-  {
-    "id": "jeep-wrangler-jk-telefon-tablet-kamera-tutucu",
-    "kategori": "Otomobil",
-    "marka": [
-      "Jeep",
-      "Wrangler"
-    ],
-    "uyum": [
-      {
-        "marka": "Jeep",
-        "model": "Wrangler"
-      }
-    ],
-    "baslik": "Jeep Wrangler JK Telefon, Tablet ve Kamera Tutucu",
-    "aciklama": "Telefon, tablet ve aksiyon kamerasını tek yapıyla araca bağlayan, tamamı basılan tutucudur.\nKaynakta birkaç tutucu tasarımının birleştirilmesiyle çizildiği belirtilmiştir.\nYaklaşık dış ölçüler: 108 × 70 × 44 mm.",
-    "fiyat": "450 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/pr504330-1.jpg",
-      "https://media.pruvo3d.com/urunler/pr504330-2.jpg",
-      "https://media.pruvo3d.com/urunler/pr504330-3.jpg",
-      "https://media.pruvo3d.com/urunler/pr504330-4.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY 4.0",
-      "tasarimci": "DaniRodes"
     }
   },
   {
