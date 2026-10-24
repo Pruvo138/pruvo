@@ -3084,6 +3084,19 @@ IZIN_LISTESI = {
         "jeton alt surece GECMEZ. MUAFIYETIN OLUM SARTI: `~/.claude/cron` "
         "depoya/CI'ya tasinirsa bu satir SILINIR."
     ),
+    # 24 EKI 2026 — EV-SHIM KOLU (BaBa 11:0x yol (c))
+    "tools/isci-ev-shim-test.py": (
+        "OLCTUGU GOVDE CI KOSUCUSUNDA YOK: `~/.claude/cron/isci.sh`'in EV-SHIM "
+        "kolunu (ISCI_EV_SHIM_DIZINI yalniz mutlak/var/sahibi kullanici/g-w o-w "
+        "yok ise GH_SHIM:EV:sabit PATH sirasiyla girer, aksi EV_SHIM=RED) olcer; o "
+        "hat Okan'in MAKINESINDEDIR, depoya girmez, CI klonunda dizin dahi yoktur "
+        "(isci-gh-tavan-test emsali). Betik bu hali KENDISI olcer: hat yoksa "
+        "`ONKOSUL_YOK` + `VAKA=OLCULEMEDI`, rc=3. HUKMU ELLE OKUNUR: yerelde "
+        "`python3 tools/isci-ev-shim-test.py [--govde <aday>]` -> `EV-SHIM "
+        "VAKA=7/7 MUTANT=3/3`; gercek gh/motor YOK (sahte ikili fiksturu). "
+        "MUAFIYETIN OLUM SARTI: `~/.claude/cron` depoya/CI'ya tasinirsa bu satir "
+        "SILINIR."
+    ),
     # 12 EKI 2026 — MOTOR KAPISI (BaBa 20:5x hukmu, guvenlik)
     "tools/isci-motor-kapisi-test.py": (
         "OLCTUGU GOVDE CI KOSUCUSUNDA YOK: `~/.claude/cron/isci.sh`'in MOTOR-"
