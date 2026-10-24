@@ -799,6 +799,13 @@ def kayit_yargi(urun_id, detay, defter, gs, kaynak_adaptor=None):
                                   "'ata alani yok' DENEMEZ; bu platformun sekli OLCULMEMIS")]
             else:
                 gorulen = set()
+                # 🔴 OZ-ATIF TOHUMU: turevin KENDI kimligi (kaynak adaptorun her host'u)
+                # ata zincirine GIREMEZ. Canli pr:491178 `remixParents` icinde kendini
+                # yaziyordu -> kendi ata kumesi bir kademe asagida yeniden acilip zincir
+                # DERINLIK TAVANINA takiliyordu (kalici OLCULEMEDI). Tohum yalniz tekrari
+                # keser: turevin atalari zaten bu kademede yargilaniyor.
+                if kendi and kaynak_adaptor is not None:
+                    gorulen.update((h, kendi) for h in kaynak_adaptor.hostlar)
                 turev = ((kaynak_adaptor.ad if kaynak_adaptor else None), eser_yazari(acik))
                 for ata in atalar:
                     out.extend(ata_yargi(ata, defter, gs, kaynak_adaptor, 1, gorulen, turev))
@@ -1079,8 +1086,11 @@ def uretim_defteri():
             satilabilir=mw.satilabilir,
             ata_destegi=True),
         Adaptor(
-            ad="pr", hostlar=("printables.com",),
-            kimlik_cikar=lambda u: _kimlik_bas_sayi(u, "model") or _kimlik_kok_sayi(u),
+            # `prusaprinters.org` = Printables'in ESKI alan adi (BaBa tik 99 (c); canli
+            # pr:121221 ata `prusaprinters.org/prints/84848-…` = pr:84848 AYNI kayit).
+            ad="pr", hostlar=("printables.com", "prusaprinters.org"),
+            kimlik_cikar=lambda u: (_kimlik_bas_sayi(u, "model") or _kimlik_bas_sayi(u, "prints")
+                                    or _kimlik_kok_sayi(u)),
             detay=lambda k: _sarmala(pr.detail, k),
             lisans_cikar=lambda d: str(((d.get("license") or {}) or {}).get("abbreviation") or ""),
             satilabilir=pr.satilabilir,

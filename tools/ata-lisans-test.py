@@ -684,6 +684,59 @@ def main():
     print("  %-4s PO7   printables.com/<N> kisa bicim -> kimlik (model/ ve social/ ayrimi) %s"
           % ("ok" if ok else "HATA", list(kis.values())))
 
+    # PO13 (BaBa tik 99 (c)): `prusaprinters.org` = Printables'in ESKI alan adi; canli
+    # pr:121221 atasi `prusaprinters.org/prints/84848-…` ADAPTORSUZ dusuyordu (pr:84848 ile ayni).
+    n += 1
+    eski = {u: (getattr(K.adaptor_bul(K.host_coz(u), K.uretim_defteri()), "ad", None),
+                pr_uretim.kimlik_cikar(u)) for u in (
+        "https://www.prusaprinters.org/prints/84848-magic-strap-buckle-magnetic",
+        "https://prusaprinters.org/prints/84848", "https://www.prusaprinters.org/84848")}
+    ok = list(eski.values()) == [("pr", "84848")] * 3
+    if not ok:
+        hatalar.append("[PO13-PR-ESKI-ALAN] prusaprinters.org: %s" % eski)
+    print("  %-4s PO13  prusaprinters.org (eski alan adi) -> pr adaptoru + prints/<N> kimligi %s"
+          % ("ok" if ok else "HATA", list(eski.values())))
+
+    # PO14 (BaBa tik 99 (c) (2)): turev KENDI kimligini ata yaziyor (canli pr:491178
+    # remixParents). Tohumsuz: kendi ata kumesi bir kademe asagida yeniden acilir, 3 halkali
+    # yabanci zincir (8800011 -> 8800012 -> 8800013) DERINLIK TAVANINA takilir (KALICI).
+    # Tohumla: kendi dugum yargilanmaz, zincir d1..d3 TAMAMLANIR -> SATILABILIR rc 0.
+    n += 1
+    zincir_defter = defter + K.sentetik_defter([
+        {"ad": "pr", "hostlar": ["printables.com"], "kimlik": "bas-sayi:model",
+         "ata_destegi": True, "yargi": "kisaltma",
+         "detaylar": {
+             "8800010": {"id": "8800010", "license": "CC-BY", "name": "uydurma-kendi",
+                         "user": {"publicUsername": "yazar-a"},
+                         "description": "remix of https://www.printables.com/model/8800011"},
+             "8800011": {"license": "CC-BY", "name": "uydurma-z1",
+                         "user": {"publicUsername": "yazar-c"},
+                         "description": "remix of https://www.printables.com/model/8800012"},
+             "8800012": {"license": "CC-BY", "name": "uydurma-z2",
+                         "user": {"publicUsername": "yazar-c"},
+                         "description": "remix of https://www.printables.com/model/8800013"},
+             "8800013": {"license": "CC-BY", "name": "uydurma-z3",
+                         "user": {"publicUsername": "yazar-c"}},
+         }}])
+    zincir_pr = K.adaptor_bul("printables.com", zincir_defter)
+    turev = {"id": "8800010", "name": "uydurma-kendi", "license": "CC-BY",
+             "user": {"publicUsername": "yazar-a"},
+             "description": "remix of https://www.printables.com/model/8800010 and "
+                            "https://www.printables.com/model/8800011"}
+    sonuclar = K.kayit_yargi("uydurma-urun", turev, zincir_defter, K.genel_satilabilir, zincir_pr)
+    durumlar = [s["durum"] for s in sonuclar]
+    rc = K.cikis_kodu(sonuclar)
+    kendi_yargilandi = any(str(s.get("ata_kimlik")) == "8800010" for s in sonuclar)
+    ok = (rc == 0 and durumlar and all(d == K.DURUM_SATILABILIR for d in durumlar)
+          and not kendi_yargilandi and len(durumlar) == 3)
+    if rc == 0 and not ok:
+        sessiz_gecis += 1
+    if not ok:
+        hatalar.append("[PO14-OZ-ATIF-TOHUM] kendi kimlik ata zincirine girdi: durumlar=%s rc=%s "
+                       "kendi=%s" % (durumlar, rc, kendi_yargilandi))
+    print("  %-4s PO14  oz-atif tohumu: kendi kimligi ata yazan turev -> zincir tamam, durum=%s rc=%s"
+          % ("ok" if ok else "HATA", ",".join(durumlar), rc))
+
     # --- 2b) ZARF EKSENI TEK BASINA (her eksen AYRI oldurulebilmeli) ---
     # Bu iki iddia olmadan tavan/belirsizlik ekseni D18 (govde izi) tarafindan KAPATILIR ve
     # "savunma derinligi" beyan edilmis survivor'a doner ([[beyan-edilmis-survivor]]).
