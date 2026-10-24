@@ -1410,7 +1410,7 @@
   {
     "id": "bahce-sarmal-desenli-saksi-drenajli-su-tepsili-pr275318",
     "silinme_ts": "2026-10-24T10:57:33Z",
-    "silme_commit": null,
+    "silme_commit": "45ea31eddf5fab12c4bbeb16118553bd87e6cb0f",
     "govde_sha256": "1bc5488c7990f1f11074ae62e48c36742c4e7ec4218059cbfee88bc043a2b692",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -1418,7 +1418,7 @@
   {
     "id": "bmw-bagaj-filesi-ba-lant-halkas-klipsi",
     "silinme_ts": "2026-10-24T10:57:34Z",
-    "silme_commit": null,
+    "silme_commit": "45ea31eddf5fab12c4bbeb16118553bd87e6cb0f",
     "govde_sha256": "f9c1fa3794403f4c076b2260b2701ee407c3a5a16d941e42e2efa30cff83a675",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -1426,7 +1426,7 @@
   {
     "id": "dekor-spiral-kala-cicegi-gelin-cicegi-pr396077",
     "silinme_ts": "2026-10-24T10:57:34Z",
-    "silme_commit": null,
+    "silme_commit": "45ea31eddf5fab12c4bbeb16118553bd87e6cb0f",
     "govde_sha256": "68f4ffae7497f5e307dac4cc52015de9a2b97bb7893d091ef01891b370245110",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -1434,7 +1434,7 @@
   {
     "id": "dekor-uc-secenekli-basamakli-sergileme-rafi-altigen-delikli-duz-ve-oluklu-pr1072390",
     "silinme_ts": "2026-10-24T10:57:35Z",
-    "silme_commit": null,
+    "silme_commit": "45ea31eddf5fab12c4bbeb16118553bd87e6cb0f",
     "govde_sha256": "95000ebe9ee8bc7c3884eccc4b5670bb7071c5a2320aca9f508ddd468237fd17",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -1442,7 +1442,7 @@
   {
     "id": "ford-flex-ayna-twist-attach-adaptoru",
     "silinme_ts": "2026-10-24T10:57:36Z",
-    "silme_commit": null,
+    "silme_commit": "45ea31eddf5fab12c4bbeb16118553bd87e6cb0f",
     "govde_sha256": "fb6833ee001c80bd3e5e19a15d31b255c7981a360a204a9e55f0ca4c6279a25f",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -1450,7 +1450,7 @@
   {
     "id": "hyundai-i10-ac3-orta-konsol-telefon-standi",
     "silinme_ts": "2026-10-24T10:57:37Z",
-    "silme_commit": null,
+    "silme_commit": "45ea31eddf5fab12c4bbeb16118553bd87e6cb0f",
     "govde_sha256": "8cec8845567976ad263addb44042c4d4ba4a592a97524b7a6683b87148a69dcc",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -1458,7 +1458,7 @@
   {
     "id": "kamera-katlanir-uc-ayakli-telefon-tripodu-kalin-ayakli-pr275827",
     "silinme_ts": "2026-10-24T10:57:38Z",
-    "silme_commit": null,
+    "silme_commit": "45ea31eddf5fab12c4bbeb16118553bd87e6cb0f",
     "govde_sha256": "fdfa7fc975d59d76aaac3b2d67797675190731c13c25a9c981a75df9e1d412c2",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -1466,7 +1466,7 @@
   {
     "id": "oyun-bileklik-ormek-diski-dostluk-bilekligi-iki-boy-pr208312",
     "silinme_ts": "2026-10-24T10:57:39Z",
-    "silme_commit": null,
+    "silme_commit": "45ea31eddf5fab12c4bbeb16118553bd87e6cb0f",
     "govde_sha256": "8ee2b1a2d1193ac409aa38ab76add052d160841515299f2bb52604bf6f919ec6",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -1474,7 +1474,7 @@
   {
     "id": "suzuki-jimny-jant-seti",
     "silinme_ts": "2026-10-24T10:57:40Z",
-    "silme_commit": null,
+    "silme_commit": "45ea31eddf5fab12c4bbeb16118553bd87e6cb0f",
     "govde_sha256": "81cd49795346d9b5f5b30bc6d68ef13b3e5194e1234a9baa55f7f6dc77f1b2d8",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -1482,7 +1482,7 @@
   {
     "id": "tamirat-silindirik-cekmece-dugmesi-m4-8-ve-13-mm-pr721862",
     "silinme_ts": "2026-10-24T10:57:41Z",
-    "silme_commit": null,
+    "silme_commit": "45ea31eddf5fab12c4bbeb16118553bd87e6cb0f",
     "govde_sha256": "b6c77a43b1ea2d4a1a05d63a55a9a880d2f01cc0c4604dcb7c89460ba423e441",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -1490,8 +1490,48 @@
   {
     "id": "volvo-v50-s40-c30-c70-carplay-montaj-braketi",
     "silinme_ts": "2026-10-24T10:57:42Z",
-    "silme_commit": null,
+    "silme_commit": "45ea31eddf5fab12c4bbeb16118553bd87e6cb0f",
     "govde_sha256": "f9a7c985f7fa37829dd82bccd9d0da4d9722585eba4e697403f2fd2c7c9e0977",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bmw-f10-f11-uyumlu-kablosuz-arj-destekli-telefon-tutucu-apar",
+    "silinme_ts": "2026-10-24T11:41:14Z",
+    "silme_commit": null,
+    "govde_sha256": "096d1c2eb88160bf3b5b347a0b2609b7f1b60c1c9292ac8950cd87065eb8968c",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "dekor-tavsanli-yuzuk-tutucu-tabak-ayri-tepsi-pr491178",
+    "silinme_ts": "2026-10-24T11:41:15Z",
+    "silme_commit": null,
+    "govde_sha256": "49adb7d6b0785dab74177bbf6fd8bc0faddae85c0853b0df51463324e49ef295",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "dekor-uyuyan-tilki-yuzuk-tutucu-tepsili-pr496099",
+    "silinme_ts": "2026-10-24T11:41:16Z",
+    "silme_commit": null,
+    "govde_sha256": "ba937ba11ea9711e5b7890ffb43c4c9631c4b28e468897e60eacc3906ee5bc68",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "volkswagen-new-beetle-koltuk-ayar-d-mesi",
+    "silinme_ts": "2026-10-24T11:41:17Z",
+    "silme_commit": null,
+    "govde_sha256": "42f65fc04dab025a8f89590ad5cbf6f948ecbe0270ea94cba5828a46e5e51fd0",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "volvo-v40-d-koltuk-ray-kapa",
+    "silinme_ts": "2026-10-24T11:41:18Z",
+    "silme_commit": null,
+    "govde_sha256": "a114f553fb392930b31a72c7e015a189901319a7b86a2295687c746ab5be5eb8",
     "yazan": "duzelt.py",
     "kuyruk_id": null
   }
