@@ -152560,7 +152560,10 @@
   {
     "id": "th7341760-quadlock-phone-mount-for-honda-grom",
     "kategori": "Motosiklet",
-    "marka": [],
+    "marka": [
+      "Honda",
+      "Grom"
+    ],
     "uyum": [],
     "baslik": "QuadLock phone mount for honda grom",
     "aciklama": "Telefonu motosiklet gidonuna monte etmeye yarayan tutucu.\nYaklaşık dış ölçüler: 78 × 41 × 35 mm.",
@@ -153232,7 +153235,11 @@
   {
     "id": "th3311087-ball-mount-honda-blackbird-cbr-1100-xx",
     "kategori": "Motosiklet",
-    "marka": [],
+    "marka": [
+      "Honda",
+      "CBR1100XX",
+      "Blackbird"
+    ],
     "uyum": [],
     "baslik": "Ball mount Honda Blackbird CBR 1100 XX",
     "aciklama": "Motosiklet gidonuna ya da aynasına telefon/GPS gibi elektronik cihaz tutucusu bağlamak için kullanılan evrensel montaj adaptörü/ara parçası.\nYaklaşık dış ölçüler: 34 × 28 × 28 mm.",
@@ -153562,7 +153569,10 @@
   {
     "id": "th687322-innovv-c3-camera-rear-mount-for-kawasaki-ninja-250r",
     "kategori": "Motosiklet",
-    "marka": [],
+    "marka": [
+      "Kawasaki",
+      "Ninja 250R"
+    ],
     "uyum": [],
     "baslik": "Innovv C3 camera rear mount for Kawasaki Ninja 250r",
     "aciklama": "Aksiyon kamerayı (GoPro tipi) veya dashcam'i motosiklete ya da kaska monte etmeye yarayan tutucu/adaptör.\nYaklaşık dış ölçüler: 66 × 41 × 10 mm.",
@@ -153870,7 +153880,10 @@
   {
     "id": "th6639137-tomtom-rider-motorcycle-mount-for-yamaha-fz8-40-42-400-410-4",
     "kategori": "Motosiklet",
-    "marka": [],
+    "marka": [
+      "Yamaha",
+      "FZ8"
+    ],
     "uyum": [],
     "baslik": "TomTom Rider motorcycle mount for Yamaha FZ8 (40 / 42 / 400 / 410 / 450 / 500 / 550)",
     "aciklama": "GPS/navigasyon cihazını motosiklet gidonuna monte etmeye yarayan tutucu.",
@@ -467408,7 +467421,7 @@
     "kategori": "Motosiklet",
     "marka": [
       "Yamaha",
-      "FJR"
+      "FJR1300"
     ],
     "baslik": "Yamaha FJR Kilit Kapağı ve Soğutucu Tapası",
     "aciklama": "Yamaha FJR serisi motosikletlerde kilit (camlock) kapağı ve soğutma sıvısı tapasıdır.\nYaklaşık dış ölçüler: 29 × 20 × 8 mm.",
@@ -720057,7 +720070,7 @@
     "kategori": "Motosiklet",
     "marka": [
       "Yamaha",
-      "YZF R1"
+      "YZF-R1"
     ],
     "baslik": "Yamaha YZF R1 triple tree kapağı",
     "aciklama": "Yamaha YZF R1 için özel tasarım üretilen triple tree kapağıdır. Üst gövdeye uyumlu formu sayesinde mevcut yapıyı tamamlar.\n- Motosiklete takılı kullanım için tasarlanmıştır.\n- Temiz ve sağlam bir görünüm verir.\n- Montaj, mevcut bağlantı noktalarına göre yapılır.\nYaklaşık dış ölçüler: 268 × 99 × 1 mm.",
@@ -720075,7 +720088,7 @@
     "uyum": [
       {
         "marka": "Yamaha",
-        "model": "YZF R1"
+        "model": "YZF-R1"
       }
     ]
   },
@@ -734000,7 +734013,7 @@
     "kategori": "Motosiklet",
     "marka": [
       "Yamaha",
-      "FJR 1300"
+      "FJR1300"
     ],
     "baslik": "Yamaha FJR 1300 ön çatal aparatı",
     "aciklama": "Yamaha FJR 1300 için özel üretilmiş ön çatal aparatı.\n- Servis ve bakım sırasında ön çatal üzerinde kullanım için tasarlanmıştır.\n- Özel tasarım üretimle hazırlanır; modele uyumlu kullanım hedeflenir.\n- Montaj ve kullanım, ilgili bakım işine göre yapılır.\nYaklaşık dış ölçüler: 80 × 80 × 60 mm.",
@@ -734016,7 +734029,7 @@
     "uyum": [
       {
         "marka": "Yamaha",
-        "model": "FJR 1300"
+        "model": "FJR1300"
       }
     ]
   },
