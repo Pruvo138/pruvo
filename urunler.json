@@ -67733,29 +67733,6 @@
     }
   },
   {
-    "id": "blackmagic-micro-converter-bidirectional-vesa-montaj-plakasi",
-    "kategori": "Kamera",
-    "marka": [
-      "Blackmagic"
-    ],
-    "uyum": [
-      {
-        "marka": "Blackmagic"
-      }
-    ],
-    "baslik": "Blackmagic Micro Converter BiDirectional VESA Montaj Plakası",
-    "aciklama": "Blackmagic Micro Converter BiDirectional dönüştürücüyü standart VESA delik düzenine sahip monitör kollarına/duvar montaj aparatlarına bağlamak için çapraz plaka.\nYaklaşık dış ölçüler: 120 × 120 × 32,5 mm.",
-    "fiyat": "250 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th5760224-1.jpg",
-      "https://media.pruvo3d.com/urunler/th5760224-2.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY 4.0",
-      "tasarimci": "SBVideo"
-    }
-  },
-  {
     "id": "blackmagic-pocket-samyang-rokinon-fisheye-cokin-filtre-tutucu",
     "kategori": "Kamera",
     "marka": [
@@ -88277,25 +88254,6 @@
     "altkategori": "Teleskop ve Astro"
   },
   {
-    "id": "canon-18-135-stm-lens-hood",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "baslik": "Canon 18 135 STM lens hood",
-    "aciklama": "Canon için canon 18 135 stm lens hood.\nÖzel tasarım üretim: sipariş üzerine üretilir.\nSağlam ve hafif bir parça olarak teslim edilir.\nYaklaşık dış ölçüler: 81 × 81 × 40 mm.",
-    "fiyat": "500 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th38336-1.jpg",
-      "https://media.pruvo3d.com/urunler/th38336-2.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "llluis",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Filtre ve Parasoley"
-  },
-  {
     "id": "canon-lens-hood-18-55-reshape",
     "kategori": "Kamera",
     "marka": [
@@ -89160,30 +89118,6 @@
       "tasarimci": "197productions"
     },
     "altkategori": "Montaj ve Tripod"
-  },
-  {
-    "id": "canon-49mm-lens-kapagi-tutucusu",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon 49mm Lens için Lens Kapağı Tutucusu",
-    "aciklama": "Canon 49mm filtre dişli lenslerin ön kapağını kayıp önleyecek şekilde takılı tutan tutucu. Yaklaşık dış ölçüler: 84 × 56 × 6 mm.",
-    "fiyat": "220 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6726798-1.jpg",
-      "https://media.pruvo3d.com/urunler/th6726798-2.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY-SA 4.0",
-      "tasarimci": "withmyhandsdream"
-    },
-    "altkategori": "Filtre ve Parasoley"
   },
   {
     "id": "canon-lp-e6-e6n-e6nh-saklama-kutusu",
@@ -91861,32 +91795,6 @@
     "altkategori": "Pil ve Şarj"
   },
   {
-    "id": "canon-70d-hizli-birakma-plakasi-43mm",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon EOS 70D için 43mm Kare Hızlı Bırakma (Quick Release) Plakası",
-    "aciklama": "Canon EOS 70D fotoğraf makinesi için 43mm kare profilli hızlı bırakma tripod plakası. Yaklaşık dış ölçüler: 100 × 45 × 17 mm.",
-    "fiyat": "210 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4263080-1.jpg",
-      "https://media.pruvo3d.com/urunler/th4263080-2.jpg",
-      "https://media.pruvo3d.com/urunler/th4263080-3.jpg",
-      "https://media.pruvo3d.com/urunler/th4263080-4.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY 4.0",
-      "tasarimci": "wmzk"
-    },
-    "altkategori": "Montaj ve Tripod"
-  },
-  {
     "id": "canon-nb4l-3taraf-sarj-tutucusu",
     "kategori": "Kamera",
     "marka": [
@@ -93458,31 +93366,6 @@
     "altkategori": "Pil ve Şarj"
   },
   {
-    "id": "canon-bp511-pil-adaptoru",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon BP-511 Pili için Şarj Adaptörü",
-    "aciklama": "Canon BP-511 pilini uyumsuz bir şarj cihazında şarj etmeyi sağlayan adaptör. Yaklaşık dış ölçüler: 60 × 38 × 8 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6600795-1.jpg",
-      "https://media.pruvo3d.com/urunler/th6600795-2.jpg",
-      "https://media.pruvo3d.com/urunler/th6600795-3.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY-SA 4.0",
-      "tasarimci": "kaeptenblei"
-    },
-    "altkategori": "Pil ve Şarj"
-  },
-  {
     "id": "canon-r10-teleskop-adaptoru",
     "kategori": "Kamera",
     "marka": [
@@ -93878,31 +93761,6 @@
     "altkategori": "Lens Adaptörleri"
   },
   {
-    "id": "canon-430exii-flas-snoot-aparat",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon Speedlite 430EX II için Snoot (Işık Daraltıcı) Aparatı",
-    "aciklama": "Canon Speedlite 430EX II harici flaşı için ışığı daraltıp yönlendiren snoot aparatı. Yaklaşık dış ölçüler: 84 × 69 × 23 mm.",
-    "fiyat": "210 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6364922-1.jpg",
-      "https://media.pruvo3d.com/urunler/th6364922-2.jpg",
-      "https://media.pruvo3d.com/urunler/th6364922-3.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY-SA 4.0",
-      "tasarimci": "jairomaia"
-    },
-    "altkategori": "Flaş ve Işık"
-  },
-  {
     "id": "canon-nb7l-4lu-pil-tutucusu",
     "kategori": "Kamera",
     "marka": [
@@ -94088,30 +93946,6 @@
       "tasarimci": "Grinch_"
     },
     "altkategori": "Gövde ve Kafes"
-  },
-  {
-    "id": "canon-58mm-gunes-filtresi-tutucusu",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon Lensler için 58mm Dişli Güneş Filtresi Tutucusu",
-    "aciklama": "Canon lenslerin 58mm filtre dişine takılan güneş (solar) filtresi tutucusu. Yaklaşık dış ölçüler: 67 × 66 × 9 mm.",
-    "fiyat": "210 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6557980-1.jpg",
-      "https://media.pruvo3d.com/urunler/th6557980-2.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY-SA 4.0",
-      "tasarimci": "shiver"
-    },
-    "altkategori": "Filtre ve Parasoley"
   },
   {
     "id": "canon-eosm-ricoh-autoshot-helikoid-adaptor",
@@ -95065,29 +94899,6 @@
     "lisans": {
       "tur": "CC BY 4.0",
       "tasarimci": "Emmix"
-    },
-    "altkategori": "Filtre ve Parasoley"
-  },
-  {
-    "id": "canon-58mm-tavsanli-flip-lens-kapagi",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon Lensler için 58mm Tavşan Desenli Çevirmeli (Flip) Lens Kapağı",
-    "aciklama": "Canon lenslerin 58mm filtre dişine takılan, tavşan desenli çevirmeli (flip) lens kapağı. Yaklaşık dış ölçüler: 73 × 57 × 33 mm.",
-    "fiyat": "210 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th3439262-1.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY 4.0",
-      "tasarimci": "Zitounne"
     },
     "altkategori": "Filtre ve Parasoley"
   },
@@ -96528,33 +96339,6 @@
       "tasarimci": "lord_altair"
     },
     "altkategori": "Teleskop ve Astro"
-  },
-  {
-    "id": "canon-28-35mm-harici-vizor",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon Owl/Sure Shot için 28-35mm Harici Vizör",
-    "aciklama": "Canon Owl/Sure Shot serisi fotoğraf makineleri için takılabilir 28-35mm harici vizör. Yaklaşık dış ölçüler: 32 × 27 × 27 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4505216-1.jpg",
-      "https://media.pruvo3d.com/urunler/th4505216-2.jpg",
-      "https://media.pruvo3d.com/urunler/th4505216-3.jpg",
-      "https://media.pruvo3d.com/urunler/th4505216-4.jpg",
-      "https://media.pruvo3d.com/urunler/th4505216-5.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY 4.0",
-      "tasarimci": "rodgsilva"
-    },
-    "altkategori": "Gövde ve Kafes"
   },
   {
     "id": "canon-kayar-lens-kapagi",
@@ -98139,30 +97923,6 @@
     "altkategori": "Gövde ve Kafes"
   },
   {
-    "id": "canon-18-55mm-derin-lens-parasoleyi",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon 18-55mm Kit Lens için Derin Gövdeli Lens Parasoleyi",
-    "aciklama": "Canon 18-55mm kit lensi için derin gövdeli lens parasoleyi. Yaklaşık dış ölçüler: 140 × 94 × 60 mm.",
-    "fiyat": "230 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th5941862-1.jpg",
-      "https://media.pruvo3d.com/urunler/th5941862-2.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY 4.0",
-      "tasarimci": "WadingInPhoto"
-    },
-    "altkategori": "Filtre ve Parasoley"
-  },
-  {
     "id": "canon-np-e3-pil-kontak-kapagi",
     "kategori": "Kamera",
     "marka": [
@@ -98399,29 +98159,6 @@
       "tasarimci": "chaos"
     },
     "altkategori": "Lens Adaptörleri"
-  },
-  {
-    "id": "canon-8-15mm-nexus-sualti-zoom-dislisi",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon 8-15mm Lens için Nexus Sualtı Kutusu Zoom Dişlisi",
-    "aciklama": "Nexus sualtı kutusunda Canon 8-15mm balıkgözü lensin zoom halkasını çevirmeyi sağlayan dişli. Yaklaşık dış ölçüler: 83 × 83 × 24 mm.",
-    "fiyat": "210 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th2853078-1.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY 4.0",
-      "tasarimci": "robertrath"
-    },
-    "altkategori": "Montaj ve Tripod"
   },
   {
     "id": "canon-430exii-flas-izgara-difuzoru",
@@ -101832,29 +101569,6 @@
     "altkategori": "Teleskop ve Astro"
   },
   {
-    "id": "canon-2x-extender-iii-on-kapagi",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon Extender EF 2X III için Ön Kapak",
-    "aciklama": "Canon Extender EF 2X III teleconverter'ın ön ucunu toz ve darbeden koruyan takılıp çıkarılan kapak. Yaklaşık dış ölçüler: 65 × 65 × 16 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4982962-1.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY 4.0",
-      "tasarimci": "cazbah1969"
-    },
-    "altkategori": "Lens Kapakları"
-  },
-  {
     "id": "canon-ef-38mm-mikroskop-tup-adaptoru",
     "kategori": "Kamera",
     "marka": [
@@ -103570,31 +103284,6 @@
       "tasarimci": "3dmpro"
     },
     "altkategori": "Filtre ve Parasoley"
-  },
-  {
-    "id": "canon-a1-ae1-parmak-grip",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon A-1 / AE-1 Film Kameraları için Parmak Gripi",
-    "aciklama": "Canon A-1 ve AE-1 klasik film fotoğraf makinelerinin ön tarafına takılan küçük parmak gripi; tek elle tutuşu güçlendirir. Yaklaşık dış ölçüler: 43 × 24 × 14 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th5501374-1.jpg",
-      "https://media.pruvo3d.com/urunler/th5501374-2.jpg",
-      "https://media.pruvo3d.com/urunler/th5501374-3.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY 4.0",
-      "tasarimci": "TheloniusChunk"
-    },
-    "altkategori": "Gövde ve Kafes"
   },
   {
     "id": "canon-ef-mount-taban-halkasi-ozellestirilebilir",
@@ -106014,29 +105703,6 @@
       "tasarimci": "Lucky3D"
     },
     "altkategori": "Pil ve Şarj"
-  },
-  {
-    "id": "canon-airtag-tutucu",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon Kamera Çantaları için AirTag Tutucusu",
-    "aciklama": "Canon kamera çantasına veya ekipman kutusuna sabitlenen, konum takip cihazını içine yerleştirip kaybolma riskine karşı takip edilebilir hale getiren tutucu kapsül. Yaklaşık dış ölçüler: 50 × 37 × 6 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th5027037-1.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY 4.0",
-      "tasarimci": "Chrisa62401"
-    },
-    "altkategori": "Montaj ve Tripod"
   },
   {
     "id": "canon-g10-g11-g12-77mm-filtre-tutucu",
@@ -120867,25 +120533,6 @@
     ]
   },
   {
-    "id": "bisiklet-telefon-tutucusu-yan-parca-guvenli",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Telefon Tutucusu Yan Parça (Ekstra Güvenli Tip)",
-    "aciklama": "Evrensel telefon tutucusunun yan kavrama parçasının, telefonu daha sıkı tutacak şekilde geliştirilmiş sürümü.\nYaklaşık dış ölçüler: 47,1 × 34,6 × 15,7 mm.",
-    "fiyat": "205 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th7367973-1.jpg",
-      "https://media.pruvo3d.com/urunler/th7367973-2.jpg",
-      "https://media.pruvo3d.com/urunler/th7367973-3.jpg",
-      "https://media.pruvo3d.com/urunler/th7367973-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "igough",
-      "tur": "CC-BY-SA"
-    }
-  },
-  {
     "id": "bisiklet-aerodinamik-supap-kapagi-dunlop-uyumlu",
     "kategori": "Bisiklet",
     "marka": [],
@@ -121025,25 +120672,6 @@
     "lisans": {
       "tasarimci": "jll8",
       "tur": "CC-BY"
-    }
-  },
-  {
-    "id": "bisiklet-telefon-tutucusu-guclu-kavramali",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Telefon Tutucusu (Güçlü Kavramalı, Evrensel)",
-    "aciklama": "Yamuk dişli vida mekanizmasıyla daha güçlü sıkma kuvveti sağlayan evrensel telefon tutucusu.\nYaklaşık dış ölçüler: 126,3 × 45 × 30,9 mm.",
-    "fiyat": "215 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th7363004-1.jpg",
-      "https://media.pruvo3d.com/urunler/th7363004-2.jpg",
-      "https://media.pruvo3d.com/urunler/th7363004-3.jpg",
-      "https://media.pruvo3d.com/urunler/th7363004-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "ddddd87",
-      "tur": "CC-BY-SA"
     }
   },
   {
@@ -121988,25 +121616,6 @@
     }
   },
   {
-    "id": "bisiklet-teker-gidon-kamera-tutucusu-insta360-uyumlu",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Teker/Gidon Kamera Tutucusu (Insta360 ve 1/4 İnç Vida Uyumlu)",
-    "aciklama": "Aksiyon kamerasını doğrudan teker veya gidona sabitlemeye yarayan, standart 1/4-20 vida bağlantılı tutucu.\nYaklaşık dış ölçüler: 66,1 × 35,7 × 22 mm.",
-    "fiyat": "210 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th7373046-1.jpg",
-      "https://media.pruvo3d.com/urunler/th7373046-2.jpg",
-      "https://media.pruvo3d.com/urunler/th7373046-3.jpg",
-      "https://media.pruvo3d.com/urunler/th7373046-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Siliconpirate",
-      "tur": "CC-BY-SA"
-    }
-  },
-  {
     "id": "bisiklet-pompa-supap-parcalari-duuti-uyumlu",
     "kategori": "Bisiklet",
     "marka": [],
@@ -122185,24 +121794,6 @@
     ],
     "lisans": {
       "tasarimci": "ernisv",
-      "tur": "CC-BY-SA"
-    }
-  },
-  {
-    "id": "bisiklet-teker-gidon-360-derece-kamera-tutucusu",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Teker/Gidon 360 Derece Döner Kamera Tutucusu (1/4 İnç Vidalı)",
-    "aciklama": "Teker veya gidona monte edilebilen, 360 derece dönebilen modüler kamera tutucusu.\nYaklaşık dış ölçüler: 66,1 × 50,2 × 22 mm.",
-    "fiyat": "210 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th7373049-1.jpg",
-      "https://media.pruvo3d.com/urunler/th7373049-2.jpg",
-      "https://media.pruvo3d.com/urunler/th7373049-3.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Siliconpirate",
       "tur": "CC-BY-SA"
     }
   },
@@ -125302,22 +124893,6 @@
     }
   },
   {
-    "id": "bisiklet-telefon-tutucusu-kavrama-halkasi",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Telefon Tutucusu için Kavrama Halkası (Geniş Tutuş)",
-    "aciklama": "Bisiklet telefon tutucusunun sıkıştırma halkasına eklenen çıkıntılarla, top mafsalı sıkarken daha rahat kavrama sağlar.\nYaklaşık dış ölçüler: 36 × 36 × 16 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th7024020-1.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "magua1301",
-      "tur": "CC-BY-SA"
-    }
-  },
-  {
     "id": "yol-bisikleti-gidon-ucu-tapasi-20mm",
     "kategori": "Bisiklet",
     "marka": [],
@@ -125775,22 +125350,6 @@
     ],
     "lisans": {
       "tasarimci": "mac1962",
-      "tur": "CC-BY-SA"
-    }
-  },
-  {
-    "id": "bisiklet-telefon-tutucusu-asimetrik-montaj-plakasi",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Telefon Tutucusu için Asimetrik Montaj Plakası",
-    "aciklama": "Standart montaj plakasının yan kollarını aşağı kaydırarak, büyük telefonlarda ana ekran tuşunun kelepçe altında kalmasını önleyen versiyon.\nYaklaşık dış ölçüler: 182 × 108 × 25 mm.",
-    "fiyat": "210 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th7024034-1.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "magua1301",
       "tur": "CC-BY-SA"
     }
   },
@@ -131138,25 +130697,6 @@
     }
   },
   {
-    "id": "bisiklet-telefon-tutucusu-marka-arasi-adaptor",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Telefon Tutucusu Sistemler Arası Adaptör",
-    "aciklama": "Bir telefon tutma sistemini farklı markadaki bir montaj sistemine bağlamak için kullanılan ara adaptör.\nYaklaşık dış ölçüler: 43 × 38 × 9 mm.",
-    "fiyat": "205 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6847940-1.jpg",
-      "https://media.pruvo3d.com/urunler/th6847940-2.jpg",
-      "https://media.pruvo3d.com/urunler/th6847940-3.jpg",
-      "https://media.pruvo3d.com/urunler/th6847940-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "sptzdmnc",
-      "tur": "CC-BY-SA"
-    }
-  },
-  {
     "id": "bisiklet-camurlugu-delik-acmadan-baglanti-klipsi",
     "kategori": "Bisiklet",
     "marka": [],
@@ -132702,25 +132242,6 @@
     }
   },
   {
-    "id": "bisiklet-tutus-yardimci-klips",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Tutuş Yardımcı Klips (Tek El için)",
-    "aciklama": "Tek elini kullanamayan sürücülerin gidona güvenli şekilde tutunmasını sağlayan klips düzeneği; bisiklette değişiklik gerektirmez.\nYaklaşık dış ölçüler: 191 × 56 × 32 mm.",
-    "fiyat": "220 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6636170-1.jpg",
-      "https://media.pruvo3d.com/urunler/th6636170-2.jpg",
-      "https://media.pruvo3d.com/urunler/th6636170-3.jpg",
-      "https://media.pruvo3d.com/urunler/th6636170-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "chew42",
-      "tur": "CC-BY-SA"
-    }
-  },
-  {
     "id": "bisiklet-375-ml-kutu-icecek-tutucusu",
     "kategori": "Bisiklet",
     "marka": [],
@@ -132786,25 +132307,6 @@
     ],
     "lisans": {
       "tasarimci": "NicThorne",
-      "tur": "CC-BY-SA"
-    }
-  },
-  {
-    "id": "bisiklet-u-kilidi-cerceve-tutucusu-yedek-cenesi",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet U Kilidi Çerçeve Tutucusu Yedek Çenesi",
-    "aciklama": "U tipi bisiklet kilidinin çerçeveye takıldığı tutucunun daha dayanıklı yedek çenesi.\nYaklaşık dış ölçüler: 64 × 45 × 27 mm.",
-    "fiyat": "205 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6696526-1.jpg",
-      "https://media.pruvo3d.com/urunler/th6696526-2.jpg",
-      "https://media.pruvo3d.com/urunler/th6696526-3.jpg",
-      "https://media.pruvo3d.com/urunler/th6696526-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "michalo1",
       "tur": "CC-BY-SA"
     }
   },
@@ -133486,23 +132988,6 @@
     ],
     "lisans": {
       "tasarimci": "ladisgin",
-      "tur": "CC-BY-SA"
-    }
-  },
-  {
-    "id": "bisiklet-sele-alti-arka-isik-tutucusu-silindirik",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Sele Altı Arka Işık Tutucusu (Silindirik Gövdeli)",
-    "aciklama": "Silindirik gövdeli arka ışıkları sele altına sabitlemek için kullanılan tutucu.\nYaklaşık dış ölçüler: 65 × 56 × 36 mm.",
-    "fiyat": "205 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6678881-1.jpg",
-      "https://media.pruvo3d.com/urunler/th6678881-2.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "merin_83",
       "tur": "CC-BY-SA"
     }
   },
@@ -134455,25 +133940,6 @@
     }
   },
   {
-    "id": "bisiklet-telefon-tutucusu-yayli-gidon-montajli",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Telefon Tutucusu (Yaylı, Gidon Montajlı)",
-    "aciklama": "Gidona monte edilen, yaylı sıkıştırma mekanizmalı telefon tutucusu; üst kelepçesi güçlendirilmiştir.\nYaklaşık dış ölçüler: 75 × 37 × 20 mm.",
-    "fiyat": "210 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6524159-1.jpg",
-      "https://media.pruvo3d.com/urunler/th6524159-2.jpg",
-      "https://media.pruvo3d.com/urunler/th6524159-3.jpg",
-      "https://media.pruvo3d.com/urunler/th6524159-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Sigg990",
-      "tur": "CC BY-SA 4.0"
-    }
-  },
-  {
     "id": "bisiklet-marzocchi-888-suspansiyon-camurlugu-uzun",
     "kategori": "Bisiklet",
     "marka": [],
@@ -134763,24 +134229,6 @@
     ],
     "lisans": {
       "tasarimci": "BonyTheFabulous",
-      "tur": "CC BY-SA 4.0"
-    }
-  },
-  {
-    "id": "bisiklet-telefon-tutucusu-stabilizasyon-parcasi",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Telefon Tutucusu Stabilizasyon Parçası",
-    "aciklama": "Standart bir bisiklet telefon tutucusunun gidona daha sabit ve sıkı oturmasını sağlayan takviye parçası.\nYaklaşık dış ölçüler: 38 × 29 × 24 mm.",
-    "fiyat": "205 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6485835-1.jpg",
-      "https://media.pruvo3d.com/urunler/th6485835-2.jpg",
-      "https://media.pruvo3d.com/urunler/th6485835-3.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Zefram_Cochrane",
       "tur": "CC BY-SA 4.0"
     }
   },
@@ -141470,22 +140918,6 @@
     }
   },
   {
-    "id": "bisiklet-zincir-tutucu-12mm-thru-axle",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Zincir Tutucu (12 mm Thru Axle Uyumlu)",
-    "aciklama": "Arka teker çıkarıldığında zinciri düzenli tutan, 12 mm çaplı thru axle miline uyan tutucu.\nYaklaşık dış ölçüler: 42 × 42 × 27 mm.",
-    "fiyat": "205 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th5950557-1.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Arne_h",
-      "tur": "CC-BY"
-    }
-  },
-  {
     "id": "bisiklet-camurluk-montaj-parcasi-simpla-hammer-1-sdr",
     "kategori": "Bisiklet",
     "marka": [],
@@ -142932,25 +142364,6 @@
     ],
     "lisans": {
       "tasarimci": "Richst",
-      "tur": "CC-BY"
-    }
-  },
-  {
-    "id": "bisiklet-zincir-temizleme-araci-dis-fircali",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Zinciri Temizleme Aparatı (Diş Fırçalı)",
-    "aciklama": "Standart bir diş fırçasını takarak zincir temizlemede kullanılan aparat; fırça vidalarla sabitlenir.\nYaklaşık dış ölçüler: 57 × 57 × 44 mm.",
-    "fiyat": "215 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th5476864-1.jpg",
-      "https://media.pruvo3d.com/urunler/th5476864-2.jpg",
-      "https://media.pruvo3d.com/urunler/th5476864-3.jpg",
-      "https://media.pruvo3d.com/urunler/th5476864-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Htspecops",
       "tur": "CC-BY"
     }
   },
@@ -153919,25 +153332,6 @@
     }
   },
   {
-    "id": "bisiklet-telefon-tutucusu-32mm-gidon",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Telefon Tutucusu (32 mm Gidon)",
-    "aciklama": "Farklı telefon modellerine göre ölçüleri uyarlanabilen, 32 mm çaplı gidona uygun çok parçalı telefon tutucusu.\nYaklaşık dış ölçüler: 184 × 83 × 18 mm.",
-    "fiyat": "235 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th5027137-1.jpg",
-      "https://media.pruvo3d.com/urunler/th5027137-2.jpg",
-      "https://media.pruvo3d.com/urunler/th5027137-3.jpg",
-      "https://media.pruvo3d.com/urunler/th5027137-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Legufix",
-      "tur": "CC-BY"
-    }
-  },
-  {
     "id": "bisiklet-canta-klipsi-genisletilmis",
     "kategori": "Bisiklet",
     "marka": [],
@@ -158241,25 +157635,6 @@
     }
   },
   {
-    "id": "bisiklet-telefon-tutucusu-buyuk-ekran-uyumlu",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Telefon Tutucusu (Büyük Ekranlı Telefonlar İçin)",
-    "aciklama": "Şarj portu deliği genişletilmiş ve gövdesi yükseltilmiş, büyük ekranlı telefonlara uygun genişletilmiş tutucu.\nYaklaşık dış ölçüler: 193 × 118 × 25 mm.",
-    "fiyat": "225 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4891168-1.jpg",
-      "https://media.pruvo3d.com/urunler/th4891168-2.jpg",
-      "https://media.pruvo3d.com/urunler/th4891168-3.jpg",
-      "https://media.pruvo3d.com/urunler/th4891168-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "phreak42x",
-      "tur": "CC-BY"
-    }
-  },
-  {
     "id": "bisiklet-kablo-montaj-braketi-logosuz",
     "kategori": "Bisiklet",
     "marka": [],
@@ -158439,24 +157814,6 @@
     ],
     "lisans": {
       "tasarimci": "ModdermanDesign",
-      "tur": "CC-BY"
-    }
-  },
-  {
-    "id": "bisiklet-telefon-tutucusu-guclendirilmis-sarj-delikli",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Telefon Tutucusu (Güçlendirilmiş, Şarj Delikli)",
-    "aciklama": "Zayıf noktaları güçlendirilmiş ve uzun turlar için şarj kablosu deliği eklenmiş gidon telefon tutucusu.\nYaklaşık dış ölçüler: 117 × 105 × 27 mm.",
-    "fiyat": "220 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4894482-1.jpg",
-      "https://media.pruvo3d.com/urunler/th4894482-2.jpg",
-      "https://media.pruvo3d.com/urunler/th4894482-3.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "hans_mueller42",
       "tur": "CC-BY"
     }
   },
@@ -162735,24 +162092,6 @@
     "altkategori": "Sele ve Sele Borusu"
   },
   {
-    "id": "bisiklet-telefon-tutucusu-genis-kilifli",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Telefon Tutucusu (Geniş Kılıflı Telefonlara Uygun)",
-    "aciklama": "Standart silikon kılıflı telefonlar için kamera boşluklu telefon tutucusu.\nYaklaşık dış ölçüler: 175,5 × 29,3 × 5 mm.",
-    "fiyat": "220 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4547994-1.jpg",
-      "https://media.pruvo3d.com/urunler/th4547994-2.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "demigorrgon",
-      "tur": "CC-BY-SA"
-    },
-    "altkategori": "Telefon ve Navigasyon"
-  },
-  {
     "id": "bisiklet-catal-keceli-montaj-aleti-32mm",
     "kategori": "Bisiklet",
     "marka": [],
@@ -162972,24 +162311,6 @@
       "tur": "CC-BY"
     },
     "altkategori": "Montaj Parçaları ve Klipsler"
-  },
-  {
-    "id": "bisiklet-telefon-tutucusu-egimli",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Telefon Tutucusu (Eğimli Tip)",
-    "aciklama": "Telefonun kaymasını azaltmak için yukarı eğimli tasarlanmış gidon telefon tutucusu.\nYaklaşık dış ölçüler: 115,7 × 105,6 × 40,7 mm.",
-    "fiyat": "215 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4564905-1.jpg",
-      "https://media.pruvo3d.com/urunler/th4564905-2.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Polylacticacid1",
-      "tur": "CC-BY"
-    },
-    "altkategori": "Telefon ve Navigasyon"
   },
   {
     "id": "bisiklet-isik-bataryasi-tutucusu-egik",
@@ -163885,26 +163206,6 @@
     "altkategori": "Çamurluk ve Bagaj"
   },
   {
-    "id": "bisiklet-telefon-tutucusu-vidasiz-klips",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Telefon Tutucusu (Vidasız Klips)",
-    "aciklama": "Gidona takılan, telefonu sabit tutan tutucu.\n- Vidasız, geçmeli klips tasarımı\n- 154×79×12 mm ölçülerindeki telefonlara uyar\nYaklaşık dış ölçüler: 180,3 × 31,9 × 23,5 mm.",
-    "fiyat": "225 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4387007-1.jpg",
-      "https://media.pruvo3d.com/urunler/th4387007-2.jpg",
-      "https://media.pruvo3d.com/urunler/th4387007-3.jpg",
-      "https://media.pruvo3d.com/urunler/th4387007-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "edmarch",
-      "tur": "CC-BY"
-    },
-    "altkategori": "Telefon ve Navigasyon"
-  },
-  {
     "id": "bisiklet-kamera-kelepcesi-kup-tip",
     "kategori": "Bisiklet",
     "marka": [],
@@ -163979,26 +163280,6 @@
       "tur": "CC-BY"
     },
     "altkategori": "Montaj Parçaları ve Klipsler"
-  },
-  {
-    "id": "bisiklet-telefon-tutucusu-ozel-olculu",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Telefon Tutucusu (Özel Ölçülü, İki Parçalı)",
-    "aciklama": "Belirtilen telefon modelinin kılıflı ölçülerine göre boyutlandırılmış gidon telefon tutucusu.\n- İki parça halinde birleştirilerek monte edilir\n- Standart gidon çapına uyar\nYaklaşık dış ölçüler: 167,2 × 33,1 × 5 mm.",
-    "fiyat": "220 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4402481-1.jpg",
-      "https://media.pruvo3d.com/urunler/th4402481-2.jpg",
-      "https://media.pruvo3d.com/urunler/th4402481-3.jpg",
-      "https://media.pruvo3d.com/urunler/th4402481-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "b0bh00d",
-      "tur": "CC-BY"
-    },
-    "altkategori": "Telefon ve Navigasyon"
   },
   {
     "id": "bisiklet-sele-borusu-alt-kapagi-katlanir",
@@ -165132,26 +164413,6 @@
       "tur": "CC-BY"
     },
     "altkategori": "Zincir ve Aktarma"
-  },
-  {
-    "id": "bisiklet-supap-kapagi-tiki-figurlu",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Supap Kapağı (Tiki Figürlü, Dekoratif)",
-    "aciklama": "Tiki sanat tarzında oyulmuş, dekoratif bisiklet supap kapağı.\n- Basit vida-geçme montaj\n- Süs amaçlı özel tasarım\nYaklaşık dış ölçüler: 32,2 × 14,9 × 13,9 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4360106-1.jpg",
-      "https://media.pruvo3d.com/urunler/th4360106-2.jpg",
-      "https://media.pruvo3d.com/urunler/th4360106-3.jpg",
-      "https://media.pruvo3d.com/urunler/th4360106-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Stempile",
-      "tur": "CC-BY"
-    },
-    "altkategori": "Tekerlek ve Lastik"
   },
   {
     "id": "bisiklet-gogus-askisi-bardak-tutucusu",
@@ -167028,26 +166289,6 @@
     "altkategori": "Matara ve Kafes"
   },
   {
-    "id": "bisiklet-zincir-temizleyici-pinyonu-7-dis",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Zincir Temizleyici Pinyonu (7 Diş)",
-    "aciklama": "Zincir temizleme aparatına takılan, 8 mm motor miline montajlanabilen 7 dişli pinyon.\n- Mil üzerine düz yüzeyle (D kesit) oturur\n- Zincir temizleyici gövdesiyle uyumludur\nYaklaşık dış ölçüler: 59 × 15 × 13 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4124962-1.jpg",
-      "https://media.pruvo3d.com/urunler/th4124962-2.jpg",
-      "https://media.pruvo3d.com/urunler/th4124962-3.jpg",
-      "https://media.pruvo3d.com/urunler/th4124962-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "AlexDadNNov",
-      "tur": "CC-BY-SA"
-    },
-    "altkategori": "Zincir ve Aktarma"
-  },
-  {
     "id": "th2152253-mercedes-c250-arka-yazi",
     "kategori": "Otomobil",
     "marka": [
@@ -167387,23 +166628,6 @@
     "altkategori": "Aydınlatma"
   },
   {
-    "id": "bisiklet-supap-kapagi-dikilitas-figurlu",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Supap Kapağı (Dikilitaş Desenli)",
-    "aciklama": "Standart Schrader supaplar için dikilitaş (obelisk) şeklinde dekoratif kapak.\n- Basit vida-geçme montaj\n- Süs amaçlı özel tasarım\nYaklaşık dış ölçüler: 53,7 × 16 × 15,9 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th3941600-1.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Tater_Zoid",
-      "tur": "CC-BY-SA"
-    },
-    "altkategori": "Tekerlek ve Lastik"
-  },
-  {
     "id": "bisiklet-cift-tonlu-korna-govdesi",
     "kategori": "Bisiklet",
     "marka": [],
@@ -167650,23 +166874,6 @@
     "lisans": {
       "tasarimci": "akolov",
       "tur": "CC-BY"
-    },
-    "altkategori": "Tekerlek ve Lastik"
-  },
-  {
-    "id": "bisiklet-supap-kapagi-satranc-figurlu",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Supap Kapağı (Satranç Desenli)",
-    "aciklama": "Standart Schrader supaplar için satranç taşı şeklinde dekoratif kapak.\n- Basit vida-geçme montaj\n- Süs amaçlı özel tasarım\nYaklaşık dış ölçüler: 35 × 21 × 21 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4063016-1.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Tater_Zoid",
-      "tur": "CC-BY-SA"
     },
     "altkategori": "Tekerlek ve Lastik"
   },
@@ -171428,26 +170635,6 @@
     "altkategori": "Gidon ve Kokpit"
   },
   {
-    "id": "bisiklet-telefon-tutucusu-sinirlayici-parca",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Telefon Tutucusu Sınırlayıcı Parça",
-    "aciklama": "Universal bisiklet telefon tutucularında telefonun sert sürüşte kaymasını önleyen sınırlayıcı parça.\n- Küçük M3 vidalarla sabitlenir\n- Çoğu telefon tutucusuyla uyumludur\nYaklaşık dış ölçüler: 18,1 × 15,3 × 13 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th3702454-1.jpg",
-      "https://media.pruvo3d.com/urunler/th3702454-2.jpg",
-      "https://media.pruvo3d.com/urunler/th3702454-3.jpg",
-      "https://media.pruvo3d.com/urunler/th3702454-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "McPcholkin",
-      "tur": "CC-BY"
-    },
-    "altkategori": "Telefon ve Navigasyon"
-  },
-  {
     "id": "bisiklet-kask-samsung-s9-telefon-tutucusu",
     "kategori": "Bisiklet",
     "marka": [
@@ -172797,25 +171984,6 @@
       "tur": "CC-BY"
     },
     "altkategori": "Kilit ve Güvenlik"
-  },
-  {
-    "id": "bisiklet-viofo-a119-kamera-tutucusu-kelepce-bantli",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Viofo A119 Kamera Tutucusu (Kelepçe Bantlı)",
-    "aciklama": "Viofo A119 kamerayı doğru açıyla bisiklete sabitleyen, kelepçe bantlı tutucu.\n- Kamera boyutuna göre yeniden ölçeklenebilir\n- Ek kablo bağı delikleriyle güçlendirildi\nYaklaşık dış ölçüler: 48 × 40 × 33 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th3544996-1.jpg",
-      "https://media.pruvo3d.com/urunler/th3544996-2.jpg",
-      "https://media.pruvo3d.com/urunler/th3544996-3.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "mindogas",
-      "tur": "CC-BY"
-    },
-    "altkategori": "Kamera ve Aksiyon"
   },
   {
     "id": "bisiklet-cygolite-hotshot-kask-montaj-parcasi",
@@ -184242,23 +183410,6 @@
     "altkategori": "Gidon ve Kokpit"
   },
   {
-    "id": "bisiklet-sele-borusu-govde-tutucusu-31-6mm",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Sele Borusu Aksiyon Kamera Tutucusu (31.6mm)",
-    "aciklama": "31.6mm sele borusuna açılı monte edilen aksiyon kamera tutucusu.\n- Sele borusuna kelepçe bandıyla sabitlenir\n- Standart aksiyon kamera bağlantı tabanına uyumludur\n- 17 derece açı ile çekim açısını düzeltir\nYaklaşık dış ölçüler: 86.8 × 45.6 × 26.6 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th634848-1.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "WheresWaldo",
-      "tur": "CC BY-SA 4.0"
-    },
-    "altkategori": "Kamera ve Aksiyon"
-  },
-  {
     "id": "bisiklet-sepet-olta-tutucusu",
     "kategori": "Bisiklet",
     "marka": [],
@@ -184877,23 +184028,6 @@
     "altkategori": "Telefon ve Navigasyon"
   },
   {
-    "id": "bisiklet-supap-kapagi-savas-kaski-figurlu",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Savaş Kaskı Şekilli Supap Kapağı",
-    "aciklama": "Schrader supaplı lastiklere uyan, asker kaskı şeklinde özel tasarım supap kapağı.\n- Standart Schrader supap ağzına vida dişiyle takılır\n- Supabı toz, nem ve darbeden korur\n- Farklı renklerde üretilebilir\nYaklaşık dış ölçüler: 54.8 × 28.2 × 21.8 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4051940-1.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Tater_Zoid",
-      "tur": "CC BY-SA 4.0"
-    },
-    "altkategori": "Tekerlek ve Lastik"
-  },
-  {
     "id": "bisiklet-gidonu-aksiyon-kamera-tutucusu-cift-cap",
     "kategori": "Bisiklet",
     "marka": [],
@@ -185066,25 +184200,6 @@
       "tur": "CC BY 4.0"
     },
     "altkategori": "Bakım ve Alet"
-  },
-  {
-    "id": "bisiklet-yaris-gidonu-ucu-tapasi",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Yarış Gidonu Ucu Tapası",
-    "aciklama": "Yarış tipi (drop bar) gidonların açık uçlarını kapatan tapa.\n- Standart gidon iç çapına sıkı geçme ile oturur\n- Gidon ucunu darbe ve neme karşı korur\n- Kaybolan orijinal tapanın yerine kullanılabilir\nYaklaşık dış ölçüler: 28 × 28 × 23.5 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th940904-1.jpg",
-      "https://media.pruvo3d.com/urunler/th940904-2.jpg",
-      "https://media.pruvo3d.com/urunler/th940904-3.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "blairmi2",
-      "tur": "CC BY-SA 4.0"
-    },
-    "altkategori": "Gidon ve Kokpit"
   },
   {
     "id": "bisiklet-pedal-uzeri-park-standi",
@@ -187826,22 +186941,6 @@
     }
   },
   {
-    "id": "bisiklet-turne-bisikleti-kartviziti",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Temalı Turne Bisikleti Kartvizit Bulmacası",
-    "aciklama": "Kartvizit boyutunda, parçaları ayrılıp yeniden birleştirilerek bisiklet şekli oluşturan bulmaca kartı.\n- Standart kartvizit cebine sığacak incelikte ve boyuttadır\n- Parçalar çıtçıt gibi ayrılıp yeniden bisiklet şekline monte edilebilir\n- Bisikletçilere hediyelik/promosyon kartviziti olarak kullanılabilir\nYaklaşık dış ölçüler: 91 × 55 × 1 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th714484-1.jpg",
-      "https://media.pruvo3d.com/urunler/th714484-2.jpg",
-      "https://media.pruvo3d.com/urunler/th714484-3.jpg",
-      "https://media.pruvo3d.com/urunler/th714484-4.jpg"
-    ],
-    "altkategori": "Montaj Parçaları ve Klipsler"
-  },
-  {
     "id": "bisiklet-zincir-yaglama-sprey-standi",
     "kategori": "Bisiklet",
     "marka": [],
@@ -188152,26 +187251,6 @@
       "tur": "CC BY-SA 4.0"
     },
     "altkategori": "Aydınlatma"
-  },
-  {
-    "id": "bisiklet-uzayli-kafasi-supap-kapagi",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Uzaylı Kafası Şekilli Supap Kapağı",
-    "aciklama": "Uzaylı kafası formunda, mizahi görünümlü tekerlek supap kapağı.\n- Standart Schrader supap gövdesine vidalanır\n- Toz ve nemin supap mekanizmasına girmesini önler\n- Şekilli tasarımı bisiklete eğlenceli bir dokunuş katar\nYaklaşık dış ölçüler: 55 × 27 × 26 mm (çift).",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4067611-1.jpg",
-      "https://media.pruvo3d.com/urunler/th4067611-2.jpg",
-      "https://media.pruvo3d.com/urunler/th4067611-3.jpg",
-      "https://media.pruvo3d.com/urunler/th4067611-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Tater_Zoid",
-      "tur": "CC BY-SA 4.0"
-    },
-    "altkategori": "Tekerlek ve Lastik"
   },
   {
     "id": "bisiklet-sele-alti-aksiyon-kamera-tutucusu-th1355586",
@@ -189618,25 +188697,6 @@
     ],
     "lisans": {
       "tasarimci": "foofoodog",
-      "tur": "CC BY-SA 4.0"
-    },
-    "altkategori": "Aydınlatma"
-  },
-  {
-    "id": "bisiklet-trek-bontrager-gidon-montaji",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Trek Bontrager Blendr Gidon Montajı",
-    "aciklama": "Trek Bontrager Blendr stem sistemine aksesuar bağlamayı sağlayan montaj tabanı.\n- Blendr stem yuvasına doğrudan oturur\n- Üzerine uyumlu ışık/bilgisayar tutucuları takılabilir\n- Trek 7.3 Fx gibi Blendr donanımlı modellerle uyumludur\nYaklaşık dış ölçüler: 58 × 38 × 15 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th1502652-1.jpg",
-      "https://media.pruvo3d.com/urunler/th1502652-2.jpg",
-      "https://media.pruvo3d.com/urunler/th1502652-3.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Geek2Nurse",
       "tur": "CC BY-SA 4.0"
     },
     "altkategori": "Aydınlatma"
@@ -197926,24 +196986,6 @@
     "altkategori": "Aydınlatma"
   },
   {
-    "id": "bisiklet-telefon-tutucu-braket-parcasi",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Telefon Tutucu Braket Parçası",
-    "aciklama": "Dar gövdeli telefonları gidona sabitleyen braket parçası.\n- Gidona kelepçe bandıyla monte edilir\n- Telefon gövdesine özel dar iç ölçü taşır\n- Sürüş sırasında ekrana hızlı erişim sağlar\nYaklaşık dış ölçüler: 153 × 62 × 8 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th1163945-1.jpg",
-      "https://media.pruvo3d.com/urunler/th1163945-2.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "mienamoo",
-      "tur": "CC BY-SA 4.0"
-    },
-    "altkategori": "Telefon ve Navigasyon"
-  },
-  {
     "id": "bisiklet-sele-alti-co2-tup-tutucusu",
     "kategori": "Bisiklet",
     "marka": [],
@@ -199379,24 +198421,6 @@
       "tur": "CC BY-SA 4.0"
     },
     "altkategori": "Aydınlatma"
-  },
-  {
-    "id": "bisiklet-universal-telefon-tutucusu-th57275",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Kapalı Muhafazalı Telefon Tutucusu",
-    "aciklama": "Farklı telefon boyutlarına uyum sağlayan evrensel gidon telefon tutucusu.\n- Gidona kelepçe bandıyla monte edilir\n- Telefonu kapalı bir muhafaza içinde sabit tutar\n- Sürüş sırasında ekrana ve tuşlara erişimi kolaylaştırır\nYaklaşık dış ölçüler: 135 × 74 × 19 mm.",
-    "fiyat": "210 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th57275-1.jpg",
-      "https://media.pruvo3d.com/urunler/th57275-2.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "sjwebb15",
-      "tur": "CC BY-SA 4.0"
-    },
-    "altkategori": "Telefon ve Navigasyon"
   },
   {
     "id": "bisiklet-telefon-kilifi-montaj-adaptoru",
@@ -200844,24 +199868,6 @@
       "tur": "CC BY-SA 4.0"
     },
     "altkategori": "Aydınlatma"
-  },
-  {
-    "id": "bisiklet-zincir-asinma-olcer",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Zincir Aşınma Ölçer",
-    "aciklama": "Zincirin değişim zamanını gösteren basit ölçüm aracı.\n- Zincir üzerine yerleştirilerek aşınma yüzdesi okunur\n- %50 ve %75 aşınma seviyelerini ayrı ayrı gösterir\n- Tek parça katı yapısı dayanıklıdır\nYaklaşık dış ölçüler: 150 × 40 × 4 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th2213031-1.jpg",
-      "https://media.pruvo3d.com/urunler/th2213031-2.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "spinvector",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Zincir ve Aktarma"
   },
   {
     "id": "bisiklet-jant-teli-boncugu",
@@ -203570,26 +202576,6 @@
     "altkategori": "Gidon ve Kokpit"
   },
   {
-    "id": "bisiklet-wahoo-ace-bilgisayar-tutucusu",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Bilgisayar Tutucusu (Wahoo Elemnt Ace Uyumlu)",
-    "aciklama": "Wahoo Elemnt Ace uyumlu döner-kilit bağlantılı bisiklet bilgisayarı tutucusu.\n- Gidona kelepçe bandıyla sabitlenir\n- Standart döner-kilit tabanlı cihazlarla uyumludur\n- Cihazı sabit ve titremsiz konumda tutar\nYaklaşık dış ölçüler: 130 × 54 × 19 mm.",
-    "fiyat": "220 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th7041871-1.jpg",
-      "https://media.pruvo3d.com/urunler/th7041871-2.jpg",
-      "https://media.pruvo3d.com/urunler/th7041871-3.jpg",
-      "https://media.pruvo3d.com/urunler/th7041871-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "RobertD99",
-      "tur": "CC BY-SA 4.0"
-    },
-    "altkategori": "Telefon ve Navigasyon"
-  },
-  {
     "id": "bisiklet-ayna-koluna-bilgisayar-tutucusu",
     "kategori": "Bisiklet",
     "marka": [],
@@ -203989,23 +202975,6 @@
     ],
     "lisans": {
       "tasarimci": "suside",
-      "tur": "CC BY-SA 4.0"
-    },
-    "altkategori": "Telefon ve Navigasyon"
-  },
-  {
-    "id": "bisiklet-snap-kilit-telefon-tutucusu-genel",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Telefon Tutucusu (Snap-Kilit Sistemi, Genel Uyumlu)",
-    "aciklama": "Snap-kilit tipi telefon kılıflarıyla uyumlu, genel amaçlı gidon tutucusu.\n- Uyumlu kılıflı telefonu döndürerek kilitleme imkanı sağlar\n- Gidona kelepçe bandıyla sabitlenir\n- Farklı telefon modelleriyle genel uyumluluk sunar\nYaklaşık dış ölçüler: 166 × 80 × 12 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th7125436-1.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "redflo",
       "tur": "CC BY-SA 4.0"
     },
     "altkategori": "Telefon ve Navigasyon"
@@ -204655,25 +203624,6 @@
     "altkategori": "Tekerlek ve Lastik"
   },
   {
-    "id": "bisiklet-wahoo-uyumlu-telefon-tutucusu",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Wahoo Uyumlu Telefon Tutucusu",
-    "aciklama": "Wahoo bağlantı standardına sahip gidon tabanlarıyla kullanılan telefon tutucusu.\n- Telefonu yandan kavrayan taban yapısı kullanır\n- Farklı telefon modelleri için uyarlanabilir tasarıma sahiptir\n- Mevcut Wahoo tabanlarına doğrudan takılır\nYaklaşık dış ölçüler: 85 × 50 × 17 mm.",
-    "fiyat": "220 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6937244-1.jpg",
-      "https://media.pruvo3d.com/urunler/th6937244-2.jpg",
-      "https://media.pruvo3d.com/urunler/th6937244-3.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Aeluvien",
-      "tur": "CC BY-SA 4.0"
-    },
-    "altkategori": "Telefon ve Navigasyon"
-  },
-  {
     "id": "bisiklet-biber-gazi-tup-tutucusu-matara-kafesi",
     "kategori": "Bisiklet",
     "marka": [],
@@ -204692,26 +203642,6 @@
       "tur": "CC BY-SA 4.0"
     },
     "altkategori": "Matara ve Kafes"
-  },
-  {
-    "id": "bisiklet-trek-blendr-isik-adaptoru-sele-cantasi",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Trek Blendr Işık Adaptörü (Sele Çantası Bağlantılı)",
-    "aciklama": "Çeyrek-tur döner kilitli ışıkları Trek Blendr bağlantı standardına uyarlayan adaptör.\n- Sele altı çanta kayışına sabitlenir\n- Farklı arka ışık markalarını sele çantası üzerinde kullanmayı sağlar\n- Kompakt ve hafif tek parça yapı\nYaklaşık dış ölçüler: 35 × 35 × 17 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6958028-1.jpg",
-      "https://media.pruvo3d.com/urunler/th6958028-2.jpg",
-      "https://media.pruvo3d.com/urunler/th6958028-3.jpg",
-      "https://media.pruvo3d.com/urunler/th6958028-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "TheTickz",
-      "tur": "CC BY-SA 4.0"
-    },
-    "altkategori": "Aydınlatma"
   },
   {
     "id": "bisiklet-icecek-kutusu-tutucusu",
@@ -205038,44 +203968,6 @@
       "tur": "CC BY-SA 4.0"
     },
     "altkategori": "Zincir ve Aktarma"
-  },
-  {
-    "id": "bisiklet-telefon-tutucusu-36mm-kelepce",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Telefon Tutucusu (36mm Gidon Kelepçeli, Üniversal)",
-    "aciklama": "36mm çaplı gidon veya aksesuar barına takılan, üst ve alt kelepçe parçasından oluşan üniversal telefon tutucusu.\n- Üst ve alt kelepçe vidayla sıkıştırılarak sabitlenir\n- 36mm çaplı bar üzerine monte edilir\n- Farklı telefon tutucu aparatlarıyla birlikte kullanılabilir\nYaklaşık dış ölçüler: 53 × 34 × 20 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6561329-1.jpg",
-      "https://media.pruvo3d.com/urunler/th6561329-2.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "cuckoo_cuckoo",
-      "tur": "CC BY-SA 4.0"
-    },
-    "altkategori": "Telefon ve Navigasyon"
-  },
-  {
-    "id": "bisiklet-telefon-tutucusu-hiz-gostergeli",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Telefon Tutucusu (Hız Göstergeli, Kaydırmalı)",
-    "aciklama": "Telefonu gidonda tutarken hız göstergesi barı da taşıyan, kaydırmalı üniversal tutucu sistemi.\n- Ana gövde gidona kelepçe bandıyla bağlanır\n- Kaydırma parçası farklı telefon genişliklerine ayarlanır\n- Ayrı hız göstergesi bağlantı barı içerir\nYaklaşık dış ölçüler: 48 × 31 × 22 mm.",
-    "fiyat": "210 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6561375-1.jpg",
-      "https://media.pruvo3d.com/urunler/th6561375-2.jpg",
-      "https://media.pruvo3d.com/urunler/th6561375-3.jpg",
-      "https://media.pruvo3d.com/urunler/th6561375-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "cuckoo_cuckoo",
-      "tur": "CC BY-SA 4.0"
-    },
-    "altkategori": "Telefon ve Navigasyon"
   },
   {
     "id": "bisiklet-isik-tutucusu-garmin-alt-baglanti",
@@ -206825,26 +205717,6 @@
     "altkategori": "Aydınlatma"
   },
   {
-    "id": "bisiklet-telefon-tutucusu-orta-gidon-baglantisi",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Telefon Tutucusu Orta Gidon Bağlantısı",
-    "aciklama": "Gidon orta bağlantı noktasına telefon tutucu ailesiyle uyumlu bağlantı sağlayan parça, eğim açısı ayarlanabilir.\n- Metal hortum kelepçesi veya plastik kelepçe bantla sabitlenir\nYaklaşık dış ölçüler: 40 × 35 × 31 mm.",
-    "fiyat": "210 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th5799961-1.jpg",
-      "https://media.pruvo3d.com/urunler/th5799961-2.jpg",
-      "https://media.pruvo3d.com/urunler/th5799961-3.jpg",
-      "https://media.pruvo3d.com/urunler/th5799961-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "dpc",
-      "tur": "CC BY-SA 4.0"
-    },
-    "altkategori": "Telefon ve Navigasyon"
-  },
-  {
     "id": "bisiklet-telefon-tutucusu-taban-govdesi",
     "kategori": "Bisiklet",
     "marka": [],
@@ -207717,25 +206589,6 @@
     "altkategori": "Aydınlatma"
   },
   {
-    "id": "bisiklet-tasiyici-uc-kapagi-thule-uyumlu",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Taşıyıcı Uç Kapağı (Thule Uyumlu Yedek Parça)",
-    "aciklama": "Araç üstü bisiklet taşıyıcısının çerçeve tutma biriminde kullanılan yedek uç kapağı.\nYaklaşık dış ölçüler: 78 × 45 × 16 mm.",
-    "fiyat": "220 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th5495401-1-v2.jpg",
-      "https://media.pruvo3d.com/urunler/th5495401-2-v2.jpg",
-      "https://media.pruvo3d.com/urunler/th5495401-3-v2.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY-SA 4.0",
-      "tasarimci": "ender3v2user456"
-    },
-    "altkategori": "Çamurluk ve Bagaj"
-  },
-  {
     "id": "bisiklet-matara-kafesi-tutucusu-ek-vida",
     "kategori": "Bisiklet",
     "marka": [],
@@ -208105,25 +206958,6 @@
     "altkategori": "Aydınlatma"
   },
   {
-    "id": "bisiklet-telefon-tutucusu-degisken-yukseklik",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Telefon Tutucusu (Değişken Yükseklik)",
-    "aciklama": "Telefonu gidonun üzerinde farklı yükseklik ayarlarıyla sabitleyen tutucu.\nYaklaşık dış ölçüler: 143 × 72 × 12 mm.",
-    "fiyat": "240 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th5201905-1.jpg",
-      "https://media.pruvo3d.com/urunler/th5201905-2.jpg",
-      "https://media.pruvo3d.com/urunler/th5201905-3.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY 4.0",
-      "tasarimci": "MB3Y"
-    },
-    "altkategori": "Telefon ve Navigasyon"
-  },
-  {
     "id": "bisiklet-matara-kafesi-takip-etiketi-tutucusu-ince",
     "kategori": "Bisiklet",
     "marka": [],
@@ -208159,25 +206993,6 @@
       "tasarimci": "Luni_Club"
     },
     "altkategori": "Matara ve Kafes"
-  },
-  {
-    "id": "bisiklet-telefon-tutucusu-ara-adaptoru",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Telefon Tutucusu Ara Adaptörü",
-    "aciklama": "Dönüşlü kilit tipi bisiklet bilgisayarı tutucusuna takılan, büyük ekranlı telefonları sabitleyen ara adaptör.\nYaklaşık dış ölçüler: 75 × 67 × 14 mm.",
-    "fiyat": "240 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th5233901-1.jpg",
-      "https://media.pruvo3d.com/urunler/th5233901-2.jpg",
-      "https://media.pruvo3d.com/urunler/th5233901-3.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY 4.0",
-      "tasarimci": "mg101010"
-    },
-    "altkategori": "Telefon ve Navigasyon"
   },
   {
     "id": "bisiklet-mini-kamera-navigasyon-tutucusu",
@@ -208801,26 +207616,6 @@
     "altkategori": "Aydınlatma"
   },
   {
-    "id": "bisiklet-telefon-tutucusu-gopro-uyumlu",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Telefon Tutucusu (İki Pimli Kamera Bağlantılı)",
-    "aciklama": "Telefonu gidona sabitleyen, iki-pimli aksiyon kamerası bağlantı standardı taşıyan tutucu gövde.\n- Telefon gövdesi, ayrı üretilen iki adaptör pimiyle sabitlenir\n- Gidona kelepçeyle bağlanır\nYaklaşık dış ölçüler: 120 × 111 × 26 mm.",
-    "fiyat": "260 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4901302-1.jpg",
-      "https://media.pruvo3d.com/urunler/th4901302-2.jpg",
-      "https://media.pruvo3d.com/urunler/th4901302-3.jpg",
-      "https://media.pruvo3d.com/urunler/th4901302-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "thompatterson",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Telefon ve Navigasyon"
-  },
-  {
     "id": "bisiklet-camurluk-baglanti-klipsi-50mm",
     "kategori": "Bisiklet",
     "marka": [],
@@ -208994,23 +207789,6 @@
       "tur": "CC BY 4.0"
     },
     "altkategori": "Çamurluk ve Bagaj"
-  },
-  {
-    "id": "bisiklet-takip-etiketi-tutucusu-ince",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Takip Etiketi Tutucusu (İnce)",
-    "aciklama": "Kare gövdeli takip etiketini gidona veya çerçeveye sabitleyen ince taban.\nYaklaşık dış ölçüler: 74 × 42 × 7 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4936522-1.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "dicksmithonline",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Montaj Parçaları ve Klipsler"
   },
   {
     "id": "bisiklet-tasiyici-uc-kapagi-yedek",
@@ -209636,26 +208414,6 @@
     "altkategori": "Park ve Duvar Askısı"
   },
   {
-    "id": "bisiklet-telefon-tutucusu-kucuk-telefon-uyumlu",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Telefon Tutucusu (Küçük Telefonlara Uygun)",
-    "aciklama": "Küçük gövdeli akıllı telefonları gidona sabitleyen, kayar kollu evrensel tutucu.\n- Kayar kollar telefon genişliğine göre ayarlanır\n- Takviyeli kol tasarımı kırılma riskini azaltır\n- Gidona kelepçe bandıyla bağlanır\nYaklaşık dış ölçüler: 105 × 75 × 27 mm.",
-    "fiyat": "220 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4819285-1.jpg",
-      "https://media.pruvo3d.com/urunler/th4819285-2.jpg",
-      "https://media.pruvo3d.com/urunler/th4819285-3.jpg",
-      "https://media.pruvo3d.com/urunler/th4819285-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "TomHammond",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Telefon ve Navigasyon"
-  },
-  {
     "id": "bisiklet-olta-tutucusu-gidon-bagli",
     "kategori": "Bisiklet",
     "marka": [],
@@ -209671,26 +208429,6 @@
       "tur": "CC BY 4.0"
     },
     "altkategori": "Gidon ve Kokpit"
-  },
-  {
-    "id": "bisiklet-telefon-tutucusu-gidon-seti",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Telefon Tutucusu (Gidon Kelepçeli Set)",
-    "aciklama": "Telefonu iki kollu kelepçeyle gidona sabitleyen, vida ve somunla monte edilen tutucu seti.\n- 22 mm gidona uyan kelepçe gövdesi vidayla sıkılır\n- Bilyeli bağlantı açı ayarına izin verir\n- Kollar farklı telefon genişliklerine göre ayarlanabilir\nYaklaşık dış ölçüler: 51 × 46 × 31 mm.",
-    "fiyat": "220 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4820418-1.jpg",
-      "https://media.pruvo3d.com/urunler/th4820418-2.jpg",
-      "https://media.pruvo3d.com/urunler/th4820418-3.jpg",
-      "https://media.pruvo3d.com/urunler/th4820418-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Auditor_3d",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Telefon ve Navigasyon"
   },
   {
     "id": "bisiklet-batarya-gostergesi-tutucusu",
@@ -209979,26 +208717,6 @@
       "tur": "CC BY 4.0"
     },
     "altkategori": "Montaj Parçaları ve Klipsler"
-  },
-  {
-    "id": "bisiklet-telefon-tutucusu-kelepceli-taban",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Telefon Tutucusu (Kelepçeli Taban)",
-    "aciklama": "Telefonu gidon ortasına sabitleyen, kayar kollu ve kelepçeli taban sistemi.\n- Taban gidona iki adet vida ve somunla bağlanır\n- Kayar kollar farklı telefon genişliklerine ayarlanır\n- 35 mm'ye kadar gidon kalınlığına uyar\nYaklaşık dış ölçüler: 131 × 38 × 27 mm.",
-    "fiyat": "220 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4878130-1.jpg",
-      "https://media.pruvo3d.com/urunler/th4878130-2.jpg",
-      "https://media.pruvo3d.com/urunler/th4878130-3.jpg",
-      "https://media.pruvo3d.com/urunler/th4878130-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "VedanshG",
-      "tur": "CC BY-SA 4.0"
-    },
-    "altkategori": "Telefon ve Navigasyon"
   },
   {
     "id": "bisiklet-cerceve-kilidi-tutucusu-abus-uyumlu",
@@ -211157,26 +209875,6 @@
     "altkategori": "Telefon ve Navigasyon"
   },
   {
-    "id": "bisiklet-telefon-tutucusu-ulefone-armor-x5",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Telefon Tutucusu (Ulefone Armor X5 Uyumlu)",
-    "aciklama": "Dayanıklı telefonu gidona sabitleyen, beşiği ayrılabilen tutucu takımı.\n- 32 mm gidon ve 35 mm boyunduruk ölçüsüne uyar\n- Beşik, vida üstündeki erişim delikleri sayesinde sökülmeden çıkar\n- Telefonu köşelerinden esnek kordonla emniyete alır\nYaklaşık dış ölçüler: 170 × 84 × 26 mm.",
-    "fiyat": "230 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4487153-1.jpg",
-      "https://media.pruvo3d.com/urunler/th4487153-2.jpg",
-      "https://media.pruvo3d.com/urunler/th4487153-3.jpg",
-      "https://media.pruvo3d.com/urunler/th4487153-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Dazix",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Telefon ve Navigasyon"
-  },
-  {
     "id": "bisiklet-arka-tasiyici-yuk-platformu",
     "kategori": "Bisiklet",
     "marka": [],
@@ -211931,26 +210629,6 @@
     "altkategori": "Telefon ve Navigasyon"
   },
   {
-    "id": "bisiklet-telefon-tutucusu-govde-borusu-montajli",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Telefon Tutucusu (Gövde Borusu Montajlı)",
-    "aciklama": "Direksiyon/gövde borusuna kelepçeyle bağlanan, iki parçalı kılıf ile telefonu sabitleyen tutucu.\n- Boruya kelepçeyle sabitlenir\n- Üst ve alt kılıf parçası telefonu kavrar\n- Vidalı montaj\nYaklaşık dış ölçüler: 66 × 42 × 22 mm.",
-    "fiyat": "210 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4306619-1.jpg",
-      "https://media.pruvo3d.com/urunler/th4306619-2.jpg",
-      "https://media.pruvo3d.com/urunler/th4306619-3.jpg",
-      "https://media.pruvo3d.com/urunler/th4306619-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Toprob",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Telefon ve Navigasyon"
-  },
-  {
     "id": "bisiklet-el-gps-tutucusu-garmin-etrex-20x",
     "kategori": "Bisiklet",
     "marka": [
@@ -212068,26 +210746,6 @@
     "altkategori": "Telefon ve Navigasyon"
   },
   {
-    "id": "bisiklet-telefon-tutucusu-universal-vidali-kelepce",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Telefon Tutucusu (Evrensel, Vidalı Kelepçe)",
-    "aciklama": "Vidalı slider mekanizmasıyla genişliği ayarlanabilen evrensel telefon tutucusu.\n- Gidona kelepçeyle bağlanır\n- Vidalı slider ile farklı telefon genişliklerine uyum\n- Çok parçalı, değiştirilebilir uçlar\nYaklaşık dış ölçüler: 114 × 106 × 10 mm.",
-    "fiyat": "240 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4327019-1.jpg",
-      "https://media.pruvo3d.com/urunler/th4327019-2.jpg",
-      "https://media.pruvo3d.com/urunler/th4327019-3.jpg",
-      "https://media.pruvo3d.com/urunler/th4327019-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "ponymont",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Telefon ve Navigasyon"
-  },
-  {
     "id": "bisiklet-telefon-kilifi-aksiyon-kamera-baglantili",
     "kategori": "Bisiklet",
     "marka": [],
@@ -212142,26 +210800,6 @@
     ],
     "lisans": {
       "tasarimci": "PhilPagan",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Telefon ve Navigasyon"
-  },
-  {
-    "id": "bisiklet-telefon-tutucusu-huawei-p30-pro",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Telefon Tutucusu (Huawei P30 Pro Uyumlu)",
-    "aciklama": "Huawei P30 Pro telefonuna özel, çok parçalı kelepçeli gidon tutucusu.\n- Gidona kelepçeyle bağlanır\n- Telefonu çevreleyen kılıf ile ek sabitlik\n- Ayarlanabilir kol yapısı\nYaklaşık dış ölçüler: 158 × 84 × 18 mm.",
-    "fiyat": "220 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4361758-1.jpg",
-      "https://media.pruvo3d.com/urunler/th4361758-2.jpg",
-      "https://media.pruvo3d.com/urunler/th4361758-3.jpg",
-      "https://media.pruvo3d.com/urunler/th4361758-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Poncherelly",
       "tur": "CC BY 4.0"
     },
     "altkategori": "Telefon ve Navigasyon"
@@ -213448,24 +212086,6 @@
     "altkategori": "Montaj Parçaları ve Klipsler"
   },
   {
-    "id": "bisiklet-telefon-kilifi-tutucusu-google-pixel",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Telefon Kılıfı Tutucusu (Google Pixel Uyumlu)",
-    "aciklama": "Google Pixel telefonu için özel kılıf ve gidona takılan hızlı-kilit tutucu seti.\n- Kılıf telefona tam oturacak şekilde tasarlandı\n- Gidon tutucusuna tek hareketle takılıp çıkarılır\n- Sürüş sırasında telefonun düşmesini önler\nYaklaşık dış ölçüler: 149 × 74 × 13 mm.",
-    "fiyat": "220 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4283608-1.jpg",
-      "https://media.pruvo3d.com/urunler/th4283608-2.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "ProdajamDrva",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Telefon ve Navigasyon"
-  },
-  {
     "id": "bisiklet-buyuk-sise-tutucusu",
     "kategori": "Bisiklet",
     "marka": [],
@@ -214256,26 +212876,6 @@
       "tur": "CC BY 4.0"
     },
     "altkategori": "Tekerlek ve Lastik"
-  },
-  {
-    "id": "bisiklet-telefon-gidon-tutucusu-kilifli",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Telefon Gidon Tutucusu (Kılıflı Kullanım)",
-    "aciklama": "Sert kılıflı telefonları gidona sabitlemek için kullanılan tutucu.\n- Kılıflı telefona uyumlu geniş iç ölçü\n- Gidona kelepçeyle sabitlenir\n- Telefonu yandan kaydırarak takıp çıkarmayı sağlar\nYaklaşık dış ölçüler: 83 × 36 × 7 mm.",
-    "fiyat": "210 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th3601660-1.jpg",
-      "https://media.pruvo3d.com/urunler/th3601660-2.jpg",
-      "https://media.pruvo3d.com/urunler/th3601660-3.jpg",
-      "https://media.pruvo3d.com/urunler/th3601660-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "sekall",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Telefon ve Navigasyon"
   },
   {
     "id": "bisiklet-catal-borusu-camurluk-tutucusu",
@@ -215314,23 +213914,6 @@
       "tur": "CC BY 4.0"
     },
     "altkategori": "Aydınlatma"
-  },
-  {
-    "id": "bisiklet-telefon-tutucu-uzatma-parcasi",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Telefon Tutucu Uzatma Parçası",
-    "aciklama": "Mevcut telefon tutucusunu gidondan biraz uzağa/yukarı taşımak için kullanılan ara bağlantı parçası.\n- Standart tutucu bağlantı noktasına uyumlu\n- Tutucunun görüş açısını ve erişimini iyileştirir\n- Tek parça, sade yapı\nYaklaşık dış ölçüler: 32 × 32 × 25 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th3135021-1.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "broes007",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Telefon ve Navigasyon"
   },
   {
     "id": "bisiklet-gps-tutucusu-garmin-xl",
@@ -236181,26 +234764,6 @@
     }
   },
   {
-    "id": "bmw-e36-uyumlu-gosterge-grubu-gozluk-cebi",
-    "kategori": "Otomobil",
-    "marka": [
-      "BMW",
-      "E36"
-    ],
-    "baslik": "Gösterge Grubu Güneş Gözlüğü Cebi (BMW E36 Uyumlu)",
-    "aciklama": "BMW E36 gösterge grubunun ortasındaki boşluğa yerleşen güneş gözlüğü cebidir.\n- Gösterge paneli klipslerine doğrudan takılır.\n- Sürüş sırasında güneş gözlüğünü elinizin altında tutar.\n- Siparişe göre özel tasarım üretimle hazırlanır.\nYaklaşık dış ölçüler: 188 × 73 × 11 mm.",
-    "fiyat": "350 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th3223495-n1.jpg",
-      "https://media.pruvo3d.com/urunler/th3223495-n2.jpg",
-      "https://media.pruvo3d.com/urunler/th3223495-n3.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "xPooRLoCKerBoYx",
-      "tur": "CC BY 4.0"
-    }
-  },
-  {
     "id": "bmw-e36-uyumlu-dikiz-aynasi-aski-aparati",
     "kategori": "Otomobil",
     "marka": [
@@ -236371,42 +234934,6 @@
     ],
     "lisans": {
       "tasarimci": "DontTakeMyUsername",
-      "tur": "CC BY 4.0"
-    }
-  },
-  {
-    "id": "bmw-e46-uyumlu-termostat-kapagi",
-    "kategori": "Otomobil",
-    "marka": [
-      "BMW",
-      "E46"
-    ],
-    "baslik": "Termostat Kapağı (BMW E46 Uyumlu)",
-    "aciklama": "BMW E46 termostat muhafazasının üst kapağıdır.\n- Kırılan veya çatlayan orijinal kapağın yerine takılır.\n- Orijinal contayla birlikte kullanılır.\n- Siparişe göre özel tasarım üretimle hazırlanır.\nYaklaşık dış ölçüler: 216 × 179 × 9 mm.",
-    "fiyat": "300 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4907368-1.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Asidus3D",
-      "tur": "CC BY 4.0"
-    }
-  },
-  {
-    "id": "bmw-e46-316i-uyumlu-bardaklik",
-    "kategori": "Otomobil",
-    "marka": [
-      "BMW",
-      "E46"
-    ],
-    "baslik": "Bardaklık (BMW E46 316i Uyumlu)",
-    "aciklama": "BMW E46 316i iç mekanına monte edilen bardaklık ünitesidir.\n- Standart bardak ve şişeleri güvenle taşır.\n- Mevcut sabitleme noktalarına uyumludur.\n- Siparişe göre özel tasarım üretimle hazırlanır.\nYaklaşık dış ölçüler: 185 × 74 × 58 mm.",
-    "fiyat": "350 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4925175-3.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "fmn4",
       "tur": "CC BY 4.0"
     }
   },
@@ -236674,25 +235201,6 @@
     }
   },
   {
-    "id": "bmw-e90-uyumlu-bardaklik",
-    "kategori": "Otomobil",
-    "marka": [
-      "BMW",
-      "E90"
-    ],
-    "baslik": "Bardaklık (BMW E90 Uyumlu)",
-    "aciklama": "BMW E90 iç mekanına monte edilen bardaklık ünitesidir.\n- Standart bardak ve şişeleri güvenle taşır.\n- Mevcut sabitleme noktalarına uyumludur.\n- Siparişe göre özel tasarım üretimle hazırlanır.\nYaklaşık dış ölçüler: 224 × 104 × 64 mm.",
-    "fiyat": "350 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th5567398-1.jpg",
-      "https://media.pruvo3d.com/urunler/th5567398-2.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "denniss112",
-      "tur": "CC BY 4.0"
-    }
-  },
-  {
     "id": "bmw-e90-uyumlu-torpido-tablet-tutucusu",
     "kategori": "Otomobil",
     "marka": [
@@ -236713,25 +235221,6 @@
     }
   },
   {
-    "id": "bmw-e90-uyumlu-bardaklik-cep-modeli",
-    "kategori": "Otomobil",
-    "marka": [
-      "BMW",
-      "E90"
-    ],
-    "baslik": "Bardaklık — Cep Modeli (BMW E90 Uyumlu)",
-    "aciklama": "BMW E90 iç mekanına monte edilen alternatif tasarımlı bardaklık ünitesidir.\n- Standart bardak ve şişeleri güvenle taşır.\n- Mevcut sabitleme noktalarına uyumludur.\n- Siparişe göre özel tasarım üretimle hazırlanır.\nYaklaşık dış ölçüler: 143 × 78 × 72 mm.",
-    "fiyat": "350 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6381148-1.jpg",
-      "https://media.pruvo3d.com/urunler/th6381148-2.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "mirrorfill",
-      "tur": "CC BY-SA 4.0"
-    }
-  },
-  {
     "id": "bmw-e90-uyumlu-radyator-lastik-takozu",
     "kategori": "Otomobil",
     "marka": [
@@ -236748,26 +235237,6 @@
     ],
     "lisans": {
       "tasarimci": "Nejkomesh",
-      "tur": "CC BY-SA 4.0"
-    }
-  },
-  {
-    "id": "bmw-e90-uyumlu-torpido-17mm-top-mesnet-montaji",
-    "kategori": "Otomobil",
-    "marka": [
-      "BMW",
-      "E90"
-    ],
-    "baslik": "Torpido 17mm Top Mesnet Montajı (BMW E90 Uyumlu, Garmin Uyumlu)",
-    "aciklama": "BMW E90 torpido gövdesine monte edilen 17mm top mesnetli navigasyon montaj tabanıdır.\n- Garmin ve benzeri 17mm toplu tutucularla uyumludur.\n- Torpido yüzeyine sabit şekilde yerleşir.\n- Siparişe göre özel tasarım üretimle hazırlanır.\nYaklaşık dış ölçüler: 91 × 72 × 40 mm.",
-    "fiyat": "300 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th7192986-1.jpg",
-      "https://media.pruvo3d.com/urunler/th7192986-2.jpg",
-      "https://media.pruvo3d.com/urunler/th7192986-3.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "bmlabout",
       "tur": "CC BY-SA 4.0"
     }
   },
@@ -236924,24 +235393,6 @@
     "lisans": {
       "tasarimci": "rlasjunies",
       "tur": "CC BY 4.0"
-    }
-  },
-  {
-    "id": "bmw-x1-u11-uyumlu-konsol-duzenleyici",
-    "kategori": "Otomobil",
-    "marka": [
-      "BMW",
-      "X1"
-    ],
-    "baslik": "Orta Konsol Düzenleyici (BMW X1 U11 Uyumlu)",
-    "aciklama": "BMW X1 U11 orta konsol boşluğuna oturan düzenleyici tepsidir.\n- Küçük eşyaları bölümlere ayırarak düzenler.\n- Yuvarlatılmış köşeleriyle konsola şık bir görünüm katar.\n- Siparişe göre özel tasarım üretimle hazırlanır.\nYaklaşık dış ölçüler: 168 × 153 × 20 mm.",
-    "fiyat": "350 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6982346-1.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "analyst_at",
-      "tur": "CC BY-SA 4.0"
     }
   },
   {
@@ -514581,19 +513032,6 @@
     "altkategori": "Motor Parçaları"
   },
   {
-    "id": "british-seagull-starter-makarasi",
-    "kategori": "Marin",
-    "marka": [],
-    "baslik": "British Seagull Dış Motor İçin İp Çekmeli Starter Makarası",
-    "aciklama": "British Seagull dış motorunun üstüne monte edilen ip çekmeli starter makarası seti.\n- British Seagull dış motor modeliyle uyumludur.\n- Üst makara ve ip makarası olmak üzere iki parçadan oluşur.\n- Tahrik milinin uzun bırakılıp sonradan kesilmesini gerektirir.\nYaklaşık dış ölçüler: 12 × 12 × 4 mm.",
-    "fiyat": "500 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th5374105-1.jpg",
-      "https://media.pruvo3d.com/urunler/th5374105-2.jpg"
-    ],
-    "altkategori": "Motor Parçaları"
-  },
-  {
     "id": "british-seagull-su-pompasi-impelleri",
     "kategori": "Marin",
     "marka": [],
@@ -669606,32 +668044,6 @@
     ]
   },
   {
-    "id": "bmw-uyumlu-m10-ayna-vidasi-kapagi",
-    "kategori": "Motosiklet",
-    "marka": [
-      "BMW"
-    ],
-    "baslik": "M10 Ayna Vidası Kapağı (BMW Uyumlu)",
-    "aciklama": "BMW motosikletlerinde standart M10 dişli ayna montaj deliğini paslanmaya karşı kapatan vida/kapaktır.\n- Ayna sökülü olduğunda dişi ve gövdeyi korur.\n- Mevcut dişe doğrudan oturur.\n- Siparişe göre özel tasarım üretimle hazırlanır.\nYaklaşık dış ölçüler: 16 × 16 × 9 mm.",
-    "fiyat": "250 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4876138-1.jpg",
-      "https://media.pruvo3d.com/urunler/th4876138-2.jpg",
-      "https://media.pruvo3d.com/urunler/th4876138-3.jpg",
-      "https://media.pruvo3d.com/urunler/th4876138-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "4sStylZ",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Gidon ve Kumandalar",
-    "uyum": [
-      {
-        "marka": "BMW"
-      }
-    ]
-  },
-  {
     "id": "bmw-k75-k100-uyumlu-yakit-gostergesi-muhafazasi",
     "kategori": "Motosiklet",
     "marka": [
@@ -694656,34 +693068,6 @@
     ]
   },
   {
-    "id": "bmw-3-serisi-uyumlu-yag-hunisi",
-    "kategori": "Otomobil",
-    "marka": [
-      "BMW"
-    ],
-    "baslik": "Yağ Dolum Hunisi 137 mm (BMW 3 Serisi Uyumlu)",
-    "aciklama": "BMW 3 Serisi motorlarının yağ dolum ağzına oturan hunidir.\n- 137 mm çapıyla filtre kutusuna çarpmadan yerleşir.\n- Dolum sırasında taşmayı önler.\n- Siparişe göre özel tasarım üretimle hazırlanır.",
-    "fiyat": "300 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th3400821-1.jpg",
-      "https://media.pruvo3d.com/urunler/th3400821-2.jpg",
-      "https://media.pruvo3d.com/urunler/th3400821-3.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Ytm",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Motor Bölümü",
-    "uyum": [
-      {
-        "marka": "BMW"
-      }
-    ],
-    "tavsiyeFilament": [
-      "ABS"
-    ]
-  },
-  {
     "id": "bmw-e46-uyumlu-kulluk-kapagi-perdesi",
     "kategori": "Otomobil",
     "marka": [
@@ -694928,33 +693312,6 @@
     ],
     "tavsiyeFilament": [
       "ABS"
-    ]
-  },
-  {
-    "id": "bmw-e36-uyumlu-52mm-gosterge-paneli-lhd",
-    "kategori": "Otomobil",
-    "marka": [
-      "BMW",
-      "E36"
-    ],
-    "baslik": "52 mm Gösterge Paneli Soldan Direksiyon (BMW E36 Uyumlu)",
-    "aciklama": "BMW E36'da 52 mm göstergeleri taşıyan soldan-direksiyon panelidir.\n- Göstergeleri sürücüye 10 derece açıyla çevirir.\n- Üç adede kadar 52 mm gösterge yuvası içerir.\n- Siparişe göre özel tasarım üretimle hazırlanır.",
-    "fiyat": "500 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th5938932-1.jpg",
-      "https://media.pruvo3d.com/urunler/th5938932-2.jpg",
-      "https://media.pruvo3d.com/urunler/th5938932-3.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "DushaBox",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Sürüş Kumandaları",
-    "uyum": [
-      {
-        "marka": "BMW",
-        "model": "E36"
-      }
     ]
   },
   {
@@ -846818,32 +845175,6 @@
     ]
   },
   {
-    "id": "bmw-s52-m52-yag-hunisi-tirnakli",
-    "kategori": "Otomobil",
-    "marka": [
-      "BMW"
-    ],
-    "baslik": "BMW S52/M52 Yağ Hunisi (Tırnaklı)",
-    "aciklama": "BMW S52/M52 Yağ Hunisi (Tırnaklı) özel üretim yedeği. BMW M52 için ilgili bölgeye ait yedek parçadır. Kırılan/eskiyen orijinalin yerine geçer.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 114 × 100 × 61 mm.",
-    "fiyat": "300 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/bmw-s52-m52-yag-hunisi-tirnakli-1.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "az3dr",
-      "tur": "CC BY-SA 4.0"
-    },
-    "altkategori": "Motor Bölümü",
-    "uyum": [
-      {
-        "marka": "BMW"
-      }
-    ],
-    "tavsiyeFilament": [
-      "ABS"
-    ]
-  },
-  {
     "id": "bmw-z3-mandal-kilit-dili",
     "kategori": "Otomobil",
     "marka": [
@@ -846866,32 +845197,6 @@
       {
         "marka": "BMW"
       }
-    ]
-  },
-  {
-    "id": "bmw-m57-yag-doldurma-hunisi",
-    "kategori": "Otomobil",
-    "marka": [
-      "BMW"
-    ],
-    "baslik": "BMW M57 Yağ Doldurma Hunisi",
-    "aciklama": "BMW M57 Yağ Doldurma Hunisi özel üretim yedeği. BMW için ilgili bölgeye ait yedek parçadır. Kırılan/eskiyen orijinalin yerine geçer.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 100 × 100 × 61 mm.",
-    "fiyat": "300 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/bmw-m57-yag-doldurma-hunisi-1.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "thooper41",
-      "tur": "CC BY-SA 4.0"
-    },
-    "altkategori": "Motor Bölümü",
-    "uyum": [
-      {
-        "marka": "BMW"
-      }
-    ],
-    "tavsiyeFilament": [
-      "ABS"
     ]
   },
   {
@@ -847094,34 +845399,6 @@
         "marka": "BMW",
         "model": "E90"
       }
-    ]
-  },
-  {
-    "id": "bmw-debriyaj-merkezleme-aleti-2",
-    "kategori": "Otomobil",
-    "marka": [
-      "BMW"
-    ],
-    "baslik": "BMW Debriyaj Merkezleme Aleti — N20",
-    "aciklama": "BMW Debriyaj Merkezleme Aleti özel üretim yedeği. BMW için debriyaj balatasını volan merkezine hizalayarak sorunsuz şanzıman montajı sağlayan alettir.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 65 × 26 × 26 mm.",
-    "fiyat": "550 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/bmw-debriyaj-merkezleme-aleti-2-1.jpg",
-      "https://media.pruvo3d.com/urunler/bmw-debriyaj-merkezleme-aleti-2-2.jpg",
-      "https://media.pruvo3d.com/urunler/bmw-debriyaj-merkezleme-aleti-2-3.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "bramvdpol",
-      "tur": "CC BY-SA 4.0"
-    },
-    "altkategori": "Sürüş Kumandaları",
-    "uyum": [
-      {
-        "marka": "BMW"
-      }
-    ],
-    "tavsiyeFilament": [
-      "ABS"
     ]
   },
   {
@@ -847340,31 +845617,6 @@
       "tur": "CC BY-SA 4.0"
     },
     "altkategori": "Depo ve Yakıt",
-    "uyum": [
-      {
-        "marka": "BMW"
-      }
-    ]
-  },
-  {
-    "id": "bmw-e85-z4-kapak",
-    "kategori": "Otomobil",
-    "marka": [
-      "BMW"
-    ],
-    "baslik": "BMW E85/Z4 Kapak",
-    "aciklama": "BMW E85/Z4 Kapak özel üretim yedeği. BMW E85/Z4 için ilgili bölgeye ait kapak/tapa yedeğidir. Kırılan/eskiyen orijinalin yerine geçer.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 216 × 179 × 9 mm.",
-    "fiyat": "300 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/bmw-e85-z4-kapak-1.jpg",
-      "https://media.pruvo3d.com/urunler/bmw-e85-z4-kapak-2.jpg",
-      "https://media.pruvo3d.com/urunler/bmw-e85-z4-kapak-3.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "MadPup",
-      "tur": "CC BY-SA 4.0"
-    },
-    "altkategori": "Montaj Parçaları ve Klipsler",
     "uyum": [
       {
         "marka": "BMW"
@@ -857040,34 +855292,6 @@
     ]
   },
   {
-    "id": "bmw-e36-double-din-cercevesi",
-    "kategori": "Otomobil",
-    "marka": [
-      "BMW",
-      "E36"
-    ],
-    "baslik": "BMW E36 Double Din Çerçevesi",
-    "aciklama": "BMW E36 Double Din Çerçevesi özel üretim yedeği. BMW E36 için radyo/multimedya yuvası bağlantı parçasıdır. Kırılan/eskiyen orijinalin yerine geçer.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 190 × 124 × 18 mm.",
-    "fiyat": "350 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/bmw-e36-double-din-cercevesi-1.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "AcitoByDesign",
-      "tur": "CC BY-SA 4.0"
-    },
-    "altkategori": "Ses ve Multimedya",
-    "uyum": [
-      {
-        "marka": "BMW"
-      },
-      {
-        "marka": "BMW",
-        "model": "E36"
-      }
-    ]
-  },
-  {
     "id": "bmw-s63tu-m5-m6-yag-tutucu-braketi",
     "kategori": "Otomobil",
     "marka": [
@@ -857115,34 +855339,6 @@
     "uyum": [
       {
         "marka": "BMW"
-      }
-    ]
-  },
-  {
-    "id": "bmw-e30-vites-topuzu",
-    "kategori": "Otomobil",
-    "marka": [
-      "BMW",
-      "E30"
-    ],
-    "baslik": "BMW E30 Vites Topuzu — Kısa Tip E36/E46 (88 mm)",
-    "aciklama": "BMW E30 Vites Topuzu özel üretim yedeği. BMW E30 için vites topuzu veya körük çerçevesi yedeğidir. Kırılan/eskiyen orijinalin yerine geçer.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 88 × 46 × 46 mm.",
-    "fiyat": "300 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th7133962-1.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "SquirrelRunner",
-      "tur": "CC BY-SA 4.0"
-    },
-    "altkategori": "Sürüş Kumandaları",
-    "uyum": [
-      {
-        "marka": "BMW"
-      },
-      {
-        "marka": "BMW",
-        "model": "E30"
       }
     ]
   },
@@ -857570,36 +855766,6 @@
       {
         "marka": "BMW",
         "model": "E46"
-      }
-    ]
-  },
-  {
-    "id": "bmw-e36-klima-obc-cercevesi",
-    "kategori": "Otomobil",
-    "marka": [
-      "BMW",
-      "E36"
-    ],
-    "baslik": "BMW E36 Klima/OBC Çerçevesi + Radyo Yuvası",
-    "aciklama": "BMW E36 Klima/OBC Çerçevesi + Radyo Yuvası özel üretim yedeği. BMW E36 için kalorifer/klima hava menfezi veya kanalına ait yedek parçadır. Kırılan/eskiyen orijinalin yerine geçer.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 202 × 67 × 22 mm.",
-    "fiyat": "300 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/bmw-e36-klima-obc-cercevesi-1.jpg",
-      "https://media.pruvo3d.com/urunler/bmw-e36-klima-obc-cercevesi-2.jpg",
-      "https://media.pruvo3d.com/urunler/bmw-e36-klima-obc-cercevesi-3.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "SpaceCoyote13",
-      "tur": "CC BY-SA 4.0"
-    },
-    "altkategori": "Ses ve Multimedya",
-    "uyum": [
-      {
-        "marka": "BMW"
-      },
-      {
-        "marka": "BMW",
-        "model": "E36"
       }
     ]
   },
@@ -861661,30 +859827,6 @@
     ]
   },
   {
-    "id": "bmw-1-5-ton-kriko-adaptoru",
-    "kategori": "Otomobil",
-    "marka": [
-      "BMW"
-    ],
-    "baslik": "BMW 1.5 Ton Kriko Adaptörü",
-    "aciklama": "BMW 1.5 Ton Kriko Adaptörü özel üretim yedeği. 1.5 ton kriko için kaldırma noktası adaptörüdür.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 50 × 50 × 30 mm.",
-    "fiyat": "300 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/bmw-1-5-ton-kriko-adaptoru-1.jpg",
-      "https://media.pruvo3d.com/urunler/bmw-1-5-ton-kriko-adaptoru-2.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "ecloud",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Montaj Parçaları ve Klipsler",
-    "uyum": [
-      {
-        "marka": "BMW"
-      }
-    ]
-  },
-  {
     "id": "bmw-e90-yan-sinyal-konnektoru",
     "kategori": "Otomobil",
     "marka": [
@@ -864580,34 +862722,6 @@
     ]
   },
   {
-    "id": "bmw-e30-ceki-kapagi",
-    "kategori": "Otomobil",
-    "marka": [
-      "BMW",
-      "E30"
-    ],
-    "baslik": "BMW E30 Çeki Kapağı",
-    "aciklama": "BMW E30 Çeki Kapağı özel üretim yedeği. çeki kancası boşluğu kapağıdır.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 30 × 30 × 9 mm.",
-    "fiyat": "300 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/bmw-e30-ceki-kapagi-1.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Nikitaras",
-      "tur": "CC BY-SA 4.0"
-    },
-    "altkategori": "Montaj Parçaları ve Klipsler",
-    "uyum": [
-      {
-        "marka": "BMW"
-      },
-      {
-        "marka": "BMW",
-        "model": "E30"
-      }
-    ]
-  },
-  {
     "id": "bmw-kriko-takoz-pedi-2",
     "kategori": "Otomobil",
     "marka": [
@@ -864728,34 +862842,6 @@
     ],
     "lisans": {
       "tasarimci": "NRudloff",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Motor Bölümü",
-    "uyum": [
-      {
-        "marka": "BMW"
-      }
-    ],
-    "tavsiyeFilament": [
-      "ABS"
-    ]
-  },
-  {
-    "id": "bmw-aku-terminal-kapagi",
-    "kategori": "Otomobil",
-    "marka": [
-      "BMW"
-    ],
-    "baslik": "BMW Akü/Terminal Kapağı",
-    "aciklama": "BMW Akü/Terminal Kapağı özel üretim yedeği. BMW için akü kutup (terminal) kapağı/tutucusu yedeğidir. Kırılan/eskiyen orijinalin yerine geçer.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 17 × 8 × 8 mm.",
-    "fiyat": "300 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/bmw-aku-terminal-kapagi-1.jpg",
-      "https://media.pruvo3d.com/urunler/bmw-aku-terminal-kapagi-2.jpg",
-      "https://media.pruvo3d.com/urunler/bmw-aku-terminal-kapagi-3.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "codeThatThinks",
       "tur": "CC BY 4.0"
     },
     "altkategori": "Motor Bölümü",
@@ -866407,31 +864493,6 @@
     ]
   },
   {
-    "id": "bmw-e82-splitter-spoiler-parcasi",
-    "kategori": "Otomobil",
-    "marka": [
-      "BMW"
-    ],
-    "baslik": "BMW E82 Splitter/Spoiler Parçası",
-    "aciklama": "BMW E82 Splitter/Spoiler Parçası özel üretim yedeği. BMW E82 için tampon aerodinamik splitter/spoiler parçasıdır. Kırılan/eskiyen orijinalin yerine geçer.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 90 × 76 × 10 mm.",
-    "fiyat": "500 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/bmw-e82-splitter-spoiler-parcasi-1.jpg",
-      "https://media.pruvo3d.com/urunler/bmw-e82-splitter-spoiler-parcasi-2.jpg",
-      "https://media.pruvo3d.com/urunler/bmw-e82-splitter-spoiler-parcasi-3.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Edrift",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Dış Aksam",
-    "uyum": [
-      {
-        "marka": "BMW"
-      }
-    ]
-  },
-  {
     "id": "bmw-e36-ic-trim-parcasi-klipsi",
     "kategori": "Otomobil",
     "marka": [
@@ -866792,35 +864853,6 @@
     ]
   },
   {
-    "id": "bmw-e36-vites-mekanizmasi-parcasi",
-    "kategori": "Otomobil",
-    "marka": [
-      "BMW",
-      "E36"
-    ],
-    "baslik": "BMW E36 Vites Mekanizması Parçası",
-    "aciklama": "BMW E36 Vites Mekanizması Parçası özel üretim yedeği. BMW E36 için vites seçme/aktarma mekanizmasına ait yedek parçadır. Kırılan/eskiyen orijinalin yerine geçer.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 101 × 50 × 50 mm.",
-    "fiyat": "400 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/bmw-e36-vites-mekanizmasi-parcasi-1.jpg",
-      "https://media.pruvo3d.com/urunler/bmw-e36-vites-mekanizmasi-parcasi-2.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Jakekolander",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Sürüş Kumandaları",
-    "uyum": [
-      {
-        "marka": "BMW"
-      },
-      {
-        "marka": "BMW",
-        "model": "E36"
-      }
-    ]
-  },
-  {
     "id": "bmw-ic-trim-parcasi-klipsi",
     "kategori": "Otomobil",
     "marka": [
@@ -867140,34 +865172,6 @@
     "uyum": [
       {
         "marka": "BMW"
-      }
-    ]
-  },
-  {
-    "id": "bmw-e90-kriko-takoz-pedi",
-    "kategori": "Otomobil",
-    "marka": [
-      "BMW",
-      "E90"
-    ],
-    "baslik": "BMW E90 Kriko Takoz/Pedi",
-    "aciklama": "BMW E90 Kriko Takoz/Pedi özel üretim yedeği. BMW E90 için kriko/lift kaldırma noktası takozudur; kaldırma sırasında eşiği korur. Kırılan/eskiyen orijinalin yerine geçer.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 101 × 61 × 60 mm.",
-    "fiyat": "300 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/bmw-e90-kriko-takoz-pedi-1.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "PrimeiraImpressao",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Montaj Parçaları ve Klipsler",
-    "uyum": [
-      {
-        "marka": "BMW"
-      },
-      {
-        "marka": "BMW",
-        "model": "E90"
       }
     ]
   },
@@ -867545,29 +865549,6 @@
     ],
     "tavsiyeFilament": [
       "ABS"
-    ]
-  },
-  {
-    "id": "bmw-vites-topuzu-kuru-kafa",
-    "kategori": "Otomobil",
-    "marka": [
-      "BMW"
-    ],
-    "baslik": "BMW Vites Topuzu (Kuru Kafa)",
-    "aciklama": "BMW Vites Topuzu (Kuru Kafa) özel üretim yedeği. kuru kafa temalı vites topuzudur; standart vites koluna geçer.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 101 × 65 × 46 mm.",
-    "fiyat": "300 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/bmw-vites-topuzu-kuru-kafa-1.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Spazz3d",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Sürüş Kumandaları",
-    "uyum": [
-      {
-        "marka": "BMW"
-      }
     ]
   },
   {
@@ -885003,24 +882984,6 @@
     "altkategori": "Ev ve Mutfak Cihazları"
   },
   {
-    "id": "bisiklet-telefon-tutucu-universal",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "baslik": "Bisiklet Gidon Telefon Tutucu (Universal · Ayarlı)",
-    "aciklama": "Bisiklet gidonuna takılan universal telefon tutucu — gidona kelepçelenir, çoğu telefonu güvenle kavrar. Sıkma vidasıyla ayarlanır; navigasyon ve antrenman takibi için telefonu sabit tutar.\n\nYandaki tırtıllı vida ile kelepçe sıkılır; telefon kolayca takılıp çıkarılır. Titreşime dayanıklı, sağlam malzemeyle üretilir.\n\nFarklı renk seçenekleriyle üretilebilir.",
-    "fiyat": "850 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/bisiklet-telefon-tutucu-universal-1.jpg",
-      "https://media.pruvo3d.com/urunler/bisiklet-telefon-tutucu-universal-2.jpg",
-      "https://media.pruvo3d.com/urunler/bisiklet-telefon-tutucu-universal-3.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Phyti1",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Telefon ve Navigasyon"
-  },
-  {
     "id": "raspberry-pi-kamera-mount-chiron",
     "kategori": "Kamera",
     "marka": [
@@ -893149,25 +891112,6 @@
     }
   },
   {
-    "id": "bisiklet-termos-sise-adaptoru-66mm",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Bisiklet Termos Şişe Adaptörü (66 mm Şişe İçin)",
-    "aciklama": "66 mm çaplı termos şişeleri standart matara kafesine sığdıran adaptör.\nYaklaşık dış ölçüler: 133 × 74 × 74 mm.",
-    "fiyat": "215 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th7253930-1.jpg",
-      "https://media.pruvo3d.com/urunler/th7253930-2.jpg",
-      "https://media.pruvo3d.com/urunler/th7253930-3.jpg",
-      "https://media.pruvo3d.com/urunler/th7253930-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "hilde1973",
-      "tur": "CC-BY-SA"
-    }
-  },
-  {
     "id": "bisiklet-gidonu-fener-tutucusu-sofirn-if23-gopro-tip",
     "kategori": "Bisiklet",
     "marka": [],
@@ -894657,31 +892601,6 @@
       "tasarimci": "numb_dog"
     },
     "altkategori": "Lens Adaptörleri"
-  },
-  {
-    "id": "canon-58mm-lens-parasoleyi",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon Rebel T3i için 58mm Vidalı Lens Parasoleyi",
-    "aciklama": "Vida dişli objektiflere takılan kompakt lens parasoleyi; Canon Rebel T3i ve aynı filtre çapına sahip diğer gövdelerde kullanılabilir, yan ışık parlamasını azaltır.\nYaklaşık dış ölçüler: 71 × 71 × 35 mm.",
-    "fiyat": "350 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th443415-1.jpg",
-      "https://media.pruvo3d.com/urunler/th443415-2.jpg",
-      "https://media.pruvo3d.com/urunler/th443415-3.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY 4.0",
-      "tasarimci": "GigaKnight"
-    },
-    "altkategori": "Filtre ve Parasoley"
   },
   {
     "id": "canon-fd-fl-to-ef-adaptoru",

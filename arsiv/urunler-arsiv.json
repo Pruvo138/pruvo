@@ -2338,7 +2338,7 @@
   {
     "id": "bisiklet-evrensel-telefon-tutucusu-v2",
     "silinme_ts": "2026-10-24T20:21:11Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "8caf42f52724683c4e10482876175c9016536c72a8f28ab0c5aa38d8ae4544d3",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2346,7 +2346,7 @@
   {
     "id": "bisiklet-fairphone-4-silikon-kilif-telefon-tutucusu",
     "silinme_ts": "2026-10-24T20:21:11Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "dfe6685ca691906f9c551c87be37bc0d6a7db174ed13a794f1f2a8f8284424df",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2354,7 +2354,7 @@
   {
     "id": "bisiklet-far-kelepce-astari",
     "silinme_ts": "2026-10-24T20:21:12Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "26d2b2465c6f17ab8eca0ab98f1aebf8d0ca36acba08e85bba3a8a133db01e94",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2362,7 +2362,7 @@
   {
     "id": "bisiklet-fatbike-jant-delik-kapagi",
     "silinme_ts": "2026-10-24T20:21:13Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "c7615e779d76c67464f7e33b23bfface7e24bb50f5c6957e516a3296f6d862bb",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2370,7 +2370,7 @@
   {
     "id": "bisiklet-fener-mikro-usb-toz-kapagi",
     "silinme_ts": "2026-10-24T20:21:14Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "fe1a90c78eca2de112265f39303583407e974c4d838dd7cee4d51db116e363fc",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2378,7 +2378,7 @@
   {
     "id": "bisiklet-fly6-kamera-bagaj-rafi-tutucusu",
     "silinme_ts": "2026-10-24T20:21:15Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "4fbebd4562c067b98441b39b692dfdc86ba3a2670290e45835cbd36ed224a559",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2386,7 +2386,7 @@
   {
     "id": "bisiklet-galaxy-note-2-gidon-tutucusu",
     "silinme_ts": "2026-10-24T20:21:16Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "c7c32dc99406dc46b71dd885003100e843ddfb38ea31f199ad461bf3a85fd9be",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2394,7 +2394,7 @@
   {
     "id": "bisiklet-galaxy-s3-gidon-tutucusu",
     "silinme_ts": "2026-10-24T20:21:17Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "4ac5b2a2db39ed272cb0c466778a9e454f845af355d5ad4ca07671502b87ddc5",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2402,7 +2402,7 @@
   {
     "id": "bisiklet-galaxy-s4-gidon-tutucusu",
     "silinme_ts": "2026-10-24T20:21:18Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "ee77dacb162a6d01e23ecefc0ce6d2dbefb2a6d4bbab70d3bfff727769523fce",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2410,7 +2410,7 @@
   {
     "id": "bisiklet-garmin-gidon-govde-tutucusu",
     "silinme_ts": "2026-10-24T20:21:19Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "b91e3bba5f948c14a2fcf920141a15db6e41c505bb680791954f44f84674a776",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2418,7 +2418,7 @@
   {
     "id": "bisiklet-garmin-gidon-tutucusu",
     "silinme_ts": "2026-10-24T20:21:20Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "1954d1b0268fccd567b6ae7ab3da0c3c49e2eedcaac3d22936935e78e1954b8b",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2426,7 +2426,7 @@
   {
     "id": "bisiklet-garmin-varia-radar-raf-tutucusu",
     "silinme_ts": "2026-10-24T20:21:21Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "0a503135446379f9b4da039cb827752c450bf5626c485fecdc558ea55cef0427",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2434,7 +2434,7 @@
   {
     "id": "bisiklet-garmin-varia-sele-borusu-montaji",
     "silinme_ts": "2026-10-24T20:21:23Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "2e795c4f21e9be18e7281a2e131b90ef1c2dbfc0600729d37887f69cb4d61646",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2442,7 +2442,7 @@
   {
     "id": "bisiklet-genisletilmis-universal-telefon-tutucusu",
     "silinme_ts": "2026-10-24T20:21:24Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "9f19d31d62233cb5325fdf5e24e0c344e3f6cb24999434a676cbf03aba0a82ea",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2450,7 +2450,7 @@
   {
     "id": "bisiklet-gidon-akilli-saat-tutucusu-42mm",
     "silinme_ts": "2026-10-24T20:21:25Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "d7123bbdbcff3356a5eb54bc1f8c55d6ba006fa233b041f2222c531c0334f3dd",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2458,7 +2458,7 @@
   {
     "id": "bisiklet-gidon-kamera-montaji-cok-fonksiyonlu",
     "silinme_ts": "2026-10-24T20:21:27Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "285af902bc2b5f12e45bfae3b307c10d9da00c07a1afb7325214ab2dcd7bef95",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2466,7 +2466,7 @@
   {
     "id": "bisiklet-gidon-saat-kayisi-tutucu-garmin-fenix-6s",
     "silinme_ts": "2026-10-24T20:21:28Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "cb473cd1a4dabd65bd436a5fbee252cedfa5dc847aefcbca2c342ed34366ba30",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2474,7 +2474,7 @@
   {
     "id": "bisiklet-gidon-sapi-akilli-saat-tutucusu",
     "silinme_ts": "2026-10-24T20:21:29Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "8ecc922687cfd15d16766f5b7c24dd8b474f6601e59db7803e80752e21e7a0a8",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2482,7 +2482,7 @@
   {
     "id": "bisiklet-gidon-sapi-gopro-montaji",
     "silinme_ts": "2026-10-24T20:21:30Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "33e01fb4736ab2dd61a285a347e974184047eed4369a93f21985e9414d27a71e",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2490,7 +2490,7 @@
   {
     "id": "bisiklet-gidon-sapi-montaj-parcalari",
     "silinme_ts": "2026-10-24T20:21:32Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "5377ba88efac8acc4c608674dcf72225077c6480978d6935b2e38a937a4f095a",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2498,7 +2498,7 @@
   {
     "id": "bisiklet-gidon-tapasi-pukylino-uyumlu",
     "silinme_ts": "2026-10-24T20:21:33Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "3982885d7b2099cc797487b05f26a6d5405232c803ddff06afacc0acb77e1329",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2506,7 +2506,7 @@
   {
     "id": "bisiklet-gidon-tapasi-yuvarlak-kenar",
     "silinme_ts": "2026-10-24T20:21:34Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "1e36f42ae277a74e73442cea3e1ff610cb8d5377351d7074ae92786730dfe508",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2514,7 +2514,7 @@
   {
     "id": "bisiklet-gidon-telefon-tutucusu-iphone-11-pro-max",
     "silinme_ts": "2026-10-24T20:21:36Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "9353a841f790ac8b4e0633d9cde9028b31c6b41868917089a70f7d4233b64aa7",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2522,7 +2522,7 @@
   {
     "id": "bisiklet-gidon-ucu-tapasi-ayarlanabilir",
     "silinme_ts": "2026-10-24T20:21:37Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "132991eef5cdc70e46a674c4abb463be5a9b03e78940ae46f6047e6468b398d4",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2530,7 +2530,7 @@
   {
     "id": "bisiklet-gidon-ucu-tapasi-kedi-desenli",
     "silinme_ts": "2026-10-24T20:21:39Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "f1763b70e78eeae1cd8816bb7d4cff748eb99090e04936d34fd7834f2cec0157",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2538,7 +2538,7 @@
   {
     "id": "bisiklet-gidon-uzatici-22-23-8-32mm",
     "silinme_ts": "2026-10-24T20:21:40Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "ada6bf83f0090c82a9cbaf3aefb0d5469c8944e26f70daa11545288916abfda6",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2546,7 +2546,7 @@
   {
     "id": "bisiklet-gidon-uzerine-akilli-saat-tutucusu",
     "silinme_ts": "2026-10-24T20:21:42Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "9c178ae17ffb07c1bed191f7c6958bf79cb91ae2f4b50ab44f118b08338471c0",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2554,7 +2554,7 @@
   {
     "id": "bisiklet-gidonu-el-feneri-surtunmeli-tutucusu",
     "silinme_ts": "2026-10-24T20:21:43Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "8fefaa04127392b9162c72183bcdad4fa00ed208babd15a107885bd6bba608fd",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2562,7 +2562,7 @@
   {
     "id": "bisiklet-gidonu-saat-tutucusu-casio-f91w-22mm",
     "silinme_ts": "2026-10-24T20:21:45Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "432421d5e11373743d1b524a746ca9cfaddf5baa7383de09978b241edda39a4d",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2570,7 +2570,7 @@
   {
     "id": "bisiklet-gimbal-gopro-montaji",
     "silinme_ts": "2026-10-24T20:21:47Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "93886a8a492142d9cbe398ffddb4ccb1f330ce9959c763b356ec0c8871aaeda1",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2578,7 +2578,7 @@
   {
     "id": "bisiklet-gopro-far-ortak-montaj-braketi",
     "silinme_ts": "2026-10-24T20:21:49Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "f9b34fd3544227d694ae41004da948aa989b9cc1061956d218e5e109576e0eda",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2586,7 +2586,7 @@
   {
     "id": "bisiklet-govde-plakasi-aksiyon-kamera-montaji",
     "silinme_ts": "2026-10-24T20:21:51Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "2363d6ea199319ab7458ea46491311d03c99f0efe71bb8f40871da4ba983c9b5",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2594,7 +2594,7 @@
   {
     "id": "bisiklet-govde-telefon-montaji-duz-govde",
     "silinme_ts": "2026-10-24T20:21:53Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "e34cbbc93be06877e6309103ad372749cbbc65608025b423c06d7a0c60652ba9",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2602,7 +2602,7 @@
   {
     "id": "bisiklet-govde-telefon-montaji-sp-connect",
     "silinme_ts": "2026-10-24T20:21:55Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "e6b7846a2ec4b8408889a5ff74f636553da81d517561d27895fbb9ce2f10c5fa",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2610,7 +2610,7 @@
   {
     "id": "bisiklet-gps-adaptoru-garmin-uyumlu",
     "silinme_ts": "2026-10-24T20:21:57Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "7f6190e54545aada579063ac765c93f12d8225c63a7b006fc7af9f0e704b255c",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2618,7 +2618,7 @@
   {
     "id": "bisiklet-gul-supap-kapagi",
     "silinme_ts": "2026-10-24T20:21:58Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "3a73397973a0639ab1e09992caf5ad3084ebc830ed459347b5557577097bd318",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2626,7 +2626,7 @@
   {
     "id": "bisiklet-guvenlik-bayragi-direk-basligi",
     "silinme_ts": "2026-10-24T20:22:00Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "d4b08de215c738e0d322cc6abca3b9f2481bf50b1ee7f181072528b01504a089",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2634,7 +2634,7 @@
   {
     "id": "bisiklet-hizli-kilit-telefon-montaji",
     "silinme_ts": "2026-10-24T20:22:02Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "20d8ab72b5564d26380b116414e76ebdde2483bedd82700df0ae978f18d7f79a",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2642,7 +2642,7 @@
   {
     "id": "bisiklet-hizli-kilit-telefon-tutucusu",
     "silinme_ts": "2026-10-24T20:22:04Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "77d0f6015b7d2edacaf795a0b019856543999dd19e01cb386758b6dee1c1e0a2",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2650,7 +2650,7 @@
   {
     "id": "bisiklet-hizli-raf-m5-montaj-pulu",
     "silinme_ts": "2026-10-24T20:22:06Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "832006ac206de711fb88d4be78c6de4fcc14e1486b5f18b3432f0e5678c023be",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2658,7 +2658,7 @@
   {
     "id": "bisiklet-hoparlor-tutucusu-jbl-go2-uyumlu",
     "silinme_ts": "2026-10-24T20:22:08Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "dbed0cbf6bf5d255c39ac19518fa973199e3240d4d34f2d1939cfbaefbc8dc3b",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2666,7 +2666,7 @@
   {
     "id": "bisiklet-insta360-go-3s-gopro-garmin-adaptoru",
     "silinme_ts": "2026-10-24T20:22:09Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "8a42a64753f7d96433159bdd58f10e39b3e5e021f398fec7d476d15cadd5ab5e",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2674,7 +2674,7 @@
   {
     "id": "bisiklet-iphone-4-klipsli-tutucu",
     "silinme_ts": "2026-10-24T20:22:11Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "1ed4ca54b4ab35386e178b75ab575a32f327dac2def39fecfcd7ed014e68a261",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2682,7 +2682,7 @@
   {
     "id": "bisiklet-iphone-6-gidon-tutucusu-kolay-baski",
     "silinme_ts": "2026-10-24T20:22:14Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "4950cd75515c470e892c7c0e70e3d8060b54c166da246a1a60d6b7d2fa2bd1c4",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2690,7 +2690,7 @@
   {
     "id": "bisiklet-iphone-7-plus-tutucusu",
     "silinme_ts": "2026-10-24T20:22:16Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "763cfb15516ada4499be0ce27071388e958df0379fc28df024c95505aec3694e",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2698,7 +2698,7 @@
   {
     "id": "bisiklet-iphone-8-plus-26mm-gidon-tutucusu",
     "silinme_ts": "2026-10-24T20:22:18Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "a70d89b82356b00ba87196f3ad1a84ab9c07a696b87a66c3badc8ea951e7374e",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2706,7 +2706,7 @@
   {
     "id": "bisiklet-iphone-k-l-fl-gidon-tutucusu",
     "silinme_ts": "2026-10-24T20:22:20Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "5fe11b6470b3e512c4b6a38e3a2489f8bc69ab91aa487593e5c6b8c6a7462f7e",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2714,7 +2714,7 @@
   {
     "id": "bisiklet-iphone5-mtb-tutucusu",
     "silinme_ts": "2026-10-24T20:22:23Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "0e5fb15ea75d8eec6e6e80cf236e470eec288e62db3cdef30493d07f4f599e44",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2722,7 +2722,7 @@
   {
     "id": "bisiklet-iphone6-plus-hizli-birakma-montaji",
     "silinme_ts": "2026-10-24T20:22:25Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "71818ce7cb35b9b90e258e26615ef489e495afc67fb3bf3546e95639fb63e69a",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2730,7 +2730,7 @@
   {
     "id": "bisiklet-isik-tutucusu-25mm-govde",
     "silinme_ts": "2026-10-24T20:22:28Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "8b22d3b61b1af36d9459cc2de30874108b276f2d22394e748b5954dae721ca15",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2738,7 +2738,7 @@
   {
     "id": "bisiklet-jant-supap-deligi-tapasi",
     "silinme_ts": "2026-10-24T20:22:30Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "c96035ef30f286c16ff18197cf4f5c35e1054425c0998227937a77bc82ad6580",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2746,7 +2746,7 @@
   {
     "id": "bisiklet-jant-teli-delik-kapagi",
     "silinme_ts": "2026-10-24T20:22:33Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "9ff0e876f2d83a0caa1fe9477f82ffb6c7a6023499bf42ae456407ed2e5fd68e",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2754,7 +2754,7 @@
   {
     "id": "bisiklet-jant-teli-gerginlik-olcer-delme-kilavuzu",
     "silinme_ts": "2026-10-24T20:22:35Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "95bd10d6d7799a46a7dfa6246d87c2ec9afaadd266b4f48f98599995a16fd6ce",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2762,7 +2762,7 @@
   {
     "id": "bisiklet-jant-teli-klipsli-presta-supap-kapagi",
     "silinme_ts": "2026-10-24T20:22:37Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "d71e04f5fec3f8234a0c72d07c5a6f1ab051fedde57ebae0b66ea89d10ded14f",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2770,7 +2770,7 @@
   {
     "id": "bisiklet-jbl-flip-hoparlor-tutucusu",
     "silinme_ts": "2026-10-24T20:22:40Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "db31c63ea860ef399970d9cb7a84d523e92661bf29995a87039cfdccc202f70b",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2778,7 +2778,7 @@
   {
     "id": "bisiklet-kablo-hortum-tutucusu-norta-ts1",
     "silinme_ts": "2026-10-24T20:22:42Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "597591b71754bfdcb10fe2d5e9934b3bf128192b3c5c1f1008d63c25b6eecc61",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2786,7 +2786,7 @@
   {
     "id": "bisiklet-kablo-klipsi-ince-esnek",
     "silinme_ts": "2026-10-24T20:22:45Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "2721e3dd6cddfa8cba731450dff60c018064ef6f1c0f36abfc7a7d8033fa758f",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2794,7 +2794,7 @@
   {
     "id": "bisiklet-kafatasi-desenli-ust-kapak",
     "silinme_ts": "2026-10-24T20:22:47Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "7a2c65ccf076fde88790ba401bce5444b5d9be7a061d05547cbf611c090c97c5",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2802,7 +2802,7 @@
   {
     "id": "bisiklet-kamera-navigasyon-adaptoru-24-8mm",
     "silinme_ts": "2026-10-24T20:22:50Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "5db79cfd24309eff668a32d25002a2a35ae4a78977a677a22a59df79a48fe63b",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2810,7 +2810,7 @@
   {
     "id": "bisiklet-kamera-tutucusu-cycliq-fly6-giant-tcr",
     "silinme_ts": "2026-10-24T20:22:52Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "f2c17c3ef764a1a61f10fa204c20fa33cfa585151384cfcae51ba26a783d44bc",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2818,7 +2818,7 @@
   {
     "id": "bisiklet-kayisli-matara-kovani-tutucusu",
     "silinme_ts": "2026-10-24T20:22:55Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "5c35fd9c34f16aa7a2ade03dcb364943dd30b9d985a9611fc3c7a86ffe5928ca",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2826,7 +2826,7 @@
   {
     "id": "bisiklet-konum-etiketi-tutucusu-kapakli",
     "silinme_ts": "2026-10-24T20:22:58Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "c9ff89705dab8f11db08a7a32738842a53f7a9539860cafe16789961fa83e87d",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2834,7 +2834,7 @@
   {
     "id": "bisiklet-lastik-bantli-telefon-tutucusu",
     "silinme_ts": "2026-10-24T20:23:00Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "830e5a86da8d2c030b563c7ba781780109c621f7a79fa62c907865a66425799b",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2842,7 +2842,7 @@
   {
     "id": "bisiklet-lastik-sokme-cubugu-gelistirilmis",
     "silinme_ts": "2026-10-24T20:23:03Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "ce0ce4af13f264b547db5039f974a71152d3180631f936339a494f1fbe23eb2a",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2850,7 +2850,7 @@
   {
     "id": "bisiklet-lastik-sokme-cubugu-kisa",
     "silinme_ts": "2026-10-24T20:23:06Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "7c0e92b109c7b539c177cf03241a25fd592a0c5ef1a53ae64026997b20f11b73",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2858,7 +2858,7 @@
   {
     "id": "bisiklet-lastik-sokme-demiri-basit",
     "silinme_ts": "2026-10-24T20:23:09Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "b5ce5c750ed0ab4dd81d18853f9b591b44cda668563acb0f83a137b7bb5a0449",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2866,7 +2866,7 @@
   {
     "id": "bisiklet-lastik-sokme-demiri-ince",
     "silinme_ts": "2026-10-24T20:23:11Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "8ed611d85a4a8f625ffa533f36bbb2b26662beb6994aadfe10cdb2ddd300367d",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2874,7 +2874,7 @@
   {
     "id": "bisiklet-lastik-tamir-seti-kutusu",
     "silinme_ts": "2026-10-24T20:23:14Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "b6a1a8c2a28c8db06bda839658b8ad791db45014fc1903edefdb15031e883eec",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2882,7 +2882,7 @@
   {
     "id": "bisiklet-lezyne-garmin-tutucu-adaptoru",
     "silinme_ts": "2026-10-24T20:23:17Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "b4da91a5672f96f770777d57b50bc09a227a989aba8e651aa8d56374fa2aa97e",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2890,7 +2890,7 @@
   {
     "id": "bisiklet-lezyne-gps-bilgisayar-tutucusu",
     "silinme_ts": "2026-10-24T20:23:20Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "3a5765fe5e21e541e8dce4941a85cbacc26e9f7294440442b340d6fbf84bfee7",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2898,7 +2898,7 @@
   {
     "id": "bisiklet-lg-v10-telefon-tutucusu",
     "silinme_ts": "2026-10-24T20:23:24Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "e85254821bf3887c6d7395706f812609dfb95d7521aaec5cc3ad1d0cbe02a77b",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2906,7 +2906,7 @@
   {
     "id": "bisiklet-look-delta-klips-adaptoru",
     "silinme_ts": "2026-10-24T20:23:27Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "64c49d7974064e48df6e473936607811a9e8fb0f5949744edf68928a4036afb2",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2914,7 +2914,7 @@
   {
     "id": "bisiklet-matara-kafesi-co2-tup-tutucusu-cift",
     "silinme_ts": "2026-10-24T20:23:30Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "810af0443ee01350e671a87d355005c7ba1a1d274cb5eba7aed63cbabc4cbf46",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2922,7 +2922,7 @@
   {
     "id": "bisiklet-matara-kafesi-genis-vida-yuvali",
     "silinme_ts": "2026-10-24T20:23:33Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "6618ff080c3ef7f05b47c7aa9d097f40798014a8edecc69090687096ccbcef23",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2930,7 +2930,7 @@
   {
     "id": "bisiklet-matara-kafesi-kutu-tutucusu-500ml",
     "silinme_ts": "2026-10-24T20:23:36Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "ded111d4f99f38deef222079c9de47690bd0087d3e91050c38d315424bbe5077",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2938,7 +2938,7 @@
   {
     "id": "bisiklet-matara-kafesi-teneke-kutu-adaptoru",
     "silinme_ts": "2026-10-24T20:23:39Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "c92804cf6ca7cd8b9d29b830cef7842b29853ed3eb170d018f7b6e0bc37d397a",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2946,7 +2946,7 @@
   {
     "id": "bisiklet-matara-kafesi-tup-montajli",
     "silinme_ts": "2026-10-24T20:23:42Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "1acbfece581d3c7f924372fc0dab76d48adcfd52c73bdbdcbbdd8f1807c70a11",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2954,7 +2954,7 @@
   {
     "id": "bisiklet-matara-kovani-kelepcesi-28mm",
     "silinme_ts": "2026-10-24T20:23:45Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "5635292ada33acc1eddb706d05ccf69fac51fc42f4d6e481eaf9b2e06e8b3f80",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2962,7 +2962,7 @@
   {
     "id": "bisiklet-matarasi-genis-agiz-tutucusu",
     "silinme_ts": "2026-10-24T20:23:48Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "6ce66f8d5ed7b6a815084cebd9f99406c40526d858199c04887c44e4357b0380",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2970,7 +2970,7 @@
   {
     "id": "bisiklet-mengene-yumusak-cene-ekipmani",
     "silinme_ts": "2026-10-24T20:23:52Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "61a53fe3b1512e1d9b204be21f5707e813cca29618671c47fe0fb47204b96d0c",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2978,7 +2978,7 @@
   {
     "id": "bisiklet-modul-montaj-sistemi-adaptoru",
     "silinme_ts": "2026-10-24T20:23:55Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "b35b92164d2fc957a6c0a959ab87d003c2d560a8db3b7e3d28a2fe400ade86e7",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2986,7 +2986,7 @@
   {
     "id": "bisiklet-modular-montaj-bagi-v1",
     "silinme_ts": "2026-10-24T20:23:59Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "8c9191b630b0dce77d4b61c979fa0db6e69cb1d742b81434bb19682cf77f12aa",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -2994,7 +2994,7 @@
   {
     "id": "bisiklet-moduler-aksesuar-baglanti-sistemi",
     "silinme_ts": "2026-10-24T20:24:02Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "c9efe5cf0283b2236be38b479937d20ad2b1b2e052f127b4d4a23302d7fdaede",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -3002,7 +3002,7 @@
   {
     "id": "bisiklet-mtb-kask-asma-kancasi",
     "silinme_ts": "2026-10-24T20:24:06Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "6dbf608aaa9911367001bc678e95ac853545c6924fbae0d815c77b61c1a6c2a3",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -3010,7 +3010,7 @@
   {
     "id": "bisiklet-nexus-5x-gidon-tutucusu-saglam",
     "silinme_ts": "2026-10-24T20:24:09Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "c1a5d960d36ec4fe7aeaabc05fb7364c5f6c2ae0f56cc8c14b81fe8cad1020ea",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -3018,7 +3018,7 @@
   {
     "id": "bisiklet-on-amortisor-toz-kecesi-takma-aleti",
     "silinme_ts": "2026-10-24T20:24:13Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "6be8bb8f0842c56c24372917c4a27eddbdbe6b18cae9e97c3ac95664778b786f",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -3026,7 +3026,7 @@
   {
     "id": "bisiklet-on-far-tutucusu-genisletilmis",
     "silinme_ts": "2026-10-24T20:24:16Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "c486bb84591083b995447d6d357858b2e28414bbc3d9bde498f56078a0ed7373",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -3034,7 +3034,7 @@
   {
     "id": "bisiklet-on-isik-gidon-tutucusu-222mm",
     "silinme_ts": "2026-10-24T20:24:19Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "05c2fe79a0f9c311a050a0204e92bce0af487024f549e7403f221cbb8c9b6b3a",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -3042,7 +3042,7 @@
   {
     "id": "bisiklet-on-reflektor-gidon-tutucusu-30mm",
     "silinme_ts": "2026-10-24T20:24:23Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "c4e8fc774b22a182a7a9d502bdafe47911a485697392c73f09c881c37d5e6103",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -3050,7 +3050,7 @@
   {
     "id": "bisiklet-one-uzatmali-bilgisayar-tutucusu",
     "silinme_ts": "2026-10-24T20:24:26Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "b64d47ea84c7448644ece080ce7ca4ee006712ff23dacc788a8c3479d12f92c8",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -3058,7 +3058,7 @@
   {
     "id": "bisiklet-orta-gobek-rulman-kilavuzu",
     "silinme_ts": "2026-10-24T20:24:30Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "35348ca48dd109c9658ad5db053f4337eeafddf7760cd97949d9e39321610450",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -3066,7 +3066,7 @@
   {
     "id": "bisiklet-pedal-adaptoru-spd",
     "silinme_ts": "2026-10-24T20:24:34Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "967d1151fdb02a0d6777290887ee695e04afda4960a7a891166b31ec6f95f44d",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -3074,7 +3074,7 @@
   {
     "id": "bisiklet-pedal-klips-kapagi-uyumlu",
     "silinme_ts": "2026-10-24T20:24:37Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "944ee6c337e6224557f958fca6d9bb42870d7d787ce440f0498ad663fe87c07a",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -3082,7 +3082,7 @@
   {
     "id": "bisiklet-pedal-tek-cikintili-montaj",
     "silinme_ts": "2026-10-24T20:24:41Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "f6a804608ff5335d6a453f16bd57561af0f6a1635a42c8af1b0cbabf90e616db",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -3090,7 +3090,7 @@
   {
     "id": "bisiklet-pil-kutusu-cerceve-klipsi",
     "silinme_ts": "2026-10-24T20:24:45Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "d47d85c31400edccd7c50567a0c8f31e2a0f2637624c3fc2d09ddbafb47360de",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -3098,7 +3098,7 @@
   {
     "id": "bisiklet-redmi-note-3-gidon-tutucusu",
     "silinme_ts": "2026-10-24T20:24:49Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "72e79e34b2f39a292b5ee0dcfbf9e15d3464ef165c66e7309d26b517ea683943",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -3106,7 +3106,7 @@
   {
     "id": "bisiklet-romork-gidon-baglanti-parcasi",
     "silinme_ts": "2026-10-24T20:24:53Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "71e493b5d6971722a103463edb83a6446aa2690ecdffb455b379bdd6197bf320",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -3114,7 +3114,7 @@
   {
     "id": "bisiklet-saat-tutucusu-garmin-fenix-uyumlu",
     "silinme_ts": "2026-10-24T20:24:56Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "9e078d1778425dddf352ee03d14ffbe0fe10c556d28095da1eb2093ef445c985",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -3122,7 +3122,7 @@
   {
     "id": "bisiklet-sabun-kopugu-makinesi",
     "silinme_ts": "2026-10-24T20:25:00Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "1b29709d7e64761f8f211abd2208d688be7a68992cac2f8fbeb81c14fe837410",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -3130,8 +3130,808 @@
   {
     "id": "bisiklet-sele-airtag-gopro-gizli-tutucusu",
     "silinme_ts": "2026-10-24T20:25:03Z",
-    "silme_commit": null,
+    "silme_commit": "9346670a8839d4e28c23e5ca0e58e860ac43cadd",
     "govde_sha256": "63e306d6623d75a02511c91652fd0202f1ce1eb3af2dc765d891605ceca6e33c",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-sele-alti-arka-isik-tutucusu-silindirik",
+    "silinme_ts": "2026-10-24T20:32:37Z",
+    "silme_commit": null,
+    "govde_sha256": "6417549966fb62867bb970e06ebd7358cd93ffd8c62ecf0dec92a0eed5b484f9",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-sele-borusu-govde-tutucusu-31-6mm",
+    "silinme_ts": "2026-10-24T20:32:38Z",
+    "silme_commit": null,
+    "govde_sha256": "24a99df03d4f0ed5c4bc67e8b83f69a942e08126f4bdaad4f4a6b3e3e6c91925",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-snap-kilit-telefon-tutucusu-genel",
+    "silinme_ts": "2026-10-24T20:32:39Z",
+    "silme_commit": null,
+    "govde_sha256": "d7829b0ea6b76a522b53db40ea46ff273c02bb7c0eb190c436aaee44247f0ae1",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-supap-kapagi-dikilitas-figurlu",
+    "silinme_ts": "2026-10-24T20:32:40Z",
+    "silme_commit": null,
+    "govde_sha256": "8996e89ca554160721c424677924e17a87c7d7fe9b787c548536c543fc9529a3",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-supap-kapagi-satranc-figurlu",
+    "silinme_ts": "2026-10-24T20:32:41Z",
+    "silme_commit": null,
+    "govde_sha256": "8121bc83c71e3b81c7b5f6735c022fe7a889844a096e17cb932a8c1eeae4e267",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-supap-kapagi-savas-kaski-figurlu",
+    "silinme_ts": "2026-10-24T20:32:42Z",
+    "silme_commit": null,
+    "govde_sha256": "6e015d1cc65eb9c2e4e893f454d42591a30983b34d53cf467dcb7f2b95884f16",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-supap-kapagi-tiki-figurlu",
+    "silinme_ts": "2026-10-24T20:32:43Z",
+    "silme_commit": null,
+    "govde_sha256": "bbf2e37fa34b92d03a23f6149741b0b3e8b1c12a64598ca80c64f83a11308ec9",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-takip-etiketi-tutucusu-ince",
+    "silinme_ts": "2026-10-24T20:32:44Z",
+    "silme_commit": null,
+    "govde_sha256": "65904c35cefe757b822a0421f6dfdcc3b930ac8ab125f11ebb75df3e78b5d8c0",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-tasiyici-uc-kapagi-thule-uyumlu",
+    "silinme_ts": "2026-10-24T20:32:45Z",
+    "silme_commit": null,
+    "govde_sha256": "b15c17a94913f57ad1c9dd38a5a46896cc4054c968f2207aed256466f496f881",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-teker-gidon-360-derece-kamera-tutucusu",
+    "silinme_ts": "2026-10-24T20:32:46Z",
+    "silme_commit": null,
+    "govde_sha256": "1f15c708d1e12388cf6d371c2fd5621500e95257db432ec5818dd042239bdc43",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-teker-gidon-kamera-tutucusu-insta360-uyumlu",
+    "silinme_ts": "2026-10-24T20:32:47Z",
+    "silme_commit": null,
+    "govde_sha256": "e1d7014f42374fc234e6e32121b2dbd0aba01420779785713e05673bb3cd3441",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-telefon-gidon-tutucusu-kilifli",
+    "silinme_ts": "2026-10-24T20:32:48Z",
+    "silme_commit": null,
+    "govde_sha256": "64d4c95cf1e7ad56cc7eb34c8c46fd6673c107e5b2d09bdba89401830296eab4",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-telefon-kilifi-tutucusu-google-pixel",
+    "silinme_ts": "2026-10-24T20:32:49Z",
+    "silme_commit": null,
+    "govde_sha256": "3771fa223aefdd468bf3b3faaff35603fec0ab2054537a72a77a8085977cfd0d",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-telefon-tutucu-braket-parcasi",
+    "silinme_ts": "2026-10-24T20:32:50Z",
+    "silme_commit": null,
+    "govde_sha256": "03b4f580b700c450f5e1f70aaad1e6107edf11c73f6ac3020379f107e28101b2",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-telefon-tutucu-universal",
+    "silinme_ts": "2026-10-24T20:32:52Z",
+    "silme_commit": null,
+    "govde_sha256": "4b4344fc05e6a2bbd3a39773d77121048c3b99ab889fcb838f5f77bec19996ea",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-telefon-tutucu-uzatma-parcasi",
+    "silinme_ts": "2026-10-24T20:32:53Z",
+    "silme_commit": null,
+    "govde_sha256": "89839e6aecc1e918fa002ff2e6319dd059bffa6281c2d65fc97c10ca5d7361fa",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-telefon-tutucusu-32mm-gidon",
+    "silinme_ts": "2026-10-24T20:32:54Z",
+    "silme_commit": null,
+    "govde_sha256": "1eb2857b0075e6689a86e14c4d76b82392ccba026603dd3830b7e82f0c6608e4",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-telefon-tutucusu-36mm-kelepce",
+    "silinme_ts": "2026-10-24T20:32:56Z",
+    "silme_commit": null,
+    "govde_sha256": "01cc774319c3e740b7b8c50245c361c74e32eb262566442e6baa99be9aeda2a7",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-telefon-tutucusu-ara-adaptoru",
+    "silinme_ts": "2026-10-24T20:32:57Z",
+    "silme_commit": null,
+    "govde_sha256": "15aadc3a0ace31fb137bc8d1dd0f5e3d557f691d9a926fb577f86799b679e73a",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-telefon-tutucusu-asimetrik-montaj-plakasi",
+    "silinme_ts": "2026-10-24T20:32:58Z",
+    "silme_commit": null,
+    "govde_sha256": "d952f36e6ca93798428b51dbe61d756b2b35f45e37607a5f7ad9cfb6e8685c1a",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-telefon-tutucusu-buyuk-ekran-uyumlu",
+    "silinme_ts": "2026-10-24T20:33:00Z",
+    "silme_commit": null,
+    "govde_sha256": "2bde0187b17d012a87ea0a363ce81f9691574b6966be8b7831917e2a41667364",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-telefon-tutucusu-degisken-yukseklik",
+    "silinme_ts": "2026-10-24T20:33:01Z",
+    "silme_commit": null,
+    "govde_sha256": "31e72700506e104aa0fab900b12f8a0c4894d6723f1a948467cfaebd99e78b6c",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-telefon-tutucusu-egimli",
+    "silinme_ts": "2026-10-24T20:33:02Z",
+    "silme_commit": null,
+    "govde_sha256": "1ee9020e13edb55946fad9f2ce105aa83138cded320ef524957aff8b109ec187",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-telefon-tutucusu-genis-kilifli",
+    "silinme_ts": "2026-10-24T20:33:04Z",
+    "silme_commit": null,
+    "govde_sha256": "7260062149862c1a99feb1d473ee824c84f57abc78ee7403889bf4a85bcb133c",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-telefon-tutucusu-gidon-seti",
+    "silinme_ts": "2026-10-24T20:33:06Z",
+    "silme_commit": null,
+    "govde_sha256": "c9ad52cd601ec6e614a43bb095957dd348356785ba41558d6893a7c3a1479dc6",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-telefon-tutucusu-gopro-uyumlu",
+    "silinme_ts": "2026-10-24T20:33:07Z",
+    "silme_commit": null,
+    "govde_sha256": "2055a2b9898c59e532cbc91a34bee785d6224df269c58df90ef44760fc70608b",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-telefon-tutucusu-govde-borusu-montajli",
+    "silinme_ts": "2026-10-24T20:33:09Z",
+    "silme_commit": null,
+    "govde_sha256": "b857730b52b284b2a16f7be0e2ce32d708e6a89af015220701662915018d4d14",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-telefon-tutucusu-guclendirilmis-sarj-delikli",
+    "silinme_ts": "2026-10-24T20:33:10Z",
+    "silme_commit": null,
+    "govde_sha256": "8fb61ef82563b7e7151b3c004e49cb6cdd23a0b43fde4c1d95797c25ecc424fe",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-telefon-tutucusu-guclu-kavramali",
+    "silinme_ts": "2026-10-24T20:33:12Z",
+    "silme_commit": null,
+    "govde_sha256": "d6e3c97037df790ae8d97dde5edc8de97c67f5016a979e78dfbb3e5fd1d552fb",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-telefon-tutucusu-hiz-gostergeli",
+    "silinme_ts": "2026-10-24T20:33:14Z",
+    "silme_commit": null,
+    "govde_sha256": "4277e8c2054e34db5c035133165c972b3ae3ad638c5fb834fe94960d7d1a4a74",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-telefon-tutucusu-huawei-p30-pro",
+    "silinme_ts": "2026-10-24T20:33:16Z",
+    "silme_commit": null,
+    "govde_sha256": "2a3ea51dd0f6398f2107183043ab90a9c0e0322acb9fad4d60918be66a321904",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-telefon-tutucusu-kavrama-halkasi",
+    "silinme_ts": "2026-10-24T20:33:17Z",
+    "silme_commit": null,
+    "govde_sha256": "e2f4dbbb6547573e052d75b6709dfa9305025dd73a5761f8fe05bcf176cddc56",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-telefon-tutucusu-kelepceli-taban",
+    "silinme_ts": "2026-10-24T20:33:19Z",
+    "silme_commit": null,
+    "govde_sha256": "095f89b9663a404a7d53b8da75b1bdf4e5f5fbbad8ccfa9ec13c3266fd34b832",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-telefon-tutucusu-kucuk-telefon-uyumlu",
+    "silinme_ts": "2026-10-24T20:33:21Z",
+    "silme_commit": null,
+    "govde_sha256": "b559507d0ec821ce489b1365866fdef9097cca52e924482eed3f11989f88c01c",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-telefon-tutucusu-marka-arasi-adaptor",
+    "silinme_ts": "2026-10-24T20:33:23Z",
+    "silme_commit": null,
+    "govde_sha256": "ff5ac5cb89ec9c8444e514edfccffb2a4745b7512770a307ba69090cf68b6f48",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-telefon-tutucusu-orta-gidon-baglantisi",
+    "silinme_ts": "2026-10-24T20:33:28Z",
+    "silme_commit": null,
+    "govde_sha256": "97f98e115853bb7b0a965903799a6403ca40f96ddd59d8ca7dac2b90c782cdfb",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-telefon-tutucusu-ozel-olculu",
+    "silinme_ts": "2026-10-24T20:33:30Z",
+    "silme_commit": null,
+    "govde_sha256": "ccb61ac0e561f9129b97dff7de160d464136e34322060b87820ca1665dbf4113",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-telefon-tutucusu-sinirlayici-parca",
+    "silinme_ts": "2026-10-24T20:33:32Z",
+    "silme_commit": null,
+    "govde_sha256": "fb30dceb3a13bb451f6c6e2d672aac403dccfcc7d850d37c177857680c0f1530",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-telefon-tutucusu-stabilizasyon-parcasi",
+    "silinme_ts": "2026-10-24T20:33:34Z",
+    "silme_commit": null,
+    "govde_sha256": "11c1732acc3d0609cf35950c0405a73140f683bd7da48112773419650c96ac16",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-telefon-tutucusu-ulefone-armor-x5",
+    "silinme_ts": "2026-10-24T20:33:36Z",
+    "silme_commit": null,
+    "govde_sha256": "e59c444e1e6665414080ec045c47c99299475b8c3d0c23827a44838d1ba87544",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-telefon-tutucusu-universal-vidali-kelepce",
+    "silinme_ts": "2026-10-24T20:33:38Z",
+    "silme_commit": null,
+    "govde_sha256": "9a098517fd9a99a19f6c7cb784aa3a9ce83daf09fc02f8baba42911d82b2a6d2",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-telefon-tutucusu-vidasiz-klips",
+    "silinme_ts": "2026-10-24T20:33:40Z",
+    "silme_commit": null,
+    "govde_sha256": "3c779c94d00aa7d5224230623580f3d238779daebe98b1cc1b9652e9265c097b",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-telefon-tutucusu-yan-parca-guvenli",
+    "silinme_ts": "2026-10-24T20:33:42Z",
+    "silme_commit": null,
+    "govde_sha256": "8242f343694c73d11f0a449def5fd22853c49aca67bdb73decbce55d46561ccf",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-telefon-tutucusu-yayli-gidon-montajli",
+    "silinme_ts": "2026-10-24T20:33:44Z",
+    "silme_commit": null,
+    "govde_sha256": "e8efc9e64d8586ef4e31308b7aa4507e1e03020bba5ce56ec4106345c60d0cd7",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-termos-sise-adaptoru-66mm",
+    "silinme_ts": "2026-10-24T20:33:46Z",
+    "silme_commit": null,
+    "govde_sha256": "31d9cc36ffa46de6211cf639627e945b7238a29c2473b06e87744a408941fd54",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-trek-blendr-isik-adaptoru-sele-cantasi",
+    "silinme_ts": "2026-10-24T20:33:48Z",
+    "silme_commit": null,
+    "govde_sha256": "8b78ba9fc1ae3c1b54a8a32c6e64d4cbb47fabc1a505f7f0b1189eff56dd1783",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-trek-bontrager-gidon-montaji",
+    "silinme_ts": "2026-10-24T20:33:50Z",
+    "silme_commit": null,
+    "govde_sha256": "e5295fc28ff5e0eb325c4b1775f6f5dc99a440e13bbaf4e144f6ee0c47626c10",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-turne-bisikleti-kartviziti",
+    "silinme_ts": "2026-10-24T20:33:52Z",
+    "silme_commit": null,
+    "govde_sha256": "a44c43aef66a0167311814dade6a336f0db4b7c8c0de8f52d8f213ca556db623",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-tutus-yardimci-klips",
+    "silinme_ts": "2026-10-24T20:33:55Z",
+    "silme_commit": null,
+    "govde_sha256": "5792f50bb6fe0fb642c46254ffcf4e075014d104c59f50aab97687c61db8b4a6",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-u-kilidi-cerceve-tutucusu-yedek-cenesi",
+    "silinme_ts": "2026-10-24T20:33:57Z",
+    "silme_commit": null,
+    "govde_sha256": "cd0102f6dc9d0688df8c20c236179a69401fccfcc57ba9ca79229dab02581b98",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-universal-telefon-tutucusu-th57275",
+    "silinme_ts": "2026-10-24T20:33:59Z",
+    "silme_commit": null,
+    "govde_sha256": "0d22d76db7222675cd382ba9c46b21572fe05c7b044dee31fa66512955db6268",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-uzayli-kafasi-supap-kapagi",
+    "silinme_ts": "2026-10-24T20:34:02Z",
+    "silme_commit": null,
+    "govde_sha256": "a45509676d84a9ee496959d13c9d4c84ca20c26550431754b723265585760c19",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-viofo-a119-kamera-tutucusu-kelepce-bantli",
+    "silinme_ts": "2026-10-24T20:34:04Z",
+    "silme_commit": null,
+    "govde_sha256": "bf1d38ae521a3cbfa3ad802f1180e2f6f31ffd8395bf5f6c7384a5532a0426fc",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-wahoo-ace-bilgisayar-tutucusu",
+    "silinme_ts": "2026-10-24T20:34:07Z",
+    "silme_commit": null,
+    "govde_sha256": "144039bbc901fc356430f076b4446f281bf95940cb083d264ced0334b7b1f0f9",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-wahoo-uyumlu-telefon-tutucusu",
+    "silinme_ts": "2026-10-24T20:34:09Z",
+    "silme_commit": null,
+    "govde_sha256": "3a566bf9e89f3a76910050838909fe092f2e9c64be61289cdaf16c613f5ab96e",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-yaris-gidonu-ucu-tapasi",
+    "silinme_ts": "2026-10-24T20:34:12Z",
+    "silme_commit": null,
+    "govde_sha256": "75a6ba9ceeda0edcb7336f384d6dd03c70663b91d4dae1df5d2e6bcb32c8bfff",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-zincir-asinma-olcer",
+    "silinme_ts": "2026-10-24T20:34:14Z",
+    "silme_commit": null,
+    "govde_sha256": "4dd7615b91568f95052de3211a290a224c53635de3fc58d80b9d4cacd06a4aff",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-zincir-temizleme-araci-dis-fircali",
+    "silinme_ts": "2026-10-24T20:34:17Z",
+    "silme_commit": null,
+    "govde_sha256": "d8075aa949640f2c0f33f33857201c526c63b68b9afef1e8716f1a849de11eae",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-zincir-temizleyici-pinyonu-7-dis",
+    "silinme_ts": "2026-10-24T20:34:19Z",
+    "silme_commit": null,
+    "govde_sha256": "606d8f46eceab5d11ab9abffa434dced238f4e24ab17f7ecf6a3f5f8b15f9232",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bisiklet-zincir-tutucu-12mm-thru-axle",
+    "silinme_ts": "2026-10-24T20:34:22Z",
+    "silme_commit": null,
+    "govde_sha256": "103af866571be23c94904cd54fd21ef8776ce4e94978fc667ecc17134696fbac",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "blackmagic-micro-converter-bidirectional-vesa-montaj-plakasi",
+    "silinme_ts": "2026-10-24T20:34:25Z",
+    "silme_commit": null,
+    "govde_sha256": "0e9f86316d04ef34f94fb7dd27583734b8b0f50c2f61f19b7bc85d6e395b5f04",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bmw-1-5-ton-kriko-adaptoru",
+    "silinme_ts": "2026-10-24T20:34:28Z",
+    "silme_commit": null,
+    "govde_sha256": "3ea5c5b0f65e8d1983a832a0c1aff0a5272e7342f2070b49e9111355d6ae51b6",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bmw-3-serisi-uyumlu-yag-hunisi",
+    "silinme_ts": "2026-10-24T20:34:31Z",
+    "silme_commit": null,
+    "govde_sha256": "c1b647bf4a8f69ab5a519f1798b961f871cef7b5893f98228f3b68bdae0235f3",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bmw-aku-terminal-kapagi",
+    "silinme_ts": "2026-10-24T20:34:34Z",
+    "silme_commit": null,
+    "govde_sha256": "5fb2f52bec9b6037d7fc7202e645a97209cd23ab0f8950381a5588829eb68d41",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bmw-debriyaj-merkezleme-aleti-2",
+    "silinme_ts": "2026-10-24T20:34:36Z",
+    "silme_commit": null,
+    "govde_sha256": "912a632fb2ec6a405bb1cc2e28bbc0f7ec08b7318ab0ea83b003f43213b8f819",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bmw-e30-ceki-kapagi",
+    "silinme_ts": "2026-10-24T20:34:39Z",
+    "silme_commit": null,
+    "govde_sha256": "a0248cc3b1f07460e8661d66ca1f6ebb174b70c72732cf0cc7d40b44485ceb10",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bmw-e30-vites-topuzu",
+    "silinme_ts": "2026-10-24T20:34:42Z",
+    "silme_commit": null,
+    "govde_sha256": "d313d525edc93ecc686000ecb187a2909b6e4a4e0524219efd282ada11f6c74c",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bmw-e36-double-din-cercevesi",
+    "silinme_ts": "2026-10-24T20:34:45Z",
+    "silme_commit": null,
+    "govde_sha256": "50470ef0c353e5f79e1c1ca96aa9a5ade678f0483f8092b56d2854d1c7b78bef",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bmw-e36-klima-obc-cercevesi",
+    "silinme_ts": "2026-10-24T20:34:48Z",
+    "silme_commit": null,
+    "govde_sha256": "ca4a6d15a4d49f15533d681d568324520f08ea5fa088c59780bec6314c226e59",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bmw-e36-uyumlu-52mm-gosterge-paneli-lhd",
+    "silinme_ts": "2026-10-24T20:34:51Z",
+    "silme_commit": null,
+    "govde_sha256": "8bbf9fcde7b41746ec54f1c76e5a1fef439a45e51885fa2cf46333dee9929254",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bmw-e36-uyumlu-gosterge-grubu-gozluk-cebi",
+    "silinme_ts": "2026-10-24T20:34:54Z",
+    "silme_commit": null,
+    "govde_sha256": "2683cea186adf81ae0cfd1dbed152f6ee2a2884a5b14fa093ecf062ff7bba251",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bmw-e36-vites-mekanizmasi-parcasi",
+    "silinme_ts": "2026-10-24T20:34:57Z",
+    "silme_commit": null,
+    "govde_sha256": "78b83a62d6dca5dd16dbbedc12397653d3672f30fa4d4e13dae7fea9bd1567a2",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bmw-e46-316i-uyumlu-bardaklik",
+    "silinme_ts": "2026-10-24T20:35:01Z",
+    "silme_commit": null,
+    "govde_sha256": "1cb394e63683cc158fdb1f3cf74b0d7d48c54f500adf15d7276eea653a39766a",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bmw-e46-uyumlu-termostat-kapagi",
+    "silinme_ts": "2026-10-24T20:35:04Z",
+    "silme_commit": null,
+    "govde_sha256": "50e0223997bfda7d5fc3ec473f1e9f4d794d805daf3b8b131144fa446ff6edee",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bmw-e82-splitter-spoiler-parcasi",
+    "silinme_ts": "2026-10-24T20:35:07Z",
+    "silme_commit": null,
+    "govde_sha256": "d9d58c1c3dddb8007a2f2447ae3c035ad5ac7fb652ef188b6cf612171b9b852b",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bmw-e85-z4-kapak",
+    "silinme_ts": "2026-10-24T20:35:10Z",
+    "silme_commit": null,
+    "govde_sha256": "5753a41efdfc6f3899bd835b80094b0c48b2156d7d9af43017fa3401b98b22ac",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bmw-e90-kriko-takoz-pedi",
+    "silinme_ts": "2026-10-24T20:35:13Z",
+    "silme_commit": null,
+    "govde_sha256": "52e7cf1465262e8ed97ef7efb5ff2abe1124abd84f220fb5fd63fd64dd8d6e9b",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bmw-e90-uyumlu-bardaklik",
+    "silinme_ts": "2026-10-24T20:35:17Z",
+    "silme_commit": null,
+    "govde_sha256": "86a4f7c1635268cc14a6f44afa3c7bad1ea82ab7616de8f44b7061dce5846c6f",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bmw-e90-uyumlu-bardaklik-cep-modeli",
+    "silinme_ts": "2026-10-24T20:35:20Z",
+    "silme_commit": null,
+    "govde_sha256": "9230a9ac32f8ce238372d0742af3906da27671d1c6c44e023ab30865300745bd",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bmw-e90-uyumlu-torpido-17mm-top-mesnet-montaji",
+    "silinme_ts": "2026-10-24T20:35:24Z",
+    "silme_commit": null,
+    "govde_sha256": "c008d63468fe6bfd310fbed3ca871e08d2c84b1b68d76d939e3ed588bff47b52",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bmw-m57-yag-doldurma-hunisi",
+    "silinme_ts": "2026-10-24T20:35:27Z",
+    "silme_commit": null,
+    "govde_sha256": "f15d43e98377fc7949d33101b9d30e4707cdc443bcbecf02fc4644e7ddad9165",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bmw-s52-m52-yag-hunisi-tirnakli",
+    "silinme_ts": "2026-10-24T20:35:30Z",
+    "silme_commit": null,
+    "govde_sha256": "96b78ad2bc55068b0ca907df24db76e50d8b004e30ebefabaa5733e9f53fcea2",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bmw-uyumlu-m10-ayna-vidasi-kapagi",
+    "silinme_ts": "2026-10-24T20:35:34Z",
+    "silme_commit": null,
+    "govde_sha256": "fb91e16312aefe533ed4a7c458a72db4970008db58ea6fb939eadb194dfff69f",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bmw-vites-topuzu-kuru-kafa",
+    "silinme_ts": "2026-10-24T20:35:37Z",
+    "silme_commit": null,
+    "govde_sha256": "8f91919a77fd827b37f0714a1183ca4981631b55a0d36109b4c5d0e0f15c6335",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "bmw-x1-u11-uyumlu-konsol-duzenleyici",
+    "silinme_ts": "2026-10-24T20:35:40Z",
+    "silme_commit": null,
+    "govde_sha256": "70d2cde07108dc87b828764b4ea18b097f5500c7be9f1bd7690dbfce5bf8d2f8",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "british-seagull-starter-makarasi",
+    "silinme_ts": "2026-10-24T20:35:44Z",
+    "silme_commit": null,
+    "govde_sha256": "e525b03e187a778b9484c226748ea867250c3db2e3d833813c6a4276f33703f3",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "canon-18-135-stm-lens-hood",
+    "silinme_ts": "2026-10-24T20:35:48Z",
+    "silme_commit": null,
+    "govde_sha256": "18dc3eed740cb9d15b8e2ff4f74d1c729a9a04f933314b452987c213e28d2008",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "canon-18-55mm-derin-lens-parasoleyi",
+    "silinme_ts": "2026-10-24T20:35:52Z",
+    "silme_commit": null,
+    "govde_sha256": "3608e24146a5eab21334b057bf038bc85e2de166ec045728a865715c6333af44",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "canon-28-35mm-harici-vizor",
+    "silinme_ts": "2026-10-24T20:35:55Z",
+    "silme_commit": null,
+    "govde_sha256": "b218b9b0b5ad5ce941db65cdfa0f4064cfca1506e4fcb97ba060a1c8a5be5f51",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "canon-2x-extender-iii-on-kapagi",
+    "silinme_ts": "2026-10-24T20:35:59Z",
+    "silme_commit": null,
+    "govde_sha256": "020e982e6ed161ccbfffe65c11fab25c0f20ba137d42bb43c40e8fee294d9dc0",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "canon-430exii-flas-snoot-aparat",
+    "silinme_ts": "2026-10-24T20:36:02Z",
+    "silme_commit": null,
+    "govde_sha256": "1289881237a4c6bd44c7d592e94d349e36c8292188be8c5d97881c8a80566fef",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "canon-49mm-lens-kapagi-tutucusu",
+    "silinme_ts": "2026-10-24T20:36:06Z",
+    "silme_commit": null,
+    "govde_sha256": "675eb488226120f6b768e36b7d1cb8b2de20fd6098e480519d8155a45668499e",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "canon-58mm-gunes-filtresi-tutucusu",
+    "silinme_ts": "2026-10-24T20:36:10Z",
+    "silme_commit": null,
+    "govde_sha256": "6224e132f80c6097f8f487bb32798d6c26672893f514ee5e90d0b45a02dc8cee",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "canon-58mm-lens-parasoleyi",
+    "silinme_ts": "2026-10-24T20:36:14Z",
+    "silme_commit": null,
+    "govde_sha256": "30e1a328f9130597da37d997f586adba095bc151b6091b3bae437df813a007ab",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "canon-58mm-tavsanli-flip-lens-kapagi",
+    "silinme_ts": "2026-10-24T20:36:17Z",
+    "silme_commit": null,
+    "govde_sha256": "19837db286d0977e922d5f6f55d615edd43ac5f0ca2bd389f234ee7463737f4d",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "canon-70d-hizli-birakma-plakasi-43mm",
+    "silinme_ts": "2026-10-24T20:36:21Z",
+    "silme_commit": null,
+    "govde_sha256": "47ce23855eb6cda98de480d0fb03a7b4260186a3247a65661f8569e46a9fde79",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "canon-8-15mm-nexus-sualti-zoom-dislisi",
+    "silinme_ts": "2026-10-24T20:36:25Z",
+    "silme_commit": null,
+    "govde_sha256": "ef14cee72556ec8fdf8c54ccc266297864551f112b6763643a4dc90741d38ae1",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "canon-a1-ae1-parmak-grip",
+    "silinme_ts": "2026-10-24T20:36:28Z",
+    "silme_commit": null,
+    "govde_sha256": "44913c8afff2bab418049b76c97b839b293cb1f6a828eb7a84c701ac3e4b1332",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "canon-airtag-tutucu",
+    "silinme_ts": "2026-10-24T20:36:33Z",
+    "silme_commit": null,
+    "govde_sha256": "218004d1ffb8c575eb48d5c7667c2bd33af463085700a5bd40053b91b8c5fa29",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "canon-bp511-pil-adaptoru",
+    "silinme_ts": "2026-10-24T20:36:37Z",
+    "silme_commit": null,
+    "govde_sha256": "a494565c64a360fa9cca000e85a754221e488692bfb45de03b9d0ed16ef9b106",
     "yazan": "duzelt.py",
     "kuyruk_id": null
   }
