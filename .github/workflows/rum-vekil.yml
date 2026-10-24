@@ -20,7 +20,7 @@ name: Rum vekil gunluk sayim
 # CADANS — GUNLUK, 03:37 UTC (TRT 06:37)
 # ══════════════════════════════════════════════════════════════════════════════
 # Dakika komsu is akislarinin fazlarina CARPMAZ (olculdu): nobet 47,
-# reklam-oci 34, d1-uzlastirici 9/24/39/54, paket-tazelik 13/28/43/58, vs.
+# (reklam-oci 34 — K443 ile silindi), d1-uzlastirici 9/24/39/54, paket-tazelik 13/28/43/58, vs.
 # Bos dakika secildi: 37 (gun 03:37 UTC).
 on:
   schedule:

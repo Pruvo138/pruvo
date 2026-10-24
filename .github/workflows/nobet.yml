@@ -1438,9 +1438,6 @@ jobs:
       - name: "D1 zarf fiksturu — panel-uygulayici zarf testi (agsiz)"
         if: ${{ !cancelled() }}
         run: python3 tools/panel-uygulayici-zarf-test.py
-      - name: "D1 zarf fiksturu — reklam-oci-yukleyici zarf testi (agsiz)"
-        if: ${{ !cancelled() }}
-        run: python3 tools/reklam-oci-yukleyici-zarf-test.py
       - name: "D1 zarf fiksturu — riza-tavani-olc zarf testi (agsiz)"
         if: ${{ !cancelled() }}
         run: python3 tools/riza-tavani-olc-zarf-test.py

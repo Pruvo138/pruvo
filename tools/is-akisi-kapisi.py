@@ -1094,12 +1094,12 @@ NOBET_DOSYALARI = (
     # 🔴 SAYIM — UCUNCU TEKRAR SINIF KAPISINI ZORUNLU KILAR ([[ucuncu-tekrar-sinif-kapisi]]):
     # bu listeye SONRADAN (kapi kirmizi yandiktan sonra) eklenen dosyalar:
     #   1) yayin-yasi-alarmi.yml  — 43c15ee9f (16 Agu 2026, K123)
-    #   2) reklam-oci.yml         — BU KAYIT (22 Eyl 2026)
+    #   2) reklam-oci.yml         — 22 Eyl 2026 (24 Eki 2026 K443: is akisi SILINDI, kayit
+    #      dustu; SAYIM geri sarilmaz — siradaki unutma yine UCUNCUDUR)
     # (`d4ccdfa14`teki 7 kalem TOPLU sinif-kapisi tasimasidir, "unutma" SAYILMAZ.)
     # UCUNCUSUNDE tekil yama YASAK: liste yerine TURETIME gecilecek — "Pages job'u YOK
     # **ve** deploy.yml `uses:` ile cagirmiyor -> hepsi B"
     # ([[kapsam-evrenini-cagri-grafindan-turet]] · [[elle-tutulan-bagimlilik-listesi-sessizce-bayatlar]]).
-    "reklam-oci.yml",
 )
 SERIT_B_DOSYALARI = (E_DOSYA,) + NOBET_DOSYALARI
 

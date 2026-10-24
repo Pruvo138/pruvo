@@ -2532,6 +2532,8 @@ GOC_INDEKS = [
     # SEMA ekseninde CANLI olculur — defter disi indeks olculemez ve sessizce kaybolur).
     # SORGU EKSENI: yukleyicinin sicak yolu `WHERE yuklendi_mi = 0 ORDER BY olusturuldu`
     # (tools/reklam-oci-yukleyici.py::BEKLEYEN_SQL) — indeks TAM bu erisimi karsilar.
+    # 24 Eki 2026 K443: yukleyici + is akisi SILINDI (117 kosumda basarili yukleme 0);
+    # tablo ve indeks canli D1'de VERI olarak kalir — sema/indeks dusurmek ayri karar.
     # BENZERSIZ DEGIL: tekillik `siparis_no` PRIMARY KEY'inden gelir, bu indeks yalniz
     # BEKLEYEN taramasini ucuzlatir -> "ikiz satir indeksi kalici kurulamaz yapar"
     # tek-yonlu kapi sinifi bu kayitta YOKTUR (ikiz_sql gereksiz).

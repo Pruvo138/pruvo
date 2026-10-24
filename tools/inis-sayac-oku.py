@@ -22,7 +22,7 @@ HATALAR (rc, satır):
     rc=3  INIS=OLCULEMEDI sebep=D1-SEKIL     D1 cevabi zarf/satir seklinde degil (sessiz 0 YOK)
     rc=0  Kayit yoksa sifirlarla ayni satir ("0 inis" gecerli olcumdur)
 
-DESEN: tools/reklam-oci-yukleyici.py:302-380 — `_d1_modulu` importlib ile
+DESEN: tools/reklam-oci-yukleyici.py:302-380 (K443 ile silindi; `git show 3ce4b0852:tools/reklam-oci-yukleyici.py`) — `_d1_modulu` importlib ile
 tools/d1-sync.py; SQL kacisi `d1-sync.py::q` ile birebir ayni. Kendi kopyamiz
 YOK ([[ikiz-tanim-sessiz-ayrisma]]); kapi uctan uca olculur.
 """

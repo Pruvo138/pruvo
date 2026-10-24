@@ -37,10 +37,7 @@ D1_CAGRI = re.compile(r"d1 execute|\.sorgu\b|dosya_calistir\(|\bwrangler\(\[")
 SONUC = re.compile(r"""["']results["']""")
 YARDIMCI = "d1_zarf_fikstur"
 # Kapsam disi BIRAKILAN arac — gerekcesiyle (bos baslar; eklenen her satir bir yargidir).
-MUAF = {
-    "reklam-oci-kapisi.py": "D1 okumaz: `vt.sorgu` yerel sqlite kolu, \"results\" sahte Google Ads "
-                            "ucunun cevabi (17 Eki olculdu)",
-}
+MUAF = {}   # 24 Eki 2026 K443: tek muaf `reklam-oci-kapisi.py` aracla birlikte silindi
 
 
 def _oku(yol):
