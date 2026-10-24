@@ -226,6 +226,29 @@ def _nobet_karar(script, params):
     return red_ok, kabul_ok, ayrinti
 
 
+def _nobet_uyari(script, params):
+    """K444 (24 Eki 2026): REDDETMEZ ama UYARIR — `komut-stili-kapisi` 11 Eyl'den
+    (`6ed952f8`, Okan "tum tikayicilari kaldir") beri deny vermez, stderr'e uyari basar.
+    `karar` tipi deny bekledigi icin envanter o gunden beri KALICI rc=1 veriyordu.
+    Olculen: uyarilacak komutta allow ∧ stderr isaretli · temiz komutta allow ∧ isaret YOK.
+    Kapi yeniden deny verirse de KIRMIZI (beklenen kip uyari, karar degil)."""
+    tn = params.get("tool_name", "Bash")
+    isaret = params["isaret"]
+    red, red_rc, red_stderr = _karar_olc(script, params["red"], tn)
+    kabul, kabul_rc, kabul_stderr = _karar_olc(script, params["kabul"], tn)
+    red_ok = red in ("allow", "allow-SESSIZ") and red_stderr.startswith(isaret)
+    kabul_ok = kabul in ("allow", "allow-SESSIZ") and isaret not in kabul_stderr
+    ayrinti = ("uyarmali=%s(rc=%d) gecirmeli=%s(rc=%d) "
+               "stderr=%s | stderr=%s" % (
+                   red, red_rc, kabul, kabul_rc,
+                   red_stderr or "-", kabul_stderr or "-"))
+    if MUAF_BAGLAM in (red, kabul):
+        return MUAF_BAGLAM, MUAF_BAGLAM, "NOBETTE=%s %s" % (MUAF_BAGLAM, ayrinti)
+    if red == OLCULEMEDI or kabul == OLCULEMEDI:
+        ayrinti = "NOBETTE=%s %s" % (OLCULEMEDI, ayrinti)
+    return red_ok, kabul_ok, ayrinti
+
+
 def _cikis(script, spec):
     """Cikis-kodu kapisini stdin/args ile kostur (dry-run: git yok, yazma yok).
 
@@ -315,6 +338,7 @@ def _nobet_mukerrer(script, _params):
 
 NOBET_CALISTIR = {
     "karar": _nobet_karar,
+    "uyari": _nobet_uyari,
     "cikis": _nobet_cikis,
     "guard": _nobet_guard,
     "kopru": _nobet_kopru,
@@ -333,9 +357,11 @@ GATES = [
         "script": "tools/komut-stili-kapisi.py",
         "kablolar": [{"yer": "settings", "matcher": "Bash"}],
         "nobet": {
-            "tip": "karar", "tool_name": "Bash",
-            "red": {"command": "echo $HOME"},          # $ genisletme -> deny
-            "kabul": {"command": "git -C /x status"},  # duz komut -> allow
+            # K444: 11 Eyl'den beri REDDETMEZ, UYARIR (Okan "tum tikayicilari kaldir").
+            "tip": "uyari", "tool_name": "Bash",
+            "isaret": "KOMUT STILI UYARISI",
+            "red": {"command": "echo $HOME"},          # $ genisletme -> allow + uyari
+            "kabul": {"command": "git -C /x status"},  # duz komut -> allow, uyari YOK
         },
     },
     {
