@@ -509,6 +509,68 @@ def main():
     print("  %-4s RP-Q  DETAIL_Q remixParents {parentPrintId url parentPrint{license}} sorgulaniyor"
           % ("ok" if ok else "HATA"))
 
+    # --- 2a-PD) URETIM DEFTERI ata_destegi (BaBa 24 Eki tik 87) ---
+    # PR ata alani CANLI olculdu (thingiverseLink + remixParents) -> PR kayitlari KAPSAM_UYGUN;
+    # bayrak False kalsaydi toplu taramada PR dilimi OLCULMEDI/ADAPTORLU'ya dusuyordu.
+    # TV/c3/mmf sekli OLCULMEDI -> False KALIR (olcumsuz cevirme = sessiz fail-open, D13..D18).
+    print("  --- URETIM DEFTERI ata_destegi (PR=True; TV/c3/mmf=False) ---")
+    uretim = K.uretim_defteri()
+    bayrak = {a.ad: a.ata_destegi for a in uretim}
+    n += 1
+    ok = (bayrak == {"mw": True, "pr": True, "tv": False, "c3": False, "mmf": False})
+    if not ok:
+        hatalar.append("[PD1-BAYRAK] uretim defteri ata_destegi beklenen degil: %s" % bayrak)
+    print("  %-4s PD1   ata_destegi mw/pr=True · tv/c3/mmf=False -> %s"
+          % ("ok" if ok else "HATA", bayrak))
+
+    n += 1
+    pd_kayitlar = {
+        "pr-turev": {"link": "https://www.printables.com/model/1495334"},
+        "pr-kisa-link": {"link": "https://www.printables.com/model/1694862-x"},
+        "tv-turev": {"link": "https://www.thingiverse.com/thing:3543408"},
+    }
+    uygun, olc_adaptorlu, olc_adaptorsuz = K.kapsam_bolumle(pd_kayitlar, uretim)
+    uygun_idler = sorted(u[0] for u in uygun)
+    pr_olculmedi = [i for i in olc_adaptorlu + olc_adaptorsuz if i.startswith("pr-")]
+    ok = (uygun_idler == ["pr-kisa-link", "pr-turev"] and pr_olculmedi == []
+          and olc_adaptorlu == ["tv-turev"] and olc_adaptorsuz == [])
+    if not ok:
+        hatalar.append("[PD2-PR-KAPSAM] toplu taramada PR KAPSAM_UYGUN degil: uygun=%s "
+                       "adaptorlu=%s adaptorsuz=%s" % (uygun_idler, olc_adaptorlu,
+                                                       olc_adaptorsuz))
+    print("  %-4s PD2   toplu kapsam: PR uygun=%d · PR olculmedi=%d · TV adaptorlu=%d"
+          % ("ok" if ok else "HATA", len(uygun_idler), len(pr_olculmedi), len(olc_adaptorlu)))
+
+    # PD3/PD4: PR ALAN-YOK bir OLCUM iddiasi olarak KANITLANIR (bayrak True olunca toplu
+    # taramada "temiz" sayilacak tek sinif budur): canli DETAIL_Q seklinde govde taninir,
+    # ata alani YOK ya da BOS liste -> ALAN-YOK (ATASIZ_OLCULDU) rc 0; sekil taninmazsa DEGIL.
+    def _pr_govde(**ek):
+        d = {"id": "1495334", "name": "uydurma-turev", "slug": "uydurma-turev",
+             "license": {"name": "Creative Commons Attribution", "abbreviation": "CC-BY"},
+             "summary": "duz metin", "description": "<p>duz metin</p>"}
+        d.update(ek)
+        return d
+    for etiket, ad, detay, beklenen in [
+        ("PD3-PR-ALAN-YOK", "PR detayi: thingiverseLink/remixParents alani YOK -> ALAN-YOK",
+         _pr_govde(), K.DURUM_ALAN_YOK),
+        ("PD4-PR-BOS-LISTE", "PR detayi: remixParents=[] + thingiverseLink='' -> ALAN-YOK",
+         _pr_govde(remixParents=[], thingiverseLink=""), K.DURUM_ALAN_YOK),
+        ("PD5-PR-SEKILSIZ", "PR detayi govde TANINMAZ -> ALAN-YOK DENMEZ (fail-closed)",
+         {"foo": {"bar": 1}}, None),
+    ]:
+        n += 1
+        sonuclar = K.kayit_yargi("uydurma-urun", detay, uretim, K.genel_satilabilir)
+        durumlar = [s["durum"] for s in sonuclar]
+        rc = K.cikis_kodu(sonuclar)
+        if beklenen is None:
+            ok = bool(durumlar) and K.DURUM_ALAN_YOK not in durumlar and rc != 0
+        else:
+            ok = durumlar == [beklenen] and rc == 0
+        if not ok:
+            hatalar.append("[%s] %s -> durumlar=%s rc=%s" % (etiket, ad, durumlar, rc))
+        print("  %-4s %-90s durum=%-22s rc=%s" % ("ok" if ok else "HATA", ad[:90],
+                                                  ",".join(durumlar), rc))
+
     # --- 2b) ZARF EKSENI TEK BASINA (her eksen AYRI oldurulebilmeli) ---
     # Bu iki iddia olmadan tavan/belirsizlik ekseni D18 (govde izi) tarafindan KAPATILIR ve
     # "savunma derinligi" beyan edilmis survivor'a doner ([[beyan-edilmis-survivor]]).
