@@ -186,8 +186,10 @@ HUKUM_ALLOW = [
     ("Ford", "Custom", 30), ("Honda", "Legend", 3),                     # D — tekil model adı
     ("Honda", "Prologue", 3), ("Honda", "Recon", 3), ("Honda", "Sabre", 3),
     ("Honda", "Stepwgn", 3), ("Honda", "Zoomer", 3), ("Volkswagen", "Vocho", 3),
-    ("Mercedes", "C-Class", 9), ("Mercedes", "E-Klasse", 5),   # C — birleşecek ikizi YOK
+    ("Mercedes", "C-Class", 8), ("Mercedes", "E-Klasse", 5),   # C — birleşecek ikizi YOK
 ]
+# C-Class 9 -> 8 (25 Eki 2026): lisans-RED kaldırması `2517051-c-class-w204-telefon-tutucu`yu
+# düşürdü (katalog 41327 -> 40869); sayfa YAYINDA kalır, çapa ölçülen değere indi.
 # C) MERCEDES SINIF/SERİ + `Renault|Traffic` YAZIM İKİZİ — MODEL_ALIAS BİRLEŞMESİ.
 # (aile adı, marka, [BİRLEŞEN yazımlar], HAYATTA KALAN gösterim, slug, EN AZ ürün)
 # 🔴 İKİ AYRI EKSEN: B17 ANAHTAR birleşmesini (kova tekilleşti mi, ürün düştü mü),
