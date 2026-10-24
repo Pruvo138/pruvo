@@ -886,7 +886,7 @@ UYUM_MARKA_IZINLI = frozenset({
     "Speeduino", "SsangYong", "Stihl", "Suzuki", "TMC", "Tesla", "Thermomix", "Tofaş",
     "Tohatsu", "Toyota", "Twin Disc", "Vespa", "Vetus", "Volkswagen", "Volvo",
     "Weinsberg", "Xbox", "Xiaomi", "Yamaha", "Yunteng", "Zelmer", "Zodiac", "Zontes",
-    # ── MIMAR ELIYLE EKLENEN (asagidaki UYUM_MARKA_MIMAR_EKI ile AYNI 61 jeton) ──
+    # ── MIMAR ELIYLE EKLENEN (asagidaki UYUM_MARKA_MIMAR_EKI ile AYNI 65 jeton) ──
     # 🔴 BU SAYIYI HICBIR KAPI OLCMUYOR (olculdu 31 Agu): Raymarine ONCESINDE burada
     # "34" yaziyordu ama kumenin GERCEK boyu 41'di — 3./4./5. tur eklerinde
     # guncellenmemis, uc tur boyunca kirmizi yakmadan yasamis BAYAT bir sayi.
@@ -938,6 +938,10 @@ UYUM_MARKA_IZINLI = frozenset({
     # sayi 59 -> 61 ELLE guncellendi ve `len(UYUM_MARKA_MIMAR_EKI)` ile OLCULEREK
     # dogrulandi (59 -> 61, esitlik TUTTU). `len(UYUM_MARKA_IZINLI)` 198 -> 200, FARK
     # 139 SABIT kaldi -> ikisi de IKI kumeye girdi, yargilanmis bolumleme kirilmadi.
+    # 18. tur (25 Eki 2026, KraL halef-59, BaBa tik 126/129): DORT jeton girdi (`Voge`,
+    # `Keeway`, `Benelli`, `TVS`), sayi 61 -> 65 ELLE guncellendi ve
+    # `len(UYUM_MARKA_MIMAR_EKI)` ile OLCULEREK dogrulandi (61 -> 65, esitlik TUTTU).
+    # `len(UYUM_MARKA_IZINLI)` 200 -> 204, FARK 139 SABIT.
     # 🔴 KALEM HALA ACIK: bu bir MAKINE iddiasi degil, tek seferlik bir olcumdur —
     # bir sonraki tur yine guncellemeyi UNUTABILIR. Kalici cozum bu sayiyi `len()`ten
     # TURETMEK ya da bir kapiya iddia olarak KOYMAKTIR; ikisi de mimar hukmunu bekliyor
@@ -1711,6 +1715,25 @@ UYUM_MARKA_IZINLI = frozenset({
     #   Kabul: `tools/moto-marka-kabul-kapisi.py` (A1-A4 + KONTROL + M1/M2/KONTROL-MUTANT,
     #   kirmizi kume beyana ESIT).
     "Kymco", "RKS",
+    # 18. tur (25 Eki 2026) — BaBa hukmu (24 Eki 22:1x tik 126 + 23:4x tik 129), MaCiT
+    #   22:04 talebi (Voge ekle `marka ayristirma kusuru ... top-level marka BOS (K302)`).
+    #   Dort jeton, hepsi motosiklet URETICISI (17. turun `Kymco`/`RKS` sinifi; yeni sinif
+    #   ACILMAZ): `Voge` · `Keeway` · `Benelli` · `TVS`.
+    #   OLCULEN katalog agirligi (41.227 urun; TAM yazim):
+    #     `Benelli` — marka[] 13 · uyum[].marka 0 · uyum[].model 0 · baslik 13
+    #       (ornek `benelli-trk-502-givi-depo-kilit-sistemi-halkas`, `benelli-tnt-135-plaka-
+    #       braketi`; `uyum` bu 13 kayitta NULL).
+    #     `Voge` · `Keeway` · `TVS` — her alanda 0 (sifir agirlikla girer; 11. tur `SYM`/
+    #       `Zero` olcutu: kural agirlik degil EV SAHIBI olup olmamak).
+    #   Dort jetonun hicbiri arama.py'nin baska bir kumesinde, BILESIK tablosunda ya da
+    #   UYUM_MARKA_ELENEN'de YOK (olculdu, buyuk/kucuk duyarsiz).
+    #   🔴 TALEPTEKI BESINCI JETON `MV Agusta` BU TURDA GIRMEDI (olculdu): cok kelimeli
+    #   uye index.html `BILESIK_MARKA` aynasina da yazilmak ZORUNDA (model-uyelik-kapisi
+    #   K8: "aynada eksik=['MV Agusta']"); o yuzey ayri kalem, ayna ile BIRLIKTE girer.
+    #   KUME KAPALI KALIR: dordu de yalnizca BU kumeye ve UYUM_MARKA_MIMAR_EKI'ne girer;
+    #   FARK (izinli − eki) 139 SABIT, S2 aritmetigi ve UYUM_MARKA_YARGI_IMZA AYNEN.
+    #   Kabul: `tools/moto-marka5-kabul-kapisi.py` (A1-A4 + KONTROL + M1/M2/KONTROL-MUTANT).
+    "Voge", "Keeway", "Benelli", "TVS",
 })
 
 # 🔴 ONERI DISINDAN, MIMAR ONAYIYLA eklenen jetonlar. AYRI tutulmalari SART: budama
@@ -1797,6 +1820,9 @@ UYUM_MARKA_MIMAR_EKI = frozenset({
     # agirligi + varyant/ayna olcumleri UYUM_MARKA_IZINLI'nin "A grubu" 17. tur basliginda
     # yazili. Burada TEKRAR EDILMEZ (ikiz metin yasagi).
     "Kymco", "RKS",
+    # 18. tur (25 Eki 2026) — BaBa hukmu, MaCiT Voge talebi. Gerekce + olculen katalog
+    # agirligi UYUM_MARKA_IZINLI'nin "A grubu" 18. tur basliginda yazili. TEKRAR EDILMEZ.
+    "Voge", "Keeway", "Benelli", "TVS",
 })
 
 # 🔴 REDDEDILEN ADAYLAR (2 Agu, mimar karari) — kayda geciyor ki bir sonraki tur ayni
