@@ -37,7 +37,9 @@ HEDEFLER = [("Mondial", "mondial"), ("Zontes", "zontes"), ("Keeway", "keeway"),
             # TANINMIS PARTI 1 (25 Eki)
             ("Olympus", "olympus"), ("Pentax", "pentax"), ("Blackmagic", "blackmagic"),
             ("Leica", "leica"), ("Insta360", "insta360"), ("SsangYong", "ssangyong"),
-            ("BYD", "byd")]
+            ("BYD", "byd"),
+            # Indian (25 Eki; MaCiT `009065d8` kanon `Indian`, 14 urun)
+            ("Indian", "indian")]
 KART_RE = re.compile(r'<div class="card" data-kat="[^"]*"><a class="card-main" href="([^"]+)"')
 ID_RE = re.compile(r"/urun/([^/]+)/")
 

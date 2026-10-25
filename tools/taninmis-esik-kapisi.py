@@ -44,8 +44,10 @@ TOOLS = os.path.join(KOK, "tools")
 # Her parti merge'unde girdigi adlar AYNI commit'te buradan silinir (K2 zorlar). Hedef: bos.
 TABAN = frozenset({
     # PARTI 1 (7) TANINMIS'e girdi, 25 Eki — K2 geregi buradan silindi.
+    # `Indian Motorcycle` (PARTI 2) da silindi: MaCiT `009065d8` 14 kaydi sozluk kanonu
+    # `Indian`'a tasidi (K2 bayat) ve `Indian` ayni dalda TANINMIS'e girdi (K1 yeni) — 25 Eki.
     # PARTI 2
-    "Indian Motorcycle", "Puch", "Genesis", "Bentley", "GMC", "Motec", "Simrad", "Bavaria",
+    "Puch", "Genesis", "Bentley", "GMC", "Motec", "Simrad", "Bavaria",
     "AeroPress", "Keurig", "Moccamaster", "Roland", "Weinsberg", "Tracker", "Ninja",
 })
 
