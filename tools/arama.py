@@ -2270,6 +2270,17 @@ ROZET_CAPRAZ_IZINLI = {
                                "ROZET_DISI_CIFT'te)"),
     "Volkswagen|sharan": ("ROZET", "Sharan VW'nin kendi rozeti (Seat Alhambra ikizi; Seat "
                                    "kolu ROZET_DISI_CIFT'te)"),
+    # 25 Eki — TANINMIS PARTI 1 (Leica, Pentax sayfa kazandi) kamera modellerini otomobil
+    # modelleriyle AYNI canon'a dusurdu. Ikiz/rozet DEGIL, saf AD cakismasi (emsal Ducati|996 ↔
+    # Porsche|996): her iki sayfa da MESRU. Olculdu: Leica M2/M3 el tutamagi seti; Pentax K5
+    # pil grip / objektif dugmesi / kopya sehpasi plakasi (3 kayit).
+    "BMW|m3": ("ROZET", "BMW M3 BMW'nin kendi modeli; Leica M3 kamerasiyla yalniz AD cakismasi"),
+    "Leica|m3": ("ROZET", "Leica M3 Leica'nin kendi telemetre kamerasi (1954); BMW M3 ile "
+                          "yalniz AD cakismasi"),
+    "Kia|k5": ("ROZET", "Kia K5 Kia'nin kendi modeli (Optima'nin ic pazar adi); Pentax K-5 "
+                        "ile yalniz AD cakismasi"),
+    "Pentax|k5": ("ROZET", "Pentax K-5 Pentax'in kendi DSLR govdesi (2010); Kia K5 ile yalniz "
+                           "AD cakismasi"),
     "Audi|coupe": ("BEKLER", "Audi 'Coupe' bir GOVDE TIPI kelimesidir (Audi 80 B3/B4 coupe); "
                              "ayri bir Audi Coupe (B2/B3) modeli de vardi. ROZET mi MODEL_"
                              "OLMAYAN mi — mimar hukmu bekliyor (Hyundai|Coupe ROZET'tir)"),
@@ -2349,8 +2360,8 @@ ROZET_CAPRAZ_IZINLI = {
                              "— yalniz AD cakismasi"),
 }
 
-ROZET_CAPRAZ_IZINLI_SAYISI = 68
-ROZET_CAPRAZ_IZINLI_IMZA = "fc2103d7aa53e5ec"  # 25 Eki (2): Seat|alhambra + Volkswagen|sharan geri dondu (66->68; hijyen 51 capraz yapti), kapinin hesabiyla
+ROZET_CAPRAZ_IZINLI_SAYISI = 72
+ROZET_CAPRAZ_IZINLI_IMZA = "7bb74531035e1b58"  # 25 Eki (3): TANINMIS PARTI 1 -> BMW|m3 Leica|m3 Kia|k5 Pentax|k5 (68->72), kapinin hesabiyla
 
 
 def rozet_capraz_imzasi():
@@ -2370,7 +2381,7 @@ def rozet_capraz_imzasi():
 # (yargisiz cift) olcer, bu eksen HUKMUN KENDISINI olcer; ikisi AYRI kalir cunku tek
 # imzaya baglansaydi sinif mutanti anahtar imzasina sirtini dayardi (yukaridaki not).
 # GEREKCE METNI IMZAYA GIRMEZ: yazim duzeltmesi kapiyi yakmasin, HUKUM degisimi yaksin.
-ROZET_CAPRAZ_SINIF_IMZA = "fa9bdbf56771baea"  # 25 Eki (2): Seat|alhambra + Volkswagen|sharan ROZET, kapinin hesabiyla
+ROZET_CAPRAZ_SINIF_IMZA = "91a49ca3ecf3865f"  # 25 Eki (3): + BMW|m3 Leica|m3 Kia|k5 Pentax|k5 ROZET, kapinin hesabiyla
 
 
 def rozet_capraz_sinif_imzasi():
