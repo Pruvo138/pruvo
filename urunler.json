@@ -251912,7 +251912,7 @@
     "id": "mw192961",
     "kategori": "Motosiklet",
     "marka": [
-      "Indian Motorcycle",
+      "Indian",
       "Challenger",
       "Pursuit",
       "Chieftain",
@@ -251927,7 +251927,25 @@
     "lisans": {
       "tasarimci": "ole.abendroth",
       "tur": "CC BY-SA 4.0"
-    }
+    },
+    "uyum": [
+      {
+        "marka": "Indian",
+        "model": "Challenger"
+      },
+      {
+        "marka": "Indian",
+        "model": "Pursuit"
+      },
+      {
+        "marka": "Indian",
+        "model": "Chieftain"
+      },
+      {
+        "marka": "Indian",
+        "model": "Roadmaster"
+      }
+    ]
   },
   {
     "id": "vespa-vxl150-yak-t-kapa-a-ma-anahtar",
@@ -266531,7 +266549,7 @@
     "id": "pr668999-indian-motorcycle-yan-sehpa-pedi",
     "kategori": "Motosiklet",
     "marka": [
-      "Indian Motorcycle"
+      "Indian"
     ],
     "baslik": "Indian Motorcycle Yan Sehpa Pedi",
     "aciklama": "Indian Motorcycle için yumuşak zeminde kullanılan yan sehpa (kickstand) pedi.\nYaklaşık dış ölçüler: 140.0 × 75.0 × 11.0 mm.",
@@ -266542,13 +266560,18 @@
     "lisans": {
       "tasarimci": "Ken226",
       "tur": "CC BY 4.0"
-    }
+    },
+    "uyum": [
+      {
+        "marka": "Indian"
+      }
+    ]
   },
   {
     "id": "pr34200-indian-scout-bobber-plaka-cercevesi-dikey-yatay",
     "kategori": "Motosiklet",
     "marka": [
-      "Indian Motorcycle",
+      "Indian",
       "Scout Bobber"
     ],
     "baslik": "Indian Scout Bobber Plaka Çerçevesi (Dikey/Yatay)",
@@ -266563,13 +266586,19 @@
     "lisans": {
       "tasarimci": "Lyle Svendsen",
       "tur": "CC BY 4.0"
-    }
+    },
+    "uyum": [
+      {
+        "marka": "Indian",
+        "model": "Scout Bobber"
+      }
+    ]
   },
   {
     "id": "pr129716-indian-scout-ruzgar-deflektoru",
     "kategori": "Motosiklet",
     "marka": [
-      "Indian Motorcycle",
+      "Indian",
       "Scout"
     ],
     "baslik": "Indian Scout Rüzgar Deflektörü",
@@ -266578,13 +266607,19 @@
     "gorseller": [
       "https://media.pruvo3d.com/urunler/pr129716-1.jpg",
       "https://media.pruvo3d.com/urunler/pr129716-2.jpg"
+    ],
+    "uyum": [
+      {
+        "marka": "Indian",
+        "model": "Scout"
+      }
     ]
   },
   {
     "id": "pr1699453-indian-challenger-yan-panel-grommeti",
     "kategori": "Motosiklet",
     "marka": [
-      "Indian Motorcycle",
+      "Indian",
       "Challenger"
     ],
     "baslik": "Indian Challenger Yan Panel Grommeti",
@@ -266597,13 +266632,19 @@
     "lisans": {
       "tasarimci": "manillaprints",
       "tur": "CC BY 4.0"
-    }
+    },
+    "uyum": [
+      {
+        "marka": "Indian",
+        "model": "Challenger"
+      }
+    ]
   },
   {
     "id": "pr1332733-indian-scout-101-on-yuk-ayar-aleti",
     "kategori": "Motosiklet",
     "marka": [
-      "Indian Motorcycle",
+      "Indian",
       "Scout 101"
     ],
     "baslik": "Indian Scout 101 Ön Yük Ayar Aleti",
@@ -266611,6 +266652,12 @@
     "fiyat": "320 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/pr1332733-1.jpg"
+    ],
+    "uyum": [
+      {
+        "marka": "Indian",
+        "model": "Scout 101"
+      }
     ]
   },
   {
@@ -274496,7 +274543,7 @@
     "id": "th7317536-indian-motorcycle-yan-canta-hizli-sokme-makara-adaptoru",
     "kategori": "Motosiklet",
     "marka": [
-      "Indian Motorcycle"
+      "Indian"
     ],
     "baslik": "Indian Motorcycle Yan Çanta Hızlı-Sökme Makara Adaptörü",
     "aciklama": "Indian Motorcycle için yan çanta (saddlebag) desteğine hızlı sökme makara adaptörü.\nYaklaşık dış ölçüler: 39.0 × 39.0 × 16.5 mm.",
@@ -274508,13 +274555,18 @@
     "lisans": {
       "tasarimci": "JSG623",
       "tur": "CC BY-SA 4.0"
-    }
+    },
+    "uyum": [
+      {
+        "marka": "Indian"
+      }
+    ]
   },
   {
     "id": "th7297150-indian-ftr1200-sinyal-lambasi-kulak-adaptoru",
     "kategori": "Motosiklet",
     "marka": [
-      "Indian Motorcycle",
+      "Indian",
       "FTR1200"
     ],
     "baslik": "Indian FTR1200 Sinyal Lambası Kulak Adaptörü",
@@ -274526,13 +274578,19 @@
     "lisans": {
       "tasarimci": "cgort0407",
       "tur": "CC BY-SA 4.0"
-    }
+    },
+    "uyum": [
+      {
+        "marka": "Indian",
+        "model": "FTR1200"
+      }
+    ]
   },
   {
     "id": "th4823719-indian-motorcycle-yolcu-basamagi-kapagi",
     "kategori": "Motosiklet",
     "marka": [
-      "Indian Motorcycle"
+      "Indian"
     ],
     "baslik": "Indian Motorcycle Yolcu Basamağı Kapağı",
     "aciklama": "Indian Motorcycle Chief/Chieftain/Roadmaster/Springfield için yolcu basamağı söküldüğünde kalan deliği kapatan kapak parçası.\nYaklaşık dış ölçüler: 49.0 × 28.6 × 26.7 mm.",
@@ -274546,13 +274604,18 @@
     "lisans": {
       "tasarimci": "AustinKarl54",
       "tur": "CC BY 4.0"
-    }
+    },
+    "uyum": [
+      {
+        "marka": "Indian"
+      }
+    ]
   },
   {
     "id": "th7361128-indian-chief-ayna-cevirme-kiti-govdesi",
     "kategori": "Motosiklet",
     "marka": [
-      "Indian Motorcycle",
+      "Indian",
       "Chief"
     ],
     "baslik": "Indian Chief Ayna Çevirme Kiti Gövdesi",
@@ -274570,13 +274633,19 @@
     "lisans": {
       "tasarimci": "JSG623",
       "tur": "CC BY-SA 4.0"
-    }
+    },
+    "uyum": [
+      {
+        "marka": "Indian",
+        "model": "Chief"
+      }
+    ]
   },
   {
     "id": "th6464921-indian-scout-suspansiyon-ayar-aleti",
     "kategori": "Motosiklet",
     "marka": [
-      "Indian Motorcycle",
+      "Indian",
       "Scout"
     ],
     "baslik": "Indian Scout Süspansiyon Ayar Aleti",
@@ -274589,13 +274658,19 @@
     "lisans": {
       "tasarimci": "yromanos",
       "tur": "CC BY-SA 4.0"
-    }
+    },
+    "uyum": [
+      {
+        "marka": "Indian",
+        "model": "Scout"
+      }
+    ]
   },
   {
     "id": "th5867208-indian-ftr1200-gosterge-paneli-yukseltme-braketi",
     "kategori": "Motosiklet",
     "marka": [
-      "Indian Motorcycle",
+      "Indian",
       "FTR1200"
     ],
     "baslik": "Indian FTR1200 Gösterge Paneli Yükseltme Braketi",
@@ -274610,7 +274685,13 @@
     "lisans": {
       "tasarimci": "fugz",
       "tur": "CC BY 4.0"
-    }
+    },
+    "uyum": [
+      {
+        "marka": "Indian",
+        "model": "FTR1200"
+      }
+    ]
   },
   {
     "id": "th4846412-vespa-alet-kutusu-10-inc-teker",
