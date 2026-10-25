@@ -4385,6 +4385,12 @@ jobs:
       - name: Marka sayfasi dogum testi (TANINMIS marka sayfasi uretilir + mutant)
         if: ${{ !cancelled() }}
         run: python3 tools/marka-sayfa-dogum-test.py
+      # TANINMIS ESIK MANDALI (25 Eki 2026, BaBa tik 159 ③): katalogda >= ESIK urunu olup
+      # marka sayfasi DOGMAYAN marka TABAN'da degilse KIRMIZI (MV Agusta 404 vakasi yayindan
+      # sonra elle bulunmustu); TABAN'daki ad artik ACIK degilse "taban bayat" KIRMIZI.
+      - name: TANINMIS esik mandali (sayfasiz esik-ustu marka + oz-temizlik + 2 mutant)
+        if: ${{ !cancelled() }}
+        run: python3 tools/taninmis-esik-kapisi.py
 
       # MARKA INVARYANTI (Okan hukmu): "TUM markalarda sayfa ve arama urun adetlerinin
       # AYNI olmasi." Tek tek yama degil, INVARYANT. OLCULEN SESSIZ HATA (4 Agu): uctaki
