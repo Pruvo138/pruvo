@@ -117462,6 +117462,7 @@
     "id": "panamera-970-2-back-ashtray",
     "kategori": "Otomobil",
     "marka": [
+      "Porsche",
       "Panamera"
     ],
     "baslik": "Porsche Panamera 970.2 Arka Koltuk Küllüğü",
@@ -117476,12 +117477,19 @@
     "lisans": {
       "tasarimci": "MijnZeezicht",
       "tur": "CC BY 4.0"
-    }
+    },
+    "uyum": [
+      {
+        "marka": "Porsche",
+        "model": "Panamera"
+      }
+    ]
   },
   {
     "id": "panamera-montaj-aparat",
     "kategori": "Otomobil",
     "marka": [
+      "Porsche",
       "Panamera"
     ],
     "baslik": "Panamera Montaj Aparatı",
@@ -117493,7 +117501,13 @@
     "lisans": {
       "tasarimci": "f38stingray",
       "tur": "CC BY 4.0"
-    }
+    },
+    "uyum": [
+      {
+        "marka": "Porsche",
+        "model": "Panamera"
+      }
+    ]
   },
   {
     "id": "boxster-pul",
@@ -296402,9 +296416,7 @@
   {
     "id": "th4208871-motorcycle-bookmark",
     "kategori": "Motosiklet",
-    "marka": [
-      "Motosiklet"
-    ],
+    "marka": [],
     "baslik": "Motosiklet Kitap Ayiraci",
     "aciklama": "Motosiklet on tekerlek/forc seklinde 90 mm duz kitap ayraci.",
     "fiyat": "200 TL",
@@ -296975,9 +296987,7 @@
   {
     "id": "th6935643-motorcycle-garaj-kapi-acma",
     "kategori": "Motosiklet",
-    "marka": [
-      "Motosiklet"
-    ],
+    "marka": [],
     "baslik": "Motosiklet Garaj Kapi Acma Tutucu",
     "aciklama": "1.5 inc (38 mm) gidon icin garaj kapisi uzaktan kumanda tutucu; 117 mm.",
     "fiyat": "280 TL",
