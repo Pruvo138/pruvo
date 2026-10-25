@@ -11,6 +11,7 @@ yeter. Diger /marka/** sayfalari bayt-esit kalir (olculdu, RAPOR'da).
 AYNI SINIF (25 Eki): /marka/{zontes,keeway,bajaj,sym}/ 404 (MaCiT 24 Eki ekleri) -> ayni
 onarim; test tek hedeften HEDEFLER listesine genellestirildi. TVS (1 urun < ESIK 3)
 TANINMIS'te ama sayfa dogmaz -> HEDEF DEGIL (urun ESIK'e ulasinca listeye eklenir).
+MV Agusta (25 Eki, MaCiT 5 urun ekledi): yayin sonrasi /marka/mv-agusta/ 404 olculdu -> 6. hedef.
 
 NE OLCER (kopya mantik YOK — GERCEK jenerator gecici ROOT'a uretir, urunler.json'a YAZMAZ):
   D1 — her hedef icin uret() slug_map'inde marka -> slug VAR, marka/<slug>/index.html yazildi.
@@ -32,7 +33,7 @@ import tempfile
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TOOLS = os.path.join(KOK, "tools")
 HEDEFLER = [("Mondial", "mondial"), ("Zontes", "zontes"), ("Keeway", "keeway"),
-            ("Bajaj", "bajaj"), ("SYM", "sym")]
+            ("Bajaj", "bajaj"), ("SYM", "sym"), ("MV Agusta", "mv-agusta")]
 KART_RE = re.compile(r'<div class="card" data-kat="[^"]*"><a class="card-main" href="([^"]+)"')
 ID_RE = re.compile(r"/urun/([^/]+)/")
 
@@ -94,12 +95,21 @@ def uret_ve_olc(index_html, hedefler):
 
 
 evren = mm.MarkaEvreni(INDEX_HTML)
+# Sayfa uyeligi = marka[] katlamasi (birincil) ∪ BASLIK uyeligi (ikincil, FAZ 1B — ana sayfa
+# filtresiyle ayni yuklem). 25 Eki: "Ducati / MV Agusta Arka Tekerlek Somunu" (marka=["Ducati"])
+# /marka/mv-agusta/'da DOGRU olarak duruyordu, yalniz marka[]'ya bakan beklenti onu "fazla"
+# sayiyordu. Ikincil kol jeneratorun KENDI fonksiyonlariyla kurulur (kopya mantik YOK).
+EK_MARKALAR = mm.cip_evreni_markalari(PRODUCTS, INDEX_HTML)
+AD_KANONU, AZAMI_AD = mm.baslik_uyelik_hazirlik(
+    sorted(mm.gruplandir(PRODUCTS, evren, EK_MARKALAR)), evren)
+
 hatalar = []
 olcum = uret_ve_olc(INDEX_HTML, HEDEFLER)
 for hedef, _slug in HEDEFLER:
     h_hatalar, ids = olcum[hedef]
-    beklenen = set(p["id"] for p in PRODUCTS if p.get("id")
-                   and any(evren.katla((x or "").strip()) == hedef for x in (p.get("marka") or [])))
+    beklenen = set(p["id"] for p in PRODUCTS if p.get("id") and (
+        any(evren.katla((x or "").strip()) == hedef for x in (p.get("marka") or []))
+        or hedef in mm.baslik_uyelikleri(p, evren, AD_KANONU, AZAMI_AD, EK_MARKALAR)))
     if not h_hatalar:
         if ids != beklenen:
             h_hatalar.append("D2 kart kumesi sapti: eksik=%s fazla=%s"
