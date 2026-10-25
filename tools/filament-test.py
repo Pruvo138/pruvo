@@ -69,6 +69,7 @@ import random
 import re
 import subprocess
 import sys
+import time
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
@@ -292,6 +293,77 @@ def parite_jetonu(etiket, sebep):
     return "PARITE_TEST5=KIRMIZI"
 
 
+# ── TEST 5 KIRMIZI TESHISI (26 Eki, KraL halef-62) ──────────────────────────────────────
+# TUZAK (yasandi, SERIT B 40227520254 attempt 1+2): kirmizida yalniz ciktinin SON 300
+# karakteri basiliyordu -> "2 aciklanamayan / 299" sayisi gorundu, sorgu ADLARI kesildi;
+# kok/sinif (dal-ici / dal-disi) kurulamadi. Artik her aciklanamayan sorgu ADIYLA +
+# TARAFIYLA + UTC zaman damgasiyla makine okunur satira dusar.
+_ACIKLANAMAYAN_BLOK = "AYRISAN SORGULAR — AÇIKLANAMAYAN"
+
+
+def parite_taraf(sebep):
+    """SAF. Ayrisimin hangi tarafta oldugu (parite-ortak.js sebep metninden)."""
+    s = sebep or ""
+    if "YERELDE VAR" in s:
+        return "yerel-var-d1-yok"
+    if "D1 EKSIK" in s:
+        return "d1-eksik"
+    if "SIRA farki" in s:
+        return "sira"
+    return "diger"
+
+
+def parite_aciklanamayan_ayikla(cikti):
+    """SAF. parite-ortak.js'in 'AYRISAN SORGULAR — AÇIKLANAMAYAN' blogundan her sorguyu
+    {q, kat, marka, sebep, taraf} olarak cikarir. Blok yoksa []."""
+    c = cikti or ""
+    i = c.find(_ACIKLANAMAYAN_BLOK)
+    if i < 0:
+        return []
+    satirlar = c[i:].splitlines()[1:]
+    out = []
+    j = 0
+    while j < len(satirlar):
+        m = re.match(r'^\s+q=(".*?")(?: kat=(".*?") marka=(.*))?\s*$', satirlar[j])
+        if not m:
+            if out and not satirlar[j].strip():
+                break
+            j += 1
+            continue
+        try:
+            q = json.loads(m.group(1))
+        except ValueError:
+            q = m.group(1)
+        try:
+            kat = json.loads(m.group(2)) if m.group(2) else None
+        except ValueError:
+            kat = m.group(2)
+        marka = m.group(3).strip() if m.group(3) else None
+        sebep = ""
+        if j + 1 < len(satirlar):
+            m2 = re.match(r"^\s+-> (.*)$", satirlar[j + 1])
+            if m2:
+                sebep = m2.group(1)
+                j += 1
+        out.append({"q": q, "kat": kat, "marka": marka, "sebep": sebep,
+                    "taraf": parite_taraf(sebep)})
+        j += 1
+    return out
+
+
+def parite_aciklanamayan_satirlari(cikti, bas_utc, son_utc):
+    """SAF. Her aciklanamayan sorgu icin makine okunur satir. Blok bulunamazsa bunu
+    ACIKCA soyleyen tek satir (sessiz bos liste YOK)."""
+    kalemler = parite_aciklanamayan_ayikla(cikti)
+    if not kalemler:
+        return ["PARITE_TEST5_ACIKLANAMAYAN yok-blok=1 bas=%s son=%s "
+                "(cikti'da '%s' blogu BULUNAMADI)" % (bas_utc, son_utc, _ACIKLANAMAYAN_BLOK)]
+    return ["PARITE_TEST5_ACIKLANAMAYAN q=%s taraf=%s kat=%s marka=%s bas=%s son=%s sebep=%s"
+            % (json.dumps(k["q"], ensure_ascii=False), k["taraf"],
+               json.dumps(k["kat"], ensure_ascii=False), k["marka"] or "null",
+               bas_utc, son_utc, k["sebep"]) for k in kalemler]
+
+
 def parite_eslem_testi():
     """`python3 tools/filament-test.py --parite-eslem-testi` — agsiz, build'siz fikstur."""
     kalan = []
@@ -384,6 +456,31 @@ def parite_eslem_testi():
 
     ok, et, sb = parite_exit_yorumla(None, "zaman asimi")
     ona((not ok) and et == PARITE_KIRMIZI, "exit None -> KIRMIZI")
+
+    # TEST 5 KIRMIZI TESHISI: adlar + taraf + zaman kesilmeden cikar
+    kirmizi_cikti = (
+        "baslik\n\nAYRISAN SORGULAR — AÇIKLANAMAYAN (ilk 25):\n"
+        '  q="leica m3" kat="Kamera" marka="Leica"\n'
+        "    -> YERELDE VAR / D1 ARAMASINDA YOK: en az 1 urun (Ege GOREMEZ = x)\n"
+        '  q="byd"\n'
+        "    -> SIRA farki (katalog farkiyla aciklanamaz) 3. sirada: /ara=a yerel=b\n"
+        "\nSONUC: PARITE YOK ❌ (2 aciklanamayan / 299 sorgu) [/ara Worker]\n")
+    k = parite_aciklanamayan_ayikla(kirmizi_cikti)
+    ona(len(k) == 2, "aciklanamayan blok: 2 sorgu ADIYLA cikti")
+    ona(bool(k) and k[0]["q"] == "leica m3" and k[0]["kat"] == "Kamera"
+        and k[0]["taraf"] == "yerel-var-d1-yok", "1. sorgu q/kat/taraf=yerel-var-d1-yok")
+    ona(len(k) > 1 and k[1]["q"] == "byd" and k[1]["kat"] is None and k[1]["taraf"] == "sira",
+        "2. sorgu (kat'siz) taraf=sira")
+    sat = parite_aciklanamayan_satirlari(kirmizi_cikti, "T0", "T1")
+    ona(len(sat) == 2 and all("bas=T0 son=T1" in x for x in sat)
+        and 'q="leica m3"' in sat[0], "makine satiri: ad + zaman damgasi")
+    ona(parite_taraf("D1 EKSIK eslesme: /ara toplam=1 < yerel=2") == "d1-eksik",
+        "taraf: D1 EKSIK -> d1-eksik")
+    bos = parite_aciklanamayan_satirlari("SONUC: PARITE YOK ❌ (1 aciklanamayan / 3 sorgu)",
+                                         "T0", "T1")
+    ona(len(bos) == 1 and "yok-blok=1" in bos[0],
+        "TERS YON: blok yoksa SESSIZ bos liste DEGIL, 'yok-blok=1' satiri")
+    ona(parite_aciklanamayan_ayikla("") == [], "bos cikti -> []")
 
     print("-" * 70)
     if kalan:
@@ -653,8 +750,10 @@ def main():
             kayit(5, "parite testleri", True, "ATLANDI (PARITE=0)")
             print(parite_jetonu(PARITE_ATLANDI, ""), flush=True)
         else:
+            _bas = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
             p1 = subprocess.run(["node", os.path.join(TOOLS, "parite-test.js"), "300"],
                                 capture_output=True, text=True, cwd=ROOT)
+            _son = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
             ok1, et1, sb1 = parite_exit_yorumla(p1.returncode, p1.stdout + p1.stderr)
             ok = ok1
             det = "site:%s" % et1
@@ -666,6 +765,10 @@ def main():
             kayit(5, "parite (site) — aciklama degismedi kaniti", ok, det)
             # Makine okunur satir (serit-b-uc-kapisi.py okur): GECTI disi = parite borcu.
             print(parite_jetonu(et1, sb1), flush=True)
+            # KIRMIZI TESHISI: 300 karakter kuyrugu adlari KESER -> her sorgu tam satirda.
+            if et1 == PARITE_KIRMIZI:
+                for _s in parite_aciklanamayan_satirlari(p1.stdout + p1.stderr, _bas, _son):
+                    print(_s, flush=True)
             # A15 NOBETI: ATLANDI sessizce "yesil" gorunmesin — STDERR'e de dusur.
             if et1 == PARITE_ATLANDI:
                 print("⚪ PARITE ATLANDI (parite BELGELENMEDI, cikis 3): %s" % det,
