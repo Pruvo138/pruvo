@@ -1,5 +1,117 @@
 [
   {
+    "id": "pr937767-mv-agusta-f4-sasi-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "MV Agusta"
+    ],
+    "uyum": [
+      {
+        "marka": "MV Agusta"
+      }
+    ],
+    "baslik": "MV Agusta F4 Şasi Kapağı",
+    "aciklama": "MV Agusta F4 ve Brutale gibi modellerin şasisindeki açık kısımları kapatmak için tasarlanmış kapak.\nYaklaşık dış ölçüler: 57 × 33 × 30 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr937767-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr937767-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr937767-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr937767-4.jpg"
+    ]
+  },
+  {
+    "id": "th6212909-mv-agusta-arka-teker-lastik-sokme-adaptoru",
+    "kategori": "Motosiklet",
+    "marka": [
+      "MV Agusta"
+    ],
+    "uyum": [
+      {
+        "marka": "MV Agusta"
+      }
+    ],
+    "baslik": "MV Agusta Arka Teker Lastik Teli Sökme Adaptörü",
+    "aciklama": "MV Agusta ve Ducati arka teker aks deliğinin çapını küçülterek elle lastik teli sökme aletinin rahat kullanılmasını sağlayan adaptör; M50 ters diş ölçüsünde eksen ve somun taklidini de içerir.\nYaklaşık dış ölçüler: 76 × 76 × 43 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6212909-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6212909-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6212909-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6212909-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Sulyvaristo",
+      "tur": "CC-BY"
+    }
+  },
+  {
+    "id": "th5029328-mv-agusta-turismo-veloce-tomtom-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "MV Agusta"
+    ],
+    "uyum": [
+      {
+        "marka": "MV Agusta"
+      }
+    ],
+    "baslik": "MV Agusta Turismo Veloce Tomtom Navigasyon Tutucusu",
+    "aciklama": "MV Agusta Turismo Veloce camına takılan Tomtom Rider navigasyon cihazı taşıyıcısı.\nYaklaşık dış ölçüler: 285 × 50 × 46 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5029328-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "BaseottoM",
+      "tur": "CC-BY"
+    }
+  },
+  {
+    "id": "th7399174-mv-agusta-brutale-sinyal-lambasi-kapama-adaptoru",
+    "kategori": "Motosiklet",
+    "marka": [
+      "MV Agusta"
+    ],
+    "uyum": [
+      {
+        "marka": "MV Agusta"
+      }
+    ],
+    "baslik": "MV Agusta Brutale Sinyal Lambası Kapama Adaptörü",
+    "aciklama": "MV Agusta Brutale'nin evrensel sinyal lambası montaj deliğini kapatmak için tasarlanmış iki parçalı adaptör; biri dışarıda, biri kaportanın içinde kullanılır. 8 milimetrelik gövde çapındaki sinyal lambalarına uyar.\nYaklaşık dış ölçüler: 38 × 22 × 3 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7399174-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "samuelemarazzita",
+      "tur": "CC-BY-SA"
+    }
+  },
+  {
+    "id": "th7192622-mv-agusta-f4-yag-filtresi-anahtari",
+    "kategori": "Motosiklet",
+    "marka": [
+      "MV Agusta"
+    ],
+    "uyum": [
+      {
+        "marka": "MV Agusta"
+      }
+    ],
+    "baslik": "MV Agusta F4 Yağ Filtresi Anahtarı",
+    "aciklama": "MV Agusta F4 motorunun yağ filtresini açmak için tasarlanmış 14 ağızlı anahtar; 64 milimetrelik ölçüsüyle yağ filtresine uyar.\nYaklaşık dış ölçüler: 70 × 70 × 33 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7192622-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "A11_Evolution",
+      "tur": "CC-BY-SA"
+    }
+  },
+  {
     "id": "pr1085540-tvs-ronin-mx-plaka-tutucusu",
     "kategori": "Motosiklet",
     "marka": [
