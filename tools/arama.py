@@ -2262,6 +2262,14 @@ ROZET_CAPRAZ_IZINLI = {
     # ROZET_DISI). Canon 'alhambra' Seat kolunda TEK — VW kolu deny oldugu icin capraz degil.
     # Onceki izin 'Seat|alhambra' kapiyi kirmizi yakti (capraz_bayat envanterde var uretimde yok);
     # VW|alhambra allow'a eklemek celiski (deny ∩ allow) dogurur. Tek dogru yol: izin kaldir.
+    # 25 Eki — GERI DONDU: hijyen 51 (`7d6d7277`) `seat-alhambra-vw-sharan-bagaj-kapagi-kilit-
+    # parcasi` kaydina uyum'dan Seat+Alhambra ekledi -> canon 'alhambra' ve 'sharan' yeniden
+    # IKI markada (deny kollari VW|alhambra + Seat|sharan duruyor). Karsi taraflar markanin
+    # KENDI rozetidir; K19 bunlari YARGISIZ yakti (model-uyelik 29/30, serit-a3 yayini durdurur).
+    "Seat|alhambra": ("ROZET", "Alhambra Seat'in kendi rozeti (VW Sharan ikizi; VW kolu "
+                               "ROZET_DISI_CIFT'te)"),
+    "Volkswagen|sharan": ("ROZET", "Sharan VW'nin kendi rozeti (Seat Alhambra ikizi; Seat "
+                                   "kolu ROZET_DISI_CIFT'te)"),
     "Audi|coupe": ("BEKLER", "Audi 'Coupe' bir GOVDE TIPI kelimesidir (Audi 80 B3/B4 coupe); "
                              "ayri bir Audi Coupe (B2/B3) modeli de vardi. ROZET mi MODEL_"
                              "OLMAYAN mi — mimar hukmu bekliyor (Hyundai|Coupe ROZET'tir)"),
@@ -2341,8 +2349,8 @@ ROZET_CAPRAZ_IZINLI = {
                              "— yalniz AD cakismasi"),
 }
 
-ROZET_CAPRAZ_IZINLI_SAYISI = 66
-ROZET_CAPRAZ_IZINLI_IMZA = "dc08738b234381cf"  # 25 Eki: Opel|combo + Peugeot|rifter cikti (68->66; lisans-RED kaldirmasi son urunlerini dusurdu, kova uretilmiyor), kapinin hesabiyla
+ROZET_CAPRAZ_IZINLI_SAYISI = 68
+ROZET_CAPRAZ_IZINLI_IMZA = "fc2103d7aa53e5ec"  # 25 Eki (2): Seat|alhambra + Volkswagen|sharan geri dondu (66->68; hijyen 51 capraz yapti), kapinin hesabiyla
 
 
 def rozet_capraz_imzasi():
@@ -2362,7 +2370,7 @@ def rozet_capraz_imzasi():
 # (yargisiz cift) olcer, bu eksen HUKMUN KENDISINI olcer; ikisi AYRI kalir cunku tek
 # imzaya baglansaydi sinif mutanti anahtar imzasina sirtini dayardi (yukaridaki not).
 # GEREKCE METNI IMZAYA GIRMEZ: yazim duzeltmesi kapiyi yakmasin, HUKUM degisimi yaksin.
-ROZET_CAPRAZ_SINIF_IMZA = "4c170dc0012f9e5d"  # 25 Eki: Opel|combo + Peugeot|rifter cikti, kapinin hesabiyla
+ROZET_CAPRAZ_SINIF_IMZA = "fa9bdbf56771baea"  # 25 Eki (2): Seat|alhambra + Volkswagen|sharan ROZET, kapinin hesabiyla
 
 
 def rozet_capraz_sinif_imzasi():
