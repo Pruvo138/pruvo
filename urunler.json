@@ -1,5 +1,790 @@
 [
   {
+    "id": "pr1085540-tvs-ronin-mx-plaka-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "TVS"
+    ],
+    "uyum": [
+      {
+        "marka": "TVS"
+      }
+    ],
+    "baslik": "TVS Ronin MX Plaka Tutucusu",
+    "aciklama": "TVS Ronin için plaka tutucusu; plakayı motosikletin arka bölümüne sabitlemek için kullanılır.\nYaklaşık dış ölçüler: 130 × 20 × 15 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1085540-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1085540-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1085540-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "nasciiboy",
+      "tur": "GPL 3.0"
+    }
+  },
+  {
+    "id": "pr1398003-sym-symphony-sr125-hava-giris-kanali",
+    "kategori": "Motosiklet",
+    "marka": [
+      "SYM"
+    ],
+    "uyum": [
+      {
+        "marka": "SYM"
+      }
+    ],
+    "baslik": "SYM Symphony SR 125 Hava Giriş Kanalı",
+    "aciklama": "SYM Symphony SR 125 skuteri için hava giriş kanalı parçası.\nYaklaşık dış ölçüler: 143 × 143 × 59 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1398003-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1398003-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jdaury",
+      "tur": "CC-BY"
+    }
+  },
+  {
+    "id": "pr750151-bajaj-platina-100-hiz-gostergesi-disligi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Bajaj"
+    ],
+    "uyum": [
+      {
+        "marka": "Bajaj"
+      }
+    ],
+    "baslik": "Bajaj Platina 100 Hız Göstergesi Dişlisi",
+    "aciklama": "Bajaj Platina 100 hız göstergesinin aktarım dişlisi; gösterge kablosunu hareket ettiren parçanın yedeği olarak kullanılır.\nYaklaşık dış ölçüler: 47 × 28 × 18 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr750151-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jorge Luis",
+      "tur": "CC-BY"
+    }
+  },
+  {
+    "id": "pr737397-benelli-bn125-plaka-tutucu-braketi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Benelli"
+    ],
+    "uyum": [
+      {
+        "marka": "Benelli"
+      }
+    ],
+    "baslik": "Benelli BN 125 Plaka Tutucu Bağlantı Braketi",
+    "aciklama": "Benelli BN 125'te plaka taşıyıcıyı motora bağlayan bağlantı braketi; plaka taşıyıcısının araca sabitlenmesini sağlar.\nYaklaşık dış ölçüler: 135 × 115 × 90 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr737397-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr737397-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr737397-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Pablo Garcia",
+      "tur": "CC-BY"
+    }
+  },
+  {
+    "id": "pr1621848-benelli-trk702-cift-ekran-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Benelli"
+    ],
+    "uyum": [
+      {
+        "marka": "Benelli"
+      }
+    ],
+    "baslik": "Benelli TRK 702 Çift Ekran Tutucusu",
+    "aciklama": "Benelli TRK 702'nin ekranının üzerine oturan çerçeve; üst bölümde 5 inç ekran eklentisi için yuva bulunur. Paket, ekranı taşıyan çerçeve ile yuva içeren seçenek olmak üzere iki varyant içerir.\nYaklaşık dış ölçüler: 199 × 149 × 139 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1621848-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1621848-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1621848-3.jpg"
+    ]
+  },
+  {
+    "id": "th4326826-zontes-t310-t2-tft-ekran-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Zontes"
+    ],
+    "uyum": [
+      {
+        "marka": "Zontes"
+      }
+    ],
+    "baslik": "Zontes T310 T2 TFT Ekran Kapağı",
+    "aciklama": "Zontes T310 T2 TFT ekranının üzerine takılan kapak; T310 T2 modeline özel olarak tasarlanmıştır.\nYaklaşık dış ölçüler: 143 × 90 × 45 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4326826-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4326826-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "teletubie83",
+      "tur": "CC-BY"
+    }
+  },
+  {
+    "id": "th5679274-zontes-310-telefon-tutucu-kayan-guneslik",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Zontes"
+    ],
+    "uyum": [
+      {
+        "marka": "Zontes"
+      }
+    ],
+    "baslik": "Zontes 310 Kayan Güneşlikli Telefon Tutucu",
+    "aciklama": "Zontes 310 için tasarlanmış telefon tutucu; üzerinde kayan güneşlik paneli bulunur ve Zontes 310 modellerinin tümüne uyar.\nYaklaşık dış ölçüler: 187 × 92 × 20 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5679274-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5679274-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5679274-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5679274-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "toyota16",
+      "tur": "CC-BY-SA"
+    }
+  },
+  {
+    "id": "th4272815-zontes-t310-t2-gps-bar-baglanti-parcasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Zontes"
+    ],
+    "uyum": [
+      {
+        "marka": "Zontes"
+      }
+    ],
+    "baslik": "Zontes T310 T2 GPS Bar Bağlantı Parçası",
+    "aciklama": "Zontes T310 T2 motosiklete GPS barı takmak için tasarlanmış parça; 110 milimetrelik alüminyum çubuğun montajında kullanılır.\nYaklaşık dış ölçüler: 96 × 52 × 44 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4272815-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4272815-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4272815-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "teletubie83",
+      "tur": "CC-BY"
+    }
+  },
+  {
+    "id": "th5378851-zontes-310v-anahtarlik-halkasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Zontes"
+    ],
+    "uyum": [
+      {
+        "marka": "Zontes"
+      }
+    ],
+    "baslik": "Zontes 310V Anahtarlık Halkası",
+    "aciklama": "Zontes 310V anahtarına takılan halka; diğer Zontes modellerinde anahtar ölçüsü farklı olabileceğinden önce uygunluğun denenmesi gerekir.\nYaklaşık dış ölçüler: 53 × 19 × 4 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5378851-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "SOAVARIAS",
+      "tur": "CC-BY"
+    }
+  },
+  {
+    "id": "th7028451-zontes-scrambler-el-koruma",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Zontes"
+    ],
+    "uyum": [
+      {
+        "marka": "Zontes"
+      }
+    ],
+    "baslik": "Zontes Scrambler El Koruma",
+    "aciklama": "Zontes Scrambler gidonuna takılan el koruma; yüzeyinde kafatası ve çizgi deseni bulunur.\nYaklaşık dış ölçüler: 205 × 104 × 101 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7028451-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7028451-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7028451-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7028451-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Tetramletroll",
+      "tur": "CC-BY-SA"
+    }
+  },
+  {
+    "id": "th7385538-zontes-368g-my26-koltuk-alti-genisletilmis-depo",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Zontes"
+    ],
+    "uyum": [
+      {
+        "marka": "Zontes"
+      }
+    ],
+    "baslik": "Zontes 368G (MY26) Koltuk Altı Genişletilmiş Depo",
+    "aciklama": "Zontes 368G (2026 model yılı) koltuk altına genişletilmiş depolama alanı; kapağı yoktur, koltuk doğrudan üzerini kapatır. İki kaskın altına sığmaya devam ederken bu bölme takım çantası, lastik tamir seti ve araç evrakı gibi eşyaları barındırır.\nYaklaşık dış ölçüler: 255 × 255 × 65 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7385538-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7385538-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7385538-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7385538-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ILGROSSOFA",
+      "tur": "CC-BY-SA"
+    }
+  },
+  {
+    "id": "th6413431-zontes-u1-gidon-dugme-paneli",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Zontes"
+    ],
+    "uyum": [
+      {
+        "marka": "Zontes"
+      }
+    ],
+    "baslik": "Zontes U1 Gidon Düğme Paneli (Garaj Kumandası)",
+    "aciklama": "Zontes U1 gidondaki garaj kumandası düğmesi için hazırlanmış panel.\nYaklaşık dış ölçüler: 98 × 43 × 3 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6413431-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "IMR3D",
+      "tur": "CC-BY-SA"
+    }
+  },
+  {
+    "id": "th4583435-keeway-superlight-125-sinyal-govde-parcasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Keeway"
+    ],
+    "uyum": [
+      {
+        "marka": "Keeway"
+      }
+    ],
+    "baslik": "Keeway Superlight 125 Sinyal Gövde Parçası",
+    "aciklama": "Keeway Superlight 125 sinyal lambası ile motosiklet arasında kalan gövde bölümü; kablo geçişi için açıklığı bulunur.\nYaklaşık dış ölçüler: 68 × 30 × 30 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4583435-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4583435-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4583435-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4583435-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ffm-1150",
+      "tur": "CC-BY"
+    }
+  },
+  {
+    "id": "th4647082-keeway-125-superlight-sabitleme-pimi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Keeway"
+    ],
+    "uyum": [
+      {
+        "marka": "Keeway"
+      }
+    ],
+    "baslik": "Keeway 125 Superlight Yan Kaplama Sabitleme Pimi",
+    "aciklama": "Keeway 125 Superlight sol yan kaplamasının alt bağlantı pimini değiştirmek için tasarlanmış yedek parça.\nYaklaşık dış ölçüler: 371 × 356 × 222 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4647082-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4647082-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4647082-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ffm-1150",
+      "tur": "CC-BY"
+    }
+  },
+  {
+    "id": "th3985622-keeway-rkf-125-disi-sicaklik-konsolu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Keeway"
+    ],
+    "uyum": [
+      {
+        "marka": "Keeway"
+      }
+    ],
+    "baslik": "Keeway RKF 125 Dış Sıcaklık Göstergesi Konsolu",
+    "aciklama": "Keeway RKF 125 göstergesine dış sıcaklık ölçer ekleyen konsol; 28 milimetrelik gidona klipsli olarak takılır, pil yuvası arka taraftan açılarak değiştirilebilir.\nYaklaşık dış ölçüler: 53 × 48 × 47 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3985622-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3985622-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3985622-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3985622-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "xmasimo",
+      "tur": "CC-BY"
+    }
+  },
+  {
+    "id": "pr678339-voge-300-rally-sis-fari-tabani",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Voge"
+    ],
+    "uyum": [
+      {
+        "marka": "Voge"
+      }
+    ],
+    "baslik": "Voge 300 Rally Sis Farı Tabanı",
+    "aciklama": "Voge 300 Rally'ye yardımcı sis farlarını bağlamak için taban parçası.\nYaklaşık dış ölçüler: 93 × 72 × 8 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr678339-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Thanos Husk",
+      "tur": "CC-BY-SA"
+    }
+  },
+  {
+    "id": "pr1861054-voge-900-dsx-yolcu-tutamagi-ucu-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Voge"
+    ],
+    "uyum": [
+      {
+        "marka": "Voge"
+      }
+    ],
+    "baslik": "Voge 900 DSX Yolcu Tutamağı Ucu Kapağı",
+    "aciklama": "Voge 900 DSX yolcu tutamağı veya bagaj rafı barının ucuna takılan kapak; kaybolan orijinalin yerine kullanılır.\nYaklaşık dış ölçüler: 18 × 18 × 15 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1861054-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1861054-2.jpg"
+    ]
+  },
+  {
+    "id": "pr1859943-voge-900-dsx-ayna-tapasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Voge"
+    ],
+    "uyum": [
+      {
+        "marka": "Voge"
+      }
+    ],
+    "baslik": "Voge 900 DSX Ayna Tapası",
+    "aciklama": "Voge 900 DSX yan ayna yuvasını kapatan tapa.\nYaklaşık dış ölçüler: 20 × 18 × 7 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1859943-1.jpg"
+    ]
+  },
+  {
+    "id": "th6985811-voge-ds900x-gosterge-siperi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Voge"
+    ],
+    "uyum": [
+      {
+        "marka": "Voge"
+      }
+    ],
+    "baslik": "Voge DS900X Gösterge Siperi",
+    "aciklama": "Voge DS900X göstergesinin üzerine takılan siper; ekrana düşen güneş ışığını ve yansımayı azaltır.\nYaklaşık dış ölçüler: 206 × 144 × 50 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6985811-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6985811-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Voge900dsx",
+      "tur": "CC-BY-SA"
+    }
+  },
+  {
+    "id": "th6734384-voge-300ds-gosterge-gunesligi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Voge"
+    ],
+    "uyum": [
+      {
+        "marka": "Voge"
+      }
+    ],
+    "baslik": "Voge 300DS Gösterge Güneşliği",
+    "aciklama": "Voge 300DS gösterge paneline takılan güneşlik; ekran üzerine düşen güneş ışığını azaltır.\nYaklaşık dış ölçüler: 188 × 94 × 84 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6734384-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6734384-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "juanete29",
+      "tur": "CC-BY-SA"
+    }
+  },
+  {
+    "id": "th6722811-voge-300-rally-kisa-gaz-kolu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Voge"
+    ],
+    "uyum": [
+      {
+        "marka": "Voge"
+      }
+    ],
+    "baslik": "Voge 300 Rally Kısa Gaz Kolu",
+    "aciklama": "Voge 300 Rally gaz kolunun hareketini 1 santim kısaltan parça; montaj sonrası gidon ve yakıt tankı altındaki gaz kablosu gerginliğinin yeniden ayarlanması gerekir.\nYaklaşık dış ölçüler: 40 × 40 × 7 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6722811-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6722811-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6722811-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6722811-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "arwoPL",
+      "tur": "CC-BY-SA"
+    }
+  },
+  {
+    "id": "th7018771-voge-525dsx-koruma-demiri-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Voge"
+    ],
+    "uyum": [
+      {
+        "marka": "Voge"
+      }
+    ],
+    "baslik": "Voge 525DSX Koruma Demiri Kapağı",
+    "aciklama": "Voge 525DSX koruma demirinin ucuna takılan kapak; demirin ucunu kaplar ve kir girişini önler.\nYaklaşık dış ölçüler: 39 × 39 × 30 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7018771-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ucakbileti",
+      "tur": "CC-BY-SA"
+    }
+  },
+  {
+    "id": "th6791644-voge-900-dsx-telefon-tutucu-baglanti-parcasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Voge"
+    ],
+    "uyum": [
+      {
+        "marka": "Voge"
+      }
+    ],
+    "baslik": "Voge 900 DSX Telefon Tutucu Bağlantı Parçası",
+    "aciklama": "Voge 900 DSX ekran barına telefon tutucu takmak için kullanılan bağlantı parçası.\nYaklaşık dış ölçüler: 31 × 31 × 15 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6791644-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6791644-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6791644-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6791644-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Juanjo_CNC",
+      "tur": "CC-BY-SA"
+    }
+  },
+  {
+    "id": "th6428822-voge-650-dsx-sasi-kapagi-buyuk-kucuk",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Voge"
+    ],
+    "uyum": [
+      {
+        "marka": "Voge"
+      }
+    ],
+    "baslik": "Voge 650 DSX Şasi Kapağı (Büyük ve Küçük)",
+    "aciklama": "Voge 650 DSX şasi kapaklarının renkli alternatifi; büyük ve küçük iki parçadan oluşur.\nYaklaşık dış ölçüler: 51 × 51 × 12 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6428822-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6428822-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Luuc85",
+      "tur": "CC-BY-SA"
+    }
+  },
+  {
+    "id": "th7125347-voge-300ds-hiz-sabitleme",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Voge"
+    ],
+    "uyum": [
+      {
+        "marka": "Voge"
+      }
+    ],
+    "baslik": "Voge 300DS Hız Sabitleme (Cruise Control)",
+    "aciklama": "Voge 300DS gaz koluna takılan hız sabitleme ünitesi; montaj için cıvatanın 10 milimetre daha uzun olacak şekilde değiştirilmesi gerekir.\nYaklaşık dış ölçüler: 49 × 48 × 7 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7125347-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7125347-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7125347-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "juanete29",
+      "tur": "CC-BY-SA"
+    }
+  },
+  {
+    "id": "th6255681-voge-300-rally-hizli-cekim-gaz-kolu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Voge"
+    ],
+    "uyum": [
+      {
+        "marka": "Voge"
+      }
+    ],
+    "baslik": "Voge 300 Rally Hızlı Çekim Gaz Kolu",
+    "aciklama": "Voge 300 Rally gaz koluna takılan, kolun hareket mesafesini kısaltan hızlı çekim parçası.\nYaklaşık dış ölçüler: 34 × 32 × 7 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6255681-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "83nico",
+      "tur": "CC-BY-SA"
+    }
+  },
+  {
+    "id": "th6428826-voge-650-500-ds-dsx-on-cam-ic-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Voge"
+    ],
+    "uyum": [
+      {
+        "marka": "Voge"
+      }
+    ],
+    "baslik": "Voge 650 / 500 DS(X) Ön Cam İç Tutucusu",
+    "aciklama": "Voge 650 ve 500 DS(X) ön camının iç tarafındaki tutucunun yedeği; 500DS camıyla da uyumludur.\nYaklaşık dış ölçüler: 122 × 20 × 18 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6428826-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Luuc85",
+      "tur": "CC-BY-SA"
+    }
+  },
+  {
+    "id": "th6722147-voge-300-rally-ust-canta-rafi-ara-parcasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Voge"
+    ],
+    "uyum": [
+      {
+        "marka": "Voge"
+      }
+    ],
+    "baslik": "Voge 300 Rally Üst Çanta Rafı Ara Parçası",
+    "aciklama": "Voge 300 Rally üst çanta rafı ile araç arasına yerleştirilen ara parça.\nYaklaşık dış ölçüler: 26 × 26 × 12 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6722147-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6722147-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "arwoPL",
+      "tur": "CC-BY-SA"
+    }
+  },
+  {
+    "id": "th6974268-voge-350-ac-sinyal-anahtari-kolu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Voge"
+    ],
+    "uyum": [
+      {
+        "marka": "Voge"
+      }
+    ],
+    "baslik": "Voge 350 AC Sinyal Anahtarı Kolu",
+    "aciklama": "Voge 350 AC için orijinal kol esas alınarak tasarlanmış sinyal anahtarı kolu; M3 vida ile sabitlenir.\nYaklaşık dış ölçüler: 15 × 12 × 11 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6974268-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6974268-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6974268-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6974268-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jebe01",
+      "tur": "CC-BY-SA"
+    }
+  },
+  {
+    "id": "th7319018-voge-900dcx-yag-doldurma-hunisi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Voge"
+    ],
+    "uyum": [
+      {
+        "marka": "Voge"
+      }
+    ],
+    "baslik": "Voge 900DCX Yağ Doldurma Hunisi",
+    "aciklama": "Voge 900DCX için M24x2 dişli yağ doldurma hunisi; hava kanalı sayesinde yağ daha rahat akar.\nYaklaşık dış ölçüler: 94 × 80 × 80 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7319018-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7319018-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7319018-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Artemha",
+      "tur": "CC-BY-SA"
+    }
+  },
+  {
+    "id": "th6428808-voge-650-dsx-kablo-kelepcesi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Voge"
+    ],
+    "uyum": [
+      {
+        "marka": "Voge"
+      }
+    ],
+    "baslik": "Voge 650 DSX Kablo Kelepçesi",
+    "aciklama": "Voge 650 DSX için orijinal kelepçe kaybolduğunda yerine kullanılan kablo kelepçesi.\nYaklaşık dış ölçüler: 19 × 8 × 7 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6428808-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Luuc85",
+      "tur": "CC-BY-SA"
+    }
+  },
+  {
+    "id": "th7332156-voge-900dcx-bluetooth-kumanda-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Voge"
+    ],
+    "uyum": [
+      {
+        "marka": "Voge"
+      }
+    ],
+    "baslik": "Voge 900DCX Bluetooth Kumanda Tutucusu",
+    "aciklama": "Telefon için bluetooth kumandayı Voge 900DCX gidonuna sabitlemeye yarayan tutucu.\nYaklaşık dış ölçüler: 58 × 40 × 34 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7332156-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7332156-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Artemha",
+      "tur": "CC-BY-SA"
+    }
+  },
+  {
+    "id": "th7132712-voge-900dcx-arka-camurluk-adaptoru",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Voge"
+    ],
+    "uyum": [
+      {
+        "marka": "Voge"
+      }
+    ],
+    "baslik": "Voge 900DCX Arka Çamurluk Adaptörü",
+    "aciklama": "Voge 900DCX'te stok bağlantı yerine normal arka çamurluk takmak için adaptör; çamurluk kauçuktan ayrıca kesilir. İki adet M6 yuvalı somun, iki adet M6x18 vida ve üç adet klips gerekir.\nYaklaşık dış ölçüler: 162 × 41 × 37 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7132712-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7132712-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7132712-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7132712-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Artemha",
+      "tur": "CC-BY-SA"
+    }
+  },
+  {
+    "id": "th7116427-voge-300ds-sinyal-dugmesi-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Voge"
+    ],
+    "uyum": [
+      {
+        "marka": "Voge"
+      }
+    ],
+    "baslik": "Voge 300DS Sinyal Düğmesi Kapağı",
+    "aciklama": "Voge 300DS sinyal kolundaki düğmenin kapağı.\nYaklaşık dış ölçüler: 13 × 12 × 10 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7116427-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "juanete29",
+      "tur": "CC-BY-SA"
+    }
+  },
+  {
     "id": "mondial-hps-plaka-lambasi-montaj-braketi",
     "kategori": "Motosiklet",
     "marka": [
