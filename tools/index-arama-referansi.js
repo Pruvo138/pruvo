@@ -138,7 +138,56 @@ function referans() {
       " (izole kosumda PARITE_INDEX_KOK verilmeli)");
   }
   const src = fs.readFileSync(indexYolu, "utf8");
+  _bellek = Object.assign({ kok: kok }, kur(src, indexYolu, cipIndeksiAl(kok)));
+  return _bellek;
+}
 
+/**
+ * KOD-SENKRON REFERANSI (25 Eki 2026, KraL halef-61) — ayni yuklem, `origin/main`'in
+ * index.html'iyle kurulur. NEDEN: uc `?q=<marka>` cevabini D1 `marka_arama` kolonundan
+ * verir; kolon index.html TANINMIS evreninden Pages BUILD adiminda (`d1-sync --adim`)
+ * uretilir. Dal index.html'in arama semantigini degistirdiyse (or. TANINMIS'e marka
+ * girdi) uc merge'e kadar ESKI evreni tasir ve parite yapisal olarak ayrisir. Bu
+ * referans "uc main'in sitesiyle ayni mi" sorusunu olcer; HUKMU parite-test.js verir.
+ * Doner: { ref } | { hata: "<sebep>" } | { ayni: true } (dal index.html'i main'le ayni).
+ * Cip indeksi main index.html'iyle GECICI kokte uretilir; gecici kok SILINIR (onbellek YOK).
+ */
+let _anaBellek = null;
+function anaReferans() {
+  if (_anaBellek) { return _anaBellek; }
+  const kok = process.env.PARITE_INDEX_KOK || path.dirname(__dirname);
+  const hedef = process.env.PARITE_KOD_SENKRON_REF || "origin/main";
+  let src;
+  try {
+    src = execFileSync("git", ["-C", kok, "show", hedef + ":index.html"],
+      { encoding: "utf8", maxBuffer: 64 * 1024 * 1024, stdio: ["ignore", "pipe", "ignore"] });
+  } catch (e) {
+    _anaBellek = { hata: hedef + ":index.html okunamadi" };
+    return _anaBellek;
+  }
+  if (src === fs.readFileSync(path.join(kok, "index.html"), "utf8")) {
+    _anaBellek = { ayni: true };
+    return _anaBellek;
+  }
+  const gecici = fs.mkdtempSync(path.join(os.tmpdir(), "pruvo-kod-senkron-"));
+  try {
+    fs.writeFileSync(path.join(gecici, "index.html"), src);
+    fs.symlinkSync(path.join(kok, "urunler.json"), path.join(gecici, "urunler.json"));
+    const cikti = execFileSync("python3",
+      [path.join(kok, "tools", "cip-indeks.py"), "--kok", gecici, "--yazdir"],
+      { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+    _anaBellek = { ref: Object.assign({ kok: hedef },
+      kur(src, hedef + ":index.html", dogrula(JSON.parse(cikti)))) };
+  } catch (e) {
+    _anaBellek = { hata: "main referansi kurulamadi (" + (e && e.message) + ")" };
+  } finally {
+    fs.rmSync(gecici, { recursive: true, force: true });
+  }
+  return _anaBellek;
+}
+
+/** Ayiklanan bloklari bir vm baglaminda kurar (iki referans da AYNI govdeden gecer). */
+function kur(src, indexYolu, ix) {
   const parcalar = [];
   for (const [ad, re] of FONKSIYON_RE) {
     const m = re.exec(src);
@@ -154,7 +203,6 @@ function referans() {
     }
   }
 
-  const ix = cipIndeksiAl(kok);
   const ctx = vm.createContext({ window: { PRUVO_CIP_INDEKS: ix } });
   vm.runInContext(govde + "\n;({ norm: norm, aramaKok: aramaKok, haystack: haystack," +
     " aramaPlani: aramaPlani, aramaPlaniEsler: aramaPlaniEsler," +
@@ -165,9 +213,7 @@ function referans() {
     " aramaPlani: aramaPlani, aramaPlaniEsler: aramaPlaniEsler," +
     " markaKatla: markaKatla, markaUyeMi: markaUyeMi," +
     " baslikMarkalari: baslikMarkalari, markaSorgusuEsler: markaSorgusuEsler })", ctx);
-
-  _bellek = Object.assign({ kok: kok }, disa);
-  return _bellek;
+  return disa;
 }
 
-module.exports = { referans, BLOK_MARKERLARI, ZORUNLU_IMZALAR };
+module.exports = { referans, anaReferans, BLOK_MARKERLARI, ZORUNLU_IMZALAR };

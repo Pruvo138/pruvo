@@ -5103,6 +5103,14 @@ jobs:
         # `PARITE_TEST5=...` tools/serit-b-uc-kapisi.py'ce okunur; GECTI disi = parite
         # borcu, deploy nobetinde kapanir (merge-kapisi §5). PARITE_YAYIN_BEKLE_SN VERILMEZ.
         run: python3 tools/filament-test.py
+      # KOD-SENKRON KOLU (25 Eki 2026, KraL halef-61): TEST 5'in `sebep=kod-senkron` borcunu
+      # doguran sinifin kabulu (saf hukum H1-H5 + origin/main referansi G1-G4, AGSIZ).
+      # Bu job'da kosar cunku origin/main ancak `fetch-depth: 0` checkout'ta vardir.
+      - name: Parite KOD-SENKRON sinifi kabul (uc main evreninde, dal ileride; AGSIZ)
+        if: ${{ !cancelled() }}
+        run: |
+          node tools/parite-kod-senkron-test.js
+          python3 tools/filament-test.py --parite-eslem-testi
       - name: SERIT B katalog aynasi GERI (urunler.json HEAD haline)
         if: ${{ always() }}
         run: python3 tools/serit-b-katalog-aynasi.py --geri

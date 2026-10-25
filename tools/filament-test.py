@@ -236,6 +236,12 @@ def parite_sebep_ayikla(cikti):
     if "FIKSTUR MODU" in c:
         return ("olculemedi: FIKSTUR MODU (test-only env) — kanonik katalog/uc OLCULMEDI, "
                 "parite BELGELENMEDI")
+    # KOD-SENKRON (25 Eki, KraL halef-61): dal index.html arama semantigini degistirdi,
+    # uc (D1 marka_arama) merge build'ine kadar origin/main evreninde; ayrisan her sorgu
+    # main sitesiyle BIREBIR (parite-test.js kodSenkronMu). Kirmizi varsa cikis 1 olurdu.
+    if "sebep=kod-senkron" in c:
+        return ("olculemedi: sebep=kod-senkron — uc origin/main sitesiyle birebir, dal "
+                "arama semantigi ileride; parite BELGELENMEDI, deploy nobetinde kapanir")
     # TEK DENEME (BaBa 21 Eki 22:4x): canli < yerel + yayin hali okunamadi -> beklenmez.
     if "sebep=yayin-kuyrugu" in c:
         return ("olculemedi: sebep=yayin-kuyrugu — canli sayi yerelin altinda, TEK deneme "
@@ -279,8 +285,10 @@ def parite_jetonu(etiket, sebep):
     if etiket == PARITE_GECTI:
         return "PARITE_TEST5=GECTI"
     if etiket == PARITE_ATLANDI:
+        s = sebep or ""
         return "PARITE_TEST5=OLCULEMEDI sebep=%s" % (
-            "yayin-kuyrugu" if "sebep=yayin-kuyrugu" in (sebep or "") else "diger")
+            "yayin-kuyrugu" if "sebep=yayin-kuyrugu" in s else
+            "kod-senkron" if "sebep=kod-senkron" in s else "diger")
     return "PARITE_TEST5=KIRMIZI"
 
 
@@ -338,6 +346,20 @@ def parite_eslem_testi():
         "exit 3 (yayin kuyrugu) -> ATLANDI + sebep=yayin-kuyrugu")
     ona(parite_jetonu(et, sb) == "PARITE_TEST5=OLCULEMEDI sebep=yayin-kuyrugu",
         "yayin kuyrugu jetonu: PARITE_TEST5=OLCULEMEDI sebep=yayin-kuyrugu")
+    # KOD-SENKRON (25 Eki): uc main evreninde, dal ileride -> ATLANDI (borc), jeton ADIYLA.
+    ok, et, sb = parite_exit_yorumla(
+        3, "   • KOD-SENKRON: 3 sorgu yalniz dal index.html arama semantigiyle ayrisiyor "
+           "(uc = origin/main sitesi) -> parite BELGELENMEDI sebep=kod-senkron "
+           "kapanis=deploy-nobeti")
+    ona(ok and et == PARITE_ATLANDI and "sebep=kod-senkron" in sb,
+        "exit 3 (kod-senkron) -> ATLANDI + sebep=kod-senkron")
+    ona(parite_jetonu(et, sb) == "PARITE_TEST5=OLCULEMEDI sebep=kod-senkron",
+        "kod-senkron jetonu: PARITE_TEST5=OLCULEMEDI sebep=kod-senkron")
+    # TERS YON: kod-senkron sozu gecse bile cikis 1 KIRMIZI kalir (bypass DEGIL).
+    ok, et, sb = parite_exit_yorumla(
+        1, "KOD-SENKRON (2 sorgu) ...\nSONUC: PARITE YOK ❌ (1 aciklanamayan / 300 sorgu)")
+    ona((not ok) and et == PARITE_KIRMIZI,
+        "TERS YON: kod-senkron + aciklanamayan -> exit 1 KIRMIZI (sinif kirmiziyi MASKELEMEZ)")
     ona(parite_jetonu(PARITE_GECTI, "") == "PARITE_TEST5=GECTI",
         "GECTI jetonu: PARITE_TEST5=GECTI")
     ona(parite_jetonu(PARITE_ATLANDI, "olculemedi: WAF/UA duvari (403)") ==

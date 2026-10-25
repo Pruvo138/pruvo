@@ -77,8 +77,8 @@ function ref() { return REFERANS.referans(); }
 function norm(s) { return ref().norm(s); }
 function aramaKok(w) { return ref().aramaKok(w); }
 function haystack(p) { return ref().haystack(p); }
-function filtered(PRODUCTS, query, activeCat, activeBrand) {
-  const R = ref();
+function filtered(PRODUCTS, query, activeCat, activeBrand, Rv) {
+  const R = Rv || ref();
   const S = SINIF.markaSinifi(PRODUCTS);
   // Arama yuklemi: index.html'in TEK ARAMA PLANI (marka sorgusu -> uyelik ∪ baslikta tam
   // kelime; marka olmayan sorgu -> serbest metin). Ikinci kez yazilmaz.
@@ -93,6 +93,26 @@ function filtered(PRODUCTS, query, activeCat, activeBrand) {
   });
 }
 // ─────────────────────────────────────────────────────────────────────────────
+
+// ── KOD-SENKRON SINIFI (25 Eki 2026, KraL halef-61) ─────────────────────────────
+// OLCULEN VAKA: TANINMIS PARTI 1 (Olympus, Pentax ...) dal index.html'ine girdi; parite
+// 1339/1342 — `Pentax` /ara 107 ↔ site 104, `olympus` 120 ↔ 112. Kusur YOKTU: uc marka
+// sorgusunu D1 `marka_arama` kolonundan cevaplar, kolon index.html TANINMIS evreninden
+// Pages BUILD'inde (`d1-sync --adim`) uretilir -> merge'e kadar uc main'in evrenindedir.
+// Cekirdek sorgular (markaKatla'dan turer, KIRPILMAZ) bu ayrismayi HER kosumda yakar;
+// yani arama semantigini degistiren HER dal SERIT B TEST 5'te yapisal KIRMIZI olurdu.
+// HUKUM: ayrisan sorgu, uc cevabi `origin/main` index.html'iyle kurulan site referansina
+// BIREBIR uyuyorsa (ve o sorguda dal ile main sitesi GERCEKTEN farkliysa) ayrisma
+// KOD-SENKRON'dur -> OLCULEMEDI (cikis 3) + `sebep=kod-senkron kapanis=deploy-nobeti`.
+// Main sitesiyle de uyusmayan her ayrisma KIRMIZI KALIR. Kapsam DAR: yalniz `marka=Tümü`
+// sorgulari (marka cipi sinifi tek referansa bagli; o eksende sinif KAPALI, kirmizi kalir).
+function kodSenkronMu({ sinif, anaSinif, bekIds, bekAnaIds }) {
+  if (sinif !== ortak.SINIF_ACIKLANAMAYAN) return false;
+  if (anaSinif !== ortak.SINIF_GECTI) return false;
+  const a = new Set(bekIds), b = new Set(bekAnaIds);
+  if (a.size === b.size && [...a].every((id) => b.has(id))) return false;  // dal == main: kod farki YOK
+  return true;
+}
 
 // TEMBEL YUKLEME: bu dosya `require` edildiginde (fikstur/mutasyon harness'i) 11 MB'lik
 // katalogu OKUMAK GEREKMEZ — ve izole bir temp dizinde kopyasi kosarken orada urunler.json
@@ -226,7 +246,7 @@ async function araSor({ q, kat, marka }) {
 // dogrulamaya devam ederdi. `require.main` kapisi: import etmek testi KOSTURMAZ.
 module.exports = {
   norm, aramaKok, haystack, filtered, sorgulariUret, urunleriYukle,
-  ucEtiketiTuret, KOK, LIMIT,
+  ucEtiketiTuret, KOK, LIMIT, kodSenkronMu,
 };
 
 if (require.main === module) (async () => {
@@ -343,6 +363,20 @@ if (require.main === module) (async () => {
 
   let gecti = 0, atlandi = 0;
   const hatalar = [];
+  const kodSenkron = [];
+  // KOD-SENKRON referansi TEMBEL: yalniz ilk ACIKLANAMAYAN ayrismada kurulur. Fikstur
+  // modunda KAPALI (fikstur kendi sahte ucunu kurar; ikinci referans onu olcmez).
+  let _ana;
+  function anaRef() {
+    if (_ana === undefined) {
+      const A = fikstur ? { hata: "fikstur modu" } : REFERANS.anaReferans();
+      _ana = A.ref || null;
+      console.log("  KOD-SENKRON referansi: %s", A.ref ? "origin/main index.html KURULDU" :
+        A.ayni ? "dal index.html == origin/main (sinif BOS)" : "KAPALI — " + A.hata +
+        " (ayrismalar KIRMIZI kalir)");
+    }
+    return _ana;
+  }
   const fazlaKume = new Set();
   let sirada = 0;
   let olcumArizasi = null;
@@ -383,6 +417,22 @@ if (require.main === module) (async () => {
       for (const id of k.fazla) fazlaKume.add(id);
       if (!k.kesin) olculemeyenPencere++;
       if (k.sinif === ortak.SINIF_GECTI) { gecti++; continue; }
+      if (k.sinif === ortak.SINIF_ACIKLANAMAYAN && s.marka === "Tümü" && anaRef()) {
+        const bekAnaIds = filtered(PRODUCTS, s.q, s.kat, s.marka, anaRef()).map((p) => p.id);
+        const kAna = ortak.siniflandir({
+          bekIds: bekAnaIds,
+          alinan: (g.urunler || []).map((u) => u.id),
+          toplam: g.toplam,
+          limit: LIMIT,
+          yerelIdKume: YEREL_ID_KUME,
+          gecikmeModu: onKosul.gecikmeModu,
+          taslakKume: onKosul.taslakIdler,
+        });
+        if (kodSenkronMu({ sinif: k.sinif, anaSinif: kAna.sinif, bekIds, bekAnaIds })) {
+          kodSenkron.push({ ...s, dal: bekIds.length, ana: bekAnaIds.length, uc: g.toplam });
+          continue;
+        }
+      }
       hatalar.push({ ...s, sinif: k.sinif, sebep: k.sebep });
     }
   }
@@ -396,6 +446,17 @@ if (require.main === module) (async () => {
     OLCULEMEDI.push(ortak.olcumNotu(olcumArizasi, UC_ETIKETI));
     OLCULEMEDI.push("kosum ERKEN DURDU: " + (gecti + hatalar.length + atlandi) + "/" +
       sorgular.length + " sorgu olculdu");
+  }
+
+  if (kodSenkron.length) {
+    console.log("\nKOD-SENKRON (%d sorgu) — uc cevabi origin/main sitesiyle BIREBIR, dal sitesi " +
+      "ileride (D1 marka_arama merge build'inde yenilenir):", kodSenkron.length);
+    for (const h of kodSenkron.slice(0, 25)) {
+      console.log("  q=%j kat=%j -> dal=%d main=%d uc=%s", h.q, h.kat, h.dal, h.ana, h.uc);
+    }
+    OLCULEMEDI.push("KOD-SENKRON: " + kodSenkron.length + " sorgu yalniz dal index.html " +
+      "arama semantigiyle ayrisiyor (uc = origin/main sitesi) -> parite BELGELENMEDI " +
+      "sebep=kod-senkron kapanis=deploy-nobeti");
   }
 
   // Aciklama GORULEN fazlaligi tasiyabiliyor mu? Tasimiyorsa (yetim satir) COKER -> KIRMIZI.
