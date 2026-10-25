@@ -117235,6 +117235,7 @@
     "id": "cayenne-vida",
     "kategori": "Otomobil",
     "marka": [
+      "Porsche",
       "Cayenne"
     ],
     "baslik": "Cayenne Vida",
@@ -117246,7 +117247,13 @@
     "lisans": {
       "tasarimci": "2bad2die",
       "tur": "CC BY 4.0"
-    }
+    },
+    "uyum": [
+      {
+        "marka": "Porsche",
+        "model": "Cayenne"
+      }
+    ]
   },
   {
     "id": "porsche-taycan-telefon-tutucu",
@@ -117273,6 +117280,7 @@
     "id": "cayenne-tutucu",
     "kategori": "Otomobil",
     "marka": [
+      "Porsche",
       "Cayenne"
     ],
     "baslik": "Porsche Cayenne Küllük İçi Google Pixel Telefon Tutucu",
@@ -117284,12 +117292,19 @@
     "lisans": {
       "tasarimci": "tucan-sam",
       "tur": "CC BY 4.0"
-    }
+    },
+    "uyum": [
+      {
+        "marka": "Porsche",
+        "model": "Cayenne"
+      }
+    ]
   },
   {
     "id": "cayenne-di-li",
     "kategori": "Otomobil",
     "marka": [
+      "Porsche",
       "Cayenne"
     ],
     "baslik": "Cayenne Dişli",
@@ -117304,7 +117319,13 @@
     "lisans": {
       "tasarimci": "2bad2die",
       "tur": "CC BY 4.0"
-    }
+    },
+    "uyum": [
+      {
+        "marka": "Porsche",
+        "model": "Cayenne"
+      }
+    ]
   },
   {
     "id": "porsche-993-964-montaj-aparat",
@@ -117331,6 +117352,7 @@
     "id": "cayenne-tutucu-6049268",
     "kategori": "Otomobil",
     "marka": [
+      "Porsche",
       "Cayenne"
     ],
     "baslik": "Porsche Cayenne Albrecht AE 6110 Telsiz Tutucu",
@@ -117347,7 +117369,13 @@
     "lisans": {
       "tasarimci": "ChuckMorris",
       "tur": "CC BY 4.0"
-    }
+    },
+    "uyum": [
+      {
+        "marka": "Porsche",
+        "model": "Cayenne"
+      }
+    ]
   },
   {
     "id": "porsche-911-alet-2006970",
@@ -117374,6 +117402,7 @@
     "id": "cayenne-tutucu-5896088",
     "kategori": "Otomobil",
     "marka": [
+      "Porsche",
       "Cayenne"
     ],
     "baslik": "Porsche Cayenne Küllük İçi Telefon Tutucu (2019+)",
@@ -117390,12 +117419,19 @@
     "lisans": {
       "tasarimci": "markus99",
       "tur": "CC BY 4.0"
-    }
+    },
+    "uyum": [
+      {
+        "marka": "Porsche",
+        "model": "Cayenne"
+      }
+    ]
   },
   {
     "id": "cayenne-telefon-tutucu",
     "kategori": "Otomobil",
     "marka": [
+      "Porsche",
       "Cayenne"
     ],
     "baslik": "Cayenne Telefon Tutucu",
@@ -117414,7 +117450,13 @@
     "lisans": {
       "tasarimci": "Yufaya_1",
       "tur": "CC BY-SA 4.0"
-    }
+    },
+    "uyum": [
+      {
+        "marka": "Porsche",
+        "model": "Cayenne"
+      }
+    ]
   },
   {
     "id": "panamera-970-2-back-ashtray",
@@ -117457,6 +117499,7 @@
     "id": "boxster-pul",
     "kategori": "Otomobil",
     "marka": [
+      "Porsche",
       "Boxster"
     ],
     "baslik": "Boxster Pul",
@@ -117468,7 +117511,13 @@
     "lisans": {
       "tasarimci": "Mrdjflores",
       "tur": "CC BY 4.0"
-    }
+    },
+    "uyum": [
+      {
+        "marka": "Porsche",
+        "model": "Boxster"
+      }
+    ]
   },
   {
     "id": "cayman-brake-duct",
@@ -117491,6 +117540,7 @@
     "id": "boxster-bur",
     "kategori": "Otomobil",
     "marka": [
+      "Porsche",
       "Boxster"
     ],
     "baslik": "Boxster Burç",
@@ -117509,15 +117559,20 @@
     "lisans": {
       "tasarimci": "flyingpenguin1807",
       "tur": "CC BY 4.0"
-    }
+    },
+    "uyum": [
+      {
+        "marka": "Porsche",
+        "model": "Boxster"
+      }
+    ]
   },
   {
     "id": "boxster-986-996-adapt-r",
     "kategori": "Otomobil",
     "marka": [
-      "Boxster",
-      "986",
-      "996"
+      "Porsche",
+      "Boxster"
     ],
     "baslik": "Boxster 986 996 Adaptör",
     "aciklama": "Boxster, 986, 996 için boxster 986 996 adaptör.\nÖzel tasarım üretim: sipariş üzerine üretilir.\nSağlam ve hafif bir parça olarak teslim edilir.\nYaklaşık dış ölçüler: 134 × 114 × 19 mm.",
@@ -117530,14 +117585,20 @@
     "lisans": {
       "tasarimci": "ThomasR099",
       "tur": "CC BY 4.0"
-    }
+    },
+    "uyum": [
+      {
+        "marka": "Porsche",
+        "model": "Boxster"
+      }
+    ]
   },
   {
     "id": "boxster-986-tapa",
     "kategori": "Otomobil",
     "marka": [
-      "Boxster",
-      "986"
+      "Porsche",
+      "Boxster"
     ],
     "baslik": "Boxster 986 Tapa",
     "aciklama": "Boxster, 986 için boxster 986 tapa.\nÖzel tasarım üretim: sipariş üzerine üretilir.\nSağlam ve hafif bir parça olarak teslim edilir.\nYaklaşık dış ölçüler: 51 × 51 × 25 mm.",
@@ -117553,7 +117614,13 @@
     "lisans": {
       "tasarimci": "Seanyb9985",
       "tur": "CC BY 4.0"
-    }
+    },
+    "uyum": [
+      {
+        "marka": "Porsche",
+        "model": "Boxster"
+      }
+    ]
   },
   {
     "id": "land-rover-discovery-1-kapi-karti-klipsi",
@@ -302990,7 +303057,7 @@
     "kategori": "Otomobil",
     "altkategori": "Telefon ve Şarj",
     "marka": [
-      "VW",
+      "Volkswagen",
       "Tiguan"
     ],
     "baslik": "VW Tiguan 2014 Kart Yuvası Telefon Tutucu",
@@ -303005,14 +303072,20 @@
     "lisans": {
       "tasarimci": "Jameschu",
       "tur": "CC BY-SA 4.0"
-    }
+    },
+    "uyum": [
+      {
+        "marka": "Volkswagen",
+        "model": "Tiguan"
+      }
+    ]
   },
   {
     "id": "vw-tiguan-2014-kart-yuvasi-telefon-tutucu-buyuk-boy",
     "kategori": "Otomobil",
     "altkategori": "Telefon ve Şarj",
     "marka": [
-      "VW",
+      "Volkswagen",
       "Tiguan"
     ],
     "baslik": "VW Tiguan 2014 Kart Yuvası Telefon Tutucu (Büyük Boy)",
@@ -303026,14 +303099,20 @@
     "lisans": {
       "tasarimci": "Jameschu",
       "tur": "CC BY-SA 4.0"
-    }
+    },
+    "uyum": [
+      {
+        "marka": "Volkswagen",
+        "model": "Tiguan"
+      }
+    ]
   },
   {
     "id": "vw-golf-mk2-torpido-gozu-klipsi",
     "kategori": "Otomobil",
     "altkategori": "Konsol ve Torpido",
     "marka": [
-      "VW",
+      "Volkswagen",
       "Golf"
     ],
     "baslik": "VW Golf Mk2 Torpido Gözü Klipsi",
@@ -303046,14 +303125,20 @@
     "lisans": {
       "tasarimci": "aaronmk2",
       "tur": "CC BY-SA 4.0"
-    }
+    },
+    "uyum": [
+      {
+        "marka": "Volkswagen",
+        "model": "Golf"
+      }
+    ]
   },
   {
     "id": "vw-passat-b6-koltuk-ayar-disliisi",
     "kategori": "Otomobil",
     "altkategori": "Koltuk ve Kemer",
     "marka": [
-      "VW",
+      "Volkswagen",
       "Passat"
     ],
     "baslik": "VW Passat B6 Koltuk Ayar Dişlisi",
@@ -303067,14 +303152,20 @@
     "lisans": {
       "tasarimci": "WORAL",
       "tur": "CC BY 4.0"
-    }
+    },
+    "uyum": [
+      {
+        "marka": "Volkswagen",
+        "model": "Passat"
+      }
+    ]
   },
   {
     "id": "vw-beetle-emniyet-kemeri-askisi",
     "kategori": "Otomobil",
     "altkategori": "Koltuk ve Kemer",
     "marka": [
-      "VW",
+      "Volkswagen",
       "Beetle"
     ],
     "baslik": "VW Beetle Emniyet Kemeri Askısı",
@@ -303088,14 +303179,20 @@
     "lisans": {
       "tasarimci": "Mickey1978",
       "tur": "CC BY 4.0"
-    }
+    },
+    "uyum": [
+      {
+        "marka": "Volkswagen",
+        "model": "Beetle"
+      }
+    ]
   },
   {
     "id": "vw-amarok-iphone-12-mini-tutucu",
     "kategori": "Otomobil",
     "altkategori": "Telefon ve Şarj",
     "marka": [
-      "VW",
+      "Volkswagen",
       "Amarok"
     ],
     "baslik": "VW Amarok iPhone 12 Mini Telefon Tutucusu",
@@ -303108,14 +303205,20 @@
     "lisans": {
       "tasarimci": "Elpato213",
       "tur": "CC BY 4.0"
-    }
+    },
+    "uyum": [
+      {
+        "marka": "Volkswagen",
+        "model": "Amarok"
+      }
+    ]
   },
   {
     "id": "vw-amarok-garaj-kapisi-kumanda-tutucusu",
     "kategori": "Otomobil",
     "altkategori": "İç Aksam",
     "marka": [
-      "VW",
+      "Volkswagen",
       "Amarok"
     ],
     "baslik": "VW Amarok Garaj Kapısı Kumanda Tutucusu",
@@ -303128,14 +303231,20 @@
     "lisans": {
       "tasarimci": "Elpato213",
       "tur": "CC BY 4.0"
-    }
+    },
+    "uyum": [
+      {
+        "marka": "Volkswagen",
+        "model": "Amarok"
+      }
+    ]
   },
   {
     "id": "vw-beetle-porsche-jant-gobek-kapagi-adaptoru",
     "kategori": "Otomobil",
     "altkategori": "Tekerlek ve Jant",
     "marka": [
-      "VW",
+      "Volkswagen",
       "Beetle"
     ],
     "baslik": "VW Beetle Porsche Jant Göbek Kapağı Adaptörü",
@@ -303147,15 +303256,23 @@
     "lisans": {
       "tasarimci": "MrTFLX",
       "tur": "CC BY 4.0"
-    }
+    },
+    "uyum": [
+      {
+        "marka": "Volkswagen",
+        "model": "Beetle"
+      }
+    ]
   },
   {
     "id": "seat-alhambra-vw-sharan-bagaj-kapagi-kilit-parcasi",
     "kategori": "Otomobil",
     "altkategori": "Kapı ve Cam",
     "marka": [
-      "VW",
-      "Sharan"
+      "Volkswagen",
+      "Sharan",
+      "Seat",
+      "Alhambra"
     ],
     "baslik": "SEAT Alhambra / VW Sharan Bagaj Kapağı Kilit Parçası",
     "aciklama": "2010 sonrası SEAT Alhambra 2 ve VW Sharan 2 modellerinin bagaj kapağı kilit mekanizmasındaki yedek parçadır. Zamanla aşınan/kırılan orijinal parçanın yerine geçer.\n• Orijinal parçanın yerine doğrudan takılır\n• Bagaj kapağı kilitleme mekanizmasını çalışır durumda tutar\n• Dayanıklı malzemeyle üretilir\n• Montajı orijinal parçanın çıkarılıp yenisinin takılmasıyla yapılır",
@@ -303166,14 +303283,24 @@
     "lisans": {
       "tasarimci": "Jack6",
       "tur": "CC BY-SA 4.0"
-    }
+    },
+    "uyum": [
+      {
+        "marka": "Volkswagen",
+        "model": "Sharan"
+      },
+      {
+        "marka": "Seat",
+        "model": "Alhambra"
+      }
+    ]
   },
   {
     "id": "vw-corrado-g60-sis-farasi-kanali-sol",
     "kategori": "Otomobil",
     "altkategori": "Aydınlatma",
     "marka": [
-      "VW",
+      "Volkswagen",
       "Corrado"
     ],
     "baslik": "VW Corrado G60 Sis Farı Kanalı (Sol)",
@@ -303185,14 +303312,20 @@
     "lisans": {
       "tasarimci": "BonelessKale26",
       "tur": "CC BY-SA 4.0"
-    }
+    },
+    "uyum": [
+      {
+        "marka": "Volkswagen",
+        "model": "Corrado"
+      }
+    ]
   },
   {
     "id": "vw-touareg-iphone-se-telefon-tutucu",
     "kategori": "Otomobil",
     "altkategori": "Telefon ve Şarj",
     "marka": [
-      "VW",
+      "Volkswagen",
       "Touareg"
     ],
     "baslik": "VW Touareg iPhone SE Telefon Tutucu",
@@ -303205,14 +303338,20 @@
     "lisans": {
       "tasarimci": "klonkrieger",
       "tur": "CC BY 4.0"
-    }
+    },
+    "uyum": [
+      {
+        "marka": "Volkswagen",
+        "model": "Touareg"
+      }
+    ]
   },
   {
     "id": "vw-02a-02j-debriyaj-merkezleme-aleti",
     "kategori": "Otomobil",
     "altkategori": "Motor Bölümü",
     "marka": [
-      "VW"
+      "Volkswagen"
     ],
     "baslik": "VW 02A/02J Debriyaj Merkezleme Aleti (28 Diş)",
     "aciklama": "VW 02A ve 02J tip 5 vitesli şanzımanlarda debriyaj diskini krank mili ile hizalamak için kullanılan merkezleme aletidir. Golf 3, Passat, Corrado (VR6/G60/ABF), Golf 4, Audi A3 8L gibi geniş bir model yelpazesiyle uyumludur.\n• 28 dişli spline ölçüsü, standart VW 02A/02J\n• Debriyaj değişiminde diskin merkezde kalmasını sağlar\n• Tekrar kullanılabilir bir atölye aletidir\n• Dayanıklı malzemeyle üretilir",
@@ -303226,6 +303365,11 @@
     },
     "tavsiyeFilament": [
       "ABS"
+    ],
+    "uyum": [
+      {
+        "marka": "Volkswagen"
+      }
     ]
   },
   {
@@ -303233,7 +303377,7 @@
     "kategori": "Otomobil",
     "altkategori": "Bagaj ve Taşıma",
     "marka": [
-      "VW",
+      "Volkswagen",
       "Touran"
     ],
     "baslik": "VW Touran Bagaj Kapağı Amortisörü",
@@ -303248,6 +303392,12 @@
     },
     "tavsiyeFilament": [
       "ABS"
+    ],
+    "uyum": [
+      {
+        "marka": "Volkswagen",
+        "model": "Touran"
+      }
     ]
   },
   {
@@ -303255,7 +303405,7 @@
     "kategori": "Otomobil",
     "altkategori": "Telefon ve Şarj",
     "marka": [
-      "VW",
+      "Volkswagen",
       "Amarok"
     ],
     "baslik": "VW Amarok Telefon Tutucu Plakası",
@@ -303269,14 +303419,20 @@
     "lisans": {
       "tasarimci": "cimac",
       "tur": "CC BY-SA 4.0"
-    }
+    },
+    "uyum": [
+      {
+        "marka": "Volkswagen",
+        "model": "Amarok"
+      }
+    ]
   },
   {
     "id": "vw-golf-mk7-manifold-sensor-braketi",
     "kategori": "Otomobil",
     "altkategori": "Motor Bölümü",
     "marka": [
-      "VW",
+      "Volkswagen",
       "Golf"
     ],
     "baslik": "VW Golf Mk7 (EA888 Gen3) Manifold Sensör Braketi",
@@ -303292,6 +303448,12 @@
     },
     "tavsiyeFilament": [
       "ABS"
+    ],
+    "uyum": [
+      {
+        "marka": "Volkswagen",
+        "model": "Golf"
+      }
     ]
   },
   {
@@ -303299,7 +303461,7 @@
     "kategori": "Otomobil",
     "altkategori": "Dış Aksam",
     "marka": [
-      "VW",
+      "Volkswagen",
       "Amarok"
     ],
     "baslik": "VW Amarok Yaklaşım Sensörü Kapağı",
@@ -303314,14 +303476,20 @@
     "lisans": {
       "tasarimci": "3DDrops",
       "tur": "CC BY 4.0"
-    }
+    },
+    "uyum": [
+      {
+        "marka": "Volkswagen",
+        "model": "Amarok"
+      }
+    ]
   },
   {
     "id": "vw-corrado-g60-sis-farasi-kanali-sag",
     "kategori": "Otomobil",
     "altkategori": "Aydınlatma",
     "marka": [
-      "VW",
+      "Volkswagen",
       "Corrado"
     ],
     "baslik": "VW Corrado G60 Sis Farı Kanalı (Sağ)",
@@ -303333,14 +303501,20 @@
     "lisans": {
       "tasarimci": "BonelessKale26",
       "tur": "CC BY-SA 4.0"
-    }
+    },
+    "uyum": [
+      {
+        "marka": "Volkswagen",
+        "model": "Corrado"
+      }
+    ]
   },
   {
     "id": "vw-touran-bagaj-ucgen-kilidi",
     "kategori": "Otomobil",
     "altkategori": "Bagaj ve Taşıma",
     "marka": [
-      "VW",
+      "Volkswagen",
       "Touran"
     ],
     "baslik": "VW Touran Bagaj Üçgen Reflektör Kilidi",
@@ -303353,14 +303527,20 @@
     "lisans": {
       "tasarimci": "trenti",
       "tur": "CC BY-SA 4.0"
-    }
+    },
+    "uyum": [
+      {
+        "marka": "Volkswagen",
+        "model": "Touran"
+      }
+    ]
   },
   {
     "id": "vw-amarok-bardaklik-takviyesi",
     "kategori": "Otomobil",
     "altkategori": "Bardaklık",
     "marka": [
-      "VW",
+      "Volkswagen",
       "Amarok"
     ],
     "baslik": "VW Amarok Bardaklık Takviyesi",
@@ -303373,14 +303553,20 @@
     "lisans": {
       "tasarimci": "cimac",
       "tur": "CC BY-SA 4.0"
-    }
+    },
+    "uyum": [
+      {
+        "marka": "Volkswagen",
+        "model": "Amarok"
+      }
+    ]
   },
   {
     "id": "vw-sharan-otomatik-vites-kolu",
     "kategori": "Otomobil",
     "altkategori": "Sürüş Kumandaları",
     "marka": [
-      "VW",
+      "Volkswagen",
       "Sharan"
     ],
     "baslik": "VW Sharan Otomatik Vites Kolu",
@@ -303398,6 +303584,12 @@
     },
     "tavsiyeFilament": [
       "ABS"
+    ],
+    "uyum": [
+      {
+        "marka": "Volkswagen",
+        "model": "Sharan"
+      }
     ]
   },
   {
@@ -554792,7 +554984,7 @@
     "id": "ssangyong-on-cam-kose-izgara-kapagi-79440-32030",
     "kategori": "Otomobil",
     "marka": [
-      "Ssangyong"
+      "SsangYong"
     ],
     "baslik": "Ssangyong Ön Cam Köşe Izgara Kapağı (79440-32030)",
     "aciklama": "Ssangyong ön cam köşe havalandırma ızgara kapak parçası (OEM 79440-32030). Kırılan veya kaybolan orijinalin yerine geçer, cam köşe ızgarasını temizce kapatır. Orijinali lazer tarama ile ölçeklenmiştir.\n- Ssangyong ile uyumludur.\n- OEM 79440-32030 referansına sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
@@ -554801,7 +554993,12 @@
       "https://media.pruvo3d.com/urunler/c3dssangyong-window-front-corner-grille-cover-79440-32030-1.jpg",
       "https://media.pruvo3d.com/urunler/c3dssangyong-window-front-corner-grille-cover-79440-32030-2.jpg"
     ],
-    "altkategori": "Klima ve Havalandırma"
+    "altkategori": "Klima ve Havalandırma",
+    "uyum": [
+      {
+        "marka": "SsangYong"
+      }
+    ]
   },
   {
     "id": "audi-a4-rs4-sis-fari-cercevesi",
@@ -555728,7 +555925,8 @@
     "id": "ssangyong-kyron-arka-bagaj-yan-kapagi-camurluk-trimi",
     "kategori": "Otomobil",
     "marka": [
-      "Ssangyong"
+      "SsangYong",
+      "Kyron"
     ],
     "baslik": "Ssangyong Kyron Arka Bagaj Yan Kapağı / Çamurluk Trimi",
     "aciklama": "Ssangyong Kyron arka bagaj yan kapak / arka çamurluk trim parçası. Kırılan veya kaybolan orijinalin yerine geçer, bagaj yanını ve çamurluk trimini temizce tamamlar. Orijinali lazer tarama ile modellenmiştir.\n- Ssangyong Kyron ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
@@ -555737,7 +555935,13 @@
       "https://media.pruvo3d.com/urunler/c3dtata-safari-rear-trunk-side-cover-tata-safari-rear-fender-trim-1.jpg",
       "https://media.pruvo3d.com/urunler/c3dtata-safari-rear-trunk-side-cover-tata-safari-rear-fender-trim-2.jpg"
     ],
-    "altkategori": "Bagaj ve Taşıma"
+    "altkategori": "Bagaj ve Taşıma",
+    "uyum": [
+      {
+        "marka": "SsangYong",
+        "model": "Kyron"
+      }
+    ]
   },
   {
     "id": "man-tga-41-360-kalorifer-izgarasi-parca-3",
@@ -556094,7 +556298,7 @@
     "id": "ssangyong-guneslik-mandali-kapak-dislisi",
     "kategori": "Otomobil",
     "marka": [
-      "Ssangyong"
+      "SsangYong"
     ],
     "baslik": "Ssangyong Güneşlik Mandalı / Kapak Dişlisi",
     "aciklama": "Ssangyong güneşlik mandal / kapak dişli parçası. Kırılan veya kaybolan orijinalin yerine geçer, güneşliği düzgün tutar. Orijinali lazer tarama ile modellenmiştir.\n- Ssangyong ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
@@ -556109,7 +556313,12 @@
       "https://media.pruvo3d.com/urunler/c3dssangyong-sunvisor-cover-gear-7.jpg",
       "https://media.pruvo3d.com/urunler/c3dssangyong-sunvisor-cover-gear-8.jpg"
     ],
-    "altkategori": "Tavan ve Güneşlik"
+    "altkategori": "Tavan ve Güneşlik",
+    "uyum": [
+      {
+        "marka": "SsangYong"
+      }
+    ]
   },
   {
     "id": "toyota-verso-tavan-bari-arka-kapagi-458225rr",
@@ -700300,7 +700509,10 @@
     "id": "vag-5j0-827-501d-bagaj-kilidi-di-lisi",
     "kategori": "Otomobil",
     "marka": [
-      "VAG"
+      "Volkswagen",
+      "Audi",
+      "Seat",
+      "Skoda"
     ],
     "baslik": "VAG 5J0 827 501D Bagaj Kilidi Dişlisi",
     "aciklama": "Bagaj kilidi mekanizmasında kullanılan yedek dişli parçadır. Kilit mekanizmasının yeniden çalışmasını sağlamak için özel tasarım üretim olarak hazırlanır.\n- Bagaj kilidi içindeki kırık veya aşınmış dişliyi değiştirir\n- Mekanizmanın açma/kapama hareketini geri kazandırır\n- Montaj, mevcut kilit gövdesi içine yapılır\n- Araca uygunluk için parça numarasıyla kontrol edilmelidir",
@@ -700313,7 +700525,21 @@
     "tavsiyeFilament": [
       "ASA"
     ],
-    "altkategori": "Bagaj ve Taşıma"
+    "altkategori": "Bagaj ve Taşıma",
+    "uyum": [
+      {
+        "marka": "Volkswagen"
+      },
+      {
+        "marka": "Audi"
+      },
+      {
+        "marka": "Seat"
+      },
+      {
+        "marka": "Skoda"
+      }
+    ]
   },
   {
     "id": "peugeot-206-kap-kilit-kolu-parmak-par-as",
@@ -700374,7 +700600,8 @@
     "id": "psa-1-0-1-2-eksantrik-zamanlama-aparat",
     "kategori": "Otomobil",
     "marka": [
-      "PSA"
+      "Peugeot",
+      "Citroen"
     ],
     "baslik": "PSA 1.0 1.2 eksantrik zamanlama aparatı",
     "aciklama": "PSA 1.0 ve 1.2 motorlar için triger zamanlamasını sabitlemeye yarayan özel tasarım üretim aparattır.\n- Eksantrik milini konumlandırma ve zamanlama işlemlerinde kullanılır.\n- Servis ve bakım sırasında montajı kolaylaştırır.\n- Set halinde farklı parçalar içerir; fotoğraflarda hem gerçek parça hem de yerleşim görünmektedir.",
@@ -700389,6 +700616,14 @@
     "altkategori": "Motor Bölümü",
     "tavsiyeFilament": [
       "ABS"
+    ],
+    "uyum": [
+      {
+        "marka": "Peugeot"
+      },
+      {
+        "marka": "Citroen"
+      }
     ]
   },
   {
@@ -788211,7 +788446,6 @@
     "id": "psa-klima-hortumu-s-kme-aparat",
     "kategori": "Otomobil",
     "marka": [
-      "PSA",
       "Peugeot",
       "Citroen"
     ],
@@ -788228,7 +788462,15 @@
       "tasarimci": "Testiboules45",
       "tur": "CC BY 4.0"
     },
-    "altkategori": "Klima ve Havalandırma"
+    "altkategori": "Klima ve Havalandırma",
+    "uyum": [
+      {
+        "marka": "Peugeot"
+      },
+      {
+        "marka": "Citroen"
+      }
+    ]
   },
   {
     "id": "citroen-c3-uyumlu-telefon-ve-bardak-tutucu-konsol-aparat",
@@ -789586,7 +789828,6 @@
     "id": "vag-grubu-ara-lar-i-in-bagaj-antas-ask-s",
     "kategori": "Otomobil",
     "marka": [
-      "VAG",
       "Volkswagen",
       "Audi",
       "Seat",
@@ -789602,7 +789843,21 @@
       "tasarimci": "Ilya Sharkevich",
       "tur": "CC BY 4.0"
     },
-    "altkategori": "Bagaj ve Taşıma"
+    "altkategori": "Bagaj ve Taşıma",
+    "uyum": [
+      {
+        "marka": "Volkswagen"
+      },
+      {
+        "marka": "Audi"
+      },
+      {
+        "marka": "Seat"
+      },
+      {
+        "marka": "Skoda"
+      }
+    ]
   },
   {
     "id": "volkswagen-t4-tavan-d-emesi-klipsi",
@@ -789815,7 +790070,6 @@
     "id": "vag-ate-leme-bobini-s-kme-aparat",
     "kategori": "Otomobil",
     "marka": [
-      "VAG",
       "Volkswagen",
       "Audi",
       "Seat",
@@ -789831,6 +790085,20 @@
     "altkategori": "Motor Bölümü",
     "tavsiyeFilament": [
       "ABS"
+    ],
+    "uyum": [
+      {
+        "marka": "Volkswagen"
+      },
+      {
+        "marka": "Audi"
+      },
+      {
+        "marka": "Seat"
+      },
+      {
+        "marka": "Skoda"
+      }
     ]
   },
   {
@@ -799891,8 +800159,6 @@
     "id": "psa-stellantis-1-2-puretech-triger-kay-l-m-aparat",
     "kategori": "Otomobil",
     "marka": [
-      "PSA",
-      "Stellantis",
       "Peugeot",
       "Citroen",
       "Opel"
@@ -799910,6 +800176,17 @@
     "altkategori": "Motor Bölümü",
     "tavsiyeFilament": [
       "ABS"
+    ],
+    "uyum": [
+      {
+        "marka": "Peugeot"
+      },
+      {
+        "marka": "Citroen"
+      },
+      {
+        "marka": "Opel"
+      }
     ]
   },
   {
@@ -800832,7 +801109,6 @@
     "id": "psa-rt5-radyo-kontrol-d-mesi",
     "kategori": "Otomobil",
     "marka": [
-      "PSA",
       "Peugeot",
       "Citroen"
     ],
@@ -800848,7 +801124,15 @@
       "tasarimci": "lagaf87",
       "tur": "CC BY 4.0"
     },
-    "altkategori": "Ses ve Multimedya"
+    "altkategori": "Ses ve Multimedya",
+    "uyum": [
+      {
+        "marka": "Peugeot"
+      },
+      {
+        "marka": "Citroen"
+      }
+    ]
   },
   {
     "id": "jant-merkezleme-bilezi-i-68mm-54-1mm-ronal-toyota",
@@ -801041,7 +801325,6 @@
     "id": "psa-bms-l040-sigorta-kutusu-koruyucu-muhafaza-kutusu",
     "kategori": "Otomobil",
     "marka": [
-      "PSA",
       "Peugeot",
       "Citroen"
     ],
@@ -801061,6 +801344,14 @@
     "altkategori": "Ses ve Multimedya",
     "tavsiyeFilament": [
       "ABS"
+    ],
+    "uyum": [
+      {
+        "marka": "Peugeot"
+      },
+      {
+        "marka": "Citroen"
+      }
     ]
   },
   {
@@ -809582,7 +809873,6 @@
     "id": "psa-com2000-sinyal-kolu-yay-yuvas-par-as",
     "kategori": "Otomobil",
     "marka": [
-      "PSA",
       "Peugeot",
       "Citroen"
     ],
@@ -809598,7 +809888,15 @@
       "tasarimci": "xmas75",
       "tur": "CC BY 4.0"
     },
-    "altkategori": "Montaj Parçaları ve Klipsler"
+    "altkategori": "Montaj Parçaları ve Klipsler",
+    "uyum": [
+      {
+        "marka": "Peugeot"
+      },
+      {
+        "marka": "Citroen"
+      }
+    ]
   },
   {
     "id": "alfa-romeo-fiat-peugeot-ve-citroen-uyumlu-hoparl-r-konnekt-r",
@@ -810207,7 +810505,6 @@
     "id": "psa-kaput-i-stinat-demiri-klipsi",
     "kategori": "Otomobil",
     "marka": [
-      "PSA",
       "Peugeot",
       "Citroen"
     ],
@@ -810226,6 +810523,14 @@
     "altkategori": "Motor Bölümü",
     "tavsiyeFilament": [
       "ABS"
+    ],
+    "uyum": [
+      {
+        "marka": "Peugeot"
+      },
+      {
+        "marka": "Citroen"
+      }
     ]
   },
   {
@@ -810425,7 +810730,6 @@
     "id": "psa-tu-motor-ya-ubu-u-tapas",
     "kategori": "Otomobil",
     "marka": [
-      "PSA",
       "Peugeot",
       "Citroen"
     ],
@@ -810444,6 +810748,14 @@
     "altkategori": "Motor Bölümü",
     "tavsiyeFilament": [
       "ABS"
+    ],
+    "uyum": [
+      {
+        "marka": "Peugeot"
+      },
+      {
+        "marka": "Citroen"
+      }
     ]
   },
   {
@@ -812790,8 +813102,6 @@
     "id": "psa-stellantis-hava-filtre-kutusu-lastik-takozu",
     "kategori": "Otomobil",
     "marka": [
-      "PSA",
-      "Stellantis",
       "Peugeot",
       "Citroen"
     ],
@@ -812804,6 +813114,14 @@
     "altkategori": "Tekerlek ve Jant",
     "tavsiyeFilament": [
       "ABS"
+    ],
+    "uyum": [
+      {
+        "marka": "Peugeot"
+      },
+      {
+        "marka": "Citroen"
+      }
     ]
   },
   {
@@ -816664,8 +816982,8 @@
     "id": "peugeot-307-cam-suyu-depo-kapa",
     "kategori": "Otomobil",
     "marka": [
-      "PSA",
-      "Peugeot"
+      "Peugeot",
+      "307"
     ],
     "baslik": "Peugeot 307 Cam Suyu Depo Kapağı — Model 2",
     "aciklama": "Peugeot 307 model araçlar için özel olarak tasarlanmış, dayanıklı cam suyu depo kapağı.\nZamanla eskiyen, çatlayan veya kaybolan orijinal kapağın yerine mükemmel uyum sağlar.\nYüksek sıcaklığa ve kimyasallara dayanıklı malzemeden özel tasarım olarak üretilmiştir.\nKolayca monte edilir ve sızdırmazlık sağlayarak cam silecek suyunun korunmasına yardımcı olur.",
@@ -816681,6 +816999,12 @@
     "altkategori": "Yakıt ve Egzoz",
     "tavsiyeFilament": [
       "ABS"
+    ],
+    "uyum": [
+      {
+        "marka": "Peugeot",
+        "model": "307"
+      }
     ]
   },
   {
@@ -822982,7 +823306,10 @@
     "id": "vag-j-hook-side-lock-silecek-adapt-r",
     "kategori": "Otomobil",
     "marka": [
-      "VAG"
+      "Volkswagen",
+      "Audi",
+      "Seat",
+      "Skoda"
     ],
     "baslik": "VAG J-Hook - Side-Lock Silecek Adaptörü",
     "aciklama": "J-tipi silecek kollarına sahip araçlarda, Side-lock bağlantı tipindeki silecek süpürgelerini güvenle kullanabilmeniz için özel tasarlanmış dönüştürücü adaptör.\n\n- J-Hook silecek kollarını Side-lock (VAG grubu uyumlu) sistemine kolayca adapte eder.\n- Aşınmaya ve dış hava koşullarına dayanıklı yüksek kaliteli malzemeden özel üretilir.\n- Kolay montaj yapısı sayesinde silecek değişimini pratik hale getirir.\n- Silecek mekanizmasına tam oturarak stabil ve sessiz bir çalışma performansı sunar.\n\nYaklaşık dış ölçüler: 44 × 31 × 22 mm.",
@@ -822996,13 +823323,26 @@
       "tasarimci": "ruomserg",
       "tur": "CC BY 4.0"
     },
-    "altkategori": "Ayna ve Silecek"
+    "altkategori": "Ayna ve Silecek",
+    "uyum": [
+      {
+        "marka": "Volkswagen"
+      },
+      {
+        "marka": "Audi"
+      },
+      {
+        "marka": "Seat"
+      },
+      {
+        "marka": "Skoda"
+      }
+    ]
   },
   {
     "id": "vag-grubu-radyo-s-kme-aparat",
     "kategori": "Otomobil",
     "marka": [
-      "VAG",
       "Volkswagen",
       "Audi",
       "Seat",
@@ -823018,7 +823358,21 @@
       "tasarimci": "blkr",
       "tur": "CC BY 4.0"
     },
-    "altkategori": "Ses ve Multimedya"
+    "altkategori": "Ses ve Multimedya",
+    "uyum": [
+      {
+        "marka": "Volkswagen"
+      },
+      {
+        "marka": "Audi"
+      },
+      {
+        "marka": "Seat"
+      },
+      {
+        "marka": "Skoda"
+      }
+    ]
   },
   {
     "id": "skoda-octavia-1-8-so-utma-suyu-t-borusu-1j0121087d",
@@ -823139,7 +823493,6 @@
     "id": "vag-1-2-tsi-krank-mili-ke-e-montaj-aparat",
     "kategori": "Otomobil",
     "marka": [
-      "VAG",
       "Volkswagen",
       "Audi",
       "Seat",
@@ -823156,7 +823509,21 @@
       "tasarimci": "alonym",
       "tur": "CC BY 4.0"
     },
-    "altkategori": "Montaj Parçaları ve Klipsler"
+    "altkategori": "Montaj Parçaları ve Klipsler",
+    "uyum": [
+      {
+        "marka": "Volkswagen"
+      },
+      {
+        "marka": "Audi"
+      },
+      {
+        "marka": "Seat"
+      },
+      {
+        "marka": "Skoda"
+      }
+    ]
   },
   {
     "id": "vag-grubu-cam-suyu-dolum-hunisi",
@@ -823640,7 +824007,6 @@
     "id": "vag-uyumlu-klips-n9009360101c",
     "kategori": "Otomobil",
     "marka": [
-      "VAG",
       "Volkswagen",
       "Audi",
       "Seat",
@@ -823656,13 +824022,30 @@
       "tasarimci": "KluvoJop",
       "tur": "CC BY 4.0"
     },
-    "altkategori": "Montaj Parçaları ve Klipsler"
+    "altkategori": "Montaj Parçaları ve Klipsler",
+    "uyum": [
+      {
+        "marka": "Volkswagen"
+      },
+      {
+        "marka": "Audi"
+      },
+      {
+        "marka": "Seat"
+      },
+      {
+        "marka": "Skoda"
+      }
+    ]
   },
   {
     "id": "vag-grubu-anahtar-kopyalama-aparat",
     "kategori": "Otomobil",
     "marka": [
-      "VAG"
+      "Volkswagen",
+      "Audi",
+      "Seat",
+      "Skoda"
     ],
     "baslik": "VAG Grubu Anahtar Kopyalama Aparatı",
     "aciklama": "VAG grubu araç anahtarlarının hassas bir şekilde kopyalanması ve sabitlenmesi için tasarlanmış özel üretim aparat.\nAnahtar kopyalama işlemlerinde kaymayı önleyerek milimetrik doğrulukla çalışmanızı sağlar.\nDayanıklı yapısı sayesinde atölye ve servis ortamlarında uzun ömürlü kullanım sunar.\nYaklaşık dış ölçüler: 65 × 47 × 22 mm.",
@@ -823675,7 +824058,21 @@
       "tasarimci": "Viksa",
       "tur": "CC BY 4.0"
     },
-    "altkategori": "Montaj Parçaları ve Klipsler"
+    "altkategori": "Montaj Parçaları ve Klipsler",
+    "uyum": [
+      {
+        "marka": "Volkswagen"
+      },
+      {
+        "marka": "Audi"
+      },
+      {
+        "marka": "Seat"
+      },
+      {
+        "marka": "Skoda"
+      }
+    ]
   },
   {
     "id": "skoda-ve-vw-uyumlu-kap-kilidi-anahtar-adapt-r",
