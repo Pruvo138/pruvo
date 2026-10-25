@@ -49076,30 +49076,6 @@
     ]
   },
   {
-    "id": "dji-th2491943",
-    "kategori": "Kamera",
-    "marka": [
-      "DJI"
-    ],
-    "uyum": [
-      {
-        "marka": "DJI"
-      }
-    ],
-    "baslik": "DJI Mavic Pro Steadicam Tutamağı (Drone'u Elde Gimbal Olarak Kullanma, Telefon Tutuculu)",
-    "aciklama": "Katlanmış DJI Mavic Pro'yu elde taşınan bir gimbal gibi kullanmaya yarayan tutamak; üzerine takılan telefon tutucusuyla görüntü ekranı takip edilir. Set; tutamak gövdesini, tripod bağlantı parçasını ve başparmak vidası başını içerir. Birleştirmek için 1/4 inç 15–20 mm bir cıvata, somunlu M4 20 mm bir cıvata ve bir telefon tripod tutucusu gerekir (cıvatalar ve tutucu ürüne dahil değildir). Fotoğraflarda tutamak katlı drone üzerinde, elde ve telefon tutucusuyla görülür; telefon ve bağlantı elemanları ürüne ait değildir.\nYaklaşık dış ölçüler: tutamak 139 × 81 × 67 mm; tripod bağlantı parçası 31 × 25 × 15 mm; başparmak vidası başı 18 × 16 × 16 mm.",
-    "fiyat": "500 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th2491943-1.jpg",
-      "https://media.pruvo3d.com/urunler/th2491943-2.jpg",
-      "https://media.pruvo3d.com/urunler/th2491943-3.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Maple_3D (özgün tasarım: Souristoutirabien)",
-      "tur": "CC BY 4.0"
-    }
-  },
-  {
     "id": "dji-th1977875",
     "kategori": "Kamera",
     "marka": [
@@ -49169,29 +49145,6 @@
     ],
     "lisans": {
       "tasarimci": "bgill",
-      "tur": "CC BY 4.0"
-    }
-  },
-  {
-    "id": "dji-th2931795",
-    "kategori": "Kamera",
-    "marka": [
-      "DJI"
-    ],
-    "uyum": [
-      {
-        "marka": "DJI"
-      }
-    ],
-    "baslik": "DJI Mavic için Su Üstünde Yüzdürme Ayağı Seti (M5 Vidalı Bağlantı)",
-    "aciklama": "DJI Mavic'in iniş ayaklarına bağlanarak drone'un su üzerinde yüzmesini sağlamak için hazırlanmış yüzdürme ayağı seti. Orijinal tasarımdaki zayıf klips bağlantısı M5 vidalı bağlantıya çevrilmiştir: parçalardaki M5 delikleri kılavuzlanır ve ayaklar naylon ya da çelik bir M5 × 5 vidayla sabitlenir. Set bir taban parçasından ve iki standart ile iki ters çevrilmiş (ayna) ayaktan oluşur. Fotoğrafta ayaklara bağlanan yüzdürücü köpük tüpler ürüne dahil değildir.\nYaklaşık dış ölçüler: taban parçası 110 × 109 × 10 mm; ayak 98 × 62 × 26 mm.",
-    "fiyat": "450 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th2931795-1.jpg",
-      "https://media.pruvo3d.com/urunler/th2931795-2.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Splund (özgün tasarım: NoeI)",
       "tur": "CC BY 4.0"
     }
   },
@@ -87058,30 +87011,6 @@
     "altkategori": "Kayış ve Taşıma"
   },
   {
-    "id": "canon-dslr-120-film-tarama-seti-6657805",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "baslik": "Canon DSLR için 120 Orta Format Film Tarama Seti",
-    "aciklama": "Canon DSLR gövdelerle 120 orta format (6x6) negatifleri dijitale aktarmak için tasarlanmış film tarama seti.\nSet, ışık paneli üzerine oturan taban, film karesini düz tutan 6x6 negatif tutucu ve objektifle negatif arasındaki yan ışığı kesen huniden oluşur.\nNegatif tutucu yalnız 120 orta format 6x6 kare içindir; 135 (35 mm) film için uygun değildir.\nBüyük huni parçası, tasarımcının açık uyarısı gereği özgün ölçünün %96'sı oranında küçültülerek üretilir; aşağıdaki ölçüler bu küçültme sonrasına aittir.\nSet tek başına çalışmaz: makro objektifli bir Canon DSLR gövde, eşit aydınlatma veren bir ışık paneli ve kamerayı negatife dik tutan bir sütun ya da kızak kullanıcıda bulunmalıdır. Bu ekipmanların hiçbiri ürüne dahil değildir.\nÖzel tasarım üretim: sipariş üzerine üretilir.\nSağlam ve hafif bir parça olarak teslim edilir.\nYaklaşık dış ölçüler: 201 × 154 × 154 mm.",
-    "fiyat": "1200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6657805-v2-1.jpg",
-      "https://media.pruvo3d.com/urunler/th6657805-v2-2.jpg",
-      "https://media.pruvo3d.com/urunler/th6657805-v2-3.jpg",
-      "https://media.pruvo3d.com/urunler/th6657805-v2-4.jpg"
-    ],
-    "tavsiyeFilament": [
-      "PLA"
-    ],
-    "lisans": {
-      "tasarimci": "Damienescobar",
-      "tur": "CC BY-SA 4.0"
-    },
-    "altkategori": "Flaş ve Işık"
-  },
-  {
     "id": "canon-objectvr-doner-tabla-2852150",
     "kategori": "Kamera",
     "marka": [
@@ -87158,27 +87087,6 @@
       "https://media.pruvo3d.com/urunler/th1521297-1.jpg"
     ],
     "altkategori": "Lens Adaptörleri"
-  },
-  {
-    "id": "canon-rf-netleme-disli-seti-4461655",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "baslik": "Canon RF 24-105mm için Uzaktan Netleme Dişli Seti",
-    "aciklama": "Canon RF 24-105mm objektifin zoom/netleme bileziğine geçen 120 dişli halka, step motor kızak mesnedi ve ara dişliden oluşan uzaktan netleme seti.\nObjektif bileziğini motorla çevirerek video çekimlerinde hassas ve tekrarlanabilir netleme sağlar.\nSette üç adet özel üretim parça bulunur: dış dişli halka, NEMA17 motor mesnedi ve ara dişli.\nStep motor, sürücü, güç kaynağı ve 15 mm ray sistemi ürüne dahil değildir; set tek başına çalışmaz, mevcut bir rig üzerine tamamlayıcı olarak kullanılır.\nÖzel tasarım üretim: sipariş üzerine üretilir.\nSağlam ve hafif bir parça olarak teslim edilir.\nYaklaşık dış ölçüler: 108 × 55 × 15 mm.",
-    "fiyat": "450 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4461655-1.jpg",
-      "https://media.pruvo3d.com/urunler/th4461655-2.jpg",
-      "https://media.pruvo3d.com/urunler/th4461655-3.jpg",
-      "https://media.pruvo3d.com/urunler/th4461655-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "oceanlvl",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Uzaktan Kumanda"
   },
   {
     "id": "autohelm-30-bidata-kapak-c3d",
@@ -88252,26 +88160,6 @@
       "tur": "GNU GPL"
     },
     "altkategori": "Teleskop ve Astro"
-  },
-  {
-    "id": "canon-lens-hood-18-55-reshape",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "baslik": "Canon Lens Hood 18 55 Reshape",
-    "aciklama": "Canon için canon lens hood 18 55 reshape.\nÖzel tasarım üretim: sipariş üzerine üretilir.\nSağlam ve hafif bir parça olarak teslim edilir.\nYaklaşık dış ölçüler: 75 × 75 × 41 mm.",
-    "fiyat": "500 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th1373005-1.jpg",
-      "https://media.pruvo3d.com/urunler/th1373005-2.jpg",
-      "https://media.pruvo3d.com/urunler/th1373005-3.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Evan_C",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Filtre ve Parasoley"
   },
   {
     "id": "canon-eos-nikon-montaj-aparat",
@@ -89360,31 +89248,6 @@
     "altkategori": "Montaj ve Tripod"
   },
   {
-    "id": "canon-hot-shoe-gopro-montaj-adaptoru",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon Kamera Hot Shoe için GoPro Montaj Adaptörü",
-    "aciklama": "Canon kameranın standart hot shoe bağlantısına bir GoPro aksiyon kamerası veya aksesuarı takmayı sağlayan adaptör. Yaklaşık dış ölçüler: 23 × 21 × 19 mm.",
-    "fiyat": "220 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th7007938-1.jpg",
-      "https://media.pruvo3d.com/urunler/th7007938-2.jpg",
-      "https://media.pruvo3d.com/urunler/th7007938-3.jpg"
-    ],
-    "lisans": {
-      "tur": "BSD",
-      "tasarimci": "Inglebard"
-    },
-    "altkategori": "Flaş ve Işık"
-  },
-  {
     "id": "canon-eos-70d-neewer-dslr-kafes-c2-ara-parcasi",
     "kategori": "Kamera",
     "marka": [
@@ -89529,29 +89392,6 @@
     "lisans": {
       "tur": "CC BY 4.0",
       "tasarimci": "YVES_PHOTOGRAF"
-    },
-    "altkategori": "Gövde ve Kafes"
-  },
-  {
-    "id": "canon-ek-tutamak-lens-tutucu",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon Kameralar için Ek Tutamak ve Lens Tutucu",
-    "aciklama": "Canon kamera gövdesine takılan, hem tutuş güvenliğini artıran hem de yedek lensi güvenle tutan kombine tutamak. Yaklaşık dış ölçüler: 93 × 74 × 24 mm.",
-    "fiyat": "260 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4914915-1.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY 4.0",
-      "tasarimci": "Xaveb"
     },
     "altkategori": "Gövde ve Kafes"
   },
@@ -90153,30 +89993,6 @@
     "lisans": {
       "tur": "CC BY-SA 4.0",
       "tasarimci": "AndiWe"
-    },
-    "altkategori": "Lens Kapakları"
-  },
-  {
-    "id": "canon-eos-30-50-elan-film-kapak-mandali",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon EOS 30/50/Elan II/Elan 7 Film Kameralar için Arka Kapak Mandalı",
-    "aciklama": "Canon EOS 30, EOS 50, Elan II ve Elan 7 film SLR gövdelerinin arka film kapağı mandalını değiştirmek için kullanılan, tel takviyeli yedek parça. Yaklaşık dış ölçüler: 49 × 15 × 4 mm.",
-    "fiyat": "210 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th7396895-1.jpg",
-      "https://media.pruvo3d.com/urunler/th7396895-2.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY-SA 4.0",
-      "tasarimci": "morfal"
     },
     "altkategori": "Lens Kapakları"
   },
@@ -90841,29 +90657,6 @@
     "altkategori": "Lens Adaptörleri"
   },
   {
-    "id": "canon-eos-30d-port-toz-kapagi",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon EOS 30D için Port Toz Kapağı",
-    "aciklama": "Canon EOS 30D gövdesinin yan port bölmesini toz ve nemden koruyan takma-çıkarma kapağı. Yaklaşık dış ölçüler: 49 × 25 × 7 mm.",
-    "fiyat": "210 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th7248609-1.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY-SA 4.0",
-      "tasarimci": "fizzer_creation"
-    },
-    "altkategori": "Montaj ve Tripod"
-  },
-  {
     "id": "canon-lens-parazit-isik-siperi-bahtinov-maskesi",
     "kategori": "Kamera",
     "marka": [
@@ -90888,32 +90681,6 @@
       "tasarimci": "thomki"
     },
     "altkategori": "Teleskop ve Astro"
-  },
-  {
-    "id": "canon-powershot-orta-format-goruntuleyici-kutusu",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon PowerShot için Orta Format Görüntüleyici Kutusu",
-    "aciklama": "Canon PowerShot kompakt kameranın ekranına takılan, büyük mercekli görüntüleyici kutu; orta format kamera kullanım hissi veren, üstten bakışlı bir kompozisyon deneyimi sağlar. Yaklaşık dış ölçüler: 113 × 68 × 60 mm.",
-    "fiyat": "320 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6985793-1.jpg",
-      "https://media.pruvo3d.com/urunler/th6985793-2.jpg",
-      "https://media.pruvo3d.com/urunler/th6985793-3.jpg",
-      "https://media.pruvo3d.com/urunler/th6985793-4.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY-SA 4.0",
-      "tasarimci": "Belabok"
-    },
-    "altkategori": "Montaj ve Tripod"
   },
   {
     "id": "canon-12x36-is3-durbun-lens-kapaklari",
@@ -90965,31 +90732,6 @@
       "tasarimci": "Sailor1243"
     },
     "altkategori": "Uzaktan Kumanda"
-  },
-  {
-    "id": "canon-eos-m-velbon-hizli-baglantili-tutamak",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon EOS M için Velbon Hızlı Bağlantılı Tutamak",
-    "aciklama": "Canon EOS M gövdesine takılan, Velbon hızlı bağlantı plakasıyla uyumlu ek tutamak; tek elle kullanımda tutuş güvenliğini artırır. Yaklaşık dış ölçüler: 114 × 71 × 45 mm.",
-    "fiyat": "300 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6954122-1.jpg",
-      "https://media.pruvo3d.com/urunler/th6954122-2.jpg",
-      "https://media.pruvo3d.com/urunler/th6954122-3.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY-SA 4.0",
-      "tasarimci": "Delirium444"
-    },
-    "altkategori": "Gövde ve Kafes"
   },
   {
     "id": "canon-eos-ef-nikkor-w-100mm-adaptoru",
@@ -91111,32 +90853,6 @@
       "tasarimci": "PacodelMar"
     },
     "altkategori": "Gövde ve Kafes"
-  },
-  {
-    "id": "canon-ef-s-18-55mm-gunes-tutulmasi-filtre-kapagi",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon EF-S 18-55mm Lens için Güneş Tutulması Filtre Kapağı",
-    "aciklama": "Canon EF-S 18-55mm kit lensinin ön ağzına takılan, güneş tutulması gözlük filtresi malzemesini sabitleyen güvenli gözlem kapağı. Yaklaşık dış ölçüler: 74 × 74 × 8 mm.",
-    "fiyat": "230 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6263734-1.jpg",
-      "https://media.pruvo3d.com/urunler/th6263734-2.jpg",
-      "https://media.pruvo3d.com/urunler/th6263734-3.jpg",
-      "https://media.pruvo3d.com/urunler/th6263734-4.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY-SA 4.0",
-      "tasarimci": "zvakanaka"
-    },
-    "altkategori": "Filtre ve Parasoley"
   },
   {
     "id": "canon-eos-m50-astrofi-teleskop-baglantisi",
@@ -93948,34 +93664,6 @@
     "altkategori": "Gövde ve Kafes"
   },
   {
-    "id": "canon-eosm-ricoh-autoshot-helikoid-adaptor",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Ricoh Auto Shot Lensini Canon EOS M Gövdeye Bağlayan Helikoid Adaptör",
-    "aciklama": "Ricoh Auto Shot vintage lensini Canon EOS M gövdeye bağlayan, odaklama için helikoid mekanizmalı adaptör. Yaklaşık dış ölçüler: 64 × 64 × 19 mm.",
-    "fiyat": "210 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6741533-1.jpg",
-      "https://media.pruvo3d.com/urunler/th6741533-2.jpg",
-      "https://media.pruvo3d.com/urunler/th6741533-3.jpg",
-      "https://media.pruvo3d.com/urunler/th6741533-4.jpg",
-      "https://media.pruvo3d.com/urunler/th6741533-5.jpg",
-      "https://media.pruvo3d.com/urunler/th6741533-6.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY-SA 4.0",
-      "tasarimci": "ElEscolta"
-    },
-    "altkategori": "Lens Adaptörleri"
-  },
-  {
     "id": "canon-eos-film-pc-terminal-kapagi",
     "kategori": "Kamera",
     "marka": [
@@ -94075,30 +93763,6 @@
       "tasarimci": "FearMe"
     },
     "altkategori": "Flaş ve Işık"
-  },
-  {
-    "id": "canon-rf-lens-tup-adaptoru-remiks",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon RF Mount için Dişli Lens Tüpü Adaptörü",
-    "aciklama": "Canon RF gövdeler için dişli bağlantılı lens tüpü adaptörü. Yaklaşık dış ölçüler: 69 × 65 × 65 mm.",
-    "fiyat": "210 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th5791318-1.jpg",
-      "https://media.pruvo3d.com/urunler/th5791318-2.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY 4.0",
-      "tasarimci": "ElMeatador"
-    },
-    "altkategori": "Lens Adaptörleri"
   },
   {
     "id": "canon-dslr-bahtinov-maskesi",
@@ -95419,30 +95083,6 @@
     "altkategori": "Pil ve Şarj"
   },
   {
-    "id": "canon-eos-m-m42-lens-adaptoru",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "M42 Vidalı Lensleri Canon EOS M (EF-M) Gövdelere Bağlayan Adaptör",
-    "aciklama": "M42 vidalı lensleri Canon EOS M (EF-M) gövdelere bağlayan adaptör. Yaklaşık dış ölçüler: 63 × 63 × 30 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th7388625-1.jpg",
-      "https://media.pruvo3d.com/urunler/th7388625-2.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY-SA 4.0",
-      "tasarimci": "TheDavexpert"
-    },
-    "altkategori": "Lens Adaptörleri"
-  },
-  {
     "id": "canon-eos-r-dji-mikrofon-montaji",
     "kategori": "Kamera",
     "marka": [
@@ -95940,36 +95580,6 @@
     "altkategori": "Teleskop ve Astro"
   },
   {
-    "id": "canon-eos-m-16mm-tek-kullanimlik-pankek-lens",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon EOS M için 16mm Tek Kullanımlık Kamera Lensinden Pankek Lens",
-    "aciklama": "Tek kullanımlık kameranın 16mm lensini Canon EOS M gövdeye bağlayan pankek lens adaptörü. Yaklaşık dış ölçüler: 58 × 54 × 8 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th7317908-1.jpg",
-      "https://media.pruvo3d.com/urunler/th7317908-2.jpg",
-      "https://media.pruvo3d.com/urunler/th7317908-3.jpg",
-      "https://media.pruvo3d.com/urunler/th7317908-4.jpg",
-      "https://media.pruvo3d.com/urunler/th7317908-5.jpg",
-      "https://media.pruvo3d.com/urunler/th7317908-6.jpg",
-      "https://media.pruvo3d.com/urunler/th7317908-7.jpg",
-      "https://media.pruvo3d.com/urunler/th7317908-8.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY-SA 4.0",
-      "tasarimci": "_KWIATEK_"
-    },
-    "altkategori": "Lens Adaptörleri"
-  },
-  {
     "id": "canon-ef-ef-s-lale-parasoley-jeneratoru",
     "kategori": "Kamera",
     "marka": [
@@ -96131,31 +95741,6 @@
     "altkategori": "Filtre ve Parasoley"
   },
   {
-    "id": "canon-eos-m-aski-halkasi",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon EOS M için Askı Halkası (Strap Lug)",
-    "aciklama": "Canon EOS M fotoğraf makinesi için yedek askı bağlantı halkası. Yaklaşık dış ölçüler: 20 × 18 × 14 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6838617-1.jpg",
-      "https://media.pruvo3d.com/urunler/th6838617-2.jpg",
-      "https://media.pruvo3d.com/urunler/th6838617-3.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY-SA 4.0",
-      "tasarimci": "hotnanas"
-    },
-    "altkategori": "Kayış ve Taşıma"
-  },
-  {
     "id": "canon-ef-extender-uzun-govde-on-kapagi",
     "kategori": "Kamera",
     "marka": [
@@ -96235,32 +95820,6 @@
       "tasarimci": "Mtorres673"
     },
     "altkategori": "Pil ve Şarj"
-  },
-  {
-    "id": "canon-ef-m-krasnogorsk-2-lens-adaptoru",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Krasnogorsk-2 Lensleri Canon EF-M Gövdelere Bağlayan Adaptör",
-    "aciklama": "Krasnogorsk-2 (ve Krasnogorsk-3/Vega-7) lensleri Canon EF-M gövdelere bağlayan adaptör. Yaklaşık dış ölçüler: 58 × 58 × 10 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6950609-1.jpg",
-      "https://media.pruvo3d.com/urunler/th6950609-2.jpg",
-      "https://media.pruvo3d.com/urunler/th6950609-3.jpg",
-      "https://media.pruvo3d.com/urunler/th6950609-4.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY-SA 4.0",
-      "tasarimci": "Delirium444"
-    },
-    "altkategori": "Lens Adaptörleri"
   },
   {
     "id": "canon-nb13l-pil-kapagi-2",
@@ -97104,29 +96663,6 @@
     "altkategori": "Pil ve Şarj"
   },
   {
-    "id": "canon-ef-topcor-uv-lens-adaptoru",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Topcor UV Lensleri Canon EF Gövdelere Bağlayan Adaptör",
-    "aciklama": "Topcor UV lensleri Canon EF gövdelere bağlayan adaptör. Yaklaşık dış ölçüler: 61 × 61 × 16 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th5221825-1.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY 4.0",
-      "tasarimci": "CL4PTRAP"
-    },
-    "altkategori": "Lens Adaptörleri"
-  },
-  {
     "id": "canon-600exrt-flas-izgara-destegi",
     "kategori": "Kamera",
     "marka": [
@@ -97428,32 +96964,6 @@
       "tasarimci": "Annalith"
     },
     "altkategori": "Filtre ve Parasoley"
-  },
-  {
-    "id": "canon-eos-m5-tutus-uzatma-eklentisi",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon EOS M5 için Tutuş Uzatma Eklentisi",
-    "aciklama": "Canon EOS M5 fotoğraf makinesi için tutuş uzatma eklentisi. Yaklaşık dış ölçüler: 116 × 50 × 23 mm.",
-    "fiyat": "220 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4544739-1.jpg",
-      "https://media.pruvo3d.com/urunler/th4544739-2.jpg",
-      "https://media.pruvo3d.com/urunler/th4544739-3.jpg",
-      "https://media.pruvo3d.com/urunler/th4544739-4.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY 4.0",
-      "tasarimci": "wilthingi"
-    },
-    "altkategori": "Gövde ve Kafes"
   },
   {
     "id": "canon-s110-gopro-montaj-adaptoru",
@@ -97818,31 +97328,6 @@
       "tasarimci": "dymon0x"
     },
     "altkategori": "Uzaktan Kumanda"
-  },
-  {
-    "id": "canon-r7-ek-tutus-kavramasi",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon R7 için Ek Tutuş Kavraması",
-    "aciklama": "Canon R7 gövdesine ek tutuş kavraması sağlayan yan kabza. Yaklaşık dış ölçüler: 132 × 66 × 18 mm.",
-    "fiyat": "230 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6165129-1.jpg",
-      "https://media.pruvo3d.com/urunler/th6165129-2.jpg",
-      "https://media.pruvo3d.com/urunler/th6165129-3.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY 4.0",
-      "tasarimci": "Stefan_Zait"
-    },
-    "altkategori": "Gövde ve Kafes"
   },
   {
     "id": "canon-a1-kadran-koruyucu",
@@ -98419,31 +97904,6 @@
     "altkategori": "Lens Kapakları"
   },
   {
-    "id": "canon-praktica-b-rf-adaptoru",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Praktica B (PB) Mount Lensleri Canon RF Gövdelere Bağlayan Adaptör",
-    "aciklama": "Praktica B (PB) mount lensleri Canon RF gövdelere bağlayan adaptör. Yaklaşık dış ölçüler: 59 × 59 × 12 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th7064817-1.jpg",
-      "https://media.pruvo3d.com/urunler/th7064817-2.jpg",
-      "https://media.pruvo3d.com/urunler/th7064817-3.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY-SA 4.0",
-      "tasarimci": "squelch41"
-    },
-    "altkategori": "Lens Adaptörleri"
-  },
-  {
     "id": "canon-eos-ef-saklama-bolmeli-govde-kapagi",
     "kategori": "Kamera",
     "marka": [
@@ -98523,30 +97983,6 @@
       "tasarimci": "Ektor_Lab"
     },
     "altkategori": "Flaş ve Işık"
-  },
-  {
-    "id": "canon-lens-parasoleyi-genis-govde",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon Lensler için Geniş Gövdeli Lens Parasoleyi",
-    "aciklama": "Çeşitli Canon lens çaplarına uyarlanabilen, yan ışıktan gelen parlamayı azaltan geniş gövdeli parasoley. Yaklaşık dış ölçüler: 71 × 71 × 60 mm.",
-    "fiyat": "210 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th5166345-1.jpg",
-      "https://media.pruvo3d.com/urunler/th5166345-2.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY 4.0",
-      "tasarimci": "insanio"
-    },
-    "altkategori": "Filtre ve Parasoley"
   },
   {
     "id": "canon-rf-projektor-lens-adaptoru-po109",
@@ -98840,31 +98276,6 @@
     "altkategori": "Teleskop ve Astro"
   },
   {
-    "id": "canon-eos-m5-arca-swiss-plaka",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon EOS M5 için Arca-Swiss Hızlı Bırakma Plakası",
-    "aciklama": "Canon EOS M5 gövdesinin altına takılan, Peak Design Capture ve Arca-Swiss tipi tripod kafalarına doğrudan oturan hızlı bırakma plakası. Yaklaşık dış ölçüler: 38 × 26 × 10 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4586381-1.jpg",
-      "https://media.pruvo3d.com/urunler/th4586381-2.jpg",
-      "https://media.pruvo3d.com/urunler/th4586381-3.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY 4.0",
-      "tasarimci": "johnjtaylor"
-    },
-    "altkategori": "Montaj ve Tripod"
-  },
-  {
     "id": "canon-rf-drop-in-jel-filtre-tutucusu",
     "kategori": "Kamera",
     "marka": [
@@ -98935,29 +98346,6 @@
       "tasarimci": "blimes"
     },
     "altkategori": "Pil ve Şarj"
-  },
-  {
-    "id": "canon-ef-100mm-f2-8l-sualti-odak-disli",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon EF 100mm f/2.8L Makro Lens için Sualtı Kutusu Odak Dişlisi",
-    "aciklama": "Canon EF 100mm f/2.8L Macro objektifinin odak halkasına geçirilen, sualtı kamera kutusu dışından odak kontrolü yapmayı sağlayan dişli halka. Yaklaşık dış ölçüler: 83 × 83 × 54 mm.",
-    "fiyat": "230 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th2854033-1.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY 4.0",
-      "tasarimci": "robertrath"
-    },
-    "altkategori": "Montaj ve Tripod"
   },
   {
     "id": "canon-lens-kapagi-tutucusu-67mm",
@@ -99125,63 +98513,6 @@
     "altkategori": "Lens Adaptörleri"
   },
   {
-    "id": "canon-eos-m-kalin-tutus-kabzasi",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon EOS M için Kalınlaştırılmış Tutuş Kabzası",
-    "aciklama": "Canon EOS M aynasız fotoğraf makinesinin ince gövdesini büyüten, elde tutuşu belirgin şekilde iyileştiren kalın kabza. Yaklaşık dış ölçüler: 122 × 72 × 53 mm.",
-    "fiyat": "230 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6944396-1.jpg",
-      "https://media.pruvo3d.com/urunler/th6944396-2.jpg",
-      "https://media.pruvo3d.com/urunler/th6944396-3.jpg",
-      "https://media.pruvo3d.com/urunler/th6944396-4.jpg",
-      "https://media.pruvo3d.com/urunler/th6944396-5.jpg",
-      "https://media.pruvo3d.com/urunler/th6944396-6.jpg",
-      "https://media.pruvo3d.com/urunler/th6944396-7.jpg",
-      "https://media.pruvo3d.com/urunler/th6944396-8.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY-SA 4.0",
-      "tasarimci": "ninteresting"
-    },
-    "altkategori": "Gövde ve Kafes"
-  },
-  {
-    "id": "canon-fd-28mm-f2-8-ef-donusum-adaptoru",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon FD 28mm f/2.8 Lens için EF Dönüşüm Adaptörü",
-    "aciklama": "Canon FD 28mm f/2.8 objektifinin arka mount kısmına monte edilen, lensi EF gövdelerde kullanılabilir hale getiren dönüşüm adaptörü. Yaklaşık dış ölçüler: 65 × 65 × 9 mm.",
-    "fiyat": "220 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th7051673-1.jpg",
-      "https://media.pruvo3d.com/urunler/th7051673-2.jpg",
-      "https://media.pruvo3d.com/urunler/th7051673-3.jpg",
-      "https://media.pruvo3d.com/urunler/th7051673-4.jpg",
-      "https://media.pruvo3d.com/urunler/th7051673-5.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY-SA 4.0",
-      "tasarimci": "MouaMem2"
-    },
-    "altkategori": "Lens Adaptörleri"
-  },
-  {
     "id": "canon-powershot-dslr-govde-montaj-adaptoru",
     "kategori": "Kamera",
     "marka": [
@@ -99313,31 +98644,6 @@
       "https://media.pruvo3d.com/urunler/th1530373-7.jpg"
     ],
     "altkategori": "Montaj ve Tripod"
-  },
-  {
-    "id": "canon-eos-m100-lens-kapagi-tutucusu-49mm",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon EOS M100 (49mm) Lens Kapağı için İp Tutucu",
-    "aciklama": "Canon EOS M100 kit objektifinin 49mm çaplı orijinal lens kapağını kamera askısına bağlayarak kaybolmasını önleyen ip tutucu klips. Yaklaşık dış ölçüler: 56 × 20 × 12 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4166654-1.jpg",
-      "https://media.pruvo3d.com/urunler/th4166654-2.jpg",
-      "https://media.pruvo3d.com/urunler/th4166654-3.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY 4.0",
-      "tasarimci": "arob"
-    },
-    "altkategori": "Lens Kapakları"
   },
   {
     "id": "canon-eos-70d-diyoptri-carki-kapagi",
@@ -99629,33 +98935,6 @@
       "tasarimci": "metalb8282"
     },
     "altkategori": "Lens Adaptörleri"
-  },
-  {
-    "id": "canon-hotshoe-pc-soket-flas-senkron-adaptoru",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon için Hot Shoe - PC Soket Flaş Senkron Adaptörü",
-    "aciklama": "Canon fotoğraf makinesinin flaş kızağına (hot shoe) takılan, harici stüdyo flaşlarını PC senkron kablosuyla tetiklemeyi sağlayan adaptör. Yaklaşık dış ölçüler: 20 × 19 × 7 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th1326490-1.jpg",
-      "https://media.pruvo3d.com/urunler/th1326490-2.jpg",
-      "https://media.pruvo3d.com/urunler/th1326490-3.jpg",
-      "https://media.pruvo3d.com/urunler/th1326490-4.jpg",
-      "https://media.pruvo3d.com/urunler/th1326490-5.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY 4.0",
-      "tasarimci": "ephestione"
-    },
-    "altkategori": "Flaş ve Işık"
   },
   {
     "id": "canon-r5-r5c-dji-ronin-hizli-birakma-plakasi",
@@ -100108,32 +99387,6 @@
     "lisans": {
       "tur": "CC BY-SA 4.0",
       "tasarimci": "theKermit99"
-    },
-    "altkategori": "Lens Adaptörleri"
-  },
-  {
-    "id": "canon-eos-ef-m42-lens-adaptoru-hassas-oturma",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "M42 Lensleri Canon EOS EF Mount'a Bağlayan Hassas Oturmalı Adaptör",
-    "aciklama": "M42 vida dişli lensleri Canon EOS EF mount gövdelere bağlayan, standart modellere göre daha hassas oturan adaptör halkası. Yaklaşık dış ölçüler: 71 × 71 × 7 mm.",
-    "fiyat": "210 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6436734-1.jpg",
-      "https://media.pruvo3d.com/urunler/th6436734-2.jpg",
-      "https://media.pruvo3d.com/urunler/th6436734-3.jpg",
-      "https://media.pruvo3d.com/urunler/th6436734-4.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY-SA 4.0",
-      "tasarimci": "SilverMite007"
     },
     "altkategori": "Lens Adaptörleri"
   },
@@ -100690,31 +99943,6 @@
     "altkategori": "Teleskop ve Astro"
   },
   {
-    "id": "canon-ef-lens-c-mount-adaptoru",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon EF Lensleri C-Mount Cihazlara Bağlayan Adaptör",
-    "aciklama": "Canon EF mount lensi C-mount bağlantılı endüstriyel/aksiyon kameralarda kullanmayı sağlayan adaptör. Yaklaşık dış ölçüler: 91 × 66 × 41 mm.",
-    "fiyat": "230 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th5903448-1.jpg",
-      "https://media.pruvo3d.com/urunler/th5903448-2.jpg",
-      "https://media.pruvo3d.com/urunler/th5903448-3.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY 4.0",
-      "tasarimci": "bg4asu"
-    },
-    "altkategori": "Lens Adaptörleri"
-  },
-  {
     "id": "canon-rf-2inc-teleskop-adaptoru-alcak-profil",
     "kategori": "Kamera",
     "marka": [
@@ -100843,33 +100071,6 @@
     "lisans": {
       "tur": "CC BY 4.0",
       "tasarimci": "trustfm"
-    },
-    "altkategori": "Pil ve Şarj"
-  },
-  {
-    "id": "canon-lpe6-cf-sd-kart-kemer-tasiyicisi",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon LP-E6 Pil ve CF/SD Hafıza Kartı için Kemere Takılan Taşıyıcı",
-    "aciklama": "Canon LP-E6 formunda pil ile CF ve SD hafıza kartlarını bir arada taşımaya yarayan, kemere takılan saklama kutusu. Yaklaşık dış ölçüler: 63 × 45 × 39 mm.",
-    "fiyat": "230 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th3558308-1.jpg",
-      "https://media.pruvo3d.com/urunler/th3558308-2.jpg",
-      "https://media.pruvo3d.com/urunler/th3558308-3.jpg",
-      "https://media.pruvo3d.com/urunler/th3558308-4.jpg",
-      "https://media.pruvo3d.com/urunler/th3558308-5.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY 4.0",
-      "tasarimci": "SnowWine"
     },
     "altkategori": "Pil ve Şarj"
   },
@@ -101195,29 +100396,6 @@
       "tasarimci": "u4142020"
     },
     "altkategori": "Montaj ve Tripod"
-  },
-  {
-    "id": "canon-fd-lens-cs-mount-cctv-adaptoru",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon FD Lensi CS-Mount CCTV Kameraya Bağlayan Adaptör",
-    "aciklama": "Canon FD mount vintage lensi CS-mount bağlantılı CCTV/endüstriyel kameralarda kullanmayı sağlayan adaptör halkası. Yaklaşık dış ölçüler: 54 × 54 × 18 mm.",
-    "fiyat": "220 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th5460654-1.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY 4.0",
-      "tasarimci": "necde"
-    },
-    "altkategori": "Lens Adaptörleri"
   },
   {
     "id": "canon-eos-m-8x18650-guc-kutusu",
@@ -102022,31 +101200,6 @@
     "altkategori": "Filtre ve Parasoley"
   },
   {
-    "id": "canon-cift-tarafli-lens-kapagi",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon Lensler için Çift Taraflı Bağlantı Kapağı",
-    "aciklama": "Canon EF/EF-S mount lensin arka ucunu diğer bir lensin ön ucuna doğrudan bağlayarak lenslerin çift taraflı korumalı saklanmasını sağlayan kapak. Yaklaşık dış ölçüler: 65 × 65 × 30 mm.",
-    "fiyat": "210 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4537020-1.jpg",
-      "https://media.pruvo3d.com/urunler/th4537020-2.jpg",
-      "https://media.pruvo3d.com/urunler/th4537020-3.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY-SA 4.0",
-      "tasarimci": "SharkyFalarky"
-    },
-    "altkategori": "Lens Adaptörleri"
-  },
-  {
     "id": "canon-lp-e6-duvar-panosu-pil-tutucu-4lu",
     "kategori": "Kamera",
     "marka": [
@@ -102147,32 +101300,6 @@
       "tasarimci": "SabeLedger"
     },
     "altkategori": "Teleskop ve Astro"
-  },
-  {
-    "id": "canon-ef-contax-yashica-lens-adaptoru",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Contax/Yashica (C/Y) Lensleri Canon EF Gövdelere Bağlayan Adaptör",
-    "aciklama": "Contax/Yashica (C/Y) mount vintage lensleri Canon EF mount gövdelere takmayı sağlayan adaptör halkası. Yaklaşık dış ölçüler: 66 × 66 × 15 mm.",
-    "fiyat": "210 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4557865-1.jpg",
-      "https://media.pruvo3d.com/urunler/th4557865-2.jpg",
-      "https://media.pruvo3d.com/urunler/th4557865-3.jpg",
-      "https://media.pruvo3d.com/urunler/th4557865-4.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY 4.0",
-      "tasarimci": "Jack_03"
-    },
-    "altkategori": "Lens Adaptörleri"
   },
   {
     "id": "canon-250d-hotshoe-kapagi",
@@ -103061,32 +102188,6 @@
     "altkategori": "Gövde ve Kafes"
   },
   {
-    "id": "canon-eos-m-katlanir-vizor",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon EOS M için Katlanır (Menteşeli) Vizör Eklentisi",
-    "aciklama": "Canon EOS M gövdesinin arka ekranına takılan, güneş ışığında görüşü kolaylaştıran katlanır menteşeli vizör eklentisi. Yaklaşık dış ölçüler: 127 × 84 × 25 mm.",
-    "fiyat": "230 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th5377963-1.jpg",
-      "https://media.pruvo3d.com/urunler/th5377963-2.jpg",
-      "https://media.pruvo3d.com/urunler/th5377963-3.jpg",
-      "https://media.pruvo3d.com/urunler/th5377963-4.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY 4.0",
-      "tasarimci": "dronotron"
-    },
-    "altkategori": "Gövde ve Kafes"
-  },
-  {
     "id": "canon-vixia-hf-r800-soguk-ayakkabi-yapiskan-montaj",
     "kategori": "Kamera",
     "marka": [
@@ -103160,30 +102261,6 @@
       "tasarimci": "MUCRalle"
     },
     "altkategori": "Filtre ve Parasoley"
-  },
-  {
-    "id": "canon-ef-m42-lens-adaptoru",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "M42 Vida Dişli Lensleri Canon EF Gövdelere Bağlayan Adaptör",
-    "aciklama": "M42 vida dişli eski nesil lensleri Canon EF mount gövdelere takmayı sağlayan adaptör halkası; makro fotoğrafçılıkta da kullanılabilir. Yaklaşık dış ölçüler: 66 × 65 × 16 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th7001649-1.jpg",
-      "https://media.pruvo3d.com/urunler/th7001649-2.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY-SA 4.0",
-      "tasarimci": "CozyBleat"
-    },
-    "altkategori": "Lens Adaptörleri"
   },
   {
     "id": "canon-ef-rf-lens-adaptoru-basit",
@@ -103728,30 +102805,6 @@
     "altkategori": "Lens Adaptörleri"
   },
   {
-    "id": "canon-t3i-lens-parasoleyi-halkasi-58mm",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon T3i için 58mm Lens Parasoley Halkası",
-    "aciklama": "Canon EOS T3i (600D) gövdesinin 58mm lensine takılan ince parasoley halkası; yan ışığı keserek flare etkisini azaltır. Yaklaşık dış ölçüler: 66 × 66 × 3 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th690091-1.jpg",
-      "https://media.pruvo3d.com/urunler/th690091-2.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY-SA 4.0",
-      "tasarimci": "Pirax"
-    },
-    "altkategori": "Filtre ve Parasoley"
-  },
-  {
     "id": "canon-ef-m-minolta-sr-lens-adaptoru",
     "kategori": "Kamera",
     "marka": [
@@ -103878,32 +102931,6 @@
       "tasarimci": "iwant3d"
     },
     "altkategori": "Teleskop ve Astro"
-  },
-  {
-    "id": "canon-eos-m-grip-hizli-birakma-kablo-kapagi",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon EOS M için Grip, Hızlı Bırakma Plakası ve Kablo Kapağı",
-    "aciklama": "Canon EOS M gövdesine takılan, tutuşu güçlendiren grip; entegre hızlı bırakma plakası ve pil/kablo kapağı için açıklığı ile tripod kullanımını kolaylaştırır. Yaklaşık dış ölçüler: 71 × 25 × 24 mm.",
-    "fiyat": "210 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th5349317-1.jpg",
-      "https://media.pruvo3d.com/urunler/th5349317-2.jpg",
-      "https://media.pruvo3d.com/urunler/th5349317-3.jpg",
-      "https://media.pruvo3d.com/urunler/th5349317-4.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY 4.0",
-      "tasarimci": "kalechinees"
-    },
-    "altkategori": "Pil ve Şarj"
   },
   {
     "id": "canon-eos-rf-1-25inc-t-adaptoru",
@@ -104886,31 +103913,6 @@
     "altkategori": "Lens Adaptörleri"
   },
   {
-    "id": "canon-eos-m50-grip-uzatma-arca-swiss",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon EOS M50 için Arca Swiss Uyumlu Grip Uzatması",
-    "aciklama": "Canon EOS M50 gövdesinin alt kısmına eklenen, tutuşu genişleten hacimli grip uzatma parçası; entegre Arca Swiss tabanıyla tripod başlıklarına doğrudan oturur. Yaklaşık dış ölçüler: 127 × 71 × 56 mm.",
-    "fiyat": "230 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4879767-1.jpg",
-      "https://media.pruvo3d.com/urunler/th4879767-2.jpg",
-      "https://media.pruvo3d.com/urunler/th4879767-3.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY 4.0",
-      "tasarimci": "yelostoner"
-    },
-    "altkategori": "Gövde ve Kafes"
-  },
-  {
     "id": "canon-dslr-mikroskop-adaptor-tupu",
     "kategori": "Kamera",
     "marka": [
@@ -105435,29 +104437,6 @@
     "altkategori": "Lens Kapakları"
   },
   {
-    "id": "canon-ef-lens-standi-ve-kapagi",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon EF Mount Lensler için Masa Standı ve Kapak Seti",
-    "aciklama": "Canon EF mount lensi gövdeden ayrıyken hem dik durabilmesi için stand görevi gören hem de arka mount ucunu tozdan koruyan iki amaçlı kapak. Yaklaşık dış ölçüler: 94 × 94 × 14 mm.",
-    "fiyat": "210 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th3286843-1.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY-SA 4.0",
-      "tasarimci": "Reason802"
-    },
-    "altkategori": "Lens Kapakları"
-  },
-  {
     "id": "canon-lens-kapagi-tutucu-52-58-67-72-77mm",
     "kategori": "Kamera",
     "marka": [
@@ -105551,30 +104530,6 @@
     "lisans": {
       "tur": "CC BY 4.0",
       "tasarimci": "Imp0st3r"
-    },
-    "altkategori": "Lens Adaptörleri"
-  },
-  {
-    "id": "canon-fd-ef-m-lens-adaptoru-brettpim",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon FD Lens - EF-M Gövde Adaptörü",
-    "aciklama": "Canon FD mount vintage lensleri EF-M mount EOS M serisi aynasız gövdelerde kullanılabilir hale getiren geçiş adaptörü. Yaklaşık dış ölçüler: 63 × 63 × 30 mm.",
-    "fiyat": "240 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4893425-1.jpg",
-      "https://media.pruvo3d.com/urunler/th4893425-2.jpg"
-    ],
-    "lisans": {
-      "tur": "GNU GPL",
-      "tasarimci": "brettpim"
     },
     "altkategori": "Lens Adaptörleri"
   },
@@ -106024,32 +104979,6 @@
       "tasarimci": "Wollm"
     },
     "altkategori": "Lens Kapakları"
-  },
-  {
-    "id": "canon-hotshoe-ayarlanabilir-telefon-tutucusu",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon Hotshoe için Ayarlanabilir Telefon Tutucusu",
-    "aciklama": "Canon gövdesinin aksesuar ayakkabısına (hotshoe) takılan, akıllı telefonu farklı açılarda sabitleyerek kamera yanında ikinci ekran veya harici mikrofon kontrolü olarak kullanmayı sağlayan ayarlanabilir tutucu. Yaklaşık dış ölçüler: 77 × 38 × 25 mm.",
-    "fiyat": "240 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th2718404-1.jpg",
-      "https://media.pruvo3d.com/urunler/th2718404-2.jpg",
-      "https://media.pruvo3d.com/urunler/th2718404-3.jpg",
-      "https://media.pruvo3d.com/urunler/th2718404-4.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY 4.0",
-      "tasarimci": "CalgaryToad"
-    },
-    "altkategori": "Flaş ve Işık"
   },
   {
     "id": "canon-ae-1-dokulu-tutus-kavramasi",
@@ -107022,32 +105951,6 @@
     "altkategori": "Lens Adaptörleri"
   },
   {
-    "id": "canon-eos-kilitli-govde-kapagi",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon EOS için Kilit Mekanizmalı Gövde Kapağı",
-    "aciklama": "Canon EOS gövdesinin lens mount'unu koruyan, ek kilit mekanizmasıyla yanlışlıkla açılmayı önleyen gövde kapağı. Yaklaşık dış ölçüler: 65 × 65 × 13 mm.",
-    "fiyat": "220 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th5231142-1.jpg",
-      "https://media.pruvo3d.com/urunler/th5231142-2.jpg",
-      "https://media.pruvo3d.com/urunler/th5231142-3.jpg",
-      "https://media.pruvo3d.com/urunler/th5231142-4.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY 4.0",
-      "tasarimci": "Opesd1"
-    },
-    "altkategori": "Lens Kapakları"
-  },
-  {
     "id": "canon-ef-eos-r-adaptor-montaj-halkasi",
     "kategori": "Kamera",
     "marka": [
@@ -107408,31 +106311,6 @@
     "altkategori": "Pil ve Şarj"
   },
   {
-    "id": "canon-ef-49mm-gulumseme-parasoleyi",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon EF 49mm Lensler için Gülümseme Parasoleyi",
-    "aciklama": "49mm çaplı Canon EF lenslerin ucuna takılan, kenarında dekoratif bir yazı bulunan ince lens parasoleyi; objektif önüne ekstra bir görsel dokunuş katar. Yaklaşık dış ölçüler: 91 × 79 × 2 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th1273040-1.jpg",
-      "https://media.pruvo3d.com/urunler/th1273040-2.jpg",
-      "https://media.pruvo3d.com/urunler/th1273040-3.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY 4.0",
-      "tasarimci": "T3DS"
-    },
-    "altkategori": "Filtre ve Parasoley"
-  },
-  {
     "id": "canon-eos-m-vizor-adaptoru",
     "kategori": "Kamera",
     "marka": [
@@ -107782,32 +106660,6 @@
     "altkategori": "Teleskop ve Astro"
   },
   {
-    "id": "canon-eos-r-tutus-uzatma-kavrama",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon EOS R için Tutuş Uzatma Kavraması",
-    "aciklama": "Canon EOS R gövdesinin alt kısmına eklenen, küçük parmağa da yer açarak elde tutuşu uzatan kavrama eklentisi; uzun süreli çekimlerde el yorgunluğunu azaltır. Yaklaşık dış ölçüler: 130 × 65 × 14 mm.",
-    "fiyat": "280 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4682292-1.jpg",
-      "https://media.pruvo3d.com/urunler/th4682292-2.jpg",
-      "https://media.pruvo3d.com/urunler/th4682292-3.jpg",
-      "https://media.pruvo3d.com/urunler/th4682292-4.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY 4.0",
-      "tasarimci": "nickrno77"
-    },
-    "altkategori": "Gövde ve Kafes"
-  },
-  {
     "id": "canon-efm-15-45mm-lens-parasoleyi",
     "kategori": "Kamera",
     "marka": [
@@ -107858,32 +106710,6 @@
     "altkategori": "Flaş ve Işık"
   },
   {
-    "id": "canon-eos-m-samsung-nx500-gimbal-plakasi",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon EOS M / Samsung NX500 için Gimbal Denge Plakası",
-    "aciklama": "Canon EOS M ve Samsung NX500 aynasız gövdelerini üç eksenli bir gimbal üzerine dengeli şekilde sabitlemek için kullanılan bağlantı plakası; her iki gövde için delik hizalaması ayrı ayrı tasarlanmıştır. Yaklaşık dış ölçüler: 187 × 132 × 9 mm.",
-    "fiyat": "320 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th868706-1.jpg",
-      "https://media.pruvo3d.com/urunler/th868706-2.jpg",
-      "https://media.pruvo3d.com/urunler/th868706-3.jpg",
-      "https://media.pruvo3d.com/urunler/th868706-4.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY-SA 4.0",
-      "tasarimci": "bortek"
-    },
-    "altkategori": "Gövde ve Kafes"
-  },
-  {
     "id": "canon-ef-125-inc-teleskop-odaklayici-adaptoru",
     "kategori": "Kamera",
     "marka": [
@@ -107931,32 +106757,6 @@
       "tasarimci": "cargoA8"
     },
     "altkategori": "Lens Kapakları"
-  },
-  {
-    "id": "canon-eos-rebel-xt-hotshoe-difuzor-klipsi",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon EOS Rebel XT için Hotshoe Difüzör Klipsi",
-    "aciklama": "Canon EOS Rebel XT gövdesinin dahili pop-up flaşına takılan küçük difüzör klipsi; sert flaş ışığını yumuşatarak daha dengeli bir aydınlatma sağlar. Yaklaşık dış ölçüler: 25 × 12 × 9 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th25382-1.jpg",
-      "https://media.pruvo3d.com/urunler/th25382-2.jpg",
-      "https://media.pruvo3d.com/urunler/th25382-3.jpg",
-      "https://media.pruvo3d.com/urunler/th25382-4.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY 4.0",
-      "tasarimci": "haasebert"
-    },
-    "altkategori": "Flaş ve Işık"
   },
   {
     "id": "canon-rf-ef-100mm-filtre-tasiyici-adaptor",
@@ -108277,32 +107077,6 @@
       "tasarimci": "enif"
     },
     "altkategori": "Pil ve Şarj"
-  },
-  {
-    "id": "canon-dslr-kafes-rig",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "DSLR Kamera Kafesi (Rig)",
-    "aciklama": "DSLR gövdesini çevreleyen, yan tutamak ve aksesuar bağlantı delikleri barındıran koruyucu kafes; mikrofon, monitör veya ek tutamak gibi video aksesuarlarının kameraya sabitlenmesini sağlar.\nYaklaşık dış ölçüler: 164 × 117 × 50 mm.",
-    "fiyat": "380 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th3780577-1.jpg",
-      "https://media.pruvo3d.com/urunler/th3780577-2.jpg",
-      "https://media.pruvo3d.com/urunler/th3780577-3.jpg",
-      "https://media.pruvo3d.com/urunler/th3780577-4.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY 4.0",
-      "tasarimci": "lewismat000"
-    },
-    "altkategori": "Gövde ve Kafes"
   },
   {
     "id": "canon-18-55-gunes-tutulmasi-filtre-tutucu",
@@ -109665,32 +108439,6 @@
       "tasarimci": "MalNivek"
     },
     "altkategori": "Montaj ve Tripod"
-  },
-  {
-    "id": "canon-lp-e17-pili-ve-sd-kartlar-icin-vidali-saklama-kutusu",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon LP-E17 Pili ve SD Kartlar için Vidalı Saklama Kutusu",
-    "aciklama": "LP-E17 kamera pilini ve birkaç SD hafıza kartını tek bir vidalı kapaklı kutuda bir arada taşımaya yarayan silindirik saklama kutusu.\nYaklaşık dış ölçüler: 13 × 13 × 9 mm.",
-    "fiyat": "300 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th7047519-1.jpg",
-      "https://media.pruvo3d.com/urunler/th7047519-2.jpg",
-      "https://media.pruvo3d.com/urunler/th7047519-3.jpg",
-      "https://media.pruvo3d.com/urunler/th7047519-4.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY-SA 4.0",
-      "tasarimci": "Idle_3D"
-    },
-    "altkategori": "Pil ve Şarj"
   },
   {
     "id": "canon-1200d-icin-dahili-flas-difuzoru",
@@ -117776,29 +116524,6 @@
     "lisans": {
       "tasarimci": "stagsimon",
       "tur": "CC BY-SA 4.0"
-    }
-  },
-  {
-    "id": "cayenne-montaj-aparat",
-    "kategori": "Otomobil",
-    "marka": [
-      "Cayenne"
-    ],
-    "baslik": "Cayenne Montaj Aparatı",
-    "aciklama": "Cayenne için cayenne montaj aparatı.\nÖzel tasarım üretim: sipariş üzerine üretilir.\nSağlam ve hafif bir parça olarak teslim edilir.\nYaklaşık dış ölçüler: 154 × 82 × 69 mm.",
-    "fiyat": "750 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6167497-1.jpg",
-      "https://media.pruvo3d.com/urunler/th6167497-2.jpg",
-      "https://media.pruvo3d.com/urunler/th6167497-3.jpg",
-      "https://media.pruvo3d.com/urunler/th6167497-4.jpg"
-    ],
-    "tavsiyeFilament": [
-      "PLA"
-    ],
-    "lisans": {
-      "tasarimci": "Trogdor4Ever",
-      "tur": "CC BY 4.0"
     }
   },
   {
@@ -145114,24 +143839,6 @@
     }
   },
   {
-    "id": "e-bisiklet-genis-bagaj-rafi-kasa-tutucusu-uzun",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "E-Bisiklet/Geniş Bagaj Rafı için Uzun Kasa Tutucusu",
-    "aciklama": "Geniş bagaj raflarına kasa/sepet sabitlemek için uzatılmış tutucu.\nYaklaşık dış ölçüler: 286 × 70 × 19 mm.",
-    "fiyat": "235 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th5336358-1.jpg",
-      "https://media.pruvo3d.com/urunler/th5336358-2.jpg",
-      "https://media.pruvo3d.com/urunler/th5336358-3.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Isithrand",
-      "tur": "CC-BY"
-    }
-  },
-  {
     "id": "bisiklet-amortisor-sarkma-gostergesi",
     "kategori": "Bisiklet",
     "marka": [],
@@ -150155,23 +148862,6 @@
     }
   },
   {
-    "id": "chevrolet-traverse-mekanik-h-zl-ba-lant-stand",
-    "kategori": "Otomobil",
-    "marka": [
-      "Chevrolet"
-    ],
-    "baslik": "Chevrolet Traverse Mekanik Hızlı Bağlantı Standı",
-    "aciklama": "Chevrolet Traverse için mekanik hızlı bağlantı (quick release) taban adaptörü.\nYaklaşık dış ölçüler: 85 × 84 × 67 mm.",
-    "fiyat": "300 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4252960-1.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "camolito",
-      "tur": "CC BY 4.0"
-    }
-  },
-  {
     "id": "chevrolet-equinox-anten-jet-fin-s-s",
     "kategori": "Otomobil",
     "marka": [
@@ -150384,24 +149074,6 @@
       "https://media.pruvo3d.com/urunler/th4303226-3.jpg",
       "https://media.pruvo3d.com/urunler/th4303226-4.jpg",
       "https://media.pruvo3d.com/urunler/th4303226-5.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "cre8vr",
-      "tur": "CC BY 4.0"
-    }
-  },
-  {
-    "id": "chevrolet-colorado-switch-kapak-plakas-2015",
-    "kategori": "Otomobil",
-    "marka": [
-      "Chevrolet"
-    ],
-    "baslik": "Chevrolet Colorado Switch Kapak Plakası (2015+)",
-    "aciklama": "2015+ Chevrolet Colorado ek switch/buton montaj plakası.\nYaklaşık dış ölçüler: 114 × 89 × 25 mm.",
-    "fiyat": "300 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th2536651-1.jpg",
-      "https://media.pruvo3d.com/urunler/th2536651-2.jpg"
     ],
     "lisans": {
       "tasarimci": "cre8vr",
@@ -150656,27 +149328,6 @@
     }
   },
   {
-    "id": "chevrolet-colorado-g-stergeler-i-in-kart-tutucu",
-    "kategori": "Otomobil",
-    "marka": [
-      "Chevrolet"
-    ],
-    "baslik": "Chevrolet Colorado Göstergeler İçin Kart Tutucu",
-    "aciklama": "Chevrolet Colorado ek gösterge paneli kart/yedek anahtar tutucu yuvası.\nYaklaşık dış ölçüler: 114 × 89 × 25 mm.",
-    "fiyat": "300 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th5159960-1.jpg",
-      "https://media.pruvo3d.com/urunler/th5159960-2.jpg",
-      "https://media.pruvo3d.com/urunler/th5159960-3.jpg",
-      "https://media.pruvo3d.com/urunler/th5159960-4.jpg",
-      "https://media.pruvo3d.com/urunler/th5159960-5.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "cre8vr",
-      "tur": "CC BY 4.0"
-    }
-  },
-  {
     "id": "chevrolet-colorado-dashboard-apka-tutucu",
     "kategori": "Otomobil",
     "marka": [
@@ -150712,24 +149363,6 @@
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th4152367-1.jpg",
       "https://media.pruvo3d.com/urunler/th4152367-2.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "cre8vr",
-      "tur": "CC BY 4.0"
-    }
-  },
-  {
-    "id": "chevrolet-colorado-kart-de-i-tirme-paneli-2017",
-    "kategori": "Otomobil",
-    "marka": [
-      "Chevrolet"
-    ],
-    "baslik": "Chevrolet Colorado Kart Değiştirme Paneli (2017)",
-    "aciklama": "2017 Chevrolet Colorado orta konsol kart/belge değiştirme paneli.\nYaklaşık dış ölçüler: 114 × 89 × 25 mm.",
-    "fiyat": "300 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th5246551-1.jpg",
-      "https://media.pruvo3d.com/urunler/th5246551-2.jpg"
     ],
     "lisans": {
       "tasarimci": "cre8vr",
@@ -155191,24 +153824,6 @@
     ],
     "lisans": {
       "tasarimci": "Paxy",
-      "tur": "CC BY-SA 4.0"
-    }
-  },
-  {
-    "id": "chevrolet-silverado-g-ne-g-zl-g-z",
-    "kategori": "Otomobil",
-    "marka": [
-      "Chevrolet"
-    ],
-    "baslik": "Chevrolet Silverado Güneş Gözlüğü Gözü",
-    "aciklama": "2007-2013 Chevrolet Silverado tavan gözü içi çift bölmeli güneş gözlüğü tutucu.\nYaklaşık dış ölçüler: 92 × 70 × 30 mm.",
-    "fiyat": "400 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6882019-1.jpg",
-      "https://media.pruvo3d.com/urunler/th6882019-2.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "aesalazar",
       "tur": "CC BY-SA 4.0"
     }
   },
@@ -161535,26 +160150,6 @@
       "tur": "CC-BY"
     },
     "altkategori": "Fren ve Vites"
-  },
-  {
-    "id": "e-bisiklet-arka-raf-tasima-plakasi-genisletilmis",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "E-Bisiklet Arka Raf Taşıma Plakası (Genişletilmiş)",
-    "aciklama": "Arka rafa monte edilen, taşıma çantası ve platformu birleştiren geniş taşıma plakası.\nYaklaşık dış ölçüler: 300 × 145 × 56,5 mm.",
-    "fiyat": "245 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4523531-1.jpg",
-      "https://media.pruvo3d.com/urunler/th4523531-2.jpg",
-      "https://media.pruvo3d.com/urunler/th4523531-3.jpg",
-      "https://media.pruvo3d.com/urunler/th4523531-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "2manytoyz",
-      "tur": "CC-BY"
-    },
-    "altkategori": "Çamurluk ve Bagaj"
   },
   {
     "id": "bisiklet-co2-kartus-tutucusu-12li",
@@ -208959,25 +207554,6 @@
     "altkategori": "Matara ve Kafes"
   },
   {
-    "id": "dag-bisikleti-evrensel-telefon-tutucusu",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "baslik": "Dağ Bisikleti Evrensel Telefon Tutucusu",
-    "aciklama": "Kablo bağıyla gidona sabitlenen, telefonu sıkıca kavrayan evrensel tutucu.\n- Kayar mekanizma farklı telefon genişliklerine uyum sağlar\n- Güçlendirilmiş köşelerle darbeye dayanıklı\nYaklaşık dış ölçüler: 118 × 108 × 28 mm.",
-    "fiyat": "350 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4599498-1.jpg",
-      "https://media.pruvo3d.com/urunler/th4599498-2.jpg",
-      "https://media.pruvo3d.com/urunler/th4599498-3.jpg",
-      "https://media.pruvo3d.com/urunler/th4599498-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Mortio",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Telefon ve Navigasyon"
-  },
-  {
     "id": "bisiklet-arka-far-tutucusu-50mm",
     "kategori": "Bisiklet",
     "marka": [],
@@ -214391,26 +212967,6 @@
     "altkategori": "Çamurluk ve Bagaj"
   },
   {
-    "id": "elektrikli-bisiklet-aku-kutusu-tutucusu",
-    "kategori": "Bisiklet",
-    "marka": [],
-    "uyum": [],
-    "baslik": "Elektrikli Bisiklet Akü Kutusu Tutucusu",
-    "aciklama": "Taşınabilir akü paketini elektrikli bisiklet gövdesinde sabitlemek için kullanılan kutu tipi tutucu.\n- Akü gövdesini çepeçevre saran koruyucu yapı\n- Gövdeye kelepçe/kayışla sabitlenir\n- Akünün sürüş sırasında sabit ve korumalı kalmasını sağlar\nYaklaşık dış ölçüler: 181 × 77 × 70 mm.",
-    "fiyat": "300 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th3411293-1.jpg",
-      "https://media.pruvo3d.com/urunler/th3411293-2.jpg",
-      "https://media.pruvo3d.com/urunler/th3411293-3.jpg",
-      "https://media.pruvo3d.com/urunler/th3411293-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Bruiser125",
-      "tur": "CC BY-SA 4.0"
-    },
-    "altkategori": "Elektrikli Bisiklet"
-  },
-  {
     "id": "bisiklet-arka-isik-tutucusu",
     "kategori": "Bisiklet",
     "marka": [],
@@ -218072,23 +216628,6 @@
     ],
     "lisans": {
       "tasarimci": "motoz",
-      "tur": "CC BY 4.0"
-    }
-  },
-  {
-    "id": "elektrikli-motor-pervanesi-5kanat-3692029",
-    "kategori": "Marin",
-    "marka": [],
-    "baslik": "Elektrikli Tekne Motoru Pervanesi (5 Kanat)",
-    "aciklama": "Elektrikli tekne motorları için 5 kanatlı pervane parçasıdır.\n- Orijinal 3 kanatlı tipe göre daha yumuşak itki sağlar\n- Minn Kota Endura elektrikli motorlarla uyumludur\n- Yaklaşık 133 x 133 x 40 mm ölçülerindedir",
-    "fiyat": "280 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th3692029-1.jpg",
-      "https://media.pruvo3d.com/urunler/th3692029-2.jpg",
-      "https://media.pruvo3d.com/urunler/th3692029-3.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "aTypicalEngineer808",
       "tur": "CC BY 4.0"
     }
   },
@@ -249420,39 +247959,6 @@
     }
   },
   {
-    "id": "citroen-berlingo-ii-telefon-kilifi-baglanti-adaptoru",
-    "kategori": "Otomobil",
-    "marka": [
-      "Citroen",
-      "Berlingo",
-      "Peugeot",
-      "Partner"
-    ],
-    "uyum": [
-      {
-        "marka": "Citroen",
-        "model": "Berlingo"
-      },
-      {
-        "marka": "Peugeot",
-        "model": "Partner"
-      }
-    ],
-    "baslik": "Citroën Berlingo II Telefon Kılıfı Bağlantı Adaptörü",
-    "aciklama": "Citroën Berlingo ve Peugeot Partner'da bisiklet için üretilmiş geçmeli telefon kılıflarını gösterge paneline bağlamaya yarayan adaptör takımı. Bu kılıfların kendi bağlantıları gidon borusuna göre yapıldığı için araç konsolunda tutmaz.\n\nTakım, panele oturan taban ile kılıfın geçme arayüzünü taşıyan kol ve ara parçalardan oluşur; farklı açı seçenekleri için birden fazla gövde içerir. Kabin sıcağında biçimini koruyan malzemeyle özel olarak üretilir.\n\nSipariş için \"Sipariş Ver\" butonundan bize ulaşın; araç modelinizi ve yılını belirtin.\nYaklaşık dış ölçüler: 107 × 18 × 15 mm.",
-    "fiyat": "300 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6683501-1.jpg",
-      "https://media.pruvo3d.com/urunler/th6683501-2.jpg",
-      "https://media.pruvo3d.com/urunler/th6683501-3.jpg",
-      "https://media.pruvo3d.com/urunler/th6683501-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "darth_bug",
-      "tur": "CC BY-SA 4.0"
-    }
-  },
-  {
     "id": "citroen-2cv-dyane-katlanir-koltuk-burcu",
     "kategori": "Otomobil",
     "marka": [
@@ -250219,32 +248725,6 @@
     ],
     "lisans": {
       "tasarimci": "Ducatero",
-      "tur": "CC BY-SA 4.0"
-    }
-  },
-  {
-    "id": "citroen-jumper-telefon-tutucu-mafsal-kuresi",
-    "kategori": "Otomobil",
-    "marka": [
-      "Citroen",
-      "Jumper"
-    ],
-    "uyum": [
-      {
-        "marka": "Citroen",
-        "model": "Jumper"
-      }
-    ],
-    "baslik": "Citroën Jumper Telefon Tutucu Mafsal Küresi",
-    "aciklama": "Citroën Jumper ve aynı gövdeli panelvanlarda kullanılan küresel mafsallı telefon tutucularının aşınan top parçası. Küre yuvasında boşluk yapmaya başladığında tutucu açısını korumaz, yolda kendiliğinden aşağı düşer.\n\nMontaj için bir adet M3x25 vida ile üç adet M3 somun gerekir; somunların ikisi ara mesafeyi ayarlamak içindir. Sürtünmeye dayanıklı malzemeyle özel olarak üretilir.\n\nSipariş için \"Sipariş Ver\" butonundan bize ulaşın; araç modelinizi ve yılını belirtin.\nYaklaşık dış ölçüler: 16 × 16 × 15 mm.",
-    "fiyat": "250 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th7191085-1.jpg",
-      "https://media.pruvo3d.com/urunler/th7191085-2.jpg",
-      "https://media.pruvo3d.com/urunler/th7191085-3.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "stoertebretter",
       "tur": "CC BY-SA 4.0"
     }
   },
@@ -253065,31 +251545,6 @@
     ],
     "lisans": {
       "tasarimci": "hd7Ve5Lr",
-      "tur": "CC BY-SA"
-    }
-  },
-  {
-    "id": "ford-f-150-bardaklik-30oz-yuksek-sikmali-kapak",
-    "kategori": "Otomobil",
-    "marka": [
-      "Ford"
-    ],
-    "uyum": [
-      {
-        "marka": "Ford"
-      }
-    ],
-    "baslik": "Ford F-150 Bardaklık 30oz Yüksek/Sıkmalı Kapak",
-    "aciklama": "Yeti 30 oz yüksek şişe için Ford F-150 bardaklığına sıkılan uzatma kapağının özel üretim yedeğidir.\nOrijinal bardaklık çapı ve kapak oturma geometrisi referans alınarak modellenmiştir; mevcut bardaklık kuyusuna doğrudan geçirilir.\nYeti Rambler 30 oz ve benzeri yüksek ve sıkı şişelerin bardaklıkta sallanmasını engeller; yol sırasında şişeyi sabit tutar.\nDayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 157 × 110 × 106 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/tv7149156-1.jpg",
-      "https://media.pruvo3d.com/urunler/tv7149156-2.jpg",
-      "https://media.pruvo3d.com/urunler/tv7149156-3.jpg",
-      "https://media.pruvo3d.com/urunler/tv7149156-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "tlester70",
       "tur": "CC BY-SA"
     }
   },
@@ -312815,27 +311270,6 @@
     }
   },
   {
-    "id": "citroen-2cv-vites-kutusu-yay-tutma-aleti",
-    "kategori": "Otomobil",
-    "marka": [
-      "Citroen",
-      "2CV"
-    ],
-    "baslik": "Citroën 2CV Vites Kutusu Yay Tutma Aleti",
-    "aciklama": "Citroën 2CV ve türevlerinde vites kutusu ayarı yapılırken sıkışmış yayın altındaki bilyeyi sabit tutmaya yarayan özel el aleti. Bu alet olmadan bilye ayar sırasında yerinden fırlar.\n\nEl ile kullanılan bir servis aletidir, arabaya monte edilmez. Dayanıklı malzemeyle özel olarak üretilir.\n\nSipariş için \"Sipariş Ver\" butonundan bize ulaşın; araç modelinizi ve yılını belirtin.\nYaklaşık dış ölçüler: 80 × 60 × 21 mm.",
-    "fiyat": "300 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4056069-1.jpg",
-      "https://media.pruvo3d.com/urunler/th4056069-2.jpg",
-      "https://media.pruvo3d.com/urunler/th4056069-3.jpg",
-      "https://media.pruvo3d.com/urunler/th4056069-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "2cv001",
-      "tur": "CC BY-SA 4.0"
-    }
-  },
-  {
     "id": "citroen-sm-din-radyo-adaptoru",
     "kategori": "Otomobil",
     "marka": [
@@ -313210,26 +311644,6 @@
     }
   },
   {
-    "id": "citroen-spacetourer-havalandirma-mesnedi",
-    "kategori": "Otomobil",
-    "marka": [
-      "Citroen",
-      "Spacetourer"
-    ],
-    "baslik": "Citroën SpaceTourer Havalandırma Ağzı Mesnedi",
-    "aciklama": "Citroën SpaceTourer'da havalandırma menfezine takılan, telefon tutucu gibi aparatlar için bağlantı sağlayan klips mesnedi. Menfez kanatları tek başına ek yük taşımaya uygun değildir.\n\nStandart menfez kanadına takılır, ek yük taşımadan önce keçe şeritle takviye önerilir. Dayanıklı malzemeyle özel olarak üretilir.\n\nSipariş için \"Sipariş Ver\" butonundan bize ulaşın; araç modelinizi ve yılını belirtin.\nYaklaşık dış ölçüler: 71 × 60 × 31 mm.",
-    "fiyat": "300 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th5192411-1.jpg",
-      "https://media.pruvo3d.com/urunler/th5192411-2.jpg",
-      "https://media.pruvo3d.com/urunler/th5192411-3.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "uzosan",
-      "tur": "CC BY-SA 4.0"
-    }
-  },
-  {
     "id": "citroen-berlingo-peugeot-partner-vites-topuzu",
     "kategori": "Otomobil",
     "marka": [
@@ -313288,25 +311702,6 @@
     }
   },
   {
-    "id": "citroen-c4-grand-picasso-telefon-tutucu-tabani",
-    "kategori": "Otomobil",
-    "marka": [
-      "Citroen",
-      "C4 Grand Picasso"
-    ],
-    "baslik": "Citroën C4 Grand Picasso Telefon Tutucu Tabanı",
-    "aciklama": "Citroën C4 Grand Picasso'da havalandırma klipsli telefon tutucusunun taban parçası; standart taban kayıp/gevşek kaldığında telefonu sabit tutmaz.\n\nStandart telefon tutucu klips sistemleriyle uyumludur, arkası uzatılarak sabitleme geliştirilmiştir. Dayanıklı malzemeyle özel olarak üretilir.\n\nSipariş için \"Sipariş Ver\" butonundan bize ulaşın; araç modelinizi ve telefonunuzu belirtin.\nYaklaşık dış ölçüler: 73 × 25 × 25 mm.",
-    "fiyat": "300 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th5448275-1.jpg",
-      "https://media.pruvo3d.com/urunler/th5448275-2.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Boblehat",
-      "tur": "CC BY 4.0"
-    }
-  },
-  {
     "id": "citroen-jumper-bardaklik-usb-baglantisi",
     "kategori": "Otomobil",
     "marka": [
@@ -313324,28 +311719,6 @@
     "lisans": {
       "tasarimci": "eHome70",
       "tur": "CC BY 4.0"
-    }
-  },
-  {
-    "id": "citroen-c5-x7-tweeter-adaptoru-44mm",
-    "kategori": "Otomobil",
-    "marka": [
-      "Citroen",
-      "Peugeot",
-      "C5 X7"
-    ],
-    "baslik": "Citroën C5 X7 / PSA Tweeter Adaptörü (44mm)",
-    "aciklama": "Citroën C5 X7 ve diğer PSA modellerinde 37x44mm gövdeli yan sanayi tiz hoparlörleri (tweeter) orijinal yuvaya sabitlemek için kullanılan adaptör halkası. Orijinal yuva farklı ölçüdeki hoparlörlere göre kalıplanmıştır.\n\nHoparlörü klips oturmasıyla sıkıca sabitler. Dayanıklı malzemeyle özel olarak üretilir.\n\nSipariş için \"Sipariş Ver\" butonundan bize ulaşın; araç modelinizi ve hoparlör ölçünüzü belirtin.",
-    "fiyat": "300 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6819709-1.jpg",
-      "https://media.pruvo3d.com/urunler/th6819709-2.jpg",
-      "https://media.pruvo3d.com/urunler/th6819709-3.jpg",
-      "https://media.pruvo3d.com/urunler/th6819709-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "gbx172",
-      "tur": "CC BY-SA 4.0"
     }
   },
   {
@@ -317974,28 +316347,6 @@
     }
   },
   {
-    "id": "citroen-berlingo-ii-peugeot-partner-orta-konsol-telefon-tutucu",
-    "kategori": "Otomobil",
-    "marka": [
-      "Citroen",
-      "Peugeot",
-      "Berlingo"
-    ],
-    "baslik": "Citroën Berlingo II (B9) / Peugeot Partner Orta Konsol Telefon Tutucusu",
-    "aciklama": "Citroën Berlingo II (B9) ve Peugeot Partner orta konsolundaki silindirik gözleri kullanan telefon tutucusu. Bu gözler fabrikada genel amaçlı bırakılmıştır ve telefon için elverişli değildir; bu aparat boşluğu düzgün bir tutucuya çevirir.\n\nİki parçalı yapıdadır, konsol yuvasına oturur ve delik açmayı gerektirmez. Araç içi sıcaklığına dayanıklı malzemeyle özel olarak üretilir.\n\nSipariş için \"Sipariş Ver\" butonundan bize ulaşın; araç modelinizi ve telefonunuzu belirtin.\nYaklaşık dış ölçüler: 107 × 18 × 15 mm.",
-    "fiyat": "450 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th3667382-1.jpg",
-      "https://media.pruvo3d.com/urunler/th3667382-2.jpg",
-      "https://media.pruvo3d.com/urunler/th3667382-3.jpg",
-      "https://media.pruvo3d.com/urunler/th3667382-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Mortadelle",
-      "tur": "CC BY-SA 4.0"
-    }
-  },
-  {
     "id": "citroen-jumper-fiat-ducato-karavan-tuvalet-havalandirma-adaptoru",
     "kategori": "Otomobil",
     "marka": [
@@ -318655,27 +317006,6 @@
     ],
     "lisans": {
       "tasarimci": "bidouille",
-      "tur": "CC BY 4.0"
-    }
-  },
-  {
-    "id": "citroen-xsara-ayna-govdesi-arac-kamerasi-tutucusu",
-    "kategori": "Otomobil",
-    "marka": [
-      "Citroen",
-      "Xsara"
-    ],
-    "baslik": "Citroën Xsara Ayna Gövdesi Araç Kamerası Tutucusu",
-    "aciklama": "Citroën Xsara II'de iç dikiz aynasının ayağına geçen araç kamerası tutucusu. Kamerayı camın ortasında, görüş alanını kapatmayacak biçimde konumlandırır.\n\n20 mm çapındaki ayna ayaklarına uyar; bu ölçüye sahip diğer araçlarda da kullanılabilir. Kamera ürüne dâhil değildir. Araç içi sıcaklığına dayanıklı malzemeyle özel olarak üretilir.\n\nSipariş için \"Sipariş Ver\" butonundan bize ulaşın; ayna ayağı çapınızı ve kamera modelinizi belirtin.\nYaklaşık dış ölçüler: 30 × 25 × 18 mm.",
-    "fiyat": "300 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th2211917-1.jpg",
-      "https://media.pruvo3d.com/urunler/th2211917-2.jpg",
-      "https://media.pruvo3d.com/urunler/th2211917-3.jpg",
-      "https://media.pruvo3d.com/urunler/th2211917-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Percevalio",
       "tur": "CC BY 4.0"
     }
   },
@@ -321675,23 +320005,6 @@
     }
   },
   {
-    "id": "fiat-ducato-hdmi-usb-soket-plakasi",
-    "kategori": "Otomobil",
-    "marka": [
-      "Fiat"
-    ],
-    "baslik": "Fiat Ducato HDMI / USB Soket Plakası (1315515070)",
-    "aciklama": "Panel açıklığına soket ve şalter taşıyan kapama plakası.\n- 1315515070 numaralı orijinal plakanın muadilidir\n- Birleşik HDMI-USB soketi ve kilitli basmalı şalter için hazır delikli\n- Ducato panel yuvasına göre ölçülendirildi\nYaklaşık dış ölçüler: 65 × 48 × 14 mm.",
-    "fiyat": "600 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6959306-1.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "AK63",
-      "tur": "CC BY-SA 4.0"
-    }
-  },
-  {
     "id": "fiat-someca-traktor-kuyruk-mili-kolu-tutamagi",
     "kategori": "Otomobil",
     "marka": [
@@ -323062,27 +321375,6 @@
     }
   },
   {
-    "id": "fiat-ducato-2018-kose-menfez-telefon-tutucusu",
-    "kategori": "Otomobil",
-    "marka": [
-      "Fiat",
-      "Citroen",
-      "Peugeot"
-    ],
-    "baslik": "Fiat Ducato 2018 Köşe Menfez Telefon Tutucusu",
-    "aciklama": "Torpidonun köşesindeki menfeze geçen telefon tutucusu.\n- Kama biçimli tabanı menfez kanatlarına oturur, delik açtırmaz\n- Dik açısı ekranı sürücünün görüş hattına getirir\n- Geniş gövdeli telefonları kılıfıyla birlikte alır\nYaklaşık dış ölçüler: 97 × 86 × 33 mm.",
-    "fiyat": "650 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th7305313-1.jpg",
-      "https://media.pruvo3d.com/urunler/th7305313-2.jpg",
-      "https://media.pruvo3d.com/urunler/th7305313-3.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "npr",
-      "tur": "CC BY-SA 4.0"
-    }
-  },
-  {
     "id": "fiat-x1-9-ic-kapi-cita-uc-kapaklari",
     "kategori": "Otomobil",
     "marka": [
@@ -323330,24 +321622,6 @@
     ],
     "lisans": {
       "tasarimci": "maxigege",
-      "tur": "CC BY-SA 4.0"
-    }
-  },
-  {
-    "id": "fiat-doblo-bagaj-rafi-klipsi",
-    "kategori": "Otomobil",
-    "marka": [
-      "Fiat"
-    ],
-    "baslik": "Fiat Doblo Bagaj Rafı Klipsi",
-    "aciklama": "Arka bagaj rafını yan panele tutturan klips.\n- Orijinaline göre kalınlaştırılmış ve nervürlü gövdesi kırılmaya direnir\n- Rafın kapak açılırken yerinden çıkmasını önler\n- Doblo bagaj rafı yuvalarına oturur\nYaklaşık dış ölçüler: 95 × 26 × 15 mm.",
-    "fiyat": "500 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6967282-1.jpg",
-      "https://media.pruvo3d.com/urunler/th6967282-2.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "transalp95",
       "tur": "CC BY-SA 4.0"
     }
   },
@@ -325089,25 +323363,6 @@
     }
   },
   {
-    "id": "fiat-linea-cekme-kancasi-kapagi",
-    "kategori": "Otomobil",
-    "marka": [
-      "Fiat"
-    ],
-    "baslik": "Fiat Linea Çekme Kancası Kapağı",
-    "aciklama": "Ön tampondaki çekme kancası deliğini kapatan kapak.\n- Kaybolan orijinalin yerine geçer, tampon hattını tamamlar\n- Tırnakları tamponun iç kenarına kilitlenir\n- Linea Emotion ve Dynamic donanımlarına uyar\nYaklaşık dış ölçüler: 68 × 64 × 13 mm.",
-    "fiyat": "500 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th5335085-1.jpg",
-      "https://media.pruvo3d.com/urunler/th5335085-2.jpg",
-      "https://media.pruvo3d.com/urunler/th5335085-3.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "naveenganesan",
-      "tur": "CC BY 4.0"
-    }
-  },
-  {
     "id": "fiat-stilo-yakit-kapagi-bagi",
     "kategori": "Otomobil",
     "marka": [
@@ -326517,23 +324772,6 @@
     }
   },
   {
-    "id": "fiat-grande-punto-bagaj-perdesi-klipsi",
-    "kategori": "Otomobil",
-    "marka": [
-      "Fiat"
-    ],
-    "baslik": "Fiat Grande Punto Bagaj Perdesi Klipsi",
-    "aciklama": "Bagaj kapama perdesinin yan duvara oturdugu tutucu klips.\n- Orijinal yuvaya dogrudan gecer, ek parca istemez\n- Kalinlastirilmis govdesi sik kirilan noktayi guclendirir\n- Perdenin seyir halinde dusmesini ve tikirdamasini onler\nYaklaşık dış ölçüler: 46 × 25 × 15 mm.",
-    "fiyat": "500 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6614231-1.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "josedpedroso",
-      "tur": "CC BY-SA 4.0"
-    }
-  },
-  {
     "id": "fiat-ducato-kapi-stoperi-takozu",
     "kategori": "Otomobil",
     "marka": [
@@ -327769,23 +326007,6 @@
     }
   },
   {
-    "id": "fiat-500-bagaj-kapagi-kolu",
-    "kategori": "Otomobil",
-    "marka": [
-      "Fiat"
-    ],
-    "baslik": "Fiat 500 Bagaj Kapağı Kolu",
-    "aciklama": "Bagaj kapağının iç yüzündeki, kapatırken tutulan kavisli kol.\n- Kapaktaki hazır delikten vidayla bağlanır\n- Kavisli gövdesi eli kapak kenarına değdirmeden kapatmayı sağlar\n- Düz ve yazısız yüzeyiyle fabrika görünümünü bozmaz\nYaklaşık dış ölçüler: 100 × 53 × 25 mm.",
-    "fiyat": "550 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4782074-1.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "mrflippant",
-      "tur": "CC BY 4.0"
-    }
-  },
-  {
     "id": "fiat-stop-lambasi-somun-tutucusu",
     "kategori": "Otomobil",
     "marka": [
@@ -328055,25 +326276,6 @@
     "lisans": {
       "tasarimci": "Russiancatfood",
       "tur": "CC BY-SA 4.0"
-    }
-  },
-  {
-    "id": "fiat-panda-kuru-kafa-vites-topuzu-kilifi",
-    "kategori": "Otomobil",
-    "marka": [
-      "Fiat"
-    ],
-    "baslik": "Fiat Panda Kuru Kafa Vites Topuzu Kılıfı",
-    "aciklama": "Eski kasa Panda vites topuzunun üzerine geçen kuru kafa formlu kılıf.\n- İki yarımdan oluşur, mevcut topuzu sökmeden üzerine kapanır\n- Vidalı ve vidasız iki gövde seçeneğiyle birlikte gelir\n- Orijinal topuzu çizilmeye ve güneşe karşı korur\nYaklaşık dış ölçüler: 101 × 76 × 36 mm.",
-    "fiyat": "600 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th3547230-1.jpg",
-      "https://media.pruvo3d.com/urunler/th3547230-2.jpg",
-      "https://media.pruvo3d.com/urunler/th3547230-3.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "frenky",
-      "tur": "CC BY 4.0"
     }
   },
   {
@@ -328865,24 +327067,6 @@
     "tavsiyeFilament": [
       "ABS"
     ]
-  },
-  {
-    "id": "fiat-500-buz-kaziyici",
-    "kategori": "Otomobil",
-    "marka": [
-      "Fiat"
-    ],
-    "baslik": "Fiat 500 / 500X / 500e Buz Kazıyıcı",
-    "aciklama": "Fiat 500 ailesi için saplı cam buz kazıyıcısı.\n- Geniş ağzı ön camı hızlı temizler\n- Tırtıklı sapı eldivenle kavramaya uygun\n- Kapı cebine ya da torpidoya sığacak boyutta\nYaklaşık dış ölçüler: 187 × 102 × 25 mm.",
-    "fiyat": "500 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th5695041-1.jpg",
-      "https://media.pruvo3d.com/urunler/th5695041-2.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "MrColo",
-      "tur": "CC BY 4.0"
-    }
   },
   {
     "id": "fiat-ducato-salter-kapagi",
@@ -422880,27 +421064,6 @@
     ],
     "lisans": {
       "tasarimci": "LiBroke",
-      "tur": "CC BY-SA 4.0"
-    }
-  },
-  {
-    "id": "datsun-260z-280z-havalandirma-menfezi-plakasi",
-    "kategori": "Otomobil",
-    "marka": [
-      "Nissan",
-      "Datsun"
-    ],
-    "baslik": "Datsun 260Z/280Z havalandırma menfezi plakası",
-    "aciklama": "260Z/280Z (74-78 model) havalandırma panelinde kullanılan menfez plakasının yedeğidir.\nYaklaşık dış ölçüler: 36 × 18 × 4 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6351552-1.jpg",
-      "https://media.pruvo3d.com/urunler/th6351552-2.jpg",
-      "https://media.pruvo3d.com/urunler/th6351552-3.jpg",
-      "https://media.pruvo3d.com/urunler/th6351552-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "foie3000",
       "tur": "CC BY-SA 4.0"
     }
   },
@@ -524267,22 +522430,6 @@
     "altkategori": "Motor Parçaları"
   },
   {
-    "id": "dis-motor-reverser-kapak-mentesesi-guclendirilmis",
-    "kategori": "Marin",
-    "marka": [],
-    "baslik": "Dış Motor Reverser Kapak Menteşesi (Güçlendirilmiş)",
-    "aciklama": "Dış motor ters vites (reverser) kapağı menteşesi için orta destekli güçlendirilmiş versiyon.\n- Kırılan orijinal menteşenin yerine geçer.\n- Orta destek braketiyle ek dayanıklılık sağlar.\nYaklaşık dış ölçüler: 38 × 11 × 8 mm.",
-    "fiyat": "350 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4666338-1.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "coppertop_01",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Motor Parçaları"
-  },
-  {
     "id": "yelkenli-winch-manivela-duz-yuzey-destegi",
     "kategori": "Marin",
     "marka": [],
@@ -577893,34 +576040,6 @@
     ]
   },
   {
-    "id": "ford-explorer-2005-cift-usb-torpido-eklentisi",
-    "kategori": "Otomobil",
-    "marka": [
-      "Ford",
-      "Explorer"
-    ],
-    "baslik": "Ford Explorer (2005) Çift USB Torpido Eklentisi",
-    "aciklama": "2005 Ford Explorer torpido gözüne iki USB girişi eklemek için tasarlanmış ek parçadır.\nHazır bir tasarımdan iki USB'ye uyacak şekilde uyarlanmıştır.\nTorpido paneli boşluğuna yerleştirilir.\nYaklaşık dış ölçüler: 89 × 37 × 28 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th7260345-1.jpg",
-      "https://media.pruvo3d.com/urunler/th7260345-2.jpg",
-      "https://media.pruvo3d.com/urunler/th7260345-3.jpg",
-      "https://media.pruvo3d.com/urunler/th7260345-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "hankgotti",
-      "tur": "CC BY-SA 4.0"
-    },
-    "altkategori": "Telefon ve Şarj",
-    "uyum": [
-      {
-        "marka": "Ford",
-        "model": "Explorer"
-      }
-    ]
-  },
-  {
     "id": "ford-maverick-el-telsizi-tutucu",
     "kategori": "Otomobil",
     "marka": [
@@ -579388,34 +577507,6 @@
       {
         "marka": "Ford",
         "model": "Turnier"
-      }
-    ]
-  },
-  {
-    "id": "ford-expedition-telefon-tutucu-2016",
-    "kategori": "Otomobil",
-    "marka": [
-      "Ford",
-      "Expedition"
-    ],
-    "baslik": "Ford Expedition (2016) Telefon Tutucu",
-    "aciklama": "2016 Ford Expedition için akıllı telefon tutucudur.\nKılıflı telefon (yaklaşık 74×14mm) ölçüsüne göre yuvası tasarlanmıştır.\nKonsol bölgesine yerleştirilir.\nYaklaşık dış ölçüler: 180 × 82 × 40 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6843268-1.jpg",
-      "https://media.pruvo3d.com/urunler/th6843268-2.jpg",
-      "https://media.pruvo3d.com/urunler/th6843268-3.jpg",
-      "https://media.pruvo3d.com/urunler/th6843268-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "MastroAester",
-      "tur": "CC BY-SA 4.0"
-    },
-    "altkategori": "Telefon ve Şarj",
-    "uyum": [
-      {
-        "marka": "Ford",
-        "model": "Expedition"
       }
     ]
   },
@@ -592073,32 +590164,6 @@
     ]
   },
   {
-    "id": "ford-4-dugmeli-kumanda-guclendirilmis-kapak",
-    "kategori": "Otomobil",
-    "marka": [
-      "Ford"
-    ],
-    "baslik": "Ford 4 Düğmeli Uzaktan Kumanda Güçlendirilmiş Kapak",
-    "aciklama": "Ford 4 düğmeli anahtar kumandası için, orijinal ince halkanın kırılganlığını gidermek üzere güçlendirilmiş kapak parçasıdır.\nHalka bölümü belirgin şekilde kalınlaştırılmıştır.\nMevcut kumanda gövdesine doğrudan takılır.\nYaklaşık dış ölçüler: 80 × 52 × 8 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th3911958-1.jpg",
-      "https://media.pruvo3d.com/urunler/th3911958-2.jpg",
-      "https://media.pruvo3d.com/urunler/th3911958-3.jpg",
-      "https://media.pruvo3d.com/urunler/th3911958-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Mast3rBlast3r",
-      "tur": "CC BY-SA 4.0"
-    },
-    "altkategori": "Montaj Parçaları ve Klipsler",
-    "uyum": [
-      {
-        "marka": "Ford"
-      }
-    ]
-  },
-  {
     "id": "ford-eski-traktor-cam-suyu-deposu-kapagi",
     "kategori": "Otomobil",
     "marka": [
@@ -601382,36 +599447,6 @@
         "marka": "Ford",
         "model": "Fiesta"
       }
-    ]
-  },
-  {
-    "id": "ford-escape-2013-antifiriz-kapagi-anahtari-dusuk-profil",
-    "kategori": "Otomobil",
-    "marka": [
-      "Ford",
-      "Escape"
-    ],
-    "baslik": "Ford Escape (2013-2014, 1.6L) Soğutma Suyu Kapağı Anahtarı (Düşük Profil)",
-    "aciklama": "Ford Escape (2013-2014, 1.6L) motor soğutma suyu genleşme kapağını açmak için kullanılan düşük profilli anahtardır.\nAmortisör kulesine çarpmadan tam tur dönebilecek şekilde tasarlanmıştır.\nMevcut kapağa doğrudan oturur.\nYaklaşık dış ölçüler: 101 × 87 × 22 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4144756-1.jpg",
-      "https://media.pruvo3d.com/urunler/th4144756-2.jpg",
-      "https://media.pruvo3d.com/urunler/th4144756-3.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "binarymein",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Motor Bölümü",
-    "uyum": [
-      {
-        "marka": "Ford",
-        "model": "Escape"
-      }
-    ],
-    "tavsiyeFilament": [
-      "ABS"
     ]
   },
   {
@@ -613033,36 +611068,6 @@
       {
         "marka": "Ford",
         "model": "Ranger"
-      }
-    ]
-  },
-  {
-    "id": "ford-bronco-2021-telsiz-ana-unite-montaj-aparati",
-    "kategori": "Otomobil",
-    "marka": [
-      "Ford",
-      "Bronco"
-    ],
-    "baslik": "Ford Bronco (2021+) Telsiz Ana Ünite Montaj Aparatı",
-    "aciklama": "Ford Bronco (2021 ve sonrası) için ayarlanabilir telsiz ana ünite montaj aparatıdır.\nÜç parçalı yapısıyla farklı cihaz boyutlarına ayarlanabilir.\nStandart vida ve somunlarla monte edilir.\nYaklaşık dış ölçüler: 54 × 40 × 18 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th5357446-1.jpg",
-      "https://media.pruvo3d.com/urunler/th5357446-2.jpg",
-      "https://media.pruvo3d.com/urunler/th5357446-3.jpg",
-      "https://media.pruvo3d.com/urunler/th5357446-4.jpg",
-      "https://media.pruvo3d.com/urunler/th5357446-5.jpg",
-      "https://media.pruvo3d.com/urunler/th5357446-6.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Tidy2000",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Montaj Parçaları ve Klipsler",
-    "uyum": [
-      {
-        "marka": "Ford",
-        "model": "Bronco"
       }
     ]
   },
@@ -718101,33 +716106,6 @@
     ]
   },
   {
-    "id": "dacia-sandero-volkswagen-touran-emniyet-kemeri-tokas",
-    "kategori": "Otomobil",
-    "marka": [
-      "Dacia",
-      "Volkswagen"
-    ],
-    "baslik": "Dacia Sandero / Volkswagen Touran Emniyet Kemeri Tokası",
-    "aciklama": "Araç içi kullanım için özel tasarım üretilen emniyet kemeri tokası parçası.\n- Dacia Sandero ve Volkswagen Touran için uyumlu tasarım\n- Kolay takılıp çıkarılacak formda hazırlanmış\n- Yedek parça / kullanım amaçlı tekil ürün\nYaklaşık dış ölçüler: 60 × 42 × 3 mm.",
-    "fiyat": "350 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th5337663-1.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "dzip1",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Koltuk ve Kemer",
-    "uyum": [
-      {
-        "marka": "Dacia"
-      },
-      {
-        "marka": "Volkswagen"
-      }
-    ]
-  },
-  {
     "id": "dacia-duster-bardakl-k",
     "kategori": "Otomobil",
     "marka": [
@@ -718173,37 +716151,6 @@
     "uyum": [
       {
         "marka": "Dacia"
-      }
-    ]
-  },
-  {
-    "id": "dacia-duster-ift-bardakl-k",
-    "kategori": "Otomobil",
-    "marka": [
-      "Dacia",
-      "Duster"
-    ],
-    "baslik": "Dacia Duster çift bardaklık",
-    "aciklama": "Dacia Duster için özel tasarım çift bardaklık aparatı. Orta konsolda iki içecek yuvası sunar ve günlük kullanımda pratiklik sağlar.\n- Konsola uyumlu özel tasarım çözüm\n- İki bardak/kap için ayrı yuva\n- Şık ve işlevsel kullanım\nYaklaşık dış ölçüler: 167 × 96 × 50 mm.",
-    "fiyat": "400 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th2884492-1.jpg",
-      "https://media.pruvo3d.com/urunler/th2884492-2.jpg",
-      "https://media.pruvo3d.com/urunler/th2884492-3.jpg",
-      "https://media.pruvo3d.com/urunler/th2884492-4.jpg"
-    ],
-    "tavsiyeFilament": [
-      "ASA"
-    ],
-    "lisans": {
-      "tasarimci": "Hannus52",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Bardaklık",
-    "uyum": [
-      {
-        "marka": "Dacia",
-        "model": "Duster"
       }
     ]
   },
@@ -721407,29 +719354,6 @@
       {
         "marka": "Ford",
         "model": "Maverick"
-      }
-    ]
-  },
-  {
-    "id": "ford-anahtar-koruyucu",
-    "kategori": "Otomobil",
-    "marka": [
-      "Ford"
-    ],
-    "baslik": "Ford Anahtar Koruyucu",
-    "aciklama": "Ford anahtarı için özel tasarım üretilen koruyucu parça; elde tutuşu kolaylaştırır ve anahtar başını tamamlar.\n- Anahtarın üst kısmına takılarak kullanılur.\n- Günlük kullanımda anahtar başını daha belirgin ve rahat kavranır hale getirir.\n- Ölçüye göre üretilen bir parçadır; uyum için mevcut anahtar formu esas alınır.\nYaklaşık dış ölçüler: 34 × 29 × 10 mm.",
-    "fiyat": "250 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th2757970-1.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "JMecky",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Montaj Parçaları ve Klipsler",
-    "uyum": [
-      {
-        "marka": "Ford"
       }
     ]
   },
@@ -790119,31 +788043,6 @@
     ]
   },
   {
-    "id": "citroen-c3-pluriel-pandizot-klipsi",
-    "kategori": "Otomobil",
-    "marka": [
-      "Citroen",
-      "C3 Pluriel"
-    ],
-    "baslik": "Citroen C3 Pluriel Pandizot Klipsi",
-    "aciklama": "Citroen C3 Pluriel model araçlar için özel tasarlanıp üretilen dayanıklı pandizot klipsi.\nZamanla aşınan veya kırılan orijinal bagaj rafı klipsinin yerine birebir uyum sağlar.\nYüksek kaliteli malzemesi sayesinde uzun ömürlü kullanım sunar.\nKolayca monte edilerek bagaj bölmesindeki pandizotun stabil kalmasını sağlar.\nYaklaşık dış ölçüler: 32 × 12 × 11 mm.",
-    "fiyat": "250 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/citroen-c3-pluriel-pandizot-klipsi-1.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Cuddletug",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Bagaj ve Taşıma",
-    "uyum": [
-      {
-        "marka": "Citroen",
-        "model": "C3 Pluriel"
-      }
-    ]
-  },
-  {
     "id": "citroen-2cv-dyane-buji-kablosu-ge-i-lasti-i",
     "kategori": "Otomobil",
     "marka": [
@@ -793307,32 +791206,6 @@
     ]
   },
   {
-    "id": "citroen-berlingo-airtag-ve-bozuk-para-kutusu-yuvas",
-    "kategori": "Otomobil",
-    "marka": [
-      "Citroen",
-      "Berlingo"
-    ],
-    "baslik": "Citroen Berlingo AirTag ve Bozuk Para Kutusu Yuvası",
-    "aciklama": "Citroen Berlingo araç içi konsol yuvalarına tam uyum sağlayan, AirTag takip cihazınızı ve bozuk paralarınızı güvenle saklayabileceğiniz özel tasarım koruyucu yuva aparatı.\n- Aracınızın orijinal konsol yapısına zarar vermeden kolayca yerleştirilir.\n- AirTag cihazınızı gizli ve güvenli bir şekilde muhafaza etmenizi sağlar.\n- Dayanıklı yapısıyla uzun ömürlü kullanım sunar.\n- Özel tasarım üretim yöntemiyle aracınıza özel üretilmiştir.\nYaklaşık dış ölçüler: 46 × 46 × 13 mm.",
-    "fiyat": "290 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/citroen-berlingo-airtag-ve-bozuk-para-kutusu-yuvas-1.jpg",
-      "https://media.pruvo3d.com/urunler/citroen-berlingo-airtag-ve-bozuk-para-kutusu-yuvas-2.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Dr4l3g",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "İç Aksam",
-    "uyum": [
-      {
-        "marka": "Citroen",
-        "model": "Berlingo"
-      }
-    ]
-  },
-  {
     "id": "citroen-c4-elektronik-sigara-ve-bardakl-k-d-zenleyici",
     "kategori": "Otomobil",
     "marka": [
@@ -794857,31 +792730,6 @@
     ]
   },
   {
-    "id": "citroen-ds3-geni-letilmi-telefon-tutucu",
-    "kategori": "Otomobil",
-    "marka": [
-      "Citroen"
-    ],
-    "baslik": "Citroen DS3 Genişletilmiş Telefon Tutucu",
-    "aciklama": "Citroen DS3 model araçlar için özel olarak tasarlanmış, genişletilmiş yapısıyla büyük telefonları da güvenle taşıyan konsol üstü telefon tutucu.\nAracınızın ön paneline tam uyum sağlayarak sürüş esnasında sarsıntısız ve güvenli bir kullanım sunar.\nÖzel tasarım üretimi sayesinde dayanıklı yapıya sahiptir ve montajı son derece pratiktir.\nSürüş güvenliğinizi tehlikeye atmadan navigasyon ve aramalarınızı kolayca takip etmenizi sağlar.\nYaklaşık dış ölçüler: 175 x 85 x 28 mm.",
-    "fiyat": "450 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/citroen-ds3-geni-letilmi-telefon-tutucu-1.jpg",
-      "https://media.pruvo3d.com/urunler/citroen-ds3-geni-letilmi-telefon-tutucu-2.jpg",
-      "https://media.pruvo3d.com/urunler/citroen-ds3-geni-letilmi-telefon-tutucu-3.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "SUBCIO",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Telefon ve Şarj",
-    "uyum": [
-      {
-        "marka": "Citroen"
-      }
-    ]
-  },
-  {
     "id": "citroen-jumpy-park-sens-r-yuvas",
     "kategori": "Otomobil",
     "marka": [
@@ -796249,32 +794097,6 @@
     ]
   },
   {
-    "id": "citroen-c5-vidal-bardakl-k",
-    "kategori": "Otomobil",
-    "marka": [
-      "Citroen",
-      "C5"
-    ],
-    "baslik": "Citroen C5 Vidalı Bardaklık",
-    "aciklama": "Citroen C5 araç modelleri için özel olarak tasarlanan vidalı bardaklık, aracınızın iç mekanında ekstra konfor sağlar.\n\n- Dayanıklı yapısıyla uzun ömürlü kullanım sunar.\n- Vidalı montaj mekanizması sayesinde sarsıntılara karşı son derece stabildir.\n- Aracınızın orijinal hatlarına uyum sağlayacak şekilde özel üretilir.\n- Sürüş esnasında içeceklerinizi güvenle taşımanıza yardımcı olur.\n\nYaklaşık dış ölçüler: 97 × 84 × 71 mm.",
-    "fiyat": "450 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/citroen-c5-vidal-bardakl-k-1.jpg",
-      "https://media.pruvo3d.com/urunler/citroen-c5-vidal-bardakl-k-2.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "lisek84",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Bardaklık",
-    "uyum": [
-      {
-        "marka": "Citroen",
-        "model": "C5"
-      }
-    ]
-  },
-  {
     "id": "citroen-c4-cactus-uyumlu-arac-ici-telefon-tutucu",
     "kategori": "Otomobil",
     "marka": [
@@ -797068,34 +794890,6 @@
     "uyum": [
       {
         "marka": "Citroen"
-      }
-    ]
-  },
-  {
-    "id": "citroen-c1-terminator-t800-vites-topuzu",
-    "kategori": "Otomobil",
-    "marka": [
-      "Citroen",
-      "C1"
-    ],
-    "baslik": "Citroen C1 Terminator T800 Vites Topuzu",
-    "aciklama": "Citroen C1 aracınızın iç mekanına sıra dışı ve agresif bir hava katacak Terminator T800 tasarımlı özel vites topuzu. Alışılmış tasarımların dışına çıkmak isteyen otomobil tutkunları için özel olarak üretilmiştir.\n\n- Citroen C1 vites kolları ile mükemmel uyum sağlar.\n- Ergonomik yapısı sayesinde konforlu bir vites geçişi sunar.\n- Dayanıklı ve kaliteli malzemeden özel tasarım üretim yöntemiyle imal edilmiştir.\n- Kolayca monte edilebilir, aracınızın orijinal yapısına zarar vermez.\n\nYaklaşık dış ölçüler: 77 × 60 × 51 mm.",
-    "fiyat": "450 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/citroen-c1-terminator-t800-vites-topuzu-1.jpg",
-      "https://media.pruvo3d.com/urunler/citroen-c1-terminator-t800-vites-topuzu-2.jpg",
-      "https://media.pruvo3d.com/urunler/citroen-c1-terminator-t800-vites-topuzu-3.jpg",
-      "https://media.pruvo3d.com/urunler/citroen-c1-terminator-t800-vites-topuzu-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Splund",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Sürüş Kumandaları",
-    "uyum": [
-      {
-        "marka": "Citroen",
-        "model": "C1"
       }
     ]
   },
@@ -802448,28 +800242,6 @@
         "marka": "Citroen"
       }
     ]
-  },
-  {
-    "id": "citroen-berlingo-ve-peugeot-partner-evrak-tutucu-klips",
-    "kategori": "Otomobil",
-    "marka": [
-      "Citroen",
-      "Peugeot",
-      "Berlingo",
-      "Partner"
-    ],
-    "baslik": "Citroen Berlingo ve Peugeot Partner Evrak Tutucu Klips",
-    "aciklama": "Citroen Berlingo ve Peugeot Partner araçlarınız için özel olarak tasarlanmış pratik tavan evrak tutucu klips.\nAraç içi tavan rafı bölmesine kolayca monte edilerek evraklarınızı, haritalarınızı ve kalemlerinizi düzenli bir şekilde tutmanızı sağlar.\nYüksek dayanıklılığa sahip malzemeden özel tasarım olarak üretilmiştir.\nMontajı son derece pratiktir, herhangi bir delme veya vidalama işlemi gerektirmez.\n\nYaklaşık dış ölçüler: 64 × 56 × 20 mm.",
-    "fiyat": "350 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/citroen-berlingo-ve-peugeot-partner-evrak-tutucu-klips-1.jpg",
-      "https://media.pruvo3d.com/urunler/citroen-berlingo-ve-peugeot-partner-evrak-tutucu-klips-2.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "micmac2a",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Bagaj ve Taşıma"
   },
   {
     "id": "peugeot-expert-jant-g-bek-kapa",
@@ -811833,29 +809605,6 @@
     ]
   },
   {
-    "id": "citroen-berlingo-peugeot-rifter-opel-combo-isofix-ask-kancas",
-    "kategori": "Otomobil",
-    "marka": [
-      "Citroen",
-      "Berlingo",
-      "Peugeot",
-      "Rifter",
-      "Opel",
-      "Combo"
-    ],
-    "baslik": "Citroen Berlingo, Peugeot Rifter, Opel Combo ISOFIX Askı Kancası",
-    "aciklama": "Citroen Berlingo, Peugeot Rifter ve Opel Combo araçlarınızın bagaj bölümündeki ISOFIX (Top Tether) noktalarına tam uyum sağlayan özel tasarım askı kancasıdır.\n\n- Bagaj alanındaki taşıma kapasitesini artırır ve poşetlerinizi, çantalarınızı güvenle asmanızı sağlar.\n- Aracın orijinal yapısına zarar vermeden kolayca monte edilir.\n- Dayanıklı yapısıyla günlük kullanıma son derece uygundur.\n- Özel sipariş üzerine yüksek kalitede üretilmektedir.\n\nYaklaşık dış ölçüler: 71 × 43 × 27 mm.",
-    "fiyat": "250 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/citroen-berlingo-peugeot-rifter-opel-combo-isofix-ask-kancas-1.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Vagamar",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Bagaj ve Taşıma"
-  },
-  {
     "id": "peugeot-satelis-sinyal-d-mesi-tu-u",
     "kategori": "Motosiklet",
     "marka": [
@@ -812259,39 +810008,6 @@
       {
         "marka": "Peugeot",
         "model": "Madras"
-      }
-    ]
-  },
-  {
-    "id": "fiat-ducato-peugeot-boxer-citroen-jumper-kamera-montaj-apara",
-    "kategori": "Otomobil",
-    "marka": [
-      "Fiat",
-      "Peugeot",
-      "Citroen"
-    ],
-    "baslik": "Fiat Ducato, Peugeot Boxer, Citroen Jumper Kamera Montaj Aparatı",
-    "aciklama": "Fiat Ducato, Peugeot Boxer ve Citroen Jumper araç modelleriyle uyumlu, özel tasarım kamera montaj aparatı. Yolculuk esnasında güvenli ve sarsıntısız bir kamera deneyimi sunmak için özel olarak üretilmiştir.\n\nAraç içi veya dışı kamera konumlandırmasını kolaylaştırır.\nDayanıklı yapısıyla zorlu yol koşullarına ve sarsıntılara karşı yüksek direnç gösterir.\nAraca özel tasarımı sayesinde montaj alanına tam uyum sağlar.\nYaklaşık dış ölçüler: 150 × 59 × 23 mm.",
-    "fiyat": "450 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/fiat-ducato-peugeot-boxer-citroen-jumper-kamera-montaj-apara-1.jpg",
-      "https://media.pruvo3d.com/urunler/fiat-ducato-peugeot-boxer-citroen-jumper-kamera-montaj-apara-2.jpg",
-      "https://media.pruvo3d.com/urunler/fiat-ducato-peugeot-boxer-citroen-jumper-kamera-montaj-apara-3.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "hardwarepoint",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Ses ve Multimedya",
-    "uyum": [
-      {
-        "marka": "Fiat"
-      },
-      {
-        "marka": "Peugeot"
-      },
-      {
-        "marka": "Citroen"
       }
     ]
   },
@@ -824901,24 +822617,6 @@
         "model": "Octavia"
       }
     ]
-  },
-  {
-    "id": "cd-yuvas-uyumlu-ayarlanabilir-ara-telefon-tutucu-aparat",
-    "kategori": "Otomobil",
-    "marka": [],
-    "baslik": "CD Yuvası Uyumlu Ayarlanabilir Araç Telefon Tutucu Aparatı",
-    "aciklama": "Aracınızın CD çalar yuvasını kullanışlı bir telefon tutucu alanına dönüştürün. Görüş açınızı engellemeden telefonunuzu güvenle sabitlemenizi sağlar.\n\n- CD yuvasına tam oturan özel tasarım gövde yapısı\n- Ayarlanabilir mafsal başlığı ile esnek konumlandırma imkanı\n- Kolay montaj ve sökme özelliği sayesinde araca zarar vermez\n- Dayanıklı malzemeden özel tasarım üretilmiştir\n\nYaklaşık dış ölçüler: 105 × 30 × 29 mm.",
-    "fiyat": "350 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/cd-yuvas-uyumlu-ayarlanabilir-ara-telefon-tutucu-aparat-1.jpg",
-      "https://media.pruvo3d.com/urunler/cd-yuvas-uyumlu-ayarlanabilir-ara-telefon-tutucu-aparat-2.jpg",
-      "https://media.pruvo3d.com/urunler/cd-yuvas-uyumlu-ayarlanabilir-ara-telefon-tutucu-aparat-3.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "StefanoSignoretto",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Telefon ve Şarj"
   },
   {
     "id": "skoda-uyumlu-buz-kaz-y-c",
@@ -883081,25 +880779,6 @@
     "altkategori": "Lens Adaptörleri"
   },
   {
-    "id": "casus-ayna-kolu",
-    "kategori": "Ev",
-    "marka": [],
-    "baslik": "Köşe Gözetleme Aynası Kolu (Pencere Montajlı · Ayarlanabilir)",
-    "aciklama": "Pencereden dışarı bakmadan köşeyi, kapı önünü veya sokağı görmenizi sağlayan ayarlanabilir ayna kolu — pencere parmaklığına/çerçevesine kelepçeyle tutturulur, aynayı istediğiniz açıya çevirirsiniz.\n\nEklemli (mafsallı) kol sistemi sayesinde uzatıp döndürebilir, görüş açısını ayarlayabilirsiniz. Çok parçalı set (kelepçe, kollar, mafsal, ayna tutucu, vida-somun) olarak üretilir. Ayna olarak IKEA Lönas veya benzeri küçük bir ayna kullanılır (aynayı siz temin edebilir ya da birlikte konuşabiliriz).\n\nFarklı renk seçenekleriyle üretilebilir.\n\nKol uzunlukları 60 / 90 / 150 mm seçenekleriyle ayarlanır.",
-    "fiyat": "1500 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/casus-ayna-kolu-1.jpg",
-      "https://media.pruvo3d.com/urunler/casus-ayna-kolu-2.jpg",
-      "https://media.pruvo3d.com/urunler/casus-ayna-kolu-3.jpg",
-      "https://media.pruvo3d.com/urunler/casus-ayna-kolu-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Phyti1",
-      "tur": "CC BY 4.0"
-    },
-    "altkategori": "Duvar ve Askı"
-  },
-  {
     "id": "motosiklet-canta-klips-sabitleyici",
     "kategori": "Motosiklet",
     "marka": [],
@@ -892199,32 +889878,6 @@
     "altkategori": "Flaş ve Işık"
   },
   {
-    "id": "dslr-teleprompter-kutusu",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "DSLR/Aynasız Kamera için Telefon Ekranlı Teleprompter Kutusu",
-    "aciklama": "İki telefonu karşılıklı yerleştirip yarı saydam cam üzerinden metin okumayı sağlayan teleprompter kutusu; kamera gövdesinin altına vida bağlantısıyla monte edilir, DSLR ve aynasız gövdelerle uyumludur.\nYaklaşık dış ölçüler: 241 × 184 × 15 mm.",
-    "fiyat": "650 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th3767426-1.jpg",
-      "https://media.pruvo3d.com/urunler/th3767426-2.jpg",
-      "https://media.pruvo3d.com/urunler/th3767426-3.jpg",
-      "https://media.pruvo3d.com/urunler/th3767426-4.jpg"
-    ],
-    "lisans": {
-      "tur": "CC BY 4.0",
-      "tasarimci": "flyattack"
-    },
-    "altkategori": "Montaj ve Tripod"
-  },
-  {
     "id": "dslr-lens-flare-filtresi",
     "kategori": "Kamera",
     "marka": [
@@ -892249,28 +889902,6 @@
       "tasarimci": "JanHenrik"
     },
     "altkategori": "Filtre ve Parasoley"
-  },
-  {
-    "id": "canon-eosm-rig-aksesuar-seti",
-    "kategori": "Kamera",
-    "marka": [
-      "Canon"
-    ],
-    "uyum": [
-      {
-        "marka": "Canon"
-      }
-    ],
-    "baslik": "Canon EOS-M için Çok Parçalı Video Rig Aksesuar Seti",
-    "aciklama": "Canon EOS-M aynasız gövdesine özel çok parçalı video rig seti; kavrama sapları, kablo tutucu ve hızlı bırakma plakası uyumlu montaj parçalarından oluşur, el/omuz çekiminde stabiliteyi artırır.\nYaklaşık dış ölçüler: 160 × 56 × 27 mm.",
-    "fiyat": "650 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th4929862-1.jpg",
-      "https://media.pruvo3d.com/urunler/th4929862-2.jpg",
-      "https://media.pruvo3d.com/urunler/th4929862-3.jpg",
-      "https://media.pruvo3d.com/urunler/th4929862-4.jpg"
-    ],
-    "altkategori": "Kayış ve Taşıma"
   },
   {
     "id": "canon-600exrt-flas-izgara-snoot",
