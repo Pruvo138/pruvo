@@ -97,12 +97,33 @@ def _kimlik_anahtarlari(yol):
     Toplananlar: `<x>.get("AD")` cagrilari ve `<x>["AD"]` erisimleri. Payload anahtari
     (`agent_id`) ile ortam anahtari (`PRUVO_ISCI_KOSUMU`) AYIRT EDILMEZ — ikisi de hem
     payload'dan hem ortamdan silinir; yanlis kumeden silmek zararsizdir, EKSIK silmek
-    ise sahte kirmiziyi geri getirirdi."""
+    ise sahte kirmiziyi geri getirirdi.
+
+    🔴 AD REFERANSI (25 Eki 2026, K445): anahtar dizge DEGIL modul sabitiyle de okunabilir
+    (`cevre.get(ISCI_KOSUM_KANALI)`, `154aed07` sonrasi). Yalniz `ast.Constant` toplamak o
+    anahtari KACIRIYORDU -> `PRUVO_ISCI_KOSUMU` ortamdan sokulmuyor, ISCI baglaminda iki
+    kapi MUAF_BAGLAM -> K219-a 3 KIRMIZI. Ad, ayni dosyanin modul duzeyindeki
+    `AD = "<dizge>"` atamasindan cozulur (sabit liste YOK, govde yine tek kaynak)."""
     try:
         with open(yol, encoding="utf-8") as f:
             agac = ast.parse(f.read())
     except (OSError, SyntaxError):
         return set()
+    sabitler = {}
+    for ust in agac.body:
+        if (isinstance(ust, ast.Assign) and isinstance(ust.value, ast.Constant)
+                and isinstance(ust.value.value, str)):
+            for hedef in ust.targets:
+                if isinstance(hedef, ast.Name):
+                    sabitler[hedef.id] = ust.value.value
+
+    def _dizge(dugum):
+        if isinstance(dugum, ast.Constant) and isinstance(dugum.value, str):
+            return dugum.value
+        if isinstance(dugum, ast.Name):
+            return sabitler.get(dugum.id)
+        return None
+
     for dugum in ast.walk(agac):
         if not (isinstance(dugum, ast.FunctionDef) and dugum.name == "kimlik_ekseni"):
             continue
@@ -110,13 +131,10 @@ def _kimlik_anahtarlari(yol):
         for alt in ast.walk(dugum):
             if (isinstance(alt, ast.Call) and isinstance(alt.func, ast.Attribute)
                     and alt.func.attr == "get" and alt.args
-                    and isinstance(alt.args[0], ast.Constant)
-                    and isinstance(alt.args[0].value, str)):
-                anahtarlar.add(alt.args[0].value)
-            elif (isinstance(alt, ast.Subscript)
-                    and isinstance(alt.slice, ast.Constant)
-                    and isinstance(alt.slice.value, str)):
-                anahtarlar.add(alt.slice.value)
+                    and _dizge(alt.args[0]) is not None):
+                anahtarlar.add(_dizge(alt.args[0]))
+            elif isinstance(alt, ast.Subscript) and _dizge(alt.slice) is not None:
+                anahtarlar.add(_dizge(alt.slice))
         return anahtarlar
     return set()
 
@@ -132,10 +150,15 @@ def _mimar_baglami(script, tool_input=None, tool_name="Bash", payload_ek=None):
     ust-seviye alan okur — `icra-kapisi.py` OTURUM ROLUNU `transcript_path`ten
     turetir. Eski yuk o alani hic tasimadigi icin rol ekseni olculemiyor ve kapi
     hakkinda YANLIS hukum veriliyordu. Varsayilan `None` -> yuk BIREBIR eskisi
-    gibi kalir; oteki kapilarin olcumu DEGISMEZ (ONCE=SONRA korunur)."""
+    gibi kalir; oteki kapilarin olcumu DEGISMEZ (ONCE=SONRA korunur).
+
+    `cwd` (25 Eki 2026, K445): OLCULEN reponun koku (`script`in iki ust dizini), sabit
+    CANON DEGIL. Izole kopyada `icra-kapisi` evini KENDI kokunden cozer; CANON'lu yuk
+    o kopyaya "baska evden" gorunuyor -> `GECER_BASKA_EV` -> nobet EKSIK -> kopya
+    baseline rc=1 (ana 0), uc K445 kirmizisi. Ana repoda deger CANON'a esittir."""
     payload = {
         "session_id": "kapi-envanteri",
-        "cwd": CANON,
+        "cwd": os.path.dirname(os.path.dirname(os.path.abspath(script))),
         "hook_event_name": "PreToolUse",
         "tool_name": tool_name,
         "tool_input": {} if tool_input is None else tool_input,
@@ -422,18 +445,11 @@ GATES = [
         "kablolar": [{"yer": ".git/hooks", "dosya": "pre-commit"}],
         "nobet": {"tip": "mukerrer"},
     },
-    {
-        "ad": "mimar-commit-kapisi",
-        "script": "tools/mimar-commit-kapisi.py",
-        "kablolar": [{"yer": ".git/hooks", "dosya": "pre-commit"}],
-        "nobet": {
-            "tip": "cikis",
-            "red": {"args": ["--stdin", "--toplevel", CANON], "stdin": "urunler.json\n",
-                    "env_pop": ["PRUVO_MIMAR_ONAY"]},          # staged kaynak -> exit 1
-            "kabul": {"args": ["--stdin", "--toplevel", CANON], "stdin": "notlar/degisiklik.md\n",
-                      "env_pop": ["PRUVO_MIMAR_ONAY"]},        # staged .md -> exit 0
-        },
-    },
+    # `mimar-commit-kapisi` CIKTI (25 Eki 2026, K445): BaBa 28 Agu filo karariyla
+    # pre-commit'ten SOKULDU (kanca adim 3: "mimar-commit-kapisi SILINDI"). Envanter onu
+    # o gunden beri "zincirden BAGLI" sayiyordu — tek atif `mimar-kod-kilidi.py`
+    # CEKIRDEK KUMESINDEKI yoldu (veri, cagri degil) = SAHTE YESIL. Kume literali kod
+    # duzleminden cikinca gercek hal goruldu; beklenen liste karara hizalandi (8 -> 7).
 ]
 
 # Bagli AMA red/kabul semantigi olmayan kancalar (senkron/temizlik). Envanterde
@@ -579,6 +595,16 @@ def kod_duzlemi_py(yol):
             if (isinstance(alt, ast.Expr) and isinstance(alt.value, ast.Constant)
                     and isinstance(alt.value.value, str)):
                 proza.add(id(alt.value))
+    # 🔴 KUME LITERALI = UYELIK VERISI (25 Eki 2026, K445): `mimar-kod-kilidi.py`nin
+    # CEKIRDEK koruma kumesi `{".../komut-stili-kapisi.py", ...}` kapi YOLUNU tasir ama
+    # onu CAGIRMAZ; kod duzleminde kaldigi icin settings kablosu sokulen kapi "zincirden
+    # BAGLI" sayiliyordu -> KIRMIZI-MUTASYON (M1) OLU. Cagri argv'si SIRALIDIR (liste/
+    # demet); sirasiz `{...}` hicbir zaman bir cagrinin argv'si olamaz -> PROZA ile ayni kova.
+    for dugum in ast.walk(agac):
+        if isinstance(dugum, ast.Set):
+            for el in dugum.elts:
+                if isinstance(el, ast.Constant) and isinstance(el.value, str):
+                    proza.add(id(el))
     parcalar = []
     for dugum in ast.walk(agac):
         if isinstance(dugum, ast.Constant) and isinstance(dugum.value, str):
