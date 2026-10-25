@@ -194,7 +194,14 @@ function anaReferans() {
     const cikti = execFileSync("python3",
       [path.join(kok, "tools", "cip-indeks.py"), "--kok", gecici, "--yazdir"],
       { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
-    _anaBellek = { fark: fark, ref: Object.assign({ kok: hedef },
+    // MARKA-CIP EKSENI (26 Eki, KraL halef-62 — BaBa tik 186 (B)(2)): uc `marka=` cevabini
+    // D1 `marka_kanon` kolonundan verir; kolon da index.html TANINMIS evreninden turer. Main
+    // sitesinin marka cipini olcmek icin kanon AYNI gecici kokte (main index.html) uretilir.
+    // Tembel require: parite-marka-sinifi bu modulu yukler (dongu modul yuklenirken kurulmaz).
+    const urunlerYolu = process.env.PARITE_URUNLER || path.join(kok, "urunler.json");
+    const markaKanon = require("./parite-marka-sinifi.js")
+      .markaKanonHaritasiAl(urunlerYolu, gecici);
+    _anaBellek = { fark: fark, ref: Object.assign({ kok: hedef, markaKanon: markaKanon },
       kur(src, hedef + ":index.html", dogrula(JSON.parse(cikti)))) };
   } catch (e) {
     _anaBellek = { hata: "main referansi kurulamadi (" + (e && e.message) + ")" };

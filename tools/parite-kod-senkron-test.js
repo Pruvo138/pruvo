@@ -56,6 +56,26 @@ ona(v({ kanonDal: "Canon", kanonAna: "Canon" }) === false,
 ona(v({ kanonDal: "", kanonAna: "Pentax" }) === true,
   "H7b ters yon (main'de tanınmis, dalda cikmis) da sinifa girer");
 
+// MARKA-CIP KOLU (26 Eki, BaBa tik 186 (B)(2) — PARTI 1 MINI 212 ↔ 228 vakasi)
+const farkli = { c: true, d: true };          // c, d = TANINMIS farkindaki markanin urunleri
+const fuSahte = (id) => !!farkli[id];
+const mc = (deg) => v(Object.assign({ kanonDal: "Mini", kanonAna: "Mini", markaCip: true,
+  bekIds: ["a", "b", "c", "d"], bekAnaIds: ["a", "b"], farkUrunuMu: fuSahte }, deg));
+ona(mc({}) === true, "H8 marka-cip: simetrik farkin HER urunu fark markasindan -> KOD-SENKRON " +
+  "(sorgu kanonu farkta OLMASA bile)");
+ona(mc({ bekIds: ["a", "b", "c", "x"] }) === false,
+  "H9 marka-cip: TEK fark-disi urun (x) sinifi KAPATIR -> KIRMIZI kalir");
+ona(mc({ farkUrunuMu: null }) === false, "H10 marka-cip: yuklem YOK -> fail-closed KIRMIZI");
+ona(mc({ anaSinif: A }) === false, "H11 marka-cip: uc main sitesiyle de ayrisiyor -> KIRMIZI");
+ona(mc({ bekIds: ["b", "a"] }) === false, "H12 marka-cip: dal == main -> kod farki YOK, KIRMIZI");
+ona(mc({ fark: [] }) === false, "H12b marka-cip: TANINMIS farki BOS -> sinif 0");
+const fu = P.farkUrunuKur(new Map([
+  ["p1", { id: "p1", marka: ["Blackmagic"] }], ["p2", { id: "p2", marka: [] }],
+  ["p3", { id: "p3", marka: ["Puig"] }]]), { p2: '["BYD","Mini"]', p3: '["Mini"]' });
+const FF = new Set(["Blackmagic", "BYD"]);
+ona(fu("p1", FF) && fu("p2", FF) && !fu("p3", FF) && !fu("yok", FF),
+  "H13 farkUrunuKur: marka[] ∩ F VE dal kanonu ∩ F kabul; fark-disi + bilinmeyen id RED");
+
 ona(JSON.stringify(R.taninmisFarki(["A", "B", "C"], ["B", "C", "D"])) === '["A","D"]',
   "F1 simetrik fark iki yonlu");
 ona(R.taninmisFarki(["B", "A"], ["A", "B"]).length === 0, "F2 sira farki fark DEGIL");
@@ -93,6 +113,37 @@ if (g1.ref) {
     g1.fark.join(", ") + ")");
 } else {
   console.log("  BILGI G4 atlandi: TANINMIS farki BOS (sinif bos, olcecek fark yok)");
+}
+
+// G6 MARKA-CIP GERCEK AGAC (26 Eki): main referansi marka_kanon tasir ve dal ↔ main kanon
+// farki TAMAMI TANINMIS farkindan turer. 🔴 Ayni zamanda OLCUM KUSURU nobeti: kanon dalin
+// DEGIL main'in index.html'iyle kurulsaydi (worktree'de veri koku = ana checkout) fark 0
+// cikardi ve marka-cip ekseni dal semantigini HIC gormezdi (tik 182 "yerel tekrar 0").
+if (g1.ref) {
+  const SINIF = require("./parite-marka-sinifi.js");
+  const A6 = R.anaReferans();
+  const mk = A6.ref && A6.ref.markaKanon;
+  ona(!!mk && typeof mk === "object" && Object.keys(mk).length > 0,
+    "G6a main referansi marka_kanon TASIR (marka-cip kolu kurulabilir)");
+  if (mk) {
+    const U = P.urunleriYukle();
+    const dalK = SINIF.markaSinifi(U).markaKanon;
+    const F6 = new Set(A6.fark);
+    const fu6 = P.farkUrunuKur(new Map(U.map((p) => [p.id, p])), dalK);
+    let farkSay = 0;
+    const disi = [];
+    for (const p of U) {
+      if ((dalK[p.id] || "") !== (mk[p.id] || "")) {
+        farkSay++;
+        if (!fu6(p.id, F6)) disi.push(p.id);
+      }
+    }
+    ona(farkSay > 0 && disi.length === 0, "G6b dal ↔ main kanon farki (" + farkSay +
+      " urun) TAMAMI TANINMIS farkindan (fark-disi=" + disi.length +
+      (disi.length ? " ilk: " + disi.slice(0, 5).join(",") : "") + ")");
+  }
+} else {
+  console.log("  BILGI G6 atlandi: TANINMIS farki BOS (main referansi kurulmadi)");
 }
 
 console.log("-".repeat(70));

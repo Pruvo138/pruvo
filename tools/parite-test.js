@@ -77,9 +77,10 @@ function ref() { return REFERANS.referans(); }
 function norm(s) { return ref().norm(s); }
 function aramaKok(w) { return ref().aramaKok(w); }
 function haystack(p) { return ref().haystack(p); }
-function filtered(PRODUCTS, query, activeCat, activeBrand, Rv) {
+function filtered(PRODUCTS, query, activeCat, activeBrand, Rv, uyeMiV) {
   const R = Rv || ref();
-  const S = SINIF.markaSinifi(PRODUCTS);
+  // uyeMiV: main referansinin marka-cip yuklemi (KOD-SENKRON marka-cip kolu); yoksa dal sinifi.
+  const S = uyeMiV ? { uyeMi: uyeMiV } : SINIF.markaSinifi(PRODUCTS);
   // Arama yuklemi: index.html'in TEK ARAMA PLANI (marka sorgusu -> uyelik ∪ baslikta tam
   // kelime; marka olmayan sorgu -> serbest metin). Ikinci kez yazilmaz.
   const plan = R.aramaPlani(query);
@@ -108,15 +109,41 @@ function filtered(PRODUCTS, query, activeCat, activeBrand, Rv) {
 //   - yalniz TANINMIS TURETIMI: sorgunun dal ya da main marka kanonu (`aramaPlani().kanon`)
 //     dal ↔ main TANINMIS_MARKALAR SIMETRIK FARKINDA olmali; fark disi marka KIRMIZI;
 //   - fark BOSSA sinif BOS (anaReferans `ayni` doner, cagiran sinifi hic kurmaz);
-//   - yalniz `marka=Tümü` sorgulari (marka cipi sinifi tek referansa bagli; o eksende KAPALI).
-function kodSenkronMu({ sinif, anaSinif, bekIds, bekAnaIds, kanonDal, kanonAna, fark }) {
+//   - `marka=Tümü` sorgulari: sorgu kanonu farkta olmali (yukaridaki kural).
+// MARKA-CIP KOLU (26 Eki 2026, KraL halef-62 — BaBa tik 186 (B)(2) "TASARIM ise KOD-SENKRON
+// += MINI"). OLCULEN VAKA: PARTI 1 SERIT B 40238926757 `q="Mini"|"" marka=MINI` /ara 212 ↔ dal
+// 228. Kok: dal Blackmagic/Insta360/BYD'yi TANINMIS'e aldi -> o markalarin "ATEM Mini",
+// "One X Mini", "Dolphin Mini" urunleri baslik TAM KELIME kuraliyla MINI kanonu da kazandi
+// (main'de ayni kural DJI Mini / iPad Mini icin zaten isliyor: 74/212). Sorgu kanonu ("Mini")
+// farkta DEGIL, yani ust kural bunu goremez. Bu kol DAHA DAR bir sart koyar: dal ↔ main
+// sonuc kumesinin SIMETRIK FARKINDAKI HER urun TANINMIS farkindaki bir markaya ait olmali
+// (`farkUrunuMu`). Tek bir fark-disi urun bile sinifi KAPATIR -> KIRMIZI kalir.
+function kodSenkronMu({ sinif, anaSinif, bekIds, bekAnaIds, kanonDal, kanonAna, fark,
+  markaCip, farkUrunuMu }) {
   if (sinif !== ortak.SINIF_ACIKLANAMAYAN) return false;
   if (anaSinif !== ortak.SINIF_GECTI) return false;
   const F = new Set(fark || []);
-  if (!F.size || !(F.has(kanonDal) || F.has(kanonAna))) return false;
+  if (!F.size) return false;
   const a = new Set(bekIds), b = new Set(bekAnaIds);
   if (a.size === b.size && [...a].every((id) => b.has(id))) return false;  // dal == main: kod farki YOK
-  return true;
+  if (markaCip) {
+    if (typeof farkUrunuMu !== "function") return false;                  // fail-closed
+    const simetrik = [...a].filter((id) => !b.has(id)).concat([...b].filter((id) => !a.has(id)));
+    return simetrik.every((id) => farkUrunuMu(id, F));
+  }
+  return F.has(kanonDal) || F.has(kanonAna);
+}
+
+/** SAF. Urun TANINMIS farkindaki bir markaya mi ait? (p.marka[] ya da dal kanonu ∩ F). */
+function farkUrunuKur(urunHaritasi, dalKanon) {
+  return (id, F) => {
+    const p = urunHaritasi.get(id);
+    if (!p) return false;
+    if (((p.marka) || []).some((m) => F.has(m))) return true;
+    try { return JSON.parse((dalKanon || {})[id] || "[]").some((m) => F.has(m)); } catch (_) {
+      return false;
+    }
+  };
 }
 
 // TEMBEL YUKLEME: bu dosya `require` edildiginde (fikstur/mutasyon harness'i) 11 MB'lik
@@ -251,7 +278,7 @@ async function araSor({ q, kat, marka }) {
 // dogrulamaya devam ederdi. `require.main` kapisi: import etmek testi KOSTURMAZ.
 module.exports = {
   norm, aramaKok, haystack, filtered, sorgulariUret, urunleriYukle,
-  ucEtiketiTuret, KOK, LIMIT, kodSenkronMu,
+  ucEtiketiTuret, KOK, LIMIT, kodSenkronMu, farkUrunuKur,
 };
 
 if (require.main === module) (async () => {
@@ -384,6 +411,14 @@ if (require.main === module) (async () => {
     }
     return _ana;
   }
+  let _farkUrunu = null;
+  function farkUrunu() {
+    if (!_farkUrunu) {
+      _farkUrunu = farkUrunuKur(new Map(PRODUCTS.map((p) => [p.id, p])),
+        SINIF.markaSinifi(PRODUCTS).markaKanon);
+    }
+    return _farkUrunu;
+  }
   const fazlaKume = new Set();
   let sirada = 0;
   let olcumArizasi = null;
@@ -424,8 +459,13 @@ if (require.main === module) (async () => {
       for (const id of k.fazla) fazlaKume.add(id);
       if (!k.kesin) olculemeyenPencere++;
       if (k.sinif === ortak.SINIF_GECTI) { gecti++; continue; }
-      if (k.sinif === ortak.SINIF_ACIKLANAMAYAN && s.marka === "Tümü" && anaRef()) {
-        const bekAnaIds = filtered(PRODUCTS, s.q, s.kat, s.marka, anaRef()).map((p) => p.id);
+      const markaCip = s.marka !== "Tümü";
+      if (k.sinif === ortak.SINIF_ACIKLANAMAYAN && anaRef() &&
+        (!markaCip || anaRef().markaKanon)) {
+        // Marka-cip: main sitesinin cip yuklemi main kanonuyla (ayni index.html evreni).
+        const anaUye = markaCip ? SINIF.uyeMiKur(anaRef(), anaRef().markaKanon) : null;
+        const bekAnaIds = filtered(PRODUCTS, s.q, s.kat, s.marka, anaRef(), anaUye)
+          .map((p) => p.id);
         const kAna = ortak.siniflandir({
           bekIds: bekAnaIds,
           alinan: (g.urunler || []).map((u) => u.id),
@@ -437,7 +477,8 @@ if (require.main === module) (async () => {
         });
         if (kodSenkronMu({ sinif: k.sinif, anaSinif: kAna.sinif, bekIds, bekAnaIds,
           kanonDal: ref().aramaPlani(s.q).kanon, kanonAna: anaRef().aramaPlani(s.q).kanon,
-          fark: _fark })) {
+          fark: _fark, markaCip,
+          farkUrunuMu: markaCip ? farkUrunu() : null })) {
           kodSenkron.push({ ...s, dal: bekIds.length, ana: bekAnaIds.length, uc: g.toplam });
           continue;
         }
@@ -461,7 +502,8 @@ if (require.main === module) (async () => {
     console.log("\nKOD-SENKRON (%d sorgu) — uc cevabi origin/main sitesiyle BIREBIR, dal sitesi " +
       "ileride (D1 marka_arama merge build'inde yenilenir):", kodSenkron.length);
     for (const h of kodSenkron.slice(0, 25)) {
-      console.log("  q=%j kat=%j -> dal=%d main=%d uc=%s", h.q, h.kat, h.dal, h.ana, h.uc);
+      console.log("  q=%j kat=%j marka=%j -> dal=%d main=%d uc=%s", h.q, h.kat, h.marka, h.dal,
+        h.ana, h.uc);
     }
     OLCULEMEDI.push("KOD-SENKRON: " + kodSenkron.length + " sorgu yalniz dal index.html " +
       "arama semantigiyle ayrisiyor (uc = origin/main sitesi) -> parite BELGELENMEDI " +
