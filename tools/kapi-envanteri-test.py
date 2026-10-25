@@ -335,7 +335,11 @@ def main():
         kontroller.append((
             "izole kopya SAGLAM: baseline ana repo ile ayni",
             base_rc == ana_rc,
-            "exit=%d ana-exit=%d (kopya sadikligi)" % (base_rc, ana_rc),
+            "exit=%d ana-exit=%d (kopya sadikligi)%s" % (
+                base_rc, ana_rc,
+                "" if base_rc == ana_rc else " | kopya: " + " / ".join(
+                    " ".join(s.split()) for s in base_out.splitlines()
+                    if any(k in s for k in ("DUSUK", "EKSIK", "MUAF_BAGLAM")))),
         ))
 
         # --- 3) KIRMIZI-MUTASYON: settings.json'dan komut-stili kablosu sokulur ---
@@ -593,11 +597,12 @@ def main():
         # ([[batarya-kapsam-tabani-sayiyla-civilenir]]).
         # 4 Eyl 2026: `icra-kapisi` eklendi (Okan hukmu — ANA oturumda `Agent`
         # alt-ajani reddi). 7 -> 8. SIRA da baglayicidir.
+        # 25 Eki 2026 (K445): `mimar-commit-kapisi` cikti — BaBa 28 Agu karariyla
+        # pre-commit'ten sokulmustu, envanter kume-literali atfiyla sahte BAGLI sayiyordu. 8 -> 7.
         beklenen_kapsam = (
             "komut-stili-kapisi", "urunler-guard-hook", "mimar-icra-kapisi",
             "icra-kapisi",
             "mimar-kod-kilidi", "urunler-guard", "mukerrer-kontrol",
-            "mimar-commit-kapisi",
         )
         k2 = kapsam == beklenen_kapsam
         kontroller_k141.append(("K2", k2, "kapsam-korundu=%s" % k2))

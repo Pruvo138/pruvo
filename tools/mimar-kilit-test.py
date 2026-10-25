@@ -1462,9 +1462,13 @@ def _kablo_oku(envanter, kok):
     Kapi tanimlari raporcunun KENDI `GATES` tablosundan alinir (ikiz tablo YOK);
     anahtar adlari eski raporcununkiyle ayni tutuldu ki beklentiler karsilastirilabilsin."""
     tablo = {g["ad"]: g for g in envanter.GATES}
+    # 25 Eki 2026 (K445): pre-commit ekseninin kapisi `mimar-commit-kapisi` -> `mukerrer-kontrol`.
+    # Eskisi 28 Agu'da pre-commit'ten sokuldu ve envanter GATES'ten cikti (TANIMSIZ -> 110/111/114
+    # KIRMIZI). Olculen iddia AYNI: raporcu `.git/hooks/pre-commit` kablosunu var/yok okur;
+    # GATES'te hala pre-commit'e kablolu kapi `mukerrer-kontrol`. Anahtar adi korunur.
     eslem = (("BASH_ZINCIRI_ICRA", "mimar-icra-kapisi"),
              ("YAZMA_ZINCIRI_KILIT", "mimar-kod-kilidi"),
-             ("PRECOMMIT_COMMIT_KAPISI", "mimar-commit-kapisi"))
+             ("PRECOMMIT_COMMIT_KAPISI", "mukerrer-kontrol"))
     okunan = {}
     for anahtar, ad in eslem:
         if ad not in tablo:
@@ -1520,7 +1524,7 @@ def kablo_kume_kostur(gecici_kok):
 
     kablo_dizin = os.path.join(gecici_kok, "kablo")
     os.makedirs(kablo_dizin, exist_ok=True)
-    tam_hook = '#!/bin/sh\npython3 "$(git rev-parse --show-toplevel)/tools/mimar-commit-kapisi.py"\n'
+    tam_hook = '#!/bin/sh\npython3 "$(git rev-parse --show-toplevel)/tools/mukerrer-kontrol.py"\n'
     bos_hook = "#!/bin/sh\nexit 0\n"
     tam_kok = _kablo_koku_kur(kablo_dizin, "tam", TAM_AYAR, tam_hook)
     eksik_kok = _kablo_koku_kur(kablo_dizin, "eksik", EKSIK_AYAR, bos_hook)

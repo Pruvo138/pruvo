@@ -98,6 +98,7 @@ def _olc(kopya):
     cikti = p.stdout + p.stderr
     m = re.search(r"SONUC: (\d+)/(\d+) kapi", cikti)
     tam = int(m.group(1)) if m else -1
+    toplam = int(m.group(2)) if m else -1   # payda envanterden OKUNUR (K445: sabit /8 bayatladi)
     bagli = set()
     gecer = set()   # satir SONUC sutunu GECER olan kapilar (TAM sayisinin ADLARI)
     for satir in cikti.splitlines():
@@ -107,7 +108,7 @@ def _olc(kopya):
                 bagli.add(alanlar[0])
             if alanlar[4] == "GECER":
                 gecer.add(alanlar[0])
-    return tam, p.returncode, bagli, cikti, gecer
+    return tam, p.returncode, bagli, cikti, gecer, toplam
 
 
 def _yaz(yol, metin):
@@ -191,13 +192,19 @@ vaka("M3 KOPARMA", "GECER bir kapinin calisan kablosu sokulur -> TAM duser, kapi
 
 
 # --- M4: KABUK DUZLEMI — kanca yorumu -------------------------------------
+# 25 Eki 2026 (K445): eski hedef `mimar-commit-kapisi` envanterden CIKTI (28 Agu karari,
+# pre-commit'ten sokulmustu) -> o adla yuklem BOS yere dogru donerdi. Hedef M1/M2 ile AYNI
+# (tabanda BAGLI olmayan) kapidir; hedefin ciktida SATIR olarak gorunmesi de aranir ki
+# envanterden dusen bir ad mutanti sessizce yesile cevirmesin.
 def _m4(kopya):
     _yaz(os.path.join(kopya, ".git", "pruvo-kancalar", "pre-commit"),
-         '\n# mimar-commit-kapisi.py SILINDI — bu satir YORUMDUR, cagri DEGIL\n')
+         '\n# mimar-kod-kilidi.py SILINDI — bu satir YORUMDUR, cagri DEGIL\n')
 
 
 vaka("M4 KABUK YORUMU", "kanca dosyasinda yalniz `#` yorumu -> GORULMEMELI",
-     _m4, lambda taban, sonuc: "mimar-commit-kapisi" not in sonuc[2])
+     _m4, lambda taban, sonuc: ("mimar-kod-kilidi" not in sonuc[2]
+                                and re.search(r"^\s*mimar-kod-kilidi\s", sonuc[3], re.M)
+                                is not None))
 
 
 def main():
@@ -206,7 +213,8 @@ def main():
     with tempfile.TemporaryDirectory() as g:
         kopya = _kur(g)
         taban = _olc(kopya)
-        print("\nTABAN (mutantsiz izole kopya): %d/8 kapi TAM · rc=%d" % (taban[0], taban[1]))
+        print("\nTABAN (mutantsiz izole kopya): %d/%d kapi TAM · rc=%d"
+              % (taban[0], taban[5], taban[1]))
         print("  BAGLI cikan kapilar: %s" % ", ".join(sorted(taban[2])))
         adaylar = sorted(_settings_kapilari() & taban[2] & taban[4])
         M3_HEDEF[0] = adaylar[0] if adaylar else None
@@ -228,8 +236,8 @@ def main():
         gecti += 1 if ok else 0
         print("\n%-22s %s" % (ad, "OLDU (beklenen)" if ok else "🔴 YASADI (KOL KOR)"))
         print("  ne olcer : %s" % aciklama)
-        print("  taban    : %d/8 rc=%d" % (t[0], t[1]))
-        print("  mutantli : %d/8 rc=%d" % (s[0], s[1]))
+        print("  taban    : %d/%d rc=%d" % (t[0], t[5], t[1]))
+        print("  mutantli : %d/%d rc=%d" % (s[0], s[5], s[1]))
 
     print("\nSONUC: %d/%d mutant BEKLENEN sonucu verdi." % (gecti, len(VAKALAR)))
     return 0 if gecti == len(VAKALAR) else 1
