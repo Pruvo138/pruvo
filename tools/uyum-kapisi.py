@@ -680,7 +680,11 @@ def kabul(kok, katalog_yolu=None):
     # `"AeroPress"` 4 OLCULDU ve uye capadan DUSTU. Bu, yukaridaki notun ONGORDUGU fail-loud
     # inistir (kume kaydi, capa bagirdi): kume 7'ye indi, capa da 7'ye indirildi. Uye ELLE
     # geri EKLENMEZ; katalogda varyant yeniden dogarsa capa yine KIRMIZI yakar.
-    _b4_capa = {"BaoFeng", "Citroën", "Ikea", "KIA", "MINI", "SMART", "Ssangyong"}
+    # 🔴 7. UYE GITTI (25 Eki 2026, KraL halef-61): hijyen 51 (`7d6d7277`) SsangYong
+    # kayitlarini `uyum`dan turetti -> katalogda `"Ssangyong"` 0 OLCULDU (jq), capa 7->6.
+    # AeroPress emsaliyle ayni fail-loud inis: uye ELLE geri eklenmez. Bu kirmizi 129bf8be,
+    # e0d66ddc ve fa2ea7d5 Pages'lerinin serit-a2'sini dusurdu (deploy SKIPPED).
+    _b4_capa = {"BaoFeng", "Citroën", "Ikea", "KIA", "MINI", "SMART"}
     _b4_jeton = set()
     for u in katalog:
         if isinstance(u, dict) and isinstance(u.get("marka"), list):
@@ -689,10 +693,10 @@ def kabul(kok, katalog_yolu=None):
                     _b4_jeton.add(x)
     _b4_olculen = {j for j in _b4_jeton
                    if not A.uyum_marka_kanonik(j) and A.marka_varyanti_sebebi("model", j)}
-    dogrula("B4 YAZIM VARYANTI CAPASI: `marka_varyanti_sebebi()` gercek katalogda TAM 7 "
+    dogrula("B4 YAZIM VARYANTI CAPASI: `marka_varyanti_sebebi()` gercek katalogda TAM 6 "
             "jeton yakaliyor ve KIMLIKLERI donmus deger ile birebir — sayi ya da uye "
             "kayarsa fail-closed KIRMIZI",
-            _b4_olculen == _b4_capa and len(_b4_olculen) == 7,
+            _b4_olculen == _b4_capa and len(_b4_olculen) == 6,
             "olculen(%d)=%s fazla=%s eksik=%s"
             % (len(_b4_olculen), sorted(_b4_olculen), sorted(_b4_olculen - _b4_capa),
                sorted(_b4_capa - _b4_olculen)))
