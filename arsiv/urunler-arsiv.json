@@ -3938,7 +3938,7 @@
   {
     "id": "canon-cift-tarafli-lens-kapagi",
     "silinme_ts": "2026-10-25T01:07:55Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "6a559300692ebbcf390cd9eb01dcb70298f08dff855afbf59d00195d7258ad27",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -3946,7 +3946,7 @@
   {
     "id": "canon-dslr-120-film-tarama-seti-6657805",
     "silinme_ts": "2026-10-25T01:07:56Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "1131a67646bc6854bc8f70f8844e89521d9f1a98f0086adc37974e8072d60e5f",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -3954,7 +3954,7 @@
   {
     "id": "canon-dslr-kafes-rig",
     "silinme_ts": "2026-10-25T01:07:57Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "f9e05363ec330c6f1dae1269668b806551d74cd9370c4f230e128a1a2493a293",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -3962,7 +3962,7 @@
   {
     "id": "canon-ef-100mm-f2-8l-sualti-odak-disli",
     "silinme_ts": "2026-10-25T01:07:57Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "af8d8eeb5ce37a318c7886edf4f6e4c2958a858a0b2a51576343e6d3cf6a2ed4",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -3970,7 +3970,7 @@
   {
     "id": "canon-ef-49mm-gulumseme-parasoleyi",
     "silinme_ts": "2026-10-25T01:07:58Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "d48360ca472e91cb5a95bca9081b4ac06c0b36044abb59236a22e0c21754857c",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -3978,7 +3978,7 @@
   {
     "id": "canon-ef-contax-yashica-lens-adaptoru",
     "silinme_ts": "2026-10-25T01:07:59Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "db3af16eeb158b5c277fc22002f32d3d8417b86dc06a9206108ebb8906be92a3",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -3986,7 +3986,7 @@
   {
     "id": "canon-ef-lens-c-mount-adaptoru",
     "silinme_ts": "2026-10-25T01:08:00Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "24672295b06ce129bcbc9adf3e866b8c25657d30543a890b243da842c1c0ee39",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -3994,7 +3994,7 @@
   {
     "id": "canon-ef-lens-standi-ve-kapagi",
     "silinme_ts": "2026-10-25T01:08:01Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "a232d620b50f3c5bae8d288c19e496aebc4bc2b13a5058c0a6ad2c32560610db",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4002,7 +4002,7 @@
   {
     "id": "canon-ef-m-krasnogorsk-2-lens-adaptoru",
     "silinme_ts": "2026-10-25T01:08:02Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "029a9dafb92b7f198458544831441e52a5e9d0aea65d3b1d504e8096020723d3",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4010,7 +4010,7 @@
   {
     "id": "canon-ef-m42-lens-adaptoru",
     "silinme_ts": "2026-10-25T01:08:03Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "faad375f1714b5a29b6b63512c58d53559275630d3b1685456f99476192d2461",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4018,7 +4018,7 @@
   {
     "id": "canon-ef-s-18-55mm-gunes-tutulmasi-filtre-kapagi",
     "silinme_ts": "2026-10-25T01:08:03Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "057c789ff091a2ec98d7aa9e6c41f9062dd4d51b15631a87c153268288e1fb3b",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4026,7 +4026,7 @@
   {
     "id": "canon-ef-topcor-uv-lens-adaptoru",
     "silinme_ts": "2026-10-25T01:08:04Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "1609a935f55400adf8bb0fe4fbb36b738e09c5ab540578d323a8e18463fa163a",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4034,7 +4034,7 @@
   {
     "id": "canon-ek-tutamak-lens-tutucu",
     "silinme_ts": "2026-10-25T01:08:05Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "2dc45b5da0a5b667c22b4e89c627113dd5b6fee8eb19b377918b4c4e2a97cb7f",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4042,7 +4042,7 @@
   {
     "id": "canon-eos-30-50-elan-film-kapak-mandali",
     "silinme_ts": "2026-10-25T01:08:07Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "89118d28b94e0878087705ab7307d639808d2b2b7186e0e31ce098739f7709bb",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4050,7 +4050,7 @@
   {
     "id": "canon-eos-30d-port-toz-kapagi",
     "silinme_ts": "2026-10-25T01:08:08Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "8dc98456b69b8c9e8ddfeebeed01fed198c7323ad4e9c1c3fa2d5158acacbfdb",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4058,7 +4058,7 @@
   {
     "id": "canon-eos-ef-m42-lens-adaptoru-hassas-oturma",
     "silinme_ts": "2026-10-25T01:08:09Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "7e58270b975e8c662c669ef52ffa56aa2d39712379c214aea7fb02c9720a3253",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4066,7 +4066,7 @@
   {
     "id": "canon-eos-kilitli-govde-kapagi",
     "silinme_ts": "2026-10-25T01:08:10Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "32b43b63dbed80c536e8d830fba4159f9dbf7f8e150991ac38b3610183a1155c",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4074,7 +4074,7 @@
   {
     "id": "canon-eos-m-16mm-tek-kullanimlik-pankek-lens",
     "silinme_ts": "2026-10-25T01:08:11Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "718d245f36165e21ccb16e0e7b41a557da16bd8d3431e43dc065f5c02b6dab94",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4082,7 +4082,7 @@
   {
     "id": "canon-eos-m-aski-halkasi",
     "silinme_ts": "2026-10-25T01:08:12Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "8eca92a6e2140a825c2e84a78fd9db877175727adee2145d39ddbc7baef907ad",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4090,7 +4090,7 @@
   {
     "id": "canon-eos-m-grip-hizli-birakma-kablo-kapagi",
     "silinme_ts": "2026-10-25T01:08:13Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "704b67cf710d04fadf9acfcc3332ae3a78a24c32df05d4c9218b21feffe03249",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4098,7 +4098,7 @@
   {
     "id": "canon-eos-m-kalin-tutus-kabzasi",
     "silinme_ts": "2026-10-25T01:08:14Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "d1bee38ed098d97fdb385374c420798c3bfff745813a292dc6acb964beeac0c5",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4106,7 +4106,7 @@
   {
     "id": "canon-eos-m-katlanir-vizor",
     "silinme_ts": "2026-10-25T01:08:16Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "09538770c9251440bf8c056140963b417551777f3355e8551bf20859e26743d6",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4114,7 +4114,7 @@
   {
     "id": "canon-eos-m-m42-lens-adaptoru",
     "silinme_ts": "2026-10-25T01:08:17Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "d592eb7c6bc8c8664c25bfa5f7818d3741805d60bab8a5f88761c4bed94f320c",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4122,7 +4122,7 @@
   {
     "id": "canon-eos-m-samsung-nx500-gimbal-plakasi",
     "silinme_ts": "2026-10-25T01:08:18Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "efc926ac5953b50a3cad2df5f7b85e8df07d1fd3a97f4114fba86c4f2cac03e7",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4130,7 +4130,7 @@
   {
     "id": "canon-eos-m-velbon-hizli-baglantili-tutamak",
     "silinme_ts": "2026-10-25T01:08:20Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "f304976dfd76d333e06bcfc765718dda7f67d5659c54c7c65a3604fb2368d3a3",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4138,7 +4138,7 @@
   {
     "id": "canon-eos-m100-lens-kapagi-tutucusu-49mm",
     "silinme_ts": "2026-10-25T01:08:21Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "30b4e71432225008cf5fd90d6060d4351fedda48bd3b484967b968d5c4ca408d",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4146,7 +4146,7 @@
   {
     "id": "canon-eos-m5-arca-swiss-plaka",
     "silinme_ts": "2026-10-25T01:08:22Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "af06d917dcd854b0877afc3ef48fc73ce0bf2d2dbafd63f37b0bf4790fb32085",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4154,7 +4154,7 @@
   {
     "id": "canon-eos-m5-tutus-uzatma-eklentisi",
     "silinme_ts": "2026-10-25T01:08:24Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "74efbdcc856967daef8f3c720bb63597c1ca7d8cfeedde5f06fef644531ba4a3",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4162,7 +4162,7 @@
   {
     "id": "canon-eos-m50-grip-uzatma-arca-swiss",
     "silinme_ts": "2026-10-25T01:08:25Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "6ba0ecac6514c28181a1e82a4bdb6eb041c52d65bed8a5231479597456981af2",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4170,7 +4170,7 @@
   {
     "id": "canon-eos-r-tutus-uzatma-kavrama",
     "silinme_ts": "2026-10-25T01:08:27Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "a3427c189fc2126eedc3df825c0be9f225d21013ab2ecefb4aad51e55e610999",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4178,7 +4178,7 @@
   {
     "id": "canon-eos-rebel-xt-hotshoe-difuzor-klipsi",
     "silinme_ts": "2026-10-25T01:08:28Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "cde3e9d1423d3e7f30ba3001b1cba2c23249f984cd3501bca36f7230320fac06",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4186,7 +4186,7 @@
   {
     "id": "canon-eosm-ricoh-autoshot-helikoid-adaptor",
     "silinme_ts": "2026-10-25T01:08:30Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "b919bb640e4081696817b6117dec374be5556516ee2ededb80c8305bf0c96d98",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4194,7 +4194,7 @@
   {
     "id": "canon-eosm-rig-aksesuar-seti",
     "silinme_ts": "2026-10-25T01:08:31Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "6a7d5884e511a75d32987681534059f19bd846f56150a01bf868470217bfd1b9",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4202,7 +4202,7 @@
   {
     "id": "canon-fd-28mm-f2-8-ef-donusum-adaptoru",
     "silinme_ts": "2026-10-25T01:08:33Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "8b490086d9027c599b1a0f4016d6d46a40ca96c2b9306ce01c2bce248a19f69d",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4210,7 +4210,7 @@
   {
     "id": "canon-fd-ef-m-lens-adaptoru-brettpim",
     "silinme_ts": "2026-10-25T01:08:34Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "5d8288c5385fff4b99b176f5cde6ca4b4247a68504a0f0f3826f1783aba2a399",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4218,7 +4218,7 @@
   {
     "id": "canon-fd-lens-cs-mount-cctv-adaptoru",
     "silinme_ts": "2026-10-25T01:08:36Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "ca0a14e5675b4313370141779729448def10e5c71cede164457ccdcae854669a",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4226,7 +4226,7 @@
   {
     "id": "canon-hot-shoe-gopro-montaj-adaptoru",
     "silinme_ts": "2026-10-25T01:08:37Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "469f8efa21a127cc0260902cf49563d3dbab572bf8583abbc6884fdd8b505525",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4234,7 +4234,7 @@
   {
     "id": "canon-hotshoe-ayarlanabilir-telefon-tutucusu",
     "silinme_ts": "2026-10-25T01:08:39Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "6871bd54804496c78ca368b6e1b9374bd913a7f3e072c8412848ca53b8c5dfaf",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4242,7 +4242,7 @@
   {
     "id": "canon-hotshoe-pc-soket-flas-senkron-adaptoru",
     "silinme_ts": "2026-10-25T01:08:41Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "7a552aa71fcdbd060c1f0f61552e2afd65a765e242d4134d2ca7b298a45d3714",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4250,7 +4250,7 @@
   {
     "id": "canon-lens-hood-18-55-reshape",
     "silinme_ts": "2026-10-25T01:08:43Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "9b145f4773778f572034543a086edc4bd9c335e4e9b957a3eebe140fe4e53976",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4258,7 +4258,7 @@
   {
     "id": "canon-lens-parasoleyi-genis-govde",
     "silinme_ts": "2026-10-25T01:08:44Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "0e4a5a8c947e2504cd9d1249cb097a0add3b28a7e96a12f4628a62062d523980",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4266,7 +4266,7 @@
   {
     "id": "canon-lp-e17-pili-ve-sd-kartlar-icin-vidali-saklama-kutusu",
     "silinme_ts": "2026-10-25T01:08:46Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "7d4097231a949807d6f3288247fd1bc4e19fa8fd0670244ac789b7fe72b76bb9",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4274,7 +4274,7 @@
   {
     "id": "canon-lpe6-cf-sd-kart-kemer-tasiyicisi",
     "silinme_ts": "2026-10-25T01:08:48Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "299e50c010a007440abfa2c19372e942efa742465ebd8b543f8bb740e402423c",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4282,7 +4282,7 @@
   {
     "id": "canon-powershot-orta-format-goruntuleyici-kutusu",
     "silinme_ts": "2026-10-25T01:08:50Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "66c4703ceb0b41c7ee1cb1a215fdb7a8edcc132d0606e10e191d59d8eedecaec",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4290,7 +4290,7 @@
   {
     "id": "canon-praktica-b-rf-adaptoru",
     "silinme_ts": "2026-10-25T01:08:52Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "d1b77c11f9c9e7d4685a1d62c7fe164fa0f6b99ce34cc4689bf352a5525bb287",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4298,7 +4298,7 @@
   {
     "id": "canon-r7-ek-tutus-kavramasi",
     "silinme_ts": "2026-10-25T01:08:53Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "3f94241a4b6ceec2d4dea5db4969f8cd50eaac49e539d02b9b28867c03759137",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4306,7 +4306,7 @@
   {
     "id": "canon-rf-lens-tup-adaptoru-remiks",
     "silinme_ts": "2026-10-25T01:08:55Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "c0f6a9b93a209a9145cc160742dc54936235ea93747940ddf89e5ede131f47f3",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4314,7 +4314,7 @@
   {
     "id": "canon-rf-netleme-disli-seti-4461655",
     "silinme_ts": "2026-10-25T01:08:57Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "c33939da79f18d3764a7fea134e606865e4b00a1963e4b9b4076c85d08ba2b2c",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4322,7 +4322,7 @@
   {
     "id": "canon-t3i-lens-parasoleyi-halkasi-58mm",
     "silinme_ts": "2026-10-25T01:08:59Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "f90a952f3f6e0fca6315d457e892f4269217a949809049780b4f71d64e23fb17",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4330,7 +4330,7 @@
   {
     "id": "casus-ayna-kolu",
     "silinme_ts": "2026-10-25T01:09:01Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "d45ab9eb25b4e07205977de40f73c9a3a86574a83bd5dba7ad8e34c353ac25e6",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4338,7 +4338,7 @@
   {
     "id": "cayenne-montaj-aparat",
     "silinme_ts": "2026-10-25T01:09:03Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "f61b516451c66b2f14312f53ec73891543aec52195967e0a4bd083d089a2c695",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4346,7 +4346,7 @@
   {
     "id": "cd-yuvas-uyumlu-ayarlanabilir-ara-telefon-tutucu-aparat",
     "silinme_ts": "2026-10-25T01:09:05Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "1ae15c5a57651bd298a0712aedb3c18ea578d44be4b613df9724d927ebf2370f",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4354,7 +4354,7 @@
   {
     "id": "chevrolet-colorado-g-stergeler-i-in-kart-tutucu",
     "silinme_ts": "2026-10-25T01:09:07Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "0d944493e3e431b22716083b365e010f826068ad02a8dc714f748a2f2c0ab013",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4362,7 +4362,7 @@
   {
     "id": "chevrolet-colorado-kart-de-i-tirme-paneli-2017",
     "silinme_ts": "2026-10-25T01:09:09Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "cb19891c383cac321df38f0ba6d42297e83eb2ad7bc4f89fa69addfa02b95000",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4370,7 +4370,7 @@
   {
     "id": "chevrolet-colorado-switch-kapak-plakas-2015",
     "silinme_ts": "2026-10-25T01:09:12Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "6d19efb1fe55a9b07427449e926f75b457741b10a9b66e7e6f7e8aa8fe541ade",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4378,7 +4378,7 @@
   {
     "id": "chevrolet-silverado-g-ne-g-zl-g-z",
     "silinme_ts": "2026-10-25T01:09:14Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "476a7b5bdf9b94d57f4d576ee5aa64b43726857e9b6948ad5ca0d7d0ae17bf87",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4386,7 +4386,7 @@
   {
     "id": "chevrolet-traverse-mekanik-h-zl-ba-lant-stand",
     "silinme_ts": "2026-10-25T01:09:16Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "366a2dac83331d99798de848bf0c36eb44254dd7353603a5d8433c85f311c4a0",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4394,7 +4394,7 @@
   {
     "id": "citroen-2cv-vites-kutusu-yay-tutma-aleti",
     "silinme_ts": "2026-10-25T01:09:18Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "657aef10a16a2f31965f54a8035827e6d1ae25f045f1590a7d07efa9e7a76131",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4402,7 +4402,7 @@
   {
     "id": "citroen-berlingo-airtag-ve-bozuk-para-kutusu-yuvas",
     "silinme_ts": "2026-10-25T01:09:20Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "854811329391b91583548ac2d635ca1fe1b2484efbf0d3413c5838634feed9b1",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4410,7 +4410,7 @@
   {
     "id": "citroen-berlingo-ii-peugeot-partner-orta-konsol-telefon-tutucu",
     "silinme_ts": "2026-10-25T01:09:23Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "8e6c8476197b8b2ba9f3cddc735493fb87e86f49ce42b9a4e5d009f3a8b4f9d7",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4418,7 +4418,7 @@
   {
     "id": "citroen-berlingo-ii-telefon-kilifi-baglanti-adaptoru",
     "silinme_ts": "2026-10-25T01:09:25Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "0dba87802a86c5b8b9d90902eb6e3f5cad58cc365a771def25768df9979f188b",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4426,7 +4426,7 @@
   {
     "id": "citroen-berlingo-peugeot-rifter-opel-combo-isofix-ask-kancas",
     "silinme_ts": "2026-10-25T01:09:27Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "1e13acb4cf1f2dd3e5bb4be503cebcbe473847e3e8032e0a89b70423e4ddf1f9",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4434,7 +4434,7 @@
   {
     "id": "citroen-berlingo-ve-peugeot-partner-evrak-tutucu-klips",
     "silinme_ts": "2026-10-25T01:09:29Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "d08e65744cea96e5a2419e00d6ac0e99688f3ec124a13c5f8d423bc8a36188b6",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4442,7 +4442,7 @@
   {
     "id": "citroen-c1-terminator-t800-vites-topuzu",
     "silinme_ts": "2026-10-25T01:09:32Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "6930b4429bebfc753367e8db9024be7ab6d3c04daa6a3e8dae0d995b5767a156",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4450,7 +4450,7 @@
   {
     "id": "citroen-c3-pluriel-pandizot-klipsi",
     "silinme_ts": "2026-10-25T01:09:34Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "ee31fe7ec8fd51172450a84b35848fb1205253d154882279dd79fe9a960f2069",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4458,7 +4458,7 @@
   {
     "id": "citroen-c4-grand-picasso-telefon-tutucu-tabani",
     "silinme_ts": "2026-10-25T01:09:37Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "1d19cca0574263e80b00b96f80d31d9752546f6d1f9a95448f6537afd0bb41be",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4466,7 +4466,7 @@
   {
     "id": "citroen-c5-vidal-bardakl-k",
     "silinme_ts": "2026-10-25T01:09:39Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "9eb723fcd8ad238539b1720950bb6b4c450fd1f525759d263adfec63db93bdcc",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4474,7 +4474,7 @@
   {
     "id": "citroen-c5-x7-tweeter-adaptoru-44mm",
     "silinme_ts": "2026-10-25T01:09:41Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "28b3fbabbd4b2e1394553b85ea629ce9b8b6d6a9553828f6c2215f4f028eb610",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4482,7 +4482,7 @@
   {
     "id": "citroen-ds3-geni-letilmi-telefon-tutucu",
     "silinme_ts": "2026-10-25T01:09:44Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "0aac6671dac104c15711628b896716a2ff3a0d72479a98d7d880200cbcae89db",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4490,7 +4490,7 @@
   {
     "id": "citroen-jumper-telefon-tutucu-mafsal-kuresi",
     "silinme_ts": "2026-10-25T01:09:46Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "bd4190f6c696e83718ae0b30389fa373606deab3dbddae19edd620964eaf290b",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4498,7 +4498,7 @@
   {
     "id": "citroen-spacetourer-havalandirma-mesnedi",
     "silinme_ts": "2026-10-25T01:09:49Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "3549cb4e28efae0ee9ba1bd0ef59843811ffb812a453426c8d5769ea4526d9ac",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4506,7 +4506,7 @@
   {
     "id": "citroen-xsara-ayna-govdesi-arac-kamerasi-tutucusu",
     "silinme_ts": "2026-10-25T01:09:52Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "efde5cc3d7920807fee9ec03964506ab0b690cd25d300a9a0bdb246565e7a1a4",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4514,7 +4514,7 @@
   {
     "id": "dacia-duster-ift-bardakl-k",
     "silinme_ts": "2026-10-25T01:09:54Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "0bbcb7911c3d9509af1f0bd218e344adcd2050cca742c4f3afbeec0f460de516",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4522,7 +4522,7 @@
   {
     "id": "dacia-sandero-volkswagen-touran-emniyet-kemeri-tokas",
     "silinme_ts": "2026-10-25T01:09:57Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "927ecb97ee2524cd5effa32b3ecad21292fc437f0f8313e5ab5cac1d9e9f4985",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4530,7 +4530,7 @@
   {
     "id": "dag-bisikleti-evrensel-telefon-tutucusu",
     "silinme_ts": "2026-10-25T01:10:00Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "ed0e5fc345efc2657a6c8c0664a574ae545bf88b4a6a86cef12be9868cf669cc",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4538,7 +4538,7 @@
   {
     "id": "datsun-260z-280z-havalandirma-menfezi-plakasi",
     "silinme_ts": "2026-10-25T01:10:02Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "11c1394f5f5b5db9b193ddc3d3a7afaa61d2a14ccb34d0442c33bfce70482216",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4546,7 +4546,7 @@
   {
     "id": "dis-motor-reverser-kapak-mentesesi-guclendirilmis",
     "silinme_ts": "2026-10-25T01:10:05Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "9b6958526fb8f5c7a5159778770910f243e6c4c76e8456ac2ef256a7cf5fbfb9",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4554,7 +4554,7 @@
   {
     "id": "dji-th2491943",
     "silinme_ts": "2026-10-25T01:10:08Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "cb84faf52fea062da976a7f0ab0471513d4744ea6805d87501f8b051939bc554",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4562,7 +4562,7 @@
   {
     "id": "dji-th2931795",
     "silinme_ts": "2026-10-25T01:10:11Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "08b5776da4e58b5908bd5013f18dee9b7832c83da4a8fd129884fc51fbe003a7",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4570,7 +4570,7 @@
   {
     "id": "dslr-teleprompter-kutusu",
     "silinme_ts": "2026-10-25T01:10:13Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "2995b3940d60cdfc95f64d5d16b0267d75912eb9dc3e4a0ab8794498bfc68e8e",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4578,7 +4578,7 @@
   {
     "id": "e-bisiklet-arka-raf-tasima-plakasi-genisletilmis",
     "silinme_ts": "2026-10-25T01:10:16Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "f68deef5c8d45a79837dffac0852467017dacdfcfd909837ece8e3e86f685b5d",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4586,7 +4586,7 @@
   {
     "id": "e-bisiklet-genis-bagaj-rafi-kasa-tutucusu-uzun",
     "silinme_ts": "2026-10-25T01:10:19Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "a9e4df1fbac1a94e31cbc41907984d9b34665ad3adee6b69d738a9ec5500f150",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4594,7 +4594,7 @@
   {
     "id": "elektrikli-bisiklet-aku-kutusu-tutucusu",
     "silinme_ts": "2026-10-25T01:10:22Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "b78676ce0b00107daf2b668373b479b363af442665a43cdd895295cbc19c795e",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4602,7 +4602,7 @@
   {
     "id": "elektrikli-motor-pervanesi-5kanat-3692029",
     "silinme_ts": "2026-10-25T01:10:25Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "8ea896c8a8060087812856f1af2156a512675a20f0aa26406201c01b951998b6",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4610,7 +4610,7 @@
   {
     "id": "fiat-500-bagaj-kapagi-kolu",
     "silinme_ts": "2026-10-25T01:10:28Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "29b42cc76d0eae03c9c7de4b562c918a873bba3a61f97d063d4ae4a632ec149d",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4618,7 +4618,7 @@
   {
     "id": "fiat-500-buz-kaziyici",
     "silinme_ts": "2026-10-25T01:10:31Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "5f9e34c6010add4aa2ece227e2fb79493b84be90f94e78904667366a2f0f1a73",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4626,7 +4626,7 @@
   {
     "id": "fiat-doblo-bagaj-rafi-klipsi",
     "silinme_ts": "2026-10-25T01:10:34Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "fef2a626bc125c432b091d7d2101dc21d56002667e1044009eb814866e7d10dc",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4634,7 +4634,7 @@
   {
     "id": "fiat-ducato-2018-kose-menfez-telefon-tutucusu",
     "silinme_ts": "2026-10-25T01:10:37Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "e129ccd94c6f32719a507216f187279b83eacc8ba969fe80daeb6ceb73372b82",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4642,7 +4642,7 @@
   {
     "id": "fiat-ducato-hdmi-usb-soket-plakasi",
     "silinme_ts": "2026-10-25T01:10:40Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "cd568ed9d7c91b3391a8295ec3271f9c330d8d3df76e181b64cb5cb881f06f92",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4650,7 +4650,7 @@
   {
     "id": "fiat-ducato-peugeot-boxer-citroen-jumper-kamera-montaj-apara",
     "silinme_ts": "2026-10-25T01:10:43Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "d5253fbf87d58f9e6bfe5002d62869697a651a3c78a5719152016635abbd26e4",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4658,7 +4658,7 @@
   {
     "id": "fiat-grande-punto-bagaj-perdesi-klipsi",
     "silinme_ts": "2026-10-25T01:10:46Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "d5e17c6a4ef4111598596193cb05ca0265d8200e11a1f3ee0bcb2b26968fe8d1",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4666,7 +4666,7 @@
   {
     "id": "fiat-linea-cekme-kancasi-kapagi",
     "silinme_ts": "2026-10-25T01:10:49Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "6c1ecff9a6bcef70f2a8062bcf2969297483758eee760f5a897939e06530b108",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4674,7 +4674,7 @@
   {
     "id": "fiat-panda-kuru-kafa-vites-topuzu-kilifi",
     "silinme_ts": "2026-10-25T01:10:52Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "b847878c20450c0324a5505043bb5caaf2b9606d50376b9a896f5b40c4e134fa",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4682,7 +4682,7 @@
   {
     "id": "ford-4-dugmeli-kumanda-guclendirilmis-kapak",
     "silinme_ts": "2026-10-25T01:10:56Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "5eb5e139d20f49d4da8dbca7292b8ee0367b902c77c130b6ab79ef2461dd3fd0",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4690,7 +4690,7 @@
   {
     "id": "ford-anahtar-koruyucu",
     "silinme_ts": "2026-10-25T01:10:59Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "7b568d468df54c635285ade880d4d502e4c1fe6c02b9570ba63f8b47c617f7ef",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4698,7 +4698,7 @@
   {
     "id": "ford-bronco-2021-telsiz-ana-unite-montaj-aparati",
     "silinme_ts": "2026-10-25T01:11:02Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "2d5637aec20f6b183d8608331cdd4f17ad28f3ed9757ce8246b84a9821ad5546",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4706,7 +4706,7 @@
   {
     "id": "ford-escape-2013-antifiriz-kapagi-anahtari-dusuk-profil",
     "silinme_ts": "2026-10-25T01:11:05Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "2bb5d2a0490ee078faaa1b165160ffbb20540fd48be4f774dd0fb312ba35b22d",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4714,7 +4714,7 @@
   {
     "id": "ford-expedition-telefon-tutucu-2016",
     "silinme_ts": "2026-10-25T01:11:08Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "3ea7a554fb02f9333268089a30aa22e4b57a62d60518b85fac76596694622a23",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4722,7 +4722,7 @@
   {
     "id": "ford-explorer-2005-cift-usb-torpido-eklentisi",
     "silinme_ts": "2026-10-25T01:11:12Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "03f617df0b7601817697c02a177d4be7d1b69b979c936d3b052b7f78e3dc16d1",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4730,8 +4730,472 @@
   {
     "id": "ford-f-150-bardaklik-30oz-yuksek-sikmali-kapak",
     "silinme_ts": "2026-10-25T01:11:15Z",
-    "silme_commit": null,
+    "silme_commit": "ead9c0e32896f5a91cc16c72d9df048db234a135",
     "govde_sha256": "210def561de39f05f4947f9db76bccf8e70831b05f3ee2f1097af1e66940ed18",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-f-serisi-1973-1979-pencere-kolu-dugmesi",
+    "silinme_ts": "2026-10-25T02:06:53Z",
+    "silme_commit": null,
+    "govde_sha256": "e8ee55538ef2ff0ca1b4a0ecff31eff98ef9acb1f3851ab195786b573464b662",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-f-serisi-buyuk-boy-matara-tutucu-halkasi",
+    "silinme_ts": "2026-10-25T02:06:54Z",
+    "silme_commit": null,
+    "govde_sha256": "ecadcb6f6295e1494a7e6c7a7b08fbf163120f710519cf860ff3c52568b4f94c",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-f150-expedition-vites-donusum-kiti",
+    "silinme_ts": "2026-10-25T02:06:54Z",
+    "silme_commit": null,
+    "govde_sha256": "6f1a51c2451b95431c671110eebff22a7b3963017085caecbf758142d0b456c4",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-f150-far-anahtari-dugmesi-yonlu",
+    "silinme_ts": "2026-10-25T02:06:55Z",
+    "silme_commit": null,
+    "govde_sha256": "d7a169e2be6c3e7ae9c2b7bb6ce27a59d70e10ba742b1d0e88747846dd26eb1d",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-f150-king-ranch-soket-plakasi-2008",
+    "silinme_ts": "2026-10-25T02:06:56Z",
+    "silme_commit": null,
+    "govde_sha256": "3cc60234b8555c1d68fbbe8bbfceb54e39670946acf1743470cd494e084e08e6",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-f150-lightning-donel-vites-kutusu-donusumu",
+    "silinme_ts": "2026-10-25T02:06:57Z",
+    "silme_commit": null,
+    "govde_sha256": "3deab939d3ffff56cb4b068701b248f062aef2d6c7adc75b7f0bf589b5f15043",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-f150-mikrofon-klipsi-menfez-tutucu",
+    "silinme_ts": "2026-10-25T02:06:58Z",
+    "silme_commit": null,
+    "govde_sha256": "3b2dd0496dba6ec1f370a710437170dfed59648d9b2037d54f4ecc8ddaae7837",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-f150-vites-konsolu-genis-agizli-sise-yuvali",
+    "silinme_ts": "2026-10-25T02:06:58Z",
+    "silme_commit": null,
+    "govde_sha256": "44b362a0901c5e3a4dc6d3e01cc1f35da96a34144d680f4f7d408367171e2ad4",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-falcon-territory-aku-hortumu-klipsi",
+    "silinme_ts": "2026-10-25T02:06:59Z",
+    "silme_commit": null,
+    "govde_sha256": "9f98e676082e66a4d99140b9b008f18a04117b77e1f5b9e6387cb155b00b56b6",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-falcon-territory-aku-kutusu-anahtari",
+    "silinme_ts": "2026-10-25T02:07:00Z",
+    "silme_commit": null,
+    "govde_sha256": "1581d22f694e82612b49b0c0a2c4e04472dd5761e26e6af0625d1032353ccc99",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-fiesta-2011-cd-yuvasi-telefon-tutucu",
+    "silinme_ts": "2026-10-25T02:07:01Z",
+    "silme_commit": null,
+    "govde_sha256": "e54a5e2384336eedc3b36f505bae03c3f98d20e82cb57641fb29ad34408d2940",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-fiesta-cd-yuvas-telefon-tutucu",
+    "silinme_ts": "2026-10-25T02:07:02Z",
+    "silme_commit": null,
+    "govde_sha256": "3c1207f427d63b7830fdf6f24cb1a0df47c8476e9514a1c45238319ca125596e",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-fiesta-focus-bardaklik-telefon-dock-genis",
+    "silinme_ts": "2026-10-25T02:07:03Z",
+    "silme_commit": null,
+    "govde_sha256": "76cfe509d92fc33377a38add81b1886b5124d87a3c3da23ba6202a0943ddf7bb",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-fiesta-klima-aktuator-kolu",
+    "silinme_ts": "2026-10-25T02:07:04Z",
+    "silme_commit": null,
+    "govde_sha256": "53d250b681c6e43fe68c1db204ffe01a35927d02931414135f729b8c951e3069",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-fiesta-sempozer-silme-hortum-tapasi",
+    "silinme_ts": "2026-10-25T02:07:05Z",
+    "silme_commit": null,
+    "govde_sha256": "3240196f33df406e3d3c59f78491889d51aad6bd5fdad1a7f559b9d544749556",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-flathead-motor-egzoz-manifoldu",
+    "silinme_ts": "2026-10-25T02:07:07Z",
+    "silme_commit": null,
+    "govde_sha256": "1e4659fdbb1b2d283800caecbceb6f44b0e008f476a941f25df6e70ad6bff1a9",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-focus-2012-koltuk-basligi-tablet-tutucu",
+    "silinme_ts": "2026-10-25T02:07:08Z",
+    "silme_commit": null,
+    "govde_sha256": "353f5b26106d12dad890b967d05326e9ec82108d1c07628623a79c4adeabd7a0",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-focus-bardaklik-telefon-dock",
+    "silinme_ts": "2026-10-25T02:07:09Z",
+    "silme_commit": null,
+    "govde_sha256": "0e3b1473015bc645fdcf418b4c712c1c585f4b0334e5f172ad739630ea8da54b",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-focus-hava-emis-snorkel-borusu",
+    "silinme_ts": "2026-10-25T02:07:10Z",
+    "silme_commit": null,
+    "govde_sha256": "947736ad460005326a9b6955dd0e329966fa068030fffc6a038cd560658084d9",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-focus-mk2-harici-multimedya-ekrani-tutucu-sag-egik",
+    "silinme_ts": "2026-10-25T02:07:11Z",
+    "silme_commit": null,
+    "govde_sha256": "3ab47be65fbf029432f9e541d18a0dfe1a89dba93d3384bc349b38ca31f9771a",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-focus-telefon-tutucusu-v2",
+    "silinme_ts": "2026-10-25T02:07:12Z",
+    "silme_commit": null,
+    "govde_sha256": "25a05bf98ffd6bb243e26dca3e7c8c29b99d91e70692a6d636bd880c2cddca28",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-fusion-telefon-yuvasi-klipsi",
+    "silinme_ts": "2026-10-25T02:07:14Z",
+    "silme_commit": null,
+    "govde_sha256": "cf1b1ca42dc86dc6bd2a6fe2af6857d6c0f862686be403dfd948becd8eec8b40",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-ka-arka-raf-tutucu-sol",
+    "silinme_ts": "2026-10-25T02:07:15Z",
+    "silme_commit": null,
+    "govde_sha256": "9e1b219ebcd94a61c7b7f9cac13b5563a4704433599863e2518c0c143ca5b35c",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-krank-mili-keci-takma-aleti-v6-v8",
+    "silinme_ts": "2026-10-25T02:07:16Z",
+    "silme_commit": null,
+    "govde_sha256": "3373705f9d16c4071947d895141fa9e71350dc7da77da643063f24807f91d8b0",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-kurukafa-formunda-vites-topuzu",
+    "silinme_ts": "2026-10-25T02:07:18Z",
+    "silme_commit": null,
+    "govde_sha256": "67bb3b82cf0b9e03f6623ff616020abdb5042f663396b9ad054dfa40a337a0d8",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-maverick-fits-el-dezenfektani-tutucu",
+    "silinme_ts": "2026-10-25T02:07:19Z",
+    "silme_commit": null,
+    "govde_sha256": "c1d6040473b549b7b78caf7ffe8308c2bf04255d590d04d8d026079bc784c30b",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-maverick-kasa-kapagi-kablo-kilavuzu",
+    "silinme_ts": "2026-10-25T02:07:20Z",
+    "silme_commit": null,
+    "govde_sha256": "4c2f8a462299a8b04d52143ecc10200981e5db812b5211a7977a411759aefe71",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-maverick-kasa-rayi-kancasi",
+    "silinme_ts": "2026-10-25T02:07:22Z",
+    "silme_commit": null,
+    "govde_sha256": "973508449e520d685128db8f58c89b52e458ffaf4b54dd0914cd624ca9452db5",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-maverick-termos-bardak-tutucu-adaptoru",
+    "silinme_ts": "2026-10-25T02:07:23Z",
+    "silme_commit": null,
+    "govde_sha256": "b93abf10f17adf419ffd68d0dd12e875e33cec664987ebda840c442b650f3437",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-mondeo-fusion-mk5-uyumlu-telefon-yuvasi",
+    "silinme_ts": "2026-10-25T02:07:25Z",
+    "silme_commit": null,
+    "govde_sha256": "adad43c0faaeaa44e0ec90a1382ba86e3de8f3b1fa945dff81280460f39c2d59",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-mondeo-havalandirma-telefon-tutucu",
+    "silinme_ts": "2026-10-25T02:07:26Z",
+    "silme_commit": null,
+    "govde_sha256": "e0933a4d2bd1587abf474a65b1303f94b81a262237eea0eb8161bb0f49ae62f0",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-mondeo-mk4-telefon-tutucu-klips-plakali",
+    "silinme_ts": "2026-10-25T02:07:28Z",
+    "silme_commit": null,
+    "govde_sha256": "8a2f2de23947f6cf1294a4a3f74367f326ef9866392c667c628ff97bca70c119",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-mustang-1969-mini-atx-sigorta-adaptoru",
+    "silinme_ts": "2026-10-25T02:07:29Z",
+    "silme_commit": null,
+    "govde_sha256": "04c69678ea6aec7660421d004910682be117a21dceebf524f063433a1c076a02",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-mustang-foxbody-1979-1986-bos-gosterge-cercevesi",
+    "silinme_ts": "2026-10-25T02:07:31Z",
+    "silme_commit": null,
+    "govde_sha256": "0a285ee07d929c7da8c1af063f54c3e221bc2375fbb768c2b0ab3d732b475c20",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-mustang-gt-bardaklik-telefon-tutucu",
+    "silinme_ts": "2026-10-25T02:07:33Z",
+    "silme_commit": null,
+    "govde_sha256": "93d39070e4f77458b762316718fe15defe4d24cb36ced84fdff5940380582a09",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-ranger-el-freni-kolu-kapagi",
+    "silinme_ts": "2026-10-25T02:07:34Z",
+    "silme_commit": null,
+    "govde_sha256": "7556d3df44c461d1ce0737bc72ff0b05f62467dad1257c12591cda4742051c03",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-ranger-fan-kontrol-dugmesi",
+    "silinme_ts": "2026-10-25T02:07:36Z",
+    "silme_commit": null,
+    "govde_sha256": "125f84567a1fa2886bfa2a7ae70cade91adc0ea9e164d8ce8353f778233717a8",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-ranger-turbo-basinc-gostergesi-yuvasi",
+    "silinme_ts": "2026-10-25T02:07:38Z",
+    "silme_commit": null,
+    "govde_sha256": "93ba4f99370a1c9427566fb9d8155750f9f20e5f5ba3947407ad4b5c3504c8ca",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-sinyal-kablosu-braketi",
+    "silinme_ts": "2026-10-25T02:07:39Z",
+    "silme_commit": null,
+    "govde_sha256": "957146c725c96ba51bdde0e188e3cd676884342e0eb453b5fcb4973683ff2874",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-superduty-kablosuz-sarjli-bardaklik-tepsisi",
+    "silinme_ts": "2026-10-25T02:07:41Z",
+    "silme_commit": null,
+    "govde_sha256": "1e365211bed296a152c56f8d1d753040aeb0941431ff0d688ada6224436c5883",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-tourneo-custom-cd-yuvas-tablet-tutucu",
+    "silinme_ts": "2026-10-25T02:07:43Z",
+    "silme_commit": null,
+    "govde_sha256": "479831393cfde3be66cb97486ed96b5cb75b07b9221a65f15f05e7e94f6fe0a1",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-transit-2016-koltuk-mandali-kapaklari",
+    "silinme_ts": "2026-10-25T02:07:45Z",
+    "silme_commit": null,
+    "govde_sha256": "7c576f0576bf910514e6cd1e20af9ba3c5512ce1a2f719693776746a9939e6d7",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-transit-bisiklet-telefon-tutucu-adaptoru-v3",
+    "silinme_ts": "2026-10-25T02:07:47Z",
+    "silme_commit": null,
+    "govde_sha256": "01bf8a13c4b077f7a5d359cb0440d00e9ffc739cdb291b1b7a1ebae7e549c91d",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-transit-connect-2023-ucuncu-sira-koltuk-dolgu",
+    "silinme_ts": "2026-10-25T02:07:48Z",
+    "silme_commit": null,
+    "govde_sha256": "407a4e863fb3ec9ad3160d352b4f112febabb07ec38aa8a143be6e9f13f02b30",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-vites-gostergesi-braketi-guclendirilmis",
+    "silinme_ts": "2026-10-25T02:07:50Z",
+    "silme_commit": null,
+    "govde_sha256": "7b9230733edc22391fdcbc319d394ffaf9900efe259f7edfbe4dc392cb723384",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-yag-cubugu-kurukafa-tutamak",
+    "silinme_ts": "2026-10-25T02:07:52Z",
+    "silme_commit": null,
+    "govde_sha256": "9a1d1e0164b7fd2ee2d7957b7de4dc62352f420ae5bde5d540d5ba0263c0d700",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "ford-yakit-hatti-sokme-aleti-3-8-inc",
+    "silinme_ts": "2026-10-25T02:07:54Z",
+    "silme_commit": null,
+    "govde_sha256": "7bebe406c0d5838d91b63eb2494c39eeda6ff4de3d3b84f9194bf0aa84c937f0",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "fujifilm-instax-sq6-kameraya-takilan-fotograf-kutusu",
+    "silinme_ts": "2026-10-25T02:07:56Z",
+    "silme_commit": null,
+    "govde_sha256": "866970c531c8f7e41ff8ecb3cfdf6cfec749106c263f643470456ea0c5103401",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "fujifilm-x100-serisi-49mm-filtre-adaptor-halkasi",
+    "silinme_ts": "2026-10-25T02:07:58Z",
+    "silme_commit": null,
+    "govde_sha256": "6a1ebe13a178897f5245de46e2968a99baac7942112a2369fca3615581e01170",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "garmin-montana-kayak-gunluk-canta-montaji",
+    "silinme_ts": "2026-10-25T02:08:00Z",
+    "silme_commit": null,
+    "govde_sha256": "85d06518b763fa62436ef519958e0d23204e54330b8a5f3d90e0dd2e2db27725",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "golf-autovox-display-mount",
+    "silinme_ts": "2026-10-25T02:08:02Z",
+    "silme_commit": null,
+    "govde_sha256": "ee6c7a257aacf21bd0dd16aca7247699cbbe73edb217984da989f1ca574151ee",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "golf-gti-iphone-dock-gti-mk7",
+    "silinme_ts": "2026-10-25T02:08:04Z",
+    "silme_commit": null,
+    "govde_sha256": "c21d60640c789156b47e834fea4907857a4e2db017c4bb04e03bf1bce16d1330",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "guclendirilmis-evrensel-bisiklet-telefon-tutucusu",
+    "silinme_ts": "2026-10-25T02:08:07Z",
+    "silme_commit": null,
+    "govde_sha256": "0e33c4004d66e80d2c9ff791abe5763564f63118237cc0918ed8e6a3345d2cfa",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "honda-accord-10-nesil-orta-havalandirma-telefon-tutucusu",
+    "silinme_ts": "2026-10-25T02:08:09Z",
+    "silme_commit": null,
+    "govde_sha256": "2e950c34b0178a68a79aee33852651562f26b7de13180ef49bb7309dbb18242a",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "honda-accord-viii-hava-filtresi-ve-maf-sensoru-montaji",
+    "silinme_ts": "2026-10-25T02:08:11Z",
+    "silme_commit": null,
+    "govde_sha256": "c30fde66a8bed96576bf523b54ec7e2e811c86fccb5aaa14e4d1992722f54ca5",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "honda-beat-pp1-bagaj-cubugu-tutucusu",
+    "silinme_ts": "2026-10-25T02:08:13Z",
+    "silme_commit": null,
+    "govde_sha256": "545b4b52c8f9c93071dc08707a0a65dabea66b563ca67abd3e3cdfeeb332a30b",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "honda-beat-pp1-bardaklik",
+    "silinme_ts": "2026-10-25T02:08:15Z",
+    "silme_commit": null,
+    "govde_sha256": "99b0b799d8933b3a84c6ea413c072e4319fafb975fd6796d9fb2b184fe7842c4",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "honda-cb500x-radyator-sicrama-koruyucusu",
+    "silinme_ts": "2026-10-25T02:08:17Z",
+    "silme_commit": null,
+    "govde_sha256": "b79cf16b440ab1e801199cebd615f0afbf6f9f0a68c3e53c346f45c1733a4f8c",
     "yazan": "duzelt.py",
     "kuyruk_id": null
   }
