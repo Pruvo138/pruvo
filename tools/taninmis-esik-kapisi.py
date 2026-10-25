@@ -43,8 +43,7 @@ TOOLS = os.path.join(KOK, "tools")
 # Ssangyong) MaCiT `uyum` hijyeniyle kaynakta kapandi, MV Agusta TANINMIS'e girdi -> tabanda YOK.
 # Her parti merge'unde girdigi adlar AYNI commit'te buradan silinir (K2 zorlar). Hedef: bos.
 TABAN = frozenset({
-    # PARTI 1
-    "Olympus", "Pentax", "Blackmagic", "Leica", "Insta360", "SsangYong", "BYD",
+    # PARTI 1 (7) TANINMIS'e girdi, 25 Eki — K2 geregi buradan silindi.
     # PARTI 2
     "Indian Motorcycle", "Puch", "Genesis", "Bentley", "GMC", "Motec", "Simrad", "Bavaria",
     "AeroPress", "Keurig", "Moccamaster", "Roland", "Weinsberg", "Tracker", "Ninja",
