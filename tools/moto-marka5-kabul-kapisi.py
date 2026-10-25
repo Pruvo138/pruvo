@@ -6,8 +6,8 @@ Hedef: `tools/arama.py` UYUM_MARKA_IZINLI ve UYUM_MARKA_MIMAR_EKI kumesine 25 Ek
 BaBa hukmuyle (tik 126/129) `Voge`, `Keeway`, `Benelli`, `TVS` eklendi
 (MaCiT 24 Eki 22:04: Voge ekle K302 "top-level marka BOS"). 17. tur bataryasinin
 (`moto-marka-kabul-kapisi.py`, Kymco/RKS) kardesidir; o bataryaya DOKUNULMADI.
-Talepteki `MV Agusta` GIRMEDI: cok kelimeli uye index.html `BILESIK_MARKA` aynasini da
-ister (model-uyelik-kapisi K8) — ayri kalem.
+19. tur (ayni gun): `MV Agusta` index.html `BILESIK_MARKA` aynasiyla AYNI dalda girdi;
+ayna = otorite esitligini model-uyelik-kapisi K8 olcer, burada A1 varyantlari + A3 siniri + M3.
 
   A1 — dort jeton kanonik KABUL; yazim varyantlari (kucuk/buyuk harf, bosluklu, tireli,
        Kiril homoglif) RED — fail-closed, sessiz esleme YOK.
@@ -22,6 +22,7 @@ ister (model-uyelik-kapisi K8) — ayri kalem.
 
   M1 — dort jeton iki kumeden cikarilir                -> beyan {A1, A2, A3, A4}
   M2 — model alaninin varyant kontrolu susar           -> beyan {A3}
+  M3 — 19. tur `MV Agusta` iki kumeden cikarilir       -> beyan {A1, A3}
   KONTROL-MUTANT — UYUM_YIL_EN_ERKEN 1 azalir          -> beyan {} (hepsi YESIL)
 
 Mutasyon yalniz BELLEKTEKI metne uygulanir (exec ile ayri modul); canli arama.py'nin
@@ -40,6 +41,9 @@ URUNLER = os.path.join(KOK, "urunler.json")
 IZINLI_EKSI_EKI_TABAN = 139
 HEDEF = ("Voge", "Keeway", "Benelli", "TVS")
 HEDEF_SATIRI = '    "Voge", "Keeway", "Benelli", "TVS",\n'
+# 19. tur (25 Eki): index.html BILESIK_MARKA aynasiyla AYNI dalda giren cok kelimeli jeton.
+HEDEF_19 = ("MV Agusta",)
+HEDEF_19_SATIRI = '    "MV Agusta",\n'
 KONUM = "Honda|Voge"
 # Kiril homoglifler: `В` (U+0412) · `К` (U+041A) · `Т` (U+0422)
 VARYANTLAR = {
@@ -47,10 +51,12 @@ VARYANTLAR = {
     "Keeway": ["keeway", "KEEWAY", "Kee Way", "Keeway ", "Keeway-", "Кeeway"],
     "Benelli": ["benelli", "BENELLI", "Bene lli", "Benelli ", "Benelli-", "Вenelli"],
     "TVS": ["tvs", "Tvs", "T V S", "TVS ", "T-V-S", "Тvs"],
+    "MV Agusta": ["mv agusta", "MV AGUSTA", "MVAgusta", "MV-Agusta", " MV Agusta",
+                  "MV Agusta ", "Мv Agusta"],
 }
 FIKSTUR = [({"marka": "Voge"}, ["Voge"]),
            ({"marka": "Benelli", "model": "TRK 502"}, ["Benelli", "TRK 502"])]
-SINIR_RED = [("Honda", "Voge"), ("Yamaha", "Benelli"), ("Suzuki", "TVS")]
+SINIR_RED = [("Honda", "Voge"), ("Yamaha", "Benelli"), ("Suzuki", "TVS"), ("Suzuki", "MV Agusta")]
 DEGISMEMESI_GEREKEN = ("Mondial", "Kuba")
 ONCEKI_TUR = ("Kymco", "RKS")
 
@@ -126,7 +132,7 @@ EKSENLER = [("A1", eksen_a1), ("A2", eksen_a2), ("A3", eksen_a3), ("A4", eksen_a
 def eksen_kontrol(A):
     fark = len(A.UYUM_MARKA_IZINLI) - len(A.UYUM_MARKA_MIMAR_EKI)
     iki_kume = all(j in A.UYUM_MARKA_IZINLI and j in A.UYUM_MARKA_MIMAR_EKI
-                   for j in HEDEF + ONCEKI_TUR)
+                   for j in HEDEF + HEDEF_19 + ONCEKI_TUR)
     sabit = all(b in A.UYUM_MARKA_IZINLI and b not in A.UYUM_MARKA_MIMAR_EKI
                 for b in DEGISMEMESI_GEREKEN)
     print("KONTROL izinli=%d eki=%d FARK=%d (taban %d) · iki kumede (18.+17. tur)=%s · "
@@ -172,6 +178,8 @@ def main():
                           "        sebep = None if ad == \"model\" else "
                           "marka_varyanti_sebebi(ad, oge.get(ad))\n",
                           {"A3"}, katalog)
+    sonuc["M3"] = _mutant("M3 (19. tur MV Agusta iki kumeden cikti)", metin, HEDEF_19_SATIRI,
+                          "", {"A1", "A3"}, katalog, adet=2)
     sonuc["KONTROL-MUTANT"] = _mutant("KONTROL-MUTANT (UYUM_YIL_EN_ERKEN -1)", metin,
                                       "UYUM_YIL_EN_ERKEN = 1900", "UYUM_YIL_EN_ERKEN = 1899",
                                       set(), katalog)

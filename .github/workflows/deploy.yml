@@ -919,7 +919,7 @@ jobs:
       # MOTO MARKA KABUL BATARYASI 2 (18. tur, 25 Eki) — 17. turun kardesi, HEDEF dort jeton
       # (Voge, Keeway, Benelli, TVS): A1-A4 + KONTROL + M1/M2/KONTROL-MUTANT;
       # M1 A4'u de kirar (13 Benelli marka[] kaydi kanonikligini yitirir).
-      - name: "Moto marka kabul bataryasi 2 (Voge, Keeway, Benelli, TVS)"
+      - name: "Moto marka kabul bataryasi 2 (Voge, Keeway, Benelli, TVS, MV Agusta)"
         run: python3 tools/moto-marka5-kabul-kapisi.py
 
       # YAZIM YOLU KOLU — yukaridaki IKI kapi (altkategori + uyum) KATALOG GENELINI
