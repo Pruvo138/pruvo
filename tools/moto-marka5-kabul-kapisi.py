@@ -22,7 +22,7 @@ ayna = otorite esitligini model-uyelik-kapisi K8 olcer, burada A1 varyantlari + 
 
   M1 — dort jeton iki kumeden cikarilir                -> beyan {A1, A2, A3, A4}
   M2 — model alaninin varyant kontrolu susar           -> beyan {A3}
-  M3 — 19. tur `MV Agusta` iki kumeden cikarilir       -> beyan {A1, A3}
+  M3 — 19. tur `MV Agusta` iki kumeden cikarilir       -> beyan {A1, A3} (+A4 katalogda MV kaydi varsa)
   KONTROL-MUTANT — UYUM_YIL_EN_ERKEN 1 azalir          -> beyan {} (hepsi YESIL)
 
 Mutasyon yalniz BELLEKTEKI metne uygulanir (exec ile ayri modul); canli arama.py'nin
@@ -178,8 +178,15 @@ def main():
                           "        sebep = None if ad == \"model\" else "
                           "marka_varyanti_sebebi(ad, oge.get(ad))\n",
                           {"A3"}, katalog)
+    # 🔴 M3 BEYANI KATALOGDAN TURETILIR (25 Eki 2026): beyan 07:42'de MV Agusta 0 urunken
+    # {A1, A3} diye civilendi; MaCiT 09:17'de 5 MV urunu ekleyince ayni mutant A4'u de
+    # (katalog uyum ihlali) DOGRU olarak kirmiziya cevirdi -> beyan bayat, Pages 2deeb7f8
+    # serit-a2 KIRMIZI, yayin SKIPPED. Kural: katalogda HEDEF_19 markali kayit varsa A4 beyana girer.
+    m3_beyan = {"A1", "A3"}
+    if any(j in (x.get("marka") or []) for x in katalog for j in HEDEF_19):
+        m3_beyan.add("A4")
     sonuc["M3"] = _mutant("M3 (19. tur MV Agusta iki kumeden cikti)", metin, HEDEF_19_SATIRI,
-                          "", {"A1", "A3"}, katalog, adet=2)
+                          "", m3_beyan, katalog, adet=2)
     sonuc["KONTROL-MUTANT"] = _mutant("KONTROL-MUTANT (UYUM_YIL_EN_ERKEN -1)", metin,
                                       "UYUM_YIL_EN_ERKEN = 1900", "UYUM_YIL_EN_ERKEN = 1899",
                                       set(), katalog)
