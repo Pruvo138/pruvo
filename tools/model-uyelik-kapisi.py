@@ -2328,6 +2328,59 @@ def _kok_kur(tmp):
 
 
 # ───────────────────────────────────────────────────────────────────────────────────────
+# MUTANT KOŞUMU — ÖLÇÜLEMEYENİ BİR KEZ TEKRAR ÖLÇ + GERÇEK SEBEBİ GÖSTER (25 Eki 2026)
+#
+# 🔴 NEDEN (25 Eki 2026, KraL-Tamirci): bu batarya `SERIT B`de iki kez KIRMIZI yandı ve
+# KIRMIZI "mutant bekleneni tutmadı" sanıldı. OLCULEDI: mutant koşumu rc=2 (ÖLÇÜLEMEDİ)
+# ile bitmiş, yani ÖLÇÜM ALINAMAMIŞ — mutant bekleneni tutmamış DEĞİL. İki ayrı ölçüm
+# (25 Eki 09:18 ve 09:47, AYNI komut, AYNI ağaç): ilki "beklentiyi tutmayan: 1", ikincisi
+# "beklentiyi tutmayan: 0" — yani ÖLÇÜLEMEYEN koşum bir ortam kaynaklı GEÇİCİDİR.
+# 🔴 KABUL ÖLÇÜTÜ DEĞİŞMEZ: mutant hâlâ BEKLENEN KIRMIZI İDDİA KÜMESİNİ basmak zorundadır.
+# Tekrar da ölçülemezse KIRMIZI kalır (fail-closed: tekrar hiçbir şeyi GEÇİRMEZ).
+# 🔴 SEBEP GİZLİ KALMASIN: hata metni stderr'ın SON satırından okunuyordu; stderr'da
+# `DALGA1_KAYNAK=donmus ...` gürültüsü vardı ve GERÇEK sebep (`SONUC: OLCULEMEDI ❓ ...`)
+# stdout'ta kalıyordu → hata "ÇÖKME (hiç iddia basmadı)" olarak görünüyordu. Artık sebep
+# stdout'tan okunur; yoksa en son stdout satırı, en sonunda stderr'ın son satırı.
+def _olculemedi_sebep(p, cikti):
+    """Mutant koşumunun GERÇEK sebebi (kısa, tek satır)."""
+    out = [s.strip() for s in (p.stdout or "").splitlines() if s.strip()]
+    for s in out:
+        if s.startswith("SONUC: OLCULEMEDI"):
+            return s[:200]
+    if out:
+        return out[-1][:200]
+    err = [s.strip() for s in (p.stderr or "").splitlines() if s.strip()]
+    return err[-1][:200] if err else "sebep YOK (çıktı boş)"
+
+
+def _mutant_kosum(yol, kok, mod, timeout=1800):
+    """Mutant kapısını koşturur. Döner: (p, cikti, satirlar, kirmizi, hata_mi).
+
+    `mod` = "turetme" (GECTI/KALDI iddiası basmalı) | "ana" (rc + KALDI iddiası).
+    🔴 hata_mi (ÖLÇÜLEMEDİ) çıkarsa koşum BİR KEZ TEKRAR edilir: aynı komut, aynı
+    mutant, aynı kabul ölçütü. Tekrar da ölçülemezse hata_mi True kalır → KIRMIZI."""
+    def _bir():
+        p = subprocess.run([sys.executable, yol, "--kok", kok],
+                           capture_output=True, text=True, timeout=timeout)
+        cikti = (p.stdout or "") + (p.stderr or "")
+        satirlar = [s.strip() for s in cikti.splitlines()]
+        if mod == "turetme":
+            kirmizi = [s for s in satirlar if s.startswith("KALDI")]
+            hata = not any(s.startswith("GECTI ") or s.startswith("KALDI ") for s in satirlar)
+        else:
+            # 🔴 'ana' kolunda iddia listesi stdout'TAN okunur (türetme kolu stdout+stderr'ı
+            # kullanır) — stderr'daki bir satır KIRMIZI SAYILMAZ; ölçüt ESKİSİYLE BİREBİR.
+            kirmizi = [s.strip() for s in (p.stdout or "").splitlines()
+                       if s.strip().startswith("KALDI")]
+            hata = p.returncode not in (0, 1) or (p.returncode == 1 and not kirmizi)
+        return p, cikti, satirlar, kirmizi, hata
+    p, cikti, satirlar, kirmizi, hata = _bir()
+    if hata:
+        p, cikti, satirlar, kirmizi, hata = _bir()
+    return p, cikti, satirlar, kirmizi, hata
+
+
+# ───────────────────────────────────────────────────────────────────────────────────────
 # TÜRETME ALT BATARYASI (7 Ağu) — 7 öldürücü + 1 kontrol.
 #
 # 🔴 NEDEN AYRI BATARYA: ana bataryanın kabulü RENKTİR ("kırmızı yandı mı"), AYIRT EDİCİLİK
@@ -2423,16 +2476,13 @@ def _turetme_mutasyonu():
                 _hat.append("%s MUTASYON DİSKE UYGULANMADI" % kod)
                 _yaz.append("      HATA %s -> MUTASYON DİSKE UYGULANMADI | EKSEN ÖLÇÜLMEDİ" % kod)
                 return kod, _yaz, _hat, None
-            p = subprocess.run([sys.executable, yol, "--kok", tmp],
-                               capture_output=True, text=True, timeout=1800)
-            cikti = (p.stdout or "") + (p.stderr or "")
-            satirlar = [s.strip() for s in cikti.splitlines()]
+            p, cikti, satirlar, _kir, _hata = _mutant_kosum(yol, tmp, "turetme")
             kirmizi = sorted(set((s.split() + ["?"])[1] for s in satirlar
                                  if s.startswith("KALDI ")))
             if not any(s.startswith("GECTI ") or s.startswith("KALDI ") for s in satirlar):
                 _hat.append("%s ÇÖKME (hiç iddia basmadı) rc=%d" % (kod, p.returncode))
                 _yaz.append("      HATA %s -> ÇÖKME/ÖLÇÜLEMEDİ (rc=%d) | %s"
-                            % (kod, p.returncode, (cikti.strip().splitlines() or [""])[-1][:150]))
+                            % (kod, p.returncode, _olculemedi_sebep(p, cikti)))
                 return kod, _yaz, _hat, None
             gecti = (kirmizi == sorted(beklenen))
             if not gecti:
@@ -2550,14 +2600,13 @@ def _mutant_kos(i, _m):
                 return satirlar, basarisiz, None
             with open(yol, "w", encoding="utf-8") as f:
                 f.write(metin)
-            p = subprocess.run([sys.executable, os.path.join(tmp, "tools", "model-uyelik-kapisi.py"),
-                                "--kok", tmp], capture_output=True, text=True, timeout=1800)
-            kirmizi = [s for s in (p.stdout or "").splitlines() if s.strip().startswith("KALDI")]
+            p, cikti, _sat, kirmizi, _hata = _mutant_kosum(
+                os.path.join(tmp, "tools", "model-uyelik-kapisi.py"), tmp, "ana")
             # 🔴 ÇÖKME KIRMIZIYLA KARIŞMAZ: kabul ölçütü çıkış kodu DEĞİL, ölçülen iddia + işaret.
             if p.returncode not in (0, 1) or (p.returncode == 1 and not kirmizi):
                 satirlar.append("  HATA M%02d [%s] %s -> COKME/OLCULEMEDI (rc=%d) | %s"
                       % (i, beklenen, dosya, p.returncode, aciklama))
-                satirlar.append("        " + ((p.stderr or p.stdout or "").strip().splitlines() or [""])[-1][:180])
+                satirlar.append("        " + _olculemedi_sebep(p, cikti))
                 basarisiz.append("M%02d [cokme]" % i)
                 return satirlar, basarisiz, None
             gercek = "YESIL" if p.returncode == 0 else "KIRMIZI"
