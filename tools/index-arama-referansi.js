@@ -149,7 +149,10 @@ function referans() {
  * uretilir. Dal index.html'in arama semantigini degistirdiyse (or. TANINMIS'e marka
  * girdi) uc merge'e kadar ESKI evreni tasir ve parite yapisal olarak ayrisir. Bu
  * referans "uc main'in sitesiyle ayni mi" sorusunu olcer; HUKMU parite-test.js verir.
- * Doner: { ref } | { hata: "<sebep>" } | { ayni: true } (dal index.html'i main'le ayni).
+ * Doner: { ref, fark } | { hata: "<sebep>" } | { ayni: true, fark: [] }.
+ * `fark` = dal ↔ main TANINMIS_MARKALAR SIMETRIK FARKI (git'ten turer, elle liste YOK).
+ * KAPSAM YALNIZ TANINMIS TURETIMI (BaBa tik 166 ⑦): fark BOSSA index.html baska yerde
+ * degismis olsa bile sinif KAPALI (`ayni`) — o ayrismalar KIRMIZI kalir.
  * Cip indeksi main index.html'iyle GECICI kokte uretilir; gecici kok SILINIR (onbellek YOK).
  */
 let _anaBellek = null;
@@ -166,7 +169,22 @@ function anaReferans() {
     return _anaBellek;
   }
   if (src === fs.readFileSync(path.join(kok, "index.html"), "utf8")) {
-    _anaBellek = { ayni: true };
+    _anaBellek = { ayni: true, fark: [] };
+    return _anaBellek;
+  }
+  const m = /var TANINMIS_MARKALAR = \[([\s\S]*?)\];/.exec(src);
+  if (!m) {
+    _anaBellek = { hata: hedef + ":index.html'de TANINMIS_MARKALAR ayiklanamadi" };
+    return _anaBellek;
+  }
+  let anaListe;
+  try { anaListe = vm.runInNewContext("[" + m[1] + "]"); } catch (e) {
+    _anaBellek = { hata: hedef + " TANINMIS_MARKALAR okunamadi (" + (e && e.message) + ")" };
+    return _anaBellek;
+  }
+  const fark = taninmisFarki(referans().TANINMIS_MARKALAR, anaListe);
+  if (!fark.length) {
+    _anaBellek = { ayni: true, fark: [] };
     return _anaBellek;
   }
   const gecici = fs.mkdtempSync(path.join(os.tmpdir(), "pruvo-kod-senkron-"));
@@ -176,7 +194,7 @@ function anaReferans() {
     const cikti = execFileSync("python3",
       [path.join(kok, "tools", "cip-indeks.py"), "--kok", gecici, "--yazdir"],
       { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
-    _anaBellek = { ref: Object.assign({ kok: hedef },
+    _anaBellek = { fark: fark, ref: Object.assign({ kok: hedef },
       kur(src, hedef + ":index.html", dogrula(JSON.parse(cikti)))) };
   } catch (e) {
     _anaBellek = { hata: "main referansi kurulamadi (" + (e && e.message) + ")" };
@@ -212,8 +230,15 @@ function kur(src, indexYolu, ix) {
   const disa = vm.runInContext("({ norm: norm, aramaKok: aramaKok, haystack: haystack," +
     " aramaPlani: aramaPlani, aramaPlaniEsler: aramaPlaniEsler," +
     " markaKatla: markaKatla, markaUyeMi: markaUyeMi," +
-    " baslikMarkalari: baslikMarkalari, markaSorgusuEsler: markaSorgusuEsler })", ctx);
+    " baslikMarkalari: baslikMarkalari, markaSorgusuEsler: markaSorgusuEsler," +
+    " TANINMIS_MARKALAR: TANINMIS_MARKALAR.slice() })", ctx);
   return disa;
 }
 
-module.exports = { referans, anaReferans, BLOK_MARKERLARI, ZORUNLU_IMZALAR };
+/** TANINMIS_MARKALAR simetrik farki (iki yon de; elle liste YOK, ikisi de index.html'den). */
+function taninmisFarki(a, b) {
+  const A = new Set(a), B = new Set(b);
+  return [...A].filter((m) => !B.has(m)).concat([...B].filter((m) => !A.has(m))).sort();
+}
+
+module.exports = { referans, anaReferans, taninmisFarki, BLOK_MARKERLARI, ZORUNLU_IMZALAR };

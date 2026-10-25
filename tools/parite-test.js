@@ -104,11 +104,16 @@ function filtered(PRODUCTS, query, activeCat, activeBrand, Rv) {
 // HUKUM: ayrisan sorgu, uc cevabi `origin/main` index.html'iyle kurulan site referansina
 // BIREBIR uyuyorsa (ve o sorguda dal ile main sitesi GERCEKTEN farkliysa) ayrisma
 // KOD-SENKRON'dur -> OLCULEMEDI (cikis 3) + `sebep=kod-senkron kapanis=deploy-nobeti`.
-// Main sitesiyle de uyusmayan her ayrisma KIRMIZI KALIR. Kapsam DAR: yalniz `marka=Tümü`
-// sorgulari (marka cipi sinifi tek referansa bagli; o eksende sinif KAPALI, kirmizi kalir).
-function kodSenkronMu({ sinif, anaSinif, bekIds, bekAnaIds }) {
+// Main sitesiyle de uyusmayan her ayrisma KIRMIZI KALIR. Kapsam DAR (BaBa tik 166):
+//   - yalniz TANINMIS TURETIMI: sorgunun dal ya da main marka kanonu (`aramaPlani().kanon`)
+//     dal ↔ main TANINMIS_MARKALAR SIMETRIK FARKINDA olmali; fark disi marka KIRMIZI;
+//   - fark BOSSA sinif BOS (anaReferans `ayni` doner, cagiran sinifi hic kurmaz);
+//   - yalniz `marka=Tümü` sorgulari (marka cipi sinifi tek referansa bagli; o eksende KAPALI).
+function kodSenkronMu({ sinif, anaSinif, bekIds, bekAnaIds, kanonDal, kanonAna, fark }) {
   if (sinif !== ortak.SINIF_ACIKLANAMAYAN) return false;
   if (anaSinif !== ortak.SINIF_GECTI) return false;
+  const F = new Set(fark || []);
+  if (!F.size || !(F.has(kanonDal) || F.has(kanonAna))) return false;
   const a = new Set(bekIds), b = new Set(bekAnaIds);
   if (a.size === b.size && [...a].every((id) => b.has(id))) return false;  // dal == main: kod farki YOK
   return true;
@@ -366,13 +371,15 @@ if (require.main === module) (async () => {
   const kodSenkron = [];
   // KOD-SENKRON referansi TEMBEL: yalniz ilk ACIKLANAMAYAN ayrismada kurulur. Fikstur
   // modunda KAPALI (fikstur kendi sahte ucunu kurar; ikinci referans onu olcmez).
-  let _ana;
+  let _ana, _fark = [];
   function anaRef() {
     if (_ana === undefined) {
       const A = fikstur ? { hata: "fikstur modu" } : REFERANS.anaReferans();
       _ana = A.ref || null;
-      console.log("  KOD-SENKRON referansi: %s", A.ref ? "origin/main index.html KURULDU" :
-        A.ayni ? "dal index.html == origin/main (sinif BOS)" : "KAPALI — " + A.hata +
+      _fark = A.fark || [];
+      console.log("  KOD-SENKRON referansi: %s", A.ref ? "origin/main index.html KURULDU, " +
+        "TANINMIS farki " + _fark.length + " [" + _fark.join(", ") + "]" :
+        A.ayni ? "TANINMIS farki BOS (sinif BOS)" : "KAPALI — " + A.hata +
         " (ayrismalar KIRMIZI kalir)");
     }
     return _ana;
@@ -428,7 +435,9 @@ if (require.main === module) (async () => {
           gecikmeModu: onKosul.gecikmeModu,
           taslakKume: onKosul.taslakIdler,
         });
-        if (kodSenkronMu({ sinif: k.sinif, anaSinif: kAna.sinif, bekIds, bekAnaIds })) {
+        if (kodSenkronMu({ sinif: k.sinif, anaSinif: kAna.sinif, bekIds, bekAnaIds,
+          kanonDal: ref().aramaPlani(s.q).kanon, kanonAna: anaRef().aramaPlani(s.q).kanon,
+          fark: _fark })) {
           kodSenkron.push({ ...s, dal: bekIds.length, ana: bekAnaIds.length, uc: g.toplam });
           continue;
         }
