@@ -2127,9 +2127,7 @@ ROZET_CAPRAZ_IZINLI = {
     "Renault|logan": ("ROZET", "Renault Logan bazi pazarlarda gercek rozet — KENDI adi"),
     "Skoda|octavia": ("ROZET", "Octavia Skoda'nin kendi rozeti"),
     "Peugeot|partner": ("ROZET", "Peugeot Partner gercek rozet"),
-    "Opel|combo": ("ROZET", "Opel Combo Opel'in kendi rozeti (Berlingo/Partner/Rifter kardesi)"),
     "Peugeot|expert": ("ROZET", "Peugeot Expert Peugeot'nun kendi rozeti (Jumpy/Proace kardesi)"),
-    "Peugeot|rifter": ("ROZET", "Peugeot Rifter Peugeot'nun kendi rozeti (Berlingo/Partner kardesi)"),
     "Toyota|proace": ("ROZET", "Toyota Proace gercek rozet"),
     "Dacia|sandero": ("ROZET", "Dacia Sandero gercek rozet"),
     "Renault|sandero": ("ROZET", "Renault Sandero bazi pazarlarda gercek rozet — KENDI adi"),
@@ -2330,8 +2328,8 @@ ROZET_CAPRAZ_IZINLI = {
                              "— yalniz AD cakismasi"),
 }
 
-ROZET_CAPRAZ_IZINLI_SAYISI = 68
-ROZET_CAPRAZ_IZINLI_IMZA = "71e878eae6d90b02"  # 22 Eki: Citroen|ds cikti (69->68; DS kapali kumede, Peugeot|DS kovasi eridi -> capraz degil), kapinin hesabiyla
+ROZET_CAPRAZ_IZINLI_SAYISI = 66
+ROZET_CAPRAZ_IZINLI_IMZA = "dc08738b234381cf"  # 25 Eki: Opel|combo + Peugeot|rifter cikti (68->66; lisans-RED kaldirmasi son urunlerini dusurdu, kova uretilmiyor), kapinin hesabiyla
 
 
 def rozet_capraz_imzasi():
@@ -2351,7 +2349,7 @@ def rozet_capraz_imzasi():
 # (yargisiz cift) olcer, bu eksen HUKMUN KENDISINI olcer; ikisi AYRI kalir cunku tek
 # imzaya baglansaydi sinif mutanti anahtar imzasina sirtini dayardi (yukaridaki not).
 # GEREKCE METNI IMZAYA GIRMEZ: yazim duzeltmesi kapiyi yakmasin, HUKUM degisimi yaksin.
-ROZET_CAPRAZ_SINIF_IMZA = "f9813edaefd4bce1"  # 22 Eki: Citroen|ds cikti, kapinin hesabiyla
+ROZET_CAPRAZ_SINIF_IMZA = "4c170dc0012f9e5d"  # 25 Eki: Opel|combo + Peugeot|rifter cikti, kapinin hesabiyla
 
 
 def rozet_capraz_sinif_imzasi():
