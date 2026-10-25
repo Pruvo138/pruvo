@@ -791391,7 +791391,9 @@
     "kategori": "Otomobil",
     "marka": [
       "Citroen",
-      "Thule"
+      "Berlingo",
+      "Thule",
+      "819"
     ],
     "baslik": "Citroen Berlingo Uyumlu Thule 819 Kano Taşıyıcı Ara Takoz",
     "aciklama": "Citroen Berlingo orijinal tavan çıtaları üzerinde Thule 819 kano taşıyıcısını mükemmel şekilde sabitlemek için tasarlanmış özel ara takoz.\n\nTavan barı ile kano taşıyıcı arasındaki boşluğu doldurarak tam uyum ve maksimum güvenlik sağlar.\nYüksek dayanımlı malzemeden dış mekan koşullarına uygun olarak özel üretilmiştir.\nKolay montajı sayesinde kano taşıma sisteminizi güvenle sabitleyebilirsiniz.\n\nYaklaşık dış ölçüler: 140 × 82 × 36 mm.",
@@ -791408,7 +791410,11 @@
     "uyum": [
       {
         "marka": "Citroen",
-        "model": "Thule"
+        "model": "Berlingo"
+      },
+      {
+        "marka": "Thule",
+        "model": "819"
       }
     ]
   },

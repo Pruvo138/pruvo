@@ -921,6 +921,10 @@ jobs:
       # M1 A4'u de kirar (13 Benelli marka[] kaydi kanonikligini yitirir).
       - name: "Moto marka kabul bataryasi 2 (Voge, Keeway, Benelli, TVS, MV Agusta)"
         run: python3 tools/moto-marka5-kabul-kapisi.py
+      # 20. tur kapali marka kumesi (Beko, Thule; BaBa tik 170/172): A1-A4 + KONTROL +
+      # M1/M2/KONTROL-MUTANT; M1 A4'u de kirar (marka[] Beko/Thule kayitlari kanonikligini yitirir).
+      - name: "Ev/ekipman marka kabul bataryasi (Beko, Thule)"
+        run: python3 tools/ev-marka-kabul-kapisi.py
 
       # YAZIM YOLU KOLU — yukaridaki IKI kapi (altkategori + uyum) KATALOG GENELINI
       # olcer ve YAYINDAN SONRA konusur; bu adim onlarin COMMIT ANINDAKI kardesini
