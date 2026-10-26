@@ -1,5 +1,147 @@
 [
   {
+    "id": "pr204281-thule-bebek-arabasi-bardak-tutucu",
+    "kategori": "Ev",
+    "marka": [
+      "Thule"
+    ],
+    "uyum": [
+      {
+        "marka": "Thule"
+      }
+    ],
+    "baslik": "Thule Chariot ve Urban Glide Bebek Arabası Bardak Tutucu Adaptörü",
+    "aciklama": "Thule Chariot ve Urban Glide bebek arabalarına Bugaboo bardak tutucusunu takabilmek için tasarlanmış bir adaptördür. Bugaboo bardak tutucusuna oturacak şekilde ölçülendirilmiştir.\nYaklaşık dış ölçüler: 58 × 36 × 30 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr204281-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr204281-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr204281-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Erlbeck"
+    }
+  },
+  {
+    "id": "pr1269001-beko-dondurucu-kapi-kolu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Beko"
+    ],
+    "uyum": [
+      {
+        "marka": "Beko"
+      }
+    ],
+    "baslik": "Beko Buzdolabı Dondurucu Kapı Kolu",
+    "aciklama": "Beko buzdolabının küçük dondurucu kapağındaki kırık kolu değiştirmek için tasarlanmış bir tutamaktır. Yerine oturana kadar bastırıldığında kapağa kilitlenir ve dondurucu kapağının açılıp kapanmasında tutuş noktası görevi görür.\nYaklaşık dış ölçüler: 100 × 52 × 14 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1269001-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "javl"
+    }
+  },
+  {
+    "id": "pr352459-segway-ninebot-max-g30-yan-ayak-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Segway"
+    ],
+    "uyum": [
+      {
+        "marka": "Segway"
+      }
+    ],
+    "baslik": "Segway Ninebot Max G30 Yan Ayak Kapağı",
+    "aciklama": "Segway Ninebot Max G30'un yan ayağının üzerine geçen esnek bir kılıftır. Metal ayak ucunun zemine ve bileğe sürtmesini azaltır.\nYaklaşık dış ölçüler: 52 × 38 × 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr352459-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr352459-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr352459-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr352459-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Brettcnc"
+    },
+    "altkategori": "Sele ve Sehpa"
+  },
+  {
+    "id": "pr862717-segway-ninebot-g30d-duvar-askisi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Segway"
+    ],
+    "uyum": [
+      {
+        "marka": "Segway"
+      }
+    ],
+    "baslik": "Segway Ninebot G30D Duvar Askısı",
+    "aciklama": "Segway Ninebot G30D elektrikli scooter için bir duvar askısıdır. Scooter'ın duvara asılı kalmasını sağlar.\nYaklaşık dış ölçüler: 241 × 179 × 40 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr862717-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr862717-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr862717-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Micromaxx"
+    },
+    "altkategori": "Sele ve Sehpa"
+  },
+  {
+    "id": "pr509565-segway-ninebot-gopro-kamera-montaj",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Segway"
+    ],
+    "uyum": [
+      {
+        "marka": "Segway"
+      }
+    ],
+    "baslik": "Segway Ninebot Gidon GoPro Kamera Montaj Adaptörü",
+    "aciklama": "Segway Ninebot scooter'ın gidon ortasındaki gövdeye klipsli olarak takılan GoPro kamera montaj adaptörüdür. Adaptörün üst tarafındaki parmak bağlantısına kamera oturur.\nYaklaşık dış ölçüler: 90 × 48 × 20 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr509565-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr509565-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr509565-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr509565-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "TheBlackMonde"
+    },
+    "altkategori": "Gidon ve Kumandalar"
+  },
+  {
+    "id": "pr825169-segway-miniplus-tekerlek-gobek-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Segway"
+    ],
+    "uyum": [
+      {
+        "marka": "Segway"
+      }
+    ],
+    "baslik": "Segway MiniPlus Tekerlek Göbek Kapağı",
+    "aciklama": "Segway MiniPlus tekerleğinin göbek bölümüne yerleşen dekoratif disk kapağıdır. Oval delikli desenli yüzeyiyle göbeği örter ve tekerleğin görünümünü tamamlar.\nYaklaşık dış ölçüler: 126 × 126 × 10 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr825169-1.jpg"
+    ],
+    "altkategori": "Tekerlek ve Aktarma"
+  },
+  {
     "id": "pr311968-zodiac-vana-montaj-aleti",
     "kategori": "Marin",
     "marka": [
