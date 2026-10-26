@@ -289,8 +289,72 @@ def parite_jetonu(etiket, sebep):
         s = sebep or ""
         return "PARITE_TEST5=OLCULEMEDI sebep=%s" % (
             "yayin-kuyrugu" if "sebep=yayin-kuyrugu" in s else
-            "kod-senkron" if "sebep=kod-senkron" in s else "diger")
+            "kod-senkron" if "sebep=kod-senkron" in s else
+            "429" if "hiz siniri (429)" in s else "diger")
     return "PARITE_TEST5=KIRMIZI"
+
+
+# ── 429 GORUNURLUGU (27 Eki, KraL halef-64 — BaBa tik 234 (C)(a)) ──────────────────────
+# OLCULEN VAKA: SERIT B 40259398624 TEST 5 hiz siniri (429) yeniden denemeleri tukendi;
+# jeton `sebep=diger` basti, sayilar CI logunda YOKTU -> borcun sinifi ve buyuklugu
+# gorunmedi. Jeton satiri uc kapisi regex'ine sabitli (sebep'ten sonra alan YOK), o yuzden
+# sayilar AYRI satira duser. Sayac satiri yoksa `sayac-yok=1` (sessiz bosluk DEGIL).
+_SAYAC_RE = re.compile(r"canli istek: (\d+) \(429: (\d+) \| yeniden deneme: (\d+)")
+_FREN_RE = re.compile(r"fren suresi (\d+) sn")
+
+
+def parite_429_satiri(cikti):
+    """SAF. 429 tukenmesinde sayilarin makine okunur satiri."""
+    c = cikti or ""
+    m = _SAYAC_RE.search(c)
+    if not m:
+        return "PARITE_TEST5_429 sayac-yok=1"
+    f = _FREN_RE.findall(c)
+    return "PARITE_TEST5_429 istek=%s r429=%s yeniden=%s fren_sn=%s" % (
+        m.group(1), m.group(2), m.group(3), f[-1] if f else "0")
+
+
+def test5_makine_satirlari(etiket, sebep, cikti, bas_utc, son_utc):
+    """SAF. TEST 5'in bastigi TUM makine okunur satirlar (calisma zamani YALNIZ bunu basar;
+    kabul testi ayni govdeyi olcer). Ilk satir DAIMA jeton."""
+    jeton = parite_jetonu(etiket, sebep)
+    satirlar = [jeton]
+    if jeton.endswith("sebep=429"):
+        satirlar.append(parite_429_satiri(cikti))
+    if etiket == PARITE_KIRMIZI:
+        satirlar.extend(parite_aciklanamayan_satirlari(cikti, bas_utc, son_utc))
+    return satirlar
+
+
+def _parite_node_kos():
+    p = subprocess.run(["node", os.path.join(TOOLS, "parite-test.js"), "300"],
+                       capture_output=True, text=True, cwd=ROOT)
+    return p.returncode, p.stdout + p.stderr
+
+
+def test5_parite_kos(kos=_parite_node_kos, yaz=None, hata_yaz=None):
+    """TEST 5 govdesi. Doner (ok, det). `kos` -> (rc, cikti): uretimde node parite-test.js 300;
+    kabul testinde sahte kosucu (ag yok). `yaz`/`hata_yaz` stdout/stderr satir yazicilari."""
+    yaz = yaz or (lambda s: print(s, flush=True))
+    hata_yaz = hata_yaz or (lambda s: print(s, file=sys.stderr, flush=True))
+    bas = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    rc, cikti = kos()
+    son = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    ok, et, sb = parite_exit_yorumla(rc, cikti)
+    det = "site:%s" % et
+    # ⚪ ATLANDI'nin SEBEBI DAIMA GORUNUR olsun: yoksa "yesil sanip gecmek" riski dogar.
+    if sb:
+        det += " | site: " + sb
+    if not ok:
+        det += " | " + cikti.strip()[-300:]
+    # Makine okunur satirlar (serit-b-uc-kapisi.py jetonu okur): GECTI disi = parite borcu.
+    # KIRMIZI TESHISI: 300 karakter kuyrugu adlari KESER -> her sorgu tam satirda.
+    for s in test5_makine_satirlari(et, sb, cikti, bas, son):
+        yaz(s)
+    # A15 NOBETI: ATLANDI sessizce "yesil" gorunmesin — STDERR'e de dusur.
+    if et == PARITE_ATLANDI:
+        hata_yaz("⚪ PARITE ATLANDI (parite BELGELENMEDI, cikis 3): %s" % det)
+    return ok, det
 
 
 # ── TEST 5 KIRMIZI TESHISI (26 Eki, KraL halef-62) ──────────────────────────────────────
@@ -437,6 +501,41 @@ def parite_eslem_testi():
     ona(parite_jetonu(PARITE_ATLANDI, "olculemedi: WAF/UA duvari (403)") ==
         "PARITE_TEST5=OLCULEMEDI sebep=diger",
         "baska exit 3 jetonu OLCULEMEDI sebep=diger (GECTI'ye dusmez)")
+    # 429 GORUNURLUGU (27 Eki): SERIT B 40259398624 vakasinin BIREBIR metni.
+    c429 = ("⚪ ÖLÇÜLEMEDİ: HIZ SINIRI (429) — adaptif fren tavanda, 8 deneme TUKENDI "
+            "(fren 1000 ms, fren suresi 412 sn / butce 2400 sn duvar saati)\n"
+            "canli istek: 455 (429: 61 | yeniden deneme: 61 | supurme partisi: 0)\n"
+            "adaptif hiz freni: aralik 1000 ms | fren suresi 415 sn / butce 2400 sn (duvar saati)")
+    ok, et, sb = parite_exit_yorumla(3, c429)
+    ona(ok and et == PARITE_ATLANDI and parite_jetonu(et, sb) ==
+        "PARITE_TEST5=OLCULEMEDI sebep=429",
+        "429 tukenmesi jetonu ADIYLA: PARITE_TEST5=OLCULEMEDI sebep=429 (diger DEGIL)")
+    ona(parite_429_satiri(c429) == "PARITE_TEST5_429 istek=455 r429=61 yeniden=61 fren_sn=415",
+        "429 sayac satiri: istek/r429/yeniden/fren_sn (son fren suresi)")
+    ona(parite_429_satiri("HIZ SINIRI (429)") == "PARITE_TEST5_429 sayac-yok=1",
+        "429 sayac satiri yoksa sayac-yok=1 (sessiz bosluk DEGIL)")
+    ona(test5_makine_satirlari(et, sb, c429, "T0", "T1") ==
+        ["PARITE_TEST5=OLCULEMEDI sebep=429",
+         "PARITE_TEST5_429 istek=455 r429=61 yeniden=61 fren_sn=415"],
+        "TEST 5 basilan satirlar (429): jeton + sayac satiri, baska satir YOK")
+    ona(test5_makine_satirlari(PARITE_GECTI, "", "", "T0", "T1") == ["PARITE_TEST5=GECTI"],
+        "TEST 5 basilan satirlar (GECTI): yalniz jeton")
+    # GERCEK TEST 5 GOVDESI sahte kosucuyla (ag yok): calisma zamani yolu da olculur.
+    _out, _err = [], []
+    _ok, _det = test5_parite_kos(kos=lambda: (3, c429), yaz=_out.append, hata_yaz=_err.append)
+    ona(_ok and _out == ["PARITE_TEST5=OLCULEMEDI sebep=429",
+                         "PARITE_TEST5_429 istek=455 r429=61 yeniden=61 fren_sn=415"]
+        and len(_err) == 1 and "hiz siniri (429)" in _err[0],
+        "TEST 5 govdesi (sahte 429 kosumu): stdout jeton + sayac satiri, stderr ATLANDI uyarisi")
+    # Kahin uc kapisinin KENDI regex'i (ikinci kopya yazilmaz).
+    import importlib.util
+    _sp = importlib.util.spec_from_file_location(
+        "serit_b_uc_kapisi", os.path.join(TOOLS, "serit-b-uc-kapisi.py"))
+    _uc = importlib.util.module_from_spec(_sp)
+    _sp.loader.exec_module(_uc)
+    _m = _uc.PARITE_JETON.search(parite_jetonu(et, sb))
+    ona(_m is not None and _m.group(1) == "OLCULEMEDI" and _m.group(2) == "429",
+        "429 jetonu uc kapisinin PARITE_JETON regex'ine uyar (sebep=429 okunur)")
 
     ok, et, sb = parite_exit_yorumla(2, "index.js'te urunAra() bulunamadi")
     ona((not ok) and et == PARITE_KIRMIZI, "exit 2 -> KIRMIZI (fail-closed, kosulamadi)")
@@ -750,29 +849,8 @@ def main():
             kayit(5, "parite testleri", True, "ATLANDI (PARITE=0)")
             print(parite_jetonu(PARITE_ATLANDI, ""), flush=True)
         else:
-            _bas = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-            p1 = subprocess.run(["node", os.path.join(TOOLS, "parite-test.js"), "300"],
-                                capture_output=True, text=True, cwd=ROOT)
-            _son = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-            ok1, et1, sb1 = parite_exit_yorumla(p1.returncode, p1.stdout + p1.stderr)
-            ok = ok1
-            det = "site:%s" % et1
-            # ⚪ ATLANDI'nin SEBEBI DAIMA GORUNUR olsun: yoksa "yesil sanip gecmek" riski dogar.
-            if sb1:
-                det += " | site: " + sb1
-            if not ok:
-                det += " | " + (p1.stdout + p1.stderr).strip()[-300:]
+            ok, det = test5_parite_kos()
             kayit(5, "parite (site) — aciklama degismedi kaniti", ok, det)
-            # Makine okunur satir (serit-b-uc-kapisi.py okur): GECTI disi = parite borcu.
-            print(parite_jetonu(et1, sb1), flush=True)
-            # KIRMIZI TESHISI: 300 karakter kuyrugu adlari KESER -> her sorgu tam satirda.
-            if et1 == PARITE_KIRMIZI:
-                for _s in parite_aciklanamayan_satirlari(p1.stdout + p1.stderr, _bas, _son):
-                    print(_s, flush=True)
-            # A15 NOBETI: ATLANDI sessizce "yesil" gorunmesin — STDERR'e de dusur.
-            if et1 == PARITE_ATLANDI:
-                print("⚪ PARITE ATLANDI (parite BELGELENMEDI, cikis 3): %s" % det,
-                      file=sys.stderr, flush=True)
 
         # ---- 6) override: sahte urunle render -> harita degil override basiliyor
         sahte = {"id": "test-override-sahte", "kategori": "Ev", "marka": [],
