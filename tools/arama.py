@@ -1796,6 +1796,17 @@ UYUM_MARKA_IZINLI = frozenset({
     #   Iki jeton arama.py'nin baska hicbir kumesinde YOK (buyuk/kucuk duyarsiz). FARK 139 SABIT.
     #   Kabul: `tools/ev-marka-kabul-kapisi.py` (A1-A4 + KONTROL + M1/M2/KONTROL-MUTANT).
     "Beko", "Thule",
+    # 21. tur (2) — BaBa tik 201 (C) / 201b (26 Eki 2026): MaCiT hasadi (Lada 7 urun + NIU 12
+    #   urun bekliyor; `hasat_ekle` uyum fail-closed takildi). SINIF: ARAC URETICISI — `Lada`
+    #   otomobil markasi (TANINMIS_MARKALAR'da ZATEN var, sayfa evreninde) · `NIU` elektrikli
+    #   scooter/motosiklet ureticisi (TANINMIS'te YOK; veri inince sayfa/taban yargisi ayrica).
+    #   OLCULEN katalog agirligi (40.925 urun; TAM yazim):
+    #     `Lada` — marka[] 1 · uyum[].marka 0 · baslik 1 (`lada-largus-dacia-ve-renault-...`).
+    #     `NIU`  — marka[] 0 · uyum[].marka 0 · baslik 0 (veri MaCiT'te, sozluk inince gelir).
+    #   Yazim varyanti (LADA/lada/Niu/niu) katalogda 0 -> uyum B4 capasi KAYMAZ (olculdu, jq).
+    #   Iki jeton arama.py'nin baska hicbir kumesinde YOK (buyuk/kucuk duyarsiz). FARK 139 SABIT.
+    #   Kabul: `tools/sozluk21-marka-kabul-kapisi.py` (A1-A4 + KONTROL + M1/M2/KONTROL-MUTANT).
+    "Lada", "NIU",
 })
 
 # 🔴 ONERI DISINDAN, MIMAR ONAYIYLA eklenen jetonlar. AYRI tutulmalari SART: budama
@@ -1891,6 +1902,9 @@ UYUM_MARKA_MIMAR_EKI = frozenset({
     # 20. tur (25 Eki 2026) — BaBa tik 170/172, MaCiT FAZ A. Gerekce + olculen katalog agirligi
     # UYUM_MARKA_IZINLI'nin "C grubu" 20. tur basliginda yazili. TEKRAR EDILMEZ.
     "Beko", "Thule",
+    # 21. tur (26 Eki 2026) — BaBa tik 201 (C), MaCiT hasadi. Gerekce + olculen katalog agirligi
+    # UYUM_MARKA_IZINLI'nin 21. tur basliginda yazili. TEKRAR EDILMEZ.
+    "Lada", "NIU",
 })
 
 # 🔴 REDDEDILEN ADAYLAR (2 Agu, mimar karari) — kayda geciyor ki bir sonraki tur ayni
