@@ -1,5 +1,51 @@
 [
   {
+    "id": "pr204281-thule-bebek-arabasi-bardak-tutucu",
+    "kategori": "Ev",
+    "marka": [
+      "Thule"
+    ],
+    "uyum": [
+      {
+        "marka": "Thule"
+      }
+    ],
+    "baslik": "Thule Chariot ve Urban Glide Bebek Arabası Bardak Tutucu Adaptörü",
+    "aciklama": "Thule Chariot ve Urban Glide bebek arabalarına Bugaboo bardak tutucusunu takabilmek için tasarlanmış bir adaptördür. Bugaboo bardak tutucusuna oturacak şekilde ölçülendirilmiştir.\nYaklaşık dış ölçüler: 58 × 36 × 30 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr204281-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr204281-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr204281-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Erlbeck"
+    }
+  },
+  {
+    "id": "pr1269001-beko-dondurucu-kapi-kolu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Beko"
+    ],
+    "uyum": [
+      {
+        "marka": "Beko"
+      }
+    ],
+    "baslik": "Beko Buzdolabı Dondurucu Kapı Kolu",
+    "aciklama": "Beko buzdolabının küçük dondurucu kapağındaki kırık kolu değiştirmek için tasarlanmış bir tutamaktır. Yerine oturana kadar bastırıldığında kapağa kilitlenir ve dondurucu kapağının açılıp kapanmasında tutuş noktası görevi görür.\nYaklaşık dış ölçüler: 100 × 52 × 14 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1269001-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "javl"
+    }
+  },
+  {
     "id": "pr352459-segway-ninebot-max-g30-yan-ayak-kapagi",
     "kategori": "Motosiklet",
     "marka": [
