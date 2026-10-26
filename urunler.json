@@ -92290,11 +92290,15 @@
     "id": "canon-ef-sigma-art-18-35mm-odak-zum-disli-halkasi",
     "kategori": "Kamera",
     "marka": [
-      "Canon"
+      "Canon",
+      "Sigma"
     ],
     "uyum": [
       {
         "marka": "Canon"
+      },
+      {
+        "marka": "Sigma"
       }
     ],
     "baslik": "Sigma Art 18-35mm f/1.8 Lens için Odak ve Zum Dişli Halkası",
@@ -568123,7 +568127,8 @@
     "id": "renault-alpine-a310-koltuk-kolu-kilavuzu",
     "kategori": "Otomobil",
     "marka": [
-      "Renault"
+      "Renault",
+      "Alpine"
     ],
     "baslik": "Renault Alpine A310 Koltuk Kolu Kılavuzu",
     "aciklama": "Renault Alpine A310 ve aynı parçayı kullanan diğer Renault modelleri için koltuk ayar kolu kılavuzu. Kırılan orijinalin doğrudan yerine takılır.\nYaklaşık dış ölçüler: 95 × 25 × 6 mm.",
@@ -568140,7 +568145,8 @@
     "altkategori": "Koltuk ve Kemer",
     "uyum": [
       {
-        "marka": "Renault"
+        "marka": "Renault",
+        "model": "Alpine"
       }
     ]
   },
@@ -570263,7 +570269,8 @@
     "id": "renault-alpine-a310-on-far-contasi",
     "kategori": "Otomobil",
     "marka": [
-      "Renault"
+      "Renault",
+      "Alpine"
     ],
     "baslik": "Renault Alpine A310 Ön Far Contası",
     "aciklama": "Renault Alpine A310 ön farı ile gövde arasına giren sızdırmazlık contası. Aşınan orijinalin yerine takılarak su ve toz girişini engeller.\nYaklaşık dış ölçüler: 160 × 159 × 6 mm.",
@@ -570281,7 +570288,8 @@
     "altkategori": "Aydınlatma",
     "uyum": [
       {
-        "marka": "Renault"
+        "marka": "Renault",
+        "model": "Alpine"
       }
     ]
   },
@@ -572028,7 +572036,8 @@
     "id": "renault-alpine-a310-kapi-kolu-kilavuz-burcu",
     "kategori": "Otomobil",
     "marka": [
-      "Renault"
+      "Renault",
+      "Alpine"
     ],
     "baslik": "Renault Alpine A310 Kapı Kolu Kılavuz Burcu",
     "aciklama": "Klasik Renault Alpine A310 V6 kapı açma düğmesi için kılavuz burç. Orijinal parça referans alınarak üretilmiştir.\nYaklaşık dış ölçüler: 33 × 33 × 7 mm.",
@@ -572045,7 +572054,8 @@
     "altkategori": "Kapı ve Cam",
     "uyum": [
       {
-        "marka": "Renault"
+        "marka": "Renault",
+        "model": "Alpine"
       }
     ]
   },

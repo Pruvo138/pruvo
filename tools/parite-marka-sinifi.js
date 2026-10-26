@@ -71,8 +71,9 @@ function urunlerYoluCoz() {
 // OLCULMEZDI (PARTI 1: yerel MINI 212 = main, CI 228 -> tik 182 "yerel tekrar 0" SAHTE YESIL).
 // Kanon DAIMA olculen KODUN index.html'iyle kurulur: `indexKok` (main referansi icin gecici kok)
 // ya da PARITE_INDEX_KOK ya da bu betigin agaci. CI'da (worktree yok) davranis DEGISMEZ.
-function markaKanonHaritasiAl(urunlerYolu, indexKok) {
-  const betik = path.join(__dirname, "marka-kanon-uret.py");
+// `aracKok`: main referansi icin main'in tools/'u (gecici kokte); yoksa bu agacin araci.
+function markaKanonHaritasiAl(urunlerYolu, indexKok, aracKok) {
+  const betik = path.join(aracKok || __dirname, "marka-kanon-uret.py");
   const kok = indexKok || process.env.PARITE_INDEX_KOK || path.join(__dirname, "..");
   const cikti = execFileSync("python3", [betik, "--urunler", urunlerYolu], {
     encoding: "utf8", maxBuffer: 64 * 1024 * 1024,
