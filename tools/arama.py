@@ -1744,6 +1744,21 @@ UYUM_MARKA_IZINLI = frozenset({
     #   tek basina marka[]'da 0 -> hicbir jeton yutulmuyor. FARK 139 SABIT.
     #   Kabul: `tools/moto-marka5-kabul-kapisi.py` (A1 + A3 + M3).
     "MV Agusta",
+    # 20. tur, C grubu (2) — BaBa tik 170/172 (25 Eki 2026): MaCiT FAZ A hasadi (`hasat_ekle`
+    #   uyum fail-closed takildi). Ikisi de TANINMIS_MARKALAR'da ZATEN var (index.html beyaz
+    #   esya / tasima satirlari); kume yalniz `uyum` evrenini acar. SINIF: EV SAHIBI —
+    #   `Beko` beyaz esya/kahve makinesi ureticisi (parca makineye TAKILIR; `Krups`/`DeLonghi`
+    #   C grubu emsali) · `Thule` tavan/bisiklet tasiyici sistemi ureticisi (adaptor, takoz,
+    #   uc kapagi TASIYICIYA takilir; `GoPro` aparat emsali).
+    #   OLCULEN katalog agirligi (40.919 urun; TAM yazim):
+    #     `Beko`  — marka[] 2 · uyum[].marka 0 · baslik 1 (`kahve-beko-espresso-makinesi-ek-su-
+    #       haznesi-6545293`, `kahve-makinesi-disli-seti`).
+    #     `Thule` — marka[] 3 · uyum[].marka 0 · baslik 16 (`thule-ve-citroen-uyumlu-portbagaj-
+    #       anahtar`, `bisiklet-thule-squarebar-uc-kapagi` ...).
+    #   Yazim varyanti (BEKO/THULE/...) katalogda 0 -> uyum B4 capasi KAYMAZ (olculdu, jq).
+    #   Iki jeton arama.py'nin baska hicbir kumesinde YOK (buyuk/kucuk duyarsiz). FARK 139 SABIT.
+    #   Kabul: `tools/ev-marka-kabul-kapisi.py` (A1-A4 + KONTROL + M1/M2/KONTROL-MUTANT).
+    "Beko", "Thule",
 })
 
 # 🔴 ONERI DISINDAN, MIMAR ONAYIYLA eklenen jetonlar. AYRI tutulmalari SART: budama
@@ -1836,6 +1851,9 @@ UYUM_MARKA_MIMAR_EKI = frozenset({
     # 19. tur (25 Eki 2026) — 18. turun ayna bekleyen besinci jetonu. Gerekce UYUM_MARKA_IZINLI'nin
     # "A grubu" 19. tur basliginda yazili. TEKRAR EDILMEZ.
     "MV Agusta",
+    # 20. tur (25 Eki 2026) — BaBa tik 170/172, MaCiT FAZ A. Gerekce + olculen katalog agirligi
+    # UYUM_MARKA_IZINLI'nin "C grubu" 20. tur basliginda yazili. TEKRAR EDILMEZ.
+    "Beko", "Thule",
 })
 
 # 🔴 REDDEDILEN ADAYLAR (2 Agu, mimar karari) — kayda geciyor ki bir sonraki tur ayni
