@@ -110,8 +110,14 @@ console.log("  kaynak: " + INDEX + " (satir " + (bas + 1) + "-" + (son + 1) + ")
 function urun(o) { return Object.assign({ marka: [], baslik: "", aciklama: "" }, o); }
 
 // A. BAŞLIK KOLU — üyelik YOK, başlıkta tam kelime VAR → EŞLEŞİR
-kontrol("A1 uyeliksiz ama baslikta tam kelime → eslesir (Rover 0/82 sinifi)",
-  esler(urun({ baslik: "Rover 75 Bagaj Kilit Kolu" }), katla("Rover")) === true);
+kontrol("A1 uyeliksiz ama baslikta tam kelime → eslesir (Rover 0/82 sinifi; Rover artik kapali → Volvo)",
+  esler(urun({ baslik: "Volvo 240 Bagaj Kilit Kolu" }), katla("Volvo")) === true);
+// HOMONİM (BASLIK_KOLU_KAPALI, 26 Eki 2026): kapalı listedeki marka başlıktan EŞLEŞMEZ,
+// üyelikten EŞLEŞİR — iki yön birlikte (kol tümden sönmüş olmasın).
+kontrol("A1H homonim: uyeliksiz 'Rover 75 ...' basligi Rover sorgusunda ESLESMEZ",
+  esler(urun({ baslik: "Rover 75 Bagaj Kilit Kolu" }), katla("Rover")) === false);
+kontrol("A1U homonim: marka[] Rover olan urun Rover sorgusunda ESLESIR",
+  esler(urun({ marka: ["Rover"], baslik: "75 Bagaj Kilit Kolu" }), katla("Rover")) === true);
 kontrol("A2 uyeliksiz, baslikta ALT-DIZE (tam kelime DEGIL) → eslesMEZ",
   esler(urun({ baslik: "Roverline muhafaza plakasi" }), katla("Rover")) === false);
 kontrol("A3 baslik kolu cip evreni markasinda da calisir (Sierra)",

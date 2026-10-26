@@ -370,11 +370,19 @@ ok(ikizKaldi.length === 0, "İKİZ PARİTE: index.html ↔ tools/arama.py marka 
 const lrTek = baslikMarkalari({baslik: "Land Rover Defender Kapı Kolu Kapağı"});
 ok(lrTek.indexOf("Land Rover") !== -1 && lrTek.indexOf("Rover") === -1,
    "uzun-önce: 'Land Rover Defender ...' → " + JSON.stringify(lrTek) + " (Rover ÜRETİLMEZ)");
-// KONTROL (iddia edilmeyen eksen): 'Land' öneki YOKKEN tekil Rover DOĞMALI — kural
-// "Rover'ı hep ez" değil, "uzun eşleşmeyi bölme"dir.
+// HOMONİM (BASLIK_KOLU_KAPALI, 26 Eki 2026): Rover kapalı listede — 'Land' öneki YOKKEN de
+// tekil Rover başlıktan DOĞMAZ (Range Rover = Land Rover sızıntısı). Mini aynı sınıf.
 const rvTek = baslikMarkalari({baslik: "Rover 75 Torpido Klipsi"});
-ok(rvTek.indexOf("Rover") !== -1,
-   "uzun-önce KONTROL: 'Rover 75 ...' → " + JSON.stringify(rvTek) + " (Rover DOĞAR)");
+ok(rvTek.indexOf("Rover") === -1,
+   "homonim kapalı: 'Rover 75 ...' → " + JSON.stringify(rvTek) + " (Rover DOĞMAZ)");
+const mnTek = baslikMarkalari({baslik: "iPad Mini 6 Masa Standı"});
+ok(mnTek.indexOf("Mini") === -1,
+   "homonim kapalı: 'iPad Mini ...' → " + JSON.stringify(mnTek) + " (Mini DOĞMAZ)");
+// KONTROL (iddia edilmeyen eksen): kapalı OLMAYAN tekil marka aynı kalıpta DOĞAR — kural
+// "kısa adı hep ez" değil, "uzun eşleşmeyi bölme" + açık homonim listesidir.
+const vvTek = baslikMarkalari({baslik: "Volvo 240 Torpido Klipsi"});
+ok(vvTek.indexOf("Volvo") !== -1,
+   "uzun-önce KONTROL: 'Volvo 240 ...' → " + JSON.stringify(vvTek) + " (Volvo DOĞAR)");
 // Çok kelimeli marka bölünmüyor + önek katlaması METİNDE çalışmıyor (jeton yutulmaz).
 const abTek = baslikMarkalari({baslik: "Alfa Romeo 156 Vites Topuzu"});
 ok(abTek.indexOf("Alfa Romeo") !== -1, "çok kelimeli marka bütün: " + JSON.stringify(abTek));

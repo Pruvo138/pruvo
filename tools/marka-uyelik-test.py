@@ -271,13 +271,30 @@ _K216_IKINCI = {"id": "k216-ikinci-marka-sentetik", "marka": ["Land Rover"],
                 "kategori": "Otomobil", "baslik": "Land Rover Bosch Sensor Tutucusu"}
 
 
-def _k216(p):
-    return mm.baslik_uyelikleri(p, EVREN, AD_KANONU, AZAMI_AD, _ek_markalar)
+# 🔴 K216 JETONLAMA SEMANTİĞİ, HOMONİM LİSTESİNDEN BAĞIMSIZ ölçülür (26 Eki 2026): Rover artık
+# BASLIK_KOLU_KAPALI'da; gerçek evrende "Rover" hiç eklenmediği için tüketim kuralı (uzun-önce,
+# tüketim ≠ ekleme) Land Rover/Rover çiftinde GÖZLENEMEZ olurdu ve K216 mutantı sahte yaşardı.
+# O yüzden K216 iddiaları kapalı listesi BOŞ bir evrende koşar; gerçek evrenin kapalı listesi
+# aşağıda AYRI iddia (HOMONİM) olarak ölçülür.
+_KAPALI_SATIR = re.compile(r'^(\s*var BASLIK_KOLU_KAPALI = )\[[^\n]*\];$', re.MULTILINE)
+if len(_KAPALI_SATIR.findall(INDEX_HTML)) != 1:
+    olculemedi("index.html BASLIK_KOLU_KAPALI satırı tek değil — K216 açık evreni kurulamaz")
+INDEX_HTML_ACIK = _KAPALI_SATIR.sub(r"\1[];", INDEX_HTML)
+EVREN_ACIK = mm.MarkaEvreni(INDEX_HTML_ACIK)
+
+
+def _k216(p, evren=EVREN_ACIK):
+    return mm.baslik_uyelikleri(p, evren, AD_KANONU, AZAMI_AD, _ek_markalar)
 
 
 _k216_uzun = _k216(_K216_UZUN)
 _k216_kisa = _k216(_K216_KISA)
 _k216_ikinci = _k216(_K216_IKINCI)
+_homonim_kisa = _k216(_K216_KISA, EVREN)
+kontrol("HOMONİM (BASLIK_KOLU_KAPALI): gerçek evrende 'Rover 75 ...' başlığı 'Rover' ÜRETMEZ "
+        "(kapalı listede; açık evrende üretmesi aşağıda ayrıca ölçülür)", _homonim_kisa == [])
+kontrol("HOMONİM listesi gerçek evrende tam 4 marka (Mini · Rover · Alpine · Sigma)",
+        EVREN.baslik_kapali == frozenset({"Mini", "Rover", "Alpine", "Sigma"}))
 BILGI.append("K216 sentetik: uzun=%r kısa=%r ikinci=%r" % (_k216_uzun, _k216_kisa, _k216_ikinci))
 kontrol("K216 UZUN-ÖNCE: marka=[Land Rover] + 'Land Rover ...' başlığı tekil 'Rover' ÜRETMEZ "
         "(üye uzun eşleşme de jetonları TÜKETİR)", "Rover" not in _k216_uzun)
@@ -602,7 +619,39 @@ kontrol("NEG: sayfası olan hiçbir marka BOŞ değil (boş: %d)" % len(bos), no
 # Yani yukarıdaki blok mutasyona KÖRDÜR — tek başına bırakılsaydı uzun-önce kolunu bozan
 # bir mutant yeşil geçebilirdi ([[isci-yesil-tablo-ic-olcumu-bosaltir]]). Bu blok ÖZNENİN
 # ÜRETTİĞİ SAYFAYI ölçer, dolayısıyla mutant bataryasının HEDEF KOL ATFI buradan gelir.
-_ssr_rover = MARKA_URUNLERI.get("Rover", set())
+# 🔴 HOMONİM (26 Eki 2026): gerçek evrende Rover BASLIK_KOLU_KAPALI'da → üretilen /marka/rover/
+# kovasına başlıktan hiçbir şey giremez, uzun-önce deliği (K216 mutantları) bu kovada GÖZLENEMEZ
+# olurdu. O yüzden ÖZNE (mm_uret) bir kez de kapalı listesi BOŞ index.html ile koşar; K216 SSR
+# iddiaları o kovayı ölçer. Gerçek evrenin Rover kovası ayrıca HOMONİM iddiasıyla ölçülür.
+_TMP_ACIK = tempfile.mkdtemp(prefix="marka-uyelik-acik-")
+try:
+    _ctx_acik = build.marka_model_ctx()
+    _ctx_acik["ROOT"] = _TMP_ACIK
+    with open(os.path.join(_TMP_ACIK, "index.html"), "w", encoding="utf-8") as f:
+        f.write(INDEX_HTML_ACIK)
+    try:
+        _sonuc_acik = mm_uret.uret(PRODUCTS, _ctx_acik)
+    except Exception as e:                                    # noqa: BLE001
+        olculemedi("marka_model_build.uret (açık evren) çöktü: %r" % (e,))
+    _rover_slug = mm._slug("Rover")
+    _ssr_rover = set()
+    for _loc, _a, _b in _sonuc_acik["sitemap"]:
+        _u = _loc[len(_ctx_acik["SITE"]):]
+        _par = _u.strip("/").split("/")
+        if len(_par) >= 2 and _par[0] == "marka" and _par[1] == _rover_slug:
+            _yol = os.path.join(_TMP_ACIK, *_par, "index.html")
+            if os.path.isfile(_yol):
+                with open(_yol, encoding="utf-8") as fh:
+                    for _kat, _href in KART_RE.findall(fh.read()):
+                        _m = ID_RE.search(_href)
+                        if _m:
+                            _ssr_rover.add(_m.group(1))
+finally:
+    shutil.rmtree(_TMP_ACIK, ignore_errors=True)
+_gercek_rover = MARKA_URUNLERI.get("Rover", set())
+kontrol("HOMONİM SSR: gerçek evrende üretilen /marka/rover/ kümesi = Rover marka[] üyeleri "
+        "(başlıktan giren 0; küme %d · üye %d)" % (len(_gercek_rover), len(_ROVER_UYE)),
+        _gercek_rover == set(_ROVER_UYE))
 _ssr_lr_sizan = sorted(i for i in _ssr_rover if i in _LR_UYE)
 _ssr_mekanizma = [i for i in _ssr_lr_sizan if i not in _RR_BASLIK]
 _ssr_rover_kalan = sorted(i for i in _ROVER_UYE if i in _ssr_rover)
