@@ -139,7 +139,13 @@ function kodSenkronMu({ sinif, anaSinif, bekIds, bekAnaIds, kanonDal, kanonAna, 
     const simetrik = [...a].filter((id) => !b.has(id)).concat([...b].filter((id) => !a.has(id)));
     return simetrik.every((id) => farkUrunuMu(id, F));
   }
-  return F.has(kanonDal) || F.has(kanonAna) || Fb.has(kanonDal) || Fb.has(kanonAna);
+  if (F.has(kanonDal) || F.has(kanonAna)) return true;
+  if (!(Fb.has(kanonDal) || Fb.has(kanonAna))) return false;
+  // Baslik kolu serbest metinde de URUN duzeyinde dar (BaBa tik 214b sart 1): simetrik farkin
+  // HER urunu Fb markasini main kanonunda tasiyip dalda kaybetmis olmali (dal ⊆ main).
+  if (typeof farkUrunuMu !== "function") return false;                    // fail-closed
+  const simetrik = [...a].filter((id) => !b.has(id)).concat([...b].filter((id) => !a.has(id)));
+  return simetrik.every((id) => farkUrunuMu(id, F));
 }
 
 /** SAF. Urun fark markasina mi ait? TANINMIS kolu: p.marka[] ya da dal kanonu ∩ F.
@@ -500,7 +506,7 @@ if (require.main === module) (async () => {
         if (kodSenkronMu({ sinif: k.sinif, anaSinif: kAna.sinif, bekIds, bekAnaIds,
           kanonDal: ref().aramaPlani(s.q).kanon, kanonAna: anaRef().aramaPlani(s.q).kanon,
           fark: _fark, baslikFark: _baslikFark, markaCip,
-          farkUrunuMu: markaCip ? farkUrunu() : null })) {
+          farkUrunuMu: (markaCip || _baslikFark.length) ? farkUrunu() : null })) {
           kodSenkron.push({ ...s, dal: bekIds.length, ana: bekAnaIds.length, uc: g.toplam });
           continue;
         }

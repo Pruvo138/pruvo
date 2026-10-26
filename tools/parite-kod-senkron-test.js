@@ -80,18 +80,24 @@ ona(fu("p1", FF) && fu("p2", FF) && !fu("p3", FF) && !fu("yok", FF),
   "H13 farkUrunuKur: marka[] ∩ F VE dal kanonu ∩ F kabul; fark-disi + bilinmeyen id RED");
 
 // BASLIK-KOLU EKSENI (26 Eki, BaBa tik 214b — homonim SERIT B 40318409428 Mini/Rover vakasi)
-ona(v({ fark: [], baslikFark: ["Mini", "Rover"], kanonDal: "Mini", kanonAna: "Mini" }) === true,
-  "H14 TANINMIS farki BOS, sorgu kanonu BASLIK_KOLU farkinda -> KOD-SENKRON");
-ona(v({ fark: [], baslikFark: ["Mini"], kanonDal: "Rover", kanonAna: "Rover" }) === false,
-  "H15 BASLIK_KOLU farki disi kanon -> KIRMIZI kalir (eksen genislemez)");
-ona(v({ fark: [], baslikFark: [] , kanonDal: "Mini", kanonAna: "Mini" }) === false,
-  "H15b iki fark da BOS -> sinif 0");
 const fub = P.farkUrunuKur(new Map([
   ["m1", { id: "m1", marka: ["Apple"] }], ["m2", { id: "m2", marka: ["Mini"] }],
   ["m3", { id: "m3", marka: [] }]]),
   { m1: '["Apple"]', m2: '["Mini"]', m3: '["Mini"]' },
   { m1: '["Apple","Mini"]', m2: '["Mini"]', m3: '[]' }, ["Mini"]);
 const F0 = new Set();
+const vb = (deg) => v(Object.assign({ fark: [], baslikFark: ["Mini", "Rover"], kanonDal: "Mini",
+  kanonAna: "Mini", bekIds: ["a"], bekAnaIds: ["a", "m1"], farkUrunuMu: fub }, deg));
+ona(vb({}) === true,
+  "H14 TANINMIS farki BOS, sorgu kanonu BASLIK_KOLU farkinda + fark urunu baslik kaynakli -> KOD-SENKRON");
+ona(vb({ kanonDal: "Canon", kanonAna: "Canon" }) === false,
+  "H15 BASLIK_KOLU farki disi kanon -> KIRMIZI kalir (eksen genislemez)");
+ona(vb({ baslikFark: [] }) === false, "H15b iki fark da BOS -> sinif 0");
+ona(vb({ bekAnaIds: ["a", "m1", "m3"] }) === false,
+  "H15c serbest metin: main kanonunda Mini OLMAYAN tek fark urunu sinifi KAPATIR");
+ona(vb({ bekIds: ["a", "m2"], bekAnaIds: ["a"] }) === false,
+  "H15d serbest metin: dalda FAZLA urun (dal ⊄ main) -> KIRMIZI");
+ona(vb({ farkUrunuMu: null }) === false, "H15e serbest metin baslik kolu: yuklem YOK -> fail-closed");
 ona(fub("m1", F0) && !fub("m2", F0) && !fub("m3", F0) && !fub("yok", F0),
   "H16 farkUrunuKur baslik kolu: YALNIZ main kanonu ∩ Fb kabul (marka[] / dal kanonu Fb'yi tasimaz)");
 ona(!P.farkUrunuKur(new Map([["m1", { id: "m1", marka: ["Apple"] }]]),
