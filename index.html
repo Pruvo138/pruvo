@@ -3292,6 +3292,12 @@ setTimeout(L,5000);})();
   // kelime-bölme sınıfıyla BİREBİR aynıdır.
   var MARKA_KELIME_BOL = /[^a-z0-9+À-ɏ]+/;
   var MARKA_BASLIK_AZAMI_KELIME = 3;
+  // HOMONİM MARKALAR — BAŞLIK KOLU KAPALI: bu adlar başlıkta başka bir şeyi de adlandırır
+  // (Mini = iPad mini / mini boy · Rover = Range Rover, yani Land Rover · Alpine = araç ses
+  // sistemi · Sigma = bisiklet sayacı / Subaru Sigma). Üyelik YALNIZ marka[]/uyum'dan gelir.
+  // Jeton yine TÜKETİLİR (uzun-önce sırası değişmez), yalnız sonuca eklenmez. Python ikizi
+  // (sunucu tarafındaki ikiz) BU SATIRI okur — ikinci liste yazılmaz.
+  var BASLIK_KOLU_KAPALI = ["Mini", "Rover", "Alpine", "Sigma"];
   // Başlıkta TAM KELİME geçen kanonik markalar. EN UZUN EŞLEŞME ÖNCE, sonra ilerle:
   // "Land Rover" başlığında bigram tutunca tekil "Rover" ÜRETİLMEZ (ölçüldü 5 Ağu:
   // uzun-önce kuralı olmadan 80 kalem daha doğuyor ve HEPSİ "Rover" — Land Rover ürünleri
@@ -3305,7 +3311,7 @@ setTimeout(L,5000);})();
         for(var k = ust; k >= 1; k--){
           var kan = markaAdiKanonu(kel.slice(i, i + k).join(" "));
           if(kan){
-            if(out.indexOf(kan) === -1){ out.push(kan); }
+            if(out.indexOf(kan) === -1 && BASLIK_KOLU_KAPALI.indexOf(kan) === -1){ out.push(kan); }
             vuruldu = k; break;
           }
         }

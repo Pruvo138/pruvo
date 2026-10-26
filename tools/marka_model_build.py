@@ -233,6 +233,14 @@ class MarkaEvreni:
         (self.kusak_donanim, self.kusak_disi,
          self.kusak_esleme) = model_kanon.kusak_tablolari(index_html)
         self._kusak_bellek = {}
+        # HOMONİM — BAŞLIK KOLU KAPALI markalar (BaBa tik 188). AYNI belgeden, arama.py'nin
+        # TEK ayrıştırıcısıyla (ikinci regex YAZILMAZ). Bozuksa build DURUR (sessiz boş küme
+        # = sayfa kovası homonimleri yeniden doğurur, arama ikiziyle ayrışırdı).
+        import arama                                                # noqa: PLC0415
+        try:
+            self.baslik_kapali = arama.baslik_kolu_kapali_ayikla(index_html)
+        except (ValueError, RuntimeError) as e:
+            raise SystemExit("HATA: index.html BASLIK_KOLU_KAPALI okunamadı: %s" % e)
 
     def taninmis_mi(self, m):
         return _marka_norm(m) in self._kanonik
@@ -1091,7 +1099,9 @@ def baslik_uyelikleri(urun, evren, ad_kanonu, azami_ad, ek_markalar=None):
     bw = _kelimeler(urun.get("baslik") or "")
     if not bw:
         return []
-    eklendi = set()
+    # HOMONİM (BASLIK_KOLU_KAPALI, BaBa tik 188): kapalı markalar baştan "eklendi" sayılır —
+    # jetonları aşağıda yine TÜKETİLİR (uzun-önce sırası aynı), ama sonuca hiç girmez.
+    eklendi = set(evren.baslik_kapali)
     sonuc = []
     i = 0
     while i < len(bw):

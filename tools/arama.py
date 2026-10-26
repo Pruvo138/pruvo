@@ -245,6 +245,42 @@ _MARKA_KELIME_BOL = re.compile(r"[^a-z0-9+À-ɏ]+")
 # cok kelimeli markayi TEK KELIMEYE bolerdi ("Land Rover" -> "Rover" = baska bir marque).
 MARKA_BASLIK_AZAMI_KELIME = 3
 
+# HOMONIM MARKALAR — BASLIK KOLU KAPALI (26 Eki 2026, BaBa tik 188). TEK KAYNAK index.html
+# `var BASLIK_KOLU_KAPALI = [...]` satiri; Python IKINCI LISTE YAZMAZ, o satiri okur. Bu
+# markalarda baslik jetonu yine TUKETILIR (uzun-once sirasi degismez), yalniz sonuca
+# EKLENMEZ: uyelik yalniz marka[]/uyum'dan gelir.
+_BASLIK_KOLU_KAPALI_RE = re.compile(r'^\s*var BASLIK_KOLU_KAPALI = (\[[^\n]*\]);$', re.MULTILINE)
+_BASLIK_KOLU_KAPALI = None
+
+
+def baslik_kolu_kapali_ayikla(index_metni):
+    """index.html METNINDEN kapali listeyi ayikla -> frozenset. Bozuksa RuntimeError.
+
+    Tek ayristirici: marka_model_build.MarkaEvreni de (kendi okudugu index.html metniyle)
+    bunu cagirir — iki govde ayni literali iki ayri regex'le okumaz."""
+    bul = _BASLIK_KOLU_KAPALI_RE.findall(index_metni or "")
+    if len(bul) != 1:
+        raise RuntimeError("index.html BASLIK_KOLU_KAPALI tek kanonik literal olmali (%d bulundu)"
+                           % len(bul))
+    deger = json.loads(bul[0])
+    if not isinstance(deger, list) or not all(isinstance(x, str) and x for x in deger):
+        raise RuntimeError("index.html BASLIK_KOLU_KAPALI bos olmayan dizge listesi olmali")
+    return frozenset(deger)
+
+
+def baslik_kolu_kapali():
+    """Varsayilan index.html'den (bu modulun deposu) bir kez yukle. FAIL-CLOSED YUKSEK SESLE:
+    okunamazsa SystemExit — sessizce bos kume donseydi Python ikizi homonim markalari
+    basliktan yeniden uretir, JS ile AYRISIRDI ([[ikiz-tanim-sessiz-ayrisma]])."""
+    global _BASLIK_KOLU_KAPALI
+    if _BASLIK_KOLU_KAPALI is None:
+        try:
+            with open(_INDEX_YOLU, encoding="utf-8") as f:
+                _BASLIK_KOLU_KAPALI = baslik_kolu_kapali_ayikla(f.read())
+        except (OSError, UnicodeError, ValueError, RuntimeError) as e:
+            raise SystemExit("HATA: BASLIK_KOLU_KAPALI okunamadi (%s): %s" % (_INDEX_YOLU, e))
+    return _BASLIK_KOLU_KAPALI
+
 
 def marka_sorgu_kanonu(q, kanon):
     """Sorgunun TAMAMI bir markanin adi mi? -> kanonik ad | None.
@@ -265,6 +301,7 @@ def baslik_marka_uyumlari(baslik, kanon):
     tekrar tekilleslir.
     """
     kel = [w for w in _MARKA_KELIME_BOL.split(norm(baslik or "")) if w]
+    kapali = baslik_kolu_kapali()
     uyumlar = []
     i, n = 0, len(kel)
     while i < n:
@@ -272,7 +309,7 @@ def baslik_marka_uyumlari(baslik, kanon):
         for k in range(min(MARKA_BASLIK_AZAMI_KELIME, n - i), 0, -1):
             kan = kanon(" ".join(kel[i:i + k]))
             if kan:
-                if kan not in uyumlar:
+                if kan not in uyumlar and kan not in kapali:
                     uyumlar.append(kan)
                 vuruldu = k
                 break
@@ -1759,6 +1796,17 @@ UYUM_MARKA_IZINLI = frozenset({
     #   Iki jeton arama.py'nin baska hicbir kumesinde YOK (buyuk/kucuk duyarsiz). FARK 139 SABIT.
     #   Kabul: `tools/ev-marka-kabul-kapisi.py` (A1-A4 + KONTROL + M1/M2/KONTROL-MUTANT).
     "Beko", "Thule",
+    # 21. tur (2) — BaBa tik 201 (C) / 201b (26 Eki 2026): MaCiT hasadi (Lada 7 urun + NIU 12
+    #   urun bekliyor; `hasat_ekle` uyum fail-closed takildi). SINIF: ARAC URETICISI — `Lada`
+    #   otomobil markasi (TANINMIS_MARKALAR'da ZATEN var, sayfa evreninde) · `NIU` elektrikli
+    #   scooter/motosiklet ureticisi (TANINMIS'te YOK; veri inince sayfa/taban yargisi ayrica).
+    #   OLCULEN katalog agirligi (40.925 urun; TAM yazim):
+    #     `Lada` — marka[] 1 · uyum[].marka 0 · baslik 1 (`lada-largus-dacia-ve-renault-...`).
+    #     `NIU`  — marka[] 0 · uyum[].marka 0 · baslik 0 (veri MaCiT'te, sozluk inince gelir).
+    #   Yazim varyanti (LADA/lada/Niu/niu) katalogda 0 -> uyum B4 capasi KAYMAZ (olculdu, jq).
+    #   Iki jeton arama.py'nin baska hicbir kumesinde YOK (buyuk/kucuk duyarsiz). FARK 139 SABIT.
+    #   Kabul: `tools/sozluk21-marka-kabul-kapisi.py` (A1-A4 + KONTROL + M1/M2/KONTROL-MUTANT).
+    "Lada", "NIU",
 })
 
 # 🔴 ONERI DISINDAN, MIMAR ONAYIYLA eklenen jetonlar. AYRI tutulmalari SART: budama
@@ -1854,6 +1902,9 @@ UYUM_MARKA_MIMAR_EKI = frozenset({
     # 20. tur (25 Eki 2026) — BaBa tik 170/172, MaCiT FAZ A. Gerekce + olculen katalog agirligi
     # UYUM_MARKA_IZINLI'nin "C grubu" 20. tur basliginda yazili. TEKRAR EDILMEZ.
     "Beko", "Thule",
+    # 21. tur (26 Eki 2026) — BaBa tik 201 (C), MaCiT hasadi. Gerekce + olculen katalog agirligi
+    # UYUM_MARKA_IZINLI'nin 21. tur basliginda yazili. TEKRAR EDILMEZ.
+    "Lada", "NIU",
 })
 
 # 🔴 REDDEDILEN ADAYLAR (2 Agu, mimar karari) — kayda geciyor ki bir sonraki tur ayni

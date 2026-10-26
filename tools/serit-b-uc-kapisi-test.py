@@ -9,7 +9,7 @@ kosulur — taban kirmiziysa her mutant "oldu" gorunurdu.
 Vakalar: V1 esit+success -> ESIT rc0 · V2 bayat sha -> RED bayat-sha · V3 surmekte ·
 V4 baska dal · V5 gh hatasi -> OLCULEMEDI rc2 · V6 is akisi farkli · V7 basarisiz ·
 V8 git hatasi -> OLCULEMEDI · V9 bayat+cancelled (10 Eki vakasi) -> bayat-sha.
-Parite satiri (ikinci satir): V10 GECTI · V11 yayin-kuyrugu borcu · V12 jeton yok ·
+Parite satiri (ikinci satir): V10 GECTI · V11 yayin-kuyrugu borcu · V12 jeton yok · V15/V16 fikstur etiketi hukum DEGIL ·
 V13 log okunamadi · V14 hijyen-a3 isi yok -> hepsi rc 0, GECTI disi BORC.
 Mutantlar: M1 sha karsilastirmasi kalkar -> V2 yesil · M2 OLCULEMEDI rc 0 -> V5 ·
 M3 borc GECTI'ye cevrilir -> V11 · M4 okunamayan log GECTI -> V13.
@@ -44,6 +44,11 @@ sys.stdout.write(os.environ["SAHTE_GH_JSON"])
 """
 LOG_GECTI = "2026-10-21T18:41:08Z   ✅ TEST 5 — parite\n2026-10-21T18:41:08Z PARITE_TEST5=GECTI\n"
 LOG_KUYRUK = "2026-10-21T18:41:08Z PARITE_TEST5=OLCULEMEDI sebep=yayin-kuyrugu\n"
+# Ayni job'daki fikstur adiminin ETIKET satirlari (SERIT B 40245275387'de birebir boyle):
+LOG_FIKSTUR = ("2026-10-25T23:59:21Z   ✅ yayin kuyrugu jetonu: PARITE_TEST5=OLCULEMEDI "
+               "sebep=yayin-kuyrugu\r\n2026-10-25T23:59:21Z   ✅ kod-senkron jetonu: "
+               "PARITE_TEST5=OLCULEMEDI sebep=kod-senkron\r\n")
+LOG_KOD_SENKRON = "2026-10-25T23:58:00Z PARITE_TEST5=OLCULEMEDI sebep=kod-senkron\r\n"
 BORC = "SERIT_PARITE=OLCULEMEDI sebep=%s kapanis=deploy-nobeti"
 SAHTE_GIT = """import os, sys
 if os.environ.get("SAHTE_GIT_RC", "0") != "0":
@@ -108,6 +113,11 @@ def vakalar(ad):
         ("V14", {"SAHTE_GH_JSON": kosum(ad), "SAHTE_GH_LOG": LOG_GECTI,
                  "SAHTE_GH_JOBS": '{"jobs":[{"name":"hijyen-a2","databaseId":76}]}'}, 0,
          f"SERIT_UC=ESIT run={RUN} sha={UC[:12]}", BORC % "log-okunamadi"),
+        # V15/V16 (26 Eki): fikstur ETIKETI hukum DEGILDIR — yalniz kendi satirindaki jeton.
+        ("V15", {"SAHTE_GH_JSON": kosum(ad), "SAHTE_GH_LOG": LOG_GECTI + LOG_FIKSTUR}, 0,
+         f"SERIT_UC=ESIT run={RUN} sha={UC[:12]}", "SERIT_PARITE=GECTI"),
+        ("V16", {"SAHTE_GH_JSON": kosum(ad), "SAHTE_GH_LOG": LOG_KOD_SENKRON + LOG_FIKSTUR}, 0,
+         f"SERIT_UC=ESIT run={RUN} sha={UC[:12]}", BORC % "kod-senkron"),
     ]
 
 
@@ -156,6 +166,10 @@ MUTANTLAR = [
      ('if all(h == "GECTI" for h, _ in jetonlar):', "if True:"), "V11"),
     ("M4", "okunamayan log GECTI sayildi",
      ('        return borc % "log-okunamadi"', '        return "SERIT_PARITE=GECTI"'), "V13"),
+    # Satir sabiti kalkarsa fikstur etiketi GERCEK GECTI'yi borca cevirir (40245275387 vakasi).
+    ("M5", "jeton satira sabitli degil",
+     ('PARITE_JETON = re.compile(r"^(?:\\S+ )?PARITE_TEST5=', 'PARITE_JETON = re.compile(r"PARITE_TEST5='),
+     "V15"),
 ]
 
 

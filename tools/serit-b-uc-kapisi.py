@@ -80,7 +80,13 @@ def kos(argv):
 
 
 PARITE_JOB = "hijyen-a3"
-PARITE_JETON = re.compile(r"PARITE_TEST5=(GECTI|KIRMIZI|OLCULEMEDI)(?: sebep=([a-z0-9-]+))?")
+# 🔴 SATIRA SABITLI (26 Eki 2026, KraL halef-62 — OLCULDU, SERIT B 40245275387): ayni job'daki
+# "KOD-SENKRON kabul" adimi (`filament-test.py --parite-eslem-testi`) fikstur ETIKETI olarak
+# `... jetonu: PARITE_TEST5=OLCULEMEDI sebep=yayin-kuyrugu` basar. Sabitsiz findall o etiketi
+# GERCEK TEST 5 hukmu sandi: TEST 5 `PARITE_TEST5=GECTI` iken uc kapisi "yayin-kuyrugu borcu"
+# dedi. Jeton yalniz KENDI satirinda sayilir: [zaman damgasi + bosluk] + jeton + satir sonu.
+PARITE_JETON = re.compile(r"^(?:\S+ )?PARITE_TEST5=(GECTI|KIRMIZI|OLCULEMEDI)"
+                          r"(?: sebep=([a-z0-9-]+))?[^\S\n]*$", re.M)
 
 
 def parite_satiri(run_id):
