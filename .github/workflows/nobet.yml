@@ -4385,6 +4385,12 @@ jobs:
       - name: Marka sayfasi dogum testi (TANINMIS marka sayfasi uretilir + mutant)
         if: ${{ !cancelled() }}
         run: python3 tools/marka-sayfa-dogum-test.py
+      # TANINMIS ESIK MANDALI (25 Eki 2026, BaBa tik 159 ③): katalogda >= ESIK urunu olup
+      # marka sayfasi DOGMAYAN marka TABAN'da degilse KIRMIZI (MV Agusta 404 vakasi yayindan
+      # sonra elle bulunmustu); TABAN'daki ad artik ACIK degilse "taban bayat" KIRMIZI.
+      - name: TANINMIS esik mandali (sayfasiz esik-ustu marka + oz-temizlik + 2 mutant)
+        if: ${{ !cancelled() }}
+        run: python3 tools/taninmis-esik-kapisi.py
 
       # MARKA INVARYANTI (Okan hukmu): "TUM markalarda sayfa ve arama urun adetlerinin
       # AYNI olmasi." Tek tek yama degil, INVARYANT. OLCULEN SESSIZ HATA (4 Agu): uctaki
@@ -5097,6 +5103,14 @@ jobs:
         # `PARITE_TEST5=...` tools/serit-b-uc-kapisi.py'ce okunur; GECTI disi = parite
         # borcu, deploy nobetinde kapanir (merge-kapisi §5). PARITE_YAYIN_BEKLE_SN VERILMEZ.
         run: python3 tools/filament-test.py
+      # KOD-SENKRON KOLU (25 Eki 2026, KraL halef-61): TEST 5'in `sebep=kod-senkron` borcunu
+      # doguran sinifin kabulu (saf hukum H1-H5 + origin/main referansi G1-G4, AGSIZ).
+      # Bu job'da kosar cunku origin/main ancak `fetch-depth: 0` checkout'ta vardir.
+      - name: Parite KOD-SENKRON sinifi kabul (uc main evreninde, dal ileride; AGSIZ)
+        if: ${{ !cancelled() }}
+        run: |
+          node tools/parite-kod-senkron-test.js
+          python3 tools/filament-test.py --parite-eslem-testi
       - name: SERIT B katalog aynasi GERI (urunler.json HEAD haline)
         if: ${{ always() }}
         run: python3 tools/serit-b-katalog-aynasi.py --geri

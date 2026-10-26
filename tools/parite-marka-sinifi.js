@@ -65,12 +65,35 @@ function urunlerYoluCoz() {
 // Tasimayan kod kapsam yanilsamasidir. Yol duzeltmesi (asagidaki `urunlerYoluCoz`)
 // maliyeti zaten kokunden dusuruyor: fikstur artik 20 bin urunluk uretim katalogunu
 // DEGIL, kendi sentetik katalogunu cozuyor.
-function markaKanonHaritasiAl(urunlerYolu) {
+// 🔴 INDEX KOKU (26 Eki 2026, KraL halef-62 — OLCULDU): marka_kanon index.html TANINMIS
+// evreninden turer, ama d1-sync.py index.html'i VERI kokunden (veri_kok.py) okur; worktree'den
+// kosulunca o kok ANA checkout'tur -> dalin index.html degisikligi marka-cip ekseninde HIC
+// OLCULMEZDI (PARTI 1: yerel MINI 212 = main, CI 228 -> tik 182 "yerel tekrar 0" SAHTE YESIL).
+// Kanon DAIMA olculen KODUN index.html'iyle kurulur: `indexKok` (main referansi icin gecici kok)
+// ya da PARITE_INDEX_KOK ya da bu betigin agaci. CI'da (worktree yok) davranis DEGISMEZ.
+function markaKanonHaritasiAl(urunlerYolu, indexKok) {
   const betik = path.join(__dirname, "marka-kanon-uret.py");
+  const kok = indexKok || process.env.PARITE_INDEX_KOK || path.join(__dirname, "..");
   const cikti = execFileSync("python3", [betik, "--urunler", urunlerYolu], {
     encoding: "utf8", maxBuffer: 64 * 1024 * 1024,
+    env: Object.assign({}, process.env, { PRUVO_VERI_KOK: kok }),
+    stdio: ["ignore", "pipe", "pipe"],
   });
   return JSON.parse(cikti);
+}
+
+/** Uc yuklemi: p.marka ∋ HAM(v) OR p.marka_kanon ∋ katla(v). R = site referansi (dal ya da
+ * main), markaKanon = AYNI index.html'den turemis kanon haritasi (ikisi ayni evrenden). */
+function uyeMiKur(R, markaKanon) {
+  return (p, deger) => {
+    const ham = deger;
+    const markaDizisi = (p && p.marka) || [];
+    if (markaDizisi.indexOf(ham) !== -1) return true;
+    const kanon = R.markaKatla(ham);
+    const mk = markaKanon[p && p.id];
+    if (!mk) return false;
+    try { return JSON.parse(mk).indexOf(kanon) !== -1; } catch (_) { return false; }
+  };
 }
 
 /**
@@ -161,15 +184,7 @@ function markaSinifi(urunler) {
     // Uc yuklemi: p.marka ∋ HAM(v) OR p.marka_kanon ∋ katla(v).
     // marka_kanon D1 uretim govdesi (d1-sync.py:1302) tarafindan doldurulur;
     // yerel model AYNI govdeden beslenir — ikiz tanim / ikinci kopya YOK.
-    uyeMi: (p, deger) => {
-      const ham = deger;
-      const markaDizisi = (p && p.marka) || [];
-      if (markaDizisi.indexOf(ham) !== -1) return true;
-      const kanon = R.markaKatla(ham);
-      const mk = markaKanon[p && p.id];
-      if (!mk) return false;
-      try { return JSON.parse(mk).indexOf(kanon) !== -1; } catch (_) { return false; }
-    },
+    uyeMi: uyeMiKur(R, markaKanon),
   };
   yolBellegi.set(yol, sonuc);
   return sonuc;
@@ -198,4 +213,4 @@ function cekirdekSorgular(urunler, yuzey) {
 }
 
 module.exports = { markaSinifi, cekirdekSorgular, KONTROL_CAPALARI, KONTROL_ASGARI,
-  SinifHatasi };
+  SinifHatasi, markaKanonHaritasiAl, uyeMiKur };

@@ -33,7 +33,13 @@ import tempfile
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TOOLS = os.path.join(KOK, "tools")
 HEDEFLER = [("Mondial", "mondial"), ("Zontes", "zontes"), ("Keeway", "keeway"),
-            ("Bajaj", "bajaj"), ("SYM", "sym"), ("MV Agusta", "mv-agusta")]
+            ("Bajaj", "bajaj"), ("SYM", "sym"), ("MV Agusta", "mv-agusta"),
+            # TANINMIS PARTI 1 (25 Eki)
+            ("Olympus", "olympus"), ("Pentax", "pentax"), ("Blackmagic", "blackmagic"),
+            ("Leica", "leica"), ("Insta360", "insta360"), ("SsangYong", "ssangyong"),
+            ("BYD", "byd"),
+            # Indian (25 Eki; MaCiT `009065d8` kanon `Indian`, 14 urun)
+            ("Indian", "indian")]
 KART_RE = re.compile(r'<div class="card" data-kat="[^"]*"><a class="card-main" href="([^"]+)"')
 ID_RE = re.compile(r"/urun/([^/]+)/")
 
