@@ -271,13 +271,29 @@ _K216_IKINCI = {"id": "k216-ikinci-marka-sentetik", "marka": ["Land Rover"],
                 "kategori": "Otomobil", "baslik": "Land Rover Bosch Sensor Tutucusu"}
 
 
-def _k216(p):
-    return mm.baslik_uyelikleri(p, EVREN, AD_KANONU, AZAMI_AD, _ek_markalar)
+# 🔴 K216 JETONLAMA SEMANTİĞİ, HOMONİM LİSTESİNDEN BAĞIMSIZ ölçülür (26 Eki 2026): Rover artık
+# BASLIK_KOLU_KAPALI'da; gerçek evrende "Rover" hiç eklenmediği için tüketim kuralı (uzun-önce,
+# tüketim ≠ ekleme) Land Rover/Rover çiftinde GÖZLENEMEZ olurdu ve K216 mutantı sahte yaşardı.
+# O yüzden K216 iddiaları kapalı listesi BOŞ bir evrende koşar; gerçek evrenin kapalı listesi
+# aşağıda AYRI iddia (HOMONİM) olarak ölçülür.
+_KAPALI_SATIR = re.compile(r'^(\s*var BASLIK_KOLU_KAPALI = )\[[^\n]*\];$', re.MULTILINE)
+if len(_KAPALI_SATIR.findall(INDEX_HTML)) != 1:
+    olculemedi("index.html BASLIK_KOLU_KAPALI satırı tek değil — K216 açık evreni kurulamaz")
+EVREN_ACIK = mm.MarkaEvreni(_KAPALI_SATIR.sub(r"\1[];", INDEX_HTML))
+
+
+def _k216(p, evren=EVREN_ACIK):
+    return mm.baslik_uyelikleri(p, evren, AD_KANONU, AZAMI_AD, _ek_markalar)
 
 
 _k216_uzun = _k216(_K216_UZUN)
 _k216_kisa = _k216(_K216_KISA)
 _k216_ikinci = _k216(_K216_IKINCI)
+_homonim_kisa = _k216(_K216_KISA, EVREN)
+kontrol("HOMONİM (BASLIK_KOLU_KAPALI): gerçek evrende 'Rover 75 ...' başlığı 'Rover' ÜRETMEZ "
+        "(kapalı listede; açık evrende üretmesi aşağıda ayrıca ölçülür)", _homonim_kisa == [])
+kontrol("HOMONİM listesi gerçek evrende tam 4 marka (Mini · Rover · Alpine · Sigma)",
+        EVREN.baslik_kapali == frozenset({"Mini", "Rover", "Alpine", "Sigma"}))
 BILGI.append("K216 sentetik: uzun=%r kısa=%r ikinci=%r" % (_k216_uzun, _k216_kisa, _k216_ikinci))
 kontrol("K216 UZUN-ÖNCE: marka=[Land Rover] + 'Land Rover ...' başlığı tekil 'Rover' ÜRETMEZ "
         "(üye uzun eşleşme de jetonları TÜKETİR)", "Rover" not in _k216_uzun)

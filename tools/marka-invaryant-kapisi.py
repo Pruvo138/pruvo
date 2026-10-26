@@ -146,8 +146,10 @@ UYUM_CAPA_ASGARI = 3     # CIVILI TABAN: bu sayidan az capa OLCULDUYSE iddia YOK
 BASLIK_FIKSTURLERI = [
     ("Land Rover Defender Kapi Kolu Kapagi", ["Land Rover"], ["Rover"],
      "UZUN-ONCE: bigram tutunca tekil 'Rover' URETILMEZ (farkli marque)"),
-    ("Rover 75 Torpido Klipsi", ["Rover"], [],
-     "KONTROL: 'Land' oneki YOKKEN tekil Rover DOGAR (kural 'Rover'i hep ezmek degil)"),
+    ("Rover 75 Torpido Klipsi", [], ["Rover"],
+     "HOMONIM (BASLIK_KOLU_KAPALI): 'Land' oneki YOKKEN de tekil Rover basliktan DOGMAZ"),
+    ("Volvo 240 Torpido Klipsi", ["Volvo"], [],
+     "KONTROL: kapali OLMAYAN tekil marka ayni kalipta DOGAR (kural 'kisa adi hep ez' degil)"),
     ("Sierra 18-8076 Yamaha Mercury Ortak Tip Benzin Fisi", ["Yamaha", "Mercury"], [],
      "ONEK KATLAMASI METINDE YOK: bitisik ikinci marka jetonu YUTULMAZ"),
     ("Alfa Romeo 156 Vites Topuzu", ["Alfa Romeo"], [],
