@@ -149,9 +149,10 @@ function referans() {
  * uretilir. Dal index.html'in arama semantigini degistirdiyse (or. TANINMIS'e marka
  * girdi) uc merge'e kadar ESKI evreni tasir ve parite yapisal olarak ayrisir. Bu
  * referans "uc main'in sitesiyle ayni mi" sorusunu olcer; HUKMU parite-test.js verir.
- * Doner: { ref, fark } | { hata: "<sebep>" } | { ayni: true, fark: [] }.
+ * Doner: { ref, fark, baslikFark } | { hata: "<sebep>" } | { ayni: true, fark: [], baslikFark: [] }.
  * `fark` = dal ↔ main TANINMIS_MARKALAR SIMETRIK FARKI (git'ten turer, elle liste YOK).
- * KAPSAM YALNIZ TANINMIS TURETIMI (BaBa tik 166 ⑦): fark BOSSA index.html baska yerde
+ * `baslikFark` = dal ↔ main BASLIK_KOLU_KAPALI SIMETRIK FARKI (ikinci dar eksen, tik 214b).
+ * KAPSAM YALNIZ BU IKI TURETIM (BaBa tik 166 ⑦ + 214b): IKISI DE BOSSA index.html baska yerde
  * degismis olsa bile sinif KAPALI (`ayni`) — o ayrismalar KIRMIZI kalir.
  * Cip indeksi main index.html'iyle GECICI kokte uretilir; gecici kok SILINIR (onbellek YOK).
  */
@@ -183,16 +184,37 @@ function anaReferans() {
     return _anaBellek;
   }
   const fark = taninmisFarki(referans().TANINMIS_MARKALAR, anaListe);
-  if (!fark.length) {
-    _anaBellek = { ayni: true, fark: [] };
+  // BASLIK-KOLU EKSENI (26 Eki, KraL halef-64 — BaBa tik 214b): homonim markalarin baslik
+  // jetonu kolu (`BASLIK_KOLU_KAPALI`) da D1 `marka_arama`/`marka_kanon` kolonuna Pages
+  // BUILD'inde girer -> merge'e kadar uc main'in kuralini tasir. Main literali regex'le
+  // okunur; literal YOKSA [] (kol main'de hic yok). Fark git'ten turer, elle liste YOK.
+  const bm = /var BASLIK_KOLU_KAPALI = \[([\s\S]*?)\];/.exec(src);
+  let anaBaslik = [];
+  if (bm) {
+    try { anaBaslik = vm.runInNewContext("[" + bm[1] + "]"); } catch (e) {
+      _anaBellek = { hata: hedef + " BASLIK_KOLU_KAPALI okunamadi (" + (e && e.message) + ")" };
+      return _anaBellek;
+    }
+  }
+  const baslikFark = taninmisFarki(referans().BASLIK_KOLU_KAPALI, anaBaslik);
+  if (!fark.length && !baslikFark.length) {
+    _anaBellek = { ayni: true, fark: [], baslikFark: [] };
     return _anaBellek;
   }
   const gecici = fs.mkdtempSync(path.join(os.tmpdir(), "pruvo-kod-senkron-"));
   try {
     fs.writeFileSync(path.join(gecici, "index.html"), src);
     fs.symlinkSync(path.join(kok, "urunler.json"), path.join(gecici, "urunler.json"));
+    // MAIN ARACLARI (26 Eki, halef-64 — OLCULDU): uretec DALIN tools/'undan kosunca dalin Python
+    // ikizi (arama.py) main index.html'de dalda yeni olan literali (BASLIK_KOLU_KAPALI) bulamaz
+    // ve fail-closed COKER -> referans kurulamaz. Uc kolonlarini main'in KENDI araclari uretti;
+    // referans da onlarla kurulur: main `tools/*.py` gecici koke acilir (gecici kokle silinir).
+    const arsiv = execFileSync("git", ["-C", kok, "archive", hedef, "--", ":(glob)tools/*.py"],
+      { maxBuffer: 256 * 1024 * 1024, stdio: ["ignore", "pipe", "ignore"] });
+    execFileSync("tar", ["-x", "-C", gecici], { input: arsiv, stdio: ["pipe", "ignore", "pipe"] });
+    const aracKok = path.join(gecici, "tools");
     const cikti = execFileSync("python3",
-      [path.join(kok, "tools", "cip-indeks.py"), "--kok", gecici, "--yazdir"],
+      [path.join(aracKok, "cip-indeks.py"), "--kok", gecici, "--yazdir"],
       { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
     // MARKA-CIP EKSENI (26 Eki, KraL halef-62 — BaBa tik 186 (B)(2)): uc `marka=` cevabini
     // D1 `marka_kanon` kolonundan verir; kolon da index.html TANINMIS evreninden turer. Main
@@ -200,8 +222,8 @@ function anaReferans() {
     // Tembel require: parite-marka-sinifi bu modulu yukler (dongu modul yuklenirken kurulmaz).
     const urunlerYolu = process.env.PARITE_URUNLER || path.join(kok, "urunler.json");
     const markaKanon = require("./parite-marka-sinifi.js")
-      .markaKanonHaritasiAl(urunlerYolu, gecici);
-    _anaBellek = { fark: fark, ref: Object.assign({ kok: hedef, markaKanon: markaKanon },
+      .markaKanonHaritasiAl(urunlerYolu, gecici, aracKok);
+    _anaBellek = { fark: fark, baslikFark: baslikFark, ref: Object.assign({ kok: hedef, markaKanon: markaKanon },
       kur(src, hedef + ":index.html", dogrula(JSON.parse(cikti)))) };
   } catch (e) {
     _anaBellek = { hata: "main referansi kurulamadi (" + (e && e.message) + ")" };
@@ -238,7 +260,9 @@ function kur(src, indexYolu, ix) {
     " aramaPlani: aramaPlani, aramaPlaniEsler: aramaPlaniEsler," +
     " markaKatla: markaKatla, markaUyeMi: markaUyeMi," +
     " baslikMarkalari: baslikMarkalari, markaSorgusuEsler: markaSorgusuEsler," +
-    " TANINMIS_MARKALAR: TANINMIS_MARKALAR.slice() })", ctx);
+    " TANINMIS_MARKALAR: TANINMIS_MARKALAR.slice()," +
+    " BASLIK_KOLU_KAPALI: (typeof BASLIK_KOLU_KAPALI === 'undefined' ? [] :" +
+    " BASLIK_KOLU_KAPALI.slice()) })", ctx);
   return disa;
 }
 

@@ -12,6 +12,9 @@
  *          kanonu TANINMIS simetrik farkindayken dogar. H1 her-zaman-false mutantini, H2-H7
  *          her-zaman-true / kapsam-genisletme mutantlarini OLDURUR.
  *            H6 fark BOS -> sinif 0 (sart ③) · H7 fark DISI marka -> KIRMIZI (sart ④)
+ *   H14-H17 BASLIK-KOLU EKSENI (26 Eki, BaBa tik 214b): baslikFark (dal ↔ main
+ *          BASLIK_KOLU_KAPALI) ikinci dar eksen; marka-cip'te urun Fb markasini MAIN kanonunda
+ *          tasiyip dalda KAYBETMIS olmali. G7 bagimsiz kahin (literal regex) baslikFark'i olcer.
  *   F1-F2  taninmisFarki iki yonlu ve sirasiz.
  *   G1     gercek agac: anaReferans() HATASIZ doner (ref ya da "ayni").
  *   G2     gecersiz ref (PARITE_KOD_SENKRON_REF) -> hata (fail-closed: sinif KAPALI).
@@ -76,6 +79,30 @@ const FF = new Set(["Blackmagic", "BYD"]);
 ona(fu("p1", FF) && fu("p2", FF) && !fu("p3", FF) && !fu("yok", FF),
   "H13 farkUrunuKur: marka[] ∩ F VE dal kanonu ∩ F kabul; fark-disi + bilinmeyen id RED");
 
+// BASLIK-KOLU EKSENI (26 Eki, BaBa tik 214b — homonim SERIT B 40318409428 Mini/Rover vakasi)
+ona(v({ fark: [], baslikFark: ["Mini", "Rover"], kanonDal: "Mini", kanonAna: "Mini" }) === true,
+  "H14 TANINMIS farki BOS, sorgu kanonu BASLIK_KOLU farkinda -> KOD-SENKRON");
+ona(v({ fark: [], baslikFark: ["Mini"], kanonDal: "Rover", kanonAna: "Rover" }) === false,
+  "H15 BASLIK_KOLU farki disi kanon -> KIRMIZI kalir (eksen genislemez)");
+ona(v({ fark: [], baslikFark: [] , kanonDal: "Mini", kanonAna: "Mini" }) === false,
+  "H15b iki fark da BOS -> sinif 0");
+const fub = P.farkUrunuKur(new Map([
+  ["m1", { id: "m1", marka: ["Apple"] }], ["m2", { id: "m2", marka: ["Mini"] }],
+  ["m3", { id: "m3", marka: [] }]]),
+  { m1: '["Apple"]', m2: '["Mini"]', m3: '["Mini"]' },
+  { m1: '["Apple","Mini"]', m2: '["Mini"]', m3: '[]' }, ["Mini"]);
+const F0 = new Set();
+ona(fub("m1", F0) && !fub("m2", F0) && !fub("m3", F0) && !fub("yok", F0),
+  "H16 farkUrunuKur baslik kolu: YALNIZ main kanonu ∩ Fb kabul (marka[] / dal kanonu Fb'yi tasimaz)");
+ona(!P.farkUrunuKur(new Map([["m1", { id: "m1", marka: ["Apple"] }]]),
+  { m1: '["Apple"]' }, { m1: '["Apple","Mini"]' }, [])("m1", F0),
+  "H16b baslikFark BOS -> main kanon kolu KAPALI");
+const mcb = (deg) => mc(Object.assign({ fark: [], baslikFark: ["Mini"],
+  bekIds: ["a"], bekAnaIds: ["a", "m1"], farkUrunuMu: fub }, deg));
+ona(mcb({}) === true, "H17 marka-cip baslik kolu: dalda dusen urun main'de baslikla Mini -> KOD-SENKRON");
+ona(mcb({ bekAnaIds: ["a", "m1", "m3"] }) === false,
+  "H17b marka-cip baslik kolu: main kanonunda Mini OLMAYAN tek urun sinifi KAPATIR");
+
 ona(JSON.stringify(R.taninmisFarki(["A", "B", "C"], ["B", "C", "D"])) === '["A","D"]',
   "F1 simetrik fark iki yonlu");
 ona(R.taninmisFarki(["B", "A"], ["A", "B"]).length === 0, "F2 sira farki fark DEGIL");
@@ -84,8 +111,10 @@ function cocuk(env) {
   const kod = "const R=require(" + JSON.stringify(path.join(__dirname, "index-arama-referansi.js")) +
     ");const a=R.anaReferans();const d=R.referans();" +
     "process.stdout.write(JSON.stringify({ref:!!a.ref,ayni:!!a.ayni,hata:a.hata||null," +
-    "fark:a.fark||[],tutarli:(a.fark||[]).every(function(m){" +
-    "return (d.TANINMIS_MARKALAR.indexOf(m)!==-1)!==(a.ref?a.ref.TANINMIS_MARKALAR.indexOf(m)!==-1:false);})}));";
+    "fark:a.fark||[],baslikFark:a.baslikFark||[],tutarli:(a.fark||[]).every(function(m){" +
+    "return (d.TANINMIS_MARKALAR.indexOf(m)!==-1)!==(a.ref?a.ref.TANINMIS_MARKALAR.indexOf(m)!==-1:false);})" +
+    "&&(a.baslikFark||[]).every(function(m){" +
+    "return (d.BASLIK_KOLU_KAPALI.indexOf(m)!==-1)!==(a.ref?a.ref.BASLIK_KOLU_KAPALI.indexOf(m)!==-1:false);})}));";
   const out = execFileSync(process.execPath, ["-e", kod],
     { encoding: "utf8", env: Object.assign({}, process.env, env), maxBuffer: 64 * 1024 * 1024 });
   return JSON.parse(out);
@@ -95,7 +124,8 @@ const iz = () => fs.readdirSync(os.tmpdir()).filter((d) => d.startsWith("pruvo-k
 const izOnce = iz();
 const g1 = cocuk({});
 ona(!g1.hata && (g1.ref || g1.ayni), "G1 gercek agac: anaReferans hatasiz (" +
-  (g1.ref ? "ref kuruldu, fark " + g1.fark.length : g1.ayni ? "fark BOS" : "hata=" + g1.hata) + ")");
+  (g1.ref ? "ref kuruldu, fark " + g1.fark.length + " · baslikFark " + g1.baslikFark.length :
+    g1.ayni ? "fark BOS" : "hata=" + g1.hata) + ")");
 const g2 = cocuk({ PARITE_KOD_SENKRON_REF: "refs/heads/yok-boyle-bir-ref-kod-senkron" });
 ona(!!g2.hata && !g2.ref, "G2 gecersiz ref -> hata (sinif KAPALI, fail-closed)");
 const g5 = cocuk({ PARITE_KOD_SENKRON_REF: "HEAD" });
@@ -109,10 +139,38 @@ if (headTemiz) {
 }
 ona(iz() === izOnce, "G3 gecici kok silindi (once=" + izOnce + " sonra=" + iz() + ")");
 if (g1.ref) {
-  ona(g1.fark.length > 0 && g1.tutarli, "G4 fark BOS DEGIL ve her ad TAM bir tarafta (" +
-    g1.fark.join(", ") + ")");
+  ona(g1.fark.length + g1.baslikFark.length > 0 && g1.tutarli,
+    "G4 fark ∪ baslikFark BOS DEGIL ve her ad TAM bir tarafta (" +
+    g1.fark.concat(g1.baslikFark).join(", ") + ")");
 } else {
   console.log("  BILGI G4 atlandi: TANINMIS farki BOS (sinif bos, olcecek fark yok)");
+}
+
+// G7 BASLIK-KOLU BAGIMSIZ KAHIN (26 Eki, halef-64): iki index.html literali TEST tarafinda
+// regex'le okunur (referans koduna guvenilmez). Farkliysa anaReferans `ayni` DONEMEZ ve
+// baslikFark tam simetrik fark olmali; ayrica referansin dal listesi literalin kendisi.
+// Olduren mutantlar: baslikFark hep [] · kur() BASLIK_KOLU_KAPALI hep [] (ikisi de G4/G6'yi
+// "atlandi"ya dusurup yasardi).
+{
+  const LIT = /var BASLIK_KOLU_KAPALI = \[([\s\S]*?)\];/;
+  const oku = (src) => { const m = LIT.exec(src); return m ? JSON.parse("[" + m[1] + "]") : []; };
+  const dalL = oku(fs.readFileSync(path.join(KOK, "index.html"), "utf8"));
+  let anaL = null;
+  try {
+    anaL = oku(execFileSync("git", ["-C", KOK, "show", "origin/main:index.html"],
+      { encoding: "utf8", maxBuffer: 64 * 1024 * 1024, stdio: ["ignore", "pipe", "ignore"] }));
+  } catch (_) { /* origin/main yok: G7 olculemez */ }
+  if (anaL === null) {
+    console.log("  BILGI G7 atlandi: origin/main:index.html okunamadi");
+  } else {
+    const bek = R.taninmisFarki(dalL, anaL);
+    ona(JSON.stringify(R.referans().BASLIK_KOLU_KAPALI.slice().sort()) ===
+      JSON.stringify(dalL.slice().sort()), "G7a referans dal BASLIK_KOLU_KAPALI = literal (" +
+      dalL.join(",") + ")");
+    ona(JSON.stringify(g1.baslikFark) === JSON.stringify(bek) && (bek.length === 0 || !g1.ayni),
+      "G7b baslikFark = bagimsiz simetrik fark [" + bek.join(",") + "] (olculen [" +
+      g1.baslikFark.join(",") + "])");
+  }
 }
 
 // G6 MARKA-CIP GERCEK AGAC (26 Eki): main referansi marka_kanon tasir ve dal ↔ main kanon
@@ -129,7 +187,7 @@ if (g1.ref) {
     const U = P.urunleriYukle();
     const dalK = SINIF.markaSinifi(U).markaKanon;
     const F6 = new Set(A6.fark);
-    const fu6 = P.farkUrunuKur(new Map(U.map((p) => [p.id, p])), dalK);
+    const fu6 = P.farkUrunuKur(new Map(U.map((p) => [p.id, p])), dalK, mk, A6.baslikFark);
     let farkSay = 0;
     const disi = [];
     for (const p of U) {
