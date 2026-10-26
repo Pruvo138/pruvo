@@ -233,6 +233,14 @@ class MarkaEvreni:
         (self.kusak_donanim, self.kusak_disi,
          self.kusak_esleme) = model_kanon.kusak_tablolari(index_html)
         self._kusak_bellek = {}
+        # HOMONİM — BAŞLIK KOLU KAPALI markalar (BaBa tik 188). AYNI belgeden, arama.py'nin
+        # TEK ayrıştırıcısıyla (ikinci regex YAZILMAZ). Bozuksa build DURUR (sessiz boş küme
+        # = sayfa kovası homonimleri yeniden doğurur, arama ikiziyle ayrışırdı).
+        import arama                                                # noqa: PLC0415
+        try:
+            self.baslik_kapali = arama.baslik_kolu_kapali_ayikla(index_html)
+        except (ValueError, RuntimeError) as e:
+            raise SystemExit("HATA: index.html BASLIK_KOLU_KAPALI okunamadı: %s" % e)
 
     def taninmis_mi(self, m):
         return _marka_norm(m) in self._kanonik
@@ -1113,7 +1121,8 @@ def baslik_uyelikleri(urun, evren, ad_kanonu, azami_ad, ek_markalar=None):
             # tüketimi `if(kan)` üstünde yapar, tekrar süzgecini (`out.indexOf`)
             # AYRI tutar; iki yüzey ancak böyle BİREBİR aynı sırayı yürür.
             vuruldu = n
-            if kan not in uyeler and kan not in eklendi:
+            # Homonim (BASLIK_KOLU_KAPALI): jeton TÜKETİLDİ, ama kanonik EKLENMEZ.
+            if kan not in uyeler and kan not in eklendi and kan not in evren.baslik_kapali:
                 eklendi.add(kan)
                 sonuc.append(kan)
             break
