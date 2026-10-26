@@ -42,7 +42,16 @@ import tempfile
 import time
 from pathlib import Path
 
-KOK = Path(__file__).resolve().parent
+
+def yuk_yaz(yol, metin):
+    """Sahte yuk dosyasini ATOMIK yaz (26 Eki 2026, nobet 40267087169):
+    write_text once bosaltir; semafor bos okursa gercek yuke duser."""
+    gecici = yol.with_name(yol.name + ".yazim")
+    gecici.write_text(metin)
+    os.replace(gecici, yol)
+
+
+KOK =Path(__file__).resolve().parent
 YARDIMCI = KOK / "isci-semafor.py"
 KURULU = Path(pwd.getpwuid(os.getuid()).pw_dir) / ".claude" / "cron" / "isci-semafor.py"
 
@@ -161,7 +170,7 @@ def vaka_b(yardimci):
     """yuk 6.5 iken bekler, 5.9'a dusunce baslar."""
     d = Dunya(yardimci)
     try:
-        d.yuk.write_text("6.5\n")
+        yuk_yaz(d.yuk,"6.5\n")
         p = d.isci("b1", uyku=30)
         if not d.bekle(lambda: "HAL=BEKLIYOR" in d.log_metni() or alindi_sayisi(d, "b1"), 4):
             return False, "yuk 6.5 iken ne BEKLIYOR ne ALINDI yazildi"
@@ -170,7 +179,7 @@ def vaka_b(yardimci):
             return False, "yuk 6.5 iken isci basladi (esik 6 uygulanmadi)"
         if "sebep=yuk" not in d.log_metni() or " YUK_KAPISI=6 " not in d.log_metni():
             return False, "BEKLIYOR satirinda sebep=yuk / YUK_KAPISI=6 yok: %r" % d.log_metni()[-300:]
-        d.yuk.write_text("5.9\n")
+        yuk_yaz(d.yuk,"5.9\n")
         if not d.bekle(lambda: alindi_sayisi(d, "b1") == 1, 5):
             return False, "yuk 5.9'a dustukten sonra isci baslamadi"
         if " YUK_KAPISI=6 " not in alindi_satirlari(d, "b1")[0]:
@@ -186,7 +195,7 @@ def vaka_c(yardimci):
     """tavan yuk 6.5'te asilir -> rc=64 + HAL=KUYRUK-TAVAN sebep=yuk YUK_KAPISI=6."""
     d = Dunya(yardimci)
     try:
-        d.yuk.write_text("6.5\n")
+        yuk_yaz(d.yuk,"6.5\n")
         p = d.isci("c1", uyku=30, ek=["--tavan-sn", "1.0"])
         try:
             p.wait(timeout=8)
@@ -273,14 +282,14 @@ def vaka_g(yardimci):
         return False, "`sinir` alt komutu 2 basmadi: rc=%s %r" % (r.returncode, r.stdout)
     d = Dunya(yardimci)
     try:
-        d.yuk.write_text("6.5\n")
+        yuk_yaz(d.yuk,"6.5\n")
         p = d.isci("g1", uyku=30, hiz=ARALIKSIZ)
         if not d.bekle(lambda: "HAL=BEKLIYOR" in d.log_metni() or alindi_sayisi(d, "g1"), 4):
             return False, "yuk 6.5 iken ne BEKLIYOR ne ALINDI yazildi"
         if alindi_sayisi(d, "g1"):
             return False, "yuk 6.5 iken isci basladi"
         t0 = time.monotonic()
-        d.yuk.write_text("5.9\n")
+        yuk_yaz(d.yuk,"5.9\n")
         if d.bekle(lambda: alindi_sayisi(d, "g1") == 1, 7):
             return False, ("yuk dustukten %.1f sn sonra basladi: yeniden olcum araligi 60 sn "
                            "degil" % (time.monotonic() - t0))
