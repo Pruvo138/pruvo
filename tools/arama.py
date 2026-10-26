@@ -301,8 +301,8 @@ def baslik_marka_uyumlari(baslik, kanon):
     tekrar tekilleslir.
     """
     kel = [w for w in _MARKA_KELIME_BOL.split(norm(baslik or "")) if w]
-    uyumlar = []
     kapali = baslik_kolu_kapali()
+    uyumlar = []
     i, n = 0, len(kel)
     while i < n:
         vuruldu = 0

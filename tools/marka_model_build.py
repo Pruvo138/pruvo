@@ -1099,7 +1099,9 @@ def baslik_uyelikleri(urun, evren, ad_kanonu, azami_ad, ek_markalar=None):
     bw = _kelimeler(urun.get("baslik") or "")
     if not bw:
         return []
-    eklendi = set()
+    # HOMONİM (BASLIK_KOLU_KAPALI, BaBa tik 188): kapalı markalar baştan "eklendi" sayılır —
+    # jetonları aşağıda yine TÜKETİLİR (uzun-önce sırası aynı), ama sonuca hiç girmez.
+    eklendi = set(evren.baslik_kapali)
     sonuc = []
     i = 0
     while i < len(bw):
@@ -1121,8 +1123,7 @@ def baslik_uyelikleri(urun, evren, ad_kanonu, azami_ad, ek_markalar=None):
             # tüketimi `if(kan)` üstünde yapar, tekrar süzgecini (`out.indexOf`)
             # AYRI tutar; iki yüzey ancak böyle BİREBİR aynı sırayı yürür.
             vuruldu = n
-            # Homonim (BASLIK_KOLU_KAPALI): jeton TÜKETİLDİ, ama kanonik EKLENMEZ.
-            if kan not in uyeler and kan not in eklendi and kan not in evren.baslik_kapali:
+            if kan not in uyeler and kan not in eklendi:
                 eklendi.add(kan)
                 sonuc.append(kan)
             break
