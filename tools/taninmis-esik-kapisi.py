@@ -49,6 +49,9 @@ TABAN = frozenset({
     # PARTI 2
     "Puch", "Genesis", "Bentley", "GMC", "Motec", "Simrad", "Bavaria",
     "AeroPress", "Keurig", "Moccamaster", "Roland", "Weinsberg", "Tracker", "Ninja",
+    # 26 Eki 2026 (BaBa tik 201b): MaCiT SG1 4 kayit (katalog 40925) Segway'i esigin ustune
+    # cikardi (marka[] 5) -> K1 kirmizi (nobet 40273881039 hijyen-a2). Sayfa dogumu PARTI 2'de.
+    "Segway",
 })
 
 
