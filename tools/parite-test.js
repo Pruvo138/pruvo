@@ -126,7 +126,7 @@ function filtered(PRODUCTS, query, activeCat, activeBrand, Rv, uyeMiV) {
 // simetrik farktaki urun MAIN kanonunda o markayi tasiyorsa (`farkUrunuKur` anaKanon kolu)
 // sinif dogar. Fark-disi tek urun yine KAPATIR.
 function kodSenkronMu({ sinif, anaSinif, bekIds, bekAnaIds, kanonDal, kanonAna, fark,
-  baslikFark, markaCip, farkUrunuMu }) {
+  baslikFark, markaCip, farkUrunuMu, baslikUrunuMu }) {
   if (sinif !== ortak.SINIF_ACIKLANAMAYAN) return false;
   if (anaSinif !== ortak.SINIF_GECTI) return false;
   const F = new Set(fark || []);
@@ -142,10 +142,38 @@ function kodSenkronMu({ sinif, anaSinif, bekIds, bekAnaIds, kanonDal, kanonAna, 
   if (F.has(kanonDal) || F.has(kanonAna)) return true;
   if (!(Fb.has(kanonDal) || Fb.has(kanonAna))) return false;
   // Baslik kolu serbest metinde de URUN duzeyinde dar (BaBa tik 214b sart 1): simetrik farkin
-  // HER urunu Fb markasini main kanonunda tasiyip dalda kaybetmis olmali (dal ⊆ main).
-  if (typeof farkUrunuMu !== "function") return false;                    // fail-closed
+  // HER urunu ARAMA baslik kuralinda (`baslikMarkalari`, cip kanonu DEGIL — olculdu: "Mini
+  // Eklemli ..." aramada Mini, cip kanonunda degil) Fb markasini main'de tasiyip dalda
+  // kaybetmis olmali (dal ⊆ main).
+  if (typeof baslikUrunuMu !== "function") return false;                  // fail-closed
   const simetrik = [...a].filter((id) => !b.has(id)).concat([...b].filter((id) => !a.has(id)));
-  return simetrik.every((id) => farkUrunuMu(id, F));
+  return simetrik.every((id) => baslikUrunuMu(id));
+}
+
+/** SAF. Serbest metin baslik kolu kahini: urun Fb markasini MAIN referansinin
+ *  `baslikMarkalari`'nda tasiyip DAL referansininkinde kaybetmis mi? Iki referans AYRI
+ *  nesneler uzerinde kosar (`anaUrunKopyasi`; p._bm sizintisi). */
+function baslikUrunuKur(dalHarita, anaHarita, dalR, anaR, baslikFark) {
+  const Fb = new Set(baslikFark || []);
+  return (id) => {
+    const pd = dalHarita.get(id), pa = anaHarita.get(id);
+    if (!pd || !pa || !Fb.size) return false;
+    const D = dalR.baslikMarkalari(pd);
+    return anaR.baslikMarkalari(pa).some((m) => Fb.has(m) && D.indexOf(m) === -1);
+  };
+}
+
+/** Main referansi icin AYRI urun nesneleri. 🔴 OLCULDU (26 Eki, halef-64): index.html
+ *  `baslikMarkalari()` sonucunu urun nesnesine (`p._bm`) onbellekler; dal ve main referansi
+ *  AYNI nesneleri paylasinca dalin hesabi main'e SIZAR (homonim dali: main sitesi q="Mini"
+ *  228 yerine dalin 138'ini verdi -> KOD-SENKRON 4 sorguyu tanimadi). Sig kopya, `_` onekli
+ *  onbellek alanlari ATILIR (ozgun nesneye dokunulmaz). */
+function anaUrunKopyasi(urunler) {
+  return urunler.map((p) => {
+    const k = {};
+    for (const a of Object.keys(p)) { if (a[0] !== "_") k[a] = p[a]; }
+    return k;
+  });
 }
 
 /** SAF. Urun fark markasina mi ait? TANINMIS kolu: p.marka[] ya da dal kanonu ∩ F.
@@ -304,7 +332,7 @@ async function araSor({ q, kat, marka }) {
 // dogrulamaya devam ederdi. `require.main` kapisi: import etmek testi KOSTURMAZ.
 module.exports = {
   norm, aramaKok, haystack, filtered, sorgulariUret, urunleriYukle,
-  ucEtiketiTuret, KOK, LIMIT, kodSenkronMu, farkUrunuKur,
+  ucEtiketiTuret, KOK, LIMIT, kodSenkronMu, farkUrunuKur, anaUrunKopyasi, baslikUrunuKur,
 };
 
 if (require.main === module) (async () => {
@@ -439,6 +467,12 @@ if (require.main === module) (async () => {
     }
     return _ana;
   }
+  let _anaUrunler = null;
+  const anaUrunleri = () => (_anaUrunler = _anaUrunler || anaUrunKopyasi(PRODUCTS));
+  let _baslikUrunu = null;
+  const baslikUrunu = () => (_baslikUrunu = _baslikUrunu || baslikUrunuKur(
+    new Map(PRODUCTS.map((p) => [p.id, p])), new Map(anaUrunleri().map((p) => [p.id, p])),
+    ref(), anaRef(), _baslikFark));
   let _farkUrunu = null;
   function farkUrunu() {
     if (!_farkUrunu) {
@@ -492,7 +526,7 @@ if (require.main === module) (async () => {
         (!markaCip || anaRef().markaKanon)) {
         // Marka-cip: main sitesinin cip yuklemi main kanonuyla (ayni index.html evreni).
         const anaUye = markaCip ? SINIF.uyeMiKur(anaRef(), anaRef().markaKanon) : null;
-        const bekAnaIds = filtered(PRODUCTS, s.q, s.kat, s.marka, anaRef(), anaUye)
+        const bekAnaIds = filtered(anaUrunleri(), s.q, s.kat, s.marka, anaRef(), anaUye)
           .map((p) => p.id);
         const kAna = ortak.siniflandir({
           bekIds: bekAnaIds,
@@ -506,9 +540,21 @@ if (require.main === module) (async () => {
         if (kodSenkronMu({ sinif: k.sinif, anaSinif: kAna.sinif, bekIds, bekAnaIds,
           kanonDal: ref().aramaPlani(s.q).kanon, kanonAna: anaRef().aramaPlani(s.q).kanon,
           fark: _fark, baslikFark: _baslikFark, markaCip,
-          farkUrunuMu: (markaCip || _baslikFark.length) ? farkUrunu() : null })) {
+          farkUrunuMu: markaCip ? farkUrunu() : null,
+          baslikUrunuMu: (!markaCip && _baslikFark.length) ? baslikUrunu() : null })) {
           kodSenkron.push({ ...s, dal: bekIds.length, ana: bekAnaIds.length, uc: g.toplam });
           continue;
+        }
+        // TANI (yalniz PARITE_KS_TANI=1): KOD-SENKRON'un NEDEN reddettigini adiyla bas.
+        if (process.env.PARITE_KS_TANI === "1") {
+          const A1 = new Set(bekIds), B1 = new Set(bekAnaIds);
+          const sim = bekIds.filter((id) => !B1.has(id)).concat(bekAnaIds.filter((id) => !A1.has(id)));
+          const fu = markaCip ? farkUrunu() : baslikUrunu();
+          const red = sim.filter((id) => !fu(id, new Set(_fark)));
+          console.log("  TANI q=%j marka=%j anaSinif=%s dal=%d main=%d uc=%s kanon dal=%j ana=%j " +
+            "simetrik=%d fark-disi=%d ilk=%j", s.q, s.marka, kAna.sinif, bekIds.length,
+            bekAnaIds.length, g.toplam, ref().aramaPlani(s.q).kanon, anaRef().aramaPlani(s.q).kanon,
+            sim.length, red.length, red.slice(0, 5));
         }
       }
       hatalar.push({ ...s, sinif: k.sinif, sebep: k.sebep });

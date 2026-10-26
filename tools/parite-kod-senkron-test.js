@@ -86,8 +86,9 @@ const fub = P.farkUrunuKur(new Map([
   { m1: '["Apple"]', m2: '["Mini"]', m3: '["Mini"]' },
   { m1: '["Apple","Mini"]', m2: '["Mini"]', m3: '[]' }, ["Mini"]);
 const F0 = new Set();
+const buSahte = (id) => id === "m1";        // m1 = main'de baslikla Mini, dalda degil
 const vb = (deg) => v(Object.assign({ fark: [], baslikFark: ["Mini", "Rover"], kanonDal: "Mini",
-  kanonAna: "Mini", bekIds: ["a"], bekAnaIds: ["a", "m1"], farkUrunuMu: fub }, deg));
+  kanonAna: "Mini", bekIds: ["a"], bekAnaIds: ["a", "m1"], baslikUrunuMu: buSahte }, deg));
 ona(vb({}) === true,
   "H14 TANINMIS farki BOS, sorgu kanonu BASLIK_KOLU farkinda + fark urunu baslik kaynakli -> KOD-SENKRON");
 ona(vb({ kanonDal: "Canon", kanonAna: "Canon" }) === false,
@@ -97,7 +98,18 @@ ona(vb({ bekAnaIds: ["a", "m1", "m3"] }) === false,
   "H15c serbest metin: main kanonunda Mini OLMAYAN tek fark urunu sinifi KAPATIR");
 ona(vb({ bekIds: ["a", "m2"], bekAnaIds: ["a"] }) === false,
   "H15d serbest metin: dalda FAZLA urun (dal ⊄ main) -> KIRMIZI");
-ona(vb({ farkUrunuMu: null }) === false, "H15e serbest metin baslik kolu: yuklem YOK -> fail-closed");
+ona(vb({ baslikUrunuMu: null }) === false, "H15e serbest metin baslik kolu: yuklem YOK -> fail-closed");
+ona(vb({ baslikUrunuMu: null, farkUrunuMu: () => true }) === false,
+  "H15f serbest metin cip-kanon yuklemiyle GECMEZ (kahin arama baslik kurali)");
+{
+  const dalR = { baslikMarkalari: (p) => p.b }, anaR = { baslikMarkalari: (p) => p.b };
+  const dH = new Map([["m1", { b: [] }], ["m2", { b: ["Mini"] }], ["m3", { b: [] }]]);
+  const aH = new Map([["m1", { b: ["Mini"] }], ["m2", { b: ["Mini"] }], ["m3", { b: ["Apple"] }]]);
+  const bu = P.baslikUrunuKur(dH, aH, dalR, anaR, ["Mini"]);
+  ona(bu("m1") && !bu("m2") && !bu("m3") && !bu("yok") &&
+    !P.baslikUrunuKur(dH, aH, dalR, anaR, [])("m1"),
+    "H18 baslikUrunuKur: main baslikta Fb VAR + dalda YOK kabul; ikisinde de / hic / bilinmeyen / Fb bos RED");
+}
 ona(fub("m1", F0) && !fub("m2", F0) && !fub("m3", F0) && !fub("yok", F0),
   "H16 farkUrunuKur baslik kolu: YALNIZ main kanonu ∩ Fb kabul (marka[] / dal kanonu Fb'yi tasimaz)");
 ona(!P.farkUrunuKur(new Map([["m1", { id: "m1", marka: ["Apple"] }]]),
@@ -205,6 +217,18 @@ if (g1.ref) {
     ona(farkSay > 0 && disi.length === 0, "G6b dal ↔ main kanon farki (" + farkSay +
       " urun) TAMAMI TANINMIS farkindan (fark-disi=" + disi.length +
       (disi.length ? " ilk: " + disi.slice(0, 5).join(",") : "") + ")");
+    // G8 ONBELLEK SIZINTISI (26 Eki, halef-64): `baslikMarkalari` p._bm'e yazar. Dal once
+    // kosunca AYNI nesnelerde main referansi dalin sonucunu verir (olculen: q="Mini" 138=138);
+    // `anaUrunKopyasi` ile main kendi kuralini hesaplar. Yalniz baslikFark "Mini" tasirken.
+    if ((A6.baslikFark || []).indexOf("Mini") !== -1) {
+      const hep = () => true;
+      const dalSay = P.filtered(U, "Mini", "Tümü", "Tümü", null, hep).length;
+      const kirli = P.filtered(U, "Mini", "Tümü", "Tümü", A6.ref, hep).length;
+      const temiz = P.filtered(P.anaUrunKopyasi(U), "Mini", "Tümü", "Tümü", A6.ref, hep).length;
+      ona(kirli === dalSay && temiz > dalSay,
+        "G8 main referansi AYRI kopyada: paylasimli=" + kirli + " (= dal " + dalSay +
+        ", sizinti) · kopya=" + temiz + " (> dal)");
+    }
   }
 } else {
   console.log("  BILGI G6 atlandi: TANINMIS farki BOS (main referansi kurulmadi)");
