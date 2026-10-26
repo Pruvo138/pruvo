@@ -925,6 +925,10 @@ jobs:
       # M1/M2/KONTROL-MUTANT; M1 A4'u de kirar (marka[] Beko/Thule kayitlari kanonikligini yitirir).
       - name: "Ev/ekipman marka kabul bataryasi (Beko, Thule)"
         run: python3 tools/ev-marka-kabul-kapisi.py
+      # 21. tur kapali marka kumesi (Lada, NIU; BaBa tik 201 C): A1-A4 + KONTROL +
+      # M1/M2/KONTROL-MUTANT; NIU verisi gelene dek A4 yalniz Lada kaydini sart kosar.
+      - name: "Sozluk 21. tur marka kabul bataryasi (Lada, NIU)"
+        run: python3 tools/sozluk21-marka-kabul-kapisi.py
 
       # YAZIM YOLU KOLU — yukaridaki IKI kapi (altkategori + uyum) KATALOG GENELINI
       # olcer ve YAYINDAN SONRA konusur; bu adim onlarin COMMIT ANINDAKI kardesini
