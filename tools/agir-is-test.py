@@ -42,7 +42,19 @@ import tempfile
 import time
 from pathlib import Path
 
-KOK = Path(__file__).resolve().parent
+
+def yuk_yaz(yol, metin):
+    """Sahte yuk dosyasini ATOMIK yaz (26 Eki 2026, nobet 40267087169).
+
+    write_text once dosyayi bosaltir; semafor 0.1 sn aralikla okurken bos
+    dosyaya denk gelirse ValueError -> gercek makine yukune duser (CI'da
+    dusuk) -> yuk esigi devre disi kalir, mutant M2 sahte yasar."""
+    gecici = yol.with_name(yol.name + ".yazim")
+    gecici.write_text(metin)
+    os.replace(gecici, yol)
+
+
+KOK =Path(__file__).resolve().parent
 AGIR = KOK / "agir-is.sh"
 YARDIMCI = KOK / "isci-semafor.py"
 SEMAFOR_TEST = KOK / "isci-semafor-test.py"
@@ -182,7 +194,7 @@ def vaka_b(agir):
     """yuk 8.5 iken bekler, 8.0'da baslar."""
     d = Dunya(agir)
     try:
-        d.yuk.write_text("8.5\n")
+        yuk_yaz(d.yuk,"8.5\n")
         p = d.agir_is("b", 'touch "$M"; sleep 1')
         if not d.bekle(lambda: d.satirlar("HAL=BEKLIYOR", " etiket=b "), 4):
             return False, "yuk 8.5 iken BEKLIYOR yazilmadi"
@@ -191,7 +203,7 @@ def vaka_b(agir):
             return False, "yuk 8.5 iken agir is basladi (yuk esigi 8 uygulanmadi)"
         if not d.satirlar("HAL=BEKLIYOR", " etiket=b ", " sebep=yuk ", " yuk=8.50 "):
             return False, "BEKLIYOR satirinda sebep=yuk yuk=8.50 yok: %r" % d.log_metni()[-300:]
-        d.yuk.write_text("8.0\n")   # esik >8: 8.0 gecer
+        yuk_yaz(d.yuk,"8.0\n")   # esik >8: 8.0 gecer
         if not d.bekle(lambda: d.basladi("b"), 5):
             return False, "yuk 8.0'a dustukten sonra agir is baslamadi"
         p.wait(timeout=10)
@@ -261,7 +273,7 @@ def vaka_e(agir):
     """tavan -> rc=1 + HAL=KUYRUK-TAVAN tur=agir; komut kosmaz."""
     d = Dunya(agir)
     try:
-        d.yuk.write_text("99\n")
+        yuk_yaz(d.yuk,"99\n")
         p = d.agir_is("e", 'touch "$M"', ek_env={"AGIR_IS_TAVAN_SN": "1.0"})
         try:
             p.wait(timeout=8)
