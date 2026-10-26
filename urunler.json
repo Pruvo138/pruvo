@@ -1,5 +1,171 @@
 [
   {
+    "id": "pr1606429-lada-vesta-sw-cross-bagaj-mentese-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Lada"
+    ],
+    "uyum": [
+      {
+        "marka": "Lada"
+      }
+    ],
+    "baslik": "Lada Vesta SW Cross Bagaj Menteşe Kapağı",
+    "aciklama": "Lada Vesta SW Cross bagaj bölümünün menteşe yuvasında açıkta kalan kısmı kapatan bir kapaktır. Menteşe yuvasının üzerini kapatacak biçimde tasarlanmıştır.\nYaklaşık dış ölçüler: 82 × 62 × 11 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1606429-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1606429-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Кукумбер"
+    },
+    "altkategori": "Bagaj ve Taşıma"
+  },
+  {
+    "id": "pr60805-lada-niva-govde-lastik-tapasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Lada"
+    ],
+    "uyum": [
+      {
+        "marka": "Lada"
+      }
+    ],
+    "baslik": "Lada Niva Gövde Lastik Tapası",
+    "aciklama": "Lada Niva gövde altındaki deliklere geçen lastik tapalardır. 30 ve 40 milimetrelik iki farklı çapta sunulur; 20 ve 30 milimetrelik gövde deliklerini kapatır.\nYaklaşık dış ölçüler: 40 × 40 × 16 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr60805-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr60805-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr60805-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr60805-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "jmvspeleo (remix: jmvspeleo)"
+    },
+    "altkategori": "Dış Aksam"
+  },
+  {
+    "id": "pr1463294-lada-kalina-priora-granta-usb-soket-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Lada"
+    ],
+    "uyum": [
+      {
+        "marka": "Lada"
+      }
+    ],
+    "baslik": "Lada Kalina Priora Granta USB Soket Tutucusu",
+    "aciklama": "Lada Kalina, Priora ve Granta konsolundaki yuvarlak düğme boşluğuna oturan bir USB soket tutucusudur. Teyes ve benzeri multimedya ünitelerinin soket kablosunu düğme yuvasında toplar.\nYaklaşık dış ölçüler: 28 × 27 × 22 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1463294-1.jpg"
+    ],
+    "altkategori": "Ses ve Multimedya"
+  },
+  {
+    "id": "pr1793465-lada-vesta-bardaklik-konsol-eki",
+    "kategori": "Otomobil",
+    "marka": [
+      "Lada"
+    ],
+    "uyum": [
+      {
+        "marka": "Lada"
+      }
+    ],
+    "baslik": "Lada Vesta Bardaklık Konsol Eki",
+    "aciklama": "Lada Vesta konsoluna eklenen bir bardak tutucusudur. Konsol üzerinde bardakların oturacağı yuva sağlar.\nYaklaşık dış ölçüler: 218 × 180 × 66 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1793465-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1793465-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1793465-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1793465-4.jpg"
+    ],
+    "altkategori": "Bardaklık"
+  },
+  {
+    "id": "pr1189151-lada-niva-taban-drenaj-deligi-tapasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Lada"
+    ],
+    "uyum": [
+      {
+        "marka": "Lada"
+      }
+    ],
+    "baslik": "Lada Niva Taban Drenaj Deliği Tapası",
+    "aciklama": "Chevrolet Niva tabanındaki drenaj deliklerini kapatan tapalardır. Araç iç tarafında 35, 20 ve 10 milimetrelik, dış tarafta 30 ve 16 milimetrelik çaplar kullanılır; 30 milimetrelik tapa ön tekerleklerin yakınındaki deliklere, 16 milimetrelik tapa ise dağıtım kutusu bölgesindeki deliklere oturur.\nYaklaşık dış ölçüler: 30 × 30 × 8 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1189151-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1189151-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1189151-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Print rebels"
+    },
+    "altkategori": "Dış Aksam"
+  },
+  {
+    "id": "pr1228385-lada-niva-dvr-dugme-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Lada"
+    ],
+    "uyum": [
+      {
+        "marka": "Lada"
+      }
+    ],
+    "baslik": "Lada Niva DVR Düğme Kapağı",
+    "aciklama": "Chevrolet Niva (VAZ-2123) ve VAZ-2113-2115 serisi konsollardaki kondisyoner veya ısıtma düğmesi gibi mandallı bir düğmenin üzerine geçen, video kayıt cihazı simgeli üç parçalı bir kapaktır. Düğmenin aydınlatması simgenin içinden görünecek biçimde tasarlanmıştır.\nYaklaşık dış ölçüler: 27 × 19 × 10 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1228385-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1228385-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1228385-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Print rebels"
+    },
+    "altkategori": "Ses ve Multimedya"
+  },
+  {
+    "id": "pr1189184-lada-niva-havalandirma-valfi-cercevesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Lada"
+    ],
+    "uyum": [
+      {
+        "marka": "Lada"
+      }
+    ],
+    "baslik": "Lada Niva Havalandırma Valfi Çerçevesi",
+    "aciklama": "Chevrolet Niva'daki havalandırma valfini çerçeveleyen, valfin sertliğini artıran ve ağırlık kazandıran bir parçadır. Zamanla esnemesi beklenen valfin çalışmasını sürdürmeye yöneliktir.\nYaklaşık dış ölçüler: 90 × 52 × 5 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1189184-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1189184-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1189184-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Print rebels"
+    },
+    "altkategori": "Klima ve Havalandırma"
+  },
+  {
     "id": "pr204281-thule-bebek-arabasi-bardak-tutucu",
     "kategori": "Ev",
     "marka": [
