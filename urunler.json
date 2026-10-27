@@ -1,5 +1,652 @@
 [
   {
+    "id": "pr219815-thermomix-spatula-tutucusu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Thermomix"
+    ],
+    "uyum": [
+      {
+        "marka": "Thermomix"
+      }
+    ],
+    "baslik": "Thermomix Spatula Tutucusu (TM5 ve TM6)",
+    "aciklama": "Thermomix TM5 ve TM6 spatulalarının asıldığı tutucu. Islak spatula tezgâhta yatmak yerine tutucuda dik durur.\nYaklaşık dış ölçüler: 143 × 73 × 40 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr219815-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr219815-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr219815-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr219815-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "R3D (remix: TheRealStiviG_Autor)"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "pr336703-thermomix-bicak-tutucusu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Thermomix"
+    ],
+    "uyum": [
+      {
+        "marka": "Thermomix"
+      }
+    ],
+    "baslik": "Thermomix Bıçak Tutucusu (Bulaşık Makinesi)",
+    "aciklama": "Thermomix bıçağının bulaşık makinesinde yerleştirilmesi için tutucu. Bıçak grubu tutucu içinde dik konumda kalır.\nYaklaşık dış ölçüler: 147 × 52 × 24 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr336703-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr336703-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr336703-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Agent Mess"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "pr1013210-speeduino-ocelot-ecu-kutusu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Speeduino"
+    ],
+    "uyum": [
+      {
+        "marka": "Speeduino"
+      }
+    ],
+    "baslik": "Speeduino Ocelot ECU Kutusu",
+    "aciklama": "WMTronics Ocelot ECU için kutu. Alt kapak ECU'nun oturduğu, üst kapak ise üzerine kapandığı iki parçadan oluşur; üst kapaklardan birinde Bluetooth modülü için bir yuva bulunur.\nYaklaşık dış ölçüler: 114 × 90 × 36 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1013210-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Sharkfac3"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr182514-sodastream-sise-rafi",
+    "kategori": "Ev",
+    "marka": [
+      "Sodastream"
+    ],
+    "uyum": [
+      {
+        "marka": "Sodastream"
+      }
+    ],
+    "baslik": "SodaStream Şişe Rafı (5 ve 3 Şişe)",
+    "aciklama": "SodaStream şişelerini yatay olarak üst üste koymak için raf. Beş şişelik sürümde alt sıradaki üç şişe ön ve arka taraftan tutulur, üst sıradaki iki şişe alt sıranın üzerine oturur. Üç şişelik bir sürümü de bulunur.\nYaklaşık dış ölçüler: 220 × 215 × 117 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr182514-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr182514-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr182514-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr182514-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "davidpadbury (remix: DavidPadbury)"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr707788-saeco-lattego-sut-kabi-tabani",
+    "kategori": "Elektronik",
+    "marka": [
+      "Saeco"
+    ],
+    "uyum": [
+      {
+        "marka": "Saeco"
+      }
+    ],
+    "baslik": "Saeco LatteGo Süt Kabı Tabanı",
+    "aciklama": "Saeco ve Philips LatteGo süt kabının oturduğu taban. Kabın tabanla temas eden yüzeyini genişletir ve kabın yandan devrilmesini önler.\nYaklaşık dış ölçüler: 56 × 49 × 8 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr707788-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr707788-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr707788-3.jpg"
+    ],
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "pr480042-saeco-gran-aroma-cekirdek-haznesi-uzatma",
+    "kategori": "Elektronik",
+    "marka": [
+      "Saeco"
+    ],
+    "uyum": [
+      {
+        "marka": "Saeco"
+      }
+    ],
+    "baslik": "Saeco Gran Aroma Deluxe Çekirdek Haznesi Uzatması",
+    "aciklama": "Saeco Gran Aroma Deluxe kahve makinesinin çekirdek haznesini yükselten kap. Hazne bu kap sayesinde daha uzun süre dolu kalır ve çekirdek ekleme sıklığı azalır.\nYaklaşık dış ölçüler: 201 × 197 × 94 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr480042-1.jpg"
+    ],
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "pr420807-saeco-moltio-damlama-tepsisi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Saeco"
+    ],
+    "uyum": [
+      {
+        "marka": "Saeco"
+      }
+    ],
+    "baslik": "Saeco Moltio Demleme Ünitesi Damlama Tepsi Çekmecesi",
+    "aciklama": "Saeco Moltio kahve makinesinin demleme ünitesine ait damlama tepsi çekmecesi. HD8766, HD8767, HD8768, HD8769 ve HD8778 seri makinelerin demleme ünitesi için tasarlanmıştır.\nYaklaşık dış ölçüler: 139 × 85 × 68 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr420807-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr420807-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr420807-3.jpg"
+    ],
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "pr1001576-pioneer-dj-dugmesi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Pioneer"
+    ],
+    "uyum": [
+      {
+        "marka": "Pioneer"
+      }
+    ],
+    "baslik": "Pioneer DDJ-FLX4 DJ Düğmesi",
+    "aciklama": "Pioneer DDJ-FLX4 DJ konsolunun düğmesi için düğme. Üst yüzeyi eş merkezli dokuya sahiptir.\nYaklaşık dış ölçüler: 18 × 16 × 16 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1001576-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1001576-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1001576-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1001576-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Adrian"
+    },
+    "altkategori": "Ses ve Müzik"
+  },
+  {
+    "id": "pr817355-pioneer-6x9-hoparlor-contasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Pioneer"
+    ],
+    "uyum": [
+      {
+        "marka": "Pioneer"
+      }
+    ],
+    "baslik": "Pioneer 6x9 Hoparlör Contası",
+    "aciklama": "Araç hoparlörü için 6x9 ölçülü conta. Hoparlörün çevresine oturur ve kasa ile hoparlör arasındaki boşluğu kapatır.\nYaklaşık dış ölçüler: 235 × 164 × 2 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr817355-1.jpg"
+    ],
+    "altkategori": "Ses ve Multimedya"
+  },
+  {
+    "id": "pr238576-pioneer-sph10bt-telefon-tutucu-aya",
+    "kategori": "Otomobil",
+    "marka": [
+      "Pioneer"
+    ],
+    "uyum": [
+      {
+        "marka": "Pioneer"
+      }
+    ],
+    "baslik": "Pioneer SPH-10BT Telefon Tutucu Ayağı",
+    "aciklama": "Pioneer SPH-10BT araç radyosunun telefon tutucusu ayağı. Kırılan ayağın yerine geçecek biçimde yeniden tasarlanmış gövdedir ve telefon tutucusuyla birlikte kullanılır.\nYaklaşık dış ölçüler: 18 × 10 × 9 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr238576-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr238576-2.jpg"
+    ],
+    "altkategori": "Telefon ve Şarj"
+  },
+  {
+    "id": "pr924724-motorola-telsiz-mikrofon-tutucusu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Motorola"
+    ],
+    "uyum": [
+      {
+        "marka": "Motorola"
+      }
+    ],
+    "baslik": "Motorola Telsiz Mikrofon Tutucusu",
+    "aciklama": "Motorola el telsizinin mikrofonu için tutucu. Alt kabuk ve üst kabuk olmak üzere iki parçadan oluşur ve telsizin gövdesine monte edilir.\nYaklaşık dış ölçüler: 46 × 33 × 25 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr924724-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr924724-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr924724-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr924724-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "DerHansen"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr144381-miele-supurge-ucu-askisi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Miele"
+    ],
+    "uyum": [
+      {
+        "marka": "Miele"
+      }
+    ],
+    "baslik": "Miele Süpürge Ucu Askısı",
+    "aciklama": "Miele süpürgenin ucundaki ağız kısmı ile borusunu duvara asan askı. İki parçadan oluşur; alt parça ağırlığı taşır, üst parça boruyu dikey tutar. İki parça birbirine ayrı monte edilir.\nYaklaşık dış ölçüler: 60 × 56 × 16 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr144381-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr144381-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr144381-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr144381-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "ÖE (remix: Ekeberg)"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "pr81031-miele-supurge-nozulu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Miele"
+    ],
+    "uyum": [
+      {
+        "marka": "Miele"
+      }
+    ],
+    "baslik": "Miele Süpürge Nozulu",
+    "aciklama": "Miele süpürge için ek nozul. Cihazın kendi ucu araba içinde koltuklar arasındaki alanı temizlemek için fazla kısa ve kalın kaldığından, bu nozul aradaki alana uzanacak biçimde tasarlanmıştır.\nYaklaşık dış ölçüler: 278 × 40 × 40 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr81031-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr81031-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr81031-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Henki71 (remix: Henki71)"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "pr900123-miele-autodos-doldurma-hunisi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Miele"
+    ],
+    "uyum": [
+      {
+        "marka": "Miele"
+      }
+    ],
+    "baslik": "Miele AutoDos PowerDisk Doldurma Hunisi",
+    "aciklama": "Miele AutoDos PowerDisk deposunu doldurmak için huni. Huni ters çevrilerek kullanılır; huninin ucundaki çıkıntı, disk dönerken huniyi diskin yuvasına yaslamak için tutulur.\nYaklaşık dış ölçüler: 96 × 74 × 58 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr900123-1.jpg"
+    ],
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "pr543218-magic-bullet-kapak-tepsisi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Magic Bullet"
+    ],
+    "uyum": [
+      {
+        "marka": "Magic Bullet"
+      }
+    ],
+    "baslik": "Magic Bullet Kapak Tepsi Tabağı (11 Parçalı Set)",
+    "aciklama": "Magic Bullet on bir parçalı kişisel blender setinin kapak parçaları için saklama tepsisi. Beş kapak, pahlanmış yuvalara geçecek biçimde yerleştirilir.\nYaklaşık dış ölçüler: 157 × 118 × 30 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr543218-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr543218-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "SnorgleBlorf"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "pr1126006-line6-hx-stomp-koruma-cercevesi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Line 6"
+    ],
+    "uyum": [
+      {
+        "marka": "Line 6"
+      }
+    ],
+    "baslik": "Line 6 HX Stomp Koruma Çerçevesi",
+    "aciklama": "Line 6 HX Stomp üzerindeki döner kodlayıcılar ve düğmeler için koruma çerçevesi. Çerçeve, cihazın üst yüzeyine çift taraflı bant ile yapıştırılarak düğmelerin üzerini kapatır.\nYaklaşık dış ölçüler: 170 × 85 × 22 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1126006-1.jpg"
+    ],
+    "altkategori": "Ses ve Müzik"
+  },
+  {
+    "id": "pr694811-line6-g30-verici-kilifi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Line 6"
+    ],
+    "uyum": [
+      {
+        "marka": "Line 6"
+      }
+    ],
+    "baslik": "Line 6 G30 Verici Kılıfı",
+    "aciklama": "Line 6 G30 verici için kılıf. Vericiyi saran gövde krem renkli olarak tasarlanmıştır.\nYaklaşık dış ölçüler: 78 × 76 × 42 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr694811-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr694811-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr694811-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr694811-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Justin Spanier (remix: ArrMiHardies)"
+    },
+    "altkategori": "Ses ve Müzik"
+  },
+  {
+    "id": "pr1325323-line6-relay-g10s-rack-askisi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Line 6"
+    ],
+    "uyum": [
+      {
+        "marka": "Line 6"
+      }
+    ],
+    "baslik": "Line 6 Relay G10S Rack Askısı",
+    "aciklama": "Line 6 Relay G10S kablosuz alıcıyı pedalboard üzerine yerleştiren askı. Tabanında dört vida yuvası bulunur; alıcı, hoparlör kabzasına geçirilerek değil, vida ile sabitlenerek takılır.\nYaklaşık dış ölçüler: 150 × 95 × 26 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1325323-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1325323-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1325323-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Snarky (remix: da_CHRIS)"
+    },
+    "altkategori": "Ses ve Müzik"
+  },
+  {
+    "id": "pr132940-lavazza-a-modo-mio-kapsul-tutucusu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Lavazza"
+    ],
+    "uyum": [
+      {
+        "marka": "Lavazza"
+      }
+    ],
+    "baslik": "Lavazza A Modo Mio Kapsül Tutucusu (Yaklaşık 12 Kapsül)",
+    "aciklama": "Lavazza A Modo Mio kapsülleri için tutucu. Sade bir dış hatla tasarlanmıştır ve yaklaşık on iki kapsül alır.\nYaklaşık dış ölçüler: 224 × 110 × 80 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr132940-1.jpg"
+    ],
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "pr618916-kenwood-aparat-askisi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Kenwood"
+    ],
+    "uyum": [
+      {
+        "marka": "Kenwood"
+      }
+    ],
+    "baslik": "Kenwood Aksesuar Askısı",
+    "aciklama": "Kenwood karıştırıcı aparatlarının asılması için askı. Ahşap bir yüzeye vida ile sabitlenir; ahşap yüzeyde beş milimetrelik pan başlı vida kullanılır.\nYaklaşık dış ölçüler: 55 × 55 × 52 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr618916-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Matt-G"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "pr161777-kenwood-chef-xl-kase-tutucusu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Kenwood"
+    ],
+    "uyum": [
+      {
+        "marka": "Kenwood"
+      }
+    ],
+    "baslik": "Kenwood Chef XL Kase Tutucusu",
+    "aciklama": "Kenwood Chef XL kasesini tutan klips. Tutucu kase kenarına geçirilir; hamuru kaseden alırken kase elde tutulmadan hamurun geri kazınmasını sağlar.\nYaklaşık dış ölçüler: 145 × 145 × 17 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr161777-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr161777-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Lajo"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "pr54779-kenwood-dograyici-disk-organizeri",
+    "kategori": "Elektronik",
+    "marka": [
+      "Kenwood"
+    ],
+    "uyum": [
+      {
+        "marka": "Kenwood"
+      }
+    ],
+    "baslik": "Kenwood Doğrayıcı Disk Organizeri (6 Adet)",
+    "aciklama": "Kenwood doğrayıcısının altı kesme diski için stant. Diskler yuvalara tek tek oturtulur; yuva genişliği, saklanacak diskin kalınlığına göre modelde ayarlanabilir.\nYaklaşık dış ölçüler: 170 × 160 × 25 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr54779-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr54779-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr54779-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr54779-4.jpg"
+    ],
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "pr123167-jura-kahve-makinesi-posa-kutusu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Jura"
+    ],
+    "uyum": [
+      {
+        "marka": "Jura"
+      }
+    ],
+    "baslik": "Jura Kahve Makinesi Posa Kutusu (C, D, E ve F Serisi)",
+    "aciklama": "Jura kahve makinesinin posa kutusu. D4, D6 ve D60 ile Impressa C, E ve F serisi modellerde kullanılır; makineden çıkan posa bu kovada birikir.\nYaklaşık dış ölçüler: 118 × 96 × 81 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr123167-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr123167-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr123167-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr123167-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Jens83 (remix: JonsBronnu)"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "pr1042297-jura-kahve-makinesi-cekirdek-haznesi-uzatma",
+    "kategori": "Elektronik",
+    "marka": [
+      "Jura"
+    ],
+    "uyum": [
+      {
+        "marka": "Jura"
+      }
+    ],
+    "baslik": "Jura Kahve Makinesi Çekirdek Haznesi Uzatması (ENA 8)",
+    "aciklama": "Jura ENA 8 kahve makinesinin çekirdek haznesini yükselten kap. Makinedeki çekirdek girişini koruyan ızgara bu tasarımda yer almaz.\nYaklaşık dış ölçüler: 125 × 125 × 115 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1042297-1.jpg"
+    ],
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "pr600635-jura-ena-cekirdek-haznesi-yukseltici",
+    "kategori": "Elektronik",
+    "marka": [
+      "Jura"
+    ],
+    "uyum": [
+      {
+        "marka": "Jura"
+      }
+    ],
+    "baslik": "Jura ENA Çekirdek Haznesi Yükseltici",
+    "aciklama": "Jura ENA serisi kahve makinelerinin çekirdek haznesini yetmiş milimetre yükselten kap.\nYaklaşık dış ölçüler: 121 × 121 × 70 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr600635-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "haafi1"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "pr129514-abus-bisiklet-uda-kilit-tutucusu",
+    "kategori": "Bisiklet",
+    "marka": [
+      "Abus"
+    ],
+    "uyum": [
+      {
+        "marka": "Abus"
+      }
+    ],
+    "baslik": "Abus U Kilit Bisiklet Tutucusu (Şişe Vida Montajı)",
+    "aciklama": "Abus U kilidi bisikletin şişe yuvası vidalarına monte eden tutucu. Kilit gövdesi için bir parça, U bar bölümünü arka çatalda tutan iki parça bulunur; arka çatal tutucuları cırt bantla sabitlenir.\nYaklaşık dış ölçüler: 151 × 53 × 25 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr129514-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr129514-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "lienmeat"
+    },
+    "altkategori": "Kilit ve Güvenlik"
+  },
+  {
+    "id": "pr135292-abus-granit-kilit-sepet-tutucusu",
+    "kategori": "Bisiklet",
+    "marka": [
+      "Abus"
+    ],
+    "uyum": [
+      {
+        "marka": "Abus"
+      }
+    ],
+    "baslik": "Abus Granit U Kilit Sepet Tutucusu",
+    "aciklama": "Abus Granit U kilidi, bisiklet arkasındaki sepetin on milimetre çapındaki borusuna monte etmek için kullanılır. Dört parçadan oluşur: iki ön kilit tutucu ile biri sol, biri sağ arka kilit tutucu. Arka boru ile tutucu arasındaki açı altmış derecedir.\nYaklaşık dış ölçüler: 68 × 30 × 30 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr135292-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr135292-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr135292-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "ben"
+    },
+    "altkategori": "Kilit ve Güvenlik"
+  },
+  {
+    "id": "pr387903-abus-bordo-ugrip-kilif-tutucusu",
+    "kategori": "Bisiklet",
+    "marka": [
+      "Abus"
+    ],
+    "uyum": [
+      {
+        "marka": "Abus"
+      }
+    ],
+    "baslik": "Abus Bordo Ugrip 5700 Kılıf Tutucusu",
+    "aciklama": "Abus Bordo Ugrip 5700 kilidinin tutamak kılıfı için kılıf tutucusu. Bisikletin şişe yuvasına vida ile monte edilebilir ya da cırt bantla sabitlenebilir.\nYaklaşık dış ölçüler: 143 × 49 × 32 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr387903-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr387903-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr387903-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr387903-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Jbrans"
+    },
+    "altkategori": "Kilit ve Güvenlik"
+  },
+  {
     "id": "pr3407-prusa-mk3-mk2-eklemeli-kamera-askisi",
     "kategori": "Elektronik",
     "marka": [
