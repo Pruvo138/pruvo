@@ -315,7 +315,7 @@ function beklemeSunucusu(yerelIdler, gizli, ekSayim) {
 async function beklemeOlc() {
   console.log("\n▶ BEKLE-YENIDEN-OLC (K438): yayin hali OKUNAMAZKEN pencere beklenir");
   const ENV_ADLARI = ["PARITE_YAYIN_HALI", "SAHTE_HAL_SPEC", "PARITE_URUNLER",
-    "PARITE_YAYIN_BEKLE_SN", "PARITE_YAYIN_BEKLE_ARALIK_SN"];
+    "PARITE_YAYIN_BEKLE_SN", "PARITE_YAYIN_BEKLE_ARALIK_SN", "PARITE_YEREL_HEAD_YAS_SN"];
   const onceki = {};
   for (const a of ENV_ADLARI) onceki[a] = process.env[a];
   const gecici = fs.mkdtempSync(path.join(os.tmpdir(), "parite-bekle-"));
@@ -326,8 +326,11 @@ async function beklemeOlc() {
   const ARALIK = 60;
 
   // Tek vaka: sahte uc + hal komutu spec'i + enjekte uyku (k. uykuda yayin biter).
-  async function vaka({ halSpec, argvYok, ayar, yayinlaUykuda, ekSayim }) {
+  async function vaka({ halSpec, argvYok, ayar, yayinlaUykuda, ekSayim, headYasSn }) {
     for (const a of ENV_ADLARI) delete process.env[a];
+    // HEAD yasi verilmezse gercek `git log` okunur; hal.yok dali (yayin kuyrugu kolu)
+    // bu yasa bakar -> o daldaki vaka yasi SABIT verir (taze commit'li CI'da oynamasin).
+    if (headYasSn !== undefined) process.env.PARITE_YEREL_HEAD_YAS_SN = String(headYasSn);
     if (argvYok) {
       process.env.PARITE_URUNLER = path.join(gecici, "yok.json");    // fikstur -> argv null
     } else {
@@ -418,7 +421,8 @@ async function beklemeOlc() {
 
     // W5 hal OKUNUR ve satir GERCEKTEN yok -> bekleme YOK, KIRMIZI.
     aktifSenaryo = "W5 BEKLE: GERCEK KAYIP -> bekleme YOK, KIRMIZI";
-    const w5 = await vaka({ halSpec: { yok: TASLAK }, yayinlaUykuda: 1,
+    // HEAD yasi (3000 sn) > sahte artefakt yasi (300 sn) = site HEAD'i YAYINLADI -> kayip GERCEK.
+    const w5 = await vaka({ halSpec: { yok: TASLAK }, yayinlaUykuda: 1, headYasSn: 3000,
       ayar: { butceSn: 2700, aralikSn: ARALIK } });
     ONA(w5.uykular.length === 0, "W5 uyku cagrisi 0 (hal OKUNDU, bekleyecek sey yok)",
       JSON.stringify(w5.uykular));
@@ -655,6 +659,8 @@ async function main() {
     ad: "Y7 KARISIK: 5 taslak + 1 gercek kayip -> muafiyet kaybi YUTMAZ, cikis 1",
     dosya: PARITE_SITE, yerel: TABAN, gizli: GIZLI,
     spec: { taslak: TASLAKLAR.slice(1), yok: [TASLAKLAR[0]], sayfa: 404, artefaktYas: TAZE },
+    // HEAD, sitenin son deploy'undan ESKI (site HEAD'i yayinladi) -> kayip GERCEK.
+    ekEnv: { PARITE_YEREL_HEAD_YAS_SN: String(TAZE * 10) },
     dogrula: (r) => {
       ONA(r.kod === 1, "cikis 1 KIRMIZI", r.cikti.slice(-800));
       ONA(/GERCEK KAYIP/.test(r.cikti), "gercek kayip ADIYLA basildi (taslaklar gizlemedi)");
