@@ -58,6 +58,11 @@ TABAN = frozenset({
     # 27 Eki 2026 (BaBa tik 248 (C)): MaCiT JW1 1 kayit Jawa'yi esigin ustune cikardi (K1
     # yakaladi); sayfa dogumu PARTI 2'de. Veri ile AYNI birlestirmede iner (NIU yolu).
     "Jawa",
+    # 27 Eki 2026 (BaBa tik 253 (B)): MaCiT ES2 9 kayit (Daewoo 5 · Scion 6 · Mahindra 4) uc
+    # markayi esigin ustune cikardi (K1 yakaladi); sayfa dogumu PARTI 2'de, veriyle AYNI merge.
+    "Daewoo",
+    "Scion",
+    "Mahindra",
 })
 
 
