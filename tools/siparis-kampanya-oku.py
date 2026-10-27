@@ -26,6 +26,12 @@ SINIFLAR (sabit sira): figur-arama · gclid · yeniden-pazarlama · ucretli-dige
   - REF:OG-* -> organik · REF:GS-FIG/GY/YP/UC -> figur-arama/gclid/yeniden-pazarlama/
     ucretli-diger · REF:GS-<baska grup> (pg) -> ucretli-grup · baska kaynak -> ucretli-diger
 
+REF-GCLID DUSME KOKU (BaBa tik 245 B, 26 Eki GS-GY vakasi): `reklam_ref_gclid` satiri yalniz
+analitik RIZA + tiklama kimligi varken yazilir (attribution-ref.js persistPaidOnLoad/persistRef);
+rizasiz ziyarette gclid kayda girmez -> satir YOK (tasarim geregi). REF ise rizadan BAGIMSIZ
+uretilip siparise yazilir -> bu arac o koru PAYLASMAZ. Siparis bazinda "riza yok" mu "beacon
+engellendi" mi ayrimi OLCULEMEDI (istemci logu tutulmaz).
+
 ODENMIS = durum in {odendi, uretimde, kargolandi, tamamlandi} (shop/src/yonet.js
 TUM_DURUMLAR'dan). iptal ayri sayilir. Bilinmeyen durum -> OLCULEMEDI (sessiz yanlis
 siniflama YOK).

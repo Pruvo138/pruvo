@@ -117,7 +117,9 @@ setTimeout(L,5000);})();
   // sinifiyla uyumlu 2-4; "FIG"/"GY"/"UC"). utm_campaign DEGERI hicbir yere yazilmaz
   // (kvkk + sessiz hata yok); yalniz bu tablodan sinif turesin. Yeni Figür son eki buraya;
   // harita disinda kalan trafik "UC" (Unclassified) tasir. PMax ayri: gclid-yalniz "GY".
-  var KAMPANYA_GRUP = { "figur-arama": "FIG" };
+  // "yeniden-pazarlama" -> "YP" (27 Eki 2026): inis sayaci bu kampanyayi ayri sayiyordu ama
+  // REF'te "UC"ye dusuyordu -> siparis satirinda kampanya sinifi OKUNAMIYORDU.
+  var KAMPANYA_GRUP = { "figur-arama": "FIG", "yeniden-pazarlama": "YP" };
   var LEAD_ENDPOINT = "/api/shop/ref";
   var CONSENT_KEY = "pruvo_onay_analitik";
   // ORGANIK ATIF: click-id YOKKEN, referrer bir ARAMA MOTORU ise organik REF (src=OG) uretilir.
