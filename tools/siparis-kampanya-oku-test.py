@@ -15,6 +15,8 @@ import tempfile
 
 sys.dont_write_bytecode = True
 TOOLS = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, TOOLS)
+import d1_zarf_fikstur                                   # noqa: E402  (ortak gercek zarf)
 ARAC = os.path.join(TOOLS, "siparis-kampanya-oku.py")
 GUN = "2026-10-26"
 GIZLI_AD = "Gizli Musteri Adi"
@@ -120,12 +122,18 @@ def suit(arac, dizin, sessiz=False):
     iddia(rc == 3 and "BILINMEYEN-DURUM" in out, "V8 bilinmeyen durum -> rc 3 (sessiz siniflama yok)",
           out)
 
+    # GERCEK wrangler zarfi — TEK ORTAK FIKSTUR (tools/d1_zarf_fikstur.py; d1-zarf-fikstur-kapisi).
     zarf = os.path.join(dizin, "zarf.json")
     with open(zarf, "w") as f:
-        json.dump([{"results": [{"durum": "odendi", "kanal": "site", "tutar_kurus": 100,
-                                 "kargo_kurus": 0, "ref": "REF:GS-YP-AAAA"}], "success": True}], f)
+        f.write(d1_zarf_fikstur.zarf_metni([
+            {"durum": "odendi", "kanal": "site", "tutar_kurus": 100, "kargo_kurus": 0,
+             "ref": "REF:GS-YP-AAAA"},
+            {"durum": "bekliyor", "kanal": "site", "tutar_kurus": 200, "kargo_kurus": 0,
+             "ref": None}]))
     rc, out = kos(arac, "--gun", GUN, "--d1-json", zarf)
-    iddia(rc == 0 and "yeniden-pazarlama=1/1.00" in out, "V9 canli zarf ayristiricisi (liste)", out)
+    iddia(rc == 0 and "yeniden-pazarlama=1/1.00" in out and
+          "SIPARIS_BEKLEYEN gun=2026-10-26" in out and "atif-yok=1/2.00" in out,
+          "V9 GERCEK wrangler zarfi (ortak fikstur) ayristirilir; ref null -> atif-yok", out)
     return kaldi - once_k
 
 
