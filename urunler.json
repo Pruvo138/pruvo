@@ -1,5 +1,438 @@
 [
   {
+    "id": "pr3407-prusa-mk3-mk2-eklemeli-kamera-askisi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Prusa"
+    ],
+    "uyum": [
+      {
+        "marka": "Prusa"
+      }
+    ],
+    "baslik": "Prusa MK3 ve MK2 Eklemeli Raspberry Pi Kamera Askısı",
+    "aciklama": "Raspberry Pi kamerası için eklemeli kamera askısı; MK3 ve MK2 yazıcıların X eksenine monte edilen braketle kullanılır. Bağlantı kolları 24 kademeli tırnaklı somunlarla kilitlenir, farklı uzunlukta kollar birleştirilebilir. Kameranın şerit kablosu için kollarda kablo bağı yuvaları bulunur, 1/4-20 dişli web kameralar için ayrı bir bağlantı parçası da mevcuttur.\nYaklaşık dış ölçüler: 56 × 24 × 23 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr3407-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr3407-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Sneaks"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr26167-prusa-celik-tabla-tutucusu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Prusa"
+    ],
+    "uyum": [
+      {
+        "marka": "Prusa"
+      }
+    ],
+    "baslik": "Prusa Çelik Tabla Tutucusu",
+    "aciklama": "Prusa yazıcının çelik tablasını yatayda tutan askı. İki, üç veya dört çelik tablayı bir arada taşıyacak biçimde hazırlanmıştır.\nYaklaşık dış ölçüler: 265 × 50 × 45 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr26167-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr26167-2.jpg"
+    ],
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr17-prusa-i3-mk3-muhafaza-ikea-lack",
+    "kategori": "Elektronik",
+    "marka": [
+      "Prusa"
+    ],
+    "uyum": [
+      {
+        "marka": "Prusa"
+      }
+    ],
+    "baslik": "Prusa i3 MK3 Muhafaza (IKEA Lack)",
+    "aciklama": "i3 MK3 yazıcı için kapalı kutu; köşe bağlantı parçalarıyla birleştirilerek IKEA Lack sehpanın üzerine oturacak şekilde tasarlanmıştır. Ön ve yanlara plexiglass panel yerleştirilir.\nYaklaşık dış ölçüler: 159 × 138 × 26 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr17-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr17-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Dom  Cis"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr1353025-flashforge-ad5x-yatak-kapak",
+    "kategori": "Elektronik",
+    "marka": [
+      "Flashforge"
+    ],
+    "uyum": [
+      {
+        "marka": "Flashforge"
+      }
+    ],
+    "baslik": "Flashforge Adventurer 5X Yatak Kapağı",
+    "aciklama": "Adventurer 5X (AD5X) yazıcının yatağını kaplayan, çizgili desenli kapak. Cihazın çok renkli çıktı özelliği kullanılarak tek parça olarak hazırlanabilir.\nYaklaşık dış ölçüler: 47 × 30 × 8 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1353025-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1353025-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1353025-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Без Имени (remix: Mine Greg, dark256)"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr933529-flashforge-ad5m-titresim-onleyici-ayak",
+    "kategori": "Elektronik",
+    "marka": [
+      "Flashforge"
+    ],
+    "uyum": [
+      {
+        "marka": "Flashforge"
+      }
+    ],
+    "baslik": "Flashforge Adventurer 5M Titreşim Önleyici Ayak",
+    "aciklama": "Adventurer 5M (AD5M) yazıcının altına takılan dört ayaklı titreşim önleyici set. Arka ayaklar 45 derecelik açıyla tasarlanmıştır.\nYaklaşık dış ölçüler: 51 × 51 × 19 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr933529-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr933529-2.jpg"
+    ],
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr197747-karcher-wd3-el-aleti-adaptoru",
+    "kategori": "Elektronik",
+    "marka": [
+      "Kärcher"
+    ],
+    "uyum": [
+      {
+        "marka": "Kärcher"
+      }
+    ],
+    "baslik": "Kärcher WD3 Bosch ve Makita El Aleti Adaptörü",
+    "aciklama": "Kärcher WD3 süpürgenin hortumunu elektrikli el aletlerine bağlamak için adaptör. Bosch PST 650 dekupaj testere, Makita BO 5030 ve 9910 zımpara ile Bosch PKS 40 daire testere için modeller içerir; adaptörün genişliği iki milimetreliktir.\nYaklaşık dış ölçüler: 88 × 53 × 53 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr197747-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr197747-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr197747-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr197747-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "olgapavlova (remix: olgapavlova)"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "pr340883-karcher-pencere-vakum-duvar-askisi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Kärcher"
+    ],
+    "uyum": [
+      {
+        "marka": "Kärcher"
+      }
+    ],
+    "baslik": "Kärcher Pencere Vakumu Duvar Askısı",
+    "aciklama": "Pencere vakumunun duvara asılması için askı seti. Uzun kol ana ünite ve AB tipi şarj adaptörü için, kısa kol sprey şişesi için, küçük kol ise ikinci emici başlık içindir; üçü de küçük vidalarla duvara sabitlenir.\nYaklaşık dış ölçüler: 120 × 88 × 50 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr340883-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Pchelkaa (remix: gavin, gavmeister)"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "pr522454-black-decker-pegboard-sarj-tutucusu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Black and Decker"
+    ],
+    "uyum": [
+      {
+        "marka": "Black and Decker"
+      }
+    ],
+    "baslik": "Black and Decker Pegboard Şarj Tutucusu",
+    "aciklama": "Akülü şarj cihazının pegboard panosuna ya da duvara asılmasını sağlayan tek parça tutucu. Şarj durum göstergesini üst tarafta tutar ve altında tornavida ucu gibi küçük aletler için bir saklama gözü bulunur.\nYaklaşık dış ölçüler: 110 × 80 × 49 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr522454-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr522454-2.jpg"
+    ],
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "pr1391614-black-decker-20v-sarj-montaj-plakasi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Black and Decker"
+    ],
+    "uyum": [
+      {
+        "marka": "Black and Decker"
+      }
+    ],
+    "baslik": "Black and Decker 20V Şarj Cihazı Montaj Plakası",
+    "aciklama": "20V akülü şarj cihazını duvara sabitleyen montaj plakası. Delikleri ahşap vidalarına göre tasarlanmıştır; cihazın pil kılavuzları montaj deliklerini kapatacağı için plaka önce duvara, şarj cihazı sonra takılır. Ayrıca iki adet pirinç rakor kullanılan ikinci bir varyantı da bulunur.\nYaklaşık dış ölçüler: 72 × 48 × 11 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1391614-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1391614-2.jpg"
+    ],
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "pr972316-briggs-stratton-ratchet-pawl",
+    "kategori": "Bahçe",
+    "marka": [
+      "Briggs & Stratton"
+    ],
+    "uyum": [
+      {
+        "marka": "Briggs & Stratton"
+      }
+    ],
+    "baslik": "Briggs & Stratton Çim Biçme Makinesi Ratchet Pawl Yedek Parçası",
+    "aciklama": "Çim biçme makinesinin ratchet pawl (mandal pimi) yedek parçası; marş tertibatının içinde yer alan bu parça, mandalın tutulmasını sağlar.\nYaklaşık dış ölçüler: 33 × 20 × 11 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr972316-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "banshee013"
+    }
+  },
+  {
+    "id": "pr305530-bafang-dp-c240-can-lcd-buton-tutucu",
+    "kategori": "Bisiklet",
+    "marka": [
+      "Bafang"
+    ],
+    "uyum": [
+      {
+        "marka": "Bafang"
+      }
+    ],
+    "baslik": "Bafang DP C240 CAN Ekran ve Buton Tutucusu",
+    "aciklama": "Bafang DP C240 CAN ekranı ve kumanda butonu için yedek tutucu parçalar. Ekran ve buton tutucuları ayrı ayrı hazırlanmıştır; ekran tutucu M2 ve M3 vidalarla, buton tutucu M4 vida ve metal pimle cihaz üzerindeki yuvasına yerleşir.\nYaklaşık dış ölçüler: 82 × 36 × 35 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr305530-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr305530-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr305530-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr305530-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "duongc (remix: codyqd)"
+    },
+    "altkategori": "Elektrikli Bisiklet"
+  },
+  {
+    "id": "pr1030691-bafang-m500-zincir-koruyucu",
+    "kategori": "Bisiklet",
+    "marka": [
+      "Bafang"
+    ],
+    "uyum": [
+      {
+        "marka": "Bafang"
+      }
+    ],
+    "baslik": "Bafang M500 Zincir Koruyucu",
+    "aciklama": "Bafang M500 motorun üzerindeki montaj deliklerine sabitlenen zincir koruyucu; zincirin düşmesini önlemek için tasarlanmıştır. İki adet M4 vida ile tutulur.\nYaklaşık dış ölçüler: 61 × 61 × 31 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1030691-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1030691-2.jpg"
+    ],
+    "altkategori": "Elektrikli Bisiklet"
+  },
+  {
+    "id": "pr864000-bafang-ekran-govde-tutucusu",
+    "kategori": "Bisiklet",
+    "marka": [
+      "Bafang"
+    ],
+    "uyum": [
+      {
+        "marka": "Bafang"
+      }
+    ],
+    "baslik": "Bafang Ekran Gövde Tutucusu",
+    "aciklama": "Bafang ekran gövdesini gidon üzerinde tutan montaj parçası. AUTHOR marka gidon için tasarlanmıştır ve iki adet kablo bağı ile sabitlenir.\nYaklaşık dış ölçüler: 49 × 44 × 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr864000-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr864000-2.jpg"
+    ],
+    "altkategori": "Elektrikli Bisiklet"
+  },
+  {
+    "id": "pr1842380-yanmar-forte-f145d-arka-lamba",
+    "kategori": "Otomobil",
+    "marka": [
+      "Yanmar"
+    ],
+    "uyum": [
+      {
+        "marka": "Yanmar"
+      }
+    ],
+    "baslik": "Yanmar Forte F145D Arka Lamba",
+    "aciklama": "Yanmar Forte F145D (F155, F165) traktörünün arka lamba reflektörü. Arka ışık grubunda kullanılmak üzere tasarlanmıştır.\nYaklaşık dış ölçüler: 180 × 85 × 78 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1842380-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Adam Tomanek"
+    },
+    "altkategori": "Aydınlatma"
+  },
+  {
+    "id": "pr1015698-massey-ferguson-yedek-klips",
+    "kategori": "Otomobil",
+    "marka": [
+      "Massey Ferguson"
+    ],
+    "uyum": [
+      {
+        "marka": "Massey Ferguson"
+      }
+    ],
+    "baslik": "Massey Ferguson Yedek Klips (0.007.5562.0)",
+    "aciklama": "Massey Ferguson ve SDF traktörlerde kullanılan 0.007.5562.0 kodlu klips için hazırlanmış yedek parça.\nYaklaşık dış ölçüler: 30 × 19 × 16 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1015698-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "nfranceschinis"
+    },
+    "altkategori": "Montaj Parçaları ve Klipsler"
+  },
+  {
+    "id": "pr211511-kayo-t2-arka-led-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Kayo"
+    ],
+    "uyum": [
+      {
+        "marka": "Kayo"
+      }
+    ],
+    "baslik": "Kayo T2 Arka LED Tutucusu",
+    "aciklama": "Kayo T2 (2018) motosikletinin arka bagaj çubuğuna geçmeli olarak oturan LED fener tutucusu. Plastik kıskaca oturan yapısıyla bagaj üzerindeki çubuğa tutunur.\nYaklaşık dış ölçüler: 190 × 66 × 20 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr211511-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr211511-2.jpg"
+    ],
+    "altkategori": "Aydınlatma"
+  },
+  {
+    "id": "pr1874928-hummer-shark-fin-anten-kapak",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hummer"
+    ],
+    "uyum": [
+      {
+        "marka": "Hummer"
+      }
+    ],
+    "baslik": "Hummer Shark Fin Anten Kapağı",
+    "aciklama": "Araç tavanındaki anten yuvasına oturan shark fin biçiminde anten kapağı; antenin taban bölümünü örtecek şekilde tasarlanmıştır.\nYaklaşık dış ölçüler: 236 × 85 × 82 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1874928-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1874928-2.jpg"
+    ],
+    "altkategori": "Dış Aksam"
+  },
+  {
+    "id": "pr1177750-hummer-h3-ayna-takozu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hummer"
+    ],
+    "uyum": [
+      {
+        "marka": "Hummer"
+      }
+    ],
+    "baslik": "Hummer H3 Ayna Takozu",
+    "aciklama": "Hummer H3 yan aynasının altına yerleştirilen takoz. Aynanın gevşemesini gidermek için biraz uzun bırakılmıştır; ihtiyaca göre kısaltılabilir.\nYaklaşık dış ölçüler: 48 × 28 × 4 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1177750-1.jpg"
+    ],
+    "altkategori": "Ayna ve Silecek"
+  },
+  {
+    "id": "pr1462395-maserati-far-yikama-kapak",
+    "kategori": "Otomobil",
+    "marka": [
+      "Maserati"
+    ],
+    "uyum": [
+      {
+        "marka": "Maserati"
+      }
+    ],
+    "baslik": "Maserati 4200 Far Yıkama Kapağı",
+    "aciklama": "Maserati 4200'ın far yıkama ünitesindeki hortum yuvasını kapatan gövde. 66371800 ve 66371700 parça numaralarına karşılık gelir.\nYaklaşık dış ölçüler: 30 × 29 × 13 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1462395-1.jpg"
+    ],
+    "altkategori": "Dış Aksam"
+  },
+  {
+    "id": "pr449587-lamborghini-push-button-starter-kapak",
+    "kategori": "Otomobil",
+    "marka": [
+      "Lamborghini"
+    ],
+    "uyum": [
+      {
+        "marka": "Lamborghini"
+      }
+    ],
+    "baslik": "Lamborghini Dokunmatik Marş Düğme Kapağı",
+    "aciklama": "Lamborghini dokunmatik marş düğmesinin üzerine oturan kapak gövdesi. Kapak, düğmenin çevresindeki yuvaya geçecek biçimde tasarlanmıştır.\nYaklaşık dış ölçüler: 37 × 37 × 6 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr449587-1.jpg"
+    ],
+    "altkategori": "Konsol ve Torpido"
+  },
+  {
     "id": "pr89605-zelmer-supurge-karcher-adaptor",
     "kategori": "Elektronik",
     "marka": [
