@@ -1,5 +1,202 @@
 [
   {
+    "id": "pr141597-mahindra-2538-traktor-bardaklik",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mahindra"
+    ],
+    "uyum": [
+      {
+        "marka": "Mahindra"
+      }
+    ],
+    "baslik": "Mahindra 2538 Traktör Bardaklığı",
+    "aciklama": "Mahindra 2538 traktörü için tasarlanmış bir bardaklık ve montaj adaptörü setidir. Adaptör, traktörün sağ çamurluk üzerindeki mevcut iki deliğe 5/16 inç vida ile sabitlenir, bardaklık ise adaptörün üzerine oturur.\nYaklaşık dış ölçüler: 177 × 110 × 88 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr141597-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr141597-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "TechButterfly (remix: TechButterfly)"
+    }
+  },
+  {
+    "id": "pr1858058-mahindra-cam-golge-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mahindra"
+    ],
+    "uyum": [
+      {
+        "marka": "Mahindra"
+      }
+    ],
+    "baslik": "Mahindra Cam Gölgelik Tutucusu",
+    "aciklama": "Araç camının iç tarafına yapıştırılarak cam gölgeliğini tutan küçük bir parçadır. Mahindra araçlarındaki gölgelik tutucusuna benzer biçimde tasarlanmıştır ve başka marka gölgeliklerle de kullanılabilir.\nYaklaşık dış ölçüler: 32 × 12 × 8 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1858058-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1858058-2.jpg"
+    ]
+  },
+  {
+    "id": "pr44343-scion-xb-silecek-bicagi-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Scion"
+    ],
+    "uyum": [
+      {
+        "marka": "Scion"
+      }
+    ],
+    "baslik": "Scion xB Silecek Bıçağı Kapağı",
+    "aciklama": "Scion xB silecek bıçağının üzerine geçen bir kapaktır. 2010 model xB aracında sıkı bir şekilde oturduğu, benzer silecek tutan diğer araçlara da uyabileceği belirtilmiştir.\nYaklaşık dış ölçüler: 32 × 28 × 10 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr44343-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "cTallakson (remix: xptech)"
+    }
+  },
+  {
+    "id": "pr510416-scion-iq-cam-kanal-klipi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Scion"
+    ],
+    "uyum": [
+      {
+        "marka": "Scion"
+      }
+    ],
+    "baslik": "Scion iQ Cam Kanal Klipsi",
+    "aciklama": "Scion iQ kapı camının kanalına oturan bir klipsdir. Camı hareket ettiren düzeneği kanal içinde tutarak cam ile düzenek arasındaki bağlantıyı kurar.\nYaklaşık dış ölçüler: 50 × 40 × 19 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr510416-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr510416-2.jpg"
+    ]
+  },
+  {
+    "id": "pr938849-scion-tc-swc-konsol-yuz-plakasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Scion"
+    ],
+    "uyum": [
+      {
+        "marka": "Scion"
+      }
+    ],
+    "baslik": "Scion tC Konsol Yüz Plakası (SWC)",
+    "aciklama": "Scion tC orta konsolunun üst yüzeyine oturan bir plakadır. Direksiyon kumandası ve ses düğmelerinin konsola eklenmesi için kullanılır. Plaka, düğmelerin çevresinde bir kenar payı bırakacak biçimde tasarlanmıştır; kablolama ve düğme gibi elektronik bileşenler modele dahil değildir.\nYaklaşık dış ölçüler: 59 × 58 × 2 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr938849-1.jpg"
+    ]
+  },
+  {
+    "id": "pr1203358-scion-frs-yan-soket-klipi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Scion"
+    ],
+    "uyum": [
+      {
+        "marka": "Scion"
+      }
+    ],
+    "baslik": "Scion FR-S Yan Soket Klipsi",
+    "aciklama": "Scion FR-S aracının yan soket parçasını yerinde tutan bir klipsdir. 2015 model Release Series 1.0 sürümü için tasarlanmıştır.\nYaklaşık dış ölçüler: 23 × 23 × 14 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1203358-1.jpg"
+    ]
+  },
+  {
+    "id": "pr952140-daewoo-racer-torpido-klipi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Daewoo"
+    ],
+    "uyum": [
+      {
+        "marka": "Daewoo"
+      }
+    ],
+    "baslik": "Daewoo Racer Torpido Klipsi",
+    "aciklama": "Daewoo Racer'ın torpido bölümünde kullanılan bir klipsdir. Torpidonun köpük ya da lastik parçasını kavrayarak panelin gövde üzerinde sabit kalmasını sağlar.\nYaklaşık dış ölçüler: 28 × 28 × 22 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr952140-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr952140-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr952140-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr952140-4.jpg"
+    ]
+  },
+  {
+    "id": "pr1000273-daewoo-matiz-jant-gobek-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Daewoo"
+    ],
+    "uyum": [
+      {
+        "marka": "Daewoo"
+      }
+    ],
+    "baslik": "Daewoo Matiz Jant Göbek Kapağı",
+    "aciklama": "Daewoo Matiz jantlarının göbek bölümüne oturan bir kapaktır. Jant üzerindeki açıklığı kapatarak göbek kısmının tamamlanmasını sağlar.\nYaklaşık dış ölçüler: 60 × 60 × 10 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1000273-1.jpg"
+    ]
+  },
+  {
+    "id": "pr952175-daewoo-racer-delikli-torpido-klipi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Daewoo"
+    ],
+    "uyum": [
+      {
+        "marka": "Daewoo"
+      }
+    ],
+    "baslik": "Daewoo Racer Delikli Torpido Klipsi",
+    "aciklama": "Daewoo Racer'ın torpido bölümünde kullanılan delikli bir klipsdir. Torpidoyu tutan köpük ya da lastik parçanın klips içinden geçirilmesini sağlar.\nYaklaşık dış ölçüler: 30 × 30 × 12 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr952175-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr952175-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr952175-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr952175-4.jpg"
+    ]
+  },
+  {
+    "id": "pr652896-jawa-20-bit-tutucusu",
+    "kategori": "Tamirat",
+    "marka": [
+      "Jawa"
+    ],
+    "uyum": [
+      {
+        "marka": "Jawa"
+      }
+    ],
+    "baslik": "Jawa 20 Moped Silüetli Uç Tutucusu",
+    "aciklama": "Jawa 20 moped silueti şeklinde tasarlanmış bir uç tutucusudur. Ahşap bir yüzeye vida ile sabitlenerek uçların düzenli bir şekilde tutulmasını sağlar.\nYaklaşık dış ölçüler: 120 × 67 × 15 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr652896-1.jpg"
+    ]
+  },
+  {
     "id": "pr751838-niu-kqi-air-airtag-kancasi",
     "kategori": "Motosiklet",
     "marka": [

@@ -461,8 +461,14 @@ async function kabulKos(ortakYolu, sessiz) {
   // yani boyle bir kosum zaten pariteyi belgelendiremez).
   const dar = { PARITE_SUPURME_MUTLAK: "3" };
   const ok = await olcOnKosul(ortakYolu, 1000, dar);
+  // 🔴 SEBEP SINIFI IMZADA (27 Eki 2026, KraL halef-66): supurme arizasi da artik `durdu`
+  // ile doner (OLCULEMEDI sebep=supurme, BaBa tik 258 A). TAVAN kolu kaldirilinca (M3) hata
+  // o kola duser ve "durdu VAR" imzasi DEGISMEZDI (SERIT B 40519755125 hijyen-a4: M3 SAPAN).
+  // Ayirt eden sey durmanin SEBEBIDIR: TAVAN kendi notunu basar, supurme kolu degil.
+  const k4Sebep = /SUPURME TAVANI/.test(String(ok.durdu)) ? "TAVAN" :
+    /sebep=supurme/.test(String(ok.durdu)) ? "supurme" : (ok.durdu ? "diger" : "-");
   imza.push("K4 durdu=" + (ok.durdu ? "VAR" : "yok") + " kirmizi=" + (ok.kirmizi ? "VAR" : "yok") +
-    " olculemedi=" + ok.olculemedi);
+    " olculemedi=" + ok.olculemedi + " sebep=" + k4Sebep);
   yaz("\n▶ K4 ON-KOSUL: tavan asildi -> ACIK OLCULEMEDI (sessiz yanlis-kirmizi DEGIL)");
   if (!sessiz) {
     ONA(ok.cokme === null, "surec COKMEDI", ok.cokme);
