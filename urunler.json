@@ -1,5 +1,264 @@
 [
   {
+    "id": "pr1138617-xbox-kumanda-standi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Xbox"
+    ],
+    "uyum": [
+      {
+        "marka": "Xbox"
+      }
+    ],
+    "baslik": "Xbox Kontrolcü Standı",
+    "aciklama": "Xbox kontrolcüsünü dik konumda tutan, sade ve neredeyse görünmez bir standtır. Kontrolcünün alt kısmı standın yuvasına oturur ve gövde küçük bir tabanla sonlanır.\nYaklaşık dış ölçüler: 144 × 50 × 41 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1138617-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1138617-2.jpg"
+    ],
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr99208-xbox-360-kumanda-standi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Xbox"
+    ],
+    "uyum": [
+      {
+        "marka": "Xbox"
+      }
+    ],
+    "baslik": "Xbox 360 Kontrolcü Standı",
+    "aciklama": "Xbox 360 kontrolcüsünü dik konumda tutan kavisli bir standtır. Kontrolcü standın üzerindeki yuvaya oturur ve gövde kavisli bir profil izler.\nYaklaşık dış ölçüler: 135 × 49 × 30 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr99208-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Matt Longieliere (remix: npiegdon)"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr253770-rode-videomicro-shockmount-tutucu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Rode"
+    ],
+    "uyum": [
+      {
+        "marka": "Rode"
+      }
+    ],
+    "baslik": "Rode VideoMicro Şok Tutucu",
+    "aciklama": "Rode VideoMicro shotgun mikrofon için tasarlanmış bir şok tutucudur. Mikrofon soğuk ayak bağlantısıyla tutulur ve tutucunun taban plakası masa ya da stant üzerine oturur.\nYaklaşık dış ölçüler: 74 × 54 × 8 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr253770-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "3D-drukken"
+    },
+    "altkategori": "Ses ve Müzik"
+  },
+  {
+    "id": "pr85632-rode-wireless-go-hotshoe-adaptoru",
+    "kategori": "Elektronik",
+    "marka": [
+      "Rode"
+    ],
+    "uyum": [
+      {
+        "marka": "Rode"
+      }
+    ],
+    "baslik": "Rode Wireless Go Hot Shoe 90° Adaptörü",
+    "aciklama": "Rode Wireless Go alıcısını kameraya 90 derece döndürerek bağlamak için hazırlanmış bir hot shoe adaptörüdür. Gövde kameranın bağlantı yuvasına oturur ve alıcının ekranı yana bakacak biçimde durur.\nYaklaşık dış ölçüler: 32 × 26 × 26 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr85632-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Redeye (remix: Fangli)"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr70834-rode-wigo-sarj-istasyonu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Rode"
+    ],
+    "uyum": [
+      {
+        "marka": "Rode"
+      }
+    ],
+    "baslik": "Rode WIGO Şarj İstasyonu",
+    "aciklama": "Rode WIGO mikrofonunun şarj cihazı için iki parçadan oluşan bir şarj istasyonudur. Parçalar vida ile birleştirilir ve mikrofonun USB-C kablosu gövde içindeki kanalda tutulur.\nYaklaşık dış ölçüler: 59 × 44 × 30 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr70834-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr70834-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr70834-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr70834-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Marius Hornberger (remix: MariusHornberger)"
+    },
+    "altkategori": "Ses ve Müzik"
+  },
+  {
+    "id": "pr968182-quechua-kamp-sandalyesi-bardak-tutucusu",
+    "kategori": "Ev",
+    "marka": [
+      "Quechua"
+    ],
+    "uyum": [
+      {
+        "marka": "Quechua"
+      }
+    ],
+    "baslik": "Quechua Kamp Sandalyesi Bardak Tutucusu",
+    "aciklama": "Quechua Comfortable Reclining Folding kamp sandalyesinin yan kenarına takılan bir içecek tutucusudur. Altıgen desenli gövde şişe ya da fincanı sandalyenin üstünde tutar ve sandalye katlandığında da yerinde kalır.\nYaklaşık dış ölçüler: 102 × 79 × 70 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr968182-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr968182-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr968182-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr968182-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "GrandPhil"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr1396678-quechua-termos-sise-kapak-contasi",
+    "kategori": "Ev",
+    "marka": [
+      "Quechua"
+    ],
+    "uyum": [
+      {
+        "marka": "Quechua"
+      }
+    ],
+    "baslik": "Quechua Termos Şişe Kapak Contası",
+    "aciklama": "Quechua termos şişesinin kapağındaki conta ile aynı görevi gören bir TPU conta parçasıdır. Kapağın iç yüzeyine oturan halka şeklindedir ve kapağın ağzını saran bölümü tamamlar.\nYaklaşık dış ölçüler: 23 × 19 × 18 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1396678-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1396678-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1396678-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Sankata_MaW"
+    },
+    "altkategori": "Mutfak"
+  },
+  {
+    "id": "pr226347-aukey-pc-lm1e-webcam-lens-kapagi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Aukey"
+    ],
+    "uyum": [
+      {
+        "marka": "Aukey"
+      }
+    ],
+    "baslik": "Aukey PC-LM1E Webcam Lens Kapağı",
+    "aciklama": "Aukey PC-LM1E webcam lensinin önüne oturan küçük bir kapaktır. Kapak yerleştirildiğinde lensi kapatır ve webcam'in önündeki ışığın içeri girmesini engeller.\nYaklaşık dış ölçüler: 40 × 30 × 25 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr226347-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr226347-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr226347-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr226347-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "bellingeri"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr229534-aukey-magsafe-watch-sarj-standi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Aukey"
+    ],
+    "uyum": [
+      {
+        "marka": "Aukey"
+      }
+    ],
+    "baslik": "Aukey MagSafe ve Apple Watch Şarj Tutucusu",
+    "aciklama": "Aukey MagSafe disk şarj aparatı ile Apple Watch şarj aparatını aynı gövdede tutan tek parça bir tutucudur. Alt tarafında kablo geçişi için bir kanal bulunur.\nYaklaşık dış ölçüler: 159 × 119 × 65 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr229534-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr229534-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Daniel jones"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr134220-anker-kablosuz-sarj-standi-tutucusu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Anker"
+    ],
+    "uyum": [
+      {
+        "marka": "Anker"
+      }
+    ],
+    "baslik": "Anker Ayarlanabilir Kablosuz Şarj Standı Tutucusu",
+    "aciklama": "Anker PowerWave kablosuz şarj pedi için hazırlanmış ayarlanabilir bir tutucudur. Tutucu telefon genişliğine göre ayar yapılır ve telefon dikey ya da yatay konumda yerleştirilebilir; büyük telefonlarda hareketli tutucu ters çevrilerek daha fazla boşluk açılır.\nYaklaşık dış ölçüler: 99 × 24 × 20 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr134220-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr134220-2.jpg"
+    ],
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr68791-anker-usb-hub-masa-alti-montaj-parcasi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Anker"
+    ],
+    "uyum": [
+      {
+        "marka": "Anker"
+      }
+    ],
+    "baslik": "Anker USB Hub Masa Altı Montaj Parçası",
+    "aciklama": "Masa altına yerleştirilen USB hub için hazırlanmış bir montaj parçasıdır. Parça masanın altına dört vida ile sabitlenir ve hub gövdesi masanın alt yüzeyine oturur.\nYaklaşık dış ölçüler: 133 × 35 × 12 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr68791-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "davedarko"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
     "id": "pr156490-skyteam-gorilla-monkey-420-zincir-tutucusu",
     "kategori": "Motosiklet",
     "marka": [
