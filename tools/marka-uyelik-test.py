@@ -524,8 +524,14 @@ kontrol("NEG: /marka/peugeot/citroen/ ve /marka/volkswagen/audi/ ÜRETİLMİYOR"
         and "/marka/volkswagen/audi/" not in MODEL_URL)
 
 # ==================================================== D) marka[1] GERÇEK MODEL (regresyon)
+# 🔴 KOVA KÜMESİ BUILDER'DAN (27 Eki 2026, KraL halef-66 — BaBa tik 207 B "M4'ü yakalayan
+# vaka"): D/D2 eskiden `veri = mm.gruplandir(...)` ile GERÇEK modülü ölçüyordu; `--modul`
+# mutantı yalnız `mm_uret`'e takıldığı için model-üyelik mutantı (M4 `marka_dizisi[1:2]`)
+# bu iki iddiaya YAPISAL olarak görünmüyordu (ölçüldü: M4 gözlem=YESIL FAIL=0). Sınıf
+# tanıkları (marka[]/uyum verisi) aynen kalır; yalnız "kovada mı" sorusu üretecin cevabıdır.
+veri_uret = mm_uret.gruplandir(PRODUCTS, EVREN)
 model_kovasindaki = set()
-for marka, d in veri.items():
+for marka, d in veri_uret.items():
     for g in d["gruplar"].values():
         model_kovasindaki.update(p.get("id") for p in g["urunler"])
 kovasiz = []
