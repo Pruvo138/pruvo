@@ -1,5 +1,355 @@
 [
   {
+    "id": "pr156490-skyteam-gorilla-monkey-420-zincir-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Skyteam"
+    ],
+    "uyum": [
+      {
+        "marka": "Skyteam"
+      }
+    ],
+    "baslik": "Skyteam Gorilla ve Monkey 420 Zincir Tutucusu",
+    "aciklama": "Skyteam Gorilla ve Monkey modellerinin 420 zincirine geçmeli olarak takılan zincir tutucusudur. Zincir kilidi değiştirilirken zincirin elde tutulmasına yardımcı olur.\nYaklaşık dış ölçüler: 87 × 18 × 6 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr156490-1.jpg"
+    ],
+    "altkategori": "Tekerlek ve Aktarma"
+  },
+  {
+    "id": "pr1267089-skyteam-monkey-sinyal-dugmesi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Skyteam"
+    ],
+    "uyum": [
+      {
+        "marka": "Skyteam"
+      }
+    ],
+    "baslik": "Skyteam Monkey Sinyal Düğmesi",
+    "aciklama": "Skyteam Monkey yol bisikletlerindeki sinyal göstergesi düğmesi için tasarlanmıştır. Gösterge kolunun üzerindeki düğme bölümüne oturacak biçimde şekillendirilmiştir.\nYaklaşık dış ölçüler: 10 × 8 × 6 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1267089-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1267089-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Antwelm"
+    },
+    "altkategori": "Aydınlatma"
+  },
+  {
+    "id": "pr1289105-possl-fiamma-bisiklet-tasiyici-stoperi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Pössl"
+    ],
+    "uyum": [
+      {
+        "marka": "Pössl"
+      }
+    ],
+    "baslik": "Pössl Fiamma Bisiklet Taşıyıcı Tekerlek Stoperi",
+    "aciklama": "Fiamma bisiklet taşıyıcıda tekerleğin ileri geri oynamasını önleyen stoper bloğudur. Sabitleme için iki kilit vidası ve iki kanatlı somun gerekir.\nYaklaşık dış ölçüler: 150 × 100 × 89 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1289105-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Udo Freisen"
+    },
+    "altkategori": "Montaj Parçaları ve Klipsler"
+  },
+  {
+    "id": "pr895378-old-town-pdl-tutamak-rayi",
+    "kategori": "Marin",
+    "marka": [
+      "Old Town"
+    ],
+    "uyum": [
+      {
+        "marka": "Old Town"
+      }
+    ],
+    "baslik": "Old Town PDL Tutamak Rayı",
+    "aciklama": "Old Town PDL kayaklarının tutamağına aksesuar bağlanabilmesi için raylı bir tutamak tasarımıdır. Tasarım büyük Water PDL 132 modelinden alınmıştır; diğer kayaklarda uyum için ölçülerin kontrol edilmesi gerekir.\nYaklaşık dış ölçüler: 180 × 47 × 30 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr895378-1.jpg"
+    ],
+    "altkategori": "Kano ve Kayak"
+  },
+  {
+    "id": "pr1137423-old-town-auto-pilot-on-koltuk-tepsi-klipsi",
+    "kategori": "Marin",
+    "marka": [
+      "Old Town"
+    ],
+    "uyum": [
+      {
+        "marka": "Old Town"
+      }
+    ],
+    "baslik": "Old Town Auto Pilot 120/136 Ön Koltuk Tepsi Klipsi",
+    "aciklama": "Old Town Auto Pilot 120 ve 136 kayaklarının ön koltuğunda küçük eşyaları saklamak için tasarlanmış klips setidir. Klipsler, ön koltuktaki saklama tepsisini tutacak biçimde yerleştirilir. Montaj için 10-32 vida ve somun gerekir.\nYaklaşık dış ölçüler: 32 × 22 × 22 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1137423-1.jpg"
+    ],
+    "altkategori": "Kano ve Kayak"
+  },
+  {
+    "id": "pr1137585-old-town-auto-pilot-koltuk-hizalama-klipsi",
+    "kategori": "Marin",
+    "marka": [
+      "Old Town"
+    ],
+    "uyum": [
+      {
+        "marka": "Old Town"
+      }
+    ],
+    "baslik": "Old Town Auto Pilot Koltuk Hizalama Klipsi",
+    "aciklama": "Old Town Auto Pilot kayaklarının koltuğunu hizalayan geçmeli halka klipsidir. Koltuk bu halkalarla hizalandığında kuru saklama kapağının açılması için gereken boşluk korunur. Tolerans ihtiyacına göre farklı kalınlıklarda halkalar bulunur.\nYaklaşık dış ölçüler: 25 × 24 × 6 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1137585-1.jpg"
+    ],
+    "altkategori": "Kano ve Kayak"
+  },
+  {
+    "id": "pr970939-itiwit-kayak-paddle-100-duvar-tutucusu",
+    "kategori": "Marin",
+    "marka": [
+      "Itiwit"
+    ],
+    "uyum": [
+      {
+        "marka": "Itiwit"
+      }
+    ],
+    "baslik": "Itiwit Kayak Paddle 100 Duvar Tutucusu",
+    "aciklama": "Itiwit Kayak Paddle 100 kürekleri için tasarlanmış duvar tutucusudur. Kürekler tutucunun geçmeli yapısına oturtulur ve tutucu duvara yatay ya da dikey olarak monte edilebilir.\nYaklaşık dış ölçüler: 39 × 38 × 35 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr970939-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "lklse"
+    },
+    "altkategori": "Kano ve Kayak"
+  },
+  {
+    "id": "pr334560-minn-kota-trolling-motor-kumanda-dugmesi",
+    "kategori": "Marin",
+    "marka": [
+      "Minn Kota"
+    ],
+    "uyum": [
+      {
+        "marka": "Minn Kota"
+      }
+    ],
+    "baslik": "Minn Kota Trolling Motor Kumanda Düğmesi",
+    "aciklama": "Eski tip elektrikli Minn Kota trolling motorunun kafa kumandası için hazırlanmış düğmedir. Motor kafadaki kumanda yuvasına oturacak biçimde tasarlanmıştır.\nYaklaşık dış ölçüler: 35 × 35 × 14 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr334560-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr334560-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Timothy_Ecc"
+    },
+    "altkategori": "Dümen ve Kumanda"
+  },
+  {
+    "id": "pr1782559-minn-kota-micro-kumanda-tutucusu",
+    "kategori": "Marin",
+    "marka": [
+      "Minn Kota"
+    ],
+    "uyum": [
+      {
+        "marka": "Minn Kota"
+      }
+    ],
+    "baslik": "Minn Kota Micro Kumanda Tutucusu",
+    "aciklama": "Minn Kota mikro uzaktan kumandası için tasarlanmış tutucu kılıftır. Kumanda bu kılıfın içine yerleştirilerek taşınır ve saklanır.\nYaklaşık dış ölçüler: 65 × 58 × 30 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1782559-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1782559-2.jpg"
+    ],
+    "altkategori": "Montaj Ekipmanları"
+  },
+  {
+    "id": "pr637310-minn-kota-gps-puck-montaj-tabani",
+    "kategori": "Marin",
+    "marka": [
+      "Minn Kota"
+    ],
+    "uyum": [
+      {
+        "marka": "Minn Kota"
+      }
+    ],
+    "baslik": "Minn Kota GPS Puck Montaj Tabanı",
+    "aciklama": "Minn Kota trolling motorun GPS puck modülünü teknenin T-Top borusuna kelepçelenen tabana oturtur. Tabanda 12V kablusunun geçirilmesi için bir kanal bulunur.\nYaklaşık dış ölçüler: 66 × 64 × 32 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr637310-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr637310-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "hardiebotha"
+    },
+    "altkategori": "Montaj Ekipmanları"
+  },
+  {
+    "id": "pr286372-mazzer-super-jolly-koruk-adaptoru",
+    "kategori": "Elektronik",
+    "marka": [
+      "Mazzer"
+    ],
+    "uyum": [
+      {
+        "marka": "Mazzer"
+      }
+    ],
+    "baslik": "Mazzer Super Jolly Körük Adaptörü",
+    "aciklama": "Mazzer Super Jolly değirmen gövdesine silikon şişe körüğünün takılabilmesi için tasarlanmış adaptördür. Körüğün çapını değirmen ağzına uyacak biçimde dönüştürür ve tek dozluk kullanımda temizliği kolaylaştırır.\nYaklaşık dış ölçüler: 66 × 66 × 23 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr286372-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Loogle"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "pr88048-mazzer-major-acili-ayak-seti",
+    "kategori": "Elektronik",
+    "marka": [
+      "Mazzer"
+    ],
+    "uyum": [
+      {
+        "marka": "Mazzer"
+      }
+    ],
+    "baslik": "Mazzer Major Eğimli Ayak Seti",
+    "aciklama": "Mazzer Major değirmenin arka kısmını eğerek dozajsız olukta biriken kahvenin azalmasını sağlayan ayak setidir. Montaj için M5 çapında vida ve somun gerekir.\nYaklaşık dış ölçüler: 80 × 44 × 44 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr88048-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Chris Culpepper"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "pr218669-lowrance-ram-ray-montaj-braketi",
+    "kategori": "Marin",
+    "marka": [
+      "Lowrance"
+    ],
+    "uyum": [
+      {
+        "marka": "Lowrance"
+      }
+    ],
+    "baslik": "Lowrance Ram ve Ray Montaj Braketi",
+    "aciklama": "Lowrance cihazının balıkçılık kayığındaki konumu için hazırlanmış montaj braketidir. Tasarımda yaygın kayak rayına oturan ray braketi ve RAM montajının tam karşısına takılan RAM braketi olmak üzere iki varyant yer alır.\nYaklaşık dış ölçüler: 93 × 56 × 47 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr218669-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr218669-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr218669-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "lowrizzle (remix: lowrizzle)"
+    },
+    "altkategori": "Montaj Ekipmanları"
+  },
+  {
+    "id": "pr910083-lowrance-hook5-guneslik-kapagi",
+    "kategori": "Marin",
+    "marka": [
+      "Lowrance"
+    ],
+    "uyum": [
+      {
+        "marka": "Lowrance"
+      }
+    ],
+    "baslik": "Lowrance Hook 5 Güneşlik Kapağı",
+    "aciklama": "Lowrance Hook 5 cihazı için hazırlanmış güneşlik kapağıdır. Cihazın üzerine oturacak biçimde tasarlanmıştır.\nYaklaşık dış ölçüler: 191 × 121 × 64 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr910083-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr910083-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr910083-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr910083-4.jpg"
+    ],
+    "altkategori": "Montaj Ekipmanları"
+  },
+  {
+    "id": "pr669621-rial-mesh-jant-gobek-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Rial"
+    ],
+    "uyum": [
+      {
+        "marka": "Rial"
+      }
+    ],
+    "baslik": "Rial Mesh Alüminyum Jant Göbek Kapağı",
+    "aciklama": "Rial mesh jantların göbek bölümü için tasarlanmış alüminyum göbek kapağıdır. Merkezde 75 milimetrelik jant kapağı yuvası için geçiş açıklığı ve M5 kare somun yuvası bulunur. Ayar vidalı somun ile kapak konumunda tutulur.\nYaklaşık dış ölçüler: 168 × 168 × 23 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr669621-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Silver99"
+    },
+    "altkategori": "Tekerlek ve Jant"
+  },
+  {
+    "id": "pr138855-baofeng-uv5r-dugme-koruyucu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Baofeng"
+    ],
+    "uyum": [
+      {
+        "marka": "Baofeng"
+      }
+    ],
+    "baslik": "Baofeng UV-5R Düğme ve Koruyucu",
+    "aciklama": "Baofeng UV-5R el telsizinin düğmesi için düğme ve koruyucu takımı. Düğme cihaz üzerindeki yuvasına oturur, koruyucu parça düğmenin çevresini kapatır.\nYaklaşık dış ölçüler: 16 × 12 × 12 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr138855-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr138855-2.jpg"
+    ],
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
     "id": "pr219815-thermomix-spatula-tutucusu",
     "kategori": "Elektronik",
     "marka": [
