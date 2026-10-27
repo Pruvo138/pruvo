@@ -591,13 +591,20 @@ async function main() {
 
   // ── M5 MUTANT NOBETI: supurme hatasinda FAIL-OPEN olursa yakalanmali ──────────────
   senaryolar.push({
-    ad: "S11 (M5) SUPURME HATASI (ids ucu 500) + ayrisim -> kanit YOK, cikis 1 (fail-closed)",
+    // 🔴 27 Eki 2026 (KraL halef-66 — BaBa tik 258 A): supurme arizasi = OLCUM ARACININ hali.
+    // Eski hukum (cikis 1, her ayrisim ACIKLANAMAYAN) SERIT B 40490950948'de dalin
+    // degisikligiyle ilgisiz sahte KIRMIZI uretti. Yeni sozlesme TAVAN kolu (S9) gibi:
+    // cikis 3, sebep ADIYLA, sorgu KOSMAZ; M5 fail-OPEN (gecikme modu) hala yakalanir.
+    ad: "S11 (M5) SUPURME HATASI (ids ucu 500) + ayrisim -> kanit YOK, cikis 3 sebep=supurme (sorgu 0)",
     dosya: PARITE_SITE, yerel: TABAN, canli: EK.concat(TABAN), idsHata: true,
     dogrula: (r) => {
-      ONA(r.kod === 1, "cikis 1 KIRMIZI (fail-OPEN olsaydi 3 olurdu)", r.cikti.slice(-900));
+      ONA(r.kod === 3, "cikis 3 OLCULEMEDI (eski kapali() 1 uretirdi)", r.cikti.slice(-900));
+      ONA(/OLCULEMEDI sebep=supurme tur=\S+/.test(r.cikti), "sebep ADIYLA: sebep=supurme tur=<tur>");
       ONA(/id supurmesi TAMAMLANAMADI/.test(r.cikti), "supurme hatasi GORUNUR");
-      ONA(/kanit yok, siniflandirma KAPALI/.test(r.cikti), "kanit yoksa siniflandirma ACILMAZ");
+      ONA(/\| hata: /.test(r.cikti), "hata basi GORUNUR");
       ONA(!/SENKRON GEC/.test(r.cikti), "kanitsiz 'senkron gecikmesi' damgasi VURULMADI");
+      ONA(/0\/\d+ sorgu olculdu/.test(r.cikti),
+        "kanitsiz sorgu OLCULMEDI (dayanaksiz kirmizi uretilmedi)");
     },
   });
 

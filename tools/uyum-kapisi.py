@@ -684,7 +684,11 @@ def kabul(kok, katalog_yolu=None):
     # kayitlarini `uyum`dan turetti -> katalogda `"Ssangyong"` 0 OLCULDU (jq), capa 7->6.
     # AeroPress emsaliyle ayni fail-loud inis: uye ELLE geri eklenmez. Bu kirmizi 129bf8be,
     # e0d66ddc ve fa2ea7d5 Pages'lerinin serit-a2'sini dusurdu (deploy SKIPPED).
-    _b4_capa = {"BaoFeng", "Citroën", "Ikea", "KIA", "MINI", "SMART"}
+    # 🔴 6. UYE GITTI (27 Eki 2026, KraL halef-66): MaCiT ES6 `98ed0607` tek kayit
+    # (`land-rover-lr3-baofeng-uv-5r-tutucu-montaj`) `marka[1]` "BaoFeng" -> "Baofeng"
+    # normalize etti (BaBa tik 267 C a) -> katalogda `"BaoFeng"` 0 OLCULDU, capa 6->5.
+    # Ayni fail-loud inis: uye ELLE geri eklenmez.
+    _b4_capa = {"Citroën", "Ikea", "KIA", "MINI", "SMART"}
     _b4_jeton = set()
     for u in katalog:
         if isinstance(u, dict) and isinstance(u.get("marka"), list):
@@ -693,10 +697,10 @@ def kabul(kok, katalog_yolu=None):
                     _b4_jeton.add(x)
     _b4_olculen = {j for j in _b4_jeton
                    if not A.uyum_marka_kanonik(j) and A.marka_varyanti_sebebi("model", j)}
-    dogrula("B4 YAZIM VARYANTI CAPASI: `marka_varyanti_sebebi()` gercek katalogda TAM 6 "
+    dogrula("B4 YAZIM VARYANTI CAPASI: `marka_varyanti_sebebi()` gercek katalogda TAM 5 "
             "jeton yakaliyor ve KIMLIKLERI donmus deger ile birebir — sayi ya da uye "
             "kayarsa fail-closed KIRMIZI",
-            _b4_olculen == _b4_capa and len(_b4_olculen) == 6,
+            _b4_olculen == _b4_capa and len(_b4_olculen) == 5,
             "olculen(%d)=%s fazla=%s eksik=%s"
             % (len(_b4_olculen), sorted(_b4_olculen), sorted(_b4_olculen - _b4_capa),
                sorted(_b4_capa - _b4_olculen)))
