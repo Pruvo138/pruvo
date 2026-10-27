@@ -63,6 +63,33 @@ TABAN = frozenset({
     "Daewoo",
     "Scion",
     "Mahindra",
+    # 27 Eki 2026 (BaBa tik 258 (B)): MaCiT ES3 10 kayit (Anet 3 · Bialetti 6 · Fiamma 4 ·
+    # Huter 3 · Zelmer 4) bes markayi esigin ustune cikardi; sayfa dogumu PARTI 2'de.
+    "Anet",
+    "Bialetti",
+    "Fiamma",
+    "Huter",
+    "Zelmer",
+    # 27 Eki 2026 (BaBa tik 267 (D)): MaCiT ES4+ES5+ES6 64 kayit tek dalda; on iki marka
+    # esigin ustune cikti (Bafang 4 · Jura 4 · Line 6 4 · Minn Kota 4 · Old Town 4 · Pioneer 4 ·
+    # Prusa 4 · Saeco 4 · Flashforge 3 · Lowrance 3 · Mazzer 3 · Skyteam 3); sayfa dogumu PARTI 2'de.
+    "Bafang",
+    "Flashforge",
+    "Jura",
+    "Line 6",
+    "Lowrance",
+    "Mazzer",
+    "Minn Kota",
+    "Old Town",
+    "Pioneer",
+    "Prusa",
+    "Saeco",
+    "Skyteam",
+    # 27 Eki 2026 (BaBa tik 269): MaCiT ES7 11 kayit ayni tek dala alindi; uc marka esigin
+    # ustune cikti (Rode 4 · Aukey 3 · Quechua 3); sayfa dogumu PARTI 2'de.
+    "Aukey",
+    "Quechua",
+    "Rode",
 })
 
 
