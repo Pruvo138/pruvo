@@ -85,6 +85,11 @@ TABAN = frozenset({
     "Prusa",
     "Saeco",
     "Skyteam",
+    # 27 Eki 2026 (BaBa tik 269): MaCiT ES7 11 kayit ayni tek dala alindi; uc marka esigin
+    # ustune cikti (Rode 4 · Aukey 3 · Quechua 3); sayfa dogumu PARTI 2'de.
+    "Aukey",
+    "Quechua",
+    "Rode",
 })
 
 
