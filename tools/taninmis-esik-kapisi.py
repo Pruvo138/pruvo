@@ -63,6 +63,13 @@ TABAN = frozenset({
     "Daewoo",
     "Scion",
     "Mahindra",
+    # 27 Eki 2026 (BaBa tik 258 (B)): MaCiT ES3 10 kayit (Anet 3 · Bialetti 6 · Fiamma 4 ·
+    # Huter 3 · Zelmer 4) bes markayi esigin ustune cikardi; sayfa dogumu PARTI 2'de.
+    "Anet",
+    "Bialetti",
+    "Fiamma",
+    "Huter",
+    "Zelmer",
 })
 
 
