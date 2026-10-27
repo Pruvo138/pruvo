@@ -921,6 +921,30 @@ async function onKosulOlc({ uc, yerelIdler, sayac, nonce, bekleme }) {
       return yeni;
     }
     if (hal.yok.length) {
+      // 🔴 HEAD HENUZ DEPLOY EDILMEDI (27 Eki 2026, KraL halef-64 — BaBa tik 241 (B)).
+      // OLCULEN VAKA: main nobet 40425244641 (3d0035ce, NIU 5 urun) TEST 5'i 00:36Z'de
+      // kostu, ayni SHA'nin Pages `deploy` adimi (D1'e satiri yazan) 01:16Z'de. Hal
+      // OKUNABILDI ve 5 id "D1'de YOK" -> GERCEK KAYIP KIRMIZI; deploy sonrasi BIREBIR.
+      // Yani yeni id tasiyan merge'de nobet deploy'dan once kosarsa yapisal YANLIS KIRMIZI.
+      // HUKUM (MEVCUT sinif, yeni sinif ACILMAZ): site en son deploy'u yerel HEAD'den
+      // ESKIYSE (artefakt yasi > HEAD yasi = HEAD henuz yayinlanmadi) ∧ canli < yerel
+      // (kuyruk imzasi) ∧ "yayinda ama gorunmuyor" YOK -> OLCULEMEDI sebep=yayin-kuyrugu.
+      // Iki yastan biri OKUNAMAZSA ya da site HEAD'den SONRA deploy ettiyse KIRMIZI aynen.
+      const headYasSn = yerelHeadYasiSn();
+      const headYayinlanmadi = hal.artefaktYasSn !== null && headYasSn !== null &&
+        hal.artefaktYasSn > headYasSn;
+      if (headYayinlanmadi && canliSayi < yerelSayi && !hal.yayinda.length) {
+        const n = "OLCULEMEDI sebep=yayin-kuyrugu: canli=" + canliSayi + " < yerel=" +
+          yerelSayi + ", " + hal.yok.length + " id D1'de HENUZ YOK ve site en son " +
+          dk(hal.artefaktYasSn) + " once deploy etti, yerel HEAD " + dk(headYasSn) +
+          " once -> HEAD henuz YAYINLANMADI. TEK deneme, bekleme 0 sn. KIRMIZI DEGIL, " +
+          "YESIL DEGIL: parite kabulu deploy nobetinde kapanir | ornek: " +
+          hal.yok.slice(0, 5).join(", ");
+        notlar.push(n);
+        olculemedi.push(n);
+        return { gecikmeModu: false, kirmizi: null, durdu: n, notlar, olculemedi,
+          canliSayi, yerelSayi, acik: 0, taslakIdler };
+      }
       return kirmiziDon("GERCEK KAYIP: " + hal.yok.length + " id'nin D1'de SATIRI HIC YOK " +
         "(taslak DEGIL — senkron dusmus, Ege GOREMEZ = sessiz satis kaybi) | ornek: " +
         hal.yok.slice(0, 5).join(", "));

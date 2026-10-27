@@ -555,10 +555,46 @@ async function main() {
     ad: "Y2 FAIL-CLOSED (GERCEK KAYIP): satir D1'de HIC YOK -> cikis 1 KIRMIZI",
     dosya: PARITE_SITE, yerel: TABAN, gizli: GIZLI,
     spec: { yok: TASLAKLAR, artefaktYas: TAZE },
+    // HEAD, sitenin son deploy'undan ESKI (site HEAD'i yayinladi) -> kayip GERCEK.
+    ekEnv: { PARITE_YEREL_HEAD_YAS_SN: String(TAZE * 10) },
     dogrula: (r) => {
       ONA(r.kod === 1, "cikis 1 KIRMIZI", r.cikti.slice(-800));
       ONA(/GERCEK KAYIP/.test(r.cikti), "sinif ADIYLA basildi");
       ONA(/YERELDE VAR \/ D1'DE YOK/.test(r.cikti), "eski (kati) sebep metni KORUNDU");
+    },
+  });
+  // ── 2K) HEAD HENUZ DEPLOY EDILMEDI (27 Eki, nobet 40425244641 NIU vakasi) ───────
+  // Ayni girdi, tek fark: site en son deploy'u HEAD'den ESKI -> yayin kuyrugu (cikis 3).
+  senaryolar.push({
+    ad: "Y2K YAYIN KUYRUGU (HEAD yayinlanmadi): satir D1'de YOK + site deploy HEAD'den eski -> cikis 3",
+    dosya: PARITE_SITE, yerel: TABAN, gizli: GIZLI,
+    spec: { yok: TASLAKLAR, artefaktYas: 3600 },
+    ekEnv: { PARITE_YEREL_HEAD_YAS_SN: "600" },
+    dogrula: (r) => {
+      ONA(r.kod === 3, "cikis 3 OLCULEMEDI (ne KIRMIZI ne YESIL)", r.cikti.slice(-800));
+      ONA(/OLCULEMEDI sebep=yayin-kuyrugu/.test(r.cikti), "sebep jetonu: sebep=yayin-kuyrugu",
+        r.cikti.slice(-800));
+      ONA(/HEAD henuz YAYINLANMADI/.test(r.cikti), "sebep ADIYLA: HEAD henuz yayinlanmadi");
+      ONA(!/GERCEK KAYIP/.test(r.cikti), "GERCEK KAYIP basilmadi");
+      ONA(kosanSorgu(r.cikti) === 0, "on-kosulda durdu (0 sorgu, TEK deneme)");
+    },
+  });
+  senaryolar.push({
+    ad: "Y2K-a FAIL-CLOSED: HEAD yasi OKUNAMAZ -> GERCEK KAYIP KIRMIZI aynen",
+    dosya: PARITE_SITE, yerel: TABAN, gizli: GIZLI,
+    spec: { yok: TASLAKLAR, artefaktYas: 3600 },
+    ekEnv: { PARITE_YEREL_HEAD_YAS_SN: "cozulemez" },
+    dogrula: (r) => {
+      ONA(r.kod === 1 && /GERCEK KAYIP/.test(r.cikti), "cikis 1 GERCEK KAYIP", r.cikti.slice(-800));
+    },
+  });
+  senaryolar.push({
+    ad: "Y2K-b FAIL-CLOSED: artefakt yasi OKUNAMAZ -> GERCEK KAYIP KIRMIZI aynen",
+    dosya: PARITE_SITE, yerel: TABAN, gizli: GIZLI,
+    spec: { yok: TASLAKLAR, artefaktYas: null },
+    ekEnv: { PARITE_YEREL_HEAD_YAS_SN: "600" },
+    dogrula: (r) => {
+      ONA(r.kod === 1 && /GERCEK KAYIP/.test(r.cikti), "cikis 1 GERCEK KAYIP", r.cikti.slice(-800));
     },
   });
 
