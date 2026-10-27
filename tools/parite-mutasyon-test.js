@@ -272,6 +272,37 @@ const MUTANTLAR = [
     ara: "yayinHaliArgv() !== null && canliSayi < yerelSayi && !hal.kismi) {",
     yaz: "yayinHaliArgv() !== null && canliSayi < yerelSayi) {",
   },
+  // ── HEAD HENUZ DEPLOY EDILMEDI (27 Eki, BaBa tik 241 B): Y2/Y2K/Y2K-a/Y2K-b/Y7 yakalar ──
+  {
+    ad: "M-W8 YAYIN KUYRUGU KOLU KALDIRILDI: HEAD yayinlanmadan kosan nobet yine " +
+      "GERCEK KAYIP KIRMIZI basar (40425244641 yanlis kirmizisi geri gelir)",
+    dosya: "parite-ortak.js", fikstur: "parite-yayin-fikstur-test.js",
+    ara: "      if (headYayinlanmadi && canliSayi < yerelSayi && !hal.yayinda.length) {",
+    yaz: "      if (false) {",
+  },
+  {
+    ad: "M-W9 DEPLOY BITMIS ∧ EKSIK ID -> OLCULEMEDI: HEAD yayinlandigi halde D1'de " +
+      "olmayan id kuyruk sayilir (GERCEK KAYIP yutulur)",
+    dosya: "parite-ortak.js", fikstur: "parite-yayin-fikstur-test.js",
+    ara: "      if (headYayinlanmadi && canliSayi < yerelSayi && !hal.yayinda.length) {",
+    yaz: "      if (canliSayi < yerelSayi && !hal.yayinda.length) {",
+  },
+  {
+    ad: "M-W10 FAIL-OPEN: HEAD yasi OKUNAMAYINCA 'yayinlanmadi' sayilir (KIRMIZI yutulur)",
+    dosya: "parite-ortak.js", fikstur: "parite-yayin-fikstur-test.js",
+    ara: "      const headYayinlanmadi = hal.artefaktYasSn !== null && headYasSn !== null &&\n" +
+      "        hal.artefaktYasSn > headYasSn;",
+    yaz: "      const headYayinlanmadi = hal.artefaktYasSn !== null && (headYasSn === null ||\n" +
+      "        hal.artefaktYasSn > headYasSn);",
+  },
+  {
+    ad: "M-W11 FAIL-OPEN: artefakt yasi OKUNAMAYINCA 'yayinlanmadi' sayilir (KIRMIZI yutulur)",
+    dosya: "parite-ortak.js", fikstur: "parite-yayin-fikstur-test.js",
+    ara: "      const headYayinlanmadi = hal.artefaktYasSn !== null && headYasSn !== null &&\n" +
+      "        hal.artefaktYasSn > headYasSn;",
+    yaz: "      const headYayinlanmadi = headYasSn !== null && (hal.artefaktYasSn === null ||\n" +
+      "        hal.artefaktYasSn > headYasSn);",
+  },
   {
     ad: "K-W KONTROL: bekleme sayaci davranissiz yeniden yazildi -> YESIL kalmali",
     kontrol: true,
