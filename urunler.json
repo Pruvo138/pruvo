@@ -1,5 +1,230 @@
 [
   {
+    "id": "pr89605-zelmer-supurge-karcher-adaptor",
+    "kategori": "Elektronik",
+    "marka": [
+      "Zelmer"
+    ],
+    "uyum": [
+      {
+        "marka": "Zelmer"
+      }
+    ],
+    "baslik": "Zelmer Süpürge Başlığı ile Kärcher Vakum Adaptörü",
+    "aciklama": "Zelmer süpürge başlıkları ile Kärcher vakum hortumu arasına takılan ara bağlantı parçası. Başlığın geniş ağzını hortum çapına uygun biçimde daraltarak iki tarafı birbirine bağlar.\nYaklaşık dış ölçüler: 60 × 38 × 38 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr89605-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr89605-2.jpg"
+    ]
+  },
+  {
+    "id": "pr99257-zelmer-kiyma-makinesi-mil-kuplaji",
+    "kategori": "Elektronik",
+    "marka": [
+      "Zelmer"
+    ],
+    "uyum": [
+      {
+        "marka": "Zelmer"
+      }
+    ],
+    "baslik": "Zelmer Kıyma Makinesi Mil Kuplajı",
+    "aciklama": "Zelmer kıyma makinesinin mil bağlantısını sağlayan dişli kuplaj parçası. Montajı için başlığı gömülü M5x40 vida gerekir.\nYaklaşık dış ölçüler: 35 × 35 × 28 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr99257-1.jpg"
+    ]
+  },
+  {
+    "id": "pr1726376-huter-boya-tabancasi-nozulu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Huter"
+    ],
+    "uyum": [
+      {
+        "marka": "Huter"
+      }
+    ],
+    "baslik": "Huter Boya Tabancası İnce Nozul (1 Milimetrelik)",
+    "aciklama": "Huter boya tabancasının ucunda takılı küçük çaplı nozul parçası. Daha ince bir püskürtme açıklığı için tasarlanmıştır; model üzerinde değişiklik yapılarak farklı çaplara uyarlanabilir.\nYaklaşık dış ölçüler: 38 × 38 × 19 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1726376-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Личище Личище"
+    }
+  },
+  {
+    "id": "pr917234-fiamma-carry-bike-uc-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Fiamma"
+    ],
+    "uyum": [
+      {
+        "marka": "Fiamma"
+      }
+    ],
+    "baslik": "Fiamma Carry Bike Bisiklet Taşıyıcı Uç Kapağı",
+    "aciklama": "Fiamma Carry Bike bisiklet taşıyıcısının uç kapağı; taşıyıcının en eski sürümüne ait olduğu için bu parça artık kolayca bulunamıyor.\nYaklaşık dış ölçüler: 30 × 30 × 19 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr917234-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr917234-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr917234-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr917234-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Johannes"
+    }
+  },
+  {
+    "id": "pr279069-fiamma-tavan-penceresi-topuzu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Fiamma"
+    ],
+    "uyum": [
+      {
+        "marka": "Fiamma"
+      }
+    ],
+    "baslik": "Fiamma Tavan Penceresi (Skylight) Havalandırma Topuzu",
+    "aciklama": "Fiamma Skylight tavan penceresinin açılmasını sağlayan topuz için hazırlanmış alternatif parça. Mevcut topuzun kısa kalması durumunda daha uzun gövdeli seçenek sunar; parça modeli üzerinde değişiklik yapılarak farklı uzunluklara uyarlanabilir.\nYaklaşık dış ölçüler: 48 × 48 × 45 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr279069-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr279069-2.jpg"
+    ]
+  },
+  {
+    "id": "pr25347-bialetti-moka-pot-tamper",
+    "kategori": "Elektronik",
+    "marka": [
+      "Bialetti"
+    ],
+    "uyum": [
+      {
+        "marka": "Bialetti"
+      }
+    ],
+    "baslik": "Bialetti Moka Pot Kahve Tamperi (1-3 Fincan ve Venus)",
+    "aciklama": "Bialetti moka pot için topuzlu kahve tamperi; 1, 2 ve 3 fincan ile Venus boyutlarına göre ayrılmış dört varyant bulunur. Moka potun tabanında kalan kahveyi toplamak için kullanılır.\nYaklaşık dış ölçüler: 75 × 55 × 55 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr25347-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr25347-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr25347-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr25347-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "PouOu"
+    }
+  },
+  {
+    "id": "pr25349-bialetti-moka-pot-kahve-hunisi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Bialetti"
+    ],
+    "uyum": [
+      {
+        "marka": "Bialetti"
+      }
+    ],
+    "baslik": "Bialetti Moka Pot Kahve Hunisi (3 ve 6 Fincan)",
+    "aciklama": "Bialetti moka pot için kahve hunisi; 3 fincan ve 6 fincan boyutlarına uygun iki ayrı varyant olarak sunulur. Huni, moka potun üst kısmına oturacak biçimde tasarlanmıştır.\nYaklaşık dış ölçüler: 89 × 89 × 40 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr25349-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr25349-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr25349-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr25349-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "PouOu"
+    }
+  },
+  {
+    "id": "pr45972-bialetti-huni-tutucu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Bialetti"
+    ],
+    "uyum": [
+      {
+        "marka": "Bialetti"
+      }
+    ],
+    "baslik": "Bialetti Kahve Hunisi Tutucu (1-6 Fincan)",
+    "aciklama": "Bialetti kahve hunisi için üç ayaklı stant; 1-6 fincan arası bütün moka pot boyutlarında kullanılabilir. Huni, doldurma sırasında elde tutulmadan stant üzerinde dik kalacak biçimde tutulur.\nYaklaşık dış ölçüler: 85 × 85 × 72 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr45972-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr45972-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr45972-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr45972-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Ganti (remix: ganti)"
+    }
+  },
+  {
+    "id": "pr303992-bialetti-huni-tutucu-dekoratif",
+    "kategori": "Elektronik",
+    "marka": [
+      "Bialetti"
+    ],
+    "uyum": [
+      {
+        "marka": "Bialetti"
+      }
+    ],
+    "baslik": "Bialetti Kahve Hunisi Tutucu (Üç Ayaklı, Düğüm Desenli)",
+    "aciklama": "Bialetti kahve hunisi için üç ayaklı tutucu; gövde yüzeyinde düğüm motifi bulunan dekoratif bir tasarım. Huniyi doldurma sırasında elde tutmadan kullanmak üzere hazırlanmıştır.\nYaklaşık dış ölçüler: 60 × 60 × 42 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr303992-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Konjiorno (remix: piXelRider, Jayuk)"
+    }
+  },
+  {
+    "id": "pr81769-anet-a6-a8-y-kayis-tutucusu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Anet"
+    ],
+    "uyum": [
+      {
+        "marka": "Anet"
+      }
+    ],
+    "baslik": "Anet A6/A8 Y Ekseni Kayış Tutucusu (GT2)",
+    "aciklama": "Anet A6/A8 yazıcılarda Y ekseni kayışını taşıyan, Prusa tipi düşük profilli tutucu. Kitte gelen kalın kayış ile standart GT-2 kayış için iki ayrı taban seçeneği bulunur; genişletilmiş A6 gövdesi ve A8 için ayrı taban yükseklikleri de vardır.\nYaklaşık dış ölçüler: 40 × 25 × 21 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr81769-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr81769-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr81769-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr81769-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Area51 (remix: Area51)"
+    }
+  },
+  {
     "id": "pr141597-mahindra-2538-traktor-bardaklik",
     "kategori": "Otomobil",
     "marka": [
