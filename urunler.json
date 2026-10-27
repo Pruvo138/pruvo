@@ -1,5 +1,131 @@
 [
   {
+    "id": "pr4628-sodastream-minimal-huni",
+    "kategori": "Ev",
+    "marka": [
+      "Sodastream"
+    ],
+    "uyum": [
+      {
+        "marka": "Sodastream"
+      }
+    ],
+    "baslik": "Sodastream Minimal Huni",
+    "aciklama": "Sodastream şişesinin ağzına oturan geniş ağızlı hunidir. Süzgeçli sürahi veya kapaklı kutu gibi başka bir kaptan sı dökülmeden aktarma yapmayı kolaylaştırır; huni, standart plastik Sodastream şişesinin ağzına tam oturur.\nYaklaşık dış ölçüler: 60 × 60 × 26 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr4628-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Uko"
+    },
+    "altkategori": "Mutfak"
+  },
+  {
+    "id": "pr1502705-motorola-edge-40-pro-telefon-kilifi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Motorola"
+    ],
+    "uyum": [
+      {
+        "marka": "Motorola"
+      }
+    ],
+    "baslik": "Motorola Edge 40 Pro Telefon Kılıfı ve Bumper",
+    "aciklama": "Motorola Edge 40 Pro (Moto X40) için sırt kapağı ve bumper olmak üzere telefon kılıfı seçenekleri sunar. Kamera çıkıntısını çevreleyen ek parçalı ince model, arkası kapalı klasik model ve arkası açık bumper modeli bulunur; sırt yüzeyinde manyetik şarj aparatının gömülebileceği ayrı bir alan da yer alır.\nYaklaşık dış ölçüler: 166 × 80 × 14 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1502705-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1502705-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1502705-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "gerolori"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr1262748-motorola-apx-masa-telsiz-standi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Motorola"
+    ],
+    "uyum": [
+      {
+        "marka": "Motorola"
+      }
+    ],
+    "baslik": "Motorola APX Masa Tipi Telsiz Standı",
+    "aciklama": "Motorola APX 6000, APX 7000 ve APX 8000 el telsizleri için tekli masa standıdır. Kadeh biçimindeki yuva, telsizin alt gövdesine oturur ve cihazı masada dik tutar.\nYaklaşık dış ölçüler: 110 × 97 × 35 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1262748-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1262748-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1262748-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1262748-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Brad King (remix: radiojack)"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr256905-baofeng-bf-r5-duvar-telsiz-tutucusu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Baofeng"
+    ],
+    "uyum": [
+      {
+        "marka": "Baofeng"
+      }
+    ],
+    "baslik": "Baofeng BF-R5 Duvar Tipi Telsiz Tutucusu",
+    "aciklama": "Baofeng BF-R5 el telsizleri için duvara asılan bir depolama ve şarj istasyonudur. Gövdesi on iki adet BF-R5 telsiz ile iki adet çok çıkışlı USB şarj cihazını tutacak şekilde düzenlenmiştir; tasarım, BF-R5 cihazının taratılmasıyla elde edilen modele göre çizilmiştir.\nYaklaşık dış ölçüler: 60 × 32 × 26 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr256905-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr256905-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr256905-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr256905-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Cederb"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr319256-baofeng-uv5r-mikrofon-giris-toz-kapagi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Baofeng"
+    ],
+    "uyum": [
+      {
+        "marka": "Baofeng"
+      }
+    ],
+    "baslik": "Baofeng UV-5R Mikrofon Giriş Toz Kapağı",
+    "aciklama": "Baofeng UV-5R el telsizinde mikrofon ve kulaklık girişinin üzerine oturan esnek bir toz kapağıdır. Kapak, giriş yuvasının üzerine esnek bir geçme ile oturur ve giriş kullanılmadığı sırada açıkta kalmasını önler.\nYaklaşık dış ölçüler: 32 × 26 × 5 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr319256-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr319256-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr319256-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr319256-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "GunbleR"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
     "id": "pr1138617-xbox-kumanda-standi",
     "kategori": "Elektronik",
     "marka": [
