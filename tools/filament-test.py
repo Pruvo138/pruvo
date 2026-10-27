@@ -247,6 +247,15 @@ def parite_sebep_ayikla(cikti):
     if "sebep=yayin-kuyrugu" in c:
         return ("olculemedi: sebep=yayin-kuyrugu — canli sayi yerelin altinda, TEK deneme "
                 "(bekleme 0 sn); parite BELGELENMEDI, deploy nobetinde kapanir")
+    # SUPURME (27 Eki, KraL halef-66 — BaBa tik 258 A): id supurmesi tamamlanamadi
+    # (SERIT B 40490950948: 199./60. partide dustu). 429 ise mevcut 429 metni (jeton 429);
+    # hata basi WAF/ZAMAN ASIMI/TAVAN kelimesi tasiyabilir, o yuzden bu kol onlardan ONCE.
+    if "sebep=supurme" in c:
+        if "HIZ SINIRI (429)" in c:
+            return "olculemedi: hiz siniri (429) — yeniden denemeler tukendi"
+        m = re.search(r"sebep=supurme tur=(\S+)", c)
+        return ("olculemedi: sebep=supurme tur=%s — id supurmesi tamamlanamadi, 'yerel ⊆ D1' "
+                "kaniti yok; parite BELGELENMEDI" % (m.group(1) if m else "diger"))
     if "WAF/UA" in c:
         return "olculemedi: WAF/UA duvari (403) — ayrisma SAYILMADI"
     if "HIZ SINIRI" in c:
@@ -290,7 +299,8 @@ def parite_jetonu(etiket, sebep):
         return "PARITE_TEST5=OLCULEMEDI sebep=%s" % (
             "yayin-kuyrugu" if "sebep=yayin-kuyrugu" in s else
             "kod-senkron" if "sebep=kod-senkron" in s else
-            "429" if "hiz siniri (429)" in s else "diger")
+            "429" if "hiz siniri (429)" in s else
+            "supurme" if "sebep=supurme" in s else "diger")
     return "PARITE_TEST5=KIRMIZI"
 
 
@@ -491,6 +501,20 @@ def parite_eslem_testi():
         "exit 3 (kod-senkron) -> ATLANDI + sebep=kod-senkron")
     ona(parite_jetonu(et, sb) == "PARITE_TEST5=OLCULEMEDI sebep=kod-senkron",
         "kod-senkron jetonu: PARITE_TEST5=OLCULEMEDI sebep=kod-senkron")
+    # SUPURME (27 Eki, BaBa tik 258 A): SERIT B 40490950948 vakasi ADIYLA, 'diger' DEGIL.
+    # Hata basi kasten TAVAN/ZAMAN ASIMI sozu tasir: supurme kolu onlardan ONCE okunmali.
+    ok, et, sb = parite_exit_yorumla(
+        3, "   ⚪ OLCULEMEDI sebep=supurme tur=AG | id supurmesi TAMAMLANAMADI -> kanit "
+           "URETILEMEDI | hata: istek yapilamadi (ZAMAN ASIMI sonrasi, TAVAN degil)")
+    ona(ok and et == PARITE_ATLANDI and parite_jetonu(et, sb) ==
+        "PARITE_TEST5=OLCULEMEDI sebep=supurme",
+        "supurme jetonu: PARITE_TEST5=OLCULEMEDI sebep=supurme (diger/tavan DEGIL)")
+    ok, et, sb = parite_exit_yorumla(
+        3, "   ⚪ OLCULEMEDI sebep=supurme tur=429 | HIZ SINIRI (429) | id supurmesi "
+           "TAMAMLANAMADI | hata: HTTP 429 (hiz siniri, 8/8)")
+    ona(ok and et == PARITE_ATLANDI and parite_jetonu(et, sb) ==
+        "PARITE_TEST5=OLCULEMEDI sebep=429",
+        "supurme 429 ise jeton 429 (429 supurmeden ONCE okunur)")
     # TERS YON: kod-senkron sozu gecse bile cikis 1 KIRMIZI kalir (bypass DEGIL).
     ok, et, sb = parite_exit_yorumla(
         1, "KOD-SENKRON (2 sorgu) ...\nSONUC: PARITE YOK ❌ (1 aciklanamayan / 300 sorgu)")

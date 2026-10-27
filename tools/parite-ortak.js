@@ -852,8 +852,20 @@ async function onKosulOlc({ uc, yerelIdler, sayac, nonce, bekleme }) {
       return { gecikmeModu: false, kirmizi: null, durdu: n, notlar, olculemedi,
         canliSayi, yerelSayi, acik: 0, taslakIdler };
     }
-    return kapali("id supurmesi TAMAMLANAMADI (" + (e && e.message) +
-      ") -> kanit yok, siniflandirma KAPALI (her ayrisim KIRMIZI)");
+    // 🔴 SUPURME ARIZASI = OLCUM ARACININ HALI (27 Eki 2026, KraL halef-66 — BaBa tik 258 A).
+    // OLCULEN VAKA: SERIT B 40490950948 attempt 1+2 — id supurmesi CI'da 199./60. partide
+    // dustu, eski kol kapali() -> siniflandirma KAPALI -> her ayrisim ACIKLANAMAYAN KIRMIZI
+    // (dalin degisikligiyle ilgisiz). Kanit uretilemediyse ayrisimlar DAYANAKSIZDIR: TAVAN
+    // kolu gibi sorgu KOSMADAN, ADIYLA OLCULEMEDI (tur + 429 isareti + hata basi) ile durur.
+    const tur = (e && e.tur) || "diger";
+    const n = "OLCULEMEDI sebep=supurme tur=" + tur +
+      (tur === "429" ? " | HIZ SINIRI (429)" : "") +
+      " | id supurmesi TAMAMLANAMADI -> kanit URETILEMEDI, hicbir ayrisim SINIFLANDIRILAMAZ" +
+      " | hata: " + String((e && e.message) || e).slice(0, 200);
+    notlar.push(n);
+    olculemedi.push(n);
+    return { gecikmeModu: false, kirmizi: null, durdu: n, notlar, olculemedi,
+      canliSayi, yerelSayi, acik: 0, taslakIdler };
   }
 
   if (eksik.length) {

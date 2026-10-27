@@ -77,10 +77,20 @@ const MUTANTLAR = [
   {
     ad: "M5 SUPURME hatasinda fail-OPEN (kanit yokken 'senkron gecikmesi' damgasi)",
     dosya: "parite-ortak.js",
-    ara: "    return kapali(\"id supurmesi TAMAMLANAMADI (\" + (e && e.message) +\n" +
-      "      \") -> kanit yok, siniflandirma KAPALI (her ayrisim KIRMIZI)\");",
+    ara: "    return { gecikmeModu: false, kirmizi: null, durdu: n, notlar, olculemedi,\n" +
+      "      canliSayi, yerelSayi, acik: 0, taslakIdler };\n  }\n\n  if (eksik.length) {",
     yaz: "    return { gecikmeModu: true, kirmizi: null, notlar, olculemedi,\n" +
-      "      canliSayi, yerelSayi, acik: 0 };",
+      "      canliSayi, yerelSayi, acik: 0 };\n  }\n\n  if (eksik.length) {",
+  },
+  {
+    // 27 Eki 2026 (BaBa tik 258 A): eski kapali() kolu geri gelirse supurme arizasi yine
+    // "her ayrisim ACIKLANAMAYAN KIRMIZI" uretir (SERIT B 40490950948) -> S11 kirmizi.
+    ad: "M5b SUPURME hatasinda ESKI kapali() geri (sahte KIRMIZI, sebep adsiz)",
+    dosya: "parite-ortak.js",
+    ara: "    const tur = (e && e.tur) || \"diger\";\n",
+    yaz: "    return kapali(\"id supurmesi TAMAMLANAMADI (\" + (e && e.message) +\n" +
+      "      \") -> kanit yok, siniflandirma KAPALI (her ayrisim KIRMIZI)\");\n" +
+      "    const tur = (e && e.tur) || \"diger\";\n",
   },
   {
     ad: "M6 'D1 EKSIK eslesme' kapisi kaldirildi (toplam < yerel artik ACIKLANAN)",
