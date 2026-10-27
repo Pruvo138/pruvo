@@ -207,6 +207,14 @@ scenario("R4 bilinmeyen kampanya -> UC", function () {
     "bilinmeyen kampanya UC vermedi: " + result.window.pruvoRef());
 });
 
+scenario("R8 yeniden-pazarlama son eki -> YP (UC'ye DUSMEZ)", function () {
+  // 27 Eki 2026: inis sayaci "google yeniden-pazarlama"yi ayri sayiyordu, REF ise UC tasiyordu
+  // -> siparis satirinda kampanya sinifi okunamiyordu (tools/siparis-kampanya-oku.py YP okur).
+  var result = run("?gclid=X&utm_campaign=yeniden-pazarlama", new Storage(), []);
+  assert(/^REF:GS-YP-[A-Z0-9]{4}$/.test(result.window.pruvoRef()),
+    "yeniden-pazarlama YP vermedi: " + result.window.pruvoRef());
+});
+
 scenario("R5 pg önceliği (pg + kampanya birlikte) -> pg", function () {
   // pg=AB12 + utm_campaign=figur-arama + gclid. ONCELIK pg'de; FIG'i ezmis olmali.
   var result = run("?gclid=X&pg=AB12&utm_campaign=figur-arama", new Storage(), []);
@@ -778,7 +786,7 @@ function runMutant(mutated, search, storage) {
 scenario("M5 KAMPANYA_GRUP bosaltilir -> R1 KIRMIZI (Figur arama FIG vermez)", function () {
   // MUTANT: haritayi bosalt. ?gclid=X&utm_campaign=figur-arama artik "UC" tasir, R1 FIG bekliyordu.
   var mutated = MODULE.replace(
-    'KAMPANYA_GRUP = { "figur-arama": "FIG" }',
+    'KAMPANYA_GRUP = { "figur-arama": "FIG", "yeniden-pazarlama": "YP" }',
     'KAMPANYA_GRUP = {}'
   );
   assert(mutated !== MODULE, "M5 metinsel mutasyon uygulanamadi");
@@ -815,6 +823,15 @@ scenario("M7 pg onceligi tersine (utm once) -> R5 KIRMIZI (pg ezilir)", function
   // R5 AB12 bekliyordu; mutant FIG uretip AB12'yi ezmeli. Gecip gecmedigini kontrol et.
   assert(ref.indexOf("AB12") === -1 && ref.indexOf("FIG") !== -1,
     "M7 pg onceligi kalkmamis: " + ref);
+});
+
+scenario("M8 YP haritadan duser -> R8 KIRMIZI (yeniden-pazarlama UC'ye doner)", function () {
+  var mutated = MODULE.replace(', "yeniden-pazarlama": "YP" }', " }");
+  assert(mutated !== MODULE, "M8 metinsel mutasyon uygulanamadi");
+  var res = runMutant(mutated, "?gclid=X&utm_campaign=yeniden-pazarlama");
+  var ref = res.window.pruvoRef() || "";
+  assert(ref.indexOf("-YP-") === -1 && ref.indexOf("-UC-") !== -1,
+    "M8 YP haritadan dustu ama hala YP uretiyor: " + ref);
 });
 
 // Payda SABIT YAZILMAZ — 21 Eyl 2026'da 32 senaryo kosarken "/28" basiyordu (4 tur bayat).
