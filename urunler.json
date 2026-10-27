@@ -518129,10 +518129,10 @@
   },
   {
     "id": "4-kanatli-batik-tekne-pervanesi",
-    "kategori": "Marin",
+    "kategori": "Oyun/Hobi",
     "marka": [],
-    "baslik": "4 Kanatlı Batık Tekne Pervanesi",
-    "aciklama": "Suya batık kullanım için tasarlanmış 4 kanatlı tekne pervanesi.\n- 4 kanatlı, tam batık kullanım için tasarlandı.\n- Basit montajla göbek üzerine oturtulur.\nYaklaşık dış ölçüler: 52 × 33 × 30 mm.",
+    "baslik": "RC Model Tekne Pervanesi 4 Kanat (52 mm, oyuncak ölçeği)",
+    "aciklama": "Yalnız RC/model tekneler için; gerçek tekne itişi ya da pompa çarkı DEĞİLDİR.\n- Suya batık çalışan 4 kanatlı model tekne pervanesi.\n- Basit montajla göbek üzerine oturtulur.\nYaklaşık dış ölçüler: 52 × 33 × 30 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th1644842-1.jpg",
@@ -518145,8 +518145,7 @@
     "lisans": {
       "tasarimci": "Hein_",
       "tur": "CC BY 4.0"
-    },
-    "altkategori": "Pervaneler"
+    }
   },
   {
     "id": "6-kanatli-kolay-baski-pervane",
