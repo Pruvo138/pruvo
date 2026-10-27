@@ -52,6 +52,9 @@ TABAN = frozenset({
     # 26 Eki 2026 (BaBa tik 201b): MaCiT SG1 4 kayit (katalog 40925) Segway'i esigin ustune
     # cikardi (marka[] 5) -> K1 kirmizi (nobet 40273881039 hijyen-a2). Sayfa dogumu PARTI 2'de.
     "Segway",
+    # 27 Eki 2026 (BaBa tik 214 (B)/(C) + 231 (D)): MaCiT NU1 5 kayit NIU'yu esigin ustune
+    # cikardi; tek marka sayfa dogumu RED -> sayfa PARTI 2'de. Veri ile AYNI birlestirmede iner.
+    "NIU",
 })
 
 
