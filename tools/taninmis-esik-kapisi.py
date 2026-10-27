@@ -55,6 +55,9 @@ TABAN = frozenset({
     # 27 Eki 2026 (BaBa tik 214 (B)/(C) + 231 (D)): MaCiT NU1 5 kayit NIU'yu esigin ustune
     # cikardi; tek marka sayfa dogumu RED -> sayfa PARTI 2'de. Veri ile AYNI birlestirmede iner.
     "NIU",
+    # 27 Eki 2026 (BaBa tik 248 (C)): MaCiT JW1 1 kayit Jawa'yi esigin ustune cikardi (K1
+    # yakaladi); sayfa dogumu PARTI 2'de. Veri ile AYNI birlestirmede iner (NIU yolu).
+    "Jawa",
 })
 
 
