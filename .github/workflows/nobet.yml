@@ -1409,6 +1409,13 @@ jobs:
       - name: "Inis sayaci okuyucu — kabul + mutant (ArTisT gunluk, agsiz)"
         if: ${{ !cancelled() }}
         run: python3 tools/inis-sayac-oku-test.py
+      # SIPARIS KAMPANYA OKUYUCU (27 Eki 2026, BaBa tik 244 D). D1 `siparisler` gununu
+      # siparisin `atif.ref` grubundan kampanya sinifina (figur-arama/gclid/yeniden-pazarlama/
+      # organik/whatsapp/atif-yok) ayiran salt-okunur aracin kabul + 7 mutant kapisi. Kisisel
+      # veri kolonu SECILMEZ. Ag YOK (sqlite fikstur), <5 s. SERIT B: yayini DURDURMAZ.
+      - name: "Siparis kampanya okuyucu — kabul + mutant (ArTisT gunluk, agsiz)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/siparis-kampanya-oku-test.py
       # INDEXNOW GONDERIM (17 Eki 2026, deploy sonrasi sitemap farkini IndexNow'a
       # tek POST ile bildiren aracin kabul testi). tools/indexnow-gonder.py
       # stdlib only: tempdir dosya fiksturu (eski+yeni sitemap, xmlns dahil), yerel
