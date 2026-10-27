@@ -42,6 +42,14 @@ CAPA_SON = "Serit derinlik olcumu"
 IS_AKISI = os.path.join(".github", "workflows", "deploy.yml")
 KOMUT_ZAMAN_ASIMI = 1800
 KIRMIZI_KUYRUK = 15
+# SERIT B EK KAPILARI (BaBa tik 251 A, 27 Eki 2026): deploy.yml araliginda OLMAYAN ama dalin
+# ekledigi dosya sinifina bakan SERIT B kapisi. Olculen vaka: siparis-kampanya dali DAL_PROVA
+# 9/0/0 iken SERIT B 40465465588 `d1-zarf-fikstur-kapisi` EKSIK=1 ile dustu (~70 dk kosucu).
+# (ad, komut, agacta bulunmasi gereken dosya) — dosya yoksa (fikstur depo) KOSULMAZ, SAYILMAZ.
+EK_KAPILAR = (
+    ("SERIT B ek: D1 zarf fikstur kapisi", "python3 tools/d1-zarf-fikstur-kapisi.py",
+     os.path.join("tools", "d1-zarf-fikstur-kapisi.py")),
+)
 
 # Govdede bu yapilardan biri varsa satir satir bolunemez -> govde TEK komut olarak kosar.
 BILESIK = re.compile(r"(\\\s*$|<<|^\s*(if|then|else|elif|fi|for|while|until|do|done|case|esac|function)\b|^\s*[{}()]\s*$)")
@@ -325,6 +333,20 @@ def main():
         kosulan += 1
         if kirmizi_mi: kirmizi.append(ad)
         print("ADIM=%s HAL=%s sure=%.1fs" % (ad, "KIRMIZI" if kirmizi_mi else "YESIL", time.time() - t0), flush=True)
+
+    for ad, komut, dosya in EK_KAPILAR:
+        if not os.path.isfile(os.path.join(agac, dosya)):
+            print("EK_KAPI=%s HAL=YOK sebep=dosya-yok" % ad, flush=True)
+            continue
+        t0 = time.time()
+        rc, sure, cikti = komut_kos(komut, agac)
+        print("  KOMUT ek rc=%d sure=%ss :: %s" % (rc, sure, komut), flush=True)
+        if rc != 0:
+            kirmizi.append(ad)
+            for s in cikti.rstrip("\n").split("\n")[-KIRMIZI_KUYRUK:]:
+                print("    | " + s, flush=True)
+        kosulan += 1
+        print("ADIM=%s HAL=%s sure=%.1fs" % (ad, "KIRMIZI" if rc else "YESIL", time.time() - t0), flush=True)
 
     sonra = porcelain(agac)
     kirletilen = None

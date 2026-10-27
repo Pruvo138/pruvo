@@ -117,11 +117,15 @@ def git(cwd, *arg):
     return r.stdout
 
 
-def depo(yml):
+def depo(yml, ek=None):
     d = gecici()
     os.makedirs(os.path.join(d, ".github", "workflows"))
     with open(os.path.join(d, ".github", "workflows", "deploy.yml"), "w", encoding="utf-8") as f:
         f.write(yml)
+    for rel, govde in (ek or {}).items():           # fikstur depoya ek dosya (or. sahte ek kapi)
+        os.makedirs(os.path.dirname(os.path.join(d, rel)), exist_ok=True)
+        with open(os.path.join(d, rel), "w", encoding="utf-8") as f:
+            f.write(govde)
     git(d, "init", "-q")
     git(d, "add", "-A")
     git(d, "commit", "-q", "-m", "fikstur")
@@ -215,7 +219,22 @@ def v_G(arac):
     return ok, "rc=%d adim=%d ilk=%s" % (rc, len(adlar), adlar[0] if adlar else "-")
 
 
-VAKALAR = [("Y", v_Y), ("K", v_K), ("C", v_C), ("S", v_S), ("H", v_H), ("D", v_D), ("A", v_A), ("P", v_P), ("G", v_G)]
+def v_Z(arac):
+    """SERIT B ek kapisi (BaBa tik 251 A): agacta zarf kapisi varsa KOSAR ve SAYILIR; kirmizisi
+    DAL_PROVA'yi KIRMIZI yapar. Yoksa (Y vakasi) sayilmaz -> eski sayimlar degismez."""
+    yol = os.path.join("tools", "d1-zarf-fikstur-kapisi.py")
+    ad = "SERIT B ek: D1 zarf fikstur kapisi"
+    rc1, out1, son1 = kos(arac, depo(fikstur(), {yol: "import sys\nprint('EKSIK=1')\nsys.exit(1)\n"}))
+    rc0, out0, son0 = kos(arac, depo(fikstur(), {yol: "print('EKSIK=0')\n"}))
+    ok = (rc1 == 1 and son1 == "DAL_PROVA=KIRMIZI kirmizi=1 ilk=" + ad
+          and "ADIM=%s HAL=KIRMIZI" % ad in out1 and "| EKSIK=1" in out1
+          and rc0 == 0 and son0 == "DAL_PROVA=YESIL kosulan=5 kirmizi=0 olculemedi=1 kosulmadi=0"
+          and "ADIM=%s HAL=YESIL" % ad in out0)
+    return ok, "kirmizi: rc=%d %s | yesil: rc=%d %s" % (rc1, son1, rc0, son0)
+
+
+VAKALAR = [("Y", v_Y), ("K", v_K), ("C", v_C), ("S", v_S), ("H", v_H), ("D", v_D), ("A", v_A), ("P", v_P), ("G", v_G),
+           ("Z", v_Z)]
 
 MUTANTLAR = [
     ("M-BOS-TURETIM", "    aralik = adimlar[bas[0]:son[0]]\n", "    aralik = []\n", {"Y", "G"}),
@@ -223,6 +242,9 @@ MUTANTLAR = [
      "        if kirmizi_mi: kirmizi.append(ad); break\n", {"K"}),
     ("M-SECRET-YESIL", '    return any("secrets." in v or "${{" in v for v in adim["env"].values())\n',
      "    return False\n", {"S"}),
+    ("M-EK-KAPI-YOK", "    for ad, komut, dosya in EK_KAPILAR:\n", "    for ad, komut, dosya in ():\n", {"Z"}),
+    ("M-EK-KAPI-KIRMIZI-YUTULUR", "            kirmizi.append(ad)\n            for s in cikti",
+     "            pass\n            for s in cikti", {"Z"}),
 ]
 
 
