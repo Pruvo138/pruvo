@@ -1,5 +1,117 @@
 [
   {
+    "id": "pr751838-niu-kqi-air-airtag-kancasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "NIU"
+    ],
+    "uyum": [
+      {
+        "marka": "NIU"
+      }
+    ],
+    "baslik": "NIU KQI Air AirTag Kancası",
+    "aciklama": "NIU KQI Air gidonuna takılabilen bir kancadır. Kancanın iç kısmında AirTag'i saklamak için boşluk bulunur.\nYaklaşık dış ölçüler: 62 × 44 × 40 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr751838-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr751838-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "ThoKal"
+    },
+    "altkategori": "Gidon ve Kumandalar"
+  },
+  {
+    "id": "pr524130-niu-kqi3-canta-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "NIU"
+    ],
+    "uyum": [
+      {
+        "marka": "NIU"
+      }
+    ],
+    "baslik": "NIU KQI3 Çanta Tutucusu",
+    "aciklama": "NIU KQI3 serisi scooter'ın gidonuna takılan bir çanta tutucusudur. Alışveriş çantası gibi eşyaların gidon üzerinde asılı tutulması için tasarlanmıştır.\nYaklaşık dış ölçüler: 63 × 55 × 52 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr524130-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr524130-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "ScottyDuzn'tKno"
+    },
+    "altkategori": "Gidon ve Kumandalar"
+  },
+  {
+    "id": "pr1736784-niu-nqix-sarj-cihazi-duvar-tepsi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "NIU"
+    ],
+    "uyum": [
+      {
+        "marka": "NIU"
+      }
+    ],
+    "baslik": "NIU NQiX Serisi Şarj Cihazı Duvar Tepsi Askısı",
+    "aciklama": "NIU NQiX serisi şarj cihazını duvara asmak için bir tepsi ve askıdır. Şarj cihazı tepsi içine kaydırılır, duvara sabitlemek için vida ve dübel kullanılır.\nYaklaşık dış ölçüler: 216 × 136 × 92 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1736784-1.jpg"
+    ],
+    "altkategori": "Telefon ve Şarj"
+  },
+  {
+    "id": "pr332886-niu-topcase-sarj-cihazi-montaj-seti",
+    "kategori": "Motosiklet",
+    "marka": [
+      "NIU"
+    ],
+    "uyum": [
+      {
+        "marka": "NIU"
+      }
+    ],
+    "baslik": "NIU Topcase Şarj Cihazı Montaj Seti",
+    "aciklama": "NIU topcase içine şarj cihazını yerleştirip sabitleyen bir montaj setidir. Şarj cihazı bu set sayesinde kutu içinde taşınır ve şarj için kullanılır; set parçaları M3 vidalarla kilitlenir.\nYaklaşık dış ölçüler: 105 × 59 × 25 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr332886-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr332886-2.jpg"
+    ],
+    "altkategori": "Montaj Parçaları ve Klipsler"
+  },
+  {
+    "id": "pr1637785-niu-nqi-gts-uc-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "NIU"
+    ],
+    "uyum": [
+      {
+        "marka": "NIU"
+      }
+    ],
+    "baslik": "NIU NQi GTS Uç Kapağı",
+    "aciklama": "NIU NQi GTS koltuk altı bölümünün ucunu kapatan bir kapaktır. Gövdenin açıkta kalan uç kısmını örter.\nYaklaşık dış ölçüler: 96 × 38 × 16 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1637785-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1637785-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1637785-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Gabe9000"
+    },
+    "altkategori": "Sele ve Sehpa"
+  },
+  {
     "id": "pr1606429-lada-vesta-sw-cross-bagaj-mentese-kapagi",
     "kategori": "Otomobil",
     "marka": [
