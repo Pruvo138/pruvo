@@ -732158,7 +732158,9 @@
     "kategori": "Otomobil",
     "marka": [
       "Suzuki",
+      "Swift",
       "Geo",
+      "Metro",
       "Subaru"
     ],
     "baslik": "Suzuki Swift tavan askı klipsi",
@@ -732172,7 +732174,11 @@
     "uyum": [
       {
         "marka": "Suzuki",
-        "model": "Geo"
+        "model": "Swift"
+      },
+      {
+        "marka": "Geo",
+        "model": "Metro"
       },
       {
         "marka": "Subaru"

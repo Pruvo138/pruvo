@@ -1807,6 +1807,20 @@ UYUM_MARKA_IZINLI = frozenset({
     #   Iki jeton arama.py'nin baska hicbir kumesinde YOK (buyuk/kucuk duyarsiz). FARK 139 SABIT.
     #   Kabul: `tools/sozluk21-marka-kabul-kapisi.py` (A1-A4 + KONTROL + M1/M2/KONTROL-MUTANT).
     "Lada", "NIU",
+    # 22. tur — BaBa tik 258 (C) (27 Eki 2026): MaCiT esik-alti dalgalari (Geo 3 urun hazir,
+    #   `hasat_ekle` uyum fail-closed takildi = K302 sozluk boslugu, politika DEGIL; 7 marka
+    #   2→3 dalgasi icin). SINIF: `Geo` GM marque'i (Tracker/Metro; MODEL_OLMAYAN_JETON'da
+    #   yalniz SAYFA ekseninde, uyuma dokunmaz) · `Ducabike` motosiklet aksesuar ureticisi ·
+    #   `Ronal` jant ureticisi · `Tekonsha` romork fren kontrol ureticisi · `Bayliner` tekne
+    #   ureticisi · `CTEK` aku sarj cihazi ureticisi · `Cuisinart` mutfak aleti ureticisi ·
+    #   `OutIn` tasinabilir espresso makinesi ureticisi.
+    #   OLCULEN katalog agirligi (40.957 urun, ES3 ucu; TAM yazim, jq):
+    #     `Geo` marka[] 5 · `Ducabike` 2 · `Ronal` 2 · `Tekonsha` 2 · `Bayliner` 2 · `CTEK` 2 ·
+    #     `Cuisinart` 2 · `OutIn` 2 — uyum[].marka HEPSINDE 0 (fail-closed tam bu yuzden).
+    #   Sekiz jeton bu kumede ve UYUM_MARKA_MIMAR_EKI'de YOKTU; `Geo` disinda arama.py'nin
+    #   baska hicbir kumesinde YOK (buyuk/kucuk duyarsiz). FARK 139 SABIT.
+    #   Kabul: `tools/sozluk22-marka-kabul-kapisi.py` (A1-A4 + KONTROL + M1/M2/KONTROL-MUTANT).
+    "Geo", "Ducabike", "Ronal", "Tekonsha", "Bayliner", "CTEK", "Cuisinart", "OutIn",
 })
 
 # 🔴 ONERI DISINDAN, MIMAR ONAYIYLA eklenen jetonlar. AYRI tutulmalari SART: budama
@@ -1905,6 +1919,9 @@ UYUM_MARKA_MIMAR_EKI = frozenset({
     # 21. tur (26 Eki 2026) — BaBa tik 201 (C), MaCiT hasadi. Gerekce + olculen katalog agirligi
     # UYUM_MARKA_IZINLI'nin 21. tur basliginda yazili. TEKRAR EDILMEZ.
     "Lada", "NIU",
+    # 22. tur (27 Eki 2026) — BaBa tik 258 (C), MaCiT esik-alti dalgalari. Gerekce + olculen
+    # katalog agirligi UYUM_MARKA_IZINLI'nin 22. tur basliginda yazili. TEKRAR EDILMEZ.
+    "Geo", "Ducabike", "Ronal", "Tekonsha", "Bayliner", "CTEK", "Cuisinart", "OutIn",
 })
 
 # 🔴 REDDEDILEN ADAYLAR (2 Agu, mimar karari) — kayda geciyor ki bir sonraki tur ayni
