@@ -1,5 +1,23 @@
 [
   {
+    "id": "pr652896-jawa-20-bit-tutucusu",
+    "kategori": "Tamirat",
+    "marka": [
+      "Jawa"
+    ],
+    "uyum": [
+      {
+        "marka": "Jawa"
+      }
+    ],
+    "baslik": "Jawa 20 Moped Silüetli Uç Tutucusu",
+    "aciklama": "Jawa 20 moped silueti şeklinde tasarlanmış bir uç tutucusudur. Ahşap bir yüzeye vida ile sabitlenerek uçların düzenli bir şekilde tutulmasını sağlar.\nYaklaşık dış ölçüler: 120 × 67 × 15 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr652896-1.jpg"
+    ]
+  },
+  {
     "id": "pr751838-niu-kqi-air-airtag-kancasi",
     "kategori": "Motosiklet",
     "marka": [
