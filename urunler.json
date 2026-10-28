@@ -1,5 +1,224 @@
 [
   {
+    "id": "th4139208-tekonsha-p3-tacoma-montaj-paneli",
+    "kategori": "Otomobil",
+    "marka": [
+      "Tekonsha"
+    ],
+    "uyum": [
+      {
+        "marka": "Tekonsha"
+      }
+    ],
+    "baslik": "Tekonsha P3 Fren Kontrolörü Montaj Paneli (2015 Tacoma)",
+    "aciklama": "2015 Tacoma kabinindeki açılır panelin yerine geçen, Tekonsha P3 fren kontrolörünü panelin içine yarı gömülü olarak yerleştiren montaj panelidir. Aynı delige oturur ve kontrolör iki M4 vida ile sabitlenir. Yalnızca montaj paneli sunulur; fren kontrolörü ürüne dahil değildir.\nYaklaşık dış ölçüler: 148 × 99 × 68 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4139208-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4139208-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4139208-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4139208-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY-SA",
+      "tasarimci": "jonhnet"
+    },
+    "altkategori": "Konsol ve Torpido"
+  },
+  {
+    "id": "pr154815-tekonsha-primus-iq-montaj-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Tekonsha"
+    ],
+    "uyum": [
+      {
+        "marka": "Tekonsha"
+      }
+    ],
+    "baslik": "Tekonsha Primus IQ Fren Kontrolörü Montaj Braketi",
+    "aciklama": "Tekonsha Primus IQ fren kontrolörünün, daha yaygın Prodigy serisinden farklı olan montaj tırnak yapısına göre hazırlanmış montaj braketidir. Yalnızca montaj parçasıdır; fren kontrolörü ürüne dahil değildir.\nYaklaşık dış ölçüler: 94 × 84 × 27 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr154815-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr154815-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "ksanislo"
+    },
+    "altkategori": "Montaj Parçaları ve Klipsler"
+  },
+  {
+    "id": "pr1087547-outin-nano-bardak-adaptoru",
+    "kategori": "Elektronik",
+    "marka": [
+      "OutIn"
+    ],
+    "uyum": [
+      {
+        "marka": "OutIn"
+      }
+    ],
+    "baslik": "OutIn Nano Espresso Makinesi Bardak Adaptörü",
+    "aciklama": "OutIn Nano taşınabilir espresso makinesini kahve bardağının üzerine oturtmak için hazırlanmış adaptör halkasıdır. Başka bir Nano adaptör tasarımına alternatif olarak çizilmiştir; espresso makinesi ve bardak ürüne dahil değildir.\nYaklaşık dış ölçüler: 102 × 102 × 17 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1087547-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1087547-2.jpg"
+    ],
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "th994032-cuisinart-kahve-olcu-kasigi-tutucu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Cuisinart"
+    ],
+    "uyum": [
+      {
+        "marka": "Cuisinart"
+      }
+    ],
+    "baslik": "Cuisinart Kahve Makinesi Ölçü Kaşığı Tutucu",
+    "aciklama": "Cuisinart kahve makinesinin ölçü kaşığına yer açmak için hazırlanmış küçük tutucudur. İçinde 6,4 milimetre çapında ve 3,2 milimetre kalınlığında bir mıknatıs için yuva bulunur; mıknatısla ya da çift taraflı bantla makinenin üzerine veya başka bir yüzeye tutturulabilir. Mıknatıs ürüne dahil değildir.\nYaklaşık dış ölçüler: 19 × 16 × 12 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th994032-1.jpg",
+      "https://media.pruvo3d.com/urunler/th994032-2.jpg",
+      "https://media.pruvo3d.com/urunler/th994032-3.jpg",
+      "https://media.pruvo3d.com/urunler/th994032-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY-SA",
+      "tasarimci": "DanLuc"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "pr478460-cuisinart-mutfak-robotu-bicak-organizeri",
+    "kategori": "Elektronik",
+    "marka": [
+      "Cuisinart"
+    ],
+    "uyum": [
+      {
+        "marka": "Cuisinart"
+      }
+    ],
+    "baslik": "Cuisinart 14 Cup Mutfak Robotu Bıçak ve Gövde Organizeri",
+    "aciklama": "Cuisinart 14 cup mutfak robotunun iki bıçağını ve bu bıçakları taşıyan gövde (stem) parçasını bir arada saklamak için hazırlanmış organizer kutusudur. Başka bir bıçak saklama kutusu tasarımının bu parçalara göre uyarlanmış halidir; bıçaklar ve mutfak robotu ürüne dahil değildir.\nYaklaşık dış ölçüler: 162 × 91 × 90 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr478460-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr478460-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr478460-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Colin (remix: calebfwood)"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "th3801350-ctek-mxs-5-sarj-cihazi-duvar-askisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "CTEK"
+    ],
+    "uyum": [
+      {
+        "marka": "CTEK"
+      }
+    ],
+    "baslik": "CTEK MXS 5.0 Akü Şarj Cihazı Duvar Askısı",
+    "aciklama": "CTEK MXS 5.0 akü şarj cihazını duvarda yerinde tutmak için hazırlanmış askıdır; düz bir raf ve iki kroşeden oluşan bir yapısı vardır. Şarj cihazı ürüne dahil değildir.\nYaklaşık dış ölçüler: 174 × 71 × 39 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3801350-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3801350-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3801350-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3801350-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY-SA",
+      "tasarimci": "LupekLp"
+    },
+    "altkategori": "Telefon ve Şarj"
+  },
+  {
+    "id": "pr595740-ctek-mxs-10-sarj-cihazi-duvar-askisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "CTEK"
+    ],
+    "uyum": [
+      {
+        "marka": "CTEK"
+      }
+    ],
+    "baslik": "CTEK MXS 10 Akü Şarj Cihazı Duvar Askısı",
+    "aciklama": "CTEK MXS 10 akü şarj cihazını duvara asmak ve kabloları derli toplu tutmak için hazırlanmış duvar askısıdır. İki montaj deliği sayesinde vida ve dübelle alçı, ahşap veya betona monte edilebilir; şarj cihazı ürüne dahil değildir.\nYaklaşık dış ölçüler: 141 × 100 × 75 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr595740-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr595740-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr595740-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr595740-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Tim Malmgren"
+    },
+    "altkategori": "Telefon ve Şarj"
+  },
+  {
+    "id": "th6134474-bayliner-bimini-cati-baglanti-parcasi",
+    "kategori": "Marin",
+    "marka": [
+      "Bayliner"
+    ],
+    "uyum": [
+      {
+        "marka": "Bayliner"
+      }
+    ],
+    "baslik": "Bayliner Bimini Güneşlik Çatısı Bağlantı Parçası",
+    "aciklama": "1990'ların başına ait bir Bayliner motorlu teknenin bimini (güneşlik) çatısındaki kırılmış parçanın yerine kullanılmak üzere hazırlanmış bağlantı parçasıdır. Yalnızca bu tek parçayı kapsar; bimini çatı iskeleti ürüne dahil değildir.\nYaklaşık dış ölçüler: 52 × 22 × 22 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6134474-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "GraflexGuy"
+    },
+    "altkategori": "Güverte ve Donanım"
+  },
+  {
+    "id": "th2970786-bayliner-kokpit-gosterge-kapagi",
+    "kategori": "Marin",
+    "marka": [
+      "Bayliner"
+    ],
+    "uyum": [
+      {
+        "marka": "Bayliner"
+      }
+    ],
+    "baslik": "Bayliner 2052 Cuddy Kokpit Panosu Gösterge Kapağı",
+    "aciklama": "1991 model civarı Bayliner kokpit panosuna (kaynakta Bayliner 2052 Cuddy Cabin) tek bir 85 milimetrelik hız veya devir göstergesini oturtmak için hazırlanmış değiştirme kapağı ve çerçevesidir. Kapak, göstergenin arkasındaki metal braket kullanılarak panoya monte edilir; gösterge ürüne dahil değildir.\nYaklaşık dış ölçüler: 126 × 126 × 15 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2970786-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2970786-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "mrmadalex"
+    }
+  },
+  {
     "id": "pr1760751-geo-tracker-kapi-tutamagi-klipsi",
     "kategori": "Otomobil",
     "marka": [
