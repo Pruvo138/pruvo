@@ -116,6 +116,13 @@ TABAN = frozenset({
     # cikardi (K1 2); sayfa dogumu PARTI 2'de.
     "Kuba",
     "Scania",
+    # 28 Eki 2026 (MaCiT ES13, CTA silme dalina alindi): 14 kayit bes markayi esigin ustune
+    # cikardi (K1 5); sayfa dogumu PARTI 2'de.
+    "Gaggia",
+    "Hario",
+    "Oster",
+    "Oxo",
+    "Wyze",
 })
 
 
