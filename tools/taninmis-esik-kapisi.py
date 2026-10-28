@@ -105,6 +105,13 @@ TABAN = frozenset({
     "Pössl",
     "Speeduino",
     "Yanmar",
+    # 28 Eki 2026 (BaBa 17:5x, MaCiT ES11 talebi): ES11 9 kayit sozluk 23 dalina alindi; bes
+    # marka esigin ustune cikti (K1 5); sayfa dogumu PARTI 2'de.
+    "Bayliner",
+    "CTEK",
+    "Cuisinart",
+    "OutIn",
+    "Tekonsha",
 })
 
 
