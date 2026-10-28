@@ -1,5 +1,75 @@
 [
   {
+    "id": "pr1760751-geo-tracker-kapi-tutamagi-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Geo"
+    ],
+    "uyum": [
+      {
+        "marka": "Geo"
+      }
+    ],
+    "baslik": "Geo Tracker Kapı Tutamağı Plastik Klipsi (1993)",
+    "aciklama": "1993 model Geo Tracker kapı panelinde kapı tutamağını sabit tutan küçük plastik klips. Panel üzerindeki tutamak yuvasına oturacak biçimde tasarlanmıştır.\nYaklaşık dış ölçüler: 15 × 15 × 9 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1760751-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1760751-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1760751-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "mechoption"
+    },
+    "altkategori": "Montaj Parçaları ve Klipsler"
+  },
+  {
+    "id": "pr530406-geo-metro-tehlike-cam-yikama-dugmeleri",
+    "kategori": "Otomobil",
+    "marka": [
+      "Geo"
+    ],
+    "uyum": [
+      {
+        "marka": "Geo"
+      }
+    ],
+    "baslik": "Geo Metro Tehlike ve Cam Yıkama Düğmeleri",
+    "aciklama": "Geo Metro, Chevy Sprint ve Pontiac Firefly konsolundaki güneşte zarar görmüş tehlike ve cam yıkama düğmelerinin yerine geçen parça seti. Düğmeler, direksiyon mili üzerindeki dikilere oturacak biçimde tasarlanmıştır; sol ve sağ eşleşmedir. Bazı varyantlarda düğme yüzeyinde farklı desen ve yazılar bulunur.\nYaklaşık dış ölçüler: 40 × 23 × 16 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr530406-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr530406-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr530406-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr530406-4.jpg"
+    ],
+    "altkategori": "Konsol ve Torpido"
+  },
+  {
+    "id": "pr1801313-geo-tracker-bos-dugme-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Geo"
+    ],
+    "uyum": [
+      {
+        "marka": "Geo"
+      }
+    ],
+    "baslik": "Suzuki Sidekick / Geo Tracker Boş Düğme Kapağı",
+    "aciklama": "Suzuki Sidekick ve Geo Tracker konsolunda opsiyonel düğmelerin bulunduğu boşlukları kapatan düğme tapaları. Parça, düğme deliğine bastırarak oturan bir yapıya sahiptir.\nYaklaşık dış ölçüler: 42 × 24 × 12 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1801313-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Cradle Customs"
+    },
+    "altkategori": "Konsol ve Torpido"
+  },
+  {
     "id": "th4697343-speeduino-20x4-lcd-ekran-tutucusu",
     "kategori": "Otomobil",
     "marka": [
