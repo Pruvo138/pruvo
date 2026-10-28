@@ -1821,6 +1821,29 @@ UYUM_MARKA_IZINLI = frozenset({
     #   baska hicbir kumesinde YOK (buyuk/kucuk duyarsiz). FARK 139 SABIT.
     #   Kabul: `tools/sozluk22-marka-kabul-kapisi.py` (A1-A4 + KONTROL + M1/M2/KONTROL-MUTANT).
     "Geo", "Ducabike", "Ronal", "Tekonsha", "Bayliner", "CTEK", "Cuisinart", "OutIn",
+    # 23. tur — BaBa tik 275 (28 Eki 2026): MaCiT jetonsuz havuzu (`sozluk23-jetonsuz-markalar`
+    #   60 tek urunlu marka; `hasat_ekle` uyum fail-closed = K302 sozluk boslugu). SINIF: hepsi
+    #   katalogda `marka[]`de 1 kayitla duran URUN/AKSESUAR markasi (kahve/mutfak aleti, jant,
+    #   motosiklet aksesuari, kamera, marin, elektronik); uyum[].marka hepsinde 0.
+    #   OLCULDU (41.057 urun): asagidaki 38 jetondan HICBIRI katalogda `uyum[].model` olarak
+    #   gecmiyor, yazim varyanti yok (B4 capasi KAYMAZ), arama.py'nin baska kumesinde yok.
+    #   DISARIDA 22 (yargi KraL, 28 Eki): COK KELIMELI 4 (`La Scala` · `Mr. Coffee` ·
+    #   `Peak Design` · `Proctor Silex` — index.html BILESIK_MARKA aynasi ayni turda
+    #   guncellenmezse model-uyelik K8 KIRMIZI; ayna ile birlikte ayri tur) · `MINI` (blokta `Mini`, K4 ikiz yazim) · `Alpine`
+    #   (tek kayit Renault|Alpine A310; homonim) · `TRD` (Toyota rozeti, MODEL_OLMAYAN_CIFT) ·
+    #   `Denso`/`Nordlinger` (URETICI_MARKA) · MODEL ALANINDA gecenler (eklenirse o kayitlar
+    #   RED): `Acura` (Honda| x5) · `Avanza` (Toyota modeli) · `Corsair` (Ford modeli) ·
+    #   `Pontiac` (Toyota|) · `Brodit` (Opel|) · `Givi` (Suzuki|) · `Gurtner` (Peugeot|) ·
+    #   `Haibike` (Yamaha|) · `Mennekes` (Volvo|) · `OOONO` (Renault|) · `Trail Tech` (Suzuki|) ·
+    #   YAZIM VARYANTLI: `SMEG` (katalogda `Smeg` 1 + `SMEG` 1) · `Quad Lock` (`QuadLock`,
+    #   `Quadlock`). Bunlar veri duzeltmesi turunda ayrica ele alinir. FARK 139 SABIT.
+    #   Kabul: `tools/sozluk23-marka-kabul-kapisi.py` (A1-A4 + KONTROL + M1/M2/KONTROL-MUTANT).
+    "ASA", "ATOTO", "Anycubic", "AutoVox", "B&G", "Bella", "Bellman",
+    "Bezzera", "Bunn", "Dellorto", "Gaggia", "HEKO", "Hario", "Hobie",
+    "Makita", "Meraki", "Mikuni", "Mosconi", "Napoli", "Oster", "Oxo",
+    "Polaris", "Primula", "Pruveeo", "Puig", "Starlane", "Starseeker", "Tastyle",
+    "Tchibo", "Valeo", "Velbon", "Velocitek", "Vollrath", "WPL", "Wyze",
+    "Yaesu", "Zhiyun", "Zinik",
 })
 
 # 🔴 ONERI DISINDAN, MIMAR ONAYIYLA eklenen jetonlar. AYRI tutulmalari SART: budama
@@ -1922,6 +1945,14 @@ UYUM_MARKA_MIMAR_EKI = frozenset({
     # 22. tur (27 Eki 2026) — BaBa tik 258 (C), MaCiT esik-alti dalgalari. Gerekce + olculen
     # katalog agirligi UYUM_MARKA_IZINLI'nin 22. tur basliginda yazili. TEKRAR EDILMEZ.
     "Geo", "Ducabike", "Ronal", "Tekonsha", "Bayliner", "CTEK", "Cuisinart", "OutIn",
+    # 23. tur (28 Eki 2026) — BaBa tik 275, MaCiT jetonsuz havuzu. Gerekce + disarida birakilan
+    # 22 jeton UYUM_MARKA_IZINLI'nin 23. tur basliginda yazili. TEKRAR EDILMEZ.
+    "ASA", "ATOTO", "Anycubic", "AutoVox", "B&G", "Bella", "Bellman",
+    "Bezzera", "Bunn", "Dellorto", "Gaggia", "HEKO", "Hario", "Hobie",
+    "Makita", "Meraki", "Mikuni", "Mosconi", "Napoli", "Oster", "Oxo",
+    "Polaris", "Primula", "Pruveeo", "Puig", "Starlane", "Starseeker", "Tastyle",
+    "Tchibo", "Valeo", "Velbon", "Velocitek", "Vollrath", "WPL", "Wyze",
+    "Yaesu", "Zhiyun", "Zinik",
 })
 
 # 🔴 REDDEDILEN ADAYLAR (2 Agu, mimar karari) — kayda geciyor ki bir sonraki tur ayni

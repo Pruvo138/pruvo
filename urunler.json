@@ -1,5 +1,763 @@
 [
   {
+    "id": "th7414187-kuba-scooter-telefon-tutucu-adaptoru",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Kuba"
+    ],
+    "uyum": [
+      {
+        "marka": "Kuba"
+      }
+    ],
+    "baslik": "Kuba Scooter Telefon Tutucu Adaptörü",
+    "aciklama": "Kuba scooter ön panelindeki mevcut vida deliğine bağlanan telefon tutucu adaptörüdür. Dört delikli bir tabanı ve üzerinde telefon tutucunun takıldığı top mafsallı bir ucu vardır; telefon tutucu ayrıca temin edilir.\nYaklaşık dış ölçüler: 30 × 30 × 13 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7414187-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7414187-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7414187-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7414187-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY-SA",
+      "tasarimci": "Kosta1492"
+    },
+    "altkategori": "Telefon ve Şarj"
+  },
+  {
+    "id": "th6309521-scania-nextgen-hava-ferahlatici-standi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Scania"
+    ],
+    "uyum": [
+      {
+        "marka": "Scania"
+      }
+    ],
+    "baslik": "Scania NextGen Kabini İçin Hava Ferahlatıcı Standı",
+    "aciklama": "Scania NextGen kabini için hazırlanmış, hava ferahlatıcı şişesini üzerinde taşıyan küçük bir stand parçasıdır. Dikdörtgen gövdelidir; kaynakta Scania NextGen kabinine uyduğu belirtilir.\nYaklaşık dış ölçüler: 124 × 98 × 67 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6309521-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6309521-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6309521-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6309521-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY-SA",
+      "tasarimci": "Bizibahuni"
+    },
+    "altkategori": "İç Aksam"
+  },
+  {
+    "id": "th4139208-tekonsha-p3-tacoma-montaj-paneli",
+    "kategori": "Otomobil",
+    "marka": [
+      "Tekonsha"
+    ],
+    "uyum": [
+      {
+        "marka": "Tekonsha"
+      }
+    ],
+    "baslik": "Tekonsha P3 Fren Kontrolörü Montaj Paneli (2015 Tacoma)",
+    "aciklama": "2015 Tacoma kabinindeki açılır panelin yerine geçen, Tekonsha P3 fren kontrolörünü panelin içine yarı gömülü olarak yerleştiren montaj panelidir. Aynı delige oturur ve kontrolör iki M4 vida ile sabitlenir. Yalnızca montaj paneli sunulur; fren kontrolörü ürüne dahil değildir.\nYaklaşık dış ölçüler: 148 × 99 × 68 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4139208-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4139208-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4139208-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4139208-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY-SA",
+      "tasarimci": "jonhnet"
+    },
+    "altkategori": "Konsol ve Torpido"
+  },
+  {
+    "id": "pr154815-tekonsha-primus-iq-montaj-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Tekonsha"
+    ],
+    "uyum": [
+      {
+        "marka": "Tekonsha"
+      }
+    ],
+    "baslik": "Tekonsha Primus IQ Fren Kontrolörü Montaj Braketi",
+    "aciklama": "Tekonsha Primus IQ fren kontrolörünün, daha yaygın Prodigy serisinden farklı olan montaj tırnak yapısına göre hazırlanmış montaj braketidir. Yalnızca montaj parçasıdır; fren kontrolörü ürüne dahil değildir.\nYaklaşık dış ölçüler: 94 × 84 × 27 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr154815-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr154815-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "ksanislo"
+    },
+    "altkategori": "Montaj Parçaları ve Klipsler"
+  },
+  {
+    "id": "pr1087547-outin-nano-bardak-adaptoru",
+    "kategori": "Elektronik",
+    "marka": [
+      "OutIn"
+    ],
+    "uyum": [
+      {
+        "marka": "OutIn"
+      }
+    ],
+    "baslik": "OutIn Nano Espresso Makinesi Bardak Adaptörü",
+    "aciklama": "OutIn Nano taşınabilir espresso makinesini kahve bardağının üzerine oturtmak için hazırlanmış adaptör halkasıdır. Başka bir Nano adaptör tasarımına alternatif olarak çizilmiştir; espresso makinesi ve bardak ürüne dahil değildir.\nYaklaşık dış ölçüler: 102 × 102 × 17 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1087547-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1087547-2.jpg"
+    ],
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "th994032-cuisinart-kahve-olcu-kasigi-tutucu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Cuisinart"
+    ],
+    "uyum": [
+      {
+        "marka": "Cuisinart"
+      }
+    ],
+    "baslik": "Cuisinart Kahve Makinesi Ölçü Kaşığı Tutucu",
+    "aciklama": "Cuisinart kahve makinesinin ölçü kaşığına yer açmak için hazırlanmış küçük tutucudur. İçinde 6,4 milimetre çapında ve 3,2 milimetre kalınlığında bir mıknatıs için yuva bulunur; mıknatısla ya da çift taraflı bantla makinenin üzerine veya başka bir yüzeye tutturulabilir. Mıknatıs ürüne dahil değildir.\nYaklaşık dış ölçüler: 19 × 16 × 12 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th994032-1.jpg",
+      "https://media.pruvo3d.com/urunler/th994032-2.jpg",
+      "https://media.pruvo3d.com/urunler/th994032-3.jpg",
+      "https://media.pruvo3d.com/urunler/th994032-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY-SA",
+      "tasarimci": "DanLuc"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "pr478460-cuisinart-mutfak-robotu-bicak-organizeri",
+    "kategori": "Elektronik",
+    "marka": [
+      "Cuisinart"
+    ],
+    "uyum": [
+      {
+        "marka": "Cuisinart"
+      }
+    ],
+    "baslik": "Cuisinart 14 Cup Mutfak Robotu Bıçak ve Gövde Organizeri",
+    "aciklama": "Cuisinart 14 cup mutfak robotunun iki bıçağını ve bu bıçakları taşıyan gövde (stem) parçasını bir arada saklamak için hazırlanmış organizer kutusudur. Başka bir bıçak saklama kutusu tasarımının bu parçalara göre uyarlanmış halidir; bıçaklar ve mutfak robotu ürüne dahil değildir.\nYaklaşık dış ölçüler: 162 × 91 × 90 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr478460-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr478460-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr478460-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Colin (remix: calebfwood)"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "th3801350-ctek-mxs-5-sarj-cihazi-duvar-askisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "CTEK"
+    ],
+    "uyum": [
+      {
+        "marka": "CTEK"
+      }
+    ],
+    "baslik": "CTEK MXS 5.0 Akü Şarj Cihazı Duvar Askısı",
+    "aciklama": "CTEK MXS 5.0 akü şarj cihazını duvarda yerinde tutmak için hazırlanmış askıdır; düz bir raf ve iki kroşeden oluşan bir yapısı vardır. Şarj cihazı ürüne dahil değildir.\nYaklaşık dış ölçüler: 174 × 71 × 39 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3801350-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3801350-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3801350-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3801350-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY-SA",
+      "tasarimci": "LupekLp"
+    },
+    "altkategori": "Telefon ve Şarj"
+  },
+  {
+    "id": "pr595740-ctek-mxs-10-sarj-cihazi-duvar-askisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "CTEK"
+    ],
+    "uyum": [
+      {
+        "marka": "CTEK"
+      }
+    ],
+    "baslik": "CTEK MXS 10 Akü Şarj Cihazı Duvar Askısı",
+    "aciklama": "CTEK MXS 10 akü şarj cihazını duvara asmak ve kabloları derli toplu tutmak için hazırlanmış duvar askısıdır. İki montaj deliği sayesinde vida ve dübelle alçı, ahşap veya betona monte edilebilir; şarj cihazı ürüne dahil değildir.\nYaklaşık dış ölçüler: 141 × 100 × 75 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr595740-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr595740-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr595740-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr595740-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Tim Malmgren"
+    },
+    "altkategori": "Telefon ve Şarj"
+  },
+  {
+    "id": "th6134474-bayliner-bimini-cati-baglanti-parcasi",
+    "kategori": "Marin",
+    "marka": [
+      "Bayliner"
+    ],
+    "uyum": [
+      {
+        "marka": "Bayliner"
+      }
+    ],
+    "baslik": "Bayliner Bimini Güneşlik Çatısı Bağlantı Parçası",
+    "aciklama": "1990'ların başına ait bir Bayliner motorlu teknenin bimini (güneşlik) çatısındaki kırılmış parçanın yerine kullanılmak üzere hazırlanmış bağlantı parçasıdır. Yalnızca bu tek parçayı kapsar; bimini çatı iskeleti ürüne dahil değildir.\nYaklaşık dış ölçüler: 52 × 22 × 22 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6134474-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "GraflexGuy"
+    },
+    "altkategori": "Güverte ve Donanım"
+  },
+  {
+    "id": "th2970786-bayliner-kokpit-gosterge-kapagi",
+    "kategori": "Marin",
+    "marka": [
+      "Bayliner"
+    ],
+    "uyum": [
+      {
+        "marka": "Bayliner"
+      }
+    ],
+    "baslik": "Bayliner 2052 Cuddy Kokpit Panosu Gösterge Kapağı",
+    "aciklama": "1991 model civarı Bayliner kokpit panosuna (kaynakta Bayliner 2052 Cuddy Cabin) tek bir 85 milimetrelik hız veya devir göstergesini oturtmak için hazırlanmış değiştirme kapağı ve çerçevesidir. Kapak, göstergenin arkasındaki metal braket kullanılarak panoya monte edilir; gösterge ürüne dahil değildir.\nYaklaşık dış ölçüler: 126 × 126 × 15 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2970786-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2970786-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "mrmadalex"
+    }
+  },
+  {
+    "id": "pr1760751-geo-tracker-kapi-tutamagi-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Geo"
+    ],
+    "uyum": [
+      {
+        "marka": "Geo"
+      }
+    ],
+    "baslik": "Geo Tracker Kapı Tutamağı Plastik Klipsi (1993)",
+    "aciklama": "1993 model Geo Tracker kapı panelinde kapı tutamağını sabit tutan küçük plastik klips. Panel üzerindeki tutamak yuvasına oturacak biçimde tasarlanmıştır.\nYaklaşık dış ölçüler: 15 × 15 × 9 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1760751-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1760751-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1760751-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "mechoption"
+    },
+    "altkategori": "Montaj Parçaları ve Klipsler"
+  },
+  {
+    "id": "pr530406-geo-metro-tehlike-cam-yikama-dugmeleri",
+    "kategori": "Otomobil",
+    "marka": [
+      "Geo"
+    ],
+    "uyum": [
+      {
+        "marka": "Geo"
+      }
+    ],
+    "baslik": "Geo Metro Tehlike ve Cam Yıkama Düğmeleri",
+    "aciklama": "Geo Metro, Chevy Sprint ve Pontiac Firefly konsolundaki güneşte zarar görmüş tehlike ve cam yıkama düğmelerinin yerine geçen parça seti. Düğmeler, direksiyon mili üzerindeki dikilere oturacak biçimde tasarlanmıştır; sol ve sağ eşleşmedir. Bazı varyantlarda düğme yüzeyinde farklı desen ve yazılar bulunur.\nYaklaşık dış ölçüler: 40 × 23 × 16 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr530406-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr530406-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr530406-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr530406-4.jpg"
+    ],
+    "altkategori": "Konsol ve Torpido"
+  },
+  {
+    "id": "pr1801313-geo-tracker-bos-dugme-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Geo"
+    ],
+    "uyum": [
+      {
+        "marka": "Geo"
+      }
+    ],
+    "baslik": "Suzuki Sidekick / Geo Tracker Boş Düğme Kapağı",
+    "aciklama": "Suzuki Sidekick ve Geo Tracker konsolunda opsiyonel düğmelerin bulunduğu boşlukları kapatan düğme tapaları. Parça, düğme deliğine bastırarak oturan bir yapıya sahiptir.\nYaklaşık dış ölçüler: 42 × 24 × 12 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1801313-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Cradle Customs"
+    },
+    "altkategori": "Konsol ve Torpido"
+  },
+  {
+    "id": "th4697343-speeduino-20x4-lcd-ekran-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Speeduino"
+    ],
+    "uyum": [
+      {
+        "marka": "Speeduino"
+      }
+    ],
+    "baslik": "Speeduino İçin 20x4 LCD Ekran Tutucusu (Pano Gösterge Yuvası)",
+    "aciklama": "HD44780 uyumlu 20x4 LCD ekranı araç panosundaki 80 milimetrelik gösterge yuvasına yerleştirmek için tutucudur; ekran, Speeduino kontrol ünitesinin anlık parametrelerini göstermek amacıyla kullanılmıştır. Kaynakta tasarımın tasarımcının kendi aracına özel hazırlandığı belirtilir.\nYaklaşık dış ölçüler: 90 × 90 × 17 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4697343-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4697343-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4697343-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "Zeiberstein"
+    },
+    "altkategori": "Konsol ve Torpido"
+  },
+  {
+    "id": "th2892319-magic-bullet-bardak-kapagi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Magic Bullet"
+    ],
+    "uyum": [
+      {
+        "marka": "Magic Bullet"
+      }
+    ],
+    "baslik": "Magic Bullet Blender Bardağı Kapağı (Pipet Delikli)",
+    "aciklama": "Magic Bullet blender ile uyumlu bardaklar için kapaktır. Pipet delikli modelin yanı sıra deliksiz (tam kapalı) seçeneği de bulunur.\nYaklaşık dış ölçüler: 90 × 90 × 17 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2892319-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2892319-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "shaynathemaker"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "th4563292-magic-bullet-bicak-contasi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Magic Bullet"
+    ],
+    "uyum": [
+      {
+        "marka": "Magic Bullet"
+      }
+    ],
+    "baslik": "Magic Bullet Blender Bıçak Contası",
+    "aciklama": "Magic Bullet blender bıçak bloğu için contadır (kaynakta 'guarnizione' olarak da geçer). Tüm bıçak takımını yenilemek yerine yalnızca contayı değiştirmek için hazırlanmıştır.\nYaklaşık dış ölçüler: 83 × 83 × 4 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4563292-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "frankdamn89"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "th1002468-lavazza-kapsul-dispenseri",
+    "kategori": "Elektronik",
+    "marka": [
+      "Lavazza"
+    ],
+    "uyum": [
+      {
+        "marka": "Lavazza"
+      }
+    ],
+    "baslik": "Lavazza Kahve Kapsülü Dispenseri",
+    "aciklama": "Lavazza kahve kapsülleri için tasarlanmış bir kapsül dispenseridir (kapsül dağıtıcı). Kaynakta espresso kapsülleri için hazırlandığı belirtilir.\nYaklaşık dış ölçüler: 131 × 106 × 52 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1002468-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1002468-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY-SA",
+      "tasarimci": "OrC"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "th3971083-lavazza-8-ons-kahve-kutusu-kapagi",
+    "kategori": "Ev",
+    "marka": [
+      "Lavazza"
+    ],
+    "uyum": [
+      {
+        "marka": "Lavazza"
+      }
+    ],
+    "baslik": "Lavazza 8 Ons Kahve Kutusu İçin Dişli Bilezik ve Kapak",
+    "aciklama": "Lavazza 8 ons (8 oz) kahve kutusunun çekmeli kapak şeridinin çıkarılmasıyla kalan kenarı örtmek için hazırlanmış dişli bilezik ve vidalı kapaktır. Kutu bu sayede saklama kabı olarak yeniden kullanılabilir.\nYaklaşık dış ölçüler: 108 × 108 × 26 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3971083-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3971083-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3971083-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3971083-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "rdear4"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "th5899050-possl-roadcruise-b-yan-perde-mafsali",
+    "kategori": "Otomobil",
+    "marka": [
+      "Pössl"
+    ],
+    "uyum": [
+      {
+        "marka": "Pössl"
+      }
+    ],
+    "baslik": "Pössl RoadCruise B Yan Perde Top Başlı Mafsal (2'li)",
+    "aciklama": "Pössl RoadCruise B karavanın yan pencere perdelerinde kullanılan top başlı mafsal parçasıdır; kırılan parçanın ölçülerine göre sıfırdan çizilmiştir. Sol pencere için hazırlanmıştır, sağ pencere için ayna görüntüsü (simetriği) kullanılır.\nYaklaşık dış ölçüler: 25 × 23 × 10 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5899050-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5899050-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5899050-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "BorDeWolv"
+    },
+    "altkategori": "Montaj Parçaları ve Klipsler"
+  },
+  {
+    "id": "th5482064-possl-summit-600-masa-ustu-rafi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Pössl"
+    ],
+    "uyum": [
+      {
+        "marka": "Pössl"
+      }
+    ],
+    "baslik": "Globecar / Pössl Summit 600+ Masa Üstü Rafı",
+    "aciklama": "Globecar / Pössl Summit 600+ için masanın üstüne, 12 V / 220 V prizlerin hemen altına oturan sade bir raftır. Şarj aleti veya şarj olan telefon rafın üzerinde yerinde bırakılabilir.\nYaklaşık dış ölçüler: 103 × 103 × 34 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5482064-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5482064-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5482064-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "DeltaCharlieFR"
+    },
+    "altkategori": "İç Aksam"
+  },
+  {
+    "id": "th5482004-itiwit-board-uzun-yuzgec",
+    "kategori": "Marin",
+    "marka": [
+      "Itiwit"
+    ],
+    "uyum": [
+      {
+        "marka": "Itiwit"
+      }
+    ],
+    "baslik": "Itiwit Board İçin Uzun Yüzgeç",
+    "aciklama": "Itiwit board için daha uzun bir yüzgeç (fin) modelidir. Kaynakta, bir kullanıcı talebi üzerine hazırlandığı belirtilir.\nYaklaşık dış ölçüler: 213 × 156 × 32 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5482004-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "hungryharris"
+    },
+    "altkategori": "Kano ve Kayak"
+  },
+  {
+    "id": "th4569896-itiwit-kayak-kuregi-kano-sapi",
+    "kategori": "Marin",
+    "marka": [
+      "Itiwit"
+    ],
+    "uyum": [
+      {
+        "marka": "Itiwit"
+      }
+    ],
+    "baslik": "Itiwit Kayak Küreği Kano Küreğine Dönüştürme Sapı",
+    "aciklama": "Itiwit çift kanatlı kayak küreğinden iki adet tek kanatlı kano küreği elde etmeyi sağlayan T biçimli sap parçasıdır.\nYaklaşık dış ölçüler: 142 × 92 × 28 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4569896-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4569896-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4569896-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4569896-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "zelesnik"
+    },
+    "altkategori": "Kano ve Kayak"
+  },
+  {
+    "id": "th4541094-briggs-stratton-cim-bicme-filtre-muhafazasi",
+    "kategori": "Bahçe",
+    "marka": [
+      "Briggs & Stratton"
+    ],
+    "uyum": [
+      {
+        "marka": "Briggs & Stratton"
+      }
+    ],
+    "baslik": "Briggs & Stratton Çim Biçme Makinesi Filtre Muhafazası",
+    "aciklama": "Briggs & Stratton çim biçme makineleri için filtre muhafazasıdır. Kaynakta, birçok çim biçme makinesine uygun olabileceği de belirtilir.\nYaklaşık dış ölçüler: 140 × 136 × 36 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4541094-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4541094-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "konis1904"
+    }
+  },
+  {
+    "id": "th4671939-briggs-stratton-kar-kureme-makinesi-kizagi",
+    "kategori": "Bahçe",
+    "marka": [
+      "Briggs & Stratton"
+    ],
+    "uyum": [
+      {
+        "marka": "Briggs & Stratton"
+      }
+    ],
+    "baslik": "Briggs & Stratton 1696619 Kar Küreme Makinesi Kızağı",
+    "aciklama": "Briggs & Stratton 1696619 numaralı kar küreme makinesinin metal kızağının yerine kullanılan kızak parçasıdır. Aşınma payı olarak alt yüzün genişliği iki katına çıkarılmış; hangi yönün aşağı bakacağı ve 2 milimetrelik aşınma göstergeleri üzerinde işaretlenmiştir.\nYaklaşık dış ölçüler: 135 × 90 × 28 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4671939-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "Mister_Ko"
+    }
+  },
+  {
+    "id": "th4267969-yanmar-226d-ucnokta-aski-kol-dugmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Yanmar"
+    ],
+    "uyum": [
+      {
+        "marka": "Yanmar"
+      }
+    ],
+    "baslik": "Yanmar 226D Traktör Üç Nokta Askı Kolu Düğmesi",
+    "aciklama": "Yanmar 226D traktörde üç nokta askı düzeneğini alçaltıp yükseltmek için kullanılan kolun üzerine takılan düğmedir.\nYaklaşık dış ölçüler: 68 × 37 × 37 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4267969-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4267969-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4267969-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "kcassella"
+    },
+    "altkategori": "Sürüş Kumandaları"
+  },
+  {
+    "id": "th5446338-yanmar-1gm10-gosterge-paneli-kutusu",
+    "kategori": "Marin",
+    "marka": [
+      "Yanmar"
+    ],
+    "uyum": [
+      {
+        "marka": "Yanmar"
+      }
+    ],
+    "baslik": "Yanmar 1GM10 Tekne Motoru Gösterge Paneli Kutusu",
+    "aciklama": "Yanmar 1GM10 tekne motorunun 7070 (YEI 1GM10-LR) gösterge paneli için kutudur. Kutu, kapak ve menteşe dahil birden çok parçadan oluşan settir.\nYaklaşık dış ölçüler: 214 × 175 × 55 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5446338-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5446338-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5446338-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5446338-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "PaxPanz"
+    },
+    "altkategori": "Elektrik"
+  },
+  {
+    "id": "th205180-massey-ferguson-6190-sicaklik-dugmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Massey Ferguson"
+    ],
+    "uyum": [
+      {
+        "marka": "Massey Ferguson"
+      }
+    ],
+    "baslik": "Massey Ferguson 6190 Sıcaklık Düğmesi",
+    "aciklama": "Massey Ferguson 6190 traktör için sıcaklık düğmesidir. Bir otomobil klima düğmesi tasarımı esas alınarak hazırlanmıştır.\nYaklaşık dış ölçüler: 40 × 40 × 26 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th205180-1.jpg",
+      "https://media.pruvo3d.com/urunler/th205180-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY-SA",
+      "tasarimci": "diegocr (remix: markt)"
+    },
+    "altkategori": "Klima ve Havalandırma"
+  },
+  {
+    "id": "th7033480-kayo-mr125-mr150-govde-kaydiricisi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Kayo"
+    ],
+    "uyum": [
+      {
+        "marka": "Kayo"
+      }
+    ],
+    "baslik": "Kayo MR125 / MR150 Gövde Kaydırıcısı ve Çerçeve Burcu",
+    "aciklama": "Kayo MR125 ve MR150 motosikletler için gövde (kaporta) kaydırıcısı ile çerçeve burcundan oluşan settir. Kaydırıcının iç çapı daha fazla malzeme kalacak biçimde kalınlaştırılmıştır; parçalar M5 vida ile bağlanır.\nYaklaşık dış ölçüler: 35 × 35 × 20 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7033480-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7033480-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7033480-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7033480-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY-SA",
+      "tasarimci": "Nickerau115"
+    },
+    "altkategori": "Grenaj ve Kaporta"
+  },
+  {
+    "id": "th5816456-maserati-granturismo-telefon-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Maserati"
+    ],
+    "uyum": [
+      {
+        "marka": "Maserati"
+      }
+    ],
+    "baslik": "Maserati GranTurismo Para Tepsisi Yerine Telefon Tutucu (MagSafe)",
+    "aciklama": "Maserati GranTurismo'nun bozuk para tepsisinin yerine takılan telefon tutucudur; tepsinin eski yuvasına oturur ve manyetik kablosuz şarj aparatıyla birlikte kullanılabilir. Uzun ve kısa iki seçeneği vardır: uzun olan iPhone 12 Pro'yu dikey, kısa olan yatay tutar. Montaj için 3 milimetre çaplı, 16 milimetre uzunluğundaki vida için deliğin elle açılması gerekir.\nYaklaşık dış ölçüler: 149 × 73 × 55 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5816456-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5816456-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5816456-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5816456-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "MasMaker22"
+    },
+    "altkategori": "Telefon ve Şarj"
+  },
+  {
+    "id": "th4313676-maserati-quattroporte-vites-topuzu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Maserati"
+    ],
+    "uyum": [
+      {
+        "marka": "Maserati"
+      }
+    ],
+    "baslik": "Maserati Quattroporte Otomatik Vites Topuzu",
+    "aciklama": "Maserati Quattroporte otomatik şanzımanlı model için vites topuzudur. Kaynakta, araçtaki topuzun kırılması üzerine hazırlandığı belirtilir.\nYaklaşık dış ölçüler: 54 × 35 × 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4313676-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4313676-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "FFLab"
+    },
+    "altkategori": "Sürüş Kumandaları"
+  },
+  {
     "id": "pr4628-sodastream-minimal-huni",
     "kategori": "Ev",
     "marka": [

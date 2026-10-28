@@ -93,6 +93,29 @@ TABAN = frozenset({
     # 28 Eki 2026 (BaBa tik 275 A): MaCiT ES8 5 kayit sozluk 22 dalina alindi; Baofeng esigin
     # ustune cikti (4); sayfa dogumu PARTI 2'de.
     "Baofeng",
+    # 28 Eki 2026 (BaBa tik 275): MaCiT ES9+ES10 20 kayit (17 TV + Geo 3) sozluk 23 dalina
+    # alindi; on marka esigin ustune cikti (K1 10); sayfa dogumu PARTI 2'de.
+    "Briggs & Stratton",
+    "Geo",
+    "Itiwit",
+    "Kayo",
+    "Lavazza",
+    "Magic Bullet",
+    "Massey Ferguson",
+    "Pössl",
+    "Speeduino",
+    "Yanmar",
+    # 28 Eki 2026 (BaBa 17:5x, MaCiT ES11 talebi): ES11 9 kayit sozluk 23 dalina alindi; bes
+    # marka esigin ustune cikti (K1 5); sayfa dogumu PARTI 2'de.
+    "Bayliner",
+    "CTEK",
+    "Cuisinart",
+    "OutIn",
+    "Tekonsha",
+    # 28 Eki 2026 (MaCiT ES12, ayni zincir): Scania 1 + Kuba 1 kayit iki markayi esigin ustune
+    # cikardi (K1 2); sayfa dogumu PARTI 2'de.
+    "Kuba",
+    "Scania",
 })
 
 
