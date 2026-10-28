@@ -929,6 +929,10 @@ jobs:
       # M1/M2/KONTROL-MUTANT; NIU verisi gelene dek A4 yalniz Lada kaydini sart kosar.
       - name: "Sozluk 21. tur marka kabul bataryasi (Lada, NIU)"
         run: python3 tools/sozluk21-marka-kabul-kapisi.py
+      # 22. tur kapali marka kumesi (Geo, Ducabike, Ronal, Tekonsha, Bayliner, CTEK, Cuisinart,
+      # OutIn; BaBa tik 258 C): A1-A4 + KONTROL + M1/M2/KONTROL-MUTANT; A4 sekizini de sart kosar.
+      - name: "Sozluk 22. tur marka kabul bataryasi (Geo, Ducabike, Ronal, Tekonsha, Bayliner, CTEK, Cuisinart, OutIn)"
+        run: python3 tools/sozluk22-marka-kabul-kapisi.py
 
       # Homonim baslik kolu KAPALI (Mini, Rover, Alpine, Sigma; BaBa tik 188/196): H1-H5 +
       # M1 (liste bos) / M2 (Rover cikti) / KONTROL-MUTANT; sayfa = uyelik = arama, sayilar sabit.

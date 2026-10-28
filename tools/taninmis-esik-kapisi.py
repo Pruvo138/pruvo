@@ -90,6 +90,9 @@ TABAN = frozenset({
     "Aukey",
     "Quechua",
     "Rode",
+    # 28 Eki 2026 (BaBa tik 275 A): MaCiT ES8 5 kayit sozluk 22 dalina alindi; Baofeng esigin
+    # ustune cikti (4); sayfa dogumu PARTI 2'de.
+    "Baofeng",
 })
 
 
