@@ -1,5 +1,339 @@
 [
   {
+    "id": "pr1024957-oster-12-yuvali-bicak-organizeri",
+    "kategori": "Ev",
+    "marka": [
+      "Oster"
+    ],
+    "uyum": [
+      {
+        "marka": "Oster"
+      }
+    ],
+    "baslik": "Oster Tıraş Makinesi 12 Yuvalı Bıçak ve Tarak Organizeri",
+    "aciklama": "Oster saç tıraş makinesi bıçaklarını veya tarak uçlarını on iki ayrı yuvada düzenli tutan organizerdir. Kaynağına göre Andis ve Wahl bıçak ve uçları için de kullanılabilir. Bıçaklar ve tarak uçları ürüne dahil değildir.\nYaklaşık dış ölçüler: 130 × 116 × 40 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1024957-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1024957-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1024957-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Ron Williams (remix: mretiennerichard)"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr262680-oster-osterizer-blender-kapagi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Oster"
+    ],
+    "uyum": [
+      {
+        "marka": "Oster"
+      }
+    ],
+    "baslik": "Oster Osterizer Blender Kapağı",
+    "aciklama": "Oster Osterizer blender için hazırlanmış kapaktır. Blender ürüne dahil değildir.\nYaklaşık dış ölçüler: 151 × 145 × 29 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr262680-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr262680-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Tibuck"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "pr670415-oxo-mutfak-ve-ot-makasi-gridfinity-kutusu",
+    "kategori": "Ev",
+    "marka": [
+      "Oxo"
+    ],
+    "uyum": [
+      {
+        "marka": "Oxo"
+      }
+    ],
+    "baslik": "OXO Mutfak ve Ot Makası İçin Gridfinity Kutusu",
+    "aciklama": "OXO mutfak ve ot makasını saklamak için hazırlanmış, Gridfinity ızgara sistemine oturan kutudur. Çalışma masası, çekmece veya raf düzeninizde makasa sabit bir yer ayırmanızı sağlar. Makas ürüne dahil değildir.\nYaklaşık dış ölçüler: 252 × 63 × 42 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr670415-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "BBTheStig (remix: bjw-s)"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr497230-oxo-bulasik-fircasi-standi",
+    "kategori": "Ev",
+    "marka": [
+      "Oxo"
+    ],
+    "uyum": [
+      {
+        "marka": "Oxo"
+      }
+    ],
+    "baslik": "OXO Bulaşık Fırçası Standı",
+    "aciklama": "OXO bulaşık fırçası için hazırlanmış stanttır. Fırçanın tabaklar arasında kaybolmaması ve kullanılmadığı sırada sabunun akmaması amacıyla tasarlanmıştır; iki gözlü lavabolarda kullanıma en uygun olduğu belirtilir. Fırça ürüne dahil değildir.\nYaklaşık dış ölçüler: 70 × 44 × 44 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr497230-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr497230-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr497230-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Owen Grubb (remix: Dwarfalicious)"
+    },
+    "altkategori": "Mutfak"
+  },
+  {
+    "id": "pr522293-bunn-kahve-filtresi-dagitici-kutu",
+    "kategori": "Ev",
+    "marka": [
+      "Bunn"
+    ],
+    "uyum": [
+      {
+        "marka": "Bunn"
+      }
+    ],
+    "baslik": "Bunn Kahve Filtresi Dağıtıcı Kutusu",
+    "aciklama": "Bunn kahve filtrelerini saklamak ve kenarlarından birbirine yapışan filtreleri kolayca ayırmak için hazırlanmış kutu ve kapaktır. Kapaktaki itme parçası filtrenin iç kenarından tutup çıkarmaya da yarar. Filtre kağıdı ürüne dahil değildir.\nYaklaşık dış ölçüler: 274 × 139 × 87 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr522293-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr522293-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Iarann"
+    },
+    "altkategori": "Mutfak"
+  },
+  {
+    "id": "pr274949-gaggia-classic-tamping-istasyonu",
+    "kategori": "Ev",
+    "marka": [
+      "Gaggia"
+    ],
+    "uyum": [
+      {
+        "marka": "Gaggia"
+      }
+    ],
+    "baslik": "Gaggia Classic Portafiltre Tamping İstasyonu",
+    "aciklama": "Gaggia Classic portafiltresini kahve sıkıştırma sırasında yerinde tutan istasyon ve tamper tutucusudur. Kahve çekirdeği şeklindeki delikler tasarımın süsleyici bir parçasıdır. Portafiltre ve tamper ürüne dahil değildir.\nYaklaşık dış ölçüler: 85 × 85 × 65 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr274949-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr274949-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr274949-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "demek"
+    },
+    "altkategori": "Mutfak"
+  },
+  {
+    "id": "pr1069507-gaggia-classic-ventguard",
+    "kategori": "Elektronik",
+    "marka": [
+      "Gaggia"
+    ],
+    "uyum": [
+      {
+        "marka": "Gaggia"
+      }
+    ],
+    "baslik": "Gaggia Classic VentGuard Havalandırma Deliği Kapağı",
+    "aciklama": "Gaggia Classic, Pro, Eco ve Evo gibi modellerde damlama tepsisinin havalandırma deliğini kapatan VentGuard parçasıdır. Normal ve kısa boy olmak üzere iki sürümü, her biri için de oturtmalı ve klipsli seçeneği vardır. Normal boy sürüm, 2018 ve öncesi Classic damlama tepsileriyle uyumlu değildir.\nYaklaşık dış ölçüler: 18 × 14 × 14 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1069507-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1069507-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Loogle"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "pr34336-hario-v60-kagit-filtre-kutusu",
+    "kategori": "Ev",
+    "marka": [
+      "Hario"
+    ],
+    "uyum": [
+      {
+        "marka": "Hario"
+      }
+    ],
+    "baslik": "Hario V60 Kağıt Filtre Saklama ve Dağıtma Kutusu",
+    "aciklama": "Hario V60 kağıt kahve filtrelerini saklamak ve tek tek çekip almak için hazırlanmış kutudur. 02 boy filtreler ile daha küçük 01 boy filtreler için iki ayrı sürümü vardır; 100'lük bir filtre paketinin tamamı sığar. Filtre kağıdı ürüne dahil değildir.\nYaklaşık dış ölçüler: 140 × 140 × 59 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr34336-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr34336-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "SaddamCZ"
+    },
+    "altkategori": "Mutfak"
+  },
+  {
+    "id": "pr37472-hario-v60-02-damlalik-tabani",
+    "kategori": "Ev",
+    "marka": [
+      "Hario"
+    ],
+    "uyum": [
+      {
+        "marka": "Hario"
+      }
+    ],
+    "baslik": "Hario V60 02 Boy Damlalık Tabanı",
+    "aciklama": "Hario V60'ın 2-3 fincanlık 02 boy sürümü için hazırlanmış damlalık tabanıdır; demleme bittikten sonra damlayan kahveyi toplar. Kaynağına göre Aeropress de bu tabana sorunsuz yerleşir. V60 süzücü ve Aeropress ürüne dahil değildir.\nYaklaşık dış ölçüler: 120 × 120 × 20 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr37472-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr37472-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "wit4r7"
+    },
+    "altkategori": "Mutfak"
+  },
+  {
+    "id": "pr394824-wyze-cam-v3-pencere-tutucu",
+    "kategori": "Kamera",
+    "marka": [
+      "Wyze"
+    ],
+    "uyum": [
+      {
+        "marka": "Wyze"
+      }
+    ],
+    "baslik": "Wyze Cam v3 Ters Montaj Pencere Tutucu",
+    "aciklama": "Wyze Cam v3 kamerayı ters çevirerek cama tutturmaya yarayan basit bir tutucudur. Kameranın alt kenarındaki çıkıntıdan kavrayacak şekilde tasarlanmıştır ve cama yapıştırılarak kullanılır. Kamera ürüne dahil değildir.\nYaklaşık dış ölçüler: 90 × 64 × 7 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr394824-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr394824-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr394824-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr394824-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "zuberio"
+    },
+    "altkategori": "Montaj ve Tripod"
+  },
+  {
+    "id": "pr129397-wyze-cam-v3-odak-dugmesi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Wyze"
+    ],
+    "uyum": [
+      {
+        "marka": "Wyze"
+      }
+    ],
+    "baslik": "Wyze Cam V3 Odak Düğmesi",
+    "aciklama": "Wyze Cam V3'ün sabit odaklı merceğine takılarak yakın ve uzak mesafeler için odağı elle ayarlamayı sağlayan küçük bir düğmedir. Kurulum için kameranın açılması ve mercek çevresindeki lastik contanın çıkarılması gerekir; kaynağa göre bu işlem kameranın dış ortam korumasını azaltır. Kamera ürüne dahil değildir.\nYaklaşık dış ölçüler: 30 × 30 × 12 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr129397-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr129397-2.jpg"
+    ],
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr642775-anycubic-kobra-2-pro-yatak-hizalama-kapagi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Anycubic"
+    ],
+    "uyum": [
+      {
+        "marka": "Anycubic"
+      }
+    ],
+    "baslik": "Anycubic Kobra 2 Pro Yatak Hizalama Kapağı",
+    "aciklama": "Anycubic Kobra 2 Pro'nun yatak kablosu konnektörüne klipsle takılan kapaktır; aynı zamanda yatak plakasını hizalamak için kenar görevi görür. Yerine tık sesiyle oturur ve kolayca takılıp çıkarılır. Kaynağına göre Kobra 2 ve Kobra 2 Neo üzerinde de çalışması beklenir.\nYaklaşık dış ölçüler: 71 × 59 × 17 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr642775-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr642775-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr642775-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr642775-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "mrFenyx"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr326944-makita-tracksaw-rayi-dik-gonye",
+    "kategori": "Tamirat",
+    "marka": [
+      "Makita"
+    ],
+    "uyum": [
+      {
+        "marka": "Makita"
+      }
+    ],
+    "baslik": "Makita ve Festool Tracksaw Rayı Dik Gönyesi",
+    "aciklama": "Makita ve Festool tracksaw kılavuz raylarına kırlangıç kuyruğu geçmeyle takılan dik gönyedir; tek parçadır ve hareketli kısmı yoktur. Üç farklı uzun kenar boyunda seçeneği bulunur. Geçme sıkı olduğundan takmadan önce rayda çapak veya çentik olmadığından emin olunmalıdır; ray ürüne dahil değildir.\nYaklaşık dış ölçüler: 200 × 120 × 22 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr326944-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr326944-2.jpg"
+    ]
+  },
+  {
+    "id": "pr608762-makita-makpac-organizer-kutu-seti",
+    "kategori": "Tamirat",
+    "marka": [
+      "Makita"
+    ],
+    "uyum": [
+      {
+        "marka": "Makita"
+      }
+    ],
+    "baslik": "Makita MAKPAC Saklama Organizeri Kutu Seti",
+    "aciklama": "Makita MAKPAC saklama organizerinin gözlerine yerleşen kutu setidir. 1x1'den 5x3'e kadar farklı göz boyutlarında, yarım ve tam yükseklikte seçenekleri vardır; ihtiyacınıza göre kendi düzeninizi oluşturabilirsiniz. Organizer gövdesi ve içine koyacağınız parçalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 250 × 150 × 92 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr608762-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr608762-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr608762-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr608762-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Jeb Lee Tark"
+    }
+  },
+  {
     "id": "th7414187-kuba-scooter-telefon-tutucu-adaptoru",
     "kategori": "Motosiklet",
     "marka": [
