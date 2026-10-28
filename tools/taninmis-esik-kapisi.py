@@ -127,6 +127,12 @@ TABAN = frozenset({
     # PARTI 2'de.
     "Anycubic",
     "Bunn",
+    # 28 Eki 2026 (MaCiT ES15, Atoto pr1313709 haric): 11 kayit dort markayi esigin ustune
+    # cikardi (K1 4); sayfa dogumu PARTI 2'de.
+    "Bezzera",
+    "Polaris",
+    "Velbon",
+    "Zhiyun",
 })
 
 
