@@ -1,5 +1,344 @@
 [
   {
+    "id": "pr610235-bezzera-portafiltre-icin-duvar-askisi",
+    "kategori": "Ev",
+    "marka": [
+      "Bezzera"
+    ],
+    "uyum": [
+      {
+        "marka": "Bezzera"
+      }
+    ],
+    "baslik": "Bezzera Portafiltre İçin 45° Açılı Duvar Askısı",
+    "aciklama": "Kolu 45° açıyla duran portafiltreyi (örneğin Bezzera) duvara asmak için hazırlanmış askıdır. Kaynağında, portafiltre tamamen kurumadan asılırsa askıda su kalıntısı birikebileceği belirtilir. Portafiltre ürüne dahil değildir.\nYaklaşık dış ölçüler: 90 × 58 × 40 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr610235-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr610235-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "MKprint"
+    },
+    "altkategori": "Duvar ve Askı"
+  },
+  {
+    "id": "pr1815621-bezzera-bz10-bosaltma-sicrama-koruyucusu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Bezzera"
+    ],
+    "uyum": [
+      {
+        "marka": "Bezzera"
+      }
+    ],
+    "baslik": "Bezzera BZ10 Boşaltma Sıçrama Koruyucusu",
+    "aciklama": "Bezzera BZ10 espresso makinesinde çekim sonrası boşaltma sırasında damlama tepsisine oluşan sıçramayı gidermek amacıyla tasarlanmış küçük bir parçadır. Makine ürüne dahil değildir.\nYaklaşık dış ölçüler: 42 × 24 × 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1815621-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1815621-2.jpg"
+    ],
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "th6132347-atoto-hd02lr-geri-gorus-kamerasi-braketi",
+    "kategori": "Kamera",
+    "marka": [
+      "ATOTO"
+    ],
+    "uyum": [
+      {
+        "marka": "ATOTO"
+      }
+    ],
+    "baslik": "ATOTO HD02LR Geri Görüş Kamerası Braketi (RAV4 XA30)",
+    "aciklama": "ATOTO HD02LR geri görüş kamerası için hazırlanmış braket paketidir; RAV4 (2006-2011, XA30) için tasarlanmış sürümün yanında herhangi bir düz yüzeye takılabilen genel bir sürüm de içerir. Kaynağında kamerayla birlikte gelen metal braketin yerine kullanılmak üzere hazırlandığı belirtilir. Kamera ürüne dahil değildir.\nYaklaşık dış ölçüler: 52 × 30 × 26 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6132347-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6132347-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "thedsider"
+    },
+    "altkategori": "Araç Kamera Montajı"
+  },
+  {
+    "id": "pr12590-velbon-qb-4w-plakasi-icin-telefon-tripod-tutucu",
+    "kategori": "Kamera",
+    "marka": [
+      "Velbon"
+    ],
+    "uyum": [
+      {
+        "marka": "Velbon"
+      }
+    ],
+    "baslik": "Velbon QB-4W Hızlı Bağlantı Plakası İçin Telefon Tripod Tutucu",
+    "aciklama": "Velbon QB-4W hızlı bağlantı plakasına takılan, cep telefonunu tripoda bağlamak için hazırlanmış tutucudur. Taban, üst tutucu ve vida parçalarından oluşur. Kaynağında Google Pixel 2 için hazırlandığı belirtilir; telefon ve plaka ürüne dahil değildir.\nYaklaşık dış ölçüler: 61 × 19 × 18 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr12590-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr12590-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "firebelcher (remix: thjelmfelt, MattRHale)"
+    },
+    "altkategori": "Montaj ve Tripod"
+  },
+  {
+    "id": "pr324082-velbon-videomate-538-ph-358-montaj-plakasi",
+    "kategori": "Kamera",
+    "marka": [
+      "Velbon"
+    ],
+    "uyum": [
+      {
+        "marka": "Velbon"
+      }
+    ],
+    "baslik": "Velbon Videomate 538 PH-358 Tripod Kafası Montaj Plakası",
+    "aciklama": "Velbon Videomate 538 tripodunun PH-358 kafasındaki kenetleme plakasının yerine kullanılmak üzere hazırlanmış montaj plakasıdır. Deliksiz, iki delikli ve temel olmak üzere birkaç sürüm içerir; deliksiz sürüm ihtiyacınıza göre düzenlemeniz için eklenmiştir. Tripod kafasının kendisi ürüne dahil değildir.\nYaklaşık dış ölçüler: 90 × 58 × 50 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr324082-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr324082-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr324082-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr324082-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Valentino Hesse"
+    },
+    "altkategori": "Montaj ve Tripod"
+  },
+  {
+    "id": "pr205494-yaesu-ft-100-ft-7100-mikrofon-yan-montaj-plakasi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Yaesu"
+    ],
+    "uyum": [
+      {
+        "marka": "Yaesu"
+      }
+    ],
+    "baslik": "Yaesu FT-100 ve FT-7100 Telsizler İçin Mikrofon Yan Montaj Plakası",
+    "aciklama": "Yaesu telsizlerin yan tarafındaki braket vidalarına bağlanan, üzerinde mikrofon yuvası bulunan ince bir plakadır. Üst üste dizilen telsizlerde mikrofonların hangi cihaza ait olduğunu ayırmak ve kabloları toparlamak için hazırlanmıştır. Kaynağında FT-100 ve FT-7100 telsizler ile MH42B mikrofon için hazırlandığı belirtilir; telsiz ve mikrofon ürüne dahil değildir.\nYaklaşık dış ölçüler: 65 × 15 × 7 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr205494-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr205494-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Stegault"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr880288-zhiyun-weebill-3s-cold-shoe-adaptoru",
+    "kategori": "Kamera",
+    "marka": [
+      "Zhiyun"
+    ],
+    "uyum": [
+      {
+        "marka": "Zhiyun"
+      }
+    ],
+    "baslik": "Zhiyun Weebill 3S Cold Shoe Adaptörü",
+    "aciklama": "Zhiyun Weebill 3S gimbalin V ray bağlantısına (dikey kamera montajı için) takılan, yan tarafta cold shoe yuvası sağlayan adaptördür. Esas olarak mikrofon takmak için tasarlanmıştır. Gimbal ve mikrofon ürüne dahil değildir.\nYaklaşık dış ölçüler: 24 × 18 × 17 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr880288-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr880288-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "NotJohnAfterAll"
+    },
+    "altkategori": "Montaj ve Tripod"
+  },
+  {
+    "id": "pr94994-zhiyun-crane-v2-hotshoe-monitor-kiskaci",
+    "kategori": "Kamera",
+    "marka": [
+      "Zhiyun"
+    ],
+    "uyum": [
+      {
+        "marka": "Zhiyun"
+      }
+    ],
+    "baslik": "Zhiyun Crane V2 Hotshoe Monitör Kıskacı",
+    "aciklama": "Zhiyun Crane V2 gimbal için hazırlanmış, hotshoe üzerinden monitör takmayı amaçlayan üç parçalı kıskaç sistemidir. Parçalar gimbal çantasının içine sığacak kadar küçük olacak şekilde ayrılabilir. İki adet 5M cıvata ve iki adet kapaklı somun gerekir; bağlantı elemanları, gimbal ve monitör ürüne dahil değildir.\nYaklaşık dış ölçüler: 83 × 28 × 17 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr94994-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr94994-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "SavidDanders"
+    },
+    "altkategori": "Montaj ve Tripod"
+  },
+  {
+    "id": "pr1228368-tchibo-qbo-espresso-fincani-yukseltici",
+    "kategori": "Elektronik",
+    "marka": [
+      "Tchibo"
+    ],
+    "uyum": [
+      {
+        "marka": "Tchibo"
+      }
+    ],
+    "baslik": "Tchibo Qbo Kapsül Kahve Makinesi İçin Espresso Fincanı Yükseltici",
+    "aciklama": "Tchibo Qbo kapsül kahve makinesinde espresso fincanını makinenin çıkışına yaklaştırmak için hazırlanmış yükselticidir. Kahve dökülürken oluşan sıçramayı önlemek amacıyla tasarlanmıştır ve tipik bir espresso fincanı esas alınarak ölçülendirilmiştir. Kaynağında yüksekliği fazla bulanlar için alt kısmın kesilebileceği belirtilir.\nYaklaşık dış ölçüler: 85 × 82 × 29 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1228368-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1228368-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1228368-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "chrsdmm"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "pr277722-polaris-rzr-arazi-araci-anahtar-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Polaris"
+    ],
+    "uyum": [
+      {
+        "marka": "Polaris"
+      }
+    ],
+    "baslik": "Polaris RZR ve Arazi Araçları İçin Anahtar Kapağı",
+    "aciklama": "Polaris RZR ve benzer arazi araçlarının anahtarı için hazırlanmış anahtar kapağıdır. Alt kenarı uzatılmış, tutuş kısımları ise dışarı doğru biraz daha taşan bir yapıya sahiptir. Anahtar ürüne dahil değildir.\nYaklaşık dış ölçüler: 35 × 35 × 26 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr277722-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr277722-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr277722-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "EMAXX620 (remix: bonde456)"
+    }
+  },
+  {
+    "id": "pr923611-polaris-sportsman-atv-kargo-kutusu-kapak-mandali",
+    "kategori": "Otomobil",
+    "marka": [
+      "Polaris"
+    ],
+    "uyum": [
+      {
+        "marka": "Polaris"
+      }
+    ],
+    "baslik": "Polaris Sportsman ATV Kargo Kutusu Kapak Mandalı",
+    "aciklama": "Polaris Sportsman ATV'nin kargo kutusu kapağını tutan, mevcut lastik mandalın yerine kullanılmak üzere hazırlanmış mandaldır. Kaynağına göre kutudaki metal ve plastik bağlantı parçalarının oturması için deliklerin hafifçe genişletilmesi gerekebilir. Bu bağlantı parçaları ürüne dahil değildir.\nYaklaşık dış ölçüler: 99 × 28 × 19 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr923611-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr923611-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr923611-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr923611-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "kjoh"
+    },
+    "altkategori": "Bagaj ve Taşıma"
+  },
+  {
+    "id": "th3145976-anycubic-i3-mega-yatak-ayar-dugmesi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Anycubic"
+    ],
+    "uyum": [
+      {
+        "marka": "Anycubic"
+      }
+    ],
+    "baslik": "Anycubic i3 Mega Lastik Desenli Yatak Ayar Düğmesi",
+    "aciklama": "Anycubic i3 Mega yazıcının yatak ayar vidalarındaki mevcut düğmelerin üzerine itilerek takılan, büyük ve lastik desenli bir ayar düğmesidir. Yüzeydeki desen hem görünüm içindir hem de yatağın yukarı doğru hareket ettiği yönü göstermek için tasarlanmıştır. Kaynağına göre düğmelerin üzerine sıkı oturur.\nYaklaşık dış ölçüler: 48 × 48 × 7 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3145976-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3145976-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3145976-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3145976-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY-SA",
+      "tasarimci": "MKingCharles (remix: TechDayEveryDay)"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "th6579013-vw-t4-valeo-far-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Valeo"
+    ],
+    "uyum": [
+      {
+        "marka": "Valeo"
+      }
+    ],
+    "baslik": "VW T4 Bulli Valeo Far Kapağı",
+    "aciklama": "Uzun dingil mesafeli VW T4 (Bulli) araçlardaki Valeo farlar için hazırlanmış yuvarlak bir kapaktır. Kaynağında tasarımın T4 farı için olduğu belirtiliyor; başka bir araç veya far modeli için uyumluluk bilgisi verilmiyor.\nYaklaşık dış ölçüler: 126 × 126 × 51 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6579013-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY-SA",
+      "tasarimci": "Catweazle300"
+    },
+    "altkategori": "Aydınlatma"
+  },
+  {
+    "id": "th2758929-bunn-kahve-kabi-damlama-tepsisi",
+    "kategori": "Ev",
+    "marka": [
+      "Bunn"
+    ],
+    "uyum": [
+      {
+        "marka": "Bunn"
+      }
+    ],
+    "baslik": "Bunn Kahve Kabı Damlama Tepsisi",
+    "aciklama": "Bunn kahve kaplarının altına yerleştirilerek damlayan kahveyi toplayan yuvarlak bir tepsidir. Kaynağında, kabın çapına göre ölçeğinin büyütülüp küçültülebileceği söyleniyor.\nYaklaşık dış ölçüler: 155 × 112 × 30 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2758929-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2758929-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2758929-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "icefreez"
+    },
+    "altkategori": "Mutfak"
+  },
+  {
     "id": "pr1024957-oster-12-yuvali-bicak-organizeri",
     "kategori": "Ev",
     "marka": [
