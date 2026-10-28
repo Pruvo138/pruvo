@@ -27,6 +27,8 @@ silme kapisi KIRMIZI (fail-closed: bilinmeyen alan govde suphesidir).
 Tuketiciler: tools/panel-uygulayici.py · tools/duzelt.py · tools/urun-silme-kapisi.py ·
 tools/urun-geri-yukle.py · tools/urun-arsiv-govdesiz.py (bir kerelik indirme + dogrulama).
 """
+import copy
+import functools
 import hashlib
 import json
 import os
@@ -132,11 +134,31 @@ def _json_at(kok, rev, yol):
         raise ArsivHatasi("%s:%s BOZUK JSON (%s)" % (rev, yol, e))
 
 
-def _katalog_kaydi(kok, rev, uid):
+# Yalniz DEGISMEZ rev'ler (40 hex commit, istege bagli ^ ekiyle) onbellege girer; HEAD/dal
+# adi gibi oynak rev her cagrida git'ten yeniden okunur.
+_SABIT_REV = re.compile(r"^[0-9a-f]{40}\^?$")
+
+
+def _katalog_indeksi_kur(kok, rev):
+    """rev'deki katalog -> {id: ilk kayit}; dosya o rev'de yoksa {}."""
+    idx = {}
     for k in _json_at(kok, rev, KATALOG_YOLU) or []:
-        if isinstance(k, dict) and k.get("id") == uid:
-            return k
-    return None
+        if isinstance(k, dict) and k.get("id") is not None and k["id"] not in idx:
+            idx[k["id"]] = k
+    return idx
+
+
+# 28 Eki 2026: `--dogrula` 650 giris icin katalogu ~1300 kez ayristiriyordu (girisler 31
+# commit'te, ardisik) -> CI'da V27 900 sn tavanini asti (Pages 40759274361 serit-a3).
+# Son 4 rev bellekte tutulur; ardisik girisler ayni commit^/commit ciftini paylasir.
+_katalog_indeksi_sabit = functools.lru_cache(maxsize=4)(_katalog_indeksi_kur)
+
+
+def _katalog_kaydi(kok, rev, uid):
+    if _SABIT_REV.match(rev):
+        k = _katalog_indeksi_sabit(kok, rev).get(uid)
+        return copy.deepcopy(k) if k is not None else None
+    return _katalog_indeksi_kur(kok, rev).get(uid)
 
 
 def _ayni_giris(a, b):
