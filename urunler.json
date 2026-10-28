@@ -1,5 +1,79 @@
 [
   {
+    "id": "th3145976-anycubic-i3-mega-yatak-ayar-dugmesi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Anycubic"
+    ],
+    "uyum": [
+      {
+        "marka": "Anycubic"
+      }
+    ],
+    "baslik": "Anycubic i3 Mega Lastik Desenli Yatak Ayar Düğmesi",
+    "aciklama": "Anycubic i3 Mega yazıcının yatak ayar vidalarındaki mevcut düğmelerin üzerine itilerek takılan, büyük ve lastik desenli bir ayar düğmesidir. Yüzeydeki desen hem görünüm içindir hem de yatağın yukarı doğru hareket ettiği yönü göstermek için tasarlanmıştır. Kaynağına göre düğmelerin üzerine sıkı oturur.\nYaklaşık dış ölçüler: 48 × 48 × 7 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3145976-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3145976-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3145976-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3145976-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY-SA",
+      "tasarimci": "MKingCharles (remix: TechDayEveryDay)"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "th6579013-vw-t4-valeo-far-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Valeo"
+    ],
+    "uyum": [
+      {
+        "marka": "Valeo"
+      }
+    ],
+    "baslik": "VW T4 Bulli Valeo Far Kapağı",
+    "aciklama": "Uzun dingil mesafeli VW T4 (Bulli) araçlardaki Valeo farlar için hazırlanmış yuvarlak bir kapaktır. Kaynağında tasarımın T4 farı için olduğu belirtiliyor; başka bir araç veya far modeli için uyumluluk bilgisi verilmiyor.\nYaklaşık dış ölçüler: 126 × 126 × 51 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6579013-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY-SA",
+      "tasarimci": "Catweazle300"
+    },
+    "altkategori": "Aydınlatma"
+  },
+  {
+    "id": "th2758929-bunn-kahve-kabi-damlama-tepsisi",
+    "kategori": "Ev",
+    "marka": [
+      "Bunn"
+    ],
+    "uyum": [
+      {
+        "marka": "Bunn"
+      }
+    ],
+    "baslik": "Bunn Kahve Kabı Damlama Tepsisi",
+    "aciklama": "Bunn kahve kaplarının altına yerleştirilerek damlayan kahveyi toplayan yuvarlak bir tepsidir. Kaynağında, kabın çapına göre ölçeğinin büyütülüp küçültülebileceği söyleniyor.\nYaklaşık dış ölçüler: 155 × 112 × 30 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2758929-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2758929-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2758929-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "icefreez"
+    },
+    "altkategori": "Mutfak"
+  },
+  {
     "id": "pr1024957-oster-12-yuvali-bicak-organizeri",
     "kategori": "Ev",
     "marka": [
