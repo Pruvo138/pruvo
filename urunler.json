@@ -1,5 +1,220 @@
 [
   {
+    "id": "th4924518-yaesu-vx-3r-arac-gunesligi-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Yaesu"
+    ],
+    "uyum": [
+      {
+        "marka": "Yaesu"
+      }
+    ],
+    "baslik": "Yaesu VX-3R Telsiz İçin Araç Güneşlik Klipsi",
+    "aciklama": "Yaesu VX-3R amatör telsizini araç güneşliğine takmak için hazırlanmış bir klips gövdesidir. Kaynağında Baofeng UV-3R için de uygun olabileceği belirtilir. Garaj kapısı kumandalarında bulunan düz yaylı çelik tipte ayrıca bir metal yay gerekir; metal yay ve telsiz ürüne dahil değildir.\nYaklaşık dış ölçüler: 86 × 53 × 30 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4924518-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4924518-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4924518-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4924518-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "jbeahan"
+    },
+    "altkategori": "Tavan ve Güneşlik"
+  },
+  {
+    "id": "th4118033-yaesu-ft-817-ft-818-cerceve-braketi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Yaesu"
+    ],
+    "uyum": [
+      {
+        "marka": "Yaesu"
+      }
+    ],
+    "baslik": "Yaesu FT-817 ve FT-818 Telsiz Çerçeve Braketi",
+    "aciklama": "Yaesu FT-817 ve FT-818 telsizler için hazırlanmış, ayaklı yapıda bir çerçeve braketidir. Kaynağında telsiz için bir koruma parçası olarak tanıtılır; telsiz ürüne dahil değildir.\nYaklaşık dış ölçüler: 205 × 51 × 15 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4118033-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4118033-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "coxx06"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "th291895-tchibo-cafissimo-kapsul-tutucu",
+    "kategori": "Ev",
+    "marka": [
+      "Tchibo"
+    ],
+    "uyum": [
+      {
+        "marka": "Tchibo"
+      }
+    ],
+    "baslik": "Tchibo Cafissimo Kapsül Tutucu",
+    "aciklama": "Tchibo Cafissimo kahve kapsüllerini bir arada tutmak için hazırlanmış bir kapsül tutucudur. Kaynağında dört kapsül aldığı, hafifçe dışarı sarkıtılırsa beşinci kapsülün de sığdığı ve kapsüllerin üst taraftan alındığı belirtilir.\nYaklaşık dış ölçüler: 190 × 48 × 4 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th291895-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY-SA",
+      "tasarimci": "sutozs (remix: davidmpye, HarlanDMii)"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "th5340856-tchibo-esperto-caffe-yan-kapak",
+    "kategori": "Elektronik",
+    "marka": [
+      "Tchibo"
+    ],
+    "uyum": [
+      {
+        "marka": "Tchibo"
+      }
+    ],
+    "baslik": "Tchibo Esperto Caffe Kahve Makinesi İçin Havalandırmalı Yan Kapak",
+    "aciklama": "Tchibo Esperto Caffe kahve makinesinin yan kapağının yerine takılan, daha fazla hava geçişine izin veren bir kapaktır. Kaynağında makinenin içindeki nem birikimini azaltmak amacıyla tasarlandığı belirtilir. Montaj için bir mıknatıs ile iki adet M4 vida gerekir; bunlar ürüne dahil değildir.\nYaklaşık dış ölçüler: 146 × 118 × 15 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5340856-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5340856-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY-SA",
+      "tasarimci": "bastl90"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "pr1519629-primula-pr12343-sut-kopurtucu-baglantisi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Primula"
+    ],
+    "uyum": [
+      {
+        "marka": "Primula"
+      }
+    ],
+    "baslik": "Primula PR12343 Süt Köpürtücü İçin Başlık Bağlantı Parçası",
+    "aciklama": "Primula PR12343 model süt köpürtücü ve çırpıcının köpürtücü başlığı için hazırlanmış bir bağlantı (konektör) parçasıdır. Kaynağında aynı model cihaz için tasarlandığı belirtilir; başka bir model için uyumluluk bilgisi verilmez.\nYaklaşık dış ölçüler: 21 × 11 × 11 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1519629-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1519629-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1519629-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "whathe3d"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "pr1594843-primula-moka-pot-huni-ve-tutucu",
+    "kategori": "Ev",
+    "marka": [
+      "Primula"
+    ],
+    "uyum": [
+      {
+        "marka": "Primula"
+      }
+    ],
+    "baslik": "Primula 6 Bardaklık Çelik Moka Pot İçin Huni ve Tutucu",
+    "aciklama": "Primula 6 bardaklık paslanmaz çelik moka potunun kahve sepeti için ölçülendirilmiş huni ve tutucu parçalarıdır. Kaynağında, 3 bardaklık bir moka pot tasarımının bu sepete göre yeniden ölçülendirilip denendiği belirtilir; moka pot ürüne dahil değildir.\nYaklaşık dış ölçüler: 154 × 79 × 45 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1594843-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "synth (remix: Kartikey Anand)"
+    },
+    "altkategori": "Mutfak"
+  },
+  {
+    "id": "th6146762-hobie-outback-konsol-duzenleyici",
+    "kategori": "Marin",
+    "marka": [
+      "Hobie"
+    ],
+    "uyum": [
+      {
+        "marka": "Hobie"
+      }
+    ],
+    "baslik": "Hobie Outback Orta Konsol Düzenleyici Seti",
+    "aciklama": "2019 ve sonrası Hobie Outback modellerindeki dikdörtgen orta saklama konsolu için hazırlanmış bölme ve ayraç setidir. Kaynağında, ayraçlardaki yuvaların crankbait tipi suni yemlerin asılmasına imkân verdiği ve yemlerin birbirine dolaşmasını önlemeyi amaçladığı belirtilir.\nYaklaşık dış ölçüler: 279 × 114 × 5 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6146762-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6146762-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "sobaski"
+    },
+    "altkategori": "Kano ve Kayak"
+  },
+  {
+    "id": "pr1273610-dellorto-frd-34b-toz-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Dellorto"
+    ],
+    "uyum": [
+      {
+        "marka": "Dellorto"
+      }
+    ],
+    "baslik": "Dellorto FRD 34B Karbüratör Toz Kapağı",
+    "aciklama": "Dellorto FRD 34B karbüratörlerin emiş ağzına takılan bir toz kapağıdır. Kaynağında, yeni elden geçirilmiş karbüratörlerin motor tamamlanana kadar beklerken toz toplamasını önlemek için tasarlandığı belirtilir; karbüratör ürüne dahil değildir.\nYaklaşık dış ölçüler: 56 × 55 × 5 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1273610-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1273610-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1273610-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1273610-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "M (remix: TTB_Studios)"
+    },
+    "altkategori": "Motor Bölümü"
+  },
+  {
+    "id": "pr1715636-bellman-cx-25p-delikli-tamper",
+    "kategori": "Ev",
+    "marka": [
+      "Bellman"
+    ],
+    "uyum": [
+      {
+        "marka": "Bellman"
+      }
+    ],
+    "baslik": "Bellman CX-25P Espresso Makinesi İçin Delikli Tamper",
+    "aciklama": "Bellman CX-25P ocak üstü espresso makinesinin alışılmadık yapıdaki sepetine uygun, ortasında delik bulunan bir tamper (kahve bastırıcı) parçasıdır. Kaynağında sepetin ortası delikli bir tamper gerektirdiği belirtilir; makine ve sepet ürüne dahil değildir.\nYaklaşık dış ölçüler: 70 × 70 × 44 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1715636-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1715636-2.jpg"
+    ],
+    "altkategori": "Mutfak"
+  },
+  {
     "id": "pr610235-bezzera-portafiltre-icin-duvar-askisi",
     "kategori": "Ev",
     "marka": [
