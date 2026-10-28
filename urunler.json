@@ -1,5 +1,51 @@
 [
   {
+    "id": "pr481490-wpl-c24-b16-rc-aks-ve-diferansiyel-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "WPL"
+    ],
+    "uyum": [
+      {
+        "marka": "WPL"
+      }
+    ],
+    "baslik": "WPL C24 ve B16 RC Araçlar İçin Aks ve Diferansiyel Kapağı Parçaları",
+    "aciklama": "WPL C24, B16 ve benzeri RC araçlar için hazırlanmış aks parçalarıdır; yarım aks, diferansiyel girişi ve üç farklı diferansiyel kapağı seçeneği bulunur. Kaynağında C24 ve B16 modelleri için hazırlandığı, büyük olasılıkla diğer bazı WPL araçlarında da kullanılabileceği ve rulman, mil ve dişli gibi metal parçaların ayrıca gerektiği belirtilir. Metal parçalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 23 × 23 × 11 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr481490-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr481490-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr481490-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr481490-4.jpg"
+    ]
+  },
+  {
+    "id": "pr1547352-bella-griddle-arka-ayak-yukselticisi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Bella"
+    ],
+    "uyum": [
+      {
+        "marka": "Bella"
+      }
+    ],
+    "baslik": "Bella Griddle Izgara Arka Ayak Yükselticisi (TXG-621a ve Benzeri Modeller)",
+    "aciklama": "Bella marka griddle (düz ızgara) modeli TXG-621a ve benzeri modellerin arka iki ayağının üzerine yerleştirilen, ızgaranın arka tarafını yükselten seviyeleme ayağıdır. Kaynağında, arka ayakları ön ayaklardan kısa olan modellerde yüzeyi neredeyse düz hale getirmek için tasarlandığı belirtilir. Izgara ürüne dahil değildir.\nYaklaşık dış ölçüler: 43 × 18 × 12 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1547352-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1547352-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1547352-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "O"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
     "id": "th3113692-velocitek-speedpuck-ufo-foil-kolu-braketi",
     "kategori": "Marin",
     "marka": [
