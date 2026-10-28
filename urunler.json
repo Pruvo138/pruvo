@@ -1,5 +1,51 @@
 [
   {
+    "id": "th3113692-velocitek-speedpuck-ufo-foil-kolu-braketi",
+    "kategori": "Marin",
+    "marka": [
+      "Velocitek"
+    ],
+    "uyum": [
+      {
+        "marka": "Velocitek"
+      }
+    ],
+    "baslik": "Velocitek SpeedPuck için UFO Yelkenli Hidrofoil Kolu Braketi",
+    "aciklama": "UFO yelkenlinin ön hidrofoil koluna Velocitek SpeedPuck ya da benzeri bir cihazı yerleştirmek için hazırlanmış braket. Kaynağında braketin sekiz inçlik kablo bağlarıyla koluna bağlandığı, cihaz yuvasının ise çift taraflı kavrama bandıyla braketle birleştirilerek cihazın başka teknelere taşınabildiği belirtilir. Cihaz ve montaj malzemeleri dahil değildir.\nYaklaşık dış ölçüler: 156 × 60 × 45 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3113692-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3113692-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3113692-3.jpg"
+    ],
+    "altkategori": "Montaj Ekipmanları"
+  },
+  {
+    "id": "th7345885-dellorto-karburator-jigle-saklama-kutusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Dellorto"
+    ],
+    "uyum": [
+      {
+        "marka": "Dellorto"
+      }
+    ],
+    "baslik": "Dellorto Karbüratör Jigle ve Küçük Parça Saklama Kutusu",
+    "aciklama": "Küçük motosiklet karbüratörlerinin jigle ve benzeri küçük parçalarını saklamak ve düzenlemek için hazırlanmış, menteşeli ve mandallı kapaklı kutudur. Kaynağında isteğe bağlı bir conta eklenebildiği belirtilir. Karbüratörün kendisi ya da karbüratöre takılan bir parça değil, yalnızca saklama kutusudur.\nYaklaşık dış ölçüler: 217 × 216 × 45 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7345885-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7345885-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7345885-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7345885-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY-SA",
+      "tasarimci": "Cascao"
+    }
+  },
+  {
     "id": "th4924518-yaesu-vx-3r-arac-gunesligi-klipsi",
     "kategori": "Otomobil",
     "marka": [
