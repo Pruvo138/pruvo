@@ -112,6 +112,10 @@ TABAN = frozenset({
     "Cuisinart",
     "OutIn",
     "Tekonsha",
+    # 28 Eki 2026 (MaCiT ES12, ayni zincir): Scania 1 + Kuba 1 kayit iki markayi esigin ustune
+    # cikardi (K1 2); sayfa dogumu PARTI 2'de.
+    "Kuba",
+    "Scania",
 })
 
 
