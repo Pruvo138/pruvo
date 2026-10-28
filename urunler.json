@@ -1,5 +1,214 @@
 [
   {
+    "id": "pr324460-sony-wh-1000xm3-xm4-kulaklik-standi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Sony"
+    ],
+    "uyum": [
+      {
+        "marka": "Sony"
+      }
+    ],
+    "baslik": "Sony WH-1000XM3 ve WH-1000XM4 Kulaklık Standı (Alçak Profilli)",
+    "aciklama": "Sony WH-1000XM3 ve WH-1000XM4 kulaklıklar için hazırlanmış, küçük taban alanlı ve alçak profilli bir kulaklık standıdır. Kaynağında standın içine USB-C kablosu, anahtar, direnç ve LED ile kurulan bir şarj düzeninin yerleştirildiği, taban plakasının isteğe bağlı olduğu ve masaya ya da rafa vidayla sabitlenebildiği belirtilir; kablo ve elektronik parçalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 110 × 100 × 44 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr324460-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr324460-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Benji Makes"
+    }
+  },
+  {
+    "id": "pr242053-panasonic-hcv-777-kamkorder-kafesi",
+    "kategori": "Kamera",
+    "marka": [
+      "Panasonic"
+    ],
+    "uyum": [
+      {
+        "marka": "Panasonic"
+      }
+    ],
+    "baslik": "Panasonic HCV-777 ve HCV-757 Kamkorder Kafesi (Çoklu Aksesuar Bağlantılı)",
+    "aciklama": "Panasonic HCV-757 ve HCV-777 kamkorderlere özel, gövdeye yakın ölçülerde hazırlanmış bir kafestir; mikrofon, verici, ışık ve ekran gibi aksesuarlar için 1/4 inç UNC dişli bağlantı noktaları ve iki flaş ayağı yuvası bulunur. Kaynağında ekran, hafıza kartı, pil, portlar ve düğmelere erişimin korunduğu; isteğe bağlı kablo kolu, ön tutamak adaptörü ve NATO rayı parçalarının bulunduğu belirtilir. Isıyla yerleştirilen dişli ara parçalar ve vidalar ayrıca gerekir, ürüne dahil değildir.\nYaklaşık dış ölçüler: 162 × 45 × 20 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr242053-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr242053-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Matzetas"
+    },
+    "altkategori": "Gövde ve Kafes"
+  },
+  {
+    "id": "pr123825-olympus-om-d-acilir-flas-difuzoru",
+    "kategori": "Kamera",
+    "marka": [
+      "Olympus"
+    ],
+    "uyum": [
+      {
+        "marka": "Olympus"
+      }
+    ],
+    "baslik": "Olympus OM-D Açılır Flaş Difüzörü (Flaş Ayağına Kayarak Takılır)",
+    "aciklama": "Olympus OM-D fotoğraf makinelerinin yerleşik açılır flaşı için hazırlanmış bir difüzördür; flaş ayağına kaydırılarak takılır ve flaş açıkken ya da kapalıyken takılıp çıkarılabilir. Kaynağında OM-D E-M10 II üzerinde denendiği, diğer OM-D modellerine de uyabileceği belirtilir.\nYaklaşık dış ölçüler: 54 × 44 × 40 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr123825-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr123825-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "CyberDong"
+    },
+    "altkategori": "Flaş ve Işık"
+  },
+  {
+    "id": "pr258344-olympus-trip-optikli-harici-vizor",
+    "kategori": "Kamera",
+    "marka": [
+      "Olympus"
+    ],
+    "uyum": [
+      {
+        "marka": "Olympus"
+      }
+    ],
+    "baslik": "Olympus Trip Optikli 28 Milimetrelik Harici Vizör (Flaş Ayağı Tabanlı)",
+    "aciklama": "Tam kare gövdede 28 milimetre, APS-C gövdede yaklaşık 18 milimetre görüş açısına karşılık gelen harici vizördür; flaş ayağına oturan bir tabanı vardır. Kaynağında vizör optiğinin Olympus Trip 50/51, 505 ve 600 modellerinden çıkarılan parçalardan alındığı, optiğin yerine oturması için bazı yan parçaların kesilip kırılması gerektiği ve ön kapak ile taban parçasının yapıştırıldığı belirtilir; optik ürüne dahil değildir.\nYaklaşık dış ölçüler: 30 × 30 × 30 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr258344-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr258344-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "rodsgear"
+    }
+  },
+  {
+    "id": "pr554522-leica-q3-tutamak-kapagi",
+    "kategori": "Kamera",
+    "marka": [
+      "Leica"
+    ],
+    "uyum": [
+      {
+        "marka": "Leica"
+      }
+    ],
+    "baslik": "Leica Q3 Tutamak Kapağı (Pil, Kablo ve Kart Kapağı Erişimli)",
+    "aciklama": "Leica Q3 gövdesine takılan, kameraya tutamak kazandıran bir kapaktır. Kaynağında pil, kablo kapağı ve hafıza kartı kapağına erişimin korunduğu belirtilir. Sabitleme için kaynağında küçük bir altıgen başlı vida ya da kısa bir tripod başparmak vidası kullanıldığı belirtilir; vida ürüne dahil değildir.\nYaklaşık dış ölçüler: 134 × 89 × 49 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr554522-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr554522-2.jpg"
+    ],
+    "altkategori": "Gövde ve Kafes"
+  },
+  {
+    "id": "pr227432-gopro-hero-12-11-10-9-lens-kapagi",
+    "kategori": "Kamera",
+    "marka": [
+      "GoPro"
+    ],
+    "uyum": [
+      {
+        "marka": "GoPro"
+      }
+    ],
+    "baslik": "GoPro Hero 12, 11, 10, 9 ve Hero 11 Mini Lens Kapağı",
+    "aciklama": "GoPro Hero 12, Hero 11, Hero 10 ve Hero 9 ile Hero 11 Mini kameralar için hazırlanmış lens kapağıdır. Kaynağında kapak ile lens arasında bir boşluk bırakıldığı belirtilir.\nYaklaşık dış ölçüler: 35 × 35 × 10 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr227432-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr227432-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Reallyrapid"
+    },
+    "altkategori": "Lens Kapakları"
+  },
+  {
+    "id": "pr91017-garmin-approach-r10-golf-stand",
+    "kategori": "Elektronik",
+    "marka": [
+      "Garmin"
+    ],
+    "uyum": [
+      {
+        "marka": "Garmin"
+      }
+    ],
+    "baslik": "Garmin Approach R10 Golf Atış İzleme Cihazı Standı",
+    "aciklama": "Garmin Approach R10 golf atış izleme cihazı için hizalama ve seviyeleme yardımcısı olarak hazırlanmış stand parçasıdır. Taban ile seviye ayarı için üç ayar vidasından oluşur; tabanın ortasındaki yuva küçük bir su terazisi, ayrı bir delik ise çeyrek inçlik bir ahşap hizalama çubuğu için hazırlanmıştır. Su terazisi ve çubuk ürüne dahil değildir.\nYaklaşık dış ölçüler: 62 × 30 × 30 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr91017-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr91017-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "mcfada"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr146387-garmin-gps-bisiklet-stem-montaji",
+    "kategori": "Bisiklet",
+    "marka": [
+      "Garmin"
+    ],
+    "uyum": [
+      {
+        "marka": "Garmin"
+      }
+    ],
+    "baslik": "Garmin GPS Bisiklet Stem Montajı",
+    "aciklama": "Garmin GPS cihazını bisikletin stem (gidon potu) bölgesine bağlamak için hazırlanmış montaj parçasıdır. Kaynağında parçanın bir Garmin ara aparatıyla birlikte gösterildiği ve vidaların parçaya kendiliğinden diş açarak girdiği, istenirse arkada somunlu daha uzun vidaların da kullanılabileceği belirtilir. Vidalar, ara aparat ve GPS cihazı ürüne dahil değildir.\nYaklaşık dış ölçüler: 86 × 38 × 9 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr146387-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr146387-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "jerzone"
+    },
+    "altkategori": "Gidon ve Kokpit"
+  },
+  {
+    "id": "pr610471-fujifilm-x-t-serisi-vizor-gozlugu",
+    "kategori": "Kamera",
+    "marka": [
+      "Fujifilm"
+    ],
+    "uyum": [
+      {
+        "marka": "Fujifilm"
+      }
+    ],
+    "baslik": "Fujifilm X-T Serisi Vizör Gözlüğü",
+    "aciklama": "Fujifilm X-T4, X-T3, X-T2, X-T1, X-H1, GFX100 ve GFX 50S gövdeleri için hazırlanmış vizör gözlüğü (göz kabı) parçasıdır. Kaynağında tasarımın X-T1 için hazırlandığı ve listelenen diğer modellere de uyması gerektiği belirtilir.\nYaklaşık dış ölçüler: 43 × 24 × 9 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr610471-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr610471-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Donii"
+    }
+  },
+  {
     "id": "pr481490-wpl-c24-b16-rc-aks-ve-diferansiyel-kapagi",
     "kategori": "Oyun/Hobi",
     "marka": [
