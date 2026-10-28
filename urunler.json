@@ -1,5 +1,57 @@
 [
   {
+    "id": "th7414187-kuba-scooter-telefon-tutucu-adaptoru",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Kuba"
+    ],
+    "uyum": [
+      {
+        "marka": "Kuba"
+      }
+    ],
+    "baslik": "Kuba Scooter Telefon Tutucu Adaptörü",
+    "aciklama": "Kuba scooter ön panelindeki mevcut vida deliğine bağlanan telefon tutucu adaptörüdür. Dört delikli bir tabanı ve üzerinde telefon tutucunun takıldığı top mafsallı bir ucu vardır; telefon tutucu ayrıca temin edilir.\nYaklaşık dış ölçüler: 30 × 30 × 13 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7414187-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7414187-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7414187-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7414187-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY-SA",
+      "tasarimci": "Kosta1492"
+    },
+    "altkategori": "Telefon ve Şarj"
+  },
+  {
+    "id": "th6309521-scania-nextgen-hava-ferahlatici-standi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Scania"
+    ],
+    "uyum": [
+      {
+        "marka": "Scania"
+      }
+    ],
+    "baslik": "Scania NextGen Kabini İçin Hava Ferahlatıcı Standı",
+    "aciklama": "Scania NextGen kabini için hazırlanmış, hava ferahlatıcı şişesini üzerinde taşıyan küçük bir stand parçasıdır. Dikdörtgen gövdelidir; kaynakta Scania NextGen kabinine uyduğu belirtilir.\nYaklaşık dış ölçüler: 124 × 98 × 67 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6309521-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6309521-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6309521-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6309521-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY-SA",
+      "tasarimci": "Bizibahuni"
+    },
+    "altkategori": "İç Aksam"
+  },
+  {
     "id": "th4139208-tekonsha-p3-tacoma-montaj-paneli",
     "kategori": "Otomobil",
     "marka": [
