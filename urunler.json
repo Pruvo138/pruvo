@@ -1,5 +1,946 @@
 [
   {
+    "id": "pr583810-anker-arac-telefon-sarj-cihazi-kanatli-somun",
+    "kategori": "Elektronik",
+    "marka": [
+      "Anker"
+    ],
+    "uyum": [
+      {
+        "marka": "Anker"
+      }
+    ],
+    "baslik": "Anker Araç Telefon Şarj Cihazı İçin Kanatlı Somun",
+    "aciklama": "Anker kablosuz araç şarj cihazının telefon tutucusundaki küre mafsalı sıkıştıran kanatlı somundur. Kaynağında kanatların eğiminin daha dik tutulduğu, böylece küre mafsalın daha geniş açıda döndürülebildiği, somun gövdesinin daha kalın olduğu ve kanat sayısının üç olduğu anlatılır. Şarj cihazı ürüne dahil değildir.\nYaklaşık dış ölçüler: 42 × 37 × 10 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr583810-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr583810-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr583810-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Anachronist",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr288064-anker-eufycam-2c-pro-ek-kamera-kure-tutucu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Anker"
+    ],
+    "uyum": [
+      {
+        "marka": "Anker"
+      }
+    ],
+    "baslik": "Anker eufyCam 2C Pro Ek Kamera Küre Tutucu",
+    "aciklama": "Anker eufyCam 2C Pro kablosuz ev güvenlik sisteminin ek kamerasını bir yüzeye monte etmek için hazırlanmış, küre mafsallı bir tutucudur. Küre mafsal parçası ile dişli montaj parçası olmak üzere iki ayrı parçadan oluşur. Kamera ürüne dahil değildir.\nYaklaşık dış ölçüler: 40 × 40 × 29 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr288064-1.jpg"
+    ],
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr270416-anker-powerport-5-masa-alti-montaj-braketi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Anker"
+    ],
+    "uyum": [
+      {
+        "marka": "Anker"
+      }
+    ],
+    "baslik": "Anker PowerPort 5 Masa Altı Montaj Braketi",
+    "aciklama": "Anker PowerPort 5 şarj cihazını masanın altına monte etmek için hazırlanmış bir montaj braketidir. Kaynağında cihazın masa üstünü kalabalıklaştırmadan kolay erişilebilir kalması amacıyla hazırlandığı, braketin yapışkan şeritlerle ya da havşalı üç delik kullanılarak vidalarla sabitlenebileceği anlatılır. Şarj cihazı, yapışkan şerit ve vidalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 88 × 83 × 38 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr270416-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr270416-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Kevin D",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr278937-anker-usb-c-coklu-priz-montaj-braketleri",
+    "kategori": "Elektronik",
+    "marka": [
+      "Anker"
+    ],
+    "uyum": [
+      {
+        "marka": "Anker"
+      }
+    ],
+    "baslik": "Anker USB-C Çoklu Priz Montaj Braketleri",
+    "aciklama": "Anker USB-C çoklu priz ünitesini bir yüzeye sabitlemek için hazırlanmış montaj braketleridir. Kaynağında USB bağlantı noktalarına ve priz girişlerine erişimin korunduğu anlatılır. Braketlerde yüzeye sabitlemek için vida delikleri bulunur. Kaynağında braketlerin masa altına monte edildiği belirtilir. Çoklu priz ve vidalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 80 × 34 × 32 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr278937-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr278937-2.jpg"
+    ],
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr828205-anker-powerconf-c200-bilgisayar-kamerasi-yukseltici",
+    "kategori": "Elektronik",
+    "marka": [
+      "Anker"
+    ],
+    "uyum": [
+      {
+        "marka": "Anker"
+      }
+    ],
+    "baslik": "Anker PowerConf C200 Bilgisayar Kamerası Yükseltici",
+    "aciklama": "Anker PowerConf C200 bilgisayar kamerasını biraz daha yukarıda konumlandırmak için hazırlanmış küçük bir yükselticidir. Kaynağında ince çerçeveli monitörlerde kameranın ekranı kapatmasını önlemek amacıyla hazırlandığı anlatılır. Kamera ürüne dahil değildir.\nYaklaşık dış ölçüler: 40 × 18 × 9 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr828205-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr828205-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "BK-Morpheus",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "th4237891-yaesu-ft-70dr-telsiz-standi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Yaesu"
+    ],
+    "uyum": [
+      {
+        "marka": "Yaesu"
+      }
+    ],
+    "baslik": "Yaesu FT-70DR Telsiz Standı",
+    "aciklama": "Yaesu FT-70DR el telsizini yuvasına oturtup düz bir yüzeyde ayakta tutmak için hazırlanmış bir stanttır. İki sürümü bulunur; ikinci sürümde pil yuvasının genişliği artırılmıştır. Kaynağında bu değişikliğin, sert bir malzemeyle üretildiğinde telsizin yuvaya daha sıkı oturmasını sağladığı anlatılır. Telsiz ürüne dahil değildir.\nYaklaşık dış ölçüler: 80 × 72 × 39 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4237891-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4237891-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4237891-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Svargon (remix: evgs)",
+      "tur": "CC-BY"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "th4262204-yaesu-ftm-400-kumanda-paneli-kure-tutucu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Yaesu"
+    ],
+    "uyum": [
+      {
+        "marka": "Yaesu"
+      }
+    ],
+    "baslik": "Yaesu FTM-400 Kumanda Paneli Küre Tutucu",
+    "aciklama": "Yaesu FTM-400 telsizin kumanda panelini araç içinde küre ve kelepçe tipi bir montaj düzenine bağlamak için hazırlanmış, küre uçlu bir adaptördür. Kaynağında adaptörün kumanda panelini sabitleyen bir vidayla birlikte kullanıldığı anlatılır. İki farklı küre boyutu sürümü bulunur. Kaynağında tasarımın dayanıklılığı ya da uygunluğu konusunda bir iddia bulunmadığı belirtilir. Telsiz, montaj düzeneği ve vidalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 39 × 25 × 25 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4262204-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4262204-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4262204-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4262204-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Maxheadspace",
+      "tur": "CC-BY"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "th3597363-yaesu-vx-6r-kemer-klipsi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Yaesu"
+    ],
+    "uyum": [
+      {
+        "marka": "Yaesu"
+      }
+    ],
+    "baslik": "Yaesu VX-6R Kemer Klipsi",
+    "aciklama": "Yaesu VX-6R el telsizini kemere takmak için hazırlanmış bir kemer klipsidir. Telsiz ürüne dahil değildir.\nYaklaşık dış ölçüler: 74 × 28 × 15 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3597363-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3597363-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "hddtrest",
+      "tur": "CC-BY"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr255947-xbox-elite-series-2-kumanda-paleti",
+    "kategori": "Elektronik",
+    "marka": [
+      "Xbox"
+    ],
+    "uyum": [
+      {
+        "marka": "Xbox"
+      }
+    ],
+    "baslik": "Xbox Elite Series 2 Kumanda Paleti",
+    "aciklama": "Xbox Elite Series 2 kumandanın arka yüzüne takılan kısa arka paletlerdir. Kaynağında uzun paletlere sık sık yanlışlıkla dokunulduğu, bu nedenle video kaydı alırken ara sıra kullanılmak üzere kısa paletlerin hazırlandığı anlatılır. Kaynağında Series 1 ve Series 2 kumandalarla çalışmasının beklendiği belirtilir. Kumanda ürüne dahil değildir.\nYaklaşık dış ölçüler: 14 × 7 × 7 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr255947-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr255947-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Gary_BBGames (remix: who_1z_th1z)",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr380027-xbox-kumanda-telefon-tutucusu-kemer-klipsi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Xbox"
+    ],
+    "uyum": [
+      {
+        "marka": "Xbox"
+      }
+    ],
+    "baslik": "Xbox Kumanda Telefon Tutucusu ve Kemer Klipsi",
+    "aciklama": "Xbox kumandaya takılarak telefonu kumandanın üstünde tutmak için hazırlanmış bir telefon tutucudur. Kaynağında tutucunun kumandaya geçtiği, telefonun ellerin üstünde durduğu ve bir lastik bantla tamamlandığı anlatılır. Kumandayı kemerde taşımak için bir kemer klipsi de bulunur. Telefon, kumanda ve lastik bant ürüne dahil değildir.\nYaklaşık dış ölçüler: 110 × 86 × 29 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr380027-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr380027-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr380027-3.jpg"
+    ],
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr944679-wyze-cam-v4-kamera-kapagi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Wyze"
+    ],
+    "uyum": [
+      {
+        "marka": "Wyze"
+      }
+    ],
+    "baslik": "Wyze Cam v4 Kamera Kapağı",
+    "aciklama": "Wyze Cam v4 kameranın gövdesine geçirilen, kameranın siyah bir görünümde kullanılması için hazırlanmış kozmetik bir kapaktır. Kaynağında kameranın yalnızca beyaz ve gri renk seçenekleriyle satıldığı, bu nedenle siyah bir kapak hazırlandığı anlatılır. Kamera ürüne dahil değildir.\nYaklaşık dış ölçüler: 55 × 55 × 53 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr944679-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr944679-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr944679-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Wiltan",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr55203-wyze-doorbell-vinil-kaplama-montaji",
+    "kategori": "Elektronik",
+    "marka": [
+      "Wyze"
+    ],
+    "uyum": [
+      {
+        "marka": "Wyze"
+      }
+    ],
+    "baslik": "Wyze Doorbell Vinil Kaplama Montajı",
+    "aciklama": "Wyze Cam Doorbell kapı zili kamerasını vinil dış cephe kaplamasına monte etmek için hazırlanmış bir montaj setidir. Kaynağında montajın açılı bir braketle ya da braketsiz kullanılabildiği anlatılır. Duvar plakasının kablo kanallı sürümünün yanı sıra kanalsız, ortasında yalnızca bir delik bulunan sürümü de vardır. Plakayı duvara sabitleyen vida deliklerini kapatmak için küçük tapalar da hazırlanmıştır. Kapı zili kamerası ve vidalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 127 × 62 × 23 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr55203-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr55203-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr55203-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "menerso",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr80797-wyze-cam-tup-tutucu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Wyze"
+    ],
+    "uyum": [
+      {
+        "marka": "Wyze"
+      }
+    ],
+    "baslik": "Wyze Cam Tüp Tutucu",
+    "aciklama": "Wyze Cam v2 kamerayı bir boruya ya da tüpe monte etmek için hazırlanmış, ön ve arka olmak üzere iki parçadan oluşan kelepçeli bir tutucudur. Kaynağında kameranın yanında gelen mıknatıslı standın kullanımı sınırladığı için bu tutucunun hazırlandığı anlatılır. Kameranın taban parçası sökülür ve kameranın kendi mafsal donanımı bu tutucuya takılır; bunun için ayrıca cıvata ve somun gerekir. Kamera, boru ve bağlantı elemanları ürüne dahil değildir.\nYaklaşık dış ölçüler: 54 × 19 × 16 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr80797-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr80797-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr80797-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "motocoder",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "th4677583-wyze-cam-v2-ve-v3-duz-ve-kose-tutuculari",
+    "kategori": "Kamera",
+    "marka": [
+      "Wyze"
+    ],
+    "uyum": [
+      {
+        "marka": "Wyze"
+      }
+    ],
+    "baslik": "Wyze Cam V2 ve V3 Düz ve Köşe Tutucuları",
+    "aciklama": "Wyze Cam V2 ve V3 kameralar için hazırlanmış düz tutucular ile 45 derece açılı köşe tutucuları içeren bir settir. Kaynağında ayrıca Wyze Cam Pan montaj kiti için de bir köşe tutucu bulunduğu anlatılır. Deliklerin ahşap vidalara göre hazırlandığı, vidaların motorlu vidalama aletiyle çok sıkılmaması gerektiği belirtilir. Kamera, montaj kiti ve vidalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 70 × 56 × 38 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4677583-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4677583-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4677583-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "mostly_harmless",
+      "tur": "CC-BY"
+    },
+    "altkategori": "Montaj ve Tripod"
+  },
+  {
+    "id": "th3498260-wyze-cam-tripod-montaj-plakasi",
+    "kategori": "Kamera",
+    "marka": [
+      "Wyze"
+    ],
+    "uyum": [
+      {
+        "marka": "Wyze"
+      }
+    ],
+    "baslik": "Wyze Cam Tripod Montaj Plakası",
+    "aciklama": "Wyze güvenlik kamerasını bir tripoda ya da standart tripod dişli bir bağlantıya takmak için hazırlanmış sade bir montaj plakasıdır. Kaynağında, kamerayla birlikte gelen ve kamera tabanındaki mıknatısın tutunduğu metal diski mekanik bir geçme yerine mıknatıs bağlantısıyla kullanmak isteyenler için plakada bu diske yer ayrıldığı anlatılır. Kamera, tripod ve metal disk ürüne dahil değildir.\nYaklaşık dış ölçüler: 59 × 59 × 12 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3498260-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3498260-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3498260-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3498260-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "mduttondev",
+      "tur": "CC-BY"
+    },
+    "altkategori": "Montaj ve Tripod"
+  },
+  {
+    "id": "th3838066-wyze-cam-pan-45-derece-duvar-tutucusu",
+    "kategori": "Kamera",
+    "marka": [
+      "Wyze"
+    ],
+    "uyum": [
+      {
+        "marka": "Wyze"
+      }
+    ],
+    "baslik": "Wyze Cam Pan 45 Derece Duvar Tutucusu",
+    "aciklama": "Wyze Cam Pan kamerayı duvara monte etmek için hazırlanmış, 45 derece açılı bir duvar tutucusudur. Kaynağında açılı yapının kameranın yüksek bir noktaya takılıp odanın tamamını görebilmesi için tasarlandığı anlatılır. Askı deliği küçüktür; kaynağında tutucunun ince bir çiviye asıldığı belirtilir. Kameranın altına bağlanmak için bir somun ve cıvata gerekir; kaynağında yeterince kısa bir cıvata bulunamayabileceği, somunun cıvatanın dipte kalmasına izin verdiği ve kameranın tabana böyle sıkılabildiği anlatılır. USB kablonun bir kablo bağıyla tabana tutturulduğu da belirtilir. Kamera, somun, cıvata ve kablo bağı ürüne dahil değildir.\nYaklaşık dış ölçüler: 79 × 62 × 55 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3838066-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3838066-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3838066-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3838066-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "awdark",
+      "tur": "CC-BY"
+    },
+    "altkategori": "Montaj ve Tripod"
+  },
+  {
+    "id": "th4699223-philips-hue-bridge-2-duvar-tutucusu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Philips"
+    ],
+    "uyum": [
+      {
+        "marka": "Philips"
+      }
+    ],
+    "baslik": "Philips Hue Bridge 2 Duvar Tutucusu",
+    "aciklama": "Philips Hue Bridge 2 cihazını duvara monte etmek için hazırlanmış bir duvar tutucusudur. Kaynağında tutucunun Hue Bridge 2 için tasarlandığı belirtilir. Cihaz ve montaj malzemeleri ürüne dahil değildir.\nYaklaşık dış ölçüler: 96 × 94 × 32 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4699223-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4699223-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4699223-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4699223-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ejby84",
+      "tur": "CC-BY"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "th2571658-philips-hue-hareket-sensoru-kose-tutucusu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Philips"
+    ],
+    "uyum": [
+      {
+        "marka": "Philips"
+      }
+    ],
+    "baslik": "Philips Hue Hareket Sensörü Köşe Tutucusu",
+    "aciklama": "Philips Hue hareket sensörünü bir köşeye monte etmek için hazırlanmış bir tutucudur. Kaynağında tutucunun sensörün köşede konumlandırılması amacıyla tasarlandığı belirtilir. Sensör ve montaj malzemeleri ürüne dahil değildir.\nYaklaşık dış ölçüler: 56 × 39 × 39 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2571658-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2571658-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2571658-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2571658-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "MajoSc",
+      "tur": "CC-BY"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr366022-makita-elektrik-supurgesi-baglanti-adaptoru",
+    "kategori": "Ev",
+    "marka": [
+      "Makita"
+    ],
+    "uyum": [
+      {
+        "marka": "Makita"
+      }
+    ],
+    "baslik": "Makita Elektrik Süpürgesi Bağlantı Adaptörü",
+    "aciklama": "Makita aletlerin dar toz emiş ağzını standart bir elektrik süpürgesi hortumuna bağlamak için hazırlanmış kademeli bir adaptördür. Kaynağında adaptörün dar çıkıştan standart süpürge hortumuna geçiş sağlamak amacıyla tasarlandığı anlatılır. Alet, süpürge ve hortum ürüne dahil değildir.\nYaklaşık dış ölçüler: 60 × 39 × 39 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr366022-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr366022-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr366022-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr366022-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "hunger",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "pr468354-makita-akulu-el-aleti-alcak-taban",
+    "kategori": "Ev",
+    "marka": [
+      "Makita"
+    ],
+    "uyum": [
+      {
+        "marka": "Makita"
+      }
+    ],
+    "baslik": "Makita Akülü El Aleti İçin Alçak Taban",
+    "aciklama": "Makita akülü el aletini kemer klipsi olmadan ters yönde monte etmek için hazırlanmış, alçak profilli bir tabandır. Kaynağında tabanın yeni akülü aletlere göre güncellendiği belirtilir. Alet ve montaj malzemeleri ürüne dahil değildir.\nYaklaşık dış ölçüler: 90 × 70 × 23 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr468354-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr468354-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr468354-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Peter Serup",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Duvar ve Askı"
+  },
+  {
+    "id": "th5236962-makita-18v-batarya-duvar-yuvasi",
+    "kategori": "Ev",
+    "marka": [
+      "Makita"
+    ],
+    "uyum": [
+      {
+        "marka": "Makita"
+      }
+    ],
+    "baslik": "Makita 18V Batarya Duvar Yuvası",
+    "aciklama": "Makita 18V sistemindeki bataryaları saklamak için hazırlanmış, sade bir batarya yuvasıdır. Kaynağında yuvanın iki yanında montaj delikleri bulunduğu ve bu sayede bataryaların birden çok farklı biçimde saklanabildiği anlatılır. Yuva yalnızca bataryayı yerleştirmek için kullanılan pasif bir tutucudur. Batarya, vida ve duvar ürüne dahil değildir.\nYaklaşık dış ölçüler: 81 × 73 × 50 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5236962-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5236962-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5236962-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Vilcoyote77",
+      "tur": "CC-BY"
+    },
+    "altkategori": "Duvar ve Askı"
+  },
+  {
+    "id": "th3263771-makita-rt0700cx4-freze-toz-emis-adaptoru",
+    "kategori": "Ev",
+    "marka": [
+      "Makita"
+    ],
+    "uyum": [
+      {
+        "marka": "Makita"
+      }
+    ],
+    "baslik": "Makita RT0700CX4 Freze Toz Emiş Adaptörü",
+    "aciklama": "Makita RT0700CX4 kenar frezesine takılan, toz emişi için hazırlanmış bir adaptördür. Kaynağında adaptörün elektrik süpürgesi ya da benzeri bir emiş hortumunun bağlanabilmesi için tasarlandığı anlatılır. Alet, süpürge ve hortum ürüne dahil değildir.\nYaklaşık dış ölçüler: 90 × 90 × 86 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3263771-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3263771-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3263771-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3263771-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "miLAB_IDC",
+      "tur": "CC-BY"
+    }
+  },
+  {
+    "id": "pr15208-raspberry-pi-ilk-nesil-dokunmatik-ekran-standi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Raspberry Pi"
+    ],
+    "uyum": [
+      {
+        "marka": "Raspberry Pi"
+      }
+    ],
+    "baslik": "Raspberry Pi İlk Nesil Dokunmatik Ekran Standı",
+    "aciklama": "Raspberry Pi ilk nesil dokunmatik ekranını masa üzerinde tutmak için hazırlanmış, iki ayaklı sade bir ekran standıdır. Kaynağında ayaktan iki adet gerektiği ve her ayağın ekrana dört vidayla bağlandığı anlatılır. Ayakların çentikli ve çentiksiz iki sürümü bulunur. Ekran, vidalar ve Raspberry Pi ürüne dahil değildir.\nYaklaşık dış ölçüler: 113 × 80 × 20 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr15208-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr15208-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr15208-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr15208-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "McMatt",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr605642-raspberry-pi-zero-2-w-kasasi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Raspberry Pi"
+    ],
+    "uyum": [
+      {
+        "marka": "Raspberry Pi"
+      }
+    ],
+    "baslik": "Raspberry Pi Zero 2 W Kasası",
+    "aciklama": "Raspberry Pi Zero 2 W kartı için hazırlanmış, alt ve üst olmak üzere iki parçadan oluşan ince bir kasadır. Dört vidayla birleştirilir. Kaynağında soğutucu için yer ayrıldığı ve GPIO pinleri için bir açıklık bulunduğu belirtilir. Alt parçanın montaj kulaklı bir sürümü de vardır. Kart, soğutucu ve vidalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 89 × 32 × 4 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr605642-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr605642-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr605642-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr605642-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "tn00364361",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr267869-raspberry-pi-pico-kasasi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Raspberry Pi"
+    ],
+    "uyum": [
+      {
+        "marka": "Raspberry Pi"
+      }
+    ],
+    "baslik": "Raspberry Pi Pico Kasası",
+    "aciklama": "Raspberry Pi Pico kartı için hazırlanmış, parçaları birbirine geçen ve vida gerektirmeyen küçük bir kasadır. Kaynağında kapağın hafifçe esneyerek yerine oturduğu, bir kenarın önce yerleştirilip diğer kenarın klipsle kapatıldığı anlatılır. Kasanın yan montajlı, taban montajlı ve uç montajlı üç sürümü hazırlanmıştır. Kapak olarak havalandırma delikli, giriş-çıkış pinlerine erişim sağlayan, şerit kablo geçişli ve kendi deliklerinizi açabileceğiniz düz seçenekler bulunur; tüm kapaklar ve tabanlar birbiriyle değiştirilebilir. USB bağlantı noktasına erişim açıktır. Pico kartı ürüne dahil değildir.\nYaklaşık dış ölçüler: 69 × 39 × 10 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr267869-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr267869-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr267869-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr267869-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DotNetWorker",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr173628-ikea-skadis-capak-alma-aleti-tutucusu",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA Skadis Çapak Alma Aleti Tutucusu",
+    "aciklama": "IKEA Skadis delikli panosuna takılan, çapak alma aletini asılı biçimde saklamak için hazırlanmış küçük bir tutucudur. Kaynağında, aletin tutucunun çatalından kolayca kaymaması için ilk tasarıma iki durdurucu eklendiği anlatılır. Pano ve alet ürüne dahil değildir.\nYaklaşık dış ölçüler: 26 × 15 × 14 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr173628-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Dayrusher (remix: Technofrikus)",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr860278-ikea-malm-cekmece-bolucu",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA MALM Çekmece Bölücü",
+    "aciklama": "IKEA MALM çekmecelerinin içini ayrı bölmelere ayırmak için hazırlanmış bir çekmece bölücüdür. Kaynağında çorap, pantolon ve üst giyimin aynı çekmecede karışmadan durması için kullanılabileceği anlatılır. Bölücü iki yarımdan oluşur ve yarımlar bağlayıcı klipsle birleşir; kaynağında vida ya da yapıştırıcı gerekmediği belirtilir. Bağlayıcının sıkı oturan ve daha toleranslı olmak üzere iki sürümü bulunur; daha toleranslı sürümde çok eşya konulduğunda bölücünün biraz daha esneyebileceği anlatılır. Kaynağında çekmece dolap içine monte edilmişse bölücünün çekmecenin içinde birleştirilmesinin daha uygun olduğu belirtilir. Çekmece ve eşyalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 213 × 170 × 155 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr860278-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr860278-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr860278-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr860278-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "byWulf",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr1280271-ikea-masa-ve-raf-kenari-kablo-duzenleyici-kelepce",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA Masa ve Raf Kenarı Kablo Düzenleyici Kelepçe",
+    "aciklama": "IKEA Langkapten masalarının ve Kallax raflarının kenarına geçirilen, kabloları yerinde tutmaya yardımcı olması için hazırlanmış sade bir kablo düzenleyici kelepçedir. Kaynağında kabloların yerinde durmasına ve düzenin biraz daha temiz görünmesine yardımcı olduğu anlatılır. Üç ayrı kalınlığa göre üç farklı boyda hazırlanmıştır. Masa, raf ve kablolar ürüne dahil değildir.\nYaklaşık dış ölçüler: 61 × 41 × 30 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1280271-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1280271-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "matrowgen",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr620579-ikea-kallax-cekmecesi-petek-kablo-duzenleyici",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA Kallax Çekmecesi İçin Petek Kablo Düzenleyici",
+    "aciklama": "IKEA Kallax çekmecesinin içine yerleşecek biçimde hazırlanmış, petek gözlü bir kablo ve küçük eşya düzenleyicisidir. Dört parçadan oluşan setin toplam altmış gözü bulunur. Kaynağında düzenleyicinin tabanlı olduğu, böylece çekmeceden kablolar dökülmeden çıkarılabildiği anlatılır. Ön ve arka parçalar ayrı ayrı bir ya da iki adet kullanılabilir; kaynağında düzenleyicinin çekmece dışında rafta da kullanılabildiği belirtilir. Çekmece, kablolar ve diğer eşyalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 167 × 139 × 75 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr620579-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr620579-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr620579-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "beandev",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr92516-ikea-skadis-sd-ve-microsd-kart-tutucusu",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA Skadis SD ve microSD Kart Tutucusu",
+    "aciklama": "IKEA Skadis delikli panosuna takılan, SD kartları düzenli biçimde saklamak için hazırlanmış bir kart tutucudur. İki sürümü bulunur: yalnız SD kartlar için olan sürüm ve SD ile microSD kart yuvalarını birlikte içeren sürüm. Kaynağında kartların her zaman elinizin altında durması amacıyla hazırlandığı anlatılır. Pano ve kartlar ürüne dahil değildir.\nYaklaşık dış ölçüler: 54 × 39 × 19 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr92516-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JayFiDev",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr109219-raspberry-pi-kamera-lens-ayarlayicisi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Raspberry Pi"
+    ],
+    "uyum": [
+      {
+        "marka": "Raspberry Pi"
+      }
+    ],
+    "baslik": "Raspberry Pi Kamera Lens Ayarlayıcısı",
+    "aciklama": "Raspberry Pi kamera modülünün lensini çevirerek odak ayarı yapmak için hazırlanmış, kenarı tırtıklı küçük bir ayar parçasıdır. Kaynağında Raspberry Pi Kamera 2.0 modülü örnek alınarak çizildiği belirtilir. Kamera modülü ürüne dahil değildir.\nYaklaşık dış ölçüler: 23 × 23 × 20 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr109219-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr109219-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr109219-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Liam_Plumridge",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr142356-raspberry-pi-3-a-kasasi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Raspberry Pi"
+    ],
+    "uyum": [
+      {
+        "marka": "Raspberry Pi"
+      }
+    ],
+    "baslik": "Raspberry Pi 3 A+ Kasası",
+    "aciklama": "Raspberry Pi 3 A+ kartı için hazırlanmış, alt gövde ve üst kapaktan oluşan sade bir kasadır. Kaynağında güç, HDMI, ses, USB ve microSD girişleri için açıklıkların bulunduğu, alt gövdedeki bir açıklıkla kartın parmakla itilerek çıkarılabildiği anlatılır. Üst kapak düz sürümünün yanı sıra kamera, ekran ve GPIO açıklıklarının tek tek ve birlikte yer aldığı sürümlerle hazırlanmıştır. Kart ürüne dahil değildir.\nYaklaşık dış ölçüler: 68 × 59 × 10 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr142356-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr142356-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr142356-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr142356-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dfoles",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr271014-ikea-skadis-kablo-tutucusu",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA Skadis Kablo Tutucusu",
+    "aciklama": "IKEA Skadis delikli panosuna kırlangıç kuyruğu biçimli kancalarla asılan, kabloları düzenli biçimde ayırmak için hazırlanmış tarak biçiminde bir kablo tutucudur. Kaynağında USB kabloları için hazırlandığı, diğer kablolarla da kullanılabileceği anlatılır. Pano ve kablolar ürüne dahil değildir.\nYaklaşık dış ölçüler: 216 × 49 × 30 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr271014-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr271014-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr271014-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Tiggr",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr170875-ikea-skadis-usb-tutucu",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA Skadis USB Tutucu",
+    "aciklama": "IKEA Skadis delikli panosuna takılan, USB bellekleri sekiz ayrı yuvada düzenli biçimde saklamak için hazırlanmış bir tutucudur. Kaynağında tutucunun parametrik olarak tasarlandığı anlatılır. Pano ve USB bellekler ürüne dahil değildir.\nYaklaşık dış ölçüler: 171 × 47 × 30 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr170875-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr170875-2.jpg"
+    ],
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr119327-ikea-ivar-raf-kutulari",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA Ivar Raf Kutuları",
+    "aciklama": "IKEA Ivar raf sisteminin bağlantı parçasının genişliğine asılacak biçimde hazırlanmış iki basit kutudur. Kaynağında iki kutunun yan yana kullanıldığında bu genişliğe tam oturduğu anlatılır. Kutular iki ayrı boydadır ve her birinin ortasında küçük bir ayırıcı bulunur. Raf ürüne dahil değildir.\nYaklaşık dış ölçüler: 123 × 76 × 70 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr119327-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr119327-2.jpg"
+    ],
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr115175-ryobi-pblhm101-cok-uclu-tutucu",
+    "kategori": "Ev",
+    "marka": [
+      "Ryobi"
+    ],
+    "uyum": [
+      {
+        "marka": "Ryobi"
+      }
+    ],
+    "baslik": "Ryobi PBLHM101 Matkap İçin Çok Uçlu Tutucu",
+    "aciklama": "Ryobi PBLHM101 darbeli matkabın alt kısmına takılarak birden fazla vidalama ucunu taşımak için hazırlanmış küçük bir uç tutucusudur. Kaynağında matkapla birlikte uç tutucu gelmediği için hazırlandığı, tutucunun kemer klipsi vidasıyla matkaba bağlandığı anlatılır. Sağ ve sol taraf için iki ayrı sürümü bulunur. Matkap, uçlar ve vida ürüne dahil değildir.\nYaklaşık dış ölçüler: 35 × 18 × 14 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr115175-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr115175-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JPMakesStuff",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Duvar ve Askı"
+  },
+  {
+    "id": "pr338143-ryobi-surucu-uc-rafi",
+    "kategori": "Ev",
+    "marka": [
+      "Ryobi"
+    ],
+    "uyum": [
+      {
+        "marka": "Ryobi"
+      }
+    ],
+    "baslik": "Ryobi Sürücü Uç Rafı",
+    "aciklama": "Ryobi vidalama ucu setlerinin kutusunda kullanılan modüler uç saklama rafına ek olarak hazırlanmış bir uç rafıdır. Kaynağında kutunun modüler olduğu, bazı setlerde kutuya sığan uç sayısının setle gelenden fazla olabildiği ve rafların yerleri değiştirilerek ek rafın kullanılabileceği anlatılır. Kutu ve uçlar ürüne dahil değildir.\nYaklaşık dış ölçüler: 80 × 20 × 20 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr338143-1.jpg"
+    ],
+    "altkategori": "Duvar ve Askı"
+  },
+  {
+    "id": "pr24891-ryobi-r18pi-kompresor-askisi",
+    "kategori": "Ev",
+    "marka": [
+      "Ryobi"
+    ],
+    "uyum": [
+      {
+        "marka": "Ryobi"
+      }
+    ],
+    "baslik": "Ryobi R18PI Kompresör Askısı",
+    "aciklama": "Ryobi R18PI kompresörü duvarda asılı saklamak için hazırlanmış, kılıf biçiminde bir askıdır; duvara iki vidayla sabitlenir. Kaynağında askıya takılıyken kompresörün engelsiz biçimde hemen alınabildiği anlatılır. Kompresör ve vidalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 110 × 70 × 45 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr24891-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Kahnindustries",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Duvar ve Askı"
+  },
+  {
+    "id": "pr519951-ryobi-radyo-duvar-askisi",
+    "kategori": "Ev",
+    "marka": [
+      "Ryobi"
+    ],
+    "uyum": [
+      {
+        "marka": "Ryobi"
+      }
+    ],
+    "baslik": "Ryobi Radyo Duvar Askısı",
+    "aciklama": "Ryobi P742 radyoyu duvarda asılı saklamak için hazırlanmış, kama biçiminde tek parça bir duvar plakasıdır. Plakada iki vida deliği bulunur ve duvara vidalarla sabitlenir. Kaynağında P742 model radyo için hazırlandığı belirtilir. Radyo ve vidalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 150 × 70 × 23 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr519951-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr519951-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "P Loaring",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Duvar ve Askı"
+  },
+  {
     "id": "pr37992-raspberry-pi-kompakt-raf",
     "kategori": "Elektronik",
     "marka": [
