@@ -1,5 +1,284 @@
 [
   {
+    "id": "pr37992-raspberry-pi-kompakt-raf",
+    "kategori": "Elektronik",
+    "marka": [
+      "Raspberry Pi"
+    ],
+    "uyum": [
+      {
+        "marka": "Raspberry Pi"
+      }
+    ],
+    "baslik": "Raspberry Pi Kompakt Raf",
+    "aciklama": "Raspberry Pi kartlarını yatay yerine dikey konumda yan yana dizmek için hazırlanmış kompakt bir raftır; tek bir tabandan ve her kart için küçük tutuculardan oluşur. Kaynağında B+, 2B, 3B, 3B+, Zero ve Zero W modelleri için hazırlandığı, her kart için iki tutucu gerektiği anlatılır. 2,5 inçlik sabit disk veya SSD için de yer bulunduğu, altında kablosuz ağ adaptörleri için boşluk kaldığı belirtilir. Kaynağında kartlar için dik açılı (90 derece) USB güç konektörleri gerektiği vurgulanır. Kartlar, diskler ve konektörler ürüne dahil değildir.\nYaklaşık dış ölçüler: 140 × 92 × 28 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr37992-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr37992-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr37992-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr37992-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Javi",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr251290-raspberry-pi-3-ve-4-dusuk-profilli-kasa",
+    "kategori": "Elektronik",
+    "marka": [
+      "Raspberry Pi"
+    ],
+    "uyum": [
+      {
+        "marka": "Raspberry Pi"
+      }
+    ],
+    "baslik": "Raspberry Pi 3 ve 4 Düşük Profilli Kasa",
+    "aciklama": "Raspberry Pi 4 kartını düşük profilli bir soğutucu kuleyle birlikte barındırmak için hazırlanmış bir kasadır. Kaynağında Pi 3 için de ayrı gövde ve yan parçaların bulunduğu, gövdenin düz ya da küçük bir OLED ekran için yer ayrılmış iki sürümünün hazırlandığı anlatılır. Yan paneller için tek renkli ve renk değişimli iki seçenek bulunur. Kart, soğutucu kule, metal mesafe parçaları, vidalar ve ekran ürüne dahil değildir.\nYaklaşık dış ölçüler: 102 × 66 × 65 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr251290-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr251290-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr251290-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "smartroad",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr163703-raspberry-pi-kamera-kilifi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Raspberry Pi"
+    ],
+    "uyum": [
+      {
+        "marka": "Raspberry Pi"
+      }
+    ],
+    "baslik": "Raspberry Pi Kamera Kılıfı",
+    "aciklama": "Raspberry Pi için kamera modülünü saran, birbirine geçen iki parçalı küçük bir kılıftır; kamera arka parçaya yerleştirilir, ön parça sürtünmeyle oturur. Kaynağında OV5647 kamera modülü için hazırlandığı, Raspberry Pi kamera 2.1 sürümüne ve benzer biçimdeki kameralara da uyduğu belirtilir. Ön parçanın istenirse yapıştırılabileceği, ancak yapıştırılırsa kablonun değiştirilemeyeceği anlatılır. Kılıfın kendisinde montaj deliği bulunmadığı, arkaya yapıştırılan ve standart 1/4 inç kamera dişi taşıyan ayrı bir bağlantı parçasının da eklendiği söylenir. Kamera modülü ve kablo ürüne dahil değildir.\nYaklaşık dış ölçüler: 29 × 28 × 10 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr163703-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr163703-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr163703-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr163703-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "FREDICVSMAXIMVS",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr14568-ikea-samla-22-litre-kapak-klipsi",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA Samla 22 Litre Kapak Klipsi",
+    "aciklama": "IKEA Samla 22 litrelik saklama kutusunun kapağını kutu gövdesine bağlamak için hazırlanmış küçük bir klipstir. Kaynağında 44 litrelik Samla kutusunun aksine 22 litrelik modelde kapak klipsi bulunmadığı anlatılır. Kutu ve kapak ürüne dahil değildir.\nYaklaşık dış ölçüler: 25 × 23 × 22 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr14568-1.jpg"
+    ],
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr507879-ikea-skadis-led-isik-cubugu-tutucusu",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA Skadis LED Işık Çubuğu Tutucusu",
+    "aciklama": "IKEA Skadis delikli panosunun üst kenarına oturan, LED ışık çubuğunu panonun üstünde ve önünde tutmak için hazırlanmış kol ve klips takımıdır. Kaynağında örnek uygulamada 1,7 metrelik bir ışık çubuğu için üç kol kullanıldığı anlatılır. Tasarım iki parçadan oluşur: standart ve kablo geçirmek için kanallı olmak üzere iki sürümü bulunan kol ile kola cıvatayla bağlanan klips. Kaynağında kolun panonun üstüne oturduğu ve iki vida deliği taşıdığı belirtilir. Pano, ışık çubuğu, cıvata ve somunlar ürüne dahil değildir.\nYaklaşık dış ölçüler: 180 × 164 × 20 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr507879-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr507879-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr507879-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "mistic100",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr827470-ikea-skadis-aa-ve-aaa-pil-tutucu-dagitici",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA Skadis AA ve AAA Pil Tutucu ve Dağıtıcı",
+    "aciklama": "IKEA Skadis delikli panosuna takılan, AA ve AAA boy pilleri düzenli biçimde saklamak ve gerektiğinde tek tek almak için hazırlanmış bir pil tutucu ve dağıtıcıdır. Kaynağında en fazla 11 AA ve 11 AAA pil alabildiği anlatılır. Pano ve piller ürüne dahil değildir.\nYaklaşık dış ölçüler: 153 × 123 × 15 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr827470-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr827470-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr827470-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Houzvicka",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr1708580-john-deere-lt150-bardaklik-telefon-tutucusu",
+    "kategori": "Bahçe",
+    "marka": [
+      "John Deere"
+    ],
+    "uyum": [
+      {
+        "marka": "John Deere"
+      }
+    ],
+    "baslik": "John Deere LT150 Bardaklık Telefon Tutucusu",
+    "aciklama": "John Deere LT150'nin küçük bardaklık yuvasına yerleştirilen bir telefon tutucudur. Kaynağında telefonun küçük bardaklığa yerleştirilerek büyük bardaklığın içecek için boş bırakılmasının amaçlandığı belirtilir. Telefon ve araç ürüne dahil değildir.\nYaklaşık dış ölçüler: 98 × 80 × 69 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1708580-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1708580-2.jpg"
+    ]
+  },
+  {
+    "id": "pr1463478-john-deere-cim-supurucu-ip-tutamagi",
+    "kategori": "Bahçe",
+    "marka": [
+      "John Deere"
+    ],
+    "uyum": [
+      {
+        "marka": "John Deere"
+      }
+    ],
+    "baslik": "John Deere Çim Süpürücü İp Tutamağı",
+    "aciklama": "John Deere çim süpürücüsünde ipi elle çekmek için kullanılan bir tutamaktır. Kaynağında tutamağın çim süpürücüyle kullanılmak üzere hazırlandığı ve başka işlerde de ip çekme tutamağı olarak kullanılabileceği belirtilir. Çim süpürücü ve ip ürüne dahil değildir.\nYaklaşık dış ölçüler: 152 × 115 × 25 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1463478-1.jpg"
+    ]
+  },
+  {
+    "id": "pr107865-ryobi-expand-it-aski-kapagi",
+    "kategori": "Ev",
+    "marka": [
+      "Ryobi"
+    ],
+    "uyum": [
+      {
+        "marka": "Ryobi"
+      }
+    ],
+    "baslik": "Ryobi Expand-It Askı Kapağı",
+    "aciklama": "Ryobi Expand-It aksesuarlarının uçlarına takılan, aksesuarı duvarda askıda saklamak için hazırlanmış basit bir askı kapağıdır. Kaynağında Ryobi'nin aksesuarlarla birlikte verdiği askı kapağına yakın bir kapak olarak hazırlandığı belirtilir. Aksesuarlar ürüne dahil değildir.\nYaklaşık dış ölçüler: 52 × 45 × 30 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr107865-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr107865-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "mressler",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Duvar ve Askı"
+  },
+  {
+    "id": "pr102139-ryobi-gonye-testeresi-elektrikli-supurge-adaptoru",
+    "kategori": "Ev",
+    "marka": [
+      "Ryobi"
+    ],
+    "uyum": [
+      {
+        "marka": "Ryobi"
+      }
+    ],
+    "baslik": "Ryobi Gönye Testeresi Elektrikli Süpürge Adaptörü",
+    "aciklama": "Ryobi gönye testeresinin toz çıkış ağzına elektrikli süpürge hortumunu bağlamak için hazırlanmış bir adaptördür. Kaynağında TSS103T model gönye testeresi için hazırlandığı ve hortumun oturması için süpürge tarafındaki dış yüzeyin hafifçe zımparalanması gerektiği belirtilir. Testere, süpürge ve hortum ürüne dahil değildir.\nYaklaşık dış ölçüler: 76 × 55 × 55 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr102139-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr102139-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr102139-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "nicholaskillin",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "pr862794-ryobi-one-orbital-zimpara-duvar-askisi",
+    "kategori": "Ev",
+    "marka": [
+      "Ryobi"
+    ],
+    "uyum": [
+      {
+        "marka": "Ryobi"
+      }
+    ],
+    "baslik": "Ryobi One+ Orbital Zımpara Duvar Askısı",
+    "aciklama": "Ryobi One+ orbital zımpara makinesini duvara asarak saklamak için hazırlanmış basit bir duvar askısıdır. Zımpara makinesi ve montaj elemanları ürüne dahil değildir.\nYaklaşık dış ölçüler: 130 × 65 × 21 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr862794-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr862794-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Erik",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Duvar ve Askı"
+  },
+  {
+    "id": "pr861398-ryobi-supurge-aksesuarlari-duvar-askisi",
+    "kategori": "Ev",
+    "marka": [
+      "Ryobi"
+    ],
+    "uyum": [
+      {
+        "marka": "Ryobi"
+      }
+    ],
+    "baslik": "Ryobi Süpürge Aksesuarları Duvar Askısı",
+    "aciklama": "Ryobi PBLSV717B çubuk süpürgenin yanında gelen uç ve fırça gibi aksesuarları duvarda saklamak için hazırlanmış bir askıdır. Kaynağında süpürgenin dolapta duvara asıldığı, aksesuarlar için de ayrı bir saklama çözümüne ihtiyaç duyulduğu anlatılır. Süpürge ve aksesuarlar ürüne dahil değildir.\nYaklaşık dış ölçüler: 155 × 56 × 45 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr861398-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr861398-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "RT3D",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Duvar ve Askı"
+  },
+  {
     "id": "pr34849-raspberry-pi-zero-montaj-kulakli-ince-kasa",
     "kategori": "Elektronik",
     "marka": [
