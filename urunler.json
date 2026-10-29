@@ -1,5 +1,410 @@
 [
   {
+    "id": "pr15208-raspberry-pi-ilk-nesil-dokunmatik-ekran-standi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Raspberry Pi"
+    ],
+    "uyum": [
+      {
+        "marka": "Raspberry Pi"
+      }
+    ],
+    "baslik": "Raspberry Pi İlk Nesil Dokunmatik Ekran Standı",
+    "aciklama": "Raspberry Pi ilk nesil dokunmatik ekranını masa üzerinde tutmak için hazırlanmış, iki ayaklı sade bir ekran standıdır. Kaynağında ayaktan iki adet gerektiği ve her ayağın ekrana dört vidayla bağlandığı anlatılır. Ayakların çentikli ve çentiksiz iki sürümü bulunur. Ekran, vidalar ve Raspberry Pi ürüne dahil değildir.\nYaklaşık dış ölçüler: 113 × 80 × 20 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr15208-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr15208-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr15208-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr15208-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "McMatt",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr605642-raspberry-pi-zero-2-w-kasasi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Raspberry Pi"
+    ],
+    "uyum": [
+      {
+        "marka": "Raspberry Pi"
+      }
+    ],
+    "baslik": "Raspberry Pi Zero 2 W Kasası",
+    "aciklama": "Raspberry Pi Zero 2 W kartı için hazırlanmış, alt ve üst olmak üzere iki parçadan oluşan ince bir kasadır. Dört vidayla birleştirilir. Kaynağında soğutucu için yer ayrıldığı ve GPIO pinleri için bir açıklık bulunduğu belirtilir. Alt parçanın montaj kulaklı bir sürümü de vardır. Kart, soğutucu ve vidalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 89 × 32 × 4 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr605642-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr605642-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr605642-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr605642-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "tn00364361",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr267869-raspberry-pi-pico-kasasi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Raspberry Pi"
+    ],
+    "uyum": [
+      {
+        "marka": "Raspberry Pi"
+      }
+    ],
+    "baslik": "Raspberry Pi Pico Kasası",
+    "aciklama": "Raspberry Pi Pico kartı için hazırlanmış, parçaları birbirine geçen ve vida gerektirmeyen küçük bir kasadır. Kaynağında kapağın hafifçe esneyerek yerine oturduğu, bir kenarın önce yerleştirilip diğer kenarın klipsle kapatıldığı anlatılır. Kasanın yan montajlı, taban montajlı ve uç montajlı üç sürümü hazırlanmıştır. Kapak olarak havalandırma delikli, giriş-çıkış pinlerine erişim sağlayan, şerit kablo geçişli ve kendi deliklerinizi açabileceğiniz düz seçenekler bulunur; tüm kapaklar ve tabanlar birbiriyle değiştirilebilir. USB bağlantı noktasına erişim açıktır. Pico kartı ürüne dahil değildir.\nYaklaşık dış ölçüler: 69 × 39 × 10 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr267869-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr267869-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr267869-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr267869-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DotNetWorker",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr173628-ikea-skadis-capak-alma-aleti-tutucusu",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA Skadis Çapak Alma Aleti Tutucusu",
+    "aciklama": "IKEA Skadis delikli panosuna takılan, çapak alma aletini asılı biçimde saklamak için hazırlanmış küçük bir tutucudur. Kaynağında, aletin tutucunun çatalından kolayca kaymaması için ilk tasarıma iki durdurucu eklendiği anlatılır. Pano ve alet ürüne dahil değildir.\nYaklaşık dış ölçüler: 26 × 15 × 14 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr173628-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Dayrusher (remix: Technofrikus)",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr860278-ikea-malm-cekmece-bolucu",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA MALM Çekmece Bölücü",
+    "aciklama": "IKEA MALM çekmecelerinin içini ayrı bölmelere ayırmak için hazırlanmış bir çekmece bölücüdür. Kaynağında çorap, pantolon ve üst giyimin aynı çekmecede karışmadan durması için kullanılabileceği anlatılır. Bölücü iki yarımdan oluşur ve yarımlar bağlayıcı klipsle birleşir; kaynağında vida ya da yapıştırıcı gerekmediği belirtilir. Bağlayıcının sıkı oturan ve daha toleranslı olmak üzere iki sürümü bulunur; daha toleranslı sürümde çok eşya konulduğunda bölücünün biraz daha esneyebileceği anlatılır. Kaynağında çekmece dolap içine monte edilmişse bölücünün çekmecenin içinde birleştirilmesinin daha uygun olduğu belirtilir. Çekmece ve eşyalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 213 × 170 × 155 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr860278-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr860278-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr860278-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr860278-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "byWulf",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr1280271-ikea-masa-ve-raf-kenari-kablo-duzenleyici-kelepce",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA Masa ve Raf Kenarı Kablo Düzenleyici Kelepçe",
+    "aciklama": "IKEA Langkapten masalarının ve Kallax raflarının kenarına geçirilen, kabloları yerinde tutmaya yardımcı olması için hazırlanmış sade bir kablo düzenleyici kelepçedir. Kaynağında kabloların yerinde durmasına ve düzenin biraz daha temiz görünmesine yardımcı olduğu anlatılır. Üç ayrı kalınlığa göre üç farklı boyda hazırlanmıştır. Masa, raf ve kablolar ürüne dahil değildir.\nYaklaşık dış ölçüler: 61 × 41 × 30 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1280271-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1280271-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "matrowgen",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr620579-ikea-kallax-cekmecesi-petek-kablo-duzenleyici",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA Kallax Çekmecesi İçin Petek Kablo Düzenleyici",
+    "aciklama": "IKEA Kallax çekmecesinin içine yerleşecek biçimde hazırlanmış, petek gözlü bir kablo ve küçük eşya düzenleyicisidir. Dört parçadan oluşan setin toplam altmış gözü bulunur. Kaynağında düzenleyicinin tabanlı olduğu, böylece çekmeceden kablolar dökülmeden çıkarılabildiği anlatılır. Ön ve arka parçalar ayrı ayrı bir ya da iki adet kullanılabilir; kaynağında düzenleyicinin çekmece dışında rafta da kullanılabildiği belirtilir. Çekmece, kablolar ve diğer eşyalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 167 × 139 × 75 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr620579-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr620579-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr620579-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "beandev",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr92516-ikea-skadis-sd-ve-microsd-kart-tutucusu",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA Skadis SD ve microSD Kart Tutucusu",
+    "aciklama": "IKEA Skadis delikli panosuna takılan, SD kartları düzenli biçimde saklamak için hazırlanmış bir kart tutucudur. İki sürümü bulunur: yalnız SD kartlar için olan sürüm ve SD ile microSD kart yuvalarını birlikte içeren sürüm. Kaynağında kartların her zaman elinizin altında durması amacıyla hazırlandığı anlatılır. Pano ve kartlar ürüne dahil değildir.\nYaklaşık dış ölçüler: 54 × 39 × 19 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr92516-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JayFiDev",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr109219-raspberry-pi-kamera-lens-ayarlayicisi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Raspberry Pi"
+    ],
+    "uyum": [
+      {
+        "marka": "Raspberry Pi"
+      }
+    ],
+    "baslik": "Raspberry Pi Kamera Lens Ayarlayıcısı",
+    "aciklama": "Raspberry Pi kamera modülünün lensini çevirerek odak ayarı yapmak için hazırlanmış, kenarı tırtıklı küçük bir ayar parçasıdır. Kaynağında Raspberry Pi Kamera 2.0 modülü örnek alınarak çizildiği belirtilir. Kamera modülü ürüne dahil değildir.\nYaklaşık dış ölçüler: 23 × 23 × 20 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr109219-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr109219-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr109219-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Liam_Plumridge",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr142356-raspberry-pi-3-a-kasasi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Raspberry Pi"
+    ],
+    "uyum": [
+      {
+        "marka": "Raspberry Pi"
+      }
+    ],
+    "baslik": "Raspberry Pi 3 A+ Kasası",
+    "aciklama": "Raspberry Pi 3 A+ kartı için hazırlanmış, alt gövde ve üst kapaktan oluşan sade bir kasadır. Kaynağında güç, HDMI, ses, USB ve microSD girişleri için açıklıkların bulunduğu, alt gövdedeki bir açıklıkla kartın parmakla itilerek çıkarılabildiği anlatılır. Üst kapak düz sürümünün yanı sıra kamera, ekran ve GPIO açıklıklarının tek tek ve birlikte yer aldığı sürümlerle hazırlanmıştır. Kart ürüne dahil değildir.\nYaklaşık dış ölçüler: 68 × 59 × 10 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr142356-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr142356-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr142356-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr142356-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dfoles",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr271014-ikea-skadis-kablo-tutucusu",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA Skadis Kablo Tutucusu",
+    "aciklama": "IKEA Skadis delikli panosuna kırlangıç kuyruğu biçimli kancalarla asılan, kabloları düzenli biçimde ayırmak için hazırlanmış tarak biçiminde bir kablo tutucudur. Kaynağında USB kabloları için hazırlandığı, diğer kablolarla da kullanılabileceği anlatılır. Pano ve kablolar ürüne dahil değildir.\nYaklaşık dış ölçüler: 216 × 49 × 30 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr271014-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr271014-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr271014-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Tiggr",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr170875-ikea-skadis-usb-tutucu",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA Skadis USB Tutucu",
+    "aciklama": "IKEA Skadis delikli panosuna takılan, USB bellekleri sekiz ayrı yuvada düzenli biçimde saklamak için hazırlanmış bir tutucudur. Kaynağında tutucunun parametrik olarak tasarlandığı anlatılır. Pano ve USB bellekler ürüne dahil değildir.\nYaklaşık dış ölçüler: 171 × 47 × 30 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr170875-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr170875-2.jpg"
+    ],
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr119327-ikea-ivar-raf-kutulari",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA Ivar Raf Kutuları",
+    "aciklama": "IKEA Ivar raf sisteminin bağlantı parçasının genişliğine asılacak biçimde hazırlanmış iki basit kutudur. Kaynağında iki kutunun yan yana kullanıldığında bu genişliğe tam oturduğu anlatılır. Kutular iki ayrı boydadır ve her birinin ortasında küçük bir ayırıcı bulunur. Raf ürüne dahil değildir.\nYaklaşık dış ölçüler: 123 × 76 × 70 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr119327-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr119327-2.jpg"
+    ],
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr115175-ryobi-pblhm101-cok-uclu-tutucu",
+    "kategori": "Ev",
+    "marka": [
+      "Ryobi"
+    ],
+    "uyum": [
+      {
+        "marka": "Ryobi"
+      }
+    ],
+    "baslik": "Ryobi PBLHM101 Matkap İçin Çok Uçlu Tutucu",
+    "aciklama": "Ryobi PBLHM101 darbeli matkabın alt kısmına takılarak birden fazla vidalama ucunu taşımak için hazırlanmış küçük bir uç tutucusudur. Kaynağında matkapla birlikte uç tutucu gelmediği için hazırlandığı, tutucunun kemer klipsi vidasıyla matkaba bağlandığı anlatılır. Sağ ve sol taraf için iki ayrı sürümü bulunur. Matkap, uçlar ve vida ürüne dahil değildir.\nYaklaşık dış ölçüler: 35 × 18 × 14 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr115175-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr115175-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JPMakesStuff",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Duvar ve Askı"
+  },
+  {
+    "id": "pr338143-ryobi-surucu-uc-rafi",
+    "kategori": "Ev",
+    "marka": [
+      "Ryobi"
+    ],
+    "uyum": [
+      {
+        "marka": "Ryobi"
+      }
+    ],
+    "baslik": "Ryobi Sürücü Uç Rafı",
+    "aciklama": "Ryobi vidalama ucu setlerinin kutusunda kullanılan modüler uç saklama rafına ek olarak hazırlanmış bir uç rafıdır. Kaynağında kutunun modüler olduğu, bazı setlerde kutuya sığan uç sayısının setle gelenden fazla olabildiği ve rafların yerleri değiştirilerek ek rafın kullanılabileceği anlatılır. Kutu ve uçlar ürüne dahil değildir.\nYaklaşık dış ölçüler: 80 × 20 × 20 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr338143-1.jpg"
+    ],
+    "altkategori": "Duvar ve Askı"
+  },
+  {
+    "id": "pr24891-ryobi-r18pi-kompresor-askisi",
+    "kategori": "Ev",
+    "marka": [
+      "Ryobi"
+    ],
+    "uyum": [
+      {
+        "marka": "Ryobi"
+      }
+    ],
+    "baslik": "Ryobi R18PI Kompresör Askısı",
+    "aciklama": "Ryobi R18PI kompresörü duvarda asılı saklamak için hazırlanmış, kılıf biçiminde bir askıdır; duvara iki vidayla sabitlenir. Kaynağında askıya takılıyken kompresörün engelsiz biçimde hemen alınabildiği anlatılır. Kompresör ve vidalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 110 × 70 × 45 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr24891-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Kahnindustries",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Duvar ve Askı"
+  },
+  {
+    "id": "pr519951-ryobi-radyo-duvar-askisi",
+    "kategori": "Ev",
+    "marka": [
+      "Ryobi"
+    ],
+    "uyum": [
+      {
+        "marka": "Ryobi"
+      }
+    ],
+    "baslik": "Ryobi Radyo Duvar Askısı",
+    "aciklama": "Ryobi P742 radyoyu duvarda asılı saklamak için hazırlanmış, kama biçiminde tek parça bir duvar plakasıdır. Plakada iki vida deliği bulunur ve duvara vidalarla sabitlenir. Kaynağında P742 model radyo için hazırlandığı belirtilir. Radyo ve vidalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 150 × 70 × 23 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr519951-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr519951-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "P Loaring",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Duvar ve Askı"
+  },
+  {
     "id": "pr37992-raspberry-pi-kompakt-raf",
     "kategori": "Elektronik",
     "marka": [
