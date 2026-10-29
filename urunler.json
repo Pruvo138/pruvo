@@ -1,5 +1,204 @@
 [
   {
+    "id": "pr15208-raspberry-pi-ilk-nesil-dokunmatik-ekran-standi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Raspberry Pi"
+    ],
+    "uyum": [
+      {
+        "marka": "Raspberry Pi"
+      }
+    ],
+    "baslik": "Raspberry Pi İlk Nesil Dokunmatik Ekran Standı",
+    "aciklama": "Raspberry Pi ilk nesil dokunmatik ekranını masa üzerinde tutmak için hazırlanmış, iki ayaklı sade bir ekran standıdır. Kaynağında ayaktan iki adet gerektiği ve her ayağın ekrana dört vidayla bağlandığı anlatılır. Ayakların çentikli ve çentiksiz iki sürümü bulunur. Ekran, vidalar ve Raspberry Pi ürüne dahil değildir.\nYaklaşık dış ölçüler: 113 × 80 × 20 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr15208-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr15208-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr15208-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr15208-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "McMatt",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr605642-raspberry-pi-zero-2-w-kasasi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Raspberry Pi"
+    ],
+    "uyum": [
+      {
+        "marka": "Raspberry Pi"
+      }
+    ],
+    "baslik": "Raspberry Pi Zero 2 W Kasası",
+    "aciklama": "Raspberry Pi Zero 2 W kartı için hazırlanmış, alt ve üst olmak üzere iki parçadan oluşan ince bir kasadır. Dört vidayla birleştirilir. Kaynağında soğutucu için yer ayrıldığı ve GPIO pinleri için bir açıklık bulunduğu belirtilir. Alt parçanın montaj kulaklı bir sürümü de vardır. Kart, soğutucu ve vidalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 89 × 32 × 4 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr605642-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr605642-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr605642-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr605642-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "tn00364361",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr267869-raspberry-pi-pico-kasasi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Raspberry Pi"
+    ],
+    "uyum": [
+      {
+        "marka": "Raspberry Pi"
+      }
+    ],
+    "baslik": "Raspberry Pi Pico Kasası",
+    "aciklama": "Raspberry Pi Pico kartı için hazırlanmış, parçaları birbirine geçen ve vida gerektirmeyen küçük bir kasadır. Kaynağında kapağın hafifçe esneyerek yerine oturduğu, bir kenarın önce yerleştirilip diğer kenarın klipsle kapatıldığı anlatılır. Kasanın yan montajlı, taban montajlı ve uç montajlı üç sürümü hazırlanmıştır. Kapak olarak havalandırma delikli, giriş-çıkış pinlerine erişim sağlayan, şerit kablo geçişli ve kendi deliklerinizi açabileceğiniz düz seçenekler bulunur; tüm kapaklar ve tabanlar birbiriyle değiştirilebilir. USB bağlantı noktasına erişim açıktır. Pico kartı ürüne dahil değildir.\nYaklaşık dış ölçüler: 69 × 39 × 10 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr267869-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr267869-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr267869-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr267869-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DotNetWorker",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr173628-ikea-skadis-capak-alma-aleti-tutucusu",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA Skadis Çapak Alma Aleti Tutucusu",
+    "aciklama": "IKEA Skadis delikli panosuna takılan, çapak alma aletini asılı biçimde saklamak için hazırlanmış küçük bir tutucudur. Kaynağında, aletin tutucunun çatalından kolayca kaymaması için ilk tasarıma iki durdurucu eklendiği anlatılır. Pano ve alet ürüne dahil değildir.\nYaklaşık dış ölçüler: 26 × 15 × 14 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr173628-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Dayrusher (remix: Technofrikus)",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr860278-ikea-malm-cekmece-bolucu",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA MALM Çekmece Bölücü",
+    "aciklama": "IKEA MALM çekmecelerinin içini ayrı bölmelere ayırmak için hazırlanmış bir çekmece bölücüdür. Kaynağında çorap, pantolon ve üst giyimin aynı çekmecede karışmadan durması için kullanılabileceği anlatılır. Bölücü iki yarımdan oluşur ve yarımlar bağlayıcı klipsle birleşir; kaynağında vida ya da yapıştırıcı gerekmediği belirtilir. Bağlayıcının sıkı oturan ve daha toleranslı olmak üzere iki sürümü bulunur; daha toleranslı sürümde çok eşya konulduğunda bölücünün biraz daha esneyebileceği anlatılır. Kaynağında çekmece dolap içine monte edilmişse bölücünün çekmecenin içinde birleştirilmesinin daha uygun olduğu belirtilir. Çekmece ve eşyalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 213 × 170 × 155 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr860278-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr860278-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr860278-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr860278-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "byWulf",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr1280271-ikea-masa-ve-raf-kenari-kablo-duzenleyici-kelepce",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA Masa ve Raf Kenarı Kablo Düzenleyici Kelepçe",
+    "aciklama": "IKEA Langkapten masalarının ve Kallax raflarının kenarına geçirilen, kabloları yerinde tutmaya yardımcı olması için hazırlanmış sade bir kablo düzenleyici kelepçedir. Kaynağında kabloların yerinde durmasına ve düzenin biraz daha temiz görünmesine yardımcı olduğu anlatılır. Üç ayrı kalınlığa göre üç farklı boyda hazırlanmıştır. Masa, raf ve kablolar ürüne dahil değildir.\nYaklaşık dış ölçüler: 61 × 41 × 30 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1280271-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1280271-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "matrowgen",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr620579-ikea-kallax-cekmecesi-petek-kablo-duzenleyici",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA Kallax Çekmecesi İçin Petek Kablo Düzenleyici",
+    "aciklama": "IKEA Kallax çekmecesinin içine yerleşecek biçimde hazırlanmış, petek gözlü bir kablo ve küçük eşya düzenleyicisidir. Dört parçadan oluşan setin toplam altmış gözü bulunur. Kaynağında düzenleyicinin tabanlı olduğu, böylece çekmeceden kablolar dökülmeden çıkarılabildiği anlatılır. Ön ve arka parçalar ayrı ayrı bir ya da iki adet kullanılabilir; kaynağında düzenleyicinin çekmece dışında rafta da kullanılabildiği belirtilir. Çekmece, kablolar ve diğer eşyalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 167 × 139 × 75 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr620579-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr620579-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr620579-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "beandev",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr92516-ikea-skadis-sd-ve-microsd-kart-tutucusu",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA Skadis SD ve microSD Kart Tutucusu",
+    "aciklama": "IKEA Skadis delikli panosuna takılan, SD kartları düzenli biçimde saklamak için hazırlanmış bir kart tutucudur. İki sürümü bulunur: yalnız SD kartlar için olan sürüm ve SD ile microSD kart yuvalarını birlikte içeren sürüm. Kaynağında kartların her zaman elinizin altında durması amacıyla hazırlandığı anlatılır. Pano ve kartlar ürüne dahil değildir.\nYaklaşık dış ölçüler: 54 × 39 × 19 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr92516-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JayFiDev",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
     "id": "pr109219-raspberry-pi-kamera-lens-ayarlayicisi",
     "kategori": "Elektronik",
     "marka": [
