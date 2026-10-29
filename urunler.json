@@ -1,5 +1,252 @@
 [
   {
+    "id": "pr291082-roland-td-25-fare-standi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Roland"
+    ],
+    "uyum": [
+      {
+        "marka": "Roland"
+      }
+    ],
+    "baslik": "Roland TD-25 Fare Standı",
+    "aciklama": "Roland TD-25 elektronik davul setinin yapısına bağlanan, bilgisayar faresi için bir kol ve levha düzeneğidir; davul yazılımını setten ayrılmadan kullanmak üzere hazırlanmıştır. Kaynağında kolun levhaya dört vida ile, davul yapısına ise bir cıvata, iki rondela ve bir somunla bağlandığı; levhanın içine oturacak şekilde bir fare altlığının ayrıca kesildiği belirtilir. Vida, cıvata, rondela, somun ve fare altlığı ürüne dahil değildir.\nYaklaşık dış ölçüler: 144 × 83 × 80 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr291082-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr291082-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr291082-3.jpg"
+    ],
+    "altkategori": "Ses ve Müzik"
+  },
+  {
+    "id": "pr187705-roland-mc-707-groovebox-standi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Roland"
+    ],
+    "uyum": [
+      {
+        "marka": "Roland"
+      }
+    ],
+    "baslik": "Roland MC-707 Groovebox Standı",
+    "aciklama": "Roland MC-707 Groovebox için hazırlanmış, iki parçalı bir ayak standıdır. Kaynağında standın ek parça ya da yapıştırıcı gerektirmediği, cihazın kendi vida deliklerinden yararlandığı ve ek bir dil çıkıntısı bulunduğu belirtilir; geçmeli yapının hafif sıkılıkta olduğu ve masaüstü kullanım için tasarlandığı anlatılır. Cihaz ürüne dahil değildir.\nYaklaşık dış ölçüler: 255 × 83 × 40 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr187705-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr187705-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr187705-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr187705-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "atok"
+    },
+    "altkategori": "Ses ve Müzik"
+  },
+  {
+    "id": "pr564243-roland-aira-s-1-tasima-kutusu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Roland"
+    ],
+    "uyum": [
+      {
+        "marka": "Roland"
+      }
+    ],
+    "baslik": "Roland AIRA S-1 Taşıma Kutusu",
+    "aciklama": "Roland AIRA S-1 sentezleyici için hazırlanmış taşıma kutusu ve kapağıdır. Kaynağında kutunun cihazın rahat girmesi için geniş toleranslı hazırlandığı, cihazı kutuya sabitlemek için iki çentiğin üzerinden bir saç lastiği geçirilebildiği ve lastiğin ek kabloları saklamak için de kullanılabildiği belirtilir. Sentezleyici, saç lastiği ve kablolar ürüne dahil değildir.\nYaklaşık dış ölçüler: 196 × 124 × 36 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr564243-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr564243-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr564243-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr564243-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Aurel"
+    },
+    "altkategori": "Ses ve Müzik"
+  },
+  {
+    "id": "th2236462-moccamaster-olcu-kabi-ve-seyahat-kapagi-braketi",
+    "kategori": "Ev",
+    "marka": [
+      "Moccamaster"
+    ],
+    "uyum": [
+      {
+        "marka": "Moccamaster"
+      }
+    ],
+    "baslik": "Moccamaster Ölçü Kabı ve Seyahat Kapağı Braketi",
+    "aciklama": "Moccamaster kahve makineleriyle birlikte gelen ölçü kabını ve termos seyahat kapağını bir arada tutan braket parçasıdır. Kaynağında gevşek parçaların kaybolmaması için tasarlandığı, ikinci sürümde daha iyi bir ölçü kaşığı tutucusu, daha kalın bir bağlantı parçası ve karıştırma çubukları ile şeker kaşığı gibi eşyalar için yüksek bölmeler eklendiği belirtilir.\nYaklaşık dış ölçüler: 188 × 124 × 80 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2236462-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2236462-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2236462-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "kmbartlett22"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr246418-moccamaster-kbgt-su-haznesi-kapagi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Moccamaster"
+    ],
+    "uyum": [
+      {
+        "marka": "Moccamaster"
+      }
+    ],
+    "baslik": "Moccamaster KBGT Su Haznesi Kapağı",
+    "aciklama": "Moccamaster KBGT kahve makinesinin su haznesi için hazırlanmış kapaktır. Kaynağında, standart kapağın çıkış koluna oturduğu için kapağın iç boşluğunun daha yüksek olacak şekilde tasarlandığı belirtilir.\nYaklaşık dış ölçüler: 160 × 126 × 34 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr246418-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr246418-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr246418-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "blkhd"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "th1836318-keurig-donen-35li-k-cup-tutucu",
+    "kategori": "Ev",
+    "marka": [
+      "Keurig"
+    ],
+    "uyum": [
+      {
+        "marka": "Keurig"
+      }
+    ],
+    "baslik": "Keurig Dönen 35'li K-Cup Kapsül Tutucu",
+    "aciklama": "35 adet K-Cup kahve kapsülü alan, dönebilen kule tipi bir kapsül tutucudur. Kaynağında parçaların yapıştırıcı gerektirmeden birbirine geçecek şekilde tasarlandığı belirtilir; bir taban, bir üst ve bir alt tabla, 14 taşıyıcı çubuk ve 35 kapsül yuvasından oluşur.\nYaklaşık dış ölçüler: 190 × 144 × 142 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1836318-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1836318-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1836318-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "Atwgoodman"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "th2948293-keurig-k-cup-telve-cikarici",
+    "kategori": "Ev",
+    "marka": [
+      "Keurig"
+    ],
+    "uyum": [
+      {
+        "marka": "Keurig"
+      }
+    ],
+    "baslik": "Keurig K-Cup Telve Çıkarıcı",
+    "aciklama": "Kullanılmış K-Cup kapsüllerinin içindeki kahve telvesini çıkarmak için vida mantığıyla çalışan bir alettir. Kaynağında standart geniş ağızlı bir kavanoza oturduğu belirtilir; kapsül folyosunu delen platformlu ve platformsuz iki model ile sol dişli sürümleri bulunur.\nYaklaşık dış ölçüler: 123 × 84 × 44 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2948293-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2948293-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2948293-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "PsychProd"
+    },
+    "altkategori": "Mutfak"
+  },
+  {
+    "id": "th3545597-keurig-dusuk-profil-damlalik",
+    "kategori": "Elektronik",
+    "marka": [
+      "Keurig"
+    ],
+    "uyum": [
+      {
+        "marka": "Keurig"
+      }
+    ],
+    "baslik": "Keurig Düşük Profilli Damlalık",
+    "aciklama": "Keurig kahve makinesi için hazırlanmış, daha uzun fincanlara yer açmak üzere alçak yapılı bir damlalık tepsisidir. Kaynağında tepsinin Keurig 2.0 ailesinden K300, K350, K400, K450, K500, K550 ve K560 modelleri için hazırlandığı belirtilir. Kahve makinesi ürüne dahil değildir.\nYaklaşık dış ölçüler: 171 × 111 × 14 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3545597-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3545597-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3545597-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3545597-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "Neda1960"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "pr1056443-keurig-tezgah-alti-k-cup-tutucu",
+    "kategori": "Ev",
+    "marka": [
+      "Keurig"
+    ],
+    "uyum": [
+      {
+        "marka": "Keurig"
+      }
+    ],
+    "baslik": "Keurig Tezgah Altı K-Cup Kapsül Tutucu",
+    "aciklama": "Tezgahın altına monte edilen, 12 adet Keurig K-Cup kahve kapsülü alan bir tutucudur. Kaynağında çift taraflı bant ile tutturulduğu belirtilir; bant ürüne dahil değildir.\nYaklaşık dış ölçüler: 210 × 171 × 19 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1056443-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Nottingham82"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr579223-keurig-k-cup-saklama-cekmecesi",
+    "kategori": "Ev",
+    "marka": [
+      "Keurig"
+    ],
+    "uyum": [
+      {
+        "marka": "Keurig"
+      }
+    ],
+    "baslik": "Keurig K-Cup Saklama Çekmecesi",
+    "aciklama": "Kahve makinesinin altına yerleştirilen K-Cup kapsül saklama çekmecesidir; dış kabuk, çekmece ve tutucu parçalarından oluşur. Kaynağında tek fincanlı ince makineler için hazırlandığı, makineye sığması için hafifçe küçültülebileceği belirtilir.\nYaklaşık dış ölçüler: 280 × 166 × 56 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr579223-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr579223-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr579223-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "richspencer71"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
     "id": "th2839898-ninja-kahve-kasigi-tutucu",
     "kategori": "Elektronik",
     "marka": [
