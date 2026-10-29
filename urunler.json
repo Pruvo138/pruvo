@@ -1,5 +1,458 @@
 [
   {
+    "id": "pr625874-roland-aira-compact-istiflenebilir-toz-kapagi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Roland"
+    ],
+    "uyum": [
+      {
+        "marka": "Roland"
+      }
+    ],
+    "baslik": "Roland Aira Compact İstiflenebilir Toz Kapağı",
+    "aciklama": "Roland Aira Compact serisi cihazlar için hazırlanmış, üst üste istiflenebilen bir kapaktır. Kaynağında kapağın T-8 ve S-1 cihazlarıyla denendiği, J-6 için de uygun olması gerektiği; dört dairesel yuvanın başka bir cihazın kauçuk ayaklarını alarak istiflemeye imkan verdiği, iç tarafta keçe ya da köpük pedler için dört yuva bulunduğu ve kapağın cihazı yükseltmek için ayak olarak da kullanılabildiği anlatılır. Kaynağında iç yüzeye birkaç küçük ped yapıştırılması dışında ek bir işlem gerekmediği belirtilir. Cihazlar ve pedler ürüne dahil değildir.\nYaklaşık dış ölçüler: 190 × 106 × 18 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr625874-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr625874-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Marco Lebdech"
+    },
+    "altkategori": "Ses ve Müzik"
+  },
+  {
+    "id": "pr409938-roland-td-25-kablo-yonetimi-klipsi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Roland"
+    ],
+    "uyum": [
+      {
+        "marka": "Roland"
+      }
+    ],
+    "baslik": "Roland TD-25 Kablo Yönetimi Klipsi",
+    "aciklama": "Roland TD-25 elektronik davul seti kablolarını toplamak için hazırlanmış küçük bir kablo klipsidir. Kaynağında klipsin tek başına ya da bir lastikle birlikte kullanılabileceği belirtilir. Davul seti ve lastik ürüne dahil değildir.\nYaklaşık dış ölçüler: 70 × 44 × 13 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr409938-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr409938-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr409938-3.jpg"
+    ],
+    "altkategori": "Ses ve Müzik"
+  },
+  {
+    "id": "pr559862-roland-td11-kick-pad-tutucusu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Roland"
+    ],
+    "uyum": [
+      {
+        "marka": "Roland"
+      }
+    ],
+    "baslik": "Roland TD11 Kick Pad Tutucusu",
+    "aciklama": "Roland TD11 elektronik davul setinin kick padi için hazırlanmış bir tutucu braketidir. Kaynağında parçanın, pad rafa sabitlenmediği için olması gereken yerde durmaması sorunu üzerine hazırlandığı belirtilir. Davul seti ve pad ürüne dahil değildir.\nYaklaşık dış ölçüler: 156 × 70 × 25 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr559862-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr559862-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr559862-3.jpg"
+    ],
+    "altkategori": "Ses ve Müzik"
+  },
+  {
+    "id": "pr463274-insta360-x-serisi-tasima-cantasi-duzenleyicisi",
+    "kategori": "Kamera",
+    "marka": [
+      "Insta360"
+    ],
+    "uyum": [
+      {
+        "marka": "Insta360"
+      }
+    ],
+    "baslik": "Insta360 X Serisi Taşıma Çantası Düzenleyicisi",
+    "aciklama": "Insta360 X serisi taşıma çantasının içine yerleştirilmek üzere hazırlanmış bir düzenleyicidir. Kaynağında düzenleyicinin, çantayla birlikte gelen düzenleyiciye göre daha fazla aksesuarı alacak şekilde tasarlandığı; Insta360 X3 kamera, görünmez selfie çubuğu, X3 batarya kutusu ve çok amaçlı tripod için hazırlandığı anlatılır. Yazar parçayı, az çıkıntılı olacak şekilde hazırlanmış kaba bir ilk sürüm olarak tanımlar. Çanta, kamera ve aksesuarlar ürüne dahil değildir.\nYaklaşık dış ölçüler: 220 × 146 × 48 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr463274-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr463274-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr463274-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "loa"
+    }
+  },
+  {
+    "id": "pr1188560-insta360-go-3-gozluk-kayisi-montaji",
+    "kategori": "Kamera",
+    "marka": [
+      "Insta360"
+    ],
+    "uyum": [
+      {
+        "marka": "Insta360"
+      }
+    ],
+    "baslik": "Insta360 Go 3 Gözlük Kayışı Montajı",
+    "aciklama": "Insta360 Go 3 ve Go 3S kamerayı kayak gözlüğünün kayışına bağlamak için hazırlanmış iki parçalı bir montajdır. Kaynağında iki parçanın kayışın çevresinde dört adet M3 vida ile birleştirildiği, ardından Go 3 şapka klipsinin takıldığı anlatılır; klipsin çenelerinin kolay açılması için düz kenarda pah bulunduğu, yapının dikey simetrik olduğu ve kameranın sağ ya da sol tarafta, lens aşağıda ya da yukarıda olacak biçimde yerleştirilebildiği belirtilir. Kamera, gözlük, şapka klipsi ve vidalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 72 × 49 × 22 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1188560-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1188560-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1188560-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "stingrayshaped"
+    }
+  },
+  {
+    "id": "pr915334-insta360-motosiklet-seti-kutu-duzenleyicisi",
+    "kategori": "Kamera",
+    "marka": [
+      "Insta360"
+    ],
+    "uyum": [
+      {
+        "marka": "Insta360"
+      }
+    ],
+    "baslik": "Insta360 Motosiklet Seti Kutu Düzenleyicisi",
+    "aciklama": "Insta360 One RS kamera ve motosiklet seti parçalarını bir arada saklamak için hazırlanmış bir saklama kutusu düzenleyicisidir. Kaynağında kutunun One RS için hazırlandığı ve motosiklet setine göre uyarlandığı, birleştirme için ayrıca M4x50 vida ve somun gerektiği, TPU malzemeden iç yataklar ile 4K lens için bir bölmenin de eklenmesinin düşünüldüğü anlatılır. Kamera, set parçaları, vida ve somunlar ürüne dahil değildir.\nYaklaşık dış ölçüler: 216 × 203 × 64 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr915334-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr915334-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr915334-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr915334-4.jpg"
+    ]
+  },
+  {
+    "id": "th3729223-rode-psa1-mikrofon-kolu-kablo-klipsi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Rode"
+    ],
+    "uyum": [
+      {
+        "marka": "Rode"
+      }
+    ],
+    "baslik": "Rode PSA1 Mikrofon Kolu Kablo Klipsi",
+    "aciklama": "Rode PSA1 masa mikrofon kolunun kablosunu kol boyunca toplamak için hazırlanmış basit bir kablo klipsidir. Kaynağında klipsin bu mikrofon kolu için tasarlandığı anlatılır. Mikrofon kolu ve kablo ürüne dahil değildir.\nYaklaşık dış ölçüler: 25 × 18 × 10 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3729223-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3729223-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3729223-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "JCrash"
+    },
+    "altkategori": "Ses ve Müzik"
+  },
+  {
+    "id": "th3166470-rode-ntg-2-soguk-ayakkabi-adaptoru",
+    "kategori": "Elektronik",
+    "marka": [
+      "Rode"
+    ],
+    "uyum": [
+      {
+        "marka": "Rode"
+      }
+    ],
+    "baslik": "Rode NTG-2 Soğuk Ayakkabı Adaptörü",
+    "aciklama": "Rode NTG-2 mikrofonu fotoğraf makinesinin soğuk ayakkabı yuvasına bağlamak için hazırlanmış bir adaptördür. Kaynağında adaptörün Nikon, Canon, Sony gibi DSLR makinelerle kullanılabileceği belirtilir. Mikrofon ve fotoğraf makinesi ürüne dahil değildir.\nYaklaşık dış ölçüler: 28 × 27 × 26 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3166470-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3166470-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3166470-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3166470-4.jpg"
+    ],
+    "altkategori": "Ses ve Müzik"
+  },
+  {
+    "id": "th4720588-rode-psa1-mikrofon-kolu-duvar-montaji",
+    "kategori": "Elektronik",
+    "marka": [
+      "Rode"
+    ],
+    "uyum": [
+      {
+        "marka": "Rode"
+      }
+    ],
+    "baslik": "Rode PSA1 Mikrofon Kolu Duvar Montajı",
+    "aciklama": "Rode PSA1 mikrofon kolunun duvara monte edilmesi için hazırlanmış bir duvar bağlantı parçasıdır. Kaynağında parçanın, tabana giren mil çapı aynı olan diğer mikrofon kollarıyla da büyük olasılıkla çalışacağı belirtilir. Mikrofon kolu ve mikrofon ürüne dahil değildir.\nYaklaşık dış ölçüler: 84 × 76 × 64 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4720588-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4720588-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4720588-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "StupidCow83"
+    },
+    "altkategori": "Ses ve Müzik"
+  },
+  {
+    "id": "th2795234-saeco-incanto-fincan-standi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Saeco"
+    ],
+    "uyum": [
+      {
+        "marka": "Saeco"
+      }
+    ],
+    "baslik": "Saeco Incanto Fincan Standı (Fincan Plakası Çizik Koruyucu)",
+    "aciklama": "Saeco Incanto kahve makinesinin krom fincan plakasının üzerine yerleştirilen bir fincan standı ızgarasıdır. Kaynağında parçanın plakanın sert seramik fincanlarla çizilmesinden kaçınmak için tasarlandığı, yanlardan süt kabının yerleştirilebildiği ve altındaki su göstergesinin görülebilmesi için boşluk bırakıldığı anlatılır. Kahve makinesi ürüne dahil değildir.\nYaklaşık dış ölçüler: 130 × 85 × 6 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2795234-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2795234-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2795234-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2795234-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "W0RSCHD"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "th3186121-miele-s711-hortum-baglantisi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Miele"
+    ],
+    "uyum": [
+      {
+        "marka": "Miele"
+      }
+    ],
+    "baslik": "Miele S711 Süpürge Hortum Bağlantı Parçası",
+    "aciklama": "Miele S711 süpürgenin hortumunun ucu koptuğunda, yaklaşık 10 santimetre kısalan hortum için hazırlanmış yeni bir uç parçasıdır. Kaynağında parçanın kendiliğinden sıkıştığı için yapıştırma gerektirmediği ve hortumun olukları boyunca vidalanarak takıldığı anlatılır. Hortum ve süpürge ürüne dahil değildir.\nYaklaşık dış ölçüler: 47 × 47 × 13 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3186121-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3186121-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3186121-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "JoVr"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "th3354660-miele-s5-ecoline-hava-regulatoru",
+    "kategori": "Elektronik",
+    "marka": [
+      "Miele"
+    ],
+    "uyum": [
+      {
+        "marka": "Miele"
+      }
+    ],
+    "baslik": "Miele S5 EcoLine Süpürge Hava Regülatörü",
+    "aciklama": "Miele S5 EcoLine süpürgenin kırılan hava regülatörünün yerine hazırlanmış bir parçadır. Kaynağında parçanın, regülatör bozulduktan sonra süpürgenin kullanım ömrünü uzatmak amacıyla hazırlandığı anlatılır. Süpürge ürüne dahil değildir.\nYaklaşık dış ölçüler: 46 × 29 × 10 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3354660-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3354660-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "dbalthasar"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "th2884410-miele-kfn-8767-kapak-kolu-parcasi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Miele"
+    ],
+    "uyum": [
+      {
+        "marka": "Miele"
+      }
+    ],
+    "baslik": "Miele KFN 8767 Buzdolabı Kapak Kolu Parçası",
+    "aciklama": "Miele KFN 8767 buzdolabının kapak kolunda, kapıyı iterek açan iç plastik parçanın yerine hazırlanmıştır. Kaynağında yalnızca bu küçük plastik parçanın sunulduğu, tüm kolun dahil olmadığı ve parçanın buzdolabı tarafından kaydırılarak yerine takıldığı anlatılır. Kapak kolu ve buzdolabı ürüne dahil değildir.\nYaklaşık dış ölçüler: 52 × 31 × 10 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2884410-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2884410-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "obseus"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "th2796188-kenwood-ts440s-vfo-dugmesi-parmak-deligi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Kenwood"
+    ],
+    "uyum": [
+      {
+        "marka": "Kenwood"
+      }
+    ],
+    "baslik": "Kenwood TS440s VFO Düğmesi Parmak Deliği",
+    "aciklama": "Kenwood TS440s telsizin VFO düğmesinde parmak ucuyla çevirmeye yarayan bir çıkıntı bulunmaması nedeniyle hazırlanmış küçük bir ek parçadır. Kaynağında parçanın düğmenin ön yüzüne yapıştırıldığı ve kenarı pahlanmış bir delik içerdiği anlatılır. Telsiz ve yapıştırıcı ürüne dahil değildir.\nYaklaşık dış ölçüler: 38 × 38 × 4 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2796188-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2796188-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "loughkb"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr286558-samsung-t7-shield-usb-kablo-tutucusu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Samsung"
+    ],
+    "uyum": [
+      {
+        "marka": "Samsung"
+      }
+    ],
+    "baslik": "Samsung T7 Shield USB Kablo Tutucusu",
+    "aciklama": "Samsung T7 Harici Sürücü için hazırlanmış bir kablo tutucudur; sürücüye klipsle takılır. Kaynağında tutucunun yalnızca Shield modeli için olduğu, her kablo kalınlığıyla kullanılabildiği ve sürücüyle gelen kabloya göre tasarlandığı belirtilir. Sürücü ve kablo ürüne dahil değildir.\nYaklaşık dış ölçüler: 63 × 35 × 15 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr286558-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr286558-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "mfischer79"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr132434-samsung-galaxy-tab-a7-lite-duvar-montaji",
+    "kategori": "Elektronik",
+    "marka": [
+      "Samsung"
+    ],
+    "uyum": [
+      {
+        "marka": "Samsung"
+      }
+    ],
+    "baslik": "Samsung Galaxy Tab A7 Lite Tablet Duvar Montajı",
+    "aciklama": "Samsung Galaxy Tab A7 Lite (SM-T220) için ölçüleri verilmiş, parametrik olarak çizilmiş bir tablet duvar montajıdır. Kaynağında kapağın 5 milimetre çapında, 1 milimetre kalınlığında yapıştırılmış mıknatıslarla yerinde durduğu ve alt tarafta şarj fişi için boşluk bırakıldığı anlatılır. Tablet, mıknatıs ve yapıştırıcı ürüne dahil değildir.\nYaklaşık dış ölçüler: 249 × 149 × 11 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr132434-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr132434-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr132434-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "DeluxeBabble"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "th4668717-shimano-xt-12-vites-arka-vites-degistirici-kafes-kilidi",
+    "kategori": "Bisiklet",
+    "marka": [
+      "Shimano"
+    ],
+    "uyum": [
+      {
+        "marka": "Shimano"
+      }
+    ],
+    "baslik": "Shimano XT 12 Vites Arka Vites Değiştirici Kafes Kilidi",
+    "aciklama": "Shimano XT 12 vites arka vites değiştiricinin kafes kilidi olarak hazırlanmış bir servis ve atölye parçasıdır. Kaynağında parçanın ABS malzemeyle üretildiği belirtilir; başka bir kullanım ya da montaj bilgisi verilmemiştir. Vites değiştirici ürüne dahil değildir.\nYaklaşık dış ölçüler: 33 × 28 × 21 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4668717-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4668717-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "Seamongrel"
+    },
+    "altkategori": "Bakım ve Alet"
+  },
+  {
+    "id": "th844117-shimano-spd-sl-tirnak-kapagi",
+    "kategori": "Bisiklet",
+    "marka": [
+      "Shimano"
+    ],
+    "uyum": [
+      {
+        "marka": "Shimano"
+      }
+    ],
+    "baslik": "Shimano SPD-SL Tırnak Kapağı",
+    "aciklama": "Shimano SPD-SL pedal tırnakları için hazırlanmış bir kapaktır. Kaynağında tasarımın geliştirilmekte olduğu, ilk kapaklar aşındığında gözden geçirilmiş bir sürümün hazırlanacağı ve iyileştirme önerilerinin beklendiği belirtilir. Tırnaklar ve ayakkabı ürüne dahil değildir.\nYaklaşık dış ölçüler: 96 × 68 × 11 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th844117-1.jpg",
+      "https://media.pruvo3d.com/urunler/th844117-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY-SA",
+      "tasarimci": "cilione"
+    },
+    "altkategori": "Bakım ve Alet"
+  },
+  {
+    "id": "pr539483-shimano-soket-anahtari",
+    "kategori": "Bisiklet",
+    "marka": [
+      "Shimano"
+    ],
+    "uyum": [
+      {
+        "marka": "Shimano"
+      }
+    ],
+    "baslik": "Shimano Soket Anahtarı",
+    "aciklama": "Pedalları sökerken plastik ara parçaları çıkarmak için hazırlanmış küçük bir soket anahtarıdır; bir servis ve atölye aletidir. Kaynağında anahtarın, Husqvarna MC7 bisikletinin pedallarını sökmek için gerekli olduğu ve aletin adı bilinmediği, piyasada da bulunamadığı için kendi hazırlandığı anlatılır.\nYaklaşık dış ölçüler: 18 × 18 × 12 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr539483-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr539483-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr539483-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr539483-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Ossilampe"
+    },
+    "altkategori": "Bakım ve Alet"
+  },
+  {
     "id": "pr800118-roland-aira-compact-serisi-standi",
     "kategori": "Elektronik",
     "marka": [
