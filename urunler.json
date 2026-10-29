@@ -1,5 +1,171 @@
 [
   {
+    "id": "pr95010-shimano-spd-sl-kleat-hizalama-aleti",
+    "kategori": "Bisiklet",
+    "marka": [
+      "Shimano"
+    ],
+    "uyum": [
+      {
+        "marka": "Shimano"
+      }
+    ],
+    "baslik": "Shimano SPD-SL Kleat Hizalama Aleti",
+    "aciklama": "Shimano SPD-SL kleatlerin hizalanmasında kullanılan bir atölye aletidir. Kaynağında yalnızca SPD-SL kleatler için hazırlanmış bir hizalama aleti olduğu belirtilir. Kleat ve ayakkabı ürüne dahil değildir.\nYaklaşık dış ölçüler: 200 × 125 × 20 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr95010-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr95010-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr95010-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "bladel"
+    },
+    "altkategori": "Bakım ve Alet"
+  },
+  {
+    "id": "th2294685-samsung-galaxy-akg-kulaklik-kutusu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Samsung"
+    ],
+    "uyum": [
+      {
+        "marka": "Samsung"
+      }
+    ],
+    "baslik": "Samsung Galaxy S8 / S9 / Note 8 AKG Kulaklık Kutusu",
+    "aciklama": "Samsung Galaxy S8, S9 ve Note 8 modellerinin AKG kulaklıklarını cebe koyup taşımak için hazırlanmış basit bir kulaklık kutusudur. Kulaklık ürüne dahil değildir.\nYaklaşık dış ölçüler: 55 × 50 × 23 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2294685-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2294685-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2294685-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "TimotheFrignac"
+    },
+    "altkategori": "Ses ve Müzik"
+  },
+  {
+    "id": "pr1541641-samsung-camasir-makinesi-tahliye-ucu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Samsung"
+    ],
+    "uyum": [
+      {
+        "marka": "Samsung"
+      }
+    ],
+    "baslik": "Samsung Çamaşır Makinesi Tahliye Ucu",
+    "aciklama": "Samsung çamaşır makinesi için hazırlanmış, aşağı doğru eğimli bir tahliye ucudur. Kaynağında parçanın yazarın WW70K44205W/EG model numaralı makinesine göre 65 milimetre çapında boyutlandırıldığı, farklı bir çap gerektiğinde birlikte verilen ölçek yardımcı modelinin kullanılabileceği belirtilir.\nYaklaşık dış ölçüler: 67 × 64 × 52 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1541641-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "veritasrex (remix: Xx_xX)"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr124476-samsung-galaxy-watch-4-telefon-sarj-istasyonu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Samsung"
+    ],
+    "uyum": [
+      {
+        "marka": "Samsung"
+      }
+    ],
+    "baslik": "Samsung Galaxy Watch 4 ve Telefon Şarj İstasyonu",
+    "aciklama": "Samsung Galaxy Watch 4 ve cep telefonu için hazırlanmış başucu şarj istasyonudur (stand). Kaynağında yazarın Galaxy S9+ telefonuyla kullandığı, çoğu telefonla ve belki başka şarj cihazlarıyla da çalışabileceği, saat şarj tabanı yuvasının 33,5 milimetre genişliğinde ve 9 milimetre derinliğinde olduğu belirtilir. Şarj cihazları, kablolar, saat ve telefon ürüne dahil değildir.\nYaklaşık dış ölçüler: 135 × 98 × 74 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr124476-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr124476-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr124476-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Printin'Monkey"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr94435-samsung-tv-kumanda-tutucu",
+    "kategori": "Ev",
+    "marka": [
+      "Samsung"
+    ],
+    "uyum": [
+      {
+        "marka": "Samsung"
+      }
+    ],
+    "baslik": "Samsung TV Kumanda Tutucu",
+    "aciklama": "Samsung TV kumandasını duvara ya da düz bir yüzeye takılı olarak tutmak için hazırlanmış basit bir kumanda tutucudur. Kaynağında parçanın yapışkan montaj bandıyla sabitlenmek üzere tasarlandığı ve ayrıca iki vida deliği bulunduğu belirtilir. Montaj bandı, vida ve kumanda ürüne dahil değildir.\nYaklaşık dış ölçüler: 54 × 49 × 27 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr94435-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr94435-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr94435-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Adam (remix: Adam3579)"
+    },
+    "altkategori": "Duvar ve Askı"
+  },
+  {
+    "id": "th3580572-philips-multigroom-7000-sarj-yuvasi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Philips"
+    ],
+    "uyum": [
+      {
+        "marka": "Philips"
+      }
+    ],
+    "baslik": "Philips Multigroom 7000 Serisi Şarj Yuvası",
+    "aciklama": "Philips Multigroom 7000 serisi cihaz için hazırlanmış şarj yuvasıdır. İki parçadan oluşur; kaynağında parçaların birbirine klipsle geçtiği belirtilir. Cihaz, şarj adaptörü ve kablo ürüne dahil değildir.\nYaklaşık dış ölçüler: 64 × 63 × 50 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3580572-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3580572-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3580572-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "guss67"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr1022654-insta360-x4-lens-sokme-aleti",
+    "kategori": "Kamera",
+    "marka": [
+      "Insta360"
+    ],
+    "uyum": [
+      {
+        "marka": "Insta360"
+      }
+    ],
+    "baslik": "Insta360 X4 Lens Sökme Aleti",
+    "aciklama": "Insta360 X4 kameranın lensini sökmek için hazırlanmış küçük bir alettir. Kaynağında hem premium hem de standart lensle kullanılabildiği belirtilir; anahtarlığa takılabilmesi için üzerinde bir delik bulunur. Kamera ve lens ürüne dahil değildir.\nYaklaşık dış ölçüler: 49 × 46 × 8 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1022654-1.jpg"
+    ]
+  },
+  {
     "id": "pr324460-sony-wh-1000xm3-xm4-kulaklik-standi",
     "kategori": "Elektronik",
     "marka": [
