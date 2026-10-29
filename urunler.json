@@ -1,5 +1,31 @@
 [
   {
+    "id": "th3755658-kenwood-ts-480-kontrol-paneli-standi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Kenwood"
+    ],
+    "uyum": [
+      {
+        "marka": "Kenwood"
+      }
+    ],
+    "baslik": "Kenwood TS-480 Kontrol Paneli Standı",
+    "aciklama": "Kenwood TS-480 telsizin kontrol ünitesi için hazırlanmış, iki parçalı ve üçgen tabanlı bir stanttır. Kaynağında üst braketin herhangi bir yüzeye vidalanabildiği, 2-56 x 5/16 inç yivli vida kullanılacak şekilde tasarlandığı, köşelere kauçuk ayak eklenebildiği belirtilir. Vidalar ve kauçuk ayaklar ürüne dahil değildir.\nYaklaşık dış ölçüler: 61 × 51 × 44 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3755658-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3755658-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3755658-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3755658-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "euler357"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
     "id": "th773975-shimano-tl-fc32-kurulum-aleti",
     "kategori": "Bisiklet",
     "marka": [
