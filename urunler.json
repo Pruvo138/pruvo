@@ -1,5 +1,431 @@
 [
   {
+    "id": "pr34849-raspberry-pi-zero-montaj-kulakli-ince-kasa",
+    "kategori": "Elektronik",
+    "marka": [
+      "Raspberry Pi"
+    ],
+    "uyum": [
+      {
+        "marka": "Raspberry Pi"
+      }
+    ],
+    "baslik": "Raspberry Pi Zero Montaj Kulaklı İnce Kasa",
+    "aciklama": "Raspberry Pi Zero (W) için hazırlanmış, montaj kulakları bulunan ince bir kasadır. Kaynağında kapağın sürtünmeyle oturduğu anlatılır. Pin başlığı için delikli alternatif kapakların da hazırlandığı belirtilir. Kart ürüne dahil değildir.\nYaklaşık dış ölçüler: 94 × 35 × 12 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr34849-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "/dev/tea",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr56179-raspberry-pi-3b-ve-5-inc-ekran-kasasi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Raspberry Pi"
+    ],
+    "uyum": [
+      {
+        "marka": "Raspberry Pi"
+      }
+    ],
+    "baslik": "Raspberry Pi 3B ve 5 İnç Ekran Kasası",
+    "aciklama": "Raspberry Pi 3B kartı ile 5 inçlik dokunmatik ekranı tek gövdede bir araya getiren bir kasadır. Kaynağında ekran ile kartın kasanın içine yerleştirildiği, ön kapakla yerinde durduğu ve vida gerekmediği anlatılır. Ön kapağın önce alt kenardan oturtulup ardından yanlardan ve üstten bastırılarak kapandığı belirtilir. Kaynağında kasanın belirli bir 5 inçlik dokunmatik ekran için hazırlandığı söylenir. Kart ve ekran ürüne dahil değildir.\nYaklaşık dış ölçüler: 133 × 95 × 87 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr56179-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr56179-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr56179-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr56179-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Neddy",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr946054-raspberry-pi-5-kasasi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Raspberry Pi"
+    ],
+    "uyum": [
+      {
+        "marka": "Raspberry Pi"
+      }
+    ],
+    "baslik": "Raspberry Pi 5 Kasası",
+    "aciklama": "Raspberry Pi 5 için özel olarak tasarlanmış bir kasadır; kaynağında diğer Raspberry Pi modelleri için hazırlanmadığı belirtilir. Kasanın dışarı çekilerek kolayca sökülüp takılabilen bir yapıda hazırlandığı, vida bağlantılarının M2.5 gömme somunlarla yapıldığı ve M.2 NVMe genişletme kartı için yer ayrıldığı anlatılır. Kart, genişletme kartı ve somunlar ürüne dahil değildir.\nYaklaşık dış ölçüler: 135 × 130 × 60 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr946054-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr946054-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr946054-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr946054-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Rex Tang",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr38043-raspberry-pi-kamera-standi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Raspberry Pi"
+    ],
+    "uyum": [
+      {
+        "marka": "Raspberry Pi"
+      }
+    ],
+    "baslik": "Raspberry Pi Kamera Standı",
+    "aciklama": "Raspberry Pi için hazırlanmış kamera kasası ve standıdır; ön kutu, stand ve arka kapak olmak üzere üç parçadan oluşur. Kaynağında montaj için bir M3 vida ile somun gerektiği anlatılır. Kasanın kamera modülünün 1.3 sürümüne uymadığı belirtilir. Kamera, vida ve somun ürüne dahil değildir.\nYaklaşık dış ölçüler: 64 × 50 × 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr38043-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr38043-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr38043-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Atle Berg",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr97203-raspberry-pi-standi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Raspberry Pi"
+    ],
+    "uyum": [
+      {
+        "marka": "Raspberry Pi"
+      }
+    ],
+    "baslik": "Raspberry Pi Standı",
+    "aciklama": "Raspberry Pi kartı için hazırlanmış sade bir stanttır. Kaynağında dört adet M2x6 vida gerektiği ve standart ile uzun tabanlı iki sürümün bulunduğu anlatılır. Kart ve vidalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 103 × 81 × 6 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr97203-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr97203-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr97203-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dadul96",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr277916-ikea-skadis-pense-tutucusu",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA Skadis Pense Tutucusu",
+    "aciklama": "IKEA Skadis delikli panosuna takılan, penseleri düzenli biçimde saklamak için hazırlanmış bir pense tutucusudur. Kaynağında sekiz pense yerleştirilebildiği, küçük pense kullanılırsa daha fazlasının da sığabileceği anlatılır. Tutucunun evrensel Skadis kancalarıyla kullanılmak üzere hazırlandığı, üç kanca takılabildiği ancak iki kancanın yeterli bulunduğu belirtilir. Pano, kancalar ve penseler ürüne dahil değildir.\nYaklaşık dış ölçüler: 200 × 50 × 24 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr277916-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Kai",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr277387-ikea-skadis-vida-kapagi",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA Skadis Vida Kapağı",
+    "aciklama": "IKEA Skadis delikli panosunun montaj vidalarını gizlemek için hazırlanmış küçük bir kapaktır. Kaynağında kapağın panoyla birlikte gelen vida kapaklarının üzerine takıldığı anlatılır. Pano ve vidalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 16 × 16 × 7 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr277387-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr277387-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ledsi",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr270577-ikea-skadis-cimbiz-tutucusu",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA Skadis Cımbız Tutucusu",
+    "aciklama": "IKEA Skadis delikli panosunda cımbızları düzenli biçimde saklamak için hazırlanmış çok sade bir cımbız tutucusudur. Pano ve cımbızlar ürüne dahil değildir.\nYaklaşık dış ölçüler: 145 × 39 × 15 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr270577-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr270577-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr270577-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Tiggr",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr591106-ikea-skadis-sorter-kutu-tepsileri",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA Skadis Sorter Kutu Tepsileri",
+    "aciklama": "Vida ve çeşitli küçük parçalar için kullanılan sorter kutularını IKEA Skadis panosunda eğimli biçimde sergilemek için hazırlanmış tepsilerdir. Kaynağında küçük ve büyük olmak üzere iki ayrı boyda hazırlandığı anlatılır; kutunun ölçüsüne uygun tepsi seçilir. Pano ve kutular ürüne dahil değildir.\nYaklaşık dış ölçüler: 176 × 112 × 34 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr591106-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr591106-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr591106-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "mranton",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr27631-ikea-hallbar-cekmece-kutusu-otomatik-kapak-acici",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA HALLBAR Çekmece Kutusu Otomatik Kapak Açıcı",
+    "aciklama": "Dolap çekmecesinin içine yerleştirilen IKEA HALLBAR kutusunun kapağını otomatik olarak açmak için hazırlanmış bir mekanizmadır; üç ayrı parçadan oluşur. Kaynağında menteşenin dolaba çift taraflı bantla yapıştırıldığı ve pimin menteşeye uzunca bir M3 vidayla bağlandığı anlatılır. Çekmece kutusu, bant ve vida ürüne dahil değildir.\nYaklaşık dış ölçüler: 76 × 72 × 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr27631-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr27631-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr27631-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jaapp",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr634661-stihl-rma-339-kablo-kilavuzu",
+    "kategori": "Bahçe",
+    "marka": [
+      "Stihl"
+    ],
+    "uyum": [
+      {
+        "marka": "Stihl"
+      }
+    ],
+    "baslik": "Stihl RMA 339 Kablo Kılavuzu",
+    "aciklama": "Stihl RMA 339 elektrikli çim biçme makinesindeki kablo kılavuzu parçası için hazırlanmış bir kablo kılavuzudur. Çim biçme makinesi ürüne dahil değildir.\nYaklaşık dış ölçüler: 65 × 27 × 22 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr634661-1.jpg"
+    ]
+  },
+  {
+    "id": "pr1824478-stihl-autocut-kafa-iplik-sarma-tutacagi",
+    "kategori": "Bahçe",
+    "marka": [
+      "Stihl"
+    ],
+    "uyum": [
+      {
+        "marka": "Stihl"
+      }
+    ],
+    "baslik": "Stihl AutoCut Kafa İplik Sarma Tutacağı",
+    "aciklama": "Stihl AutoCut kafasının ipliği değiştirilirken kafayı elle tutup çevirmeye yardımcı olan bir tutacaktır. Kaynağında kafadaki üçgen girintilerden yararlandığı ve parmakla tutulan yıldız desenli bir yapı ya da 3/4 inç lokma yuvası sunduğu belirtilir. Ot kesme makinesi ve kafa ürüne dahil değildir.\nYaklaşık dış ölçüler: 90 × 90 × 44 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1824478-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1824478-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1824478-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1824478-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "paulengel",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "pr868468-john-deere-gubre-serpici-ayar-kolu",
+    "kategori": "Bahçe",
+    "marka": [
+      "John Deere"
+    ],
+    "uyum": [
+      {
+        "marka": "John Deere"
+      }
+    ],
+    "baslik": "John Deere Gübre Serpici Ayar Kolu",
+    "aciklama": "John Deere gübre serpicisinde uygulama oranını ayarlamak için kullanılan, elle tutulan bir koldur. Kaynağında kolun serpicideki mevcut ayar durdurucusuyla birlikte kullanılabildiği, ancak bu durumda ayar aralığının sınırlı kaldığı belirtilir. Serpici ürüne dahil değildir.\nYaklaşık dış ölçüler: 113 × 30 × 14 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr868468-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr868468-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr868468-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr868468-4.jpg"
+    ]
+  },
+  {
+    "id": "pr1413062-moulinex-doubleforce-hiz-kontrol-dugmesi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Moulinex"
+    ],
+    "uyum": [
+      {
+        "marka": "Moulinex"
+      }
+    ],
+    "baslik": "Moulinex DoubleForce Hız Kontrol Düğmesi",
+    "aciklama": "Moulinex DoubleForce mutfak robotunun hız kontrol düğmesi olarak hazırlanmış, elle kavranan bir düğmedir. Kaynağında Double Force mutfak robotu için hazırlandığı belirtilir. Mutfak robotu ürüne dahil değildir.\nYaklaşık dış ölçüler: 36 × 36 × 28 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1413062-1.jpg"
+    ],
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "pr312738-ryobi-pcl700-el-supurgesi-askisi",
+    "kategori": "Ev",
+    "marka": [
+      "Ryobi"
+    ],
+    "uyum": [
+      {
+        "marka": "Ryobi"
+      }
+    ],
+    "baslik": "Ryobi PCL700 / PCL700B El Süpürgesi Askısı",
+    "aciklama": "Ryobi 18V akülü el süpürgesini duvara asarak saklamak için hazırlanmış bir askıdır. Kaynağında PCL700B model el süpürgesi için hazırlandığı ve monte edildiğinde duvara yassı oturduğu belirtilir. El süpürgesi ve montaj elemanları ürüne dahil değildir.\nYaklaşık dış ölçüler: 99 × 71 × 35 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr312738-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr312738-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr312738-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Rflewelling",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Duvar ve Askı"
+  },
+  {
+    "id": "pr223398-ryobi-18v-batarya-kizagi",
+    "kategori": "Ev",
+    "marka": [
+      "Ryobi"
+    ],
+    "uyum": [
+      {
+        "marka": "Ryobi"
+      }
+    ],
+    "baslik": "Ryobi 18V Batarya Kızağı",
+    "aciklama": "Ryobi 18V pilin altına yerleştirilen, velcro ile sabitlenen mekanik bir taban parçasıdır. Kaynağında çivi tabancasının pilin altına takılarak yükseltildiği ve böylece aletin düz durabildiği belirtilir. Alet, pil ve velcro ürüne dahil değildir.\nYaklaşık dış ölçüler: 159 × 82 × 35 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr223398-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr223398-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr223398-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr223398-4.jpg"
+    ]
+  },
+  {
+    "id": "pr929561-ryobi-link-genis-alcak-organizer-kutusu",
+    "kategori": "Ev",
+    "marka": [
+      "Ryobi"
+    ],
+    "uyum": [
+      {
+        "marka": "Ryobi"
+      }
+    ],
+    "baslik": "Ryobi Link Geniş ve Alçak Organizer Kutusu",
+    "aciklama": "Ryobi Link sistemi için hazırlanmış, yan duvarları alçaltılmış ve normal kutudan bir tarafı daha geniş bir organizer kutusudur. Kaynağında üstüne başka bir kutu ya da raf takıldığında içindekilerin yine de alınıp konabilmesi için duvar yüksekliğinin azaltıldığı, ek genişliğin Link rayının sonundaki boşluğu doldurmak için kullanılabileceği belirtilir. Link rayı ve diğer kutular ürüne dahil değildir.\nYaklaşık dış ölçüler: 166 × 111 × 96 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr929561-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr929561-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr929561-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JPMakesStuff",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Duvar ve Askı"
+  },
+  {
+    "id": "pr446785-ryobi-one-gridfinity-batarya-tutucu-tepsisi",
+    "kategori": "Ev",
+    "marka": [
+      "Ryobi"
+    ],
+    "uyum": [
+      {
+        "marka": "Ryobi"
+      }
+    ],
+    "baslik": "Ryobi ONE+ Gridfinity Batarya Tutucu Tepsisi",
+    "aciklama": "Ryobi ONE+ bataryaları Gridfinity düzeninde yerleştirmek için hazırlanmış, 2'ye 3 hücre ölçüsünde bir tepsidir. Kaynağında Gridfinity batarya tutucusu olarak tanımlanır. Bataryalar ve Gridfinity taban plakası ürüne dahil değildir.\nYaklaşık dış ölçüler: 168 × 84 × 24 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr446785-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr446785-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr446785-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr446785-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Micah",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "pr140971-moulinex-salata-kurutucu-sapi",
     "kategori": "Elektronik",
     "marka": [
