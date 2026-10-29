@@ -6,6 +6,13 @@
 
 - 🔴🔴🔴 **Okan 20 Eki 20:2x:** Okan'a "bas/tıkla/onayla" YOK, işi bitir, son çare pencere, cevap ≤2 cümle (hafıza `okan-emri-is-biter-pencere-son-care-20-eki`). **Okan kalıcı izni 14:2x:** çip dalı SERİT B yeşil → sormadan merge.
 
+## 🔁 DEVİR — 30 Eki 00:2x, KraL yeni-hesap-1 → halef (bağlam kapısı RED tur 700 · 410K; nöbet `553f26ca` SİLİNDİ, caffeinate oturumla ölür; main `f5a3f12e`; MaCiT = `local_e5e16e56`)
+- **SIRADAKİ TEK İŞ:** ES32-34 dilimi `kral/es32-33-30eki` `2f598864` (ağaç `kral-es33`, push'lu; ES32 `cc0469ce`+ES33 `a1c51f5e`+ES34 `1cc205c2`, yalnız urunler.json +941/−0, 41321, gizli 0; TABAN/uyum 39/model-uyelik 30/marka-uyelik/sözlük24 yeşil, mükerrer 14, DAL_PROVA 9/0/0) SERİT B `40953404953` sonucu → `serit-b-uc-kapisi.py` → merge → Pages → D1 + `parite-test.js 300` (parite OLCULEMEDI borcu her merge'de çıkıyor).
+- **Bugün main'e giren:** ata-lisans D19 `409beff2` · sözlük 24 `069b9e84` · ES21-25 `436632d2` · ES26 `2f58a43c` · ES27+28 `80d494b3` · ES29+30 `66ea3e09` · ES31 `f5a3f12e` — hepsi Pages yeşil + D1 birebir + parite 300 BİREBİR (ES31 dahil, borç 0).
+- **Hükümler (MaCiT):** Bosch/Ninja sözlüğe girmez (URETICI/homonim) → `hasat_ekle` K302 dar kalem (uyum anahtarsız, marka[0]) KABUL · pr605642 KALIR · pr173628 CC BY-SA 4.0 KABUL · ESIK34 = 8 çift `--bas 50` + delonghi th/pr (Gaggia/Bosch/Ninja YOK) · GPL+BY-ND satılabilir, LGPL fail-closed.
+- **KraL açık kalemleri (MaCiT bildirdi):** hasat STL yedek köprüsü yanlış dosya ×3 (pr579223 pr37992 pr163703) · mükerrer hook worktree'de gizli defter symlink'i · TV çok dosya ölçüm yok · ata-lisans `th:` reddi · `hasat_stl --olc` en büyük dosya.
+- **Ders:** dal SERİT B'yi main Pages kuyruktayken gönderme (koşucu tavanı; `40861155933` iptal edildi). Nöbet turunda 3 dk eşiği HARFİYEN (bir kez 2:52'de gönderildi, bir kez işçi bekliyor diye atlandı — ikisi de kural ihlali).
+
 ## 🔁 DEVİR — 29 Eki 10:3x, KraL halef-68 → yeni hesap (Okan `/devir`; nöbet `983a481e` + caffeinate DURDURULDU, arka plan 0; main `080e9c0b`)
 - **SIRADAKİ TEK İŞ:** ata-lisans D19 dalı `kral/ata-lisans-d19-29eki` `e3904469` (main alındı, push'lu; test 117/117 · mutant 55/55; `serit-b-dispatch.py --kuru` KURU-GECER) → main yayını `40833940589` bitince `serit-b-dispatch.py` → uç → merge.
 - **Nerede kaldım:** sözlük 24 dalı `kral/sozluk24-29eki` `d3aa689e` (ağaç `kral-sozluk24`, push'lu, temiz): `tools/sozluk24-marka-kabul-kapisi.py` 9/9 + deploy.yml adımı + MaCiT ES19+ES20 `4144101c` alındı (katalog 41125). Yeşil: sözlük21/22/23 9/9 · model-uyelik 30/30 · marka-cip + mutant 9/9 · katalog-alan · taninmis-esik K1 0. **Koşulmadı:** `marka-uyelik-test.py` · `mukerrer-kontrol.py` · DAL_PROVA → SERİT B (ata-lisans'tan SONRA, tek dal) → merge → MaCiT'e "bloke 7'yi al".
