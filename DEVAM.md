@@ -1,6 +1,6 @@
 # DEVAM (KraL) — 16 Eki 2026 (C4: üst blok ≤20 satır / ≤3.000 B)
 
-**AÇILIŞ:** 🔴 **MaCiT NÖBETİ kur (Okan 28 Eki 20:2x: "macitin durmadan çalışmasını sağla, clear/devam işi de sende"):** `CronCreate` `7,27,47 * * * *` — MaCiT `local_e8ee5234…` isRunning=false ∧ 15 dk+ boşta → "devam"; MaCiT öz-devir iletisinden ≥2 dk sonra "devam"; RC clear'ı reddederse MaCiT RC kapat (hafıza `macit-nobeti-clear-devam-kralda`). KraL'ın kendi "45m devam" döngüsü YOK (Okan 00:2x). Öz-devir ≥500K: DEVİR + CronDelete + `clear_session` AYNI TURDA; halefe "devam" BaBa.
+**AÇILIŞ:** 🔴 **MaCiT NÖBETİ kur (Okan 28 Eki 20:2x: "macitin durmadan çalışmasını sağla, clear/devam işi de sende"):** `CronCreate` `*/10 * * * *` — MaCiT `local_e8ee5234…` isRunning=false ∧ 3 dk+ boşta (Okan 23:0x "maciti neden başlatmadın?" — 15 dk gevşekti) → "devam"; MaCiT öz-devir iletisinden ≥2 dk sonra "devam"; RC clear'ı reddederse MaCiT RC kapat (hafıza `macit-nobeti-clear-devam-kralda`). KraL'ın kendi "45m devam" döngüsü YOK (Okan 00:2x). Öz-devir ≥500K: DEVİR + CronDelete + `clear_session` AYNI TURDA; halefe "devam" BaBa.
 
 > Eski gövde (92 satır) `DEVAM-ARSIV.md` "2026-10-16 00:3x — C4" başlığında bayt-eşit (sha256 `abfac73d`).
 
