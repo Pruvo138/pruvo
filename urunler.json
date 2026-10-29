@@ -1,5 +1,309 @@
 [
   {
+    "id": "th773975-shimano-tl-fc32-kurulum-aleti",
+    "kategori": "Bisiklet",
+    "marka": [
+      "Shimano"
+    ],
+    "uyum": [
+      {
+        "marka": "Shimano"
+      }
+    ],
+    "baslik": "Shimano TL-FC32 Kurulum Aleti",
+    "aciklama": "Shimano TL-FC32 kurulum aletinin yerine kullanılmak üzere hazırlanmış bir servis aletidir; SM-BBR60 orta göbek kadehlerinin takılması ve sökülmesi için tasarlanmıştır. Kaynağında aletin TL-FC25 adaptörüyle birlikte kullanıldığı, krankların çıkarılmış olması gerektiği ve oturmanın sıkı olabileceği için önce bir deneme parçasının hazırlanması önerildiği belirtilir. TL-FC25 adaptörü ve orta göbek ürüne dahil değildir.\nYaklaşık dış ölçüler: 176 × 66 × 11 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th773975-1.jpg",
+      "https://media.pruvo3d.com/urunler/th773975-2.jpg",
+      "https://media.pruvo3d.com/urunler/th773975-3.jpg",
+      "https://media.pruvo3d.com/urunler/th773975-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY-SA",
+      "tasarimci": "FatGeekyMan"
+    },
+    "altkategori": "Bakım ve Alet"
+  },
+  {
+    "id": "pr1220919-insta360-x3-gopro-baglanti-aparati",
+    "kategori": "Kamera",
+    "marka": [
+      "Insta360"
+    ],
+    "uyum": [
+      {
+        "marka": "Insta360"
+      }
+    ],
+    "baslik": "Insta360 X3 GoPro Bağlantı Aparatı",
+    "aciklama": "Insta360 X3 kameranın GoPro tipi aksesuarlara dikey ya da yatay olarak bağlanabilmesi için hazırlanmış bir bağlantı aparatıdır. Kaynağında parçanın sıfırdan tasarlandığı, kameranın takılıp çıkarılmasını kolaylaştırmak için esnek yapıldığı ve mikrofon delikleri bulunduğu belirtilir. Kamera ve GoPro aksesuarları ürüne dahil değildir.\nYaklaşık dış ölçüler: 119 × 67 × 22 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1220919-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1220919-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1220919-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1220919-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "wooshishi"
+    }
+  },
+  {
+    "id": "pr512272-samsung-galaxy-watch-4-kordon",
+    "kategori": "Elektronik",
+    "marka": [
+      "Samsung"
+    ],
+    "uyum": [
+      {
+        "marka": "Samsung"
+      }
+    ],
+    "baslik": "Samsung Galaxy Watch 4 Kordon",
+    "aciklama": "Samsung Galaxy Watch 4 serisi akıllı saatler için hazırlanmış, 20 milimetre genişliğinde bir saat kordonudur. Kaynağında kordonun esnek bir malzemeyle üretildiği, beden ayarı için ek delikler bulunduğu, saatin kendi pimlerinin hızlı çıkarma mekanizmasıyla birlikte kullanılabileceği bir delik içerdiği ve altıgen desenli olduğu belirtilir; ayrıca 3 santimetre daha uzun bir sürüm eklenmiştir. Saat ve pimler ürüne dahil değildir.\nYaklaşık dış ölçüler: 136 × 20 × 6 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr512272-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr512272-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr512272-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Da9L (remix: Adafruit)"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr212053-samsung-kablosuz-sarj-duo-ep-p5400-standi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Samsung"
+    ],
+    "uyum": [
+      {
+        "marka": "Samsung"
+      }
+    ],
+    "baslik": "Samsung Kablosuz Şarj Duo (EP-P5400) Standı",
+    "aciklama": "Samsung Kablosuz Şarj Cihazı Duo (EP-P5400) için hazırlanmış, üç parçalı bir stanttır; parçalar birbirine geçirilerek birleştirilir. Kaynağında telefonun şarj yüzeyi üzerinde doğru konumda durması için tasarlandığı anlatılır. Şarj cihazı ve telefon ürüne dahil değildir.\nYaklaşık dış ölçüler: 163 × 128 × 104 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr212053-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr212053-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr212053-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr212053-4.jpg"
+    ],
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "th2808434-delonghi-dedica-680-685-portafiltre-standi",
+    "kategori": "Elektronik",
+    "marka": [
+      "DeLonghi"
+    ],
+    "uyum": [
+      {
+        "marka": "DeLonghi"
+      }
+    ],
+    "baslik": "DeLonghi Dedica 680 / 685 Portafiltre Standı",
+    "aciklama": "DeLonghi Dedica 680 ve 685 portafiltresini küçük bir hassas tartının üzerinde tutmak için hazırlanmış stanttır; kahve dozunu tartmak amacıyla kullanılır. Kaynağında standın 10 cm x 10 cm ölçülü, tezgâh tipi küçük tartılara göre tasarlandığı anlatılır. Tartı ürüne dahil değildir.\nYaklaşık dış ölçüler: 100 × 50 × 40 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2808434-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2808434-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2808434-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "Andespandes"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "th342845-motorola-moto-g-telefon-dock-yuvasi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Motorola"
+    ],
+    "uyum": [
+      {
+        "marka": "Motorola"
+      }
+    ],
+    "baslik": "Motorola Moto G Telefon Dock Yuvası",
+    "aciklama": "Motorola Moto G telefon için hazırlanmış masaüstü dock yuvasıdır. Kaynağında bağlantı kısmında belirgin bir sürtünme olduğu, bu nedenle telefonun yuvaya bırakılmak yerine bastırılarak yerleştirilmesi gerektiği anlatılır. Kablonun yerinde durması için arkadaki deliğe yaklaşık 1/4 inç boyunda 6-32 ayar vidası takılır; vidanın aşırı sıkılmaması gerektiği belirtilir. Ayar vidası ve dik açılı mikro USB kablo ürüne dahil değildir.\nYaklaşık dış ölçüler: 80 × 46 × 37 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th342845-1.jpg",
+      "https://media.pruvo3d.com/urunler/th342845-2.jpg",
+      "https://media.pruvo3d.com/urunler/th342845-3.jpg",
+      "https://media.pruvo3d.com/urunler/th342845-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY-SA",
+      "tasarimci": "walter"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "th1752345-motorola-moto-z-telefon-kilifi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Motorola"
+    ],
+    "uyum": [
+      {
+        "marka": "Motorola"
+      }
+    ],
+    "baslik": "Motorola Moto Z Telefon Kılıfı",
+    "aciklama": "Motorola Moto Z telefon için hazırlanmış kılıftır. Kaynağında bu kılıfın ince yapılı Moto Z modeli için olduğu, Moto Z Force modeli için olmadığı belirtilir. Telefon ürüne dahil değildir.\nYaklaşık dış ölçüler: 161 × 82 × 5 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1752345-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1752345-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1752345-3.jpg",
+      "https://media.pruvo3d.com/urunler/th1752345-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "cyamate"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "th1522447-motorola-dp1400-telsiz-kemer-askisi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Motorola"
+    ],
+    "uyum": [
+      {
+        "marka": "Motorola"
+      }
+    ],
+    "baslik": "Motorola DP1400 Telsiz Kemer Askısı",
+    "aciklama": "Motorola DP1400 telsiz için kemere takılan askı tipi tutucudur. Kaynağında parçanın bu telsiz için kemer askısı olarak hazırlandığı belirtilir. Telsiz ürüne dahil değildir.\nYaklaşık dış ölçüler: 55 × 55 × 32 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1522447-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1522447-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1522447-3.jpg",
+      "https://media.pruvo3d.com/urunler/th1522447-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "kanadian"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "th3106436-motorola-xpr7550-telsiz-masa-standi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Motorola"
+    ],
+    "uyum": [
+      {
+        "marka": "Motorola"
+      }
+    ],
+    "baslik": "Motorola XPR7550 Telsiz Masa Standı",
+    "aciklama": "Motorola XPR7550 ve XPR7550E telsizler için masa üstünde kullanılan stanttır. Telsiz ürüne dahil değildir.\nYaklaşık dış ölçüler: 85 × 85 × 54 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3106436-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3106436-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3106436-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "newbugdriver"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "th4272916-rode-wireless-go-roportaj-tutamagi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Rode"
+    ],
+    "uyum": [
+      {
+        "marka": "Rode"
+      }
+    ],
+    "baslik": "Rode Wireless GO Röportaj Tutamağı",
+    "aciklama": "Rode Wireless GO mikrofon ünitesine takılan, röportaj çekimlerinde mikrofonu elde tutmak için hazırlanmış sap tipi tutamaktır. Kaynağında tutamağın mikrofon ünitesine bağlanan üst parçaları ile birlikte tam sap olarak sunulduğu anlatılır. Mikrofon ünitesi ürüne dahil değildir.\nYaklaşık dış ölçüler: 234 × 45 × 24 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4272916-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4272916-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4272916-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4272916-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "Joecarnine"
+    },
+    "altkategori": "Ses ve Müzik"
+  },
+  {
+    "id": "th4800294-rode-wireless-go-ii-mikrofon-saklama-klipsi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Rode"
+    ],
+    "uyum": [
+      {
+        "marka": "Rode"
+      }
+    ],
+    "baslik": "Rode Wireless GO II Mikrofon Saklama Klipsi",
+    "aciklama": "Rode Wireless GO II vericilerini ve alıcısını bir arada tutmak için hazırlanmış klips çerçevedir. Kaynağında cihazlarla birlikte gelen saklama kılıfının sadece bir torba olduğu, çerçevenin ise vericileri ve alıcıyı düzenli şekilde bir arada tutmak için üst yüzleri kılıfın yumuşak duvarına dönük, kabloları diğer tarafta bırakacak şekilde tasarlandığı anlatılır. Mikrofonlar ve kılıf ürüne dahil değildir.\nYaklaşık dış ölçüler: 140 × 50 × 16 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4800294-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4800294-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4800294-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4800294-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "mareklew"
+    },
+    "altkategori": "Ses ve Müzik"
+  },
+  {
+    "id": "th4126277-rode-wireless-go-yaka-mikrofonu-kelepcesi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Rode"
+    ],
+    "uyum": [
+      {
+        "marka": "Rode"
+      }
+    ],
+    "baslik": "Rode Wireless GO Yaka Mikrofonu Kelepçesi",
+    "aciklama": "Rode Wireless GO vericisinin kilitlenmeyen ses girişine takılan yaka mikrofonu fişi için hazırlanmış küçük bir kelepçedir. Kaynağında fişin yanlışlıkla çekilip çıkmasına karşı kullanılmak üzere tasarlandığı anlatılır. Kullanım için mikrofon fişi kelepçeden geçirilir, mikrofon girişe takılır ve kelepçe yerine oturana kadar hafifçe itilir; isteğe bağlı olarak kelepçe bir lastik bantla da sabitlenebilir. Yaka mikrofonu ve lastik bant ürüne dahil değildir.\nYaklaşık dış ölçüler: 48 × 25 × 9 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4126277-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4126277-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4126277-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4126277-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "MarcRose1987"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
     "id": "th3658921-saeco-hd8847-su-haznesi-sapi",
     "kategori": "Elektronik",
     "marka": [
