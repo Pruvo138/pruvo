@@ -1,5 +1,354 @@
 [
   {
+    "id": "pr140971-moulinex-salata-kurutucu-sapi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Moulinex"
+    ],
+    "uyum": [
+      {
+        "marka": "Moulinex"
+      }
+    ],
+    "baslik": "Moulinex Salata Kurutucu Sapı",
+    "aciklama": "Moulinex salata kurutucusunun elle kavranan sapı olarak hazırlanmış bir düğmedir. Kaynağında 313.0.00 tipi Moulinex salata kurutucu için hazırlandığı ve yerine takılırken biraz kuvvet uygulanması gerektiği belirtilir. Salata kurutucu ürüne dahil değildir.\nYaklaşık dış ölçüler: 44 × 44 × 33 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr140971-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr140971-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ghichtheth",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "pr481913-moulinex-rende-dugmesi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Moulinex"
+    ],
+    "uyum": [
+      {
+        "marka": "Moulinex"
+      }
+    ],
+    "baslik": "Moulinex Rende Düğmesi",
+    "aciklama": "Elle çevrilen krankı olan Moulinex rendenin krank koluna takılan, elle kavranan geniş bir düğmedir. Rende ve krank mekanizması ürüne dahil değildir.\nYaklaşık dış ölçüler: 38 × 38 × 35 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr481913-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr481913-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "The occasional extrusionist",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "pr1062445-raspberry-pi-touch-display-2-standi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Raspberry Pi"
+    ],
+    "uyum": [
+      {
+        "marka": "Raspberry Pi"
+      }
+    ],
+    "baslik": "Raspberry Pi Touch Display 2 Standı",
+    "aciklama": "Raspberry Pi Touch Display 2 için hazırlanmış, iki bacaklı sade bir ekran standıdır. Kaynağında bacak parçasının iki adet hazırlandığı, ortasındaki kesikle ekranın iç kartı üzerindeki yükseltili metal kısmın bacaktan geçebildiği ve vida deliklerinin ekranla birlikte verilen vidalara göre düzenlendiği anlatılır. Düz yüzeylerde kaymayı önlemek için tabana kauçuk ayak eklenebileceği belirtilir. Ekran ve vidalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 145 × 72 × 15 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1062445-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1062445-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1062445-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1062445-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "geerlingguy",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr137742-ikea-skadis-mesafe-parcasi",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA Skadis Mesafe Parçası",
+    "aciklama": "IKEA Skadis delikli panosunu duvara monte ederken pano ile duvar arasında bırakılan mesafeyi sağlayan, IKEA'nın kendi mesafe parçasından biraz daha uzun bir alternatiftir. Kaynağında panoyu duvara monte ederken duvar ile parça ucu arasında küçük bir boşluk kaldığı için hazırlandığı anlatılır. IKEA'nın vidasıyla ya da herhangi bir M4 vidayla kullanılabildiği, dişli kısım sorun çıkarırsa yerine M4 somun sıkıştırılabildiği belirtilir. Pano, vida ve somun ürüne dahil değildir.\nYaklaşık dış ölçüler: 27 × 17 × 17 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr137742-1.jpg"
+    ],
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr720696-ikea-skadis-kap-bolucu",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA Skadis Kap Bölücü",
+    "aciklama": "IKEA Skadis sisteminin kaplarının içini bölmelere ayırmak için hazırlanmış bir kap bölücüdür. Kaynağında farklı kap ölçülerine göre 25 ayrı boyda hazırlandığı anlatılır; uygun boy seçilerek kullanılır. Skadis kapları ürüne dahil değildir.\nYaklaşık dış ölçüler: 87 × 75 × 74 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr720696-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Sébastien",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr662635-ikea-kallax-pet-sise-saklama",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA Kallax İçin PET Şişe Saklama",
+    "aciklama": "IKEA Kallax rafının gözlerinde PET şişeleri sıralı biçimde saklamak ve bir bölümden çekip almak için hazırlanmış bir şişe düzenleyicidir. Kaynağında iki parçanın birbirine geçirilerek kurulduğu, yapıştırıcı ya da vida gerekmediği ve 500 ml'lik şişelerle denendiği anlatılır. Raf ve şişeler ürüne dahil değildir.\nYaklaşık dış ölçüler: 243 × 55 × 46 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr662635-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr662635-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr662635-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr662635-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "GiskardReventlov",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr58061-ikea-trofast-kutusu-ek-parcasi",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA Trofast Kutusu Ek Parçası",
+    "aciklama": "IKEA Trofast sisteminin alçak kutusunun içine yerleştirilen, iki köşe bölmesinden oluşan bir ek parçadır. Kaynağında küçük kutuların köşe konumlarına sabitlendiği ancak istenirse yerinden çıkarılabildiği, bunun için tabandaki yuvalara takılan ve biri aynalanmış iki isteğe bağlı kilit parçasının bulunduğu anlatılır. Trofast kutusu ürüne dahil değildir.\nYaklaşık dış ölçüler: 133 × 133 × 78 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr58061-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr58061-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr58061-3.jpg"
+    ],
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr37158-ikea-skadis-matkap-ucu-tutucusu",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA Skadis Matkap Ucu Tutucusu",
+    "aciklama": "IKEA Skadis delikli panolarına takılan, matkap uçlarını yuvalarda sıralı biçimde saklamak için hazırlanmış bir düzenleyicidir. Kaynağında en yaygın uç çaplarına göre üç ayrı boyda tutucu bulunduğu ve her tutucuyu panoya asmak için iki kanca gerektiği anlatılır. Matkap uçları ve pano ürüne dahil değildir.\nYaklaşık dış ölçüler: 179 × 33 × 26 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr37158-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr37158-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Pavel",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr1285474-beko-cse-34000-buzdolabi-kapi-kolu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Beko"
+    ],
+    "uyum": [
+      {
+        "marka": "Beko"
+      }
+    ],
+    "baslik": "Beko CSE 34000 Buzdolabı Kapı Kolu",
+    "aciklama": "Beko CSE 34000 buzdolabının kapısı için hazırlanmış, sade ve geometrik desenli bir kapı koludur. Kaynağında benzer dönemde üretilen diğer Beko buzdolaplarına da uyabileceği ve ayna görüntüsü alınmış bir sürümünün alt dondurucu kapısı için eklendiği belirtilir. Buzdolabı ürüne dahil değildir.\nYaklaşık dış ölçüler: 210 × 105 × 56 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1285474-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1285474-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1285474-3.jpg"
+    ],
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "pr580275-ryobi-one-duvar-rafi",
+    "kategori": "Ev",
+    "marka": [
+      "Ryobi"
+    ],
+    "uyum": [
+      {
+        "marka": "Ryobi"
+      }
+    ],
+    "baslik": "Ryobi One+ Duvar Rafı",
+    "aciklama": "Ryobi One+ 18V aletleri duvara vidalayarak yerleştirmek için hazırlanmış bir duvar rafıdır. Kaynağında iki sürümü bulunduğu, ikinci sürümde bazı aletler için arka kısımda biraz daha boşluk bırakıldığı ve vida deliklerinin delikli panelde kullanılabilecek şekilde biraz daha geniş yapıldığı belirtilir. Aletler, vidalar ve panel ürüne dahil değildir.\nYaklaşık dış ölçüler: 135 × 87 × 60 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr580275-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr580275-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Gareth",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Duvar ve Askı"
+  },
+  {
+    "id": "pr729479-ryobi-18v-ufleyici-nozulu",
+    "kategori": "Ev",
+    "marka": [
+      "Ryobi"
+    ],
+    "uyum": [
+      {
+        "marka": "Ryobi"
+      }
+    ],
+    "baslik": "Ryobi 18V Üfleyici Nozulu",
+    "aciklama": "Ryobi 18V yaprak üfleyiciye takılmak üzere hazırlanmış bir nozuldur. Kaynağında üfleyicinin kar temizlemek amacıyla kullanıldığı belirtilir. Üfleyici ürüne dahil değildir.\nYaklaşık dış ölçüler: 117 × 84 × 84 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr729479-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr729479-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr729479-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Darryl Kane",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "pr1044050-ryobi-r18js-dekupaj-testere-quickclick-adaptoru",
+    "kategori": "Ev",
+    "marka": [
+      "Ryobi"
+    ],
+    "uyum": [
+      {
+        "marka": "Ryobi"
+      }
+    ],
+    "baslik": "Ryobi R18JS Dekupaj Testere QuickClick Adaptörü",
+    "aciklama": "Ryobi R18JS dekupaj testeresine QuickClick toz emme hortumunu bağlamak için hazırlanmış bir adaptördür. Kaynağında makinede toz hortumu için uygun bir bağlantı noktası bulunmadığı ve takılmasının biraz zor olabileceği belirtilir. Dekupaj testere, hortum ve QuickClick bağlantı elemanları ürüne dahil değildir.\nYaklaşık dış ölçüler: 119 × 86 × 64 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1044050-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Randomswede",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "pr143590-ryobi-zimpara-supurge-adaptoru",
+    "kategori": "Ev",
+    "marka": [
+      "Ryobi"
+    ],
+    "uyum": [
+      {
+        "marka": "Ryobi"
+      }
+    ],
+    "baslik": "Ryobi Zımpara Süpürge Adaptörü",
+    "aciklama": "Ryobi zımpara makinesinin toz torbası bağlantısını elektrikli süpürge hortum bağlantısına uyarlamak için hazırlanmış bir adaptördür. Kaynağında bağlantıyı sıkılaştırmak için isteğe bağlı bir hortum kelepçesi kullanılabileceği belirtilir. Zımpara makinesi, süpürge, hortum ve kelepçe ürüne dahil değildir.\nYaklaşık dış ölçüler: 60 × 42 × 42 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr143590-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr143590-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr143590-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "sblomfield",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "pr654358-ryobi-18v-el-frezesi-askisi",
+    "kategori": "Ev",
+    "marka": [
+      "Ryobi"
+    ],
+    "uyum": [
+      {
+        "marka": "Ryobi"
+      }
+    ],
+    "baslik": "Ryobi 18V El Frezesi Askısı",
+    "aciklama": "Ryobi 18V el frezesini asarak saklamak için hazırlanmış bir askıdır. Alet ve montaj elemanları ürüne dahil değildir.\nYaklaşık dış ölçüler: 130 × 110 × 35 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr654358-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "kent wilson (remix: Jerrari)",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Duvar ve Askı"
+  },
+  {
+    "id": "pr1065662-stihl-ak-batarya-duvar-tutucusu",
+    "kategori": "Bahçe",
+    "marka": [
+      "Stihl"
+    ],
+    "uyum": [
+      {
+        "marka": "Stihl"
+      }
+    ],
+    "baslik": "Stihl AK Batarya Duvar Tutucusu",
+    "aciklama": "Stihl AK serisi lityum bataryaları duvardaki alet panelinde saklamak için hazırlanmış bir batarya tutucusudur. Kaynağında metal alet duvarı tipi panele uyarlandığı belirtilir. Bataryalar ve alet paneli ürüne dahil değildir.\nYaklaşık dış ölçüler: 130 × 68 × 43 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1065662-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1065662-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1065662-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ElElf",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "pr877991-raspberry-pi-zero-2-w-petek-desenli-kasa",
     "kategori": "Elektronik",
     "marka": [
