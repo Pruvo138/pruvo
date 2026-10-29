@@ -937,6 +937,10 @@ jobs:
       # (disarida birakilan 22 jeton kumeye sizmaz) + M1/M2/KONTROL-MUTANT.
       - name: "Sozluk 23. tur marka kabul bataryasi (38 marka)"
         run: python3 tools/sozluk23-marka-kabul-kapisi.py
+      # 24. tur kapali marka kumesi (Keurig, Moccamaster, Roland; MaCiT ES20 blokaji): A1-A4 +
+      # KONTROL + M1/M2/KONTROL-MUTANT; A4 ucunu de sart kosar.
+      - name: "Sozluk 24. tur marka kabul bataryasi (Keurig, Moccamaster, Roland)"
+        run: python3 tools/sozluk24-marka-kabul-kapisi.py
 
       # Homonim baslik kolu KAPALI (Mini, Rover, Alpine, Sigma; BaBa tik 188/196): H1-H5 +
       # M1 (liste bos) / M2 (Rover cikti) / KONTROL-MUTANT; sayfa = uyelik = arama, sayilar sabit.
