@@ -6,6 +6,10 @@
 
 - 🔴🔴🔴 **Okan 20 Eki 20:2x:** Okan'a "bas/tıkla/onayla" YOK, işi bitir, son çare pencere, cevap ≤2 cümle (hafıza `okan-emri-is-biter-pencere-son-care-20-eki`). **Okan kalıcı izni 14:2x:** çip dalı SERİT B yeşil → sormadan merge.
 
+## ▶ halef — 30 Eki 01:5x (nöbet `82c25eb0` */10 + caffeinate kuruldu; MaCiT = `local_e5e16e56`)
+- **Kapandı:** ES32+ES33+ES34 merge `0b6bc33a` (39 ürün, 41282→41321; yalnız urunler.json +941/−0) · SERİT B `40953404953` ESIT · Pages `40969653708` deploy+yayin success · D1 41321 birebir · parite 300 BİREBİR (borç 0) · ağaç `kral-es33` + dal silindi (worktree 38→37).
+- **SIRADAKİ:** MaCiT'in sonraki dilimi (ES35+) kutuya düşünce aynı zincir: uç kapısı → merge → Pages → D1 → parite 300. Açık kalemler aşağıdaki 00:2x DEVİR'de (değişmedi).
+
 ## 🔁 DEVİR — 30 Eki 00:2x, KraL yeni-hesap-1 → halef (bağlam kapısı RED tur 700 · 410K; nöbet `553f26ca` SİLİNDİ, caffeinate oturumla ölür; main `f5a3f12e`; MaCiT = `local_e5e16e56`)
 - **SIRADAKİ TEK İŞ:** ES32-34 dilimi `kral/es32-33-30eki` `2f598864` (ağaç `kral-es33`, push'lu; ES32 `cc0469ce`+ES33 `a1c51f5e`+ES34 `1cc205c2`, yalnız urunler.json +941/−0, 41321, gizli 0; TABAN/uyum 39/model-uyelik 30/marka-uyelik/sözlük24 yeşil, mükerrer 14, DAL_PROVA 9/0/0) SERİT B `40953404953` sonucu → `serit-b-uc-kapisi.py` → merge → Pages → D1 + `parite-test.js 300` (parite OLCULEMEDI borcu her merge'de çıkıyor).
 - **Bugün main'e giren:** ata-lisans D19 `409beff2` · sözlük 24 `069b9e84` · ES21-25 `436632d2` · ES26 `2f58a43c` · ES27+28 `80d494b3` · ES29+30 `66ea3e09` · ES31 `f5a3f12e` — hepsi Pages yeşil + D1 birebir + parite 300 BİREBİR (ES31 dahil, borç 0).
