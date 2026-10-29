@@ -1,5 +1,581 @@
 [
   {
+    "id": "pr877991-raspberry-pi-zero-2-w-petek-desenli-kasa",
+    "kategori": "Elektronik",
+    "marka": [
+      "Raspberry Pi"
+    ],
+    "uyum": [
+      {
+        "marka": "Raspberry Pi"
+      }
+    ],
+    "baslik": "Raspberry Pi Zero 2 W Petek Desenli Kasa",
+    "aciklama": "Raspberry Pi Zero 2 W kartı için hazırlanmış, petek desenli kapak seçeneği bulunan bir kasadır. Kaynağında vida gerekmediği, farklı kullanımlar için çeşitli kapak ve kasa tiplerinin hazırlandığı ve tüm tiplerin birbiriyle birleştirilebildiği belirtilir. Raspberry Pi kartı ürüne dahil değildir.\nYaklaşık dış ölçüler: 70 × 45 × 10 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr877991-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr877991-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr877991-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr877991-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "BlackyIV"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr416695-stihl-gta-26-duvar-askisi",
+    "kategori": "Bahçe",
+    "marka": [
+      "Stihl"
+    ],
+    "uyum": [
+      {
+        "marka": "Stihl"
+      }
+    ],
+    "baslik": "Stihl GTA 26 Duvar Askısı",
+    "aciklama": "Stihl GTA 26 aletini duvara asarak saklamak için hazırlanmış sade bir duvar askısıdır. Kaynağında, askının tetik bölgesi için kesik bırakan bu sürümünün yanı sıra kesiği bulunmayan ikinci bir sürümünün de hazırlandığı ve onun herhangi bir aleti asmak için kullanılabileceği belirtilir. Duvar vidası delikleri, vida başı ve gövdesi için ayrı çaplarda tasarlanmıştır. Alet ve montaj vidaları ürüne dahil değildir.\nYaklaşık dış ölçüler: 142 × 90 × 52 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr416695-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Alex Brooke-Smith"
+    }
+  },
+  {
+    "id": "pr936963-stihl-tirpan-anahtar-tutucusu",
+    "kategori": "Bahçe",
+    "marka": [
+      "Stihl"
+    ],
+    "uyum": [
+      {
+        "marka": "Stihl"
+      }
+    ],
+    "baslik": "Stihl Tırpan Anahtar Tutucusu",
+    "aciklama": "Stihl tırpanın anahtarını ve çubuğunu bir arada tutmak için hazırlanmış küçük bir tutucudur. Kaynağında başka tırpanlarla da kullanılabileceği belirtilir. Anahtar, çubuk ve tırpan ürüne dahil değildir.\nYaklaşık dış ölçüler: 20 × 15 × 7 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr936963-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "TenPuklona"
+    }
+  },
+  {
+    "id": "pr941866-stihl-fse-52-tirpan-duvar-askisi",
+    "kategori": "Bahçe",
+    "marka": [
+      "Stihl"
+    ],
+    "uyum": [
+      {
+        "marka": "Stihl"
+      }
+    ],
+    "baslik": "Stihl FSE 52 Tırpan Duvar Askısı",
+    "aciklama": "Stihl FSE 52 tırpanı duvara asarak saklamak için hazırlanmış sade bir duvar askısıdır. Kaynağında diğer modellere de uygun olabileceği belirtilir. Tırpan ve duvara montaj için gereken bağlantı elemanları ürüne dahil değildir.\nYaklaşık dış ölçüler: 94 × 80 × 57 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr941866-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr941866-2.jpg"
+    ]
+  },
+  {
+    "id": "pr1015756-stihl-fsa-57-duvar-tutucusu",
+    "kategori": "Bahçe",
+    "marka": [
+      "Stihl"
+    ],
+    "uyum": [
+      {
+        "marka": "Stihl"
+      }
+    ],
+    "baslik": "Stihl FSA 57 Duvar Tutucusu",
+    "aciklama": "Stihl FSA 57 tırpanı duvara asarak saklamak için hazırlanmış, düz plaka yapılı bir duvar tutucusudur. Kaynağında yükleyenin kendi tasarım versiyonu olduğu belirtilir. Tırpan ve duvara montaj için gereken bağlantı elemanları ürüne dahil değildir.\nYaklaşık dış ölçüler: 90 × 78 × 20 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1015756-1.jpg"
+    ]
+  },
+  {
+    "id": "pr1842506-stihl-br800-yaprak-ufleyici-askisi",
+    "kategori": "Bahçe",
+    "marka": [
+      "Stihl"
+    ],
+    "uyum": [
+      {
+        "marka": "Stihl"
+      }
+    ],
+    "baslik": "Stihl BR800 Yaprak Üfleyici Askısı",
+    "aciklama": "Stihl BR800 yaprak üfleyiciyi duvara asarak saklamak için hazırlanmış üçgen gövdeli bir askıdır. Üst kısmında kavisli bir kol bulunur. Kaynağında dolap vidalarıyla kullanılacak şekilde tasarlandığı belirtilir. Yaprak üfleyici ve vidalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 152 × 71 × 32 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1842506-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1842506-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1842506-3.jpg"
+    ]
+  },
+  {
+    "id": "pr717976-ryobi-hsw-alet-tutucusu",
+    "kategori": "Ev",
+    "marka": [
+      "Ryobi"
+    ],
+    "uyum": [
+      {
+        "marka": "Ryobi"
+      }
+    ],
+    "baslik": "Ryobi HSW Alet Tutucusu",
+    "aciklama": "Ryobi matkap, darbeli tornavida ve çok amaçlı alet gibi aletleri HSW petek (honeycomb) panelinde asılı saklamak için hazırlanmış bir tutucudur. Matkap için ve daha geniş gövdeli bir alet için iki ayrı varyantı bulunur. Aletler ve panel ürüne dahil değildir.\nYaklaşık dış ölçüler: 130 × 90 × 34 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr717976-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr717976-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr717976-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr717976-4.jpg"
+    ],
+    "altkategori": "Duvar ve Askı"
+  },
+  {
+    "id": "pr230839-ryobi-elektrikli-supurge-uzatma-agzi",
+    "kategori": "Ev",
+    "marka": [
+      "Ryobi"
+    ],
+    "uyum": [
+      {
+        "marka": "Ryobi"
+      }
+    ],
+    "baslik": "Ryobi Elektrikli Süpürge Uzatma Ağzı",
+    "aciklama": "Ryobi P7131 el süpürgesinin ucuna takılmak üzere hazırlanmış, dar aralıklara ulaşmak için uzatma ağzıdır. Kaynağında iki sürümü bulunduğu, birinin duvarlarının biraz daha kalın olduğu anlatılır. Süpürge ürüne dahil değildir.\nYaklaşık dış ölçüler: 152 × 45 × 14 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr230839-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr230839-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr230839-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Beeks1996"
+    }
+  },
+  {
+    "id": "pr1203966-ryobi-link-uc-kapaklari",
+    "kategori": "Ev",
+    "marka": [
+      "Ryobi"
+    ],
+    "uyum": [
+      {
+        "marka": "Ryobi"
+      }
+    ],
+    "baslik": "Ryobi Link Uç Kapakları",
+    "aciklama": "Ryobi Link depolama sisteminin ray ve kutu uçlarında kullanılmak üzere hazırlanmış uç kapaklarıdır. Kaynağında sistemin depolama alanını genişletmek için kullanılabileceği belirtilir. Ryobi Link rayları ve kutuları ürüne dahil değildir.\nYaklaşık dış ölçüler: 168 × 102 × 36 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1203966-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1203966-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1203966-3.jpg"
+    ],
+    "altkategori": "Duvar ve Askı"
+  },
+  {
+    "id": "pr540589-ryobi-link-somun-anahtari-askisi",
+    "kategori": "Ev",
+    "marka": [
+      "Ryobi"
+    ],
+    "uyum": [
+      {
+        "marka": "Ryobi"
+      }
+    ],
+    "baslik": "Ryobi Link Somun Anahtarı Askısı",
+    "aciklama": "Ryobi Link depolama sistemine takılan, dokuz somun anahtarını ayrı yuvalarda sıralı saklamak için hazırlanmış bir askıdır. Kaynağında takmak için üç adet küçük vida gerektiği ve daha fazla yuva istenirse birden fazla parçanın kullanılabileceği belirtilir. Anahtarlar, vidalar ve Ryobi Link rayı ürüne dahil değildir.\nYaklaşık dış ölçüler: 143 × 142 × 40 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr540589-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr540589-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr540589-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr540589-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "JPMakesStuff"
+    },
+    "altkategori": "Duvar ve Askı"
+  },
+  {
+    "id": "pr394027-ikea-365-kapak-tutucu-mutfak-duzenleyici",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA 365+ Kapak Tutucu Mutfak Düzenleyici",
+    "aciklama": "IKEA 365+ saklama kaplarının kapaklarını sıralı biçimde bir arada saklamak için hazırlanmış bir kapak tutucudur. Kaynağında yandan da beslenebildiği, bu sayede çekmecelerin yanı sıra raflara da yerleştirilebildiği anlatılır; kapakların yerleştirilmesini kolaylaştıran pahlı bir kenarı ve farklı yuva sayılı sürümleri bulunur. Kapaklar ürüne dahil değildir.\nYaklaşık dış ölçüler: 150 × 98 × 86 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr394027-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr394027-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr394027-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Simon (remix: HaughtyGrayAlien)"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr213778-ikea-alex-cekmecesi-gridfinity-tabani",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA Alex Çekmecesi Gridfinity Tabanı",
+    "aciklama": "IKEA Alex çekmecelerinin içine yerleştirilmek üzere hazırlanmış, Gridfinity ızgara sistemine göre tasarlanmış bir taban plakasıdır. Kaynağında çekmeceye oturuşu iyileştirmek için kenarlarına çıkıntılar eklendiği anlatılır. İki seçenek sunulur: büyük düzende iki parça, küçük düzende ise farklı ebatlarda altı parça yer alır. Gridfinity kutuları ve çekmece ürüne dahil değildir.\nYaklaşık dış ölçüler: 296 × 270 × 5 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr213778-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Pey3D"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr280833-ikea-skadis-duvar-bardaklari",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA Skadis Duvar Bardakları",
+    "aciklama": "IKEA Skadis delikli panolarına takılan, kalem ve benzeri küçük eşyaları koymak için hazırlanmış duvar bardaklarıdır. Kaynağında hızlı hazırlanacak şekilde tasarlandığı anlatılır. İki sürümü vardır: standart sürüm ile spiral (vazo) kipine göre hazırlanmış sürüm; vazo sürümünde kancaların geçici bir ek yapıyla oluşturulduğu ve bu ekin sonradan kesilip temizlenmesi gerektiği belirtilir. Pano ve içine konan eşyalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 101 × 80 × 78 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr280833-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr280833-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr280833-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Catdad Workshop"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr1862513-ikea-skadis-kalem-ve-marker-organizeri",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA Skadis Kalem ve Marker Organizeri",
+    "aciklama": "IKEA Skadis delikli panosuna takılan, kalem, keçeli kalem ve benzeri silindirik aletler için dalga biçiminde bölmeleri olan bir duvar organizeridir. Kaynağında tek parça olarak hazırlandığı ve birkaç organizerin yan yana eklenerek daha uzun bir sıra oluşturulabildiği anlatılır. Pano ve kalemler ürüne dahil değildir.\nYaklaşık dış ölçüler: 120 × 119 × 59 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1862513-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1862513-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Elitail"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "th6655244-cupra-born-bagaj-sarj-kablosu-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Cupra",
+      "Born"
+    ],
+    "uyum": [
+      {
+        "marka": "Cupra",
+        "model": "Born"
+      }
+    ],
+    "baslik": "Cupra Born Bagaj Şarj Kablosu Tutucusu (Küçük)",
+    "aciklama": "Cupra Born bagajındaki askı kancasına takılan, şarj kablosu için hazırlanmış küçük boy bir kablo tutucusudur. Kaynağında parçanın VW ID.3 bagaj kancası için de anıldığı belirtilir. Şarj kablosu ürüne dahil değildir.\nYaklaşık dış ölçüler: 74 × 60 × 50 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6655244-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6655244-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "klarenc"
+    },
+    "altkategori": "Bagaj ve Taşıma"
+  },
+  {
+    "id": "th7113451-cupra-formentor-dashcam-montaj-sablonu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Cupra",
+      "Formentor"
+    ],
+    "uyum": [
+      {
+        "marka": "Cupra",
+        "model": "Formentor"
+      }
+    ],
+    "baslik": "Cupra Formentor VIOFO A229 Pro Dashcam Montaj Şablonu",
+    "aciklama": "Cupra Formentor etiketiyle paylaşılan, ön cama yapışkan dashcam montaj bloğunu düzgün konumlandırmak için hazırlanmış geçici bir yerleştirme şablonudur. Kaynağında şablondaki girintinin dashcam gövdesinin dış hattına, şablonun dış hattının ise montaj filmine karşılık geldiği, kare delikten montaj bloğunun cama bastırıldığı anlatılır; işaretleme için yalıtım bandı ve su terazisi kullanılır. Kaynak başlığında VIOFO 4K A229 Pro adı geçer. Dashcam, montaj filmi ve montaj bloğu ürüne dahil değildir.\nYaklaşık dış ölçüler: 105 × 100 × 10 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7113451-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7113451-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7113451-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7113451-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY-SA",
+      "tasarimci": "Nitro91"
+    },
+    "altkategori": "Montaj Parçaları ve Klipsler"
+  },
+  {
+    "id": "th3209649-tesla-model-3-bagaj-sarj-adaptoru-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Tesla",
+      "Model 3"
+    ],
+    "uyum": [
+      {
+        "marka": "Tesla",
+        "model": "Model 3"
+      }
+    ],
+    "baslik": "Tesla Model 3 Bagaj Şarj Adaptörü Tutucusu",
+    "aciklama": "Tesla Model 3 bagajındaki plastik itmeli pim klipslerinden birine takılarak kullanılan, şarj adaptörü için hazırlanmış bir tutucudur. Kaynağında yeni Model 3 araçlarda bu pimin bulunmayabileceği, yine de aynı konuma monte edilebildiği belirtilir. Şarj adaptörü ürüne dahil değildir.\nYaklaşık dış ölçüler: 58 × 54 × 30 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3209649-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3209649-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3209649-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "jonco223"
+    },
+    "altkategori": "Bagaj ve Taşıma"
+  },
+  {
+    "id": "pr248231-stihl-imow-kablo-sabitleme-civisi",
+    "kategori": "Bahçe",
+    "marka": [
+      "Stihl"
+    ],
+    "uyum": [
+      {
+        "marka": "Stihl"
+      }
+    ],
+    "baslik": "Stihl iMOW Kablo Sabitleme Çivisi",
+    "aciklama": "Robot çim biçme makinesinin sınır kablosunu çimin üzerine yatırıp zemine sabitlemek için hazırlanmış düz ve ince yapılı bir kablo çivisidir. Kaynağında aynı yöntemle bahçe aydınlatması gibi başka kabloların da döşenebildiği, çimin zamanla kablonun etrafında büyüyerek onu görünmez kıldığı belirtilir; kaynak başlığında Stihl iMOW adı geçer. Kablo ve robot çim biçme makinesi ürüne dahil değildir.\nYaklaşık dış ölçüler: 94 × 17 × 7 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr248231-1.jpg"
+    ]
+  },
+  {
+    "id": "pr235202-stihl-bga-57-yaprak-ufleme-makinesi-duvar-askisi",
+    "kategori": "Bahçe",
+    "marka": [
+      "Stihl"
+    ],
+    "uyum": [
+      {
+        "marka": "Stihl"
+      }
+    ],
+    "baslik": "Stihl BGA 57 Yaprak Üfleme Makinesi Duvar Askısı",
+    "aciklama": "Stihl BGA 57 yaprak üfleme makinesini duvara asarak depolamak için hazırlanmış sade bir duvar askısıdır. Kaynağında basit bir duvar askısı olarak tasarlandığı belirtilir. Yaprak üfleme makinesi ve duvara montaj için gereken bağlantı elemanları ürüne dahil değildir.\nYaklaşık dış ölçüler: 114 × 76 × 9 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr235202-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr235202-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "ScienceDino"
+    }
+  },
+  {
+    "id": "pr120592-ryobi-yaprak-ufleyici-askisi",
+    "kategori": "Ev",
+    "marka": [
+      "Ryobi"
+    ],
+    "uyum": [
+      {
+        "marka": "Ryobi"
+      }
+    ],
+    "baslik": "Ryobi Yaprak Üfleyici Duvar Askısı",
+    "aciklama": "Ryobi 18V yaprak üfleyiciyi (P2180 modeli) duvara asmak için hazırlanmış bir askı braketidir. Üfleyici ürüne dahil değildir.\nYaklaşık dış ölçüler: 165 × 80 × 44 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr120592-1.jpg"
+    ],
+    "altkategori": "Duvar ve Askı"
+  },
+  {
+    "id": "pr381653-ryobi-darbeli-tornavida-uc-tutucusu",
+    "kategori": "Ev",
+    "marka": [
+      "Ryobi"
+    ],
+    "uyum": [
+      {
+        "marka": "Ryobi"
+      }
+    ],
+    "baslik": "Ryobi Darbeli Tornavida Uç Tutucusu",
+    "aciklama": "Ryobi darbeli tornavida için hazırlanmış, üç uç yuvalı basit bir tutucudur. Kaynağında tutucunun aletteki kemer klipsi için açılmış deliklerden birine vidayla takılabileceği, uygun vidanın ayrıca bulunması gerektiği anlatılır. Alet sağ taraf için hazırlanmıştır; kaynağında aynalanırsa sol taraf için de kullanılabileceği, ayrıca daha geniş yuvalı ikinci bir seçenek bulunduğu belirtilir. Alet, uçlar ve vida ürüne dahil değildir.\nYaklaşık dış ölçüler: 52 × 24 × 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr381653-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr381653-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr381653-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Laguite"
+    },
+    "altkategori": "Duvar ve Askı"
+  },
+  {
+    "id": "pr15876-raspberry-pi-3-iki-parcali-kilif",
+    "kategori": "Elektronik",
+    "marka": [
+      "Raspberry Pi"
+    ],
+    "uyum": [
+      {
+        "marka": "Raspberry Pi"
+      }
+    ],
+    "baslik": "Raspberry Pi 3 İki Parçalı Kılıf",
+    "aciklama": "Raspberry Pi 3 kartının üzerine geçirilen, iki parçalı bir kılıftır. Parçalar kulaklık jakının ortasından bölünür. Kaynağında iki parçanın kart ile birbirine sürtünmesiyle bir arada durduğu ve vida gerekmediği belirtilir. Raspberry Pi kartı ürüne dahil değildir.\nYaklaşık dış ölçüler: 60 × 37 × 24 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr15876-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "Tobias Christensen"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr144888-ikea-skadis-kagit-havlu-tutucusu",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA Skadis Kağıt Havlu Tutucusu",
+    "aciklama": "IKEA Skadis delikli panolarına takılmak üzere hazırlanmış, az malzeme kullanan bir kağıt havlu rulosu tutucusudur. Sağ ve sol yöne göre iki ayrı gövde seçeneği ile birlikte bir vida parçası bulunur. Kağıt havlu rulosu ve pano ürüne dahil değildir.\nYaklaşık dış ölçüler: 102 × 83 × 35 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr144888-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr144888-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr144888-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr144888-4.jpg"
+    ],
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr41393-ikea-skadis-tornavida-tutucusu",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA Skadis Tornavida Tutucusu",
+    "aciklama": "IKEA Skadis panolarına takılan, tarak biçiminde yuvaları olan bir alet tutucusudur. Kaynağında büyük ve küçük olmak üzere iki boyu bulunduğu anlatılır: büyük boyda geniş çaplı beş yuva ile bir daha geniş yuva, küçük boyda ise aralıklı sıralanmış sekiz ince yuva yer alır. Kaynağında tutucuyu panoya asmak için iki kanca gerektiği belirtilir. Aletler ve pano ürüne dahil değildir.\nYaklaşık dış ölçüler: 155 × 45 × 28 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr41393-1.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Pavel"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr280046-ikea-skadis-istiflenebilir-kutu-rafi",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA Skadis İstiflenebilir Kutu Rafı",
+    "aciklama": "IKEA Skadis delikli panolarına takılan, istiflenebilir kutu yığınını taşımak için hazırlanmış bir raftır. Kaynağında istiflenebilir kutu sisteminin V4 sürümündeki kutularla uyumlu olduğu belirtilir. Kutular ve pano ürüne dahil değildir.\nYaklaşık dış ölçüler: 108 × 85 × 30 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr280046-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr280046-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr280046-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "bonnee"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
     "id": "pr625874-roland-aira-compact-istiflenebilir-toz-kapagi",
     "kategori": "Elektronik",
     "marka": [
