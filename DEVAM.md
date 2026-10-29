@@ -6,6 +6,13 @@
 
 - 🔴🔴🔴 **Okan 20 Eki 20:2x:** Okan'a "bas/tıkla/onayla" YOK, işi bitir, son çare pencere, cevap ≤2 cümle (hafıza `okan-emri-is-biter-pencere-son-care-20-eki`). **Okan kalıcı izni 14:2x:** çip dalı SERİT B yeşil → sormadan merge.
 
+## 🔁 DEVİR — 29 Eki 10:3x, KraL halef-68 → yeni hesap (Okan `/devir`; nöbet `983a481e` + caffeinate DURDURULDU, arka plan 0; main `080e9c0b`)
+- **SIRADAKİ TEK İŞ:** ata-lisans D19 dalı `kral/ata-lisans-d19-29eki` `e3904469` (main alındı, push'lu; test 117/117 · mutant 55/55; `serit-b-dispatch.py --kuru` KURU-GECER) → main yayını `40833940589` bitince `serit-b-dispatch.py` → uç → merge.
+- **Nerede kaldım:** sözlük 24 dalı `kral/sozluk24-29eki` `d3aa689e` (ağaç `kral-sozluk24`, push'lu, temiz): `tools/sozluk24-marka-kabul-kapisi.py` 9/9 + deploy.yml adımı + MaCiT ES19+ES20 `4144101c` alındı (katalog 41125). Yeşil: sözlük21/22/23 9/9 · model-uyelik 30/30 · marka-cip + mutant 9/9 · katalog-alan · taninmis-esik K1 0. **Koşulmadı:** `marka-uyelik-test.py` · `mukerrer-kontrol.py` · DAL_PROVA → SERİT B (ata-lisans'tan SONRA, tek dal) → merge → MaCiT'e "bloke 7'yi al".
+- **Açık worktree:** `kral-sozluk24` · `kral-ata-lisans` (ikisi push'lu, temiz). Eski dal `claude/youthful-panini-271cc0` `a84629d4` yerine `kral/ata-lisans-d19-29eki` geçti (çipi arşivli).
+- **MaCiT:** ES21 `f7df7e6c` (`macit/esik21-veri-29eki`, 41131, push'suz, ES20 üstünde) sözlük 24 kapsamı DIŞI → sonraki tur. **10:2x MaCiT + BaBa + TeKiN + ArTisT hepsi Okan `/devir` ile kapandı (arşivli, RC off)** → nöbet "devam" GÖNDERMEDİ; MaCiT halefi yeni hesapta açılınca nöbet kurulur.
+- **Nöbetler (yeniden kur):** MaCiT nöbeti `*/10` + `caffeinate -i -t 86400` — MaCiT arşivden çıkmışsa. **Jeton:** `.ci-token` 108 B (yeni hesapta kosulsuz tazelenir). **Okan'da bekleyen:** YOK.
+
 ## 🔁 DEVİR — 29 Eki 10:0x, KraL halef-67 → halef-68 (bağlam kapısı RED tur 700; nöbet `c13586e5` silindi, caffeinate oturumla ölür; main `7ab50179` = katalog 41109)
 - **İLK İŞ:** AÇILIŞ satırı = MaCiT nöbeti `*/10` + `caffeinate -i -t 86400` HEMEN; MaCiT boşsa ilk turda "devam" (Okan 2 kez sordu).
 - **SIRADAKİ TEK İŞ:** sözlük 24 dalı `kral/sozluk24-29eki` `95431170` (ağaç `kral-sozluk24`, push'lu, WIP; arama.py iki küme += Keurig·Moccamaster·Roland). Kalan: `tools/sozluk24-marka-kabul-kapisi.py` = sözlük23 kopyası, sabitler HEDEF 3 · HEDEF_SATIRI `'    "Keurig", "Moccamaster", "Roland",\n'` · FIKSTUR Keurig / Moccamaster+KBG · SINIR_RED Philips|Keurig, Bosch|Moccamaster, Yamaha|Roland · ONCEKI_TUR Gaggia, Polaris · id `s24-fikstur` + deploy.yml adımı → MaCiT ES19+ES20 `macit/esik20-veri-29eki` `4144101c` (41125) al → TABAN K1 → model-uyelik + `--kendini-test` + marka-cip + uyum + sözlük21-23 → DAL_PROVA → SERİT B → merge → MaCiT'e "bloke 7'yi al".
