@@ -63,6 +63,9 @@ SESSIZ FAIL-OPEN olurlar. Onarim: ALAN-YOK artik VARSAYILMAZ, KANITLANIR.
       ("... worldwide, royalty-free, non-exclusive ...") veto yiyordu (yanlis-pozitif; yon
       fail-closed ama yayin durdurur). ARTIK: "non-exclusive" onek muafiyetli desen; tescilli
       "Exclusive License" VETO'da KALIR.
+  D19 aciklama tetiklerinde "adapted from" YOKTU: Thingiverse th1252975 (`ancestors` bos,
+      NC ata yalniz "adapted from <thing URL>" duzyazisinda) ALAN-YOK rc=0 geciyordu.
+      ARTIK: adapted/adapting/adaptation tetik; "adapter/adaptor" (parca adi) tetik DEGIL.
 
 FAIL-CLOSED YON (supheli = satilamaz):
   * host'un adaptoru YOK        -> COZULEMEDI-ADAPTORSUZ (ELLE-BAK kuyruguna) -> rc 1
@@ -313,6 +316,14 @@ ACIKLAMA_TETIKLERI = (
     re.compile(r"\boriginal\s+(?:design|by|model|file)\b", re.IGNORECASE),
     re.compile(r"\bderiv\w*", re.IGNORECASE),
     re.compile(r"\binspired\s+by\b", re.IGNORECASE),
+    # 🔴 D19 (29 Eki 2026, MaCiT canli olcum): Thingiverse th1252975 (Roland) `ancestors`
+    # BOS, atif YALNIZ aciklamada "adapted from" + thing URL'si; ata CC ...-NC. Bu desen
+    # yokken kapi `--canli thing:1252975` -> ALAN-YOK rc=0 (SATILAMAZ turev GECIYORDU;
+    # yalniz icerik asamasinda elle yakalandi). Korpusta ayni kalip: "adapted from another
+    # design by <yazar> https://www.thingiverse.com/thing:N".
+    # SINIR: "adapter/adaptor" (yedek parca ADI: "hose adapter") tetik DEGILDIR — kok
+    # deseni (\badapt\w*) her adaptor parcasindaki uyumluluk linkini ata sanardi.
+    re.compile(r"\badapt(?:ed|ing|ation|ion)s?\b", re.IGNORECASE),
     # MIMAR KARI (23 Eki 2026, canli olcum): 4853978'in aciklamasi tam olarak
     # "For the lowerpart I used this design: <thing:3543408>" — yukaridaki9 desenin HICBIRI
     # bunu yakalamaz ("design" kelimesi geciyor ama "original design" DEGIL).
