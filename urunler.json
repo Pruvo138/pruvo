@@ -1,5 +1,45 @@
 [
   {
+    "id": "th2839898-ninja-kahve-kasigi-tutucu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Ninja"
+    ],
+    "baslik": "Ninja Kahve Kaşığı Tutucu",
+    "aciklama": "Ninja Coffee Bar kahve makinesinin ölçü kaşığını asmak için hazırlanmış basit bir tutucudur. Kaynağında tutucunun makinenin yan yüzüne çift taraflı köpük bantla yapıştırıldığı belirtilir. Bant, kaşık ve kahve makinesi ürüne dahil değildir.\nYaklaşık dış ölçüler: 63 × 28 × 26 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2839898-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2839898-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2839898-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "mxtr185"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "th2235462-bosch-l-boxx-slimline-kelepce",
+    "kategori": "Tamirat",
+    "marka": [
+      "Bosch"
+    ],
+    "baslik": "Bosch Sortimo L-Boxx Slimline Kelepçe",
+    "aciklama": "Bosch Sortimo L-Boxx kutuları için hazırlanmış, ince yapılı bir kilit kelepçesidir. Kaynağında kelepçenin dışarıdan vidalanacak yeri olmayan, alandan tasarruf edecek şekilde yapılmış hareketli raf sistemleri için sıfırdan tasarlandığı belirtilir. L-Boxx kutuları ürüne dahil değildir.\nYaklaşık dış ölçüler: 131 × 24 × 16 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2235462-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2235462-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2235462-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2235462-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY-SA",
+      "tasarimci": "TheMakerShedNZ"
+    }
+  },
+  {
     "id": "th3755658-kenwood-ts-480-kontrol-paneli-standi",
     "kategori": "Elektronik",
     "marka": [
