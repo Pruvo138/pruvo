@@ -1,5 +1,410 @@
 [
   {
+    "id": "pr325027-anker-powerport-speed-5-dikey-stand",
+    "kategori": "Elektronik",
+    "marka": [
+      "Anker"
+    ],
+    "uyum": [
+      {
+        "marka": "Anker"
+      }
+    ],
+    "baslik": "Anker PowerPort Speed 5 Dikey Stand",
+    "aciklama": "Anker PowerPort Speed 5 şarj cihazını masa üstünde dik biçimde tutmak için hazırlanmış, serbest duran bir standdır. İki sürümü bulunur: şarj cihazının tabanını tamamen saran tek parça tam taban sürümü ile ayrı ayrı yerleştirilen bağımsız ayaklar. Kaynağında bağımsız ayaklardan iki adet kullanıldığı anlatılır. Şarj cihazı ürüne dahil değildir.\nYaklaşık dış ölçüler: 103 × 47 × 24 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr325027-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr325027-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr325027-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "scross01",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr776467-anker-soundcore-boost-hoparlor-standi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Anker"
+    ],
+    "uyum": [
+      {
+        "marka": "Anker"
+      }
+    ],
+    "baslik": "Anker SoundCore Boost Hoparlör Standı",
+    "aciklama": "Anker SoundCore Boost hoparlörü masa üstünde yükseltilmiş biçimde taşımak için hazırlanmış, uzun bir tepsisi ve dört ayağı olan bir standdır. Kaynağında iki parçadan oluştuğu ve parçaların birbirine yapıştırılarak birleştirildiği anlatılır. Hoparlör ve yapıştırıcı ürüne dahil değildir.\nYaklaşık dış ölçüler: 232 × 79 × 61 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr776467-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr776467-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr776467-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr776467-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "rs6alex",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr317283-anker-powercore-essential-20000-duvar-askisi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Anker"
+    ],
+    "uyum": [
+      {
+        "marka": "Anker"
+      }
+    ],
+    "baslik": "Anker PowerCore Essential 20000 Duvar Askısı",
+    "aciklama": "Anker PowerCore Essential 20000 taşınabilir şarj cihazını dik biçimde tutan, duvara asılan bir askıdır. Alt kısmında bir kablo tutucu çıkıntısı bulunur. Arka yüzünde iki montaj deliği vardır; kaynağında çift taraflı bantla yapıştırılabileceği de belirtilir. Şarj cihazı, kablo, vida ve bant ürüne dahil değildir.\nYaklaşık dış ölçüler: 100 × 70 × 26 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr317283-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr317283-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr317283-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr317283-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Flotschi",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "th2083464-yaesu-ft-7800-duvar-destegi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Yaesu"
+    ],
+    "uyum": [
+      {
+        "marka": "Yaesu"
+      }
+    ],
+    "baslik": "Yaesu FT-7800 Duvar Desteği",
+    "aciklama": "Yaesu FT-7800 telsizi duvara monte etmek için hazırlanmış bir tutucu plakadır. Kaynağında plakanın duvara vidalanmak üzere hazırlandığı belirtilir. Plakanın üzerinde ortada bir delik ve çeşitli yuvalar bulunur. Telsiz, mikrofon ve vidalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 144 × 40 × 12 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2083464-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2083464-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2083464-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Ivazqueez",
+      "tur": "CC-BY"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "th4843692-yaesu-ft3d-masa-standi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Yaesu"
+    ],
+    "uyum": [
+      {
+        "marka": "Yaesu"
+      }
+    ],
+    "baslik": "Yaesu FT3D Masa Standı",
+    "aciklama": "Yaesu FT3D el telsizini masa üstünde ayakta tutmak için hazırlanmış, U biçimli kanallı bir standdır. Kaynağında el telsizlerinin masa üstünde devrilmeye eğilimli olduğu, tabanın düz yüzeyde kaymaması için altına yapışkanlı kauçuk ayaklar eklendiği anlatılır. Telsiz ve kauçuk ayaklar ürüne dahil değildir.\nYaklaşık dış ölçüler: 84 × 60 × 28 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4843692-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4843692-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "quickcutz",
+      "tur": "CC-BY"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "th1157672-yaesu-ft-817-on-kapak",
+    "kategori": "Elektronik",
+    "marka": [
+      "Yaesu"
+    ],
+    "uyum": [
+      {
+        "marka": "Yaesu"
+      }
+    ],
+    "baslik": "Yaesu FT-817 Ön Kapak",
+    "aciklama": "Yaesu FT-817 telsizin ön yüzünü kapatan bir ön kapaktır. Kaynağında kapağın açık havada çalışırken düğmeleri korumak amacıyla tasarlandığı, telsizle birlikte gelen taşıma kayışıyla yerinde tutulduğu ve masada otururken stand olarak da kullanılabildiği anlatılır. Fotoğraflarda görünen kırmızı arka çerçeve ayrı bir parçadır; telsizle birlikte ürüne dahil değildir.\nYaklaşık dış ölçüler: 146 × 59 × 45 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1157672-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1157672-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Chaota",
+      "tur": "CC-BY"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr112301-xbox-one-kumanda-uzatilmis-tetik-ve-dugmeler",
+    "kategori": "Elektronik",
+    "marka": [
+      "Xbox"
+    ],
+    "uyum": [
+      {
+        "marka": "Xbox"
+      }
+    ],
+    "baslik": "Xbox One Kumanda Uzatılmış Tetik ve Düğmeler",
+    "aciklama": "Xbox One kumandaya takılarak tetikleri ve düğmeleri uzatan üç parçalı bir sistemdir: bir klips parçası, tetik uzatmaları ve düğme uzatmaları. Kaynağında sistemin kumandaya kalıcı bir değişiklik yapmadan takıldığı, basit bir yay mekanizmasıyla çalıştığı ve kumandanın alışılagelmişin dışındaki el pozisyonlarında tutulabilmesi için hazırlandığı anlatılır. Kumanda ürüne dahil değildir.\nYaklaşık dış ölçüler: 181 × 42 × 20 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr112301-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr112301-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "occupied_brain",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr327762-xbox-series-x-s-kumanda-pil-kapagi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Xbox"
+    ],
+    "uyum": [
+      {
+        "marka": "Xbox"
+      }
+    ],
+    "baslik": "Xbox Series X/S Kumanda Pil Kapağı",
+    "aciklama": "Xbox Series X/S kumandanın pil bölmesini kapatan bir kapaktır. Kenarında bölmeye geçen üç küçük tırnak ve üst yüzünde bir tutma izi bulunur. Kaynağında kapağın kumandaya olabildiğince uyacak biçimde yeniden tasarlandığı anlatılır. Kumanda ve piller ürüne dahil değildir.\nYaklaşık dış ölçüler: 56 × 45 × 19 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr327762-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr327762-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr327762-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr327762-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "HudsonLabs",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr922909-xbox-elite-series-2-kumanda-standi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Xbox"
+    ],
+    "uyum": [
+      {
+        "marka": "Xbox"
+      }
+    ],
+    "baslik": "Xbox Elite Series 2 Kumanda Standı",
+    "aciklama": "Xbox Elite Series 2 kumandayı ayakta tutmak için hazırlanmış, kumandanın ek parçalarını saklamaya yarayan deliklerle birleşik bir standdır. Ön yüzündeki yuvalarda takılabilir başparmak çubukları, ek yön tuşu ve gerginlik ayar aracı saklanır; sol üstteki yuva uzun çubuğa göre daha derindir. Kaynağında standın kumandanın yuvasını ve bu ek parçaları birlikte taşıdığı anlatılır. Kumanda, kumanda yuvası ve ek parçalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 102 × 91 × 69 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr922909-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr922909-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr922909-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "agent0530",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr314385-wyze-pan-cam-pencere-rafi",
+    "kategori": "Kamera",
+    "marka": [
+      "Wyze"
+    ],
+    "uyum": [
+      {
+        "marka": "Wyze"
+      }
+    ],
+    "baslik": "Wyze Pan Cam Pencere Rafı",
+    "aciklama": "Wyze Pan Cam kamerayı pencerenin üzerine oturtmak için hazırlanmış sade bir raftır. Kaynağında rafın pencereye klipsle takıldığı ve kameranın bu rafın üzerine konulduğu anlatılır; her pencereye uymayabileceği de belirtilir. Kamera ürüne dahil değildir.\nYaklaşık dış ölçüler: 60 × 55 × 34 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr314385-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr314385-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr314385-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Alex Lawson",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Montaj ve Tripod"
+  },
+  {
+    "id": "th3673987-wyze-kapi-sensoru-menteseli-tutucu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Wyze"
+    ],
+    "uyum": [
+      {
+        "marka": "Wyze"
+      }
+    ],
+    "baslik": "Wyze Kapı Sensörü Menteşesi",
+    "aciklama": "Wyze kapı sensörünü garaj kapısı gibi hareketli yüzeylerde kullanmak için hazırlanmış, dönerek yana açılan bir menteşedir. Kaynağında menteşenin kapı ile duvar ya da zemin arasında ayrıca düzenek kurma ihtiyacını ortadan kaldırmayı amaçladığı, posta kutusu gibi başka yerlerde de kullanılabileceği anlatılır. Menteşenin güçlü çift taraflı bantla kapıya sabitlendiği, ayrıca vida delikleri bulunduğu ve sensörün kendi bandının kullanıldığı belirtilir. Sensör, bant ve vidalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 60 × 45 × 5 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3673987-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3673987-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3673987-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3673987-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "bpaton",
+      "tur": "CC-BY"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "th4152912-philips-hue-hareket-sensoru-yapiskanli-tutucu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Philips"
+    ],
+    "uyum": [
+      {
+        "marka": "Philips"
+      }
+    ],
+    "baslik": "Philips Hue Hareket Sensörü Yapışkanlı Tutucu",
+    "aciklama": "Philips Hue hareket sensörünü duvara delik açmadan, yapışkan bant ya da yapıştırıcıyla monte etmek için hazırlanmış bir tutucudur. Kaynağında tutucunun mıknatıslı bir pime sahip olduğu, pimin yerinde demir içerikli bir parça (örneğin bir madeni para) sayesinde mıknatıs yoluyla tutulduğu anlatılır. Sensör, bant, yapıştırıcı ve demir parça ürüne dahil değildir.\nYaklaşık dış ölçüler: 50 × 50 × 5 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4152912-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4152912-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4152912-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Bob09",
+      "tur": "CC-BY"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "th623902-philips-livingcolor-hue-kumanda-tutucusu-ii",
+    "kategori": "Elektronik",
+    "marka": [
+      "Philips"
+    ],
+    "uyum": [
+      {
+        "marka": "Philips"
+      }
+    ],
+    "baslik": "Philips LivingColor ve Hue Kumanda Tutucusu II",
+    "aciklama": "Philips LivingColor kumandalarını duvara monte etmek için hazırlanmış bir tutucudur. Kaynağında bu ikinci sürümün eski, ikinci nesil kumandalara uyacak biçimde hazırlandığı anlatılır; üçüncü nesil kumandaların bu tutucuya uymadığı da açıkça belirtilir. Kumanda ve montaj malzemeleri ürüne dahil değildir.\nYaklaşık dış ölçüler: 92 × 46 × 32 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th623902-1.jpg",
+      "https://media.pruvo3d.com/urunler/th623902-2.jpg",
+      "https://media.pruvo3d.com/urunler/th623902-3.jpg",
+      "https://media.pruvo3d.com/urunler/th623902-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "makkuro (remix: jwildeboer)",
+      "tur": "CC-BY-SA"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr393868-makita-dbo180-zimpara-duvar-askisi",
+    "kategori": "Ev",
+    "marka": [
+      "Makita"
+    ],
+    "uyum": [
+      {
+        "marka": "Makita"
+      }
+    ],
+    "baslik": "Makita DBO180 Zımpara Duvar Askısı",
+    "aciklama": "Makita DBO180 eksantrik zımpara makinesini duvara asmak için hazırlanmış sade bir askıdır. Kaynağında askının bu zımpara makinesi için tasarlandığı belirtilir. Zımpara makinesi ve montaj malzemeleri ürüne dahil değildir.\nYaklaşık dış ölçüler: 137 × 84 × 16 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr393868-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr393868-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr393868-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr393868-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "BubTec",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Duvar ve Askı"
+  },
+  {
+    "id": "th741475-makita-esnek-altigen-uc-tutucusu",
+    "kategori": "Ev",
+    "marka": [
+      "Makita"
+    ],
+    "uyum": [
+      {
+        "marka": "Makita"
+      }
+    ],
+    "baslik": "Makita Esnek Altıgen Uç Tutucusu",
+    "aciklama": "Makita elektrikli el aletlerine takılan, altıgen saplı vidalama uçlarını tutmak için hazırlanmış bir uç tutucusudur. Kaynağında tutucunun esnek bir biçimde tasarlandığı (malzemesi esnek değildir), üst ve alt kısımdaki çıkıntıların ucun dönmesini engellediği anlatılır. Bu sürüm sağ taraf için hazırlanmıştır. Uç, alet ve montaj malzemeleri ürüne dahil değildir.\nYaklaşık dış ölçüler: 67 × 16 × 14 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th741475-1.jpg",
+      "https://media.pruvo3d.com/urunler/th741475-2.jpg",
+      "https://media.pruvo3d.com/urunler/th741475-3.jpg",
+      "https://media.pruvo3d.com/urunler/th741475-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "scarou (remix: tek2222)",
+      "tur": "CC-BY-SA"
+    },
+    "altkategori": "Duvar ve Askı"
+  },
+  {
+    "id": "th2748123-makita-kablosuz-supurge-tutucusu",
+    "kategori": "Ev",
+    "marka": [
+      "Makita"
+    ],
+    "uyum": [
+      {
+        "marka": "Makita"
+      }
+    ],
+    "baslik": "Makita Kablosuz Süpürge Tutucusu",
+    "aciklama": "Makita akülü (kablosuz) elektrik süpürgesini saklamak için hazırlanmış sade bir tutucudur. Kaynağında tutucunun Makita akülü süpürgesi için tasarlandığı belirtilir. Süpürge ve montaj malzemeleri ürüne dahil değildir.\nYaklaşık dış ölçüler: 118 × 113 × 90 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2748123-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2748123-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2748123-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2748123-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "_andy_",
+      "tur": "CC-BY"
+    },
+    "altkategori": "Duvar ve Askı"
+  },
+  {
     "id": "pr583810-anker-arac-telefon-sarj-cihazi-kanatli-somun",
     "kategori": "Elektronik",
     "marka": [
