@@ -2649,12 +2649,19 @@ MODEL_OLMAYAN_CIFT = {
                        "araci paylasir) — Citroen'in modeli degil (Toyota|107 emsali)",
     ("Peugeot", "DS"): "DS Automobiles Peugeot'dan AYRI bir markadir — Peugeot'nun "
                       "modeli degil",
+    # 29 Eki 2026, KraL (MaCiT ES16+ES17 iki Dellorto kaydi `dellorto` jetonunun sahiplik
+    # dagilimini degistirdi -> baslik kolundan yargisiz `Piaggio|dell'orto` dogdu, K21 SIZINTI).
+    # 🔴 Hyundai|Coupe'nin USTUNE yazildi: model-uyelik-kapisi M21 mutanti tablonun SON
+    # satirina capalanir; yeni giris sona eklenirse capa 0 eslesmeye duser (4. kez olmasin).
+    ("Piaggio", "Dell'Orto"): "Dell'Orto karburator URETICISIDIR (ayri marka, katalogda "
+                              "`Dellorto`) — Piaggio'nun modeli degil; basliktaki "
+                              "'Piaggio Ciao Dell'Orto 13.13' karburator uyumu",
     ("Hyundai", "Coupe"): "govde tipi sozcugu (Audi|Coupe emsali) — bagimsiz model "
                           "adi degil",
 }
 
-MODEL_OLMAYAN_CIFT_SAYISI = 40
-MODEL_OLMAYAN_CIFT_IMZA = "4aa789c556ac2871"  # arama.model_olmayan_cift_imzasi() ile hesaplandi
+MODEL_OLMAYAN_CIFT_SAYISI = 41
+MODEL_OLMAYAN_CIFT_IMZA = "f9eacb5329f7c9bd"  # arama.model_olmayan_cift_imzasi() ile hesaplandi
 
 
 def model_olmayan_cift_imzasi():
