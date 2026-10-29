@@ -1,5 +1,432 @@
 [
   {
+    "id": "pr800118-roland-aira-compact-serisi-standi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Roland"
+    ],
+    "uyum": [
+      {
+        "marka": "Roland"
+      }
+    ],
+    "baslik": "Roland Aira Compact Serisi Standı",
+    "aciklama": "Roland Aira Compact serisi (S-1, T-8, J-6, E-4) cihazlar için hazırlanmış yükseltilmiş stanttır. Kaynağında standın altına başka bir cihaz yerleştirilebildiği, kabloların arkadan geçirilebildiği, yüksekliğin MIDI klavyeyle birlikte kullanım için ayarlandığı ve iki Aira cihazının birlikte kullanımına da uygun olduğu anlatılır. Parçanın iki kez üretilmesi gerektiği, birleştirme için üç adet M3 dişli çubuk (iki adedin yeterli olabileceği) ile 12 adet M3 somun ve rondela kullanıldığı belirtilir. Cihazlar, dişli çubuklar, somunlar ve rondelalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 112 × 68 × 10 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr800118-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr800118-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr800118-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr800118-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "ballanux"
+    },
+    "altkategori": "Ses ve Müzik"
+  },
+  {
+    "id": "pr695962-roland-davul-kulaklik-askisi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Roland"
+    ],
+    "uyum": [
+      {
+        "marka": "Roland"
+      }
+    ],
+    "baslik": "Roland Davul Kulaklık Askısı",
+    "aciklama": "Roland davullar için hazırlanmış, kancalı yapıda bir kulaklık askısıdır. Kaynağında parçanın Roland davullar için kulaklık askısı olarak paylaşıldığı belirtilir. Kulaklık ve davul ürüne dahil değildir.\nYaklaşık dış ölçüler: 108 × 66 × 30 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr695962-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr695962-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr695962-3.jpg"
+    ],
+    "altkategori": "Ses ve Müzik"
+  },
+  {
+    "id": "pr757978-roland-kd-10-kick-davul-eki",
+    "kategori": "Elektronik",
+    "marka": [
+      "Roland"
+    ],
+    "uyum": [
+      {
+        "marka": "Roland"
+      }
+    ],
+    "baslik": "Roland KD-10 Kick Davul Eki",
+    "aciklama": "Roland KD-10 kick davul padi için hazırlanmış küçük bir ek parçadır. Kaynağında parçanın, TD-27KV2 setiyle birlikte gelen KD-10 padine kullanıcının kendi ayak pedalını uygun şekilde takamaması üzerine tasarlandığı ve aynı sorunu yaşayabilecek diğer kullanıcılar için paylaşıldığı anlatılır. Davul seti ve pedal ürüne dahil değildir.\nYaklaşık dış ölçüler: 115 × 37 × 8 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr757978-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr757978-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr757978-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr757978-4.jpg"
+    ],
+    "altkategori": "Ses ve Müzik"
+  },
+  {
+    "id": "pr1187791-insta360-ace-pro-2-lens-siperlikleri",
+    "kategori": "Kamera",
+    "marka": [
+      "Insta360"
+    ],
+    "uyum": [
+      {
+        "marka": "Insta360"
+      }
+    ],
+    "baslik": "Insta360 Ace Pro 2 Lens Siperlikleri",
+    "aciklama": "Insta360 Ace Pro 2 aksiyon kamerası için hazırlanmış üç ayrı lens parçasından oluşan settir: normal lens siperliği, sade tasarımlı lens siperliği ve sade tasarımlı lens tamponu. Kaynağında parçaların en iyi doğrusal (linear) ya da 45 derece ayarında kullanıldığı, en geniş görüş açısında normal siperliğin kenarlarının görüntüye girebileceği belirtilir. Kamera ürüne dahil değildir.\nYaklaşık dış ölçüler: 51 × 51 × 12 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1187791-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1187791-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1187791-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Lucas Lim"
+    }
+  },
+  {
+    "id": "th2629279-motorola-moto-x4-dock-ve-gopro-braketi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Motorola"
+    ],
+    "uyum": [
+      {
+        "marka": "Motorola"
+      }
+    ],
+    "baslik": "Motorola Moto X4 Dock ve GoPro Braketi",
+    "aciklama": "Motorola Moto X4 telefon için hazırlanmış, alt kısmında GoPro tipi bağlantıya yönelik yuva bulunan klips tipi bir dock yuvasıdır. Kaynağında dock'un kılıfsız Moto X4 için hazırlandığı, kulaklık girişi için kesikli bir modelin de bulunduğu ancak bu modelin denenmediği belirtilir. GoPro dışında bir bağlantı sistemi için alt yüzdeki girintiye uyan ayrı bir adaptör hazırlanması gerektiği anlatılır. Telefon, kelepçe ve GoPro aksesuarları ürüne dahil değildir.\nYaklaşık dış ölçüler: 154 × 80 × 14 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2629279-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2629279-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2629279-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2629279-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "Sigismond0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "th10794-motorola-talkabout-telsiz-kemer-klipsi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Motorola"
+    ],
+    "uyum": [
+      {
+        "marka": "Motorola"
+      }
+    ],
+    "baslik": "Motorola TalkAbout Telsiz Kemer Klipsi",
+    "aciklama": "Motorola TalkAbout serisi telsizlerde kullanılan kemer klipsine benzer şekilde hazırlanmış, kemer halkası, plastik yay ve kayar kılıf parçalarından oluşan üç parçalı bir klips setidir. Kaynağında parçaların üretimden sonra birbirine geçtiği ve telsizi kullanıcının yanında taşımak için tasarlandığı anlatılır. Telsiz ürüne dahil değildir.\nYaklaşık dış ölçüler: 83 × 80 × 42 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th10794-1.jpg",
+      "https://media.pruvo3d.com/urunler/th10794-2.jpg",
+      "https://media.pruvo3d.com/urunler/th10794-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "RyGuy"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "th2668640-motorola-cdm-tekrarlayici-montaji",
+    "kategori": "Elektronik",
+    "marka": [
+      "Motorola"
+    ],
+    "uyum": [
+      {
+        "marka": "Motorola"
+      }
+    ],
+    "baslik": "Motorola CDM Tekrarlayıcı Montajı",
+    "aciklama": "Motorola CDM telsiz çiftini dikey olarak üst üste yerleştirmek için hazırlanmış tekrarlayıcı montaj çerçevesidir. Kaynağında montajın yaklaşık 7 3/8 x 10 inç boyutunda bir ahşap tabana sabitlenmek üzere tasarlandığı, mobil dubleksörün dikey istifin altına yerleştirildiği ve telsizlerin kapaklarının çıkarılması gerektiği anlatılır. Düşük güçlü CDM750 telsizi esas alınarak hazırlandığı, CDM1550 modelinde üst rayların kısa kalabileceği ve üretimden önce ölçü alınması gerektiği belirtilir. Fan yuvaları ayrı parçalardır ve yan parçalara epoksi ile yapıştırılması gerektiği anlatılır. Telsizler, dubleksör, ahşap taban ve fanlar ürüne dahil değildir.\nYaklaşık dış ölçüler: 162 × 131 × 12 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2668640-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2668640-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2668640-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2668640-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "DoninIA"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "th2497931-rode-videomic-sabit-soguk-ayakkabi-montaji",
+    "kategori": "Elektronik",
+    "marka": [
+      "Rode"
+    ],
+    "uyum": [
+      {
+        "marka": "Rode"
+      }
+    ],
+    "baslik": "Rode VideoMic Sabit Soğuk Ayakkabı Montajı",
+    "aciklama": "Rode VideoMic Me mikrofonunu fotoğraf makinesinin soğuk ayakkabı yuvasına bağlamak için hazırlanmış küçük bir montaj klipsidir. Kaynağında parçanın, aynı mikrofon için hazırlanmış mevcut bir montaj tasarımından uyarlandığı, bu sürümde lyre tipi askı yapısının çıkarıldığı ve DSLR ya da aynasız fotoğraf makinelerinde kullanım için düzenlendiği belirtilir. Mikrofon ve fotoğraf makinesi ürüne dahil değildir.\nYaklaşık dış ölçüler: 35 × 20 × 18 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2497931-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2497931-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2497931-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "stiffman (remix: ReefDudes)"
+    },
+    "altkategori": "Ses ve Müzik"
+  },
+  {
+    "id": "th3000815-rode-nt-usb-mikrofon-montaj-parcasi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Rode"
+    ],
+    "uyum": [
+      {
+        "marka": "Rode"
+      }
+    ],
+    "baslik": "Rode NT-USB Mikrofon Montaj Parçası",
+    "aciklama": "Rode NT-USB stüdyo mikrofonunun montaj bağlantısı için hazırlanmış halka biçimli bir montaj parçasıdır. Kaynağında parçanın, mikrofonun montaj bağlantılarında sık yaşanan sorunlara karşı geçici bir çözüm olarak hazırlandığı anlatılır. Mikrofon ürüne dahil değildir.\nYaklaşık dış ölçüler: 87 × 86 × 40 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3000815-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3000815-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3000815-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3000815-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "ozykisser"
+    },
+    "altkategori": "Ses ve Müzik"
+  },
+  {
+    "id": "th2583664-kenwood-arac-teybi-radyo-dugmesi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Kenwood"
+    ],
+    "uyum": [
+      {
+        "marka": "Kenwood"
+      }
+    ],
+    "baslik": "Kenwood Araç Teybi Radyo Düğmesi",
+    "aciklama": "Kenwood araç teybinde kaybolan düğmenin yerine hazırlanmış radyo düğmesidir. Kaynağında düğmenin 6 milimetrelik mil ölçüsüne göre uyarlandığı belirtilir.\nYaklaşık dış ölçüler: 27 × 27 × 15 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2583664-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2583664-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "BeerPercussion"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "th4359973-kenwood-nx-210-telsiz-kemer-klipsi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Kenwood"
+    ],
+    "uyum": [
+      {
+        "marka": "Kenwood"
+      }
+    ],
+    "baslik": "Kenwood NX-210 Telsiz Hızlı Bırakmalı Kemer Klipsi",
+    "aciklama": "Kenwood NX-210 el telsizi için hazırlanmış, hızlı bırakmalı kemer klipsidir. Kaynağında klipsin taktik kemer bandına ya da kalınlığı 3/16 inçi, yüksekliği 1,5 inçi geçmeyen kemerlere takılacak şekilde tasarlandığı, delik aralığının 30 milimetre olduğu ve 2000 ile 2500 mAh pillerle birlikte kullanılabildiği belirtilir. Telsiz ve kemer ürüne dahil değildir.\nYaklaşık dış ölçüler: 46 × 40 × 19 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4359973-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4359973-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4359973-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4359973-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "TCBatemon"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "th2705068-kenwood-tk-3202-mikrofon-jaki-kapagi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Kenwood"
+    ],
+    "uyum": [
+      {
+        "marka": "Kenwood"
+      }
+    ],
+    "baslik": "Kenwood TK-3202 Telsiz Mikrofon Jakı Kapağı",
+    "aciklama": "Kenwood TK-3202 telsizin mikrofon jakı için hazırlanmış kapaktır. Kaynağında parçanın çoğu yeni Kenwood TK serisi telsize uyabileceği, yine de zımparalama ya da hafif bükme gerekebileceği belirtilir.\nYaklaşık dış ölçüler: 49 × 13 × 2 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2705068-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2705068-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2705068-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2705068-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "Caesious_chris"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "th3348985-saeco-demleme-grubu-anahtari",
+    "kategori": "Elektronik",
+    "marka": [
+      "Saeco"
+    ],
+    "uyum": [
+      {
+        "marka": "Saeco"
+      }
+    ],
+    "baslik": "Saeco Demleme Grubu Anahtarı",
+    "aciklama": "Saeco kahve makinesinin demleme grubunu sökmek ve takmak için hazırlanmış servis anahtarıdır. Kaynakta makine modeli belirtilmemiş, parça yalnızca Saeco demleme grubu anahtarı olarak tanıtılmıştır.\nYaklaşık dış ölçüler: 75 × 40 × 18 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3348985-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3348985-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3348985-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3348985-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "Juppjuppssen"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "th6821984-jura-kahve-tepsisi-uzatma",
+    "kategori": "Elektronik",
+    "marka": [
+      "Jura"
+    ],
+    "uyum": [
+      {
+        "marka": "Jura"
+      }
+    ],
+    "baslik": "Jura Kahve Tepsisi Uzatma Parçası",
+    "aciklama": "Jura kahve makinesinin tepsisine eklenen uzatma parçasıdır. Kaynağında geniş bir kasenin süt nozulunun altında tutulması için hazırlandığı anlatılır ve Jura E8 etiketi geçer. Kase ürüne dahil değildir.\nYaklaşık dış ölçüler: 137 × 126 × 42 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6821984-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6821984-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6821984-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6821984-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "Zetruenando"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "th4179634-miele-boru-kilidi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Miele"
+    ],
+    "uyum": [
+      {
+        "marka": "Miele"
+      }
+    ],
+    "baslik": "Miele Süpürge Boru Kilidi",
+    "aciklama": "Miele süpürge borusunun kilit parçasıdır. Kaynağında parçanın Miele Complete C1 Tango Ecoline süpürge örnek alınarak hazırlandığı anlatılır.\nYaklaşık dış ölçüler: 40 × 22 × 14 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4179634-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4179634-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4179634-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4179634-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "maxxer"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "th3238673-miele-compact-c2-nozul-tutucu-ray",
+    "kategori": "Elektronik",
+    "marka": [
+      "Miele"
+    ],
+    "uyum": [
+      {
+        "marka": "Miele"
+      }
+    ],
+    "baslik": "Miele Compact C2 Süpürge Nozul Tutucu Rayı",
+    "aciklama": "Miele Compact C2 süpürgede kırılan nozul tutucu rayın yerine hazırlanmış parçadır. Kaynağında rayın yuvasına kayarak yerleştiği ve çapı 4 milimetre, boyu 16 milimetre olan iki vida ile sabitlendiği belirtilir; vidalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 66 × 48 × 45 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3238673-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3238673-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3238673-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3238673-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "zenemig_susej"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
+    "id": "th1741489-miele-s771-toz-torbasi-tutucu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Miele"
+    ],
+    "uyum": [
+      {
+        "marka": "Miele"
+      }
+    ],
+    "baslik": "Miele S771 Toz Torbası Tutucu",
+    "aciklama": "Miele S771 süpürgenin toz torbası yuvasına takılan tutucu parçadır. Kaynağında tutucunun kapak açıldıktan sonra yuvaya kaydırılıp aşağı bastırıldığı, iki çıkıntının deliğe oturarak yerine geçtiği ve toz torbasının bu tutucunun yuvasına itilerek takıldığı anlatılır. Toz torbası ve süpürge ürüne dahil değildir.\nYaklaşık dış ölçüler: 117 × 68 × 66 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1741489-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1741489-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1741489-3.jpg",
+      "https://media.pruvo3d.com/urunler/th1741489-4.jpg"
+    ],
+    "lisans": {
+      "tur": "CC-BY",
+      "tasarimci": "Tinkerman"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
     "id": "pr291082-roland-td-25-fare-standi",
     "kategori": "Elektronik",
     "marka": [
