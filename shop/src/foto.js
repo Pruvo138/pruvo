@@ -302,8 +302,10 @@ export const GORSEL_EN_COK_BAYT = 4 * 1024 * 1024;
 export const GORSEL_EN_AZ_BAYT = 2 * 1024;
 /** Tum ziyaretciler icin 24 saatlik onizleme tavani (kotu niyetli dagitik kullanima fren). */
 export const GUNLUK_ONIZLEME_TAVANI = 40;
-/** Havuz esigi: bakiye (kredi) bunun + bekleyen uretim payinin altina inince bolum kapanir. */
-export const HAVUZ_ESIK_KREDI = 120;
+/** Havuz esigi: bakiye (kredi) bunun + bekleyen uretim payinin altina inince bolum kapanir.
+ *  Okan 30 Eki: "kredi bitene kadar acik kalsin" -> tek renk onizlemenin tam maliyeti (6 + gri 5);
+ *  odenmis uretimlerin payi (URETIM_PAYI_KREDI) AYNEN ayrilir. Eski deger 120. */
+export const HAVUZ_ESIK_KREDI = 11;
 /** Odenmis ama modeli henuz kurulmamis HER uretim icin ayrilan kredi (model+renk payi). */
 export const URETIM_PAYI_KREDI = 40;
 /** Bakiye onbellegi (ms) — her ana sayfa gorunumunde saglayiciya gidilmesin. */

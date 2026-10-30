@@ -862,7 +862,9 @@ let siparis2;
 
 console.log("G) HAVUZ ESIGI");
 {
-  P.bakiye = 100;
+  // Okan 30 Eki: "kredi bitene kadar acik kalsin" -> esik = tek renk onizleme maliyeti (6 + gri 5).
+  ol("G0 havuz esigi = 11 kredi (eski 120 ile 119 bakiyede bolum kapaniyordu)", foto.HAVUZ_ESIK_KREDI === 11, foto.HAVUZ_ESIK_KREDI);
+  P.bakiye = 5;
   await d1.prepare("UPDATE foto_ayar SET guncel = 0 WHERE anahtar = 'bakiye'").run();
   const once = P.telegram.length;
   const a = await istek(env, "/foto/acik");
@@ -1057,7 +1059,7 @@ let ornekIs = "";
   const t = oz.v && oz.v.turler.find((x) => x.tur === "plaket");
   ol("O11d panel ozetinde siparis kalemi sayisi ornekten etkilenmez (plaket kalem 2)", t && t.kalem === 2, JSON.stringify(t));
   // O12 HAVUZ: bakiye esik altinda -> ornek onizleme + uret 503, saglayiciya istek 0.
-  P.bakiye = 100;
+  P.bakiye = 5;
   await d1.prepare("UPDATE foto_ayar SET guncel = 0 WHERE anahtar = 'bakiye'").run();
   const p1 = protoSayisi();
   const hv = await istek(env, "/yonet/foto/ornek-onizleme", { govde: ornekGovde(), basliklar: YONET });
