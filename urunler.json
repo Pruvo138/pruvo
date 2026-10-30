@@ -1,5 +1,97 @@
 [
   {
+    "id": "pr1159269-roland-go-piano-go-keys-tablet-ve-telefon-standi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Roland"
+    ],
+    "uyum": [
+      {
+        "marka": "Roland"
+      }
+    ],
+    "baslik": "Roland GO Piano / GO Keys Tablet ve Telefon Standı",
+    "aciklama": "Roland GO Piano ve GO Keys klavyelerinin ızgarasına geçirilerek telefon ya da tablet yerleştirmek için hazırlanmış alçak profilli bir standdır. Kaynağında geniş nota sehpasına göre daha alçak profilli bir çözüm olarak çizildiği anlatılır. Kaynakta telefon ve tablet kalınlığı için bir üst sınır bulunduğu da belirtilir. Fotoğraflarda siyah renkte stand, klavyenin üzerinde telefon ve tabletle birlikte görünür. Klavye, telefon ve tablet ürüne dahil değildir.\nYaklaşık dış ölçüler: 245 × 60 × 48 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1159269-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1159269-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1159269-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1159269-4.jpg"
+    ],
+    "altkategori": "Ses ve Müzik"
+  },
+  {
+    "id": "pr335620-roland-kt-10-pedal-taban-plakalari",
+    "kategori": "Elektronik",
+    "marka": [
+      "Roland"
+    ],
+    "uyum": [
+      {
+        "marka": "Roland"
+      }
+    ],
+    "baslik": "Roland KT-10 Pedal Taban Plakaları",
+    "aciklama": "Roland KT-10 kick tetikleyici pedallarının altına yerleştirilen, alt ve üst plakadan oluşan bir taban plakası setidir. Kaynağında plakaların pedalların halıya zarar vermeden kullanılması için çizildiği belirtilir. Fotoğraflarda siyah renkte plakalar pedalın altında görünür, ayrıca önce ve sonra karşılaştırması da yer alır. Pedal ürüne dahil değildir.\nYaklaşık dış ölçüler: 161 × 85 × 9 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr335620-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr335620-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr335620-3.jpg"
+    ],
+    "altkategori": "Ses ve Müzik"
+  },
+  {
+    "id": "pr1268704-roland-sp-404-mkii-potansiyometre-dugmesi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Roland"
+    ],
+    "uyum": [
+      {
+        "marka": "Roland"
+      }
+    ],
+    "baslik": "Roland SP-404 MKII Potansiyometre Düğmesi",
+    "aciklama": "Roland SP-404 MKII cihazının potansiyometre milleri için hazırlanmış, iki parçalı ibreli bir düğmedir. Kaynağında düğmenin eski gitar amfilerindeki klasik görünümü andıran bir tasarımla çizildiği ve iki parçanın doğru yönde birleştirilmesi gerektiği anlatılır. Kaynakta düğmenin potansiyometre milinin üzerine geçirilerek takıldığı belirtilir. Fotoğraflarda gökkuşağı renklerinde düğmeler hem tek başına hem de cihazın üzerinde görünür. Cihaz ürüne dahil değildir.\nYaklaşık dış ölçüler: 14 × 12 × 12 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1268704-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1268704-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1268704-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Agent Mess",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Ses ve Müzik"
+  },
+  {
+    "id": "pr709588-kenwood-major-kase-mati",
+    "kategori": "Elektronik",
+    "marka": [
+      "Kenwood"
+    ],
+    "uyum": [
+      {
+        "marka": "Kenwood"
+      }
+    ],
+    "baslik": "Kenwood Major Kase Matı",
+    "aciklama": "Kenwood Major mutfak makinesinin kasesi için hazırlanmış yuvarlak bir kase matıdır. Kaynağında matın makinenin kasesinin altında kullanılan bir altlık olarak çizildiği belirtilir. Fotoğraflarda beyaz renkte, düz ve yuvarlak mat hem tek başına hem de mutfak makinesinin altında görünür. Mutfak makinesi ürüne dahil değildir.\nYaklaşık dış ölçüler: 149 × 149 × 4 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr709588-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr709588-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ChrisEg",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
     "id": "th4168271-roland-jd-xi-egimli-raf-montaji",
     "kategori": "Elektronik",
     "marka": [
