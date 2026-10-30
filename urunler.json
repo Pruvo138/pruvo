@@ -1,5 +1,337 @@
 [
   {
+    "id": "th4168271-roland-jd-xi-egimli-raf-montaji",
+    "kategori": "Elektronik",
+    "marka": [
+      "Roland"
+    ],
+    "uyum": [
+      {
+        "marka": "Roland"
+      }
+    ],
+    "baslik": "Roland JD-Xi Eğimli Raf Montajı",
+    "aciklama": "Roland JD-Xi sentezleyicisini bir rafın üzerinde eğimli bir konumda yerleştirmek için hazırlanmış bir raf braketidir. Kaynağında braketlerin rafın ön kenarına geçirildiği ve küçük vidalarla yerinde sabitlenebildiği anlatılır. Braket, ortasında farklı çaplarda delikler bulunan üçgen biçimli bir yan gövde ile altında vida delikleri olan ince bir ayaktan oluşur. Ürün fotoğraflarında mavi renkli braketler hem tek başına hem rafın kenarında hem de cihazın yan tarafında görünür. Cihaz, raf ve vidalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 158 × 142 × 25 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4168271-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4168271-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "BYTESHiFT",
+      "tur": "CC-BY"
+    },
+    "altkategori": "Ses ve Müzik"
+  },
+  {
+    "id": "th6861369-insta360-x4-ince-lens-kapagi",
+    "kategori": "Kamera",
+    "marka": [
+      "Insta360"
+    ],
+    "uyum": [
+      {
+        "marka": "Insta360"
+      }
+    ],
+    "baslik": "Insta360 X4 İnce Lens Kapağı",
+    "aciklama": "Insta360 X4 kameranın ucuna geçirilmek üzere hazırlanmış ince bir kapaktır. Kaynağında kapağın, üzerinde ek lens takılı olmayan kameraya yönelik olduğu anlatılır. Ürün fotoğraflarında siyah renkli bir kapak kameranın üst ucuna geçmiş halde görünür. Kamera ürüne dahil değildir.\nYaklaşık dış ölçüler: 47 × 39 × 32 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6861369-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6861369-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6861369-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6861369-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "holmenloew",
+      "tur": "CC-BY"
+    }
+  },
+  {
+    "id": "th4264845-philips-hue-play-masa-lambasi-ayagi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Philips"
+    ],
+    "uyum": [
+      {
+        "marka": "Philips"
+      }
+    ],
+    "baslik": "Philips Hue Play Masa Lambası Ayağı",
+    "aciklama": "Philips Hue Play ışık çubuğunu masa lambasına dönüştürmek için hazırlanmış bir masa ayağıdır. Kaynağında küçük ve daha uzun iki sürümün bulunduğu ve ışık çubuğunun ayağa tek bir vidayla bağlandığı anlatılır. Ürün fotoğraflarında mavi renkli, yatay bir tabandan yukarı uzanan dikey bir gövdeye sahip ayak, üzerinde yatay duran bir ışık çubuğuyla görünür. Işık çubuğu ve vida ürüne dahil değildir.\nYaklaşık dış ölçüler: 127 × 116 × 81 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4264845-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4264845-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4264845-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JonsBronnu",
+      "tur": "CC-BY"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "th2856246-makita-rt0700-kolet-cekmecesi",
+    "kategori": "Tamirat",
+    "marka": [
+      "Makita"
+    ],
+    "uyum": [
+      {
+        "marka": "Makita"
+      }
+    ],
+    "baslik": "Makita RT0700 Kolet Çekmecesi",
+    "aciklama": "Makita RT0700 koletlerini saklamak için hazırlanmış, kayarak açılan bir çekmecedir. Kaynağında çekmecedeki yuvaların Makita koletlerine göre ayarlandığı anlatılır. Tasarım, bir ER11 kolet çekmecesi modelinden türetilmiş olup bir ila dört yuvalı sürümler içerir. Ürün fotoğraflarında mavi renkli bir dış gövde ile içinden dışarı kayan, her yuvasında bir kolet duran yuvalı bir çekmece görünür. Koletler ürüne dahil değildir.\nYaklaşık dış ölçüler: 69 × 25 × 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2856246-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2856246-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2856246-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2856246-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "gadgetmind (remix: 3ddruckqueck)",
+      "tur": "CC-BY"
+    }
+  },
+  {
+    "id": "th4141993-dji-osmo-action-lens-halkasi",
+    "kategori": "Kamera",
+    "marka": [
+      "DJI"
+    ],
+    "uyum": [
+      {
+        "marka": "DJI"
+      }
+    ],
+    "baslik": "DJI Osmo Action Lens Halkası",
+    "aciklama": "DJI Osmo Action kameranın lensinin çevresine geçirilmek üzere hazırlanmış bir lens halkasıdır. Kaynağında halkanın iç ve dış yüzeyinde dişli bir yapı bulunduğu anlatılır. Ürün fotoğraflarında kırmızı renkli, esnek yapılı bir halka kameranın lensini çevreleyen konumda görünür; halkanın dış kenarı çizgili bir yüzeye sahiptir. Kamera ürüne dahil değildir.\nYaklaşık dış ölçüler: 35 × 35 × 8 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4141993-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4141993-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4141993-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Digitalcurtain",
+      "tur": "CC-BY"
+    }
+  },
+  {
+    "id": "pr1037156-gopro-basparmak-vidasi-gridfinity-kutusu",
+    "kategori": "Kamera",
+    "marka": [
+      "GoPro"
+    ],
+    "uyum": [
+      {
+        "marka": "GoPro"
+      }
+    ],
+    "baslik": "GoPro Başparmak Vidası Gridfinity Kutusu",
+    "aciklama": "Aksiyon kameraların montaj başparmak vidalarını saklamaya yarayan, Gridfinity modüler saklama sistemine göre hazırlanmış bir kutudur. Kaynağında kutudaki deliklerin bir aksiyon kameranın başparmak vidaları için ayrıldığı anlatılır. Fotoğraflarda beyaz renkte kutu, içine dizilmiş siyah başparmak vidalarıyla birlikte görünür. Vidalar ve kameralar ürüne dahil değildir.\nYaklaşık dış ölçüler: 126 × 42 × 39 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1037156-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1037156-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1037156-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1037156-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Scorfprint (remix: scheff)",
+      "tur": "BSD"
+    },
+    "altkategori": "Montaj ve Tripod"
+  },
+  {
+    "id": "pr213326-sony-e-mount-plaka-kamera-gecis-parcasi",
+    "kategori": "Kamera",
+    "marka": [
+      "Sony"
+    ],
+    "uyum": [
+      {
+        "marka": "Sony"
+      }
+    ],
+    "baslik": "Sony E-mount Plaka Kamera Geçiş Parçası",
+    "aciklama": "Sony E-mount kamera gövdesini eski tip bir plaka kameranın arkasına bağlamak için hazırlanmış bir geçiş parçasıdır. Kaynağında parçanın, henüz film arkalığı bulunmayan bir plaka kameranın merceğini denemek isteyenler için tasarlandığı anlatılır. Fotoğrafta siyah renkte parça, körüklü bir plaka kameranın arkasında dijital bir kamerayla birlikte görünür. Kameralar ürüne dahil değildir.\nYaklaşık dış ölçüler: 120 × 75 × 16 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr213326-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Pan_Barszczyk",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Lens Adaptörleri"
+  },
+  {
+    "id": "pr133072-sony-fs5-mikrofon-sok-tutucusu",
+    "kategori": "Kamera",
+    "marka": [
+      "Sony"
+    ],
+    "uyum": [
+      {
+        "marka": "Sony"
+      }
+    ],
+    "baslik": "Sony FS5 Mikrofon Şok Tutucusu",
+    "aciklama": "Sony FS5 kameraya takılan bir mikrofon şok tutucusudur. Kaynağında standart O-ring halkalar ya da elastik iplerle uzun gövdeli bir mikrofonun tutucunun ortasında askıda durduğu anlatılır. Küçük ve büyük olmak üzere iki sürüm bulunur. Fotoğraflarda siyah renkte tutucu, kameranın üstünde bir mikrofonla birlikte görünür. Kamera, mikrofon ve halkalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 60 × 55 × 40 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr133072-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr133072-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "AltoScroll",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "pr931459-canon-eos-m-gridfinity-kutusu",
+    "kategori": "Kamera",
+    "marka": [
+      "Canon"
+    ],
+    "uyum": [
+      {
+        "marka": "Canon"
+      }
+    ],
+    "baslik": "Canon EOS M Gridfinity Kutusu",
+    "aciklama": "Canon EOS M aynasız kamera gövdesini, gövde kapağı takılıyken saklamak için hazırlanmış bir kutudur. Gridfinity modüler saklama sisteminde kullanılacak biçimde çizilmiştir. Kaynağında kutunun üst üste dizilemediği, ancak diğer kutuların üzerine konabildiği belirtilir. Fotoğraflarda beyaz renkte kutu, içine yerleştirilmiş kamera gövdesiyle birlikte görünür. Kamera ürüne dahil değildir.\nYaklaşık dış ölçüler: 126 × 42 × 24 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr931459-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr931459-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "drewwwau (remix: pogofcz)",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Kayış ve Taşıma"
+  },
+  {
+    "id": "pr585867-canon-10x42-l-is-wp-durbun-lens-kapaklari",
+    "kategori": "Kamera",
+    "marka": [
+      "Canon"
+    ],
+    "uyum": [
+      {
+        "marka": "Canon"
+      }
+    ],
+    "baslik": "Canon 10x42 L IS WP Dürbün Lens Kapakları",
+    "aciklama": "Canon 10x42 L IS WP dürbünün iki objektifini birlikte kapatan, menteşeli bir lens kapağı takımıdır. Kaynağında kapakların objektiflerin üst kısmından menteşelendiği ve menteşe için küçük vidaların kullanıldığı belirtilir. Fotoğraflarda siyah renkte kapaklar açık konumda dürbünün üzerinde görünür. Dürbün ve vidalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 148 × 140 × 9 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr585867-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr585867-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr585867-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr585867-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jamesbaillies",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Teleskop ve Astro"
+  },
+  {
+    "id": "pr204699-garmin-vivoactive-3-kayis-tutucusu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Garmin"
+    ],
+    "uyum": [
+      {
+        "marka": "Garmin"
+      }
+    ],
+    "baslik": "Garmin Vivoactive 3 Kayış Tutucusu",
+    "aciklama": "Garmin Vivoactive 3 saatin kayışının serbest ucunu tutan bir kayış ilmeğidir. Kaynağında biri sade, diğeri küçük bir çıkıntılı olmak üzere iki sürümün bulunduğu belirtilir. Fotoğrafta siyah renkte ilmek, saat kayışının üzerinde görünür. Saat ve kayış ürüne dahil değildir.\nYaklaşık dış ölçüler: 25 × 10 × 6 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr204699-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Radek",
+      "tur": "GPL 2.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr660722-dji-osmo-pocket-3-lens-adaptoru-kilifi",
+    "kategori": "Kamera",
+    "marka": [
+      "DJI"
+    ],
+    "uyum": [
+      {
+        "marka": "DJI"
+      }
+    ],
+    "baslik": "DJI Osmo Pocket 3 Lens Adaptör Kılıfı Tip A",
+    "aciklama": "DJI Osmo Pocket 3 için hazırlanmış, lens adaptörünü içinde tutan bir kılıftır. Kaynağında kılıfın adaptörü mıknatısla yerinde tuttuğu ve bir ipe bağlanabildiği belirtilir. Fotoğraflarda beyaz renkte kılıf, içindeki lens adaptörüyle ve siyah bir iple birlikte görünür. Kamera ve lens adaptörü ürüne dahil değildir.\nYaklaşık dış ölçüler: 56 × 26 × 9 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr660722-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr660722-2.jpg"
+    ]
+  },
+  {
+    "id": "pr403198-dji-mic-cok-amacli-tutucu",
+    "kategori": "Kamera",
+    "marka": [
+      "DJI"
+    ],
+    "uyum": [
+      {
+        "marka": "DJI"
+      }
+    ],
+    "baslik": "DJI Mic Çok Amaçlı Tutucu",
+    "aciklama": "DJI Mic mikrofon vericisini farklı kullanım biçimleri için tutmaya yarayan çok amaçlı bir tutucudur. Kaynağında stereo, mono, çok yönlü ve el tutuşlu kayıt kullanımları için çeşitli bağlama seçenekleri sunduğu belirtilir. Fotoğraflarda siyah renkte tutucu, masaüstü bir mini tripodun üzerinde mikrofon vericisiyle birlikte görünür. Mikrofon vericisi ve tripod ürüne dahil değildir.\nYaklaşık dış ölçüler: 42 × 36 × 23 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr403198-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr403198-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr403198-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr403198-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "KenGe",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Montaj ve Tripod"
+  },
+  {
+    "id": "pr1426829-dji-osmo-nano-lens-kapagi",
+    "kategori": "Kamera",
+    "marka": [
+      "DJI"
+    ],
+    "uyum": [
+      {
+        "marka": "DJI"
+      }
+    ],
+    "baslik": "DJI Osmo Nano Lens Kapağı",
+    "aciklama": "DJI Osmo Nano kameranın lensini kapatmak için hazırlanmış bir lens kapağıdır. Kaynağında esnek yapılı ve sert yapılı olmak üzere iki sürümün bulunduğu anlatılır; sert sürümde takmayı kolaylaştıran bir yarık yer alır. Fotoğraflarda kırmızı renkte kapak, kameranın lensinin üzerinde görünür. Kamera ürüne dahil değildir.\nYaklaşık dış ölçüler: 35 × 31 × 7 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1426829-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1426829-2.jpg"
+    ]
+  },
+  {
     "id": "th4092948-roland-spd-sx-montaj-plakasi",
     "kategori": "Elektronik",
     "marka": [
