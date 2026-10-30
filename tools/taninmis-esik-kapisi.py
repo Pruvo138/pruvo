@@ -138,7 +138,7 @@ TABAN = frozenset({
     "Dellorto",
     "Primula",
     "Tchibo",
-    "Yaesu",
+    # 30 Eki 2026 (MaCiT ES37+ES38): Yaesu artik ACIK degil (K2 bayat) — buradan silindi.
 })
 
 
