@@ -1,5 +1,321 @@
 [
   {
+    "id": "th3591604-philips-hue-led-serit-yatak-klipsi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Philips"
+    ],
+    "uyum": [
+      {
+        "marka": "Philips"
+      }
+    ],
+    "baslik": "Philips Hue LED Şerit Yatak Klipsi",
+    "aciklama": "Philips Hue LightStrip LED şeridini bir yatak karkasına tutturmak için hazırlanmış bir klipstir. Kaynağında klipsin standart yatak karkasındaki dikdörtgen kesitli çerçeveye geçtiği ve tutucunun Hue LightStrip için tasarlandığından sıradan bir LED şeride göre biraz daha geniş olduğu anlatılır. Ürün fotoğraflarında beyaz renkli klipsler görünür. LED şerit ve yatak ürüne dahil değildir.\nYaklaşık dış ölçüler: 52 × 44 × 5 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3591604-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3591604-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3591604-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Rapace21",
+      "tur": "CC-BY"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "th5318073-philips-hue-play-bar-duvar-montaji",
+    "kategori": "Elektronik",
+    "marka": [
+      "Philips"
+    ],
+    "uyum": [
+      {
+        "marka": "Philips"
+      }
+    ],
+    "baslik": "Philips Hue Play Bar Duvar Montajı",
+    "aciklama": "Philips Hue Play Bar ışık çubuğunu duvara ya da tavana monte etmek için hazırlanmış basit bir klipstir. Kaynağında iki klipsin duvara ya da tavana vidalanıp Play Bar'ın bu klipslere oturtulduğu anlatılır. Ürün fotoğraflarında siyah renkli klips görünür. Play Bar ve montaj vidaları ürüne dahil değildir.\nYaklaşık dış ölçüler: 56 × 53 × 15 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5318073-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5318073-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5318073-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5318073-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Heinecken",
+      "tur": "CC-BY-SA"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "th3068355-makita-kilavuz-ray-uc-ve-kiymik-seridi-kapaklari",
+    "kategori": "Ev",
+    "marka": [
+      "Makita"
+    ],
+    "uyum": [
+      {
+        "marka": "Makita"
+      }
+    ],
+    "baslik": "Makita Kılavuz Ray Uç ve Kıymık Şeridi Kapakları",
+    "aciklama": "Makita kılavuz rayını çantada saklarken kullanılmak üzere hazırlanmış bir kapak setidir. Set üç farklı parçadan oluşur: rayın sol ucuna takılan kapak, sağ ucuna takılan kapak ve rayın kıymık şeridine takılan kapak. Kaynağında rayın çantaya kayışla bağlandığı noktada kıymık şeridinin biçiminin bozulduğu fark edildiği için bu kapakların hazırlandığı, kıymık şeridi kapağından iki adet gerektiği anlatılır. Ray ve çanta ürüne dahil değildir.\nYaklaşık dış ölçüler: 192 × 20 × 17 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3068355-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3068355-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3068355-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ksuszka",
+      "tur": "CC-BY"
+    }
+  },
+  {
+    "id": "th525774-dji-phantom-sirt-cantasi-alet-kutusu",
+    "kategori": "Kamera",
+    "marka": [
+      "DJI"
+    ],
+    "uyum": [
+      {
+        "marka": "DJI"
+      }
+    ],
+    "baslik": "DJI Phantom Sırt Çantası İçin Alet Kutusu",
+    "aciklama": "DJI Phantom sırt çantasında yanınızda bulundurmak üzere hazırlanmış bir alet kutusudur. Kutu iki parçadan oluşur: bölmeleri olan bir gövde ve ayrı bir kapak. Kaynağında kutuda alyan anahtar, motor sıkma aletini tutan bir mıknatıs ve vida gibi küçük parçalar için ayrılmış yerler bulunduğu, kapağın bir mandalla kapalı tutulduğu anlatılır. Görsellerde kutunun ve kapağın parçalarına ayrılmış şeması da yer alır. Phantom, mıknatıs, alyan anahtar ve vidalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 170 × 67 × 28 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th525774-1.jpg",
+      "https://media.pruvo3d.com/urunler/th525774-2.jpg",
+      "https://media.pruvo3d.com/urunler/th525774-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ninora",
+      "tur": "CC-BY-SA"
+    }
+  },
+  {
+    "id": "th331965-dji-phantom-2-gimbal-kelepcesi-ve-gopro-3-lens-kapagi",
+    "kategori": "Kamera",
+    "marka": [
+      "DJI"
+    ],
+    "uyum": [
+      {
+        "marka": "DJI"
+      }
+    ],
+    "baslik": "DJI Phantom 2 Gimbal Kelepçesi ve GoPro 3 Lens Kapağı",
+    "aciklama": "DJI Phantom 2 dronunda kullanılan GoPro 3 gimbalı için hazırlanmış bir kelepçe ve lens kapağıdır. Kaynağında parçanın gimbalın sallanmasını engellemek amacıyla tasarlandığı ve ek bir parça gerektirmediği anlatılır. Parçanın üç sürümü bulunur; üçüncü sürümde USB kablosunun kelepçe çıkarılmadan GoPro'ya takılabildiği belirtilir. Drone, gimbal ve kamera ürüne dahil değildir.\nYaklaşık dış ölçüler: 82 × 54 × 52 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th331965-1.jpg",
+      "https://media.pruvo3d.com/urunler/th331965-2.jpg",
+      "https://media.pruvo3d.com/urunler/th331965-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "falcon20cne",
+      "tur": "CC-BY-SA"
+    }
+  },
+  {
+    "id": "pr281872-gopro-hero-lens-parasoleyi",
+    "kategori": "Kamera",
+    "marka": [
+      "GoPro"
+    ],
+    "uyum": [
+      {
+        "marka": "GoPro"
+      }
+    ],
+    "baslik": "GoPro Hero Lens Parasoleyi",
+    "aciklama": "GoPro Hero kameranın lensinin ucuna takılan bir lens parasoleyidir. Kaynağında parçanın Hero 9 için hazırlandığı ve arka ucunda lastik bant geçirmek için üç çıkıntı bulunduğu anlatılır. Fotoğraflarda beyaz renkte parasoley farklı açılardan görünür. Kamera ve lastik bant ürüne dahil değildir.\nYaklaşık dış ölçüler: 79 × 64 × 60 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr281872-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr281872-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr281872-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr281872-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "RandomInsano",
+      "tur": "CC BY-ND 4.0"
+    },
+    "altkategori": "Filtre ve Parasoley"
+  },
+  {
+    "id": "pr188143-gopro-aci-ve-eksen-degistiren-montaj-blogu",
+    "kategori": "Kamera",
+    "marka": [
+      "GoPro"
+    ],
+    "uyum": [
+      {
+        "marka": "GoPro"
+      }
+    ],
+    "baslik": "GoPro Açı ve Eksen Değiştiren Montaj Bloğu",
+    "aciklama": "GoPro aksiyon kameranın bağlantı yönünü ve eğimini değiştirmek için hazırlanmış küçük bir montaj bloğudur. Kaynağında parçaların istenen yönde birbirine yapıştırılarak birleştirildiği belirtilir. Fotoğrafta mavi renkte montaj bloğu görünür. Kamera ve yapıştırıcı ürüne dahil değildir.\nYaklaşık dış ölçüler: 47 × 17 × 15 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr188143-1.jpg"
+    ],
+    "altkategori": "Montaj ve Tripod"
+  },
+  {
+    "id": "pr265038-gopro-doner-aluminyum-profil-montaji",
+    "kategori": "Kamera",
+    "marka": [
+      "GoPro"
+    ],
+    "uyum": [
+      {
+        "marka": "GoPro"
+      }
+    ],
+    "baslik": "GoPro Döner Alüminyum Profil Montajı",
+    "aciklama": "GoPro aksiyon kamerayı 2020 ve 2040 alüminyum profil çerçevelere bağlamak için hazırlanmış, yönü değiştirilebilen bir montaj parçasıdır. Kaynağında parçanın iki vida ve iki T-somunla profile sabitlendiği ve GoPro bağlantılı başka kollarla birlikte kullanılabileceği anlatılır. Fotoğraflarda siyah renkte kol ve disk parçaları, bir profil çerçeve üzerinde ve tek başına görünür. Vidalar, T-somunlar, kamera ve diğer kollar ürüne dahil değildir.\nYaklaşık dış ölçüler: 60 × 40 × 22 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr265038-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr265038-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr265038-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Luca Bartoli",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Montaj ve Tripod"
+  },
+  {
+    "id": "pr1096392-sony-zv-e10-saklama-kutusu",
+    "kategori": "Kamera",
+    "marka": [
+      "Sony"
+    ],
+    "uyum": [
+      {
+        "marka": "Sony"
+      }
+    ],
+    "baslik": "Sony ZV-E10 Saklama Kutusu",
+    "aciklama": "Sony ZV-E10 kamerayı kit lensi takılı halde saklamak için hazırlanmış, kapaklı küçük bir kutudur. Kaynağında kutuda kameranın yanında pil, kablo ve hafıza kartı gibi küçük aksesuarlara da yer kaldığı, kapağın üste gevşekçe oturduğu ve kapağa yerleştirilen mıknatıslarla yerinde tutulduğu anlatılır. Kaynak sayfasında çalışmanın, daha önce hazırlanmış bir ZV-E10 seyahat kutusundan türetildiği belirtilir. Fotoğraflarda krem renkli kutu, içinde kamerayla birlikte iki farklı fotoğrafta görünür. Kamera, lens ve mıknatıslar ürüne dahil değildir.\nYaklaşık dış ölçüler: 140 × 100 × 20 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1096392-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1096392-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Martin (remix: Xabre)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "pr760462-sony-e-mount-lens-ve-govde-kapagi-gridfinity-tutucusu",
+    "kategori": "Kamera",
+    "marka": [
+      "Sony"
+    ],
+    "uyum": [
+      {
+        "marka": "Sony"
+      }
+    ],
+    "baslik": "Sony E-mount Lens ve Gövde Kapağı Gridfinity Tutucusu",
+    "aciklama": "Sony E-mount bağlantılı bir kameranın lens kapağını ve gövde kapağını bir arada saklamak için hazırlanmış, Gridfinity düzenleme sistemine yerleştirilen bir tutucudur. Fotoğraflarda siyah renkte kutu biçimli tutucu, içine yerleştirilmiş kapaklarla birlikte farklı açılardan görünür. Kapaklar ve Gridfinity ızgara tabanı ürüne dahil değildir.\nYaklaşık dış ölçüler: 84 × 42 × 25 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr760462-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr760462-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr760462-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "FSOCIETY",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "pr652004-sony-24-f2-8-g-lens-parasoleyi",
+    "kategori": "Kamera",
+    "marka": [
+      "Sony"
+    ],
+    "uyum": [
+      {
+        "marka": "Sony"
+      }
+    ],
+    "baslik": "Sony 24 F2.8 G Lens Parasoleyi",
+    "aciklama": "Sony 24 F2.8 G lens için hazırlanmış, lensin ucuna takılan köşeli çerçeveli bir lens parasoleyidir. Kaynağında çalışmanın iki parçadan oluştuğu anlatılır: parasoley ve ikinci bir halka parçası. Fotoğraflarda siyah renkte köşeli parasoley, kameraya takılı lensin ucunda farklı açılardan görünür. Kamera ve lens ürüne dahil değildir.\nYaklaşık dış ölçüler: 65 × 65 × 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr652004-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr652004-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr652004-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr652004-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "joe shu",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Filtre ve Parasoley"
+  },
+  {
+    "id": "pr714638-garmin-venu-sq-saat-standi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Garmin"
+    ],
+    "uyum": [
+      {
+        "marka": "Garmin"
+      }
+    ],
+    "baslik": "Garmin Venu Sq Saat Standı",
+    "aciklama": "Garmin Venu Sq saati masa üzerinde eğimli konumda tutmak için hazırlanmış bir saat standıdır. Kaynağında standın, saate bakmayı kolaylaştıran bir açıyla tasarlandığı ve saatin standa takılarak yerleştirildiği anlatılır. Fotoğraflarda gri renkte stand, üzerine saat yerleştirilmiş halde ve farklı açılardan görünür. Saat ürüne dahil değildir.\nYaklaşık dış ölçüler: 57 × 52 × 39 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr714638-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr714638-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr714638-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Julien Verfaillie",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr1385800-dji-mini-4k-dron-saklama-kutusu-ve-kapagi",
+    "kategori": "Kamera",
+    "marka": [
+      "DJI"
+    ],
+    "uyum": [
+      {
+        "marka": "DJI"
+      }
+    ],
+    "baslik": "DJI Mini 4K Dron Saklama Kutusu ve Kapağı",
+    "aciklama": "DJI Mini 4K dronu saklamak için hazırlanmış, kapaklı bir kutudur. Kaynağında kutunun iç yüzeyinde dronun biçimine göre şekillendirilmiş bölümler bulunduğu ve kapağın kutuya geçmeli oturduğu anlatılır; bir sürümünde bağlantı girişinin hizasında bir açıklık ve bu açıklık için küçük bir kapak da yer alır. Fotoğraflarda lacivert renkte kutu ve kapak, içinde gri bir dronla birlikte farklı açılardan görünür; bir fotoğrafta açıklık bölümü okla gösterilmiştir. Dron ürüne dahil değildir.\nYaklaşık dış ölçüler: 142 × 102 × 59 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1385800-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1385800-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1385800-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1385800-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Urban Pistek",
+      "tur": "GPL 3.0"
+    }
+  },
+  {
     "id": "th5894373-motorola-telsiz-tutucusu",
     "kategori": "Elektronik",
     "marka": [
