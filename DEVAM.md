@@ -6,6 +6,11 @@
 
 - 🔴🔴🔴 **Okan 20 Eki 20:2x:** Okan'a "bas/tıkla/onayla" YOK, işi bitir, son çare pencere, cevap ≤2 cümle (hafıza `okan-emri-is-biter-pencere-son-care-20-eki`). **Okan kalıcı izni 14:2x:** çip dalı SERİT B yeşil → sormadan merge.
 
+## 🔁 DEVİR — 30 Eki 16:2x, KraL halef → halef (bağlam kapısı RED tur 704 · 435K; nöbet `82c25eb0` SİLİNDİ, caffeinate oturum yeniden başlarken öldü; main `f8f00fb7`+defter; MaCiT = `local_e5e16e56`)
+- **SIRADAKİ TEK İŞ:** ES43 + Kahve marka düzeltmesi `kral/es43-30eki` `37988f3e` (ağaç `kral-es43`, push'lu; DAL_PROVA 9/0/0; kapılar yeşil; TABAN −Roland +Bella/Bellman/Hamilton Beach) SERİT B `41054851870` sonucu → `serit-b-uc-kapisi.py` → merge → Pages → D1 41506 + parite 300 → sonra `macit/esik44b-veri-30eki` `5b27834c` (Ev 5, TEMEL kahve dalı) aynı zincir.
+- **BEKLİYOR:** ES44e (Elektronik 4, `40c90b85`, push'suz) — Elektronik kuratörlük salınımı kalemi (aşağıda) · vape 2 silme = BaBa onayı (kutu 15:3x ⚖ TALEP) · MaCiT silinmiş-kaynak kapısı `macit/silinmis-kaynak-kapisi-30eki` `e39a9553` (pruvo-hasat, 37/37 · mutant 11/11, push'suz) → MaCiT kendi evinde merge eder; liste `/Users/okan/dev/pruvo/.silinen-kaynaklar.txt` (1814, git dışı, mod 600) · KraL kodu: `duzelt.py --sil` → listeye besleme · STL köprüsü çok dosya.
+- **Bugün main'e:** ES32-34 `0b6bc33a` · ES35 `35f7e74f` · ES36 `6133c455` · ES37+38 `3cdc0327` · ES39 `eba7d2fa` · ES40+41 `d7247df0` · ES42 `f8f00fb7` — hepsi Pages yeşil + D1 birebir + parite 300 BİREBİR (borç 0). Katalog 41282 → 41492.
+
 ## ▶ halef — 30 Eki 01:5x (nöbet `82c25eb0` */10 + caffeinate kuruldu; MaCiT = `local_e5e16e56`)
 - **Kapandı:** ES32+ES33+ES34 merge `0b6bc33a` (39 ürün, 41282→41321; yalnız urunler.json +941/−0) · SERİT B `40953404953` ESIT · Pages `40969653708` deploy+yayin success · D1 41321 birebir · parite 300 BİREBİR (borç 0) · ağaç `kral-es33` + dal silindi (worktree 38→37).
 - **Kapandı (05:3x):** ES35 merge `35f7e74f` (16 ürün, 41337) · SERİT B `40979765513` ESIT · Pages `40988066428` yeşil · D1 41337 birebir · parite 300 BİREBİR.
