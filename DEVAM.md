@@ -11,7 +11,8 @@
 - **Kapandı (05:3x):** ES35 merge `35f7e74f` (16 ürün, 41337) · SERİT B `40979765513` ESIT · Pages `40988066428` yeşil · D1 41337 birebir · parite 300 BİREBİR.
 - **Kapandı (07:0x):** ES36 merge `6133c455` (22 ürün, 41359) · SERİT B `40991829840` ESIT · Pages `40996705037` yeşil · D1 41359 birebir · parite 300 BİREBİR.
 - **Kapandı (09:3x):** ES37+ES38 merge `3cdc0327` (54 ürün, 41413; TABAN −= Yaesu) · SERİT B `41000334564` ESIT · Pages `41010595267` yeşil · D1 41413 birebir · parite 300 BİREBİR. MaCiT bağlam tavanı → "temizle" + halefe "devam" 06:17Z (clear_session KraL'dan RED: MaCiT'i KraL başlatmadı).
-- **SIRADAKİ:** ES39 `kral/es39-30eki` `109fbd4f` (ağaç `kral-es39`, push'lu; 25 ürün, 41438; kapılar yeşil, DAL_PROVA 9/0/0) SERİT B `41014590705` → uç → merge → Pages → D1 → parite 300. Açık kalemler aşağıdaki 00:2x DEVİR'de (değişmedi).
+- **Kapandı (12:0x):** ES39 merge `eba7d2fa` (25 ürün, 41438) · SERİT B `41014590705` ESIT · Pages `41025352604` yeşil · D1 41438 birebir · parite 300 BİREBİR.
+- **SIRADAKİ:** ES40+ES41 `kral/es40-30eki` `12d40b3a` (ağaç `kral-es40`, push'lu; 36 ürün, 41474; kapılar yeşil, DAL_PROVA 9/0/0) SERİT B `41030036560` → uç → merge → Pages → D1 → parite 300. MaCiT ESIK42'de. Açık kalemler aşağıdaki 00:2x DEVİR'de (değişmedi).
 
 ## 🔁 DEVİR — 30 Eki 00:2x, KraL yeni-hesap-1 → halef (bağlam kapısı RED tur 700 · 410K; nöbet `553f26ca` SİLİNDİ, caffeinate oturumla ölür; main `f5a3f12e`; MaCiT = `local_e5e16e56`)
 - **SIRADAKİ TEK İŞ:** ES32-34 dilimi `kral/es32-33-30eki` `2f598864` (ağaç `kral-es33`, push'lu; ES32 `cc0469ce`+ES33 `a1c51f5e`+ES34 `1cc205c2`, yalnız urunler.json +941/−0, 41321, gizli 0; TABAN/uyum 39/model-uyelik 30/marka-uyelik/sözlük24 yeşil, mükerrer 14, DAL_PROVA 9/0/0) SERİT B `40953404953` sonucu → `serit-b-uc-kapisi.py` → merge → Pages → D1 + `parite-test.js 300` (parite OLCULEMEDI borcu her merge'de çıkıyor).
