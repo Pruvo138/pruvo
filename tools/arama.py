@@ -1844,6 +1844,13 @@ UYUM_MARKA_IZINLI = frozenset({
     "Polaris", "Primula", "Pruveeo", "Puig", "Starlane", "Starseeker", "Tastyle",
     "Tchibo", "Valeo", "Velbon", "Velocitek", "Vollrath", "WPL", "Wyze",
     "Yaesu", "Zhiyun", "Zinik",
+    # 24. tur (29 Eki 2026) — MaCiT ES20 blokaji: 7 urun (Keurig 4 · Moccamaster 2 · Roland 1)
+    #   `hasat_ekle` K302 fail-closed (top-level marka BOS; Geo emsali). SINIF: URUN markasi
+    #   (kahve makinesi x2, elektronik davul); ucu de TABAN'da (PARTI 2) zaten. OLCULDU
+    #   (41.109): `uyum[].model` 0, yazim varyanti 0. `Roland` MODEL_OLMAYAN_JETON'da da
+    #   durur (Yamaha|Roland model sayfasi olmasin) — ikisi celismez: marka ≠ model. FARK 139.
+    #   Kabul: `tools/sozluk24-marka-kabul-kapisi.py`.
+    "Keurig", "Moccamaster", "Roland",
 })
 
 # 🔴 ONERI DISINDAN, MIMAR ONAYIYLA eklenen jetonlar. AYRI tutulmalari SART: budama
@@ -1953,6 +1960,9 @@ UYUM_MARKA_MIMAR_EKI = frozenset({
     "Polaris", "Primula", "Pruveeo", "Puig", "Starlane", "Starseeker", "Tastyle",
     "Tchibo", "Valeo", "Velbon", "Velocitek", "Vollrath", "WPL", "Wyze",
     "Yaesu", "Zhiyun", "Zinik",
+    # 24. tur (29 Eki 2026) — MaCiT ES20 blokaji. Gerekce UYUM_MARKA_IZINLI'nin 24. tur
+    # basliginda yazili. TEKRAR EDILMEZ.
+    "Keurig", "Moccamaster", "Roland",
 })
 
 # 🔴 REDDEDILEN ADAYLAR (2 Agu, mimar karari) — kayda geciyor ki bir sonraki tur ayni
@@ -2649,12 +2659,19 @@ MODEL_OLMAYAN_CIFT = {
                        "araci paylasir) — Citroen'in modeli degil (Toyota|107 emsali)",
     ("Peugeot", "DS"): "DS Automobiles Peugeot'dan AYRI bir markadir — Peugeot'nun "
                       "modeli degil",
+    # 29 Eki 2026, KraL (MaCiT ES16+ES17 iki Dellorto kaydi `dellorto` jetonunun sahiplik
+    # dagilimini degistirdi -> baslik kolundan yargisiz `Piaggio|dell'orto` dogdu, K21 SIZINTI).
+    # 🔴 Hyundai|Coupe'nin USTUNE yazildi: model-uyelik-kapisi M21 mutanti tablonun SON
+    # satirina capalanir; yeni giris sona eklenirse capa 0 eslesmeye duser (4. kez olmasin).
+    ("Piaggio", "Dell'Orto"): "Dell'Orto karburator URETICISIDIR (ayri marka, katalogda "
+                              "`Dellorto`) — Piaggio'nun modeli degil; basliktaki "
+                              "'Piaggio Ciao Dell'Orto 13.13' karburator uyumu",
     ("Hyundai", "Coupe"): "govde tipi sozcugu (Audi|Coupe emsali) — bagimsiz model "
                           "adi degil",
 }
 
-MODEL_OLMAYAN_CIFT_SAYISI = 40
-MODEL_OLMAYAN_CIFT_IMZA = "4aa789c556ac2871"  # arama.model_olmayan_cift_imzasi() ile hesaplandi
+MODEL_OLMAYAN_CIFT_SAYISI = 41
+MODEL_OLMAYAN_CIFT_IMZA = "f9eacb5329f7c9bd"  # arama.model_olmayan_cift_imzasi() ile hesaplandi
 
 
 def model_olmayan_cift_imzasi():

@@ -332,6 +332,17 @@ ACIKLAMA_VAKALARI = [
     ("A9-ATA-ND",
      "ATA LISANSI: yalniz NoDerivatives (hicbir sozluk veto etmez) -> IHLAL",
      _ak("based on %s" % A_NDONLY), K.DURUM_IHLAL, 1),
+    # --- A10/A11: D19 "adapted from" (29 Eki 2026; canli th1252975 Roland: `ancestors` BOS,
+    #     NC ata yalniz duzyazida; eski kapi ALAN-YOK rc=0). Sema `http://` (canli metin). ---
+    ("A10-ACIKLAMA-ADAPTED",
+     "ACIKLAMA: 'adapted from another design by <yazar> <http URL>' -> NC ata -> IHLAL",
+     _ak("Mostly printed holder. Adapted from another design by ornekyazar "
+         "http://www.thingiverse.com/thing:3543408 Essentially all I did was widen the slot."),
+     K.DURUM_IHLAL, 1),
+    ("A11-ACIKLAMA-ADAPTER-ATA-YOK",
+     "ACIKLAMA: ata atfi YOK ('adapter' parca adi + uyum linki) -> ALAN-YOK (mevcut davranis)",
+     _ak("Hose adapter for the vacuum. Fits the nozzle at %s" % A_ND),
+     K.DURUM_ALAN_YOK, 0),
     # --- B1/B2/B3: "0 VURUS = TEMIZ" YASAGI (23 Eki 2026) ---
     # Once aciklama alanlarinin HICBIRINDE metin yoksa kayit ALAN-YOK rc=0 ile "temiz"
     # sayiliyordu: "olculmedi" sessizce yesile donuyordu.

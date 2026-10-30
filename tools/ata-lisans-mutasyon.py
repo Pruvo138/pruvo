@@ -47,6 +47,16 @@ MUTANTLAR = [
      '            continue                                    # tetik YOK -> bu alandan ref yok',
      '        pass',
      "KIRMIZI", "[A5-ACIKLAMA-TETIKSIZ]"),
+    # D19 (29 Eki 2026): "adapted from" tetigi sokulurse canli th1252975 sekli yeniden
+    # ALAN-YOK rc=0 olur; genisletilirse ("adapter" parca adi) yanlis-ihlal uretir.
+    ("AK-D19a 'adapted' tetigi sokulur",
+     '    re.compile(r"\\badapt(?:ed|ing|ation|ion)s?\\b", re.IGNORECASE),\n',
+     '',
+     "KIRMIZI", "[A10-ACIKLAMA-ADAPTED]"),
+    ("AK-D19b 'adapt' tetigi koke genisler (adapter parca adi tetik olur)",
+     '    re.compile(r"\\badapt(?:ed|ing|ation|ion)s?\\b", re.IGNORECASE),\n',
+     '    re.compile(r"\\badapt\\w*", re.IGNORECASE),\n',
+     "KIRMIZI", "[A11-ACIKLAMA-ADAPTER-ATA-YOK]"),
     ("AK-02 thing: kimlik deseni kaldir",
      '        adaylar += ["https://www.thingiverse.com/thing:%s" % n\n'
      '                    for n in _THING_KIMLIK_RE.findall(ham)]',

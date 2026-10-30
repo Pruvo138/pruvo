@@ -48,7 +48,8 @@ TABAN = frozenset({
     # `Indian`'a tasidi (K2 bayat) ve `Indian` ayni dalda TANINMIS'e girdi (K1 yeni) — 25 Eki.
     # PARTI 2
     "Puch", "Genesis", "Bentley", "GMC", "Motec", "Simrad", "Bavaria",
-    "AeroPress", "Keurig", "Moccamaster", "Roland", "Weinsberg", "Tracker", "Ninja",
+    # 30 Eki 2026 (MaCiT ES43): Roland artik ACIK degil (K2 bayat) — buradan silindi.
+    "AeroPress", "Keurig", "Moccamaster", "Weinsberg", "Tracker", "Ninja",
     # 26 Eki 2026 (BaBa tik 201b): MaCiT SG1 4 kayit (katalog 40925) Segway'i esigin ustune
     # cikardi (marka[] 5) -> K1 kirmizi (nobet 40273881039 hijyen-a2). Sayfa dogumu PARTI 2'de.
     "Segway",
@@ -116,6 +117,34 @@ TABAN = frozenset({
     # cikardi (K1 2); sayfa dogumu PARTI 2'de.
     "Kuba",
     "Scania",
+    # 28 Eki 2026 (MaCiT ES13, CTA silme dalina alindi): 14 kayit bes markayi esigin ustune
+    # cikardi (K1 5); sayfa dogumu PARTI 2'de.
+    "Gaggia",
+    "Hario",
+    "Oster",
+    "Oxo",
+    "Wyze",
+    # 28 Eki 2026 (MaCiT ES14): 3 kayit iki markayi esigin ustune cikardi (K1 2); sayfa dogumu
+    # PARTI 2'de.
+    "Anycubic",
+    "Bunn",
+    # 28 Eki 2026 (MaCiT ES15, Atoto pr1313709 haric): 11 kayit dort markayi esigin ustune
+    # cikardi (K1 4); sayfa dogumu PARTI 2'de.
+    "Bezzera",
+    "Polaris",
+    "Velbon",
+    "Zhiyun",
+    # 29 Eki 2026 (MaCiT ES16+ES17): 11 kayit dort markayi esigin ustune cikardi (K1 4); sayfa
+    # dogumu PARTI 2'de.
+    "Dellorto",
+    "Primula",
+    "Tchibo",
+    # 30 Eki 2026 (MaCiT ES37+ES38): Yaesu artik ACIK degil (K2 bayat) — buradan silindi.
+    # 30 Eki 2026 (Kahve marka duzeltmesi): marka[0]="Kahve" 79 kayit gercek markaya dondu,
+    # uc marka esigin ustune cikti (K1 3); sayfa dogumu PARTI 2'de.
+    "Bella",
+    "Bellman",
+    "Hamilton Beach",
 })
 
 
