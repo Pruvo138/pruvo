@@ -1,5 +1,422 @@
 [
   {
+    "id": "th4092948-roland-spd-sx-montaj-plakasi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Roland"
+    ],
+    "uyum": [
+      {
+        "marka": "Roland"
+      }
+    ],
+    "baslik": "Roland SPD-SX Montaj Plakası",
+    "aciklama": "Roland SPD-SX için hazırlanmış bir montaj plakasıdır. Plaka, dört köşesinde delik bulunan dikdörtgen bir tabandan ve ortasında dik duran silindirik bir çıkıntıdan oluşur. Ürün fotoğraflarında beyaz renkli plakanın cihazın arka yüzündeki girintiye dört vidayla yerleştirildiği görünür. Kaynağında tasarımcının plakayı kendi cihazı için çizdiği anlatılır. Cihaz ve vidalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 126 × 98 × 55 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4092948-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4092948-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4092948-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Pargrassergiu",
+      "tur": "CC-BY"
+    },
+    "altkategori": "Ses ve Müzik"
+  },
+  {
+    "id": "th5323005-roland-tr-8s-masaustu-standi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Roland"
+    ],
+    "uyum": [
+      {
+        "marka": "Roland"
+      }
+    ],
+    "baslik": "Roland TR-8S Masaüstü Standı",
+    "aciklama": "Roland TR-8S cihazını masada açılı bir konuma getirmek için hazırlanmış bir masaüstü standıdır. Stand, iki yan parçadan ve bunları birbirine bağlayan yatay çubuklardan oluşur. Tasarım yalnızca sol yan parçayı içerir; sağ yan parça için bu parçanın ayna görüntüsü alınır. Yatay çubuklar ürüne dahil değildir; kaynağında bu çubuklar için pirinç çubuk kullanıldığı anlatılır. Ürün fotoğraflarında siyah renkli, içi boşluklu üçgen biçimli yan parçalar ve aralarında ince çubuklar görünür. Cihaz ürüne dahil değildir.\nYaklaşık dış ölçüler: 255 × 66 × 20 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5323005-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5323005-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5323005-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "t4nky",
+      "tur": "CC-BY"
+    },
+    "altkategori": "Ses ve Müzik"
+  },
+  {
+    "id": "th2765394-insta360-air-uc-kamera-dizi-montaj-govdesi",
+    "kategori": "Kamera",
+    "marka": [
+      "Insta360"
+    ],
+    "uyum": [
+      {
+        "marka": "Insta360"
+      }
+    ],
+    "baslik": "Insta360 Air Üç Kameralı Dizi Montaj Gövdesi",
+    "aciklama": "Üç Insta360 Air kamerayı tek bir gövdede bir arada tutmak için hazırlanmış çok kameralı bir montaj gövdesidir. Gövde iki yarımdan oluşur; yarımlar iki cıvata ve somunla birleştirilir ve kaynağında kameraları ile USB kablolarını yerinde sıkıştırarak tuttuğu anlatılır. Gövdenin altında düz bir ayak bulunur; kaynağında gövdenin istenirse düz bir yüzeye de konabileceği belirtilir. Ürün fotoğraflarında yarı saydam beyaz gövdenin içinde üç kamera ve üç kablo görünür. Kameralar, kablolar, cıvatalar ve somunlar ürüne dahil değildir.\nYaklaşık dış ölçüler: 172 × 145 × 23 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2765394-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2765394-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "profhankd",
+      "tur": "CC-BY"
+    }
+  },
+  {
+    "id": "th3945975-makita-clamex-set-plakasi",
+    "kategori": "Tamirat",
+    "marka": [
+      "Makita"
+    ],
+    "uyum": [
+      {
+        "marka": "Makita"
+      }
+    ],
+    "baslik": "Makita PJ7000 / DPJ180Z Plaka Joiner Clamex Set Plakası",
+    "aciklama": "Makita PJ7000 ve DPJ180Z plaka joiner makinelerinin gövdesine takılmak üzere hazırlanmış bir set plakasıdır. Kaynağında plakanın Clamex S18 bisküvileri için yuva açmakta kullanıldığı, yerine oturarak takıldığı ve kolayca çıkarıldığı anlatılır. Ürün fotoğraflarında mavi renkli, uzun ve düz bir plaka görünür. Makine ve bisküviler ürüne dahil değildir.\nYaklaşık dış ölçüler: 144 × 54 × 12 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3945975-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3945975-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3945975-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3945975-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "okkef",
+      "tur": "CC-BY"
+    }
+  },
+  {
+    "id": "th3673092-makita-bl1013-batarya-standi",
+    "kategori": "Ev",
+    "marka": [
+      "Makita"
+    ],
+    "uyum": [
+      {
+        "marka": "Makita"
+      }
+    ],
+    "baslik": "Makita BL1013 Batarya Standı",
+    "aciklama": "Makita BL1013 bataryalarını dikey konumda saklamak için hazırlanmış bir standdır. Kaynağında bataryanın standa yerleştirilerek saklandığı anlatılır. Ürün fotoğraflarında üç bataryalık uzun bir gövde ile tek bataryalık küçük bir gövde yan yana görünür; ikisinin de kenarlarında vida delikleri bulunur. Bataryalar ve vidalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 60 × 55 × 25 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3673092-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3673092-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3673092-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3673092-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "sumod",
+      "tur": "CC-BY"
+    }
+  },
+  {
+    "id": "th434307-dji-phantom-2-vision-lens-parasoleyi",
+    "kategori": "Kamera",
+    "marka": [
+      "DJI"
+    ],
+    "uyum": [
+      {
+        "marka": "DJI"
+      }
+    ],
+    "baslik": "DJI Phantom 2 Vision+ Lens Parasoleyi",
+    "aciklama": "DJI Phantom 2 Vision+ dronunun kamerasındaki lensin önüne takılmak üzere hazırlanmış bir lens parasoleyidir. Kaynağında parçanın bant ya da başka bir parça gerektirmeden yerinde durması hedeflendiği ve iç kenarın lensin ön kenarıyla aynı hizada takıldığı anlatılır. Ürün fotoğraflarında beyaz renkli, lensi çevreleyen kanatlı bir siperlik görünür. Drone ve kamera ürüne dahil değildir.\nYaklaşık dış ölçüler: 30 × 30 × 19 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th434307-1.jpg",
+      "https://media.pruvo3d.com/urunler/th434307-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "falcon20cne",
+      "tur": "CC-BY-SA"
+    }
+  },
+  {
+    "id": "pr177636-gopro-snap-mount-plakasi",
+    "kategori": "Kamera",
+    "marka": [
+      "GoPro"
+    ],
+    "uyum": [
+      {
+        "marka": "GoPro"
+      }
+    ],
+    "baslik": "GoPro Snap Mount Plakası",
+    "aciklama": "GoPro Snap Mount tipi bağlantı için hazırlanmış bir montaj plakasıdır. Kaynağında parçanın GoPro bağlantı projeleri için ek bir plaka olarak hazırlandığı anlatılır. Fotoğrafta mavi renkte plaka, yanında siyah bir GoPro bağlantı parçasıyla birlikte görünür. Kamera ve diğer bağlantı parçaları ürüne dahil değildir.\nYaklaşık dış ölçüler: 46 × 35 × 10 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr177636-1.jpg"
+    ],
+    "altkategori": "Montaj ve Tripod"
+  },
+  {
+    "id": "pr244221-gopro-dji-om4-montaji",
+    "kategori": "Kamera",
+    "marka": [
+      "GoPro"
+    ],
+    "uyum": [
+      {
+        "marka": "GoPro"
+      }
+    ],
+    "baslik": "DJI OM4 için GoPro Montajı",
+    "aciklama": "GoPro aksiyon kamerayı DJI OM4 gimbaline bağlamak için hazırlanmış bir montaj parçasıdır. Kaynağında parçanın OM4 ile GoPro kamerayı birbirine bağlamak amacıyla hazırlandığı ve vidalı bağlantı donanımıyla kullanıldığı belirtilir. Fotoğraflarda siyah renkte plaka kamerayla birlikte görünür. Kamera, gimbal ve vida donanımı ürüne dahil değildir.\nYaklaşık dış ölçüler: 74 × 35 × 18 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr244221-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr244221-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "MongooseTNM",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Montaj ve Tripod"
+  },
+  {
+    "id": "pr241458-gopro-molle-tutucu",
+    "kategori": "Kamera",
+    "marka": [
+      "GoPro"
+    ],
+    "uyum": [
+      {
+        "marka": "GoPro"
+      }
+    ],
+    "baslik": "GoPro MOLLE Tutucu",
+    "aciklama": "GoPro aksiyon kamerayı MOLLE bağlantı şeritlerine takmak için hazırlanmış bir tutucudur. Kaynağında parçada bir bağlantı gözü ve kamerayı hizalamaya yarayan esnek bir tutma kısmı bulunduğu belirtilir. Parça, MOLLE bağlantılı bir etiket modelinden türetilmiştir. Fotoğraflarda siyah renkte tutucu farklı açılardan görünür. Kamera ve MOLLE şeritli yüzey ürüne dahil değildir.\nYaklaşık dış ölçüler: 50 × 50 × 28 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr241458-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr241458-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Martin (remix: grumpy_scrambler)",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Montaj ve Tripod"
+  },
+  {
+    "id": "pr242719-sony-a7c-duvar-tutucusu",
+    "kategori": "Kamera",
+    "marka": [
+      "Sony"
+    ],
+    "uyum": [
+      {
+        "marka": "Sony"
+      }
+    ],
+    "baslik": "Sony A7C Duvar Tutucusu",
+    "aciklama": "Sony A7C kamerayı duvarda asılı tutmak için hazırlanmış bir duvar tutucusudur. Kaynağında tutucunun bir ya da iki vidayla duvara sabitlendiği anlatılır. Fotoğraflarda mor renkte tutucu farklı açılardan görünür. Kamera ve vidalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 131 × 90 × 83 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr242719-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr242719-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr242719-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DJMac",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "pr649468-sony-a7c-ii-vizor-goz-siperi",
+    "kategori": "Kamera",
+    "marka": [
+      "Sony"
+    ],
+    "uyum": [
+      {
+        "marka": "Sony"
+      }
+    ],
+    "baslik": "Sony A7C II Vizör Göz Siperi",
+    "aciklama": "Sony A7C II kameranın vizörüne takılan bir göz siperidir. Kaynağında parçanın bu kamera modelinin vizörü için hazırlandığı anlatılır. Fotoğrafta siyah renkte siper kameranın vizörü üzerinde görünür. Kamera ürüne dahil değildir.\nYaklaşık dış ölçüler: 37 × 22 × 12 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr649468-1.jpg"
+    ]
+  },
+  {
+    "id": "pr1226510-sony-memory-stick-pro-duo-adaptoru",
+    "kategori": "Kamera",
+    "marka": [
+      "Sony"
+    ],
+    "uyum": [
+      {
+        "marka": "Sony"
+      }
+    ],
+    "baslik": "Sony Memory Stick Pro Duo Adaptörü",
+    "aciklama": "Sony Memory Stick Pro Duo kartı daha büyük boydaki Memory Stick biçimine dönüştüren bir adaptör parçasıdır. Kaynağında kartın etiket yüzü yukarı bakacak biçimde girintiye yerleştirilip cihaza yavaşça kaydırıldığı anlatılır. Kaynağında ayrıca eski tip Memory Stick cihazlarının en büyük kapasiteli kartları kabul etmeyebileceği uyarısı yer alır. Fotoğrafta turkuaz renkte adaptör, Memory Stick kartların yanında görünür. Kart ve cihaz ürüne dahil değildir.\nYaklaşık dış ölçüler: 43 × 22 × 3 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1226510-1.jpg"
+    ]
+  },
+  {
+    "id": "pr396831-canon-new-f-1-belden-vizoru",
+    "kategori": "Kamera",
+    "marka": [
+      "Canon"
+    ],
+    "uyum": [
+      {
+        "marka": "Canon"
+      }
+    ],
+    "baslik": "Canon New F-1 Belden Vizörü",
+    "aciklama": "Canon New F-1 kamera için hazırlanmış, belden bakışlı bir vizör kutusudur. Kaynağında parçanın vizör yuvasına arkadan, raylar boyunca kaydırılarak takıldığı anlatılır. Fotoğraflarda siyah renkte kutu kameranın üzerinde farklı açılardan görünür. Kamera ürüne dahil değildir.\nYaklaşık dış ölçüler: 50 × 45 × 43 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr396831-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr396831-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr396831-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dohnni",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Gövde ve Kafes"
+  },
+  {
+    "id": "pr233193-garmin-cd-yuvasi-navigator-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Garmin"
+    ],
+    "uyum": [
+      {
+        "marka": "Garmin"
+      }
+    ],
+    "baslik": "Garmin Navigatör CD Yuvası Tutucusu",
+    "aciklama": "Garmin DriveSmart navigatörün top mafsallı bağlantısı için hazırlanmış, CD yuvasına takılan tek parçalı bir tutucudur. Kaynağında parçanın Garmin navigatörlerin top mafsallı ayağına göre hazırlandığı anlatılır. Fotoğrafta siyah renkte tutucu görünür. Navigatör ürüne dahil değildir.\nYaklaşık dış ölçüler: 130 × 87 × 39 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr233193-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Mape",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Ses ve Multimedya"
+  },
+  {
+    "id": "pr85324-garmin-forerunner-935-kayis-ilmegi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Garmin"
+    ],
+    "uyum": [
+      {
+        "marka": "Garmin"
+      }
+    ],
+    "baslik": "Garmin Forerunner 935 Kayış İlmeği",
+    "aciklama": "Saat kayışının serbest ucunu yerinde tutan küçük bir kayış ilmeğidir. Kaynağında parçanın Garmin Forerunner 935 saat kayışı için hazırlandığı belirtilir. Fotoğraflarda siyah renkte düz ilmek yakın çekimde görünür. Saat ve kayış ürüne dahil değildir.\nYaklaşık dış ölçüler: 26 × 11 × 8 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr85324-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr85324-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr85324-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "XBurgy",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr516541-dji-integra-goggles-lens-kapagi",
+    "kategori": "Kamera",
+    "marka": [
+      "DJI"
+    ],
+    "uyum": [
+      {
+        "marka": "DJI"
+      }
+    ],
+    "baslik": "DJI Integra Goggles Lens Kapağı",
+    "aciklama": "DJI Integra gözlüğünün lenslerinin önüne takılan, iki gözlü bir lens kapağıdır. Kaynağında benzer bir parça bulunamadığı için hızlıca tasarlanmış bir kapak olduğu anlatılır. Fotoğraflarda siyah renkte kapak, gözlük üzerinde ve yakın çekimde görünür. Gözlük ürüne dahil değildir.\nYaklaşık dış ölçüler: 115 × 34 × 8 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr516541-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr516541-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr516541-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr516541-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Kennytak",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "pr1274186-dji-action-4-mic-2-montaji",
+    "kategori": "Kamera",
+    "marka": [
+      "DJI"
+    ],
+    "uyum": [
+      {
+        "marka": "DJI"
+      }
+    ],
+    "baslik": "DJI Action 4 ve Mic 2 Montajı",
+    "aciklama": "DJI Mic 2 mikrofonu DJI Action 4 kameranın üzerine yerleştirmek için hazırlanmış küçük bir montaj parçasıdır. Kaynağında parçanın iki vida ve iki vida yuvası parçasıyla birleştirildiği, mikrofonun kolayca çıkarılabildiği anlatılır. Fotoğraflarda beyaz renkte montaj parçası kamera ve mikrofon üzerinde görünür. Vidalar, vida yuvası parçaları, kamera ve mikrofon ürüne dahil değildir.\nYaklaşık dış ölçüler: 38 × 34 × 20 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1274186-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1274186-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1274186-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1274186-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Nick Roodenrijs",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "pr902961-dji-air-2-air-2s-standi",
+    "kategori": "Kamera",
+    "marka": [
+      "DJI"
+    ],
+    "uyum": [
+      {
+        "marka": "DJI"
+      }
+    ],
+    "baslik": "DJI Air 2 / Air 2S Standı",
+    "aciklama": "DJI Air 2 ve Air 2S dronları için hazırlanmış bir stanttır. Kaynağında parça, bu iki dron modeli için basit bir tutucu stand olarak tanıtılır. Fotoğraflarda siyah renkte stand, dron üzerinde ve yakın çekimde görünür. Dron ürüne dahil değildir.\nYaklaşık dış ölçüler: 91 × 85 × 69 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr902961-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr902961-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr902961-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr902961-4.jpg"
+    ]
+  },
+  {
     "id": "th3591604-philips-hue-led-serit-yatak-klipsi",
     "kategori": "Elektronik",
     "marka": [
