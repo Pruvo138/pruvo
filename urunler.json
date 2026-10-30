@@ -1,5 +1,551 @@
 [
   {
+    "id": "th5894373-motorola-telsiz-tutucusu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Motorola"
+    ],
+    "uyum": [
+      {
+        "marka": "Motorola"
+      }
+    ],
+    "baslik": "Motorola Telsiz Tutucusu",
+    "aciklama": "Motorola telsizlerini ya da telsiz pillerini yerleştirmek için hazırlanmış bir tutucudur. Kaynağında tutucunun telsizleri ve pilleri, kemer klipsi takılıyken de takılı değilken de alabildiği anlatılır. Ürün görsellerinde iki yuvalı yapısı ve vida delikleri görülür. Telsiz ve pil ürüne dahil değildir.\nYaklaşık dış ölçüler: 124 × 30 × 26 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5894373-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5894373-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "nagromnewo",
+      "tur": "CC-BY"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "th4087697-shimano-kaset-tapasi",
+    "kategori": "Bisiklet",
+    "marka": [
+      "Shimano"
+    ],
+    "uyum": [
+      {
+        "marka": "Shimano"
+      }
+    ],
+    "baslik": "Shimano Kaset Tapası",
+    "aciklama": "Bisiklet kasetini söküp takarken dişlilerin hizalı kalmasına yardımcı olan küçük bir atölye aksesuarıdır. Kaynağında kasetin tapaya kaydırılarak geçirildiği, takma zamanı geldiğinde tapadan çıkarılıp bisiklete kaydırılarak aktarıldığı ve tapadaki dişlerden birinin kasetteki dar yuvayla hizalanmasının en rahat kullanımı sağladığı anlatılır. Kaset ürüne dahil değildir.\nYaklaşık dış ölçüler: 41 × 41 × 36 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4087697-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4087697-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4087697-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "rvanwort",
+      "tur": "CC-BY"
+    },
+    "altkategori": "Bakım ve Alet"
+  },
+  {
+    "id": "th2897097-insta360-one-sapka-montaji",
+    "kategori": "Kamera",
+    "marka": [
+      "Insta360"
+    ],
+    "uyum": [
+      {
+        "marka": "Insta360"
+      }
+    ],
+    "baslik": "Insta360 One Şapka Montajı",
+    "aciklama": "Insta360 One kamerayı bir şapkanın üstünde taşımak için hazırlanmış basit bir montaj parçasıdır. Kaynağında şapkada bir delik açılıp parçanın bu delikten geçirildiği anlatılır; ürün fotoğrafında kamera şapkanın üstünde dik durur. Kamera ve şapka ürüne dahil değildir.\nYaklaşık dış ölçüler: 100 × 100 × 40 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2897097-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2897097-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2897097-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2897097-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "gjpc",
+      "tur": "CC-BY"
+    }
+  },
+  {
+    "id": "th4906449-insta360-go-2-yatay-molle-klipsi",
+    "kategori": "Kamera",
+    "marka": [
+      "Insta360"
+    ],
+    "uyum": [
+      {
+        "marka": "Insta360"
+      }
+    ],
+    "baslik": "Insta360 Go 2 Yatay MOLLE Klipsi",
+    "aciklama": "Insta360 Go 2 aksiyon kamerasını yatay konumda tutmak için hazırlanmış bir montaj klipsidir. Kaynağında mıknatıslı yüzey bulunmadığı, kameranın sürtünmeyle sıkıca oturduğu ve parçanın MOLLE şeritlerine de takılabildiği, bu takılmanın da sıkı olacak şekilde tasarlandığı anlatılır. Kamera ürüne dahil değildir.\nYaklaşık dış ölçüler: 40 × 29 × 29 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4906449-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4906449-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4906449-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "wtam63",
+      "tur": "CC-BY"
+    }
+  },
+  {
+    "id": "th1245512-makita-dc18rd-cift-sarj-cihazi-askisi",
+    "kategori": "Ev",
+    "marka": [
+      "Makita"
+    ],
+    "uyum": [
+      {
+        "marka": "Makita"
+      }
+    ],
+    "baslik": "Makita DC18RD Çift Şarj Cihazı Askısı",
+    "aciklama": "Makita DC18RD çift girişli şarj cihazını asmak için hazırlanmış bir askıdır. Askı iki parçadan oluşur: şarj cihazının üstünde duran bir blok ve altında duran bir raf. Ürün fotoğraflarında şarj cihazı bu iki parçayla duvara asılmış şekilde görünür. Şarj cihazı ve montaj vidaları ürüne dahil değildir.\nYaklaşık dış ölçüler: 160 × 74 × 56 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1245512-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1245512-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1245512-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "syakely",
+      "tur": "CC-BY"
+    },
+    "altkategori": "Duvar ve Askı"
+  },
+  {
+    "id": "th4616243-makita-zincirli-testere-duvar-tutucusu",
+    "kategori": "Ev",
+    "marka": [
+      "Makita"
+    ],
+    "uyum": [
+      {
+        "marka": "Makita"
+      }
+    ],
+    "baslik": "Makita Zincirli Testere Duvar Tutucusu",
+    "aciklama": "Makita UC4041A zincirli testereyi duvarda askıda saklamak için hazırlanmış bir tutucudur. Kaynağında tutucunun, testerenin depolamada kapladığı yeri azaltmak için tasarlandığı anlatılır. Parça iki bölümden oluşur: duvara monte edilen bir plaka ve üzerindeki kanca. Ürün fotoğraflarında testere sapından kancaya asılı görünür. Testere ve montaj vidaları ürüne dahil değildir.\nYaklaşık dış ölçüler: 104 × 100 × 50 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4616243-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4616243-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4616243-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4616243-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "benyus16",
+      "tur": "CC-BY-SA"
+    },
+    "altkategori": "Duvar ve Askı"
+  },
+  {
+    "id": "th3402220-dji-osmo-pocket-filtre-saklama-kutusu",
+    "kategori": "Kamera",
+    "marka": [
+      "DJI"
+    ],
+    "uyum": [
+      {
+        "marka": "DJI"
+      }
+    ],
+    "baslik": "DJI Osmo Pocket Filtre Saklama Kutusu",
+    "aciklama": "DJI Osmo Pocket için dört filtreyi küçük bir yerde saklamak ve tek tek kolayca çıkarmak amacıyla hazırlanmış bir kutudur. Kutu, filtrelerin oturduğu bir raf ile rafın içine kayarak girdiği bir kılıftan oluşur. Kaynağında rafın kılıfa başta sıkı girdiği, birkaç kez girip çıkarılarak gevşetildiği ve filtreler rafta serbest durduğu için rafı ters çevirince düşebilecekleri anlatılır. Filtreler ürüne dahil değildir.\nYaklaşık dış ölçüler: 76 × 20 × 9 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3402220-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3402220-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3402220-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3402220-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "rosscadguy",
+      "tur": "CC-BY"
+    }
+  },
+  {
+    "id": "th4883083-dji-mini-2-mavic-air-2-kumanda-telefon-uzaticisi",
+    "kategori": "Kamera",
+    "marka": [
+      "DJI"
+    ],
+    "uyum": [
+      {
+        "marka": "DJI"
+      }
+    ],
+    "baslik": "DJI Mini 2 ve Mavic Air 2 Kumanda Telefon Uzatıcısı",
+    "aciklama": "DJI Mini 2 ve Mavic Air 2 kumandasındaki telefon tutucuya eklenen bir uzatıcı parçadır. Kaynağında parçanın kılıflı bir telefonun kumandaya takılmasını kolaylaştırmak için hazırlandığı ve telefonu görüntü izlemek için daha rahat bir açıya getirdiği anlatılır. Parça kumandanın metal rayları arasına yerleştirilip döndürülerek raylara oturtulur, sonra yukarı doğru itilerek yerine getirilir; takılırken biraz güç gerektirecek kadar sıkıdır. Kumanda ve telefon ürüne dahil değildir.\nYaklaşık dış ölçüler: 48 × 25 × 24 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4883083-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4883083-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4883083-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4883083-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Kahuna717",
+      "tur": "CC-BY"
+    }
+  },
+  {
+    "id": "th2160462-dji-phantom-4-pro-gimbal-tutucusu",
+    "kategori": "Kamera",
+    "marka": [
+      "DJI"
+    ],
+    "uyum": [
+      {
+        "marka": "DJI"
+      }
+    ],
+    "baslik": "DJI Phantom 4 Pro Gimbal Tutucusu",
+    "aciklama": "DJI Phantom 4 Pro dronunun gimbalı için hazırlanmış bir tutucudur. Ürün fotoğraflarında gimbal kamerasının önüne oturan yuvarlak bir kapak ve bu kapağı gimbalın üst kısmındaki halkaya bağlayan ince bir kol görünür. Kaynağında parçanın yalnızca bu gimbal için hazırlandığı anlatılır. Drone ürüne dahil değildir.\nYaklaşık dış ölçüler: 60 × 54 × 38 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2160462-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2160462-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2160462-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2160462-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Szekelyathos",
+      "tur": "CC-BY"
+    }
+  },
+  {
+    "id": "th3025981-dji-osmo-mobile-2-denge-agirligi-tutucusu",
+    "kategori": "Kamera",
+    "marka": [
+      "DJI"
+    ],
+    "uyum": [
+      {
+        "marka": "DJI"
+      }
+    ],
+    "baslik": "DJI Osmo Mobile 2 Denge Ağırlığı Tutucusu",
+    "aciklama": "DJI Osmo Mobile 2 gimbalına ek ağırlık takmak için hazırlanmış bir tutucudur. Parça, ağırlıkların yerleştirildiği silindir biçimli bir gövde ile bir kapaktan oluşur. Kaynağında tutucunun içine birkaç adet çelik rondela konularak ağırlığın ayarlandığı, kapağın içine bir somun yerleştirildiği ve parçanın gimbala plastik bir kablo bağıyla bağlandığı anlatılır. Rondelalar, somun, kablo bağı ve gimbal ürüne dahil değildir.\nYaklaşık dış ölçüler: 57 × 46 × 37 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3025981-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3025981-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3025981-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JTKD",
+      "tur": "CC-BY"
+    }
+  },
+  {
+    "id": "pr247675-gopro-skadis-panosu-montaji",
+    "kategori": "Kamera",
+    "marka": [
+      "GoPro"
+    ],
+    "uyum": [
+      {
+        "marka": "GoPro"
+      }
+    ],
+    "baslik": "GoPro Skadis Panosu Montajı",
+    "aciklama": "GoPro aksiyon kamerayı Skadis delikli panoya asmak için hazırlanmış bir montaj parçasıdır. Kaynağında bu çalışmanın, daha önce hazırlanmış düz bir GoPro montajının delikleri kapatılıp arka yüzüne panoya geçen kancalar eklenmiş sürümü olduğu anlatılır. Fotoğraflarda siyah-gri renkte montaj parçası Skadis panosuna takılı halde ve üzerinde bir aksiyon kamerayla görünür. Kamera ve kamera bağlantı aksesuarları ürüne dahil değildir.\nYaklaşık dış ölçüler: 50 × 40 × 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr247675-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr247675-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr247675-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr247675-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "erdnaskram (remix: mark133)",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Montaj ve Tripod"
+  },
+  {
+    "id": "pr481288-gopro-tripod-vidasi-adaptoru",
+    "kategori": "Kamera",
+    "marka": [
+      "GoPro"
+    ],
+    "uyum": [
+      {
+        "marka": "GoPro"
+      }
+    ],
+    "baslik": "GoPro 1/4 İnç Tripod Vidası Adaptörü",
+    "aciklama": "Standart tripod vidasını GoPro tipi aksiyon kamera bağlantısına çeviren küçük bir adaptördür. Kaynağında adaptörün dişlerinin hazır olduğu ve takılırken ayrıca diş açmaya gerek kalmadığı belirtilir; bir yanında standart somun için bir oyuk bulunur. Fotoğraflarda siyah renkte, çatallı GoPro bağlantısı olan adaptör bir bağlantı vidasıyla birlikte ve farklı açılardan görünür. Vida, somun ve kamera ürüne dahil değildir.\nYaklaşık dış ölçüler: 27 × 18 × 15 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr481288-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr481288-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Alekkson",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Montaj ve Tripod"
+  },
+  {
+    "id": "pr189531-gopro-masa-kelepcesi",
+    "kategori": "Kamera",
+    "marka": [
+      "GoPro"
+    ],
+    "uyum": [
+      {
+        "marka": "GoPro"
+      }
+    ],
+    "baslik": "GoPro Masa Kelepçesi",
+    "aciklama": "GoPro aksiyon kamerayı masa kenarına yerleştirmek için hazırlanmış, yüksekliği ayarlanabilen bir masa kelepçesidir. Kaynağında kelepçenin cıvatalarla sıkılan parçalardan oluştuğu ve kelepçe yüzeylerine ayrıca kauçuk bir parça yapıştırılması gerektiği anlatılır. Fotoğrafta mavi renkte uzun bir kol, gri ve siyah kelepçe parçaları ve turuncu topuzlarla masa kenarına takılı halde görünür; kolun ucunda bir vida yuvası vardır. Cıvatalar, kauçuk parça ve kamera ürüne dahil değildir.\nYaklaşık dış ölçüler: 61 × 25 × 15 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr189531-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Vidar (remix: VidarM)",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Montaj ve Tripod"
+  },
+  {
+    "id": "pr338732-sony-e-m39-adaptor-halkasi",
+    "kategori": "Kamera",
+    "marka": [
+      "Sony"
+    ],
+    "uyum": [
+      {
+        "marka": "Sony"
+      }
+    ],
+    "baslik": "Sony E - M39 Adaptör Halkası",
+    "aciklama": "M39 vida dişli bir lensi Sony E bağlantılı bir kameraya takmak için hazırlanmış, halka biçimli bir adaptördür. Kaynağında adaptörün daha önce hazırlanmış bir Sony E bağlantı modelinden türetildiği ve şimdiye kadar yalnızca tek bir eski lensle denendiği belirtilir. Fotoğrafta gri renkte halka biçimli adaptör, bir Sony A6000 kameranın üzerinde lensle birlikte görünür. Kamera ve lens ürüne dahil değildir.\nYaklaşık dış ölçüler: 61 × 61 × 16 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr338732-1.jpg"
+    ],
+    "altkategori": "Lens Adaptörleri"
+  },
+  {
+    "id": "pr37800-sony-a77ii-ekran-siperligi",
+    "kategori": "Kamera",
+    "marka": [
+      "Sony"
+    ],
+    "uyum": [
+      {
+        "marka": "Sony"
+      }
+    ],
+    "baslik": "Sony a77II Ekran Siperliği",
+    "aciklama": "Sony a77II kameranın arka ekranını güneş ışığından gölgelemek için hazırlanmış, kolayca takılıp çıkarılan bir ekran siperliğidir. Kaynağında siperliğin kamerada kolayca kayarak takıldığı ve çıkarıldığı belirtilir. Fotoğraflarda siyah renkte siperlik, kameranın arka ekranının çevresinde ve yan yüzünde farklı açılardan görünür. Kamera ürüne dahil değildir.\nYaklaşık dış ölçüler: 79 × 61 × 59 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr37800-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr37800-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr37800-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "NarlyB",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "pr743405-canon-eos-m50-evrensel-parasoley-seti",
+    "kategori": "Kamera",
+    "marka": [
+      "Canon"
+    ],
+    "uyum": [
+      {
+        "marka": "Canon"
+      }
+    ],
+    "baslik": "Canon EOS M50 Evrensel Parasoley Seti",
+    "aciklama": "Canon EOS M50 kameranın farklı çaplardaki lensleri için tek bir parasoley kullanmak üzere hazırlanmış bir settir. Kaynağında parasoleyin, lens ile dönüştürme halkası arasına yerleştirilen plastik halkalarla kameranın üç lensi için tek parasoley olarak kullanıldığı ve çantada yer kazanmak için ters çevrilebildiği anlatılır. Fotoğraflarda siyah renkte parasoley lensin ucunda, ayrıca plastik halka ve dönüştürme halkasıyla birlikte görünür. Lensler ve metal dönüştürme halkaları ürüne dahil değildir.\nYaklaşık dış ölçüler: 68 × 68 × 25 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr743405-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr743405-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr743405-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr743405-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Loocky",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Filtre ve Parasoley"
+  },
+  {
+    "id": "pr1016136-garmin-fenix-6x-7x-saat-standi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Garmin"
+    ],
+    "uyum": [
+      {
+        "marka": "Garmin"
+      }
+    ],
+    "baslik": "Garmin Fenix 6X-7X Saat Standı",
+    "aciklama": "Garmin Fenix 6X ve 7X saatleri masa üzerinde eğimli konumda tutmak için hazırlanmış bir standdır. Eğimli yüzeyinde saatin arka kısmının oturduğu yuvarlak bir girinti ve saatin kablosunun ucu için küçük bir yuva bulunur. Fotoğraflarda gri-mavi tonlarında stand, kayışlı bir saat takılı halde ve tek başına görünür. Saat ve kablo ürüne dahil değildir.\nYaklaşık dış ölçüler: 89 × 77 × 51 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1016136-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1016136-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1016136-3.jpg"
+    ],
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr400193-garmin-kemer-klipsi",
+    "kategori": "Bisiklet",
+    "marka": [
+      "Garmin"
+    ],
+    "uyum": [
+      {
+        "marka": "Garmin"
+      }
+    ],
+    "baslik": "Garmin Kemer Klipsi",
+    "aciklama": "Garmin çeyrek dönüşlü bağlantı yapısına göre hazırlanmış, bisiklet bilgisayarını bisiklet dışında kemere takmak için bir klips setidir. Kaynağında setin yürüyüş, yeni bir şehri gezme ya da yürüyüşü kaydetme gibi durumlar için düşünüldüğü anlatılır. İki parçadan oluşur: kemere geçirilen klips ve cihazın oturduğu bağlantı parçası; bağlantı parçasının iki sürümü bulunur. Fotoğraflarda mavi-gri renkte klips bir deri kemere takılı halde, ikinci fotoğrafta ise kırmızı kılıflı bir bisiklet bilgisayarıyla birlikte görünür. Bisiklet bilgisayarı ürüne dahil değildir.\nYaklaşık dış ölçüler: 40 × 40 × 5 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr400193-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr400193-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Bent Derailleur",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Montaj Parçaları ve Klipsler"
+  },
+  {
+    "id": "pr831261-garmin-955-hizli-baglanti-adaptor-simi",
+    "kategori": "Bisiklet",
+    "marka": [
+      "Garmin"
+    ],
+    "uyum": [
+      {
+        "marka": "Garmin"
+      }
+    ],
+    "baslik": "Garmin 955 Hızlı Bağlantı Adaptör Şimi",
+    "aciklama": "Garmin 955 saat ile bisiklet için hazırlanmış bir hızlı bağlantı aparatı arasında kullanılan küçük bir ara şimdir. Kaynağında şimin yerinde tutulması için ayrıca bir yapıştırıcı kullanıldığı anlatılır. Fotoğraflarda yeşil renkte küçük şim parçaları, aparatın yan yuvasında, saatin kulağında ve tek başına masa üzerinde görünür; bir fotoğrafta saat gidonda aparatla takılı haldedir. Saat, aparat ve yapıştırıcı ürüne dahil değildir.\nYaklaşık dış ölçüler: 22 × 8 × 4 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr831261-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr831261-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr831261-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr831261-4.jpg"
+    ],
+    "altkategori": "Montaj Parçaları ve Klipsler"
+  },
+  {
+    "id": "pr1039265-dji-osmo-action-4-lens-kapagi",
+    "kategori": "Kamera",
+    "marka": [
+      "DJI"
+    ],
+    "uyum": [
+      {
+        "marka": "DJI"
+      }
+    ],
+    "baslik": "DJI Osmo Action 4 Lens Kapağı",
+    "aciklama": "DJI Osmo Action 4 kameranın lensinin üzerine takılan, kenarı tırtıllı yuvarlak bir kapaktır. Kaynağında bu çalışmanın, daha önce hazırlanmış bir lens kapağının lens ile kapak arasında küçük bir boşluk bırakacak biçimde değiştirilmiş sürümü olduğu anlatılır. Fotoğraflarda açık gri ve şeffaf renkte kapak, kameranın lensi üzerinde ve yanında tek başına görünür. Kamera ürüne dahil değildir.\nYaklaşık dış ölçüler: 36 × 36 × 5 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1039265-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1039265-2.jpg"
+    ]
+  },
+  {
+    "id": "pr1064505-dji-neo-dusuk-profilli-tasima-kutusu",
+    "kategori": "Kamera",
+    "marka": [
+      "DJI"
+    ],
+    "uyum": [
+      {
+        "marka": "DJI"
+      }
+    ],
+    "baslik": "DJI Neo Düşük Profilli Taşıma Kutusu",
+    "aciklama": "DJI Neo dronu taşımak için hazırlanmış, olabildiğince küçük tutulmuş menteşeli bir kutudur. Kaynağında kutunun iki yarımdan oluştuğu, kapağın iki yanındaki mıknatıslarla kapandığı ve iç yüzeye ince bir köpük astar yapıştırıldığı anlatılır. Fotoğraflarda kutu açıkken içinde dron ve köpük astarlı kapak, kapalıyken ise yüzeyi köşeli yüzlerden oluşan siyah bir gövde görünür. Dron, mıknatıslar ve köpük astar ürüne dahil değildir.\nYaklaşık dış ölçüler: 168 × 145 × 36 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1064505-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1064505-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Nickelbee",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "pr851975-dji-goggles-3-lens-kapagi",
+    "kategori": "Kamera",
+    "marka": [
+      "DJI"
+    ],
+    "uyum": [
+      {
+        "marka": "DJI"
+      }
+    ],
+    "baslik": "DJI Goggles 3 Lens Kapağı",
+    "aciklama": "DJI Goggles 3 için hazırlanmış, gözlüğün iki lensinin önüne yerleştirilen, ortadan birbirine bağlı iki yuvarlak yüzeyden oluşan ince bir kapaktır. Kaynağında gözlüğün çantasında saklanırken pilin lenslerin üzerine konması gerektiği ve parçanın bu durum için hazırlandığı anlatılır. Fotoğraflarda holografik parlak bir yüzeyi olan siyah kapak, tek başına ve gözlüğün lensleri üzerinde görünür. Gözlük, pil ve çanta ürüne dahil değildir.\nYaklaşık dış ölçüler: 111 × 50 × 11 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr851975-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr851975-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr851975-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "White Devil",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "pr805541-dji-osmo-pocket-3-standi",
+    "kategori": "Kamera",
+    "marka": [
+      "DJI"
+    ],
+    "uyum": [
+      {
+        "marka": "DJI"
+      }
+    ],
+    "baslik": "DJI Osmo Pocket 3 Standı",
+    "aciklama": "DJI Osmo Pocket 3 kamerayı masa üzerinde dik konumda tutmak için hazırlanmış, yuvarlak tabanlı bir standdır. Kaynağında standın kamerayı masa üzerine yerleştirmek amacıyla tasarlandığı belirtilir. Fotoğraflarda siyah renkte yuvarlak bir taban ve üzerinde kameranın alt kısmının oturduğu kutu biçimli bir yuva görünür; kamera ön ve arka yüzünden çekilmiş iki fotoğrafta bu yuvaya yerleşmiş halde durur. Kamera ürüne dahil değildir.\nYaklaşık dış ölçüler: 80 × 80 × 22 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr805541-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr805541-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Roland",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "th4201781-yaesu-ftm-100d-on-panel-masa-standi",
     "kategori": "Elektronik",
     "marka": [
