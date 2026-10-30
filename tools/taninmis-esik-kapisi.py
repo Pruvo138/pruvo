@@ -140,6 +140,11 @@ TABAN = frozenset({
     "Primula",
     "Tchibo",
     # 30 Eki 2026 (MaCiT ES37+ES38): Yaesu artik ACIK degil (K2 bayat) — buradan silindi.
+    # 30 Eki 2026 (Kahve marka duzeltmesi): marka[0]="Kahve" 79 kayit gercek markaya dondu,
+    # uc marka esigin ustune cikti (K1 3); sayfa dogumu PARTI 2'de.
+    "Bella",
+    "Bellman",
+    "Hamilton Beach",
 })
 
 
