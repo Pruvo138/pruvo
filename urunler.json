@@ -1,5 +1,213 @@
 [
   {
+    "id": "pr299339-ikea-alex-cekmece-kulpu-ve-etiket-tutucusu",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA ALEX Çekmece Kulpu ve Etiket Tutucusu",
+    "aciklama": "IKEA ALEX çekmeceleri için hazırlanmış, üzerinde etiket alanı bulunan bir çekmece kulpudur. Kaynağında kulpun üzerinde geniş ve okunaklı bir etiket alanı bulunduğu, boş bir etiket parçasının da birlikte sunulduğu ve etikete yazı yazılabildiği anlatılır. Ayrıca alçak profilli olduğu belirtilir. Fotoğrafta turuncu renkte kulp ve etiket tutucuları çekmecenin önünde görünür. Çekmece ve ALEX ünitesi ürüne dahil değildir.\nYaklaşık dış ölçüler: 176 × 48 × 23 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr299339-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Pendragoo",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr354090-ikea-kallax-expedit-plak-bolucu",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA Kallax ve Expedit Plak Bölücü",
+    "aciklama": "IKEA Kallax ve Expedit raflarının gözleri için hazırlanmış, plakların birbirine yaslanmasını önlemeyi amaçlayan bir plak bölücüdür. Kaynağında bölücünün bir raf gözünü dört eşit bölüme ayırdığı, rafın alt yüzüne çift taraflı bantla tutturulduğu ve iki parçalı olduğu anlatılır. Normal sürümün yanında daha uzun bir sürümün de bulunduğu belirtilir. Fotoğraflarda siyah renkte bölücü, plaklarla dolu bir raf gözünde ve tek başına görünür; ayrıca önce ve sonra karşılaştırması da yer alır. Raf ve plaklar ürüne dahil değildir.\nYaklaşık dış ölçüler: 215 × 30 × 25 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr354090-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr354090-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr354090-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr354090-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Tom Archer",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr99538-ikea-ivar-raf-elbise-aski-kancasi",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA Ivar Raf Elbise Askı Kancası",
+    "aciklama": "IKEA Ivar raf sisteminin yan tarafına takılmak üzere hazırlanmış, iki kancalı bir elbise askı kancasıdır. Kaynağında kancanın rafın yatay yan rayına geçirildiği anlatılır; cıvatayla sabitlenen normal sürümün yanında yalnızca yerine oturan daha basit bir sürümün de bulunduğu belirtilir. Fotoğraflarda siyah renkte kanca Ivar rafının yan tarafında görünür. Raf ve cıvata ürüne dahil değildir.\nYaklaşık dış ölçüler: 119 × 50 × 13 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr99538-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr99538-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Uko",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr108114-ikea-skadis-kumpas-kancasi",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA Skadis Kumpas Kancası",
+    "aciklama": "IKEA Skadis delikli panosuna takılarak bir kumpası asmak için hazırlanmış bir askı kancasıdır. Kaynağında kancanın kumpas için ayrılmış bir deliğinin bulunduğu anlatılır. Fotoğraflarda gri renkte kanca, bir dijital kumpasla birlikte görünür. Skadis panosu ve kumpas ürüne dahil değildir.\nYaklaşık dış ölçüler: 48 × 30 × 24 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr108114-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr108114-2.jpg"
+    ],
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr24727-ikea-platsa-kablo-gecidi",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "uyum": [
+      {
+        "marka": "IKEA"
+      }
+    ],
+    "baslik": "IKEA PLATSA Kablo Geçidi",
+    "aciklama": "IKEA PLATSA raflarında açılan yuvarlak bir deliğe yerleştirilen, kabloların düzgün bir görünümle geçirilmesi için hazırlanmış bir kablo geçididir. Kaynağında parçanın iç ve dış gövdeden oluştuğu, kabloların delikten geri kaymasını engelleyen bir kapak parçasının da eklendiği anlatılır. Fotoğrafta geçit, bir dolabın deliğine yerleştirilmiş şekilde görünür. Raf, delik ve kablolar ürüne dahil değildir.\nYaklaşık dış ölçüler: 74 × 74 × 26 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr24727-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Shaun Doe",
+      "tur": "GPL 3.0"
+    },
+    "altkategori": "Saklama ve Düzen"
+  },
+  {
+    "id": "pr1159269-roland-go-piano-go-keys-tablet-ve-telefon-standi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Roland"
+    ],
+    "uyum": [
+      {
+        "marka": "Roland"
+      }
+    ],
+    "baslik": "Roland GO Piano / GO Keys Tablet ve Telefon Standı",
+    "aciklama": "Roland GO Piano ve GO Keys klavyelerinin ızgarasına geçirilerek telefon ya da tablet yerleştirmek için hazırlanmış alçak profilli bir standdır. Kaynağında geniş nota sehpasına göre daha alçak profilli bir çözüm olarak çizildiği anlatılır. Kaynakta telefon ve tablet kalınlığı için bir üst sınır bulunduğu da belirtilir. Fotoğraflarda siyah renkte stand, klavyenin üzerinde telefon ve tabletle birlikte görünür. Klavye, telefon ve tablet ürüne dahil değildir.\nYaklaşık dış ölçüler: 245 × 60 × 48 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1159269-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1159269-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1159269-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1159269-4.jpg"
+    ],
+    "altkategori": "Ses ve Müzik"
+  },
+  {
+    "id": "pr335620-roland-kt-10-pedal-taban-plakalari",
+    "kategori": "Elektronik",
+    "marka": [
+      "Roland"
+    ],
+    "uyum": [
+      {
+        "marka": "Roland"
+      }
+    ],
+    "baslik": "Roland KT-10 Pedal Taban Plakaları",
+    "aciklama": "Roland KT-10 kick tetikleyici pedallarının altına yerleştirilen, alt ve üst plakadan oluşan bir taban plakası setidir. Kaynağında plakaların pedalların halıya zarar vermeden kullanılması için çizildiği belirtilir. Fotoğraflarda siyah renkte plakalar pedalın altında görünür, ayrıca önce ve sonra karşılaştırması da yer alır. Pedal ürüne dahil değildir.\nYaklaşık dış ölçüler: 161 × 85 × 9 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr335620-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr335620-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr335620-3.jpg"
+    ],
+    "altkategori": "Ses ve Müzik"
+  },
+  {
+    "id": "pr1268704-roland-sp-404-mkii-potansiyometre-dugmesi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Roland"
+    ],
+    "uyum": [
+      {
+        "marka": "Roland"
+      }
+    ],
+    "baslik": "Roland SP-404 MKII Potansiyometre Düğmesi",
+    "aciklama": "Roland SP-404 MKII cihazının potansiyometre milleri için hazırlanmış, iki parçalı ibreli bir düğmedir. Kaynağında düğmenin eski gitar amfilerindeki klasik görünümü andıran bir tasarımla çizildiği ve iki parçanın doğru yönde birleştirilmesi gerektiği anlatılır. Kaynakta düğmenin potansiyometre milinin üzerine geçirilerek takıldığı belirtilir. Fotoğraflarda gökkuşağı renklerinde düğmeler hem tek başına hem de cihazın üzerinde görünür. Cihaz ürüne dahil değildir.\nYaklaşık dış ölçüler: 14 × 12 × 12 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1268704-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1268704-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1268704-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Agent Mess",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Ses ve Müzik"
+  },
+  {
+    "id": "pr709588-kenwood-major-kase-mati",
+    "kategori": "Elektronik",
+    "marka": [
+      "Kenwood"
+    ],
+    "uyum": [
+      {
+        "marka": "Kenwood"
+      }
+    ],
+    "baslik": "Kenwood Major Kase Matı",
+    "aciklama": "Kenwood Major mutfak makinesinin kasesi için hazırlanmış yuvarlak bir kase matıdır. Kaynağında matın makinenin kasesinin altında kullanılan bir altlık olarak çizildiği belirtilir. Fotoğraflarda beyaz renkte, düz ve yuvarlak mat hem tek başına hem de mutfak makinesinin altında görünür. Mutfak makinesi ürüne dahil değildir.\nYaklaşık dış ölçüler: 149 × 149 × 4 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr709588-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr709588-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ChrisEg",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Ev ve Mutfak Cihazları"
+  },
+  {
     "id": "th4168271-roland-jd-xi-egimli-raf-montaji",
     "kategori": "Elektronik",
     "marka": [
