@@ -1,5 +1,646 @@
 [
   {
+    "id": "th2837966-yaesu-ft60r-kablo-klipsi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Yaesu"
+    ],
+    "uyum": [
+      {
+        "marka": "Yaesu"
+      }
+    ],
+    "baslik": "Yaesu FT60R Kablo Klipsi",
+    "aciklama": "Yaesu FT60R el telsizinin anteni üzerinde kullanılan küçük bir kablo klipsidir. Fotoğraflarda neon sarı renkte bir klips, telsizin antenine takılı olarak görünür. Telsiz ürüne dahil değildir.\nYaklaşık dış ölçüler: 22 × 16 × 5 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2837966-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2837966-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "feigenblatt",
+      "tur": "CC-BY-SA"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr621790-xbox-one-kumanda-basparmak-cubugu-baslik",
+    "kategori": "Elektronik",
+    "marka": [
+      "Xbox"
+    ],
+    "uyum": [
+      {
+        "marka": "Xbox"
+      }
+    ],
+    "baslik": "Xbox One Kumanda Başparmak Çubuğu Başlığı",
+    "aciklama": "Xbox One kumandanın başparmak çubuğunun üzerine geçirilen küçük bir başlıktır. Kaynağında başlığın geçme yapıda olduğu ve yapıştırıcıya gerek duyulmadığı anlatılır. Yuvarlak ve daha düz yüzeyli iki sürümü bulunur. Kumanda ürüne dahil değildir.\nYaklaşık dış ölçüler: 18 × 18 × 4 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr621790-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr621790-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr621790-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Katona Edvard",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr160097-xbox-360-kumanda-joystick-baslik-ve-uzatma",
+    "kategori": "Elektronik",
+    "marka": [
+      "Xbox"
+    ],
+    "uyum": [
+      {
+        "marka": "Xbox"
+      }
+    ],
+    "baslik": "Xbox 360 Kumanda Joystick Başlıkları ve Uzatma",
+    "aciklama": "Xbox 360 kumandanın analog çubuklarına takılan, tutuşu artırmak için hazırlanmış desenli başlıklardan oluşan bir takımdır. Kaynağında başlıkların birkaç farklı yüzey biçimiyle hazırlandığı, kenarında tutuşu artıran küçük bir halka bulunduğu ve çubuğu uzatan iki kat uzunlukta bir sürümünün de olduğu anlatılır. Kumanda ürüne dahil değildir.\nYaklaşık dış ölçüler: 26 × 26 × 16 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr160097-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr160097-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "someoneonly",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr316559-xbox-one-kumanda-omuz-dugmeleri",
+    "kategori": "Elektronik",
+    "marka": [
+      "Xbox"
+    ],
+    "uyum": [
+      {
+        "marka": "Xbox"
+      }
+    ],
+    "baslik": "Xbox One Kumanda Omuz Düğmeleri",
+    "aciklama": "Xbox One kumandanın ilk neslinin üst köşelerindeki sol ve sağ omuz düğmeleri için hazırlanmış parçalardır. Kaynağında tasarımın, daha önce hazırlanmış iki omuz düğmesi çalışmasından yola çıkılarak daha düzgün bir görünüm için yeniden düzenlendiği ve tek parçalı bir sürümle sol ve sağ ayrı parçalı bir sürümünün bulunduğu anlatılır. Kumanda ürüne dahil değildir.\nYaklaşık dış ölçüler: 110 × 20 × 16 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr316559-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Help93 (remix: pbpunk, RaffoSan)",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr281300-xbox-kumanda-skadis-tutucusu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Xbox"
+    ],
+    "uyum": [
+      {
+        "marka": "Xbox"
+      }
+    ],
+    "baslik": "Xbox Kumanda Skadis Tutucusu",
+    "aciklama": "Xbox kumandayı IKEA Skadis delikli panoya asmak için hazırlanmış bir tutucudur. Kaynağında tutucunun panoya kırlangıç kuyruğu biçimli bir geçme sistemiyle takıldığı ve Steam Controller için de kullanılabildiği anlatılır. Kumanda ve pano ürüne dahil değildir.\nYaklaşık dış ölçüler: 67 × 64 × 57 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr281300-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr281300-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr281300-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dtphantom",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "th3728413-wyze-cam-v2-kapagi",
+    "kategori": "Kamera",
+    "marka": [
+      "Wyze"
+    ],
+    "uyum": [
+      {
+        "marka": "Wyze"
+      }
+    ],
+    "baslik": "Wyze Cam v2 Kapağı",
+    "aciklama": "Wyze Cam v2 kameranın gövdesine geçirilen, hafif bir kılıf biçiminde kapaktır. Kaynağında kapağın kameranın arka yüzüne, merceğe ve sensörlere erişimi açık bıraktığı, yan yüzlerinde altıgen desenli delikler bulunduğu ve küçük deliği olmayan ikinci bir sürümünün de olduğu anlatılır. Kamera ürüne dahil değildir.\nYaklaşık dış ölçüler: 53 × 53 × 52 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3728413-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3728413-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Q-Vision",
+      "tur": "CC-BY"
+    },
+    "altkategori": "Montaj ve Tripod"
+  },
+  {
+    "id": "th4796971-wyze-cam-v2-pencere-kutusu",
+    "kategori": "Kamera",
+    "marka": [
+      "Wyze"
+    ],
+    "uyum": [
+      {
+        "marka": "Wyze"
+      }
+    ],
+    "baslik": "Wyze Cam v2 Pencere Kutusu",
+    "aciklama": "Wyze Cam v2 kamerayı pencereye yerleştirmek için hazırlanmış, cam yansımalarını dışarıda tutmayı amaçlayan bir kutudur. Kaynağında kutunun şeffaf çift taraflı bantla cama sabitlendiği ve kolay ayrıldığı anlatılır. Kamerayı farklı yönlere çevirmek isteyenler için açılı iki sürümü de bulunur. Kamera ve bant ürüne dahil değildir.\nYaklaşık dış ölçüler: 109 × 108 × 68 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4796971-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4796971-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "GingerBrandon",
+      "tur": "CC-BY"
+    },
+    "altkategori": "Montaj ve Tripod"
+  },
+  {
+    "id": "th4775705-wyze-doorbell-on-yuz-aksesuari",
+    "kategori": "Kamera",
+    "marka": [
+      "Wyze"
+    ],
+    "uyum": [
+      {
+        "marka": "Wyze"
+      }
+    ],
+    "baslik": "Wyze Doorbell Ön Yüz Aksesuarı",
+    "aciklama": "Wyze Doorbell kapı zilinin ön yüzüne geçirilen, cihazın görünümünü değiştirmek için hazırlanmış bir aksesuardır. Kaynağında aksesuarın arka tarafındaki küçük tırnakların yerinde durmasına yardımcı olduğu ve yazarın aksesuarı boyayarak kullandığı anlatılır. Kapı zili ürüne dahil değildir.\nYaklaşık dış ölçüler: 86 × 42 × 20 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4775705-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4775705-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4775705-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "fritzycat",
+      "tur": "CC-BY"
+    },
+    "altkategori": "Montaj ve Tripod"
+  },
+  {
+    "id": "th333642-philips-spc900nc-bilgisayar-kamerasi-teleskop-adaptoru",
+    "kategori": "Elektronik",
+    "marka": [
+      "Philips"
+    ],
+    "uyum": [
+      {
+        "marka": "Philips"
+      }
+    ],
+    "baslik": "Philips SPC900NC Bilgisayar Kamerası Teleskop Adaptörü",
+    "aciklama": "Philips SPC900NC bilgisayar kamerasının devre kartını bir teleskobun göz merceği girişine bağlamak için hazırlanmış bir adaptördür. Kaynağında tasarımın, daha önce hazırlanmış bir teleskop adaptörünün değiştirilmiş hâli olduğu, ek devre elemanları eklenmiş kameralar için kutunun daha geniş tutulduğu ve iki farklı üst parçaya göre iki ayrı sürümünün bulunduğu anlatılır. Kamera ve teleskop ürüne dahil değildir.\nYaklaşık dış ölçüler: 178 × 58 × 46 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th333642-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Ryoko (remix: Gyrobot)",
+      "tur": "CC-BY-SA"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "th4261207-philips-hue-bridge-led-kapagi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Philips"
+    ],
+    "uyum": [
+      {
+        "marka": "Philips"
+      }
+    ],
+    "baslik": "Philips Hue Bridge LED Kapağı",
+    "aciklama": "Philips Hue Bridge (ikinci nesil) cihazının ön yüzündeki ışık göstergelerini örtmek için hazırlanmış bir kapaktır. Kaynağında kapağın cihazın önüne geçmeli olarak takıldığı ve yazarın kendi hazırladığı duvar tutucusuyla birlikte kullanılabildiği anlatılır. Köprü cihazı ve duvar tutucusu ürüne dahil değildir.\nYaklaşık dış ölçüler: 95 × 60 × 34 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4261207-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4261207-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "LarsBonde",
+      "tur": "CC-BY"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "pr116053-makita-uc-tutucusu",
+    "kategori": "Ev",
+    "marka": [
+      "Makita"
+    ],
+    "uyum": [
+      {
+        "marka": "Makita"
+      }
+    ],
+    "baslik": "Makita Uç Tutucusu",
+    "aciklama": "Makita akülü el aletleriyle kullanılan uçları saklamak için hazırlanmış küçük bir uç tutucusudur. Kaynağında tutucunun Makita'nın iki akülü alet serisi için hazırlandığı belirtilir. Aletler, piller ve uçlar ürüne dahil değildir.\nYaklaşık dış ölçüler: 48 × 20 × 12 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr116053-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr116053-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Zavadnoy",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Duvar ve Askı"
+  },
+  {
+    "id": "pr547368-makita-evrensel-alet-kancasi",
+    "kategori": "Ev",
+    "marka": [
+      "Makita"
+    ],
+    "uyum": [
+      {
+        "marka": "Makita"
+      }
+    ],
+    "baslik": "Makita Evrensel Alet Kancası",
+    "aciklama": "Birden fazla farklı aleti asmak için hazırlanmış sade bir alet kancasıdır. Kaynağında kancanın birkaç farklı Makita akülü el aletini asmak için kullanıldığı anlatılır. Aletler ve montaj malzemeleri ürüne dahil değildir.\nYaklaşık dış ölçüler: 90 × 76 × 20 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr547368-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr547368-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr547368-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr547368-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Quist",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Duvar ve Askı"
+  },
+  {
+    "id": "pr305863-makita-matkap-duvar-montaji",
+    "kategori": "Ev",
+    "marka": [
+      "Makita"
+    ],
+    "uyum": [
+      {
+        "marka": "Makita"
+      }
+    ],
+    "baslik": "Makita Matkap Duvar Montajı",
+    "aciklama": "Makita akülü matkabı duvara asmak için hazırlanmış bir montaj parçasıdır. Kaynağında montajın, daha önce hazırlanmış bir Makita duvar tutucusunun yükseltilmiş hâli olduğu ve böylece matkabın kemer klipsi takılı kalırken de asılabildiği anlatılır. Matkap ve montaj malzemeleri ürüne dahil değildir.\nYaklaşık dış ölçüler: 112 × 75 × 54 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr305863-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr305863-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr305863-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Datsmir (remix: Alex, GunSmoker)",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Duvar ve Askı"
+  },
+  {
+    "id": "pr394984-makita-cift-pil-duvar-montaji",
+    "kategori": "Ev",
+    "marka": [
+      "Makita"
+    ],
+    "uyum": [
+      {
+        "marka": "Makita"
+      }
+    ],
+    "baslik": "Makita Çift Pil Duvar Montajı",
+    "aciklama": "İki Makita pilini duvara asmak için hazırlanmış bir montajdır. Kaynağında montajın iki pil için hazırlandığı, aynı serinin tek pilli ve üç pilli sürümlerinin de bulunduğu ve kablo geçişi için delikli bir sürümünün olduğu anlatılır. Piller ve montaj malzemeleri ürüne dahil değildir.\nYaklaşık dış ölçüler: 149 × 90 × 22 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr394984-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr394984-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Josef Fröhle",
+      "tur": "CC BY-SA 4.0"
+    },
+    "altkategori": "Duvar ve Askı"
+  },
+  {
+    "id": "th3110382-makita-dc18rc-sarj-cihazi-skadis-tutucusu",
+    "kategori": "Ev",
+    "marka": [
+      "Makita"
+    ],
+    "uyum": [
+      {
+        "marka": "Makita"
+      }
+    ],
+    "baslik": "Makita DC18RC Şarj Cihazı Skadis Tutucusu",
+    "aciklama": "Makita DC18RC şarj cihazını Skadis delikli panoya asmak için hazırlanmış bir tutucudur. Kaynağında tutucunun sol ve sağ olmak üzere iki parçadan oluştuğu anlatılır. Şarj cihazı, batarya ve pano ürüne dahil değildir.\nYaklaşık dış ölçüler: 135 × 88 × 37 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3110382-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3110382-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3110382-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "gfx54",
+      "tur": "CC-BY"
+    },
+    "altkategori": "Duvar ve Askı"
+  },
+  {
+    "id": "th5182435-makita-batarya-rafi",
+    "kategori": "Ev",
+    "marka": [
+      "Makita"
+    ],
+    "uyum": [
+      {
+        "marka": "Makita"
+      }
+    ],
+    "baslik": "Makita Batarya Rafı (1, 2 ve 3'lü)",
+    "aciklama": "Makita bataryalarını asmak için hazırlanmış alçak profilli bir raftır. Kaynağında rafın 18 voltluk Makita batarya paketlerinin bağlantı yapısına göre tasarlandığı, bataryayı çıkarmak için batarya düğmesine basmayı gerektirmediği ve bir, iki ya da üç bataryalık sürümlerinin bulunduğu anlatılır. Duvara ya da bir rafın alt yüzüne, batarya başına iki vida ile sabitlenir. Bataryalar ve vidalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 80 × 21 × 38 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5182435-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5182435-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5182435-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "PrintGeek9000",
+      "tur": "CC-BY"
+    }
+  },
+  {
+    "id": "th5550864-sony-sel1855-objektif-parasoleyi",
+    "kategori": "Kamera",
+    "marka": [
+      "Sony"
+    ],
+    "uyum": [
+      {
+        "marka": "Sony"
+      }
+    ],
+    "baslik": "Sony SEL1855 Kit Objektif Parasoleyi",
+    "aciklama": "Sony SEL1855 kit objektif için hazırlanmış bir lens parasoleyidir. Kaynağında parasoleyin bayonet bağlantıyla takıldığı ve ters çevrilerek de takılabildiği anlatılır. Objektif ve kamera ürüne dahil değildir.\nYaklaşık dış ölçüler: 69 × 69 × 43 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5550864-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5550864-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5550864-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "zoone",
+      "tur": "CC-BY"
+    }
+  },
+  {
+    "id": "th7201577-sony-memory-stick-saklama-kutusu",
+    "kategori": "Kamera",
+    "marka": [
+      "Sony"
+    ],
+    "uyum": [
+      {
+        "marka": "Sony"
+      }
+    ],
+    "baslik": "Sony Memory Stick Saklama Kutusu (StickVault Cargo)",
+    "aciklama": "Sony Memory Stick hafıza kartlarını saklamak için hazırlanmış, endüstriyel görünümlü bir saklama kutusudur. Kaynağında kutunun aynı anda beş karta kadar yer ayırdığı, menteşeli bir kapağı ve kilit parçası bulunduğu anlatılır. Kartlar, vidalar ve somunlar ürüne dahil değildir.\nYaklaşık dış ölçüler: 66 × 40 × 12 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7201577-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "anderain_ryu",
+      "tur": "CC-BY-SA"
+    }
+  },
+  {
+    "id": "th3902440-sony-yashinon-gs-45-e-mount-donusturme-adaptoru",
+    "kategori": "Kamera",
+    "marka": [
+      "Sony"
+    ],
+    "uyum": [
+      {
+        "marka": "Sony"
+      }
+    ],
+    "baslik": "Yashinon GS DX 45 Objektif için Sony E-Mount Dönüştürme Adaptörü",
+    "aciklama": "Yashica Electro 35 GS kameradan çıkarılmış Yashinon DX 45 objektife Sony E-Mount (FE) bağlantısı kazandırmak için hazırlanmış bir adaptör halkasıdır. Kaynağında parçanın objektifteki mevcut vida deliklerine üç vida ile bağlandığı, Sony tarafı için ayrı bir ters çevirme halkasının kullanıldığı ve objektifin arka iç bölümleri için küçük kapakların da bulunduğu anlatılır. Objektif, halka ve vidalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 64 × 64 × 9 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3902440-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3902440-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3902440-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ernst-dinkla",
+      "tur": "CC-BY-SA"
+    }
+  },
+  {
+    "id": "pr135872-gopro-basparmak-vidasi-aleti",
+    "kategori": "Kamera",
+    "marka": [
+      "GoPro"
+    ],
+    "uyum": [
+      {
+        "marka": "GoPro"
+      }
+    ],
+    "baslik": "GoPro Başparmak Vidası Aleti",
+    "aciklama": "GoPro iki ve üç çatallı parmak montajlarının başparmak vidasını sıkmayı ve gevşetmeyi kolaylaştırmak için hazırlanmış küçük bir alettir. Kaynağında aletin vidanın başındaki altıgen girintiye oturduğu, içeri itilip çevrilerek kullanıldığı ve bir ip takmak için deliği olduğu anlatılır. GoPro, montaj ve vida ürüne dahil değildir.\nYaklaşık dış ölçüler: 40 × 12 × 17 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr135872-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr135872-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jocke Selin",
+      "tur": "CC BY 4.0"
+    },
+    "altkategori": "Montaj ve Tripod"
+  },
+  {
+    "id": "pr77828-gopro-trekking-sopasi-montaji",
+    "kategori": "Kamera",
+    "marka": [
+      "GoPro"
+    ],
+    "uyum": [
+      {
+        "marka": "GoPro"
+      }
+    ],
+    "baslik": "GoPro Trekking Sopası Montajı",
+    "aciklama": "GoPro aksiyon kamerasını trekking sopasının ucuna vidalayarak takmak için hazırlanmış bir montajdır. Kaynağında montajın sopanın diş yapısıyla eşleşip eşleşmediğinin ayrıca kontrol edilmesi gerektiği belirtilir. Kamera ve sopa ürüne dahil değildir.\nYaklaşık dış ölçüler: 38 × 22 × 15 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr77828-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr77828-2.jpg"
+    ],
+    "altkategori": "Montaj ve Tripod"
+  },
+  {
+    "id": "pr393474-gopro-pan-basli-vida-topuzu",
+    "kategori": "Kamera",
+    "marka": [
+      "GoPro"
+    ],
+    "uyum": [
+      {
+        "marka": "GoPro"
+      }
+    ],
+    "baslik": "GoPro Pan Başlı M5 Vida Topuzu",
+    "aciklama": "GoPro montajını tabanına bağlamak için pan başlı M5 vidaya göre hazırlanmış bir topuzdur. Kaynağında altta dişli bir bölüm bulunduğu, vidanın bu bölüme vidalanarak yerleştirildiği ve üç farklı vida boyu için üç sürümün hazırlandığı anlatılır. GoPro, montaj ve vida ürüne dahil değildir.\nYaklaşık dış ölçüler: 31 × 16 × 16 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr393474-1.jpg"
+    ],
+    "altkategori": "Montaj ve Tripod"
+  },
+  {
+    "id": "th2153333-samsung-gear-s3-saat-sarj-standi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Samsung"
+    ],
+    "uyum": [
+      {
+        "marka": "Samsung"
+      }
+    ],
+    "baslik": "Samsung Gear S3 Saat Şarj Standı",
+    "aciklama": "Samsung Gear S3 akıllı saatin şarj aparatını yerleştirmek için hazırlanmış bir stanttır. Kaynağında standın aparata sıkı geçmeyle oturduğu ve şarj kablosunun geçmesi için bir deliği bulunduğu anlatılır. Saat, şarj aparatı ve kablo ürüne dahil değildir.\nYaklaşık dış ölçüler: 89 × 83 × 76 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2153333-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2153333-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2153333-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jetsky98",
+      "tur": "CC-BY"
+    },
+    "altkategori": "Cihaz Parçaları"
+  },
+  {
+    "id": "th3054236-dji-tello-tasima-kutusu",
+    "kategori": "Kamera",
+    "marka": [
+      "DJI"
+    ],
+    "uyum": [
+      {
+        "marka": "DJI"
+      }
+    ],
+    "baslik": "DJI Tello Taşıma Kutusu (İki Ek Pil Bölmeli)",
+    "aciklama": "DJI Tello mini drone için hazırlanmış, ek piller için yer ayıran bir taşıma kutusudur. Kaynağında kutunun daha önce paylaşılmış bir Tello taşıma kutusu tasarımından uyarlandığı ve iki ek pil için bölme eklendiği anlatılır. Kutu ve kapak olmak üzere iki parçadan oluşur. Drone ve piller ürüne dahil değildir.\nYaklaşık dış ölçüler: 136 × 136 × 44 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3054236-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3054236-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3054236-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DA3XS (remix: Bubblebyte)",
+      "tur": "CC-BY"
+    }
+  },
+  {
+    "id": "th2763692-dji-spark-pervane-kutusu",
+    "kategori": "Kamera",
+    "marka": [
+      "DJI"
+    ],
+    "uyum": [
+      {
+        "marka": "DJI"
+      }
+    ],
+    "baslik": "DJI Spark Pervane Kutusu",
+    "aciklama": "DJI Spark dronunun pervanelerini saklamak için hazırlanmış küçük bir kutudur. Kaynağında kutunun yalnızca pervane saklamak için tasarlandığı anlatılır. İki parçadan oluşur. Drone ve pervaneler ürüne dahil değildir.\nYaklaşık dış ölçüler: 78 × 55 × 13 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2763692-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2763692-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2763692-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "coldrom",
+      "tur": "CC-BY-SA"
+    }
+  },
+  {
+    "id": "th3812387-dji-fpv-kamera-lens-halkasi",
+    "kategori": "Kamera",
+    "marka": [
+      "DJI"
+    ],
+    "uyum": [
+      {
+        "marka": "DJI"
+      }
+    ],
+    "baslik": "DJI FPV Kamera Lens Halkası",
+    "aciklama": "DJI FPV drone kamerasının lensinin çevresinde kullanılmak üzere hazırlanmış küçük bir halkadır. Kaynağında halkanın kamera gövdesine yaslanacak şekilde tasarlandığı anlatılır. Drone ve kamera ürüne dahil değildir.\nYaklaşık dış ölçüler: 22 × 22 × 12 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3812387-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3812387-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "kenkamm",
+      "tur": "CC-BY"
+    }
+  },
+  {
+    "id": "th4064297-dji-mavic-mini-kumanda-kablo-bloklari",
+    "kategori": "Kamera",
+    "marka": [
+      "DJI"
+    ],
+    "uyum": [
+      {
+        "marka": "DJI"
+      }
+    ],
+    "baslik": "DJI Mavic Mini Kumanda Kablo Blokları",
+    "aciklama": "DJI Mavic Mini kumandasının kablosunu kızaklarda yerinde tutmak için hazırlanmış küçük kablo bloklarıdır. Kaynağında Mavic Mini ile birlikte bu küçük bağlantı parçalarının verilmediği ve blokların bazı diğer DJI ürünlerinde bulunan benzer parçalara göre tasarlandığı anlatılır. USB-C ile MicroUSB ve Lightning kablolar için ayrı sürümleri bulunur. Kumanda ve kablo ürüne dahil değildir.\nYaklaşık dış ölçüler: 17 × 10 × 5 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4064297-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4064297-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dwm101",
+      "tur": "CC-BY"
+    }
+  },
+  {
     "id": "th462758-yaesu-mh-36-mikrofon-kablo-giris-parcasi",
     "kategori": "Elektronik",
     "marka": [
