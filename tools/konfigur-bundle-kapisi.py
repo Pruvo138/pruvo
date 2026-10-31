@@ -489,11 +489,36 @@ def kendini_test():
         ("boyutMm.max metin olmus", _her, lambda k: k["boyutMm"].__setitem__("max", "300")),
         ("fiyatModu bilinmeyen", _her, lambda k: k.__setitem__("fiyatModu", "dogrusal-x")),
     ]
+    # 31 Eki 2026 (Okan: Skan serisi de 100 TL/cm dogrusal): katalogda hacim modlu urun KALMADI;
+    # hacim yolu uretecte YASAMAYA devam eder -> sinif bossa SENTETIK hacim kaydi (eski Skan
+    # semasi) eklenir. Fikstur once BOZULMADAN uretilir: gecerli degilse vaka KIRMIZI (bozuk
+    # fiksturun "reddedildi" demesi sahte yesil olurdu).
+    HACIM_FIKSTUR = {
+        "id": "x-hacim-fikstur", "kategori": "Dekorasyon", "baslik": "hacim fikstur",
+        "fiyat": "500 TL", "gorseller": ["https://media.pruvo3d.com/urunler/x-hacim-fikstur.jpg"],
+        "konfigur": {
+            "renkler": ["Siyah", "Beyaz", "Gri"], "renkGorselIndeks": {"Siyah": 0, "Beyaz": 1, "Gri": 2},
+            "boyutMm": {"min": 60, "max": 300, "adim": 10, "varsayilan": 150, "etiket": "Yükseklik"},
+            "hacim": {"refYukseklikMm": 150, "refHacimCm3": 300},
+            "fiyatCapalari": [[60, 500], [300, 2500]],
+            "malzemeler": [{"ad": "PLA", "katsayi": 1.0}, {"ad": "PETG", "katsayi": 1.3},
+                           {"ad": "ASA", "katsayi": 1.6}],
+            "varsayilanMalzeme": "PLA"}}
     reddedilmeyen = 0
     for ad, sart, boz in bozuk_vaka:
         s = kopya()
         hedef = next((u for u in s if isinstance(u, dict) and isinstance(u.get("konfigur"), dict)
                       and sart(u["konfigur"])), None)
+        if hedef is None and sart is _hacim_modu:
+            s.insert(0, json.loads(json.dumps(HACIM_FIKSTUR)))
+            try:
+                turet(s)
+            except SystemExit:
+                kirmizi += 1
+                ham.append("    ❌ SENTETIK FIKSTUR GECERSIZ (bozulmadan reddedildi) — " + ad)
+                continue
+            hedef = s[0]
+            ham.append("    · katalogda hacim modlu urun YOK -> sentetik hacim kaydiyla olculur")
         if hedef is None:
             kirmizi += 1
             ham.append("    ❌ FIKSTUR YOK: katalogda bu sinifta konfigurlu urun yok — " + ad)
