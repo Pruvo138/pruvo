@@ -1,5 +1,27 @@
 [
   {
+    "id": "ktm-690-sm-hava-kutusu-snorkeli",
+    "kategori": "Motosiklet",
+    "marka": [
+      "KTM",
+      "690 SM"
+    ],
+    "uyum": [
+      {
+        "marka": "KTM",
+        "model": "690 SM"
+      }
+    ],
+    "baslik": "KTM 690 SM Hava Kutusu Snorkeli",
+    "aciklama": "KTM 690 SM motosikletinin hava kutusunun içine yerleştirilen bir emme snorkelidir. Parça, geniş bir ağızdan başlayıp hava kutusunun emme çıkışına doğru kıvrılarak daralan bir kanal biçimindedir. Fotoğraflarda turuncu renkli parça, hava kutusunun içinde görünür. Motosiklet ve hava kutusu ürüne dahil değildir.",
+    "fiyat": "2000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt4331309-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4331309-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4331309-3.jpg"
+    ]
+  },
+  {
     "id": "th6756511-ktm-catal-kablo-kilavuzu-kapagi",
     "kategori": "Motosiklet",
     "marka": [
