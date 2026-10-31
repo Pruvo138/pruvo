@@ -32,10 +32,14 @@ VE YALNIZ bunlar bloklayicidir:
       bilmez; konfigursuz bir Skan Art urununde malzeme/renk katsayisi SESSIZCE duser
       (olculdu: ASA + ozel renk 27.600 yerine 15.000 kurus). Yanlis-kirmizi yuzeyi YOK:
       urun ya alani tasir ya tasimaz. BLOKLAYICI KALIR.
-  B8. TAMAMEN YAPISAL (node CAGRILMAZ): (i) index.html'de id="skanBanner" olan bir <a>
+  B8. TAMAMEN YAPISAL (node CAGRILMAZ): (i) index.html'de id="fotoBanner" olan bir <a>
       ELEMANI VAR — HTMLParser ile bulunur, oznitelik SIRASINDAN ve bicimlendirmeden
-      BAGIMSIZ; (ii) href'i urllib.parse ile ayristirildiginda kategori parametresi
-      "Skan Art" degerine cozuluyor ("%20" ve "+" ikisi de gecerli).
+      BAGIMSIZ; (ii) href'i urllib.parse ile ayristirildiginda "sayfa" parametresi
+      "resimden-uretim" degerine cozuluyor ("%20" ve "+" ikisi de gecerli) ve banner
+      VARSAYILAN `hidden` (program kapaliyken gorunmez — fail-closed).
+      31 Eki: banner artik kategoriye degil "Resimden figur uret" ARA SAYFASINA gider
+      (skanBanner -> fotoBanner; "Skan Art" kategorisi bu dosyanin diger kollari icinde
+      AYRI olcumlur ve mimar tarafindan kaldirilir).
   B9. build.py'nin ANA urun-yazma yolundan gecerek urun/<kurt-id>/index.html DISKTE
       uretiliyor, icinde kompakt kart isareti var ve sitemap.xml'de URL'i geciyor.
       Kum havuzu ROOT girdilerini KOPYALAR (symlink YOK) -> gercek calisma agacina
@@ -802,8 +806,8 @@ def ozgulluk(secici):
     return (a, b, c)
 
 
-BANNER_JETON = re.compile(r"skan-banner|jen-banner|skanBanner|jenBanner")
-SARI_JETON = re.compile(r"skan-banner|skanBanner")
+BANNER_JETON = re.compile(r"foto-banner|jen-banner|fotoBanner|jenBanner")
+SARI_JETON = re.compile(r"foto-banner|fotoBanner")
 
 
 def ozne_banner_jetonlu_mu(tek_secici):
@@ -856,7 +860,7 @@ def kok_kurallari(kurallar, kok, atalar, belirsiz=None, cozulemeyeni_kaydet=True
                 continue
             r = secici_esler(tek, kok, atalar, belirsiz)
             if r is None:
-                if cozulemeyeni_kaydet and (BANNER_JETON.search(tek) or "skanBanner" in tek):
+                if cozulemeyeni_kaydet and (BANNER_JETON.search(tek) or "fotoBanner" in tek):
                     COZULEMEYEN_SECICI.append(tek)
                 continue
             if r:
@@ -1484,13 +1488,15 @@ if u_sitemap:
 
 # ============================================================ B8 — banner ELEMANI + href hedefi
 # 🔴 TAMAMEN YAPISAL (mimar karari 24 Tem): node CAGRILMAZ, JS semantigi hakkinda akil
-# yurutulmez. (i) id="skanBanner" olan bir <a> VAR mi (HTMLParser — oznitelik SIRASI
-# farketmez), (ii) href'i urllib.parse ile ayristirildiginda kategori parametresi
-# "Skan Art"a cozuluyor mu ("%20" ve "+" ikisi de gecerli).
+# yurutulmez. (i) id="fotoBanner" olan bir <a> VAR mi (HTMLParser — oznitelik SIRASI
+# farketmez), (ii) href'i urllib.parse ile ayristirildiginda "sayfa" parametresi
+# "resimden-uretim"e cozuluyor mu ("%20" ve "+" ikisi de gecerli).
+# 31 Eki: banner artik "Skan Art" kategorisine degil, "Resimden figur uret" ARA SAYFASINA
+# gider (/?sayfa=resimden-uretim) — banner id'si de skanBanner -> fotoBanner oldu.
 print("(B8) ana sayfa banner ELEMANI + href'in YAPISAL hedefi (HTMLParser + urllib.parse)")
-_ban = eleman_bul(index_html, "a", "skanBanner")
+_ban = eleman_bul(index_html, "a", "fotoBanner")
 kontrol(_ban is not None,
-        'index.html icinde id="skanBanner" olan bir <a> ELEMANI var '
+        'index.html icinde id="fotoBanner" olan bir <a> ELEMANI var '
         "(oznitelik SIRASINDAN ve bicimlendirmeden BAGIMSIZ okuma)")
 ban_bas, ban_son, BANNER_OZ_HAM = _ban if _ban else (0, 0, {})
 banner_html = index_html[ban_bas:ban_son]
@@ -1513,10 +1519,29 @@ def href_kategori(href):
     return None
 
 
-banner_kategori = href_kategori(banner_href)
-kontrol(banner_kategori == KATEGORI,
-        'banner href\'inin (%r) kategori parametresi "%s" degerine cozuluyor '
-        "(bulunan: %r)" % (banner_href, KATEGORI, banner_kategori))
+def href_sayfa(href):
+    """href'in 'sayfa' parametresini urllib.parse ile coz ("%20" ve "+" ikisi de gecerli)."""
+    try:
+        parca = urllib.parse.urlsplit(href)
+    except ValueError:
+        return None
+    for kaynak in (parca.query, parca.fragment.partition("?")[2], parca.fragment):
+        if not kaynak:
+            continue
+        sorgu = urllib.parse.parse_qs(kaynak, keep_blank_values=True)
+        if "sayfa" in sorgu:
+            return sorgu["sayfa"][0]
+    return None
+
+
+ARA_SAYFA = "resimden-uretim"
+banner_sayfa = href_sayfa(banner_href)
+kontrol(banner_sayfa == ARA_SAYFA,
+        'banner href\'inin (%r) "sayfa" parametresi "%s" degerine cozuluyor '
+        "(bulunan: %r)" % (banner_href, ARA_SAYFA, banner_sayfa))
+kontrol("hidden" in BANNER_OZ,
+        'banner (%r) VARSAYILAN `hidden` — program kapaliyken gorunmez (fail-closed)'
+        % banner_href)
 
 # ---- node harness kaynaklari — ARTIK YALNIZ UYARI KATMANI KULLANIR
 # CATEGORIES/GIZLI_KATEGORILER bildirimleri KAYNAKTAN KOPYALANMAZ, ayristirilmis listeden
@@ -1567,7 +1592,7 @@ def _u_hazirlik():
     DURUM["kok_kural_tum"] = kok_kurallari(DURUM["tum_kurallar"], DURUM["KOK"], DURUM["ATALAR"])
     DURUM["kok_kural"] = [k for k in DURUM["kok_kural_tum"] if ozne_banner_jetonlu_mu(k[2])]
     DURUM["inline_stil"] = BANNER_OZ.get("style", "")
-    uyari(DURUM["KOK"]["oz"].get("id") == "skanBanner" and "skan-banner" in DURUM["KOK"]["sinif"],
+    uyari(DURUM["KOK"]["oz"].get("id") == "fotoBanner" and "foto-banner" in DURUM["KOK"]["sinif"],
           "banner ROOT elemani ayristirildi (id=%r, sinif=%s)"
           % (DURUM["KOK"]["oz"].get("id"), sorted(DURUM["KOK"]["sinif"])))
     m_main = re.search(r"<main>(.*?)</main>", index_html, re.S)
@@ -1580,8 +1605,8 @@ def _u_hazirlik():
     DURUM["b_kurallar"] = b_kurallar
     uyari(len(b_kurallar) >= 6,
           "banner ailesi CSS kurallari bulundu (%d kural)" % len(b_kurallar))
-    uyari(any(".skan-banner" in s for s, _ in b_kurallar),
-          "kurallar arasinda .skan-banner secicisi var (blok tumden silinmemis)")
+    uyari(any(".foto-banner" in s for s, _ in b_kurallar),
+          "kurallar arasinda .foto-banner secicisi var (blok tumden silinmemis)")
     uyari(any(a["etiket"] == "main" for a in DURUM["ATALAR"]),
           "banner'in ata zinciri cikarilabildi")
     uyari(not COZULEMEYEN_SECICI,
@@ -1608,11 +1633,15 @@ def _u_gorunurluk():
     uyari(not durum_sorun,
           "durum secicileri (:hover/:focus/:active) banner'i OLDURMUYOR (sorun: %s)"
           % (durum_sorun or "-"))
-    uyari("hidden" not in BANNER_OZ_HAM, "banner HTML'inde `hidden` ozniteligi YOK")
+    # 31 Eki: banner ARTIK varsayılan GİZLİ (fail-closed) — foto üretim programı kapalıyken
+    # görünmez, program açılınca foto-uretim.js `hidden` niteliğini kaldırır. Bu yüzden eski
+    # "banner HTML'inde `hidden` ozniteligi YOK" iddiası TERSİNE döndü: `hidden` OLMALI.
+    uyari("hidden" in BANNER_OZ_HAM,
+          "banner HTML'inde `hidden` ozniteligi VAR (varsayilan gizli — fail-closed)")
     uyari(BANNER_OZ.get("aria-hidden") != "true", 'banner HTML\'inde aria-hidden="true" YOK')
 
 
-METIN_SINIFLARI = {"skan-banner-text", "jen-banner-text"}
+METIN_SINIFLARI = {"foto-banner-text", "jen-banner-text"}
 
 
 def metin_kutusu_oznesi_mi(tek_secici):
@@ -1707,10 +1736,10 @@ def _u_js_sozlesmesi():
         return None if derinlik else k
 
     # ⚠️ Dizinin KAC elemanli oldugu OLCULMEZ (ucuncu bir seri banner'i eklenebilmeli):
-    # sadece "skanBanner iceren bir dizi .forEach ediliyor mu" aranir.
-    m_tog = re.search(r'\[\s*"[^\]]*skanBanner[^\]]*"\s*\]\s*\.\s*forEach\s*\(', index_html)
+    # sadece "fotoBanner iceren bir dizi .forEach ediliyor mu" aranir.
+    m_tog = re.search(r'\[\s*"[^\]]*fotoBanner[^\]]*"\s*\]\s*\.\s*forEach\s*\(', index_html)
     uyari(m_tog is not None,
-          'renderGrid icinde skanBanner iceren toggle dizisi (.forEach) bulundu')
+          'renderGrid icinde fotoBanner iceren toggle dizisi (.forEach) bulundu')
     tog_bas = tog_son = -1
     if m_tog:
         tog_bas = m_tog.start()
@@ -1753,6 +1782,10 @@ var edgeListe = [], edgeToplam = 0, edgeDurum = "", edgeSayfa = 1;
 var PAGE_SIZE = 24, shown = 24;
 var HOME_ORDER = [{id:"a"},{id:"b"}];
 var activeCat = "Tümü", activeBrand = "Tümü", query = "";
+var activeAlt = "Tümü", activeModel = "Tümü";
+// 31 Eki: "resimden-uretim" ARA SAYFASI (foto üretim bölümü ana sayfadan ayrıldı).
+var RESIMDEN_SAYFA = "resimden-uretim";
+var aktifSayfa = "";
 var kayit = {}, elemanlar = {};
 function sahteEleman(id){
   var o = { __id:id, style:{}, className:"", textContent:"", innerHTML:"",
@@ -1772,6 +1805,16 @@ function filtered(){ return [{id:"a"},{id:"b"}]; }
 function kartCiz(){ return sahteEleman("__kart__"); }
 function renderEdgeDurum(){}
 function edgeYukle(){}
+function altListesi(){ return []; }
+function modelSatiriVar(){ return false; }
+// 31 Eki: bu kova daha once eksikti (KATEGORI_ALIAS / vitrinSirala / VITRIN_SEED) -> node
+// kosucusu ReferenceError ile PATLAYIP davranis olcumu SESSIZCE atlaniyordu. Eksik olan
+// dis-kapsam baglari burada tamamlanir; olcum artik GERCEKTEN kosar.
+var KATEGORI_ALIAS = {};
+var VITRIN_SEED = 1;
+function vitrinSirala(l){ return l; }
+var activeSeri = false;
+function aktifKategoriEtiketi(){ return activeCat; }
 """
 
 
@@ -1801,9 +1844,10 @@ var location = { hash: "", search: "", replace: function(){ throw new Error("bek
 __APPLYURL__
 function dene(qs){
   activeCat = "Tümü"; activeBrand = "Tümü"; query = "";
+  activeAlt = "Tümü"; activeModel = "Tümü"; aktifSayfa = "";
   location.hash = ""; location.search = qs;
   applyUrlParams();
-  return activeCat;
+  return { cat: activeCat, sayfa: aktifSayfa };
 }
 console.log(JSON.stringify({
   skan: dene("?kategori=Skan%20Art"),
@@ -1814,39 +1858,57 @@ console.log(JSON.stringify({
                 banner_href[banner_href.find("?"):] if "?" in banner_href else ""))
         s2 = node_kos(b2, "(u) applyUrlParams derin link")
         if s2:
-            uyari(s2["skan"] == KATEGORI,
+            uyari(s2["skan"]["cat"] == KATEGORI,
                   '?kategori=Skan%%20Art derin linki activeCat\'i "%s" yapiyor (bulunan: %r)'
-                  % (KATEGORI, s2["skan"]))
-            uyari(s2["banner"] == KATEGORI,
-                  'banner href\'i (%r) DAVRANISSAL olarak "%s" kategorisini aciyor (bulunan: %r)'
-                  % (banner_href, KATEGORI, s2["banner"]))
+                  % (KATEGORI, s2["skan"]["cat"]))
+            uyari(s2["banner"]["sayfa"] == ARA_SAYFA,
+                  'banner href\'i (%r) DAVRANISSAL olarak "%s" ara sayfasini aciyor (bulunan: %r)'
+                  % (banner_href, ARA_SAYFA, s2["banner"]["sayfa"]))
     if rendergrid_src:
         b4 = onek + r"""
 __RENDERGRID__
-function olc(cat, q, marka){
+function olc(cat, q, marka, sayfa){
   kayit = {}; elemanlar = {};
   activeCat = cat; query = q; activeBrand = marka;
+  activeAlt = "Tümü"; activeModel = "Tümü";
+  aktifSayfa = sayfa || "";
   renderGrid();
-  return ("skanBanner" in kayit) ? kayit["skanBanner"] : "__HIC-DOKUNULMADI__";
+  return {
+    banner: ("fotoBanner" in kayit) ? kayit["fotoBanner"] : "__HIC-DOKUNULMADI__",
+    foto:   ("fotoUretim" in kayit) ? kayit["fotoUretim"] : "__HIC-DOKUNULMADI__",
+    kat:    ("katPanels" in kayit) ? kayit["katPanels"] : "__HIC-DOKUNULMADI__"
+  };
 }
 console.log(JSON.stringify({
-  ana: olc("Tümü", "", "Tümü"),
-  kategori: olc("Dekorasyon", "", "Tümü"),
-  arama: olc("Tümü", "ahsap", "Tümü"),
-  marka: olc("Tümü", "", "Audi")
+  ana: olc("Tümü", "", "Tümü", ""),
+  kategori: olc("Dekorasyon", "", "Tümü", ""),
+  arama: olc("Tümü", "ahsap", "Tümü", ""),
+  marka: olc("Tümü", "", "Audi", ""),
+  araSayfa: olc("Tümü", "", "Tümü", RESIMDEN_SAYFA)
 }));
 """.replace("__RENDERGRID__", rendergrid_src)
         s4 = node_kos(b4, "(u) renderGrid banner toggle")
         if s4:
-            uyari(s4["ana"] == "",
-                  'ANA gorunumde skanBanner display === "" (bulunan: %r)' % s4["ana"])
-            uyari(s4["kategori"] == "none",
-                  'KATEGORI gorunumunde skanBanner display === "none" (bulunan: %r)'
-                  % s4["kategori"])
-            uyari(s4["arama"] == "none",
-                  'ARAMA gorunumunde skanBanner display === "none" (bulunan: %r)' % s4["arama"])
-            uyari(s4["marka"] == "none",
-                  'MARKA gorunumunde skanBanner display === "none" (bulunan: %r)' % s4["marka"])
+            uyari(s4["ana"]["banner"] == "",
+                  'ANA gorunumde fotoBanner display === "" (bulunan: %r)' % s4["ana"]["banner"])
+            uyari(s4["kategori"]["banner"] == "none",
+                  'KATEGORI gorunumunde fotoBanner display === "none" (bulunan: %r)'
+                  % s4["kategori"]["banner"])
+            uyari(s4["arama"]["banner"] == "none",
+                  'ARAMA gorunumunde fotoBanner display === "none" (bulunan: %r)' % s4["arama"]["banner"])
+            uyari(s4["marka"]["banner"] == "none",
+                  'MARKA gorunumunde fotoBanner display === "none" (bulunan: %r)' % s4["marka"]["banner"])
+            # 31 Eki: banner artik ana sayfada kalir; foto üretim bölümü YALNIZ ara sayfada.
+            uyari(s4["ana"]["foto"] == "none",
+                  'ANA gorunumde fotoUretim display === "none" (bulunan: %r)' % s4["ana"]["foto"])
+            uyari(s4["araSayfa"]["foto"] == "",
+                  'ARA SAYFADA (?sayfa=resimden-uretim) fotoUretim display === "" (bulunan: %r)'
+                  % s4["araSayfa"]["foto"])
+            uyari(s4["araSayfa"]["kat"] == "none",
+                  'ARA SAYFADA kategori vitrini (#katPanels) display === "none" (bulunan: %r)'
+                  % s4["araSayfa"]["kat"])
+            uyari(s4["araSayfa"]["banner"] == "none",
+                  'ARA SAYFADA banner display === "none" (bulunan: %r)' % s4["araSayfa"]["banner"])
 
 
 def _u_liste_paritesi():

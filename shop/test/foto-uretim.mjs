@@ -1210,6 +1210,12 @@ function sahteBelge(ek0) {
   const body = new Oge("body");
   const bolum = new Oge("section"); bolum.id = "fotoUretim"; bolum.setAttribute("hidden", "");
   body.appendChild(bolum);
+  // 31 Eki: ana sayfa giris banner'i (#fotoBanner) + ara sayfa "program kapali" satiri
+  // (#fotoKapaliMesaj) da fail-closed: ikisi de varsayilan `hidden` ile baslar.
+  const banner = new Oge("a"); banner.id = "fotoBanner"; banner.setAttribute("hidden", "");
+  body.appendChild(banner);
+  const kapaliMesaj = new Oge("p"); kapaliMesaj.id = "fotoKapaliMesaj"; kapaliMesaj.setAttribute("hidden", "");
+  body.appendChild(kapaliMesaj);
   // ÇA bantPayi (17 Eki): ek0.bant verilmişse body'ye `.help-cta` öğesi iliştirilir; vermezse hiç yok
   // (querySelector null döner). Bant rect'i Ç4/Ç5/Ç6 vakalarında bantın top/bottom'ına göre kurulur;
   // bölüm rect'i Ç4'te top=0 (çapa inişi sonrası), Ç6'da top=100 (bantı örtmüyor).
@@ -1231,7 +1237,7 @@ function sahteBelge(ek0) {
     querySelector: (s) => { for (const n of body.agac()) { if (s.startsWith(".") ? n.classList.contains(s.slice(1)) : n.tagName === s.toUpperCase()) { return n; } } return null; },
     addEventListener: () => {},
   };
-  return { document, bolum, bant: (ek0 && ek0.bant) ? body.querySelector(".help-cta") : null };
+  return { document, bolum, banner, kapaliMesaj, bant: (ek0 && ek0.bant) ? body.querySelector(".help-cta") : null };
 }
 
 // Bolum kodunun fetch geri cagrisinda firlayan istisna (yakalanmamis Promise reddi) testi COKERTMEZ, SAYILIR:
@@ -1246,7 +1252,7 @@ async function ekranKos(kaynak, fotoVeri, acikYanit, kayit, durumYanit, ek) {
   ek = ek || {};
   // ÇA bantPayi (17 Eki): vaka bant/rect verirse sahte DOM'a `.help-cta` öğesi iliştirilir; bantPayi'nin
   // ölçtüğü iki dikdörtgen (bant + bölüm) testin elindedir; scrollBy çağrıları `bantKayit`ta sayılır.
-  const { document, bolum } = sahteBelge(ek);
+  const { document, bolum, banner, kapaliMesaj } = sahteBelge(ek);
   SON_EKRAN_TEMIZ = typeof EKRAN_KAYNAK === "string" && kaynak === EKRAN_KAYNAK;
   // AKIŞLA ④ (Okan 15 Eki: yenilemede HİÇBİR ŞEY geri yüklenmez): `kayit` ({is, tur, alt_tur, olcu, renk_secim, renkler,
   // malzeme}) verilen vaka ④'e oturum deposundan DEĞİL müşterinin akışıyla gelir — kart → ② fotoğraf → ③ seçimleri →
@@ -1457,7 +1463,8 @@ async function ekranKos(kaynak, fotoVeri, acikYanit, kayit, durumYanit, ek) {
   const fiyatYazilari = () => [...bolum.agac()].filter((n) => n.classList.contains("foto-uretim-surgu-fiyat")).map((n) => n.textContent);
   const surguFiyat = fiyatYazilari();
   const listeSatiri = dugum.filter((n) => n.tagName === "LABEL" && /\d+ mm — /.test(n.textContent)).length;
-  const sonuc = { gorunur: !bolum.hidden, tur: radyo("foto-tur"), olcu: radyo("foto-olcu"), olcuS3: radyo("foto-olcu-s3"), adim2,
+  const sonuc = { gorunur: !bolum.hidden, bannerGorunur: !banner.hidden, kapaliMesajGorunur: !kapaliMesaj.hidden,
+           tur: radyo("foto-tur"), olcu: radyo("foto-olcu"), olcuS3: radyo("foto-olcu-s3"), adim2,
            turGrubuGizli: !!turGrubu && turGrubu.hidden === true, ornekler, ornekBaslik,
            surgu: surguler.length, surguFiyat, listeSatiri, kaydir: null };
   // ek.kaydir === false: sürgü kaydırılmaz (RY: ④ fiyatı ile sepet ölçüsü aynı ekran durumundan ölçülür).
@@ -4700,7 +4707,12 @@ console.log("K3b) TEK KUTU 4 PENCERE — kartlar · tek pencere · Geri/İleri �
     const e = await yeniEkran(kaynak, DORT);
     const b = e.bolum, V = e.V, pen = [gorunurPencere(b)];
     const govde = b.parentNode;
-    const kutuDisi = () => (b.childNodes.length - 1) + (govde.childNodes.length - 1);
+    // 31 Eki: sahte DOM'da govde (body) icinde bolumun YANINDA iki sayfa-level oge var
+    // (#fotoBanner giris banner'i + #fotoKapaliMesaj "kapali" satiri) — bunlar bolumun parcasi
+    // DEGIL; "kutu disi oge 0" iddiasi yine bolumun kendi kutusuna bakar.
+    const govdeDiger = () => govde.childNodes.filter((n) => n !== b &&
+      n.id !== "fotoBanner" && n.id !== "fotoKapaliMesaj").length;
+    const kutuDisi = () => (b.childNodes.length - 1) + govdeDiger();
     const tekKutu0 = b.childNodes.length === 1 && b.childNodes[0].classList.contains("foto-uretim-kutu") && kutuDisi() === 0;
     const p1 = byId(b, "foto-pencere-1"), kartlar = sinifli(b, "foto-uretim-kart");
     const kartIci = new Set(kartlar.flatMap((k) => [k, ...k.agac()]));
@@ -7744,6 +7756,37 @@ console.log("İS) foto-uretim.js'te iniş beacon'ı YOK (v1 kolu kaldirildi; tik
     "inis=" + JSON.stringify(inis1));
   ol("İS2 foto-uretim.js ikinci yüklemede de /api/shop/inis'e beacon GONDERMIYOR", inis2.length === 0,
     "inis=" + JSON.stringify(inis2));
+}
+
+
+// ---------------------------------------------------------------- 31 EKI — GİRİŞ BANNER'I + "KAPALI" SATIRI (fail-closed)
+// Foto üretim bölümü ana sayfadan ayrıldı; giriş banner'ı (#fotoBanner) varsayılan `hidden`
+// ile başlar ve program AÇIKken açılır. Program kapalı/hata ise banner GİZLİ kalır ve ara
+// sayfada tek satır "Resimden üretim şu an kapalı" görünür.
+console.log("31E) BANNER + KAPALI SATIRI — fail-closed (acik → banner acilir, kapali → gizli kalir)");
+{
+  const V = veriYukle(VERI_KAYNAK);
+  const acik = await ekranKos(EKRAN_KAYNAK, V, acikGercek(V, V6_TUM), null, null, {});
+  const kapali = await ekranKos(EKRAN_KAYNAK, V, { acik: false, turler: [] }, null, null, {});
+  const hata = await ekranKos(EKRAN_KAYNAK, V, { hata: "x" }, null, null, {});
+  ol("31E-1 program ACIK → giris banner'i GORUNUR (hidden kalkar)", acik.bannerGorunur === true, JSON.stringify(acik.bannerGorunur));
+  ol("31E-2 program KAPALI → giris banner'i GIZLI kalir (hidden kalir)", kapali.bannerGorunur === false, JSON.stringify(kapali.bannerGorunur));
+  ol("31E-3 program HATA → giris banner'i GIZLI kalir", hata.bannerGorunur === false, JSON.stringify(hata.bannerGorunur));
+  ol("31E-4 program KAPALI → 'kapali' satiri GORUNUR (tek satiri + WA baglantisi)",
+     kapali.kapaliMesajGorunur === true, JSON.stringify(kapali.kapaliMesajGorunur));
+  ol("31E-5 program ACIK → 'kapali' satiri GIZLI", acik.kapaliMesajGorunur === false, JSON.stringify(acik.kapaliMesajGorunur));
+
+  // MUTANT: banner'in `hidden` kaldirma satiri silinir → 31E-1 KIRMIZI yanmalı.
+  const CAPA = 'if (banner) banner.removeAttribute("hidden");';
+  const yerine = 'if (banner) banner.setAttribute("hidden", "");';
+  const say = EKRAN_KAYNAK.split(CAPA).length - 1;
+  ol("31E-M0 mutasyon icin capa kaynakta 1 kez", say === 1, "adet=" + say);
+  if (say === 1) {
+    const mut = EKRAN_KAYNAK.replace(CAPA, yerine);
+    const m = await ekranKos(mut, V, acikGercek(V, V6_TUM), null, null, {});
+    ol("31E-M1 mutantta banner ACIK programda da GIZLI kalir → 31E-1 mutanti YAKALAR",
+       m.bannerGorunur === false, JSON.stringify(m.bannerGorunur));
+  }
 }
 
 console.log(kirmizi ? "\n❌ " + kirmizi + " iddia KIRMIZI" : "\n✅ HEPSI GECTI");

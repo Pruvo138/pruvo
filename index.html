@@ -377,38 +377,64 @@ setTimeout(L,5000);})();
     .banner-row{grid-template-columns:1fr}
   }
 
-  /* ---------- SKAN ART BANNER (gizli dekor alt-serisi — sadece ana sayfa görünümü) ----------
+  /* ---------- RESİMDEN FİGÜR ÜRET BANNER'ı (sadece ana sayfa görünümü) ----------
      Jeneratör banner'ıyla AYNI iskelet (.jen-banner* sınıfları yeniden kullanılır), tek fark
-     GÖRSELSİZ saf-CSS varyant olması: R2'ye yeni nesne yüklenmez, anahtar/önbellek çakışması
-     riski doğmaz. Palet marka paleti — koyu lacivert zemin + gri metin + İNCE kırmızı aksan.
+     görselin KENDİSİ olması: insan figürü baskı örneği (beyaz zeminli ürün fotoğrafı).
+     Palet marka paleti — koyu lacivert zemin + gri metin + İNCE kırmızı aksan.
      SARI KESİNLİKLE YOK (sarı yalnız parametrik seride; CLAUDE.md).
      Bu blok .jen-banner media query'sinden SONRA gelir ki override'lar kazansın. */
-  .skan-banner{
+  .foto-banner{
     min-height:96px;
     /* görsel yüklenmezse taban lacivert degrade fallback kalır */
     background:linear-gradient(135deg, var(--navy-dark) 0%, #14294a 55%, var(--navy) 100%);
     border:1px solid rgba(255,255,255,.08);
   }
-  /* dekor figürü (baykuş) sağ panelde: açık galeri zemini görünür, baş bölgesi çerçevede */
-  .skan-banner-img{object-position:right 28%}
+  /* 🔴 FAIL-CLOSED: banner varsayılan `hidden` — üretim programı kapalıyken GÖRÜNMEZ.
+     .jen-banner display:flex YAZAR STİLİ olduğu için tarayıcının [hidden] kuralını YENER
+     (yazar stili her zaman UA stilini yener) — bu yüzden [hidden] burada AÇIKÇA EZİLİR. */
+  .foto-banner[hidden]{display:none!important;}
+  /* İnsan figürü görseli TAM görünsün (contain) — cover büstten/baştan kırpar ve ürünü
+     yanlış gösterir; görsel beyaz zeminli olduğu için beyaz karo gibi durur. */
+  .foto-banner-img{object-fit:contain;object-position:right center}
   /* kırmızı aksan şeridi metin degradesinin ÜSTÜNDE kalsın (z-index) ki görselle yıkanmasın */
-  .skan-banner::before{
+  .foto-banner::before{
     content:"";position:absolute;top:0;left:0;width:4px;height:100%;
     background:var(--red);z-index:2;
   }
   /* metin katı .jen-banner-text degradesini miras alır (okunurluk); yalnız padding override */
-  .skan-banner-text{
+  .foto-banner-text{
     padding:16px 24px 16px 28px;
   }
-  .skan-banner-ust{
+  .foto-banner-ust{
     display:block;color:#9fb0c9;
     font-size:12px;font-weight:700;letter-spacing:2.4px;
     text-transform:uppercase;margin:0 0 8px;
   }
   @media(max-width:640px){
-    .skan-banner{min-height:84px}
-    .skan-banner-text{padding:14px 18px 14px 22px}
+    .foto-banner{min-height:84px}
+    .foto-banner-text{padding:14px 18px 14px 22px}
   }
+  /* Foto banner'ı gizliyken (program kapalı) 2'li grid'de boş yarı kalmasın: Jeneratör
+     banner'ı TEK başına tam genişlik olur. */
+  .banner-row:has(> .foto-banner[hidden]){grid-template-columns:1fr}
+
+  /* ---------- RESİMDEN FİGÜR ÜRET ARA SAYFASI (/?sayfa=resimden-uretim) ----------
+     Foto üretim bölümü ana sayfadan ayrıldı; burada tek işli bir görünüm var:
+     kısa başlık + bölüm. Vitrin yüzeyleri (kategori paneli / banner / ürün ızgarası /
+     marka-alt-model çipleri) bu görünümde JS ile gizlenir.
+     Blok ana sayfanın `main` kapsayıcısının DIŞINDA durur ki ana sayfa sırası
+     (banner → foto → kategoriler) BOZULMASIN; h1 bu yüzden main'den ÖNCE yer alır. */
+  .resimden-sayfa-bas{
+    max-width:1100px;margin:0 auto;padding:22px 20px 0;
+  }
+  .resimden-sayfa-baslik{
+    margin:0 0 14px;color:var(--navy);font-size:26px;font-weight:800;line-height:1.2;
+  }
+  .foto-kapali-mesaj{
+    margin:0;padding:12px 14px;border:1px solid #dfe3e9;border-radius:10px;background:#fff;
+    color:var(--navy);font-size:15px;line-height:1.55;
+  }
+  .foto-kapali-mesaj a{color:#d1332e;font-weight:700}
 
   /* ---------- ANA SAYFA KATEGORİ PANELLERİ (#katPanels) ----------
      Foto-slider'ın (.marin-slider) YERİNE geçer — vitrin tasarımı 5 Eyl'de onaylandı.
@@ -1203,8 +1229,16 @@ setTimeout(L,5000);})();
   </div>
 </header>
 
+<!-- "RESİMDEN FİGÜR ÜRET" ARA SAYFASI (/?sayfa=resimden-uretim) — foto üretim bölümü ana
+     sayfadan ayrıldı; burada YALNIZ kısa başlık + bölüm var. Varsayılan GİZLİ: adres
+     çubuğunda 'sayfa=resimden-uretim' yokken görünmez (satır içi display:none; JS açar). -->
+<section id="resimdenSayfaBas" class="resimden-sayfa-bas" style="display:none" aria-label="Resimden figür üret">
+  <h1 class="resimden-sayfa-baslik">Resimden figür üret</h1>
+  <p id="fotoKapaliMesaj" class="foto-kapali-mesaj" hidden>Resimden üretim şu an kapalı — <a href="https://wa.me/905451386526?text=Merhaba%2C%20arad%C4%B1%C4%9F%C4%B1m%20bir%20yedek%20par%C3%A7a%20var.%20%C3%9Cretebilir%20misiniz%3F" target="_blank" rel="noopener">WhatsApp'tan yazın</a></p>
+</section>
+
 <!-- Tek değer cümlesi + tek WhatsApp CTA (eski help-cta + info-strip 3× tekrar birleştirildi). -->
-<section class="help-cta">
+<section class="help-cta" id="helpCta">
   <div class="help-cta-inner">
     <span class="help-cta-text">Bulamadığın parçayı üretiyoruz: kırık parçanı bize ulaştır — getir ya da kargoyla gönder, ölçüp ölçüye özel üretelim.</span>
     <a class="help-cta-btn"
@@ -1218,7 +1252,7 @@ setTimeout(L,5000);})();
 </section>
 
 <main>
-  <!-- PRUVO gizli-seri banner'ları (Jeneratör + Skan Art) — SADECE ana sayfa görünümünde
+  <!-- PRUVO gizli-seri banner'ları (Jeneratör + Resimden figür üret) — SADECE ana sayfa görünümünde
        (renderGrid #bannerRow'u gösterir/gizler; kategori/arama/marka görünümünde YOK).
        Yarı-boy 2'li grid (yan yana; mobilde tek kolon). Metin HTML overlay'dir, görsele
        yazı BASILMAZ (CLAUDE.md kuralı); arka plan görselleri R2'de (logosuz). -->
@@ -1240,18 +1274,23 @@ setTimeout(L,5000);})();
       <span class="jen-banner-btn">Keşfet &rarr;</span>
     </div>
   </a>
-  <a id="skanBanner" class="jen-banner skan-banner" href="/?kategori=Skan%20Art">
+  <!-- FOTO BANNER — "Resimden figür üret": foto üretim bölümüne giden ARA SAYFA
+       (/?sayfa=resimden-uretim). Varsayılan `hidden` (fail-closed): üretim programı
+       kapalıyken/hatada görünmez; foto-uretim.js /acik AÇIK dediğinde kaldırır.
+       Görsel: insan figürü baskı örneği (beyaz zeminli ürün fotoğrafı) — metin overlay,
+       görsele yazı BASILMAZ. -->
+  <a id="fotoBanner" class="jen-banner foto-banner" href="/?sayfa=resimden-uretim" hidden>
     <picture>
       <source type="image/webp" sizes="(max-width:560px) calc(100vw - 40px), (max-width:1140px) calc((100vw - 56px)/2), 522px"
-              srcset="https://media.pruvo3d.com/banner/skan-baykus-b5-v2-448.webp 448w, https://media.pruvo3d.com/banner/skan-baykus-b5-v2-672.webp 672w, https://media.pruvo3d.com/banner/skan-baykus-b5-v2-896.webp 896w">
-      <img class="jen-banner-img skan-banner-img" alt="" width="672" height="900"
+              srcset="https://media.pruvo3d.com/foto/ornek/kart-insan-2.webp 480w">
+      <img class="jen-banner-img foto-banner-img" alt="" width="480" height="480"
            loading="lazy" decoding="async" fetchpriority="low"
-           src="https://media.pruvo3d.com/banner/skan-baykus-b5-v2-672.jpg">
+           src="https://media.pruvo3d.com/foto/ornek/kart-insan-2.webp">
     </picture>
-    <div class="jen-banner-text skan-banner-text">
-      <span class="skan-banner-ust">Skan Art</span>
-      <h2 class="jen-banner-title">Sade çizgiler, sakin formlar</h2>
-      <span class="jen-banner-btn">Keşfet &rarr;</span>
+    <div class="jen-banner-text foto-banner-text">
+      <span class="foto-banner-ust">Fotoğrafından</span>
+      <h2 class="jen-banner-title">Resimden figür üret</h2>
+      <span class="jen-banner-btn">Hemen dene &rarr;</span>
     </div>
   </a>
   </div>
@@ -3148,6 +3187,11 @@ setTimeout(L,5000);})();
   // "Tümü" = filtre YOK. Model bir markaya AİTTİR: marka değişince düşer.
   var activeModel = "Tümü";
   var query = "";
+  // "RESİMDEN FİGÜR ÜRET" ARA SAYFASI (/?sayfa=resimden-uretim): foto üretim bölümü ana
+  // sayfadan ayrıldı, kendi görünümü var. Boş değer = ana sayfa (vitrin).
+  // 🔴 TEK kapı: applyUrlParams bu değeri OKUR, syncUrl YAZAR; renderGrid görünümü kurar.
+  var RESIMDEN_SAYFA = "resimden-uretim";
+  var aktifSayfa = "";
 
   var PAGE_SIZE = 24;        // ana sayfada ilk gösterilen ürün sayısı
   var shown = PAGE_SIZE;     // şu an gösterilen ürün sayısı
@@ -3788,6 +3832,9 @@ setTimeout(L,5000);})();
     if(activeBrand !== "Tümü"){ params.set("marka", activeBrand); }
     if(activeModel !== "Tümü"){ params.set("model", activeModel); }
     if(query.trim()){ params.set("ara", query.trim()); }
+    // Ara sayfa görünümü URL'de KORUNUR (yenileme/deep-link aynı sayfayı açar).
+    // Görünümden çıkıldığında (kategori/arama tıkı) aktifSayfa temizlenir → parametre düşer.
+    if(aktifSayfa === RESIMDEN_SAYFA){ params.set("sayfa", RESIMDEN_SAYFA); }
     /* REKLAM PARAMETRELERİ KORUNUR (ölçüldü, 8 Ağu): sorgu dizesi sıfırdan kurulduğu için
        ?gclid=… ziyaretçi bir filtreye/aramaya dokunduğu anda URL'den siliniyordu; gtag.js
        `async` yüklendiğinden bu bir YARIŞ — silinme ölçümden önce olabiliyor. Değerler
@@ -4247,6 +4294,9 @@ setTimeout(L,5000);})();
         // Nav çubuğunda SERİ girişi YOK (gizli seri yalnız banner/derin linkle gelir) →
         // nav'dan gelen her seçim kategori görünümüdür; bayrak burada DÜŞER.
         activeSeri = false;
+        // Ara sayfadan (/?sayfa=resimden-uretim) kategori tıkı: görünümden ÇIKILIR —
+        // parametre URL'den düşer, vitrin açılır.
+        aktifSayfa = "";
         if(c === "Tümü"){
           // TAM SIFIRLAMA (işletme kararı, 17 Tem): "Tümü" her yerden ana sayfa görünümüne tek
           // tıkla döner — marka + arama + URL paramları temizlenir, sayfa başına çıkılır.
@@ -4661,31 +4711,56 @@ setTimeout(L,5000);})();
       dahaVar = list.length > shown;
     }
 
-    // Kategori panelleri (#katPanels) + gizli seri banner'ları (Jeneratör + Skan Art)
+    // "Resimden figür üret" ARA SAYFASI (/?sayfa=resimden-uretim): foto üretim bölümü ana
+    // sayfadan ayrıldı, kendi görünümü var — vitrin yüzeyleri (panel/banner/ızgara/çipler)
+    // bu görünümde KAPALI, yalnız başlık + #fotoUretim açık.
+    var resimdenSayfasi = (aktifSayfa === RESIMDEN_SAYFA);
+
+    // Kategori panelleri (#katPanels) + gizli seri banner'ları (Jeneratör + foto)
     // SADECE ana sayfa görünümünde: panel bir VİTRİNDİR, kategori/arama/marka görünümünde
     // ekranın tepesini kaplayıp sonucu aşağı itmemeli (o görünümlerde daraltmayı zaten
     // #brandRow/#altRow/#modelRow yapar — aynı işi iki kez gösteren yüzey açılmaz).
     // (kabul: kategori/arama/marka görünümünde YOK). Artık tek grid sarmalayıcı
-    // (#bannerRow) toggle'lanır; ayrıca iki banner da güvenlik için toggle'lanır
+    // (#bannerRow) toggle'lanır; ayrıca banner'lar da güvenlik için toggle'lanır
     // (sarmalayıcı id kayarsa banner'lar yine gizlenir).
     // NULL-GUARD: id yazım hatası ya da HTML bloğunun kayması renderGrid'i TypeError ile
     // düşürmesin — o durumda TÜM grid çizilmezdi (banner kaybı grid kaybından ucuzdur).
-    ["katPanels", "bannerRow", "jenBanner", "skanBanner", "fotoUretim"].forEach(function(bannerId){
+    ["katPanels", "bannerRow", "jenBanner", "fotoBanner"].forEach(function(bannerId){
       var bEl = document.getElementById(bannerId);
-      if(bEl){ bEl.style.display = anaGorunum ? "" : "none"; }
+      if(bEl){ bEl.style.display = (!resimdenSayfasi && anaGorunum) ? "" : "none"; }
     });
+
+    // #fotoUretim artık YALNIZ ara sayfada görünür (ana sayfadan kalktı). Bölümün kendi
+    // fail-closed `hidden` mantığı foto-uretim.js'de AYNEN kalır (program kapalıysa gizli);
+    // burada yalnız GÖRÜNÜRLÜK yüzeyi (display) yönetilir.
+    var fotoEl = document.getElementById("fotoUretim");
+    if(fotoEl){ fotoEl.style.display = resimdenSayfasi ? "" : "none"; }
+
+    // Ara sayfada ürün ızgarası + başlık/sayı satırı gizlenir (bölüm tek başına kalsın).
+    ["grid", "sectionTitle", "resultCount", "emptyState"].forEach(function(satirId){
+      var sEl = document.getElementById(satirId);
+      if(sEl){ sEl.style.display = resimdenSayfasi ? "none" : ""; }
+    });
+
+    // Ara sayfa başlığı + "program kapalı" satırı YALNIZ bu görünümde görünür.
+    var araBasEl = document.getElementById("resimdenSayfaBas");
+    if(araBasEl){ araBasEl.style.display = resimdenSayfasi ? "" : "none"; }
+
+    // Ana sayfa WhatsApp bandı ara sayfada gizli (görünüm tek işli olsun).
+    var helpCtaEl = document.getElementById("helpCta");
+    if(helpCtaEl){ helpCtaEl.style.display = resimdenSayfasi ? "none" : ""; }
 
     // Marka çipleri (#brandRow) SADECE bir kategori seçiliyken görünür (işletme kararı, 30 Tem):
     // ana sayfada (Tümü) ve salt aramada/marka filtresinde GİZLİ, kategoriye girilince görünür.
     var brandRowEl = document.getElementById("brandRow");
-    if(brandRowEl){ brandRowEl.style.display = (activeCat !== "Tümü") ? "" : "none"; }
+    if(brandRowEl){ brandRowEl.style.display = (activeCat !== "Tümü" && !resimdenSayfasi) ? "" : "none"; }
 
     // Alt kategori (grup) çip satırı: SADECE alt kategorisi TANIMLI bir kategori seçiliyken.
     // Tanımı olmayan kategoride satır HİÇ görünmez (boş kutu bırakmaz). Tek istisna:
     // küme-dışı bir grup deep-link'le seçiliyse satır görünür ki kullanıcı temizleyebilsin.
     var altRowEl = document.getElementById("altRow");
     if(altRowEl){
-      var altVar = activeCat !== "Tümü" &&
+      var altVar = !resimdenSayfasi && activeCat !== "Tümü" &&
                    (altListesi(activeCat).length > 0 || activeAlt !== "Tümü");
       altRowEl.style.display = altVar ? "" : "none";
     }
@@ -4696,8 +4771,16 @@ setTimeout(L,5000);})();
     var modelRowEl = document.getElementById("modelRow");
     if(modelRowEl){
       modelRowEl.style.display =
-        (activeCat !== "Tümü" && activeBrand !== "Tümü" && modelSatiriVar()) ? "" : "none";
+        (!resimdenSayfasi && activeCat !== "Tümü" && activeBrand !== "Tümü" && modelSatiriVar()) ? "" : "none";
     }
+
+    // Sayfa başlığı (document.title) görünüme uyar: ara sayfada "Resimden Figür Üret | PRUVO",
+    // ana sayfada (ve diğer görünümlerde) sitenin varsayılan başlığı.
+    try{
+      document.title = resimdenSayfasi
+        ? "Resimden Figür Üret | PRUVO"
+        : "PRUVO — Özel Tasarım Endüstriyel & Oto Yedek Parça Üretimi";
+    }catch(e){}
 
     if(query.trim() !== ""){
       title.textContent = '"' + query.trim() + '" araması';
@@ -5253,6 +5336,8 @@ setTimeout(L,5000);})();
   var araUrlZaman = null;
   searchEl.addEventListener("input", function(){
     query = searchEl.value;
+    // Ara sayfadan arama yapılırsa görünümden ÇIKILIR (parametre URL'den düşer).
+    aktifSayfa = "";
     clearEl.className = "search-clear" + (query ? " show" : "");
     resetPaging();
     renderBrands();
@@ -5264,6 +5349,7 @@ setTimeout(L,5000);})();
   });
   clearEl.onclick = function(){
     query = ""; searchEl.value = ""; clearEl.className = "search-clear";
+    aktifSayfa = "";
     resetPaging();
     clearTimeout(araUrlZaman); syncUrl();
     searchEl.focus(); renderBrands();
@@ -5378,6 +5464,10 @@ setTimeout(L,5000);})();
     if(mdl){ activeModel = mdl; }
     var ara = params.get("ara");
     if(ara){ query = ara; searchEl.value = ara; clearEl.className = "search-clear show"; }
+    // ARA SAYFA: "sayfa=resimden-uretim" → foto üretim görünümü (vitrin yüzeyleri gizli,
+    // yalnız başlık + bölüm). BİLİNMEYEN "sayfa" değeri DÜŞER (fail-closed → ana sayfa).
+    var sayfa = params.get("sayfa");
+    if(sayfa === RESIMDEN_SAYFA){ aktifSayfa = RESIMDEN_SAYFA; }
     return false;
   }
 
@@ -5392,6 +5482,7 @@ setTimeout(L,5000);})();
     activeCat = "Tümü"; activeSeri = false;
     activeBrand = "Tümü"; activeAlt = "Tümü"; activeModel = "Tümü";
     query = ""; searchEl.value = ""; clearEl.className = "search-clear";
+    aktifSayfa = "";
     if(applyUrlParams()){ return; }
     resetPaging();
     renderCats(); renderBrands(); renderAlts(); renderModels();

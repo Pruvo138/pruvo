@@ -24,8 +24,19 @@ KARAR = DEPO / "tools" / "foto-canli-gizli-karar.mjs"
 JS = DEPO / "foto-uretim.js"
 VERI = DEPO / "foto-uretim-veri.js"
 
-HTML_GIZLI = '<html><body><section id="fotoUretim" class="foto-uretim" hidden aria-label="x"></section></body></html>'
-HTML_ACIK = '<html><body><section id="fotoUretim" class="foto-uretim" aria-label="x"></section></body></html>'
+# 31 Eki: ana sayfa giris banner'i (#fotoBanner) da fail-closed — yayindaki HTML'de
+# `hidden` ile durur. Fiksturler bunu YANSITIR (yayin gerceginin karsiligi).
+BANNER_GIZLI = '<a id="fotoBanner" class="jen-banner foto-banner" href="/?sayfa=resimden-uretim" hidden></a>'
+BANNER_ACIK = '<a id="fotoBanner" class="jen-banner foto-banner" href="/?sayfa=resimden-uretim"></a>'
+HTML_GIZLI = ('<html><body><section id="fotoUretim" class="foto-uretim" hidden aria-label="x"></section>'
+              + BANNER_GIZLI + '</body></html>')
+# V2 kollari bolumun `hidden`ini olcer; banner'in fail-closed durumu AYRI olculur (V8),
+# bu yuzden HTML_ACIK icinde banner `hidden` KALIR.
+HTML_ACIK = ('<html><body><section id="fotoUretim" class="foto-uretim" aria-label="x"></section>'
+             + BANNER_GIZLI + '</body></html>')
+# V8: bolum gizli ama banner `hidden` DEGIL — banner fail-closed kirik.
+HTML_BANNER_ACIK = ('<html><body><section id="fotoUretim" class="foto-uretim" hidden aria-label="x"></section>'
+                    + BANNER_ACIK + '</body></html>')
 ACIK_KAPALI = '{"acik":false,"turler":[]}'
 ACIK_TEK = '{"acik":true,"turler":[{"kod":"plaket","ad":"Kabartma plaket"}]}'
 
@@ -102,6 +113,10 @@ def main():
         print("    " + s)
         rc, s, t = kos(KAPI, d, HTML_GIZLI, '{"hata":"x"}', ek=("--fikstur-acik-ok", "0"))
         ol("V6 /acik HTTP hatasi + hidden -> YESIL", rc == 0 and s.startswith("FOTO_CANLI_GIZLI=YESIL"), t)
+        rc, s, t = kos(KAPI, d, HTML_BANNER_ACIK, ACIK_KAPALI)
+        ol("V8 kapali + banner `hidden` YOK -> KIRMIZI rc 1 (banner fail-closed)",
+           rc == 1 and "sebep=banner-hidden-yok" in s, t)
+        print("    " + s)
         rc, s, t = kos(KAPI, d, HTML_GIZLI, ACIK_KAPALI, js=js_kor)
         ol("V7 kor kosucu -> pozitif kontrol OLCULEMEDI rc 2", rc == 2 and "pozitif-kontrol" in s, t)
 
@@ -111,6 +126,13 @@ def main():
             rc, s, t = kos(ma, d, HTML_ACIK, ACIK_KAPALI)
             ol("M-A (a) kontrolu silinince V2 YESIL'e doner -> V2 mutanti YAKALAR", rc == 0 and "=YESIL" in s, t)
             print("    M-A V2: " + s)
+        mc = mutant_kapi(d, "mc", "MUTANT-CAPA-C-banner-hidden")
+        ol("M-C capa kapida 1 kez", mc is not None)
+        if mc:
+            rc, s, t = kos(mc, d, HTML_BANNER_ACIK, ACIK_KAPALI)
+            ol("M-C banner `hidden` kontrolu silinince V8 YESIL'e doner -> V8 mutanti YAKALAR",
+               rc == 0 and "=YESIL" in s, t)
+            print("    M-C V8: " + s)
         mb = mutant_kapi(d, "mb", "MUTANT-CAPA-B")
         ol("M-B capa kapida 1 kez", mb is not None)
         if mb:

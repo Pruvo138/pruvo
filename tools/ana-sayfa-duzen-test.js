@@ -93,12 +93,12 @@ kontrol('D0 tarama CANLI: <main> ust duzey cocugu bulundu (bos liste = girinti e
         + 'kirilmis, D1 tautolojik yesil yanardi)', cocuk.length >= 2, cocuk);
 
 const d0b = mainCocuklari(D0B_FIKSTUR);
-const icBanner = cocuk.filter(function (k) { return k === 'jenBanner' || k === 'skanBanner'; });
+const icBanner = cocuk.filter(function (k) { return k === 'jenBanner' || k === 'fotoBanner'; });
 bildir('D0b-r celisen fiksturde tarama', (d0b.join(' -> ') || '(BOS)')
        + ' | gercek listede ic banner = ' + (icBanner.join(',') || 'YOK'));
 kontrol('D0b tarama DERINLIK ekseninde: (a) fiksturde nested `ic1` ust duzeyle AYNI '
         + 'girintide olmasina ragmen listeye GIRMEDI, (b) gercek sayfada #bannerRow icindeki '
-        + 'jenBanner/skanBanner <main>in cocugu SAYILMADI — girinti eksenine donulurse KIRMIZI',
+        + 'jenBanner/fotoBanner <main>in cocugu SAYILMADI — girinti eksenine donulurse KIRMIZI',
         d0b.length === 2 && d0b[0] === 'ust1' && d0b[1] === 'ust2' && icBanner.length === 0,
         { fikstur: d0b, icBanner: icBanner });
 
@@ -114,9 +114,9 @@ const banSon = html.indexOf('\n  </div>', banBas);
 const ban = html.slice(banBas, banSon);
 kontrol('E0 #bannerRow govdesi ayiklandi', banBas !== -1 && banSon !== -1 && ban.length > 200,
         ban.length);
-kontrol('E1 iki banner da DURUYOR (#jenBanner "Olcuye Ozel Uretim" + Skan Art)',
-        /id="jenBanner"/.test(ban) && /skan-banner/.test(ban),
-        [/id="jenBanner"/.test(ban), /skan-banner/.test(ban)]);
+kontrol('E1 iki banner da DURUYOR (#jenBanner "Olcuye Ozel Uretim" + foto banner)',
+        /id="jenBanner"/.test(ban) && /id="fotoBanner"/.test(ban) && /foto-banner/.test(ban),
+        [/id="jenBanner"/.test(ban), /id="fotoBanner"/.test(ban), /foto-banner/.test(ban)]);
 
 const yuksek = (ban.match(/fetchpriority="high"/g) || []).length;
 bildir('E2-r #bannerRow icindeki fetchpriority="high" sayisi', yuksek);
@@ -128,6 +128,53 @@ kontrol('F1 renderGrid hala #bannerRow display kolunu tasiyor (banner yalniz ana
         + 'gorunumunde; kategori/arama/marka gorunumunde GIZLI)',
         /bannerRow[\s\S]{0,200}?display/.test(html)
         || /getElementById\("bannerRow"\)/.test(html), null);
+
+
+console.log('\n[R] RESIMDEN URETIM ARA SAYFASI (/?sayfa=resimden-uretim)');
+/* OZET: foto uretim bolumu ana sayfadan ayrildi; giris banner'i (#fotoBanner) bu ara
+ * sayfaya baglanir. Bu bolum YAPISAL iddialari olcer; her biri icin bir MUTANT
+ * (bellekteki metin kopyasi) vardir — mutant iddiayi KIRMIZIya dusurmezse olcum
+ * tasidir, sessiz gecmez. */
+function resimdenIddialari(h){
+  var i = {};
+  var banner = /<a\b[^>]*\bid="fotoBanner"[^>]*>/.exec(h);
+  var blok = /<section\b[^>]*\bid="resimdenSayfaBas"[^>]*>[\s\S]*?<\/section>/.exec(h);
+  i.R1_araBlok = !!blok && /<h1\b[^>]*>Resimden figür üret<\/h1>/.test(blok[0]) &&
+                /id="fotoKapaliMesaj"/.test(blok[0]) && /WhatsApp'tan yazın/.test(blok[0]);
+  i.R2_bannerHref = !!banner && /href="\/\?sayfa=resimden-uretim"/.test(banner[0]) &&
+                    / hidden[\s>]/.test(banner[0]);
+  i.R3_araBlokGizli = !!blok && /style="display:none"/.test(blok[0]);
+  i.R4_adresParametresi = /params\.get\("sayfa"\)/.test(h) &&
+                        /sayfa\s*===\s*RESIMDEN_SAYFA/.test(h);
+  return i;
+}
+var temelIddia = resimdenIddialari(html);
+Object.keys(temelIddia).forEach(function(ad){
+  kontrol('R ' + ad + ' (temel sayfada dogrulanir)', temelIddia[ad], temelIddia[ad]);
+});
+
+console.log('\n[R-MUTANT] her yeni iddia icin bir mutant kirmizi yakar');
+/* Mutantlar YALNIZ bellekteki metin kopyasinda uygulanir — repo dosyasi ACILMAZ. */
+var mutantlar = [
+  ['MR1 banner href degisti (sayfa parametresi bozuldu)',
+   html.replace('href="/?sayfa=resimden-uretim"', 'href="/?kategori=Skan%20Art"'), 'R2_bannerHref'],
+  ['MR2 bannerdan `hidden` kaldirildi (fail-closed kirildi)',
+   html.replace('href="/?sayfa=resimden-uretim" hidden', 'href="/?sayfa=resimden-uretim"'), 'R2_bannerHref'],
+  ['MR3 ara sayfa h1 metni degisti',
+   html.replace('Resimden figür üret</h1>', 'Hemen başlayın</h1>'), 'R1_araBlok'],
+  ['MR4 ara sayfa blogu varsayilan gorunur birakildi (display:none kaldirildi)',
+   html.replace('class="resimden-sayfa-bas" style="display:none"', 'class="resimden-sayfa-bas"'), 'R3_araBlokGizli'],
+  ['MR5 sayfa parametresi koddan silindi',
+   html.replace('var sayfa = params.get("sayfa");', 'var sayfa = null;'), 'R4_adresParametresi'],
+];
+mutantlar.forEach(function(m){
+  var uygulandi = m[1] !== html;
+  kontrol('R-MUTANT ' + m[0] + ' — KURULABILDI', uygulandi, null);
+  if(!uygulandi){ return; }
+  var sonuc = resimdenIddialari(m[1]);
+  kontrol('R-MUTANT ' + m[0] + ' -> ' + m[2] + ' KIRMIZI yanar',
+          sonuc[m[2]] === false, sonuc[m[2]]);
+});
 
 console.log('\n[M] MUTANT — olcum SIRAYA duyarli mi (K182: mutant HEDEF KOLU oldurmeli)');
 /* Banner blogunu panellerin ALTINA geri al (YALNIZ bellekte) ve D1'i yeniden olc. */
