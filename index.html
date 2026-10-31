@@ -5432,6 +5432,8 @@ setTimeout(L,5000);})();
 
     var params = new URLSearchParams(location.search);
     var kat = params.get("kategori");
+    // 31 Eki: Skan Art serisi Figür'e taşındı; eski bağlantı Figür'ü açar
+    if(kat === "Skan Art"){ kat = "Figür"; }
     // Görünen etiket → iç ad (ör. "Ölçüye Özel Üretim" → "Jeneratör"). Alias ÇEVİRİSİDİR,
     // izinli-küme kontrolü ÇEVİRİDEN SONRA aynen koşar (bilinmeyen değer yine düşer).
     // 🔴 ÇEVİRİ BİLGİ KAYBETMEZ (12 Ağu): "Ölçüye Özel Üretim" ve "Jeneratör" AYNI iç ada

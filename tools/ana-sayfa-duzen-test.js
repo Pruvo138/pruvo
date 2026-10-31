@@ -25,6 +25,7 @@
 'use strict';
 const fs = require('node:fs');
 const path = require('node:path');
+const vm = require('node:vm');
 
 const KOK = path.dirname(__dirname);
 const INDEX = path.join(KOK, 'index.html');
@@ -202,6 +203,152 @@ if (mutant) {
   kontrol('M1 mutantta D1 KIRMIZI: #bannerRow artik ILK cocuk DEGIL — D1 sirayi FIILEN olcuyor',
           mc[0] !== 'bannerRow' && mc.indexOf('bannerRow') > mc.indexOf('katPanels'), mc.slice(0, 3).join(' -> '));
 }
+
+console.log('\n[S] ESKI "?kategori=Skan Art" BAGLANTISI -> "Figur" (31 Eki tasima)');
+/* Bu kol DAVRANIS olcer: index.html'deki applyUrlParams GERCEKTEN calistirilir (node:vm
+ * sahte alan: location/history/URLSearchParams) ve "?kategori=Skan%20Art" girdisinde
+ * activeCat "Figur" oluyor mu BAKILIR. Salt metin grep'i TEK BASINA totoloji olurdu —
+ * satiri silmek iddiayi kirar ama KODUN davranisini olcemez — bu yuzden MUTANT kolu var.
+ * 🔴 KATEGORI_ALIAS'A "Skan Art" EKLENMEZ: o harita `seri=true` (SARI SERI) kurar; Figur
+ * sari seri DEGIL — eski baglanti NORMAL Figur gorunumunu acmali. Kendi haritasina
+ * eklenirse mutant kolu (MS2) bu iddiayi KIRMIZIya dusurur.
+ * Mutantlar YALNIZ bellekteki metin kopyasinda uygulanir — repo dosyasi ACILMAZ. */
+
+/* `function <ad>(...){...}` govdesini SUSLU PARANTEZ SAYARAK ayikla (regex degil). */
+function jsFonksiyon(metin, ad) {
+  const m = new RegExp('function\\s+' + ad + '\\s*\\(').exec(metin);
+  if (!m) { return null; }
+  const i = metin.indexOf('{', m.index + m[0].length);
+  if (i === -1) { return null; }
+  let derinlik = 0;
+  for (let k = i; k < metin.length; k++) {
+    if (metin[k] === '{') { derinlik++; }
+    else if (metin[k] === '}') {
+      derinlik--;
+      if (derinlik === 0) { return metin.slice(m.index, k + 1); }
+    }
+  }
+  return null;
+}
+
+/* index.html'deki `var <ad> = <literal>` degerini literal olarak al (JSON olarak cozulur). */
+function htmlSabit(h, ad) {
+  const m = new RegExp('var\\s+' + ad + '\\s*=\\s*(\\[[^\\]]*\\]|\\{[^}]*\\}|"[^"]*")\\s*;').exec(h);
+  return m ? m[1] : null;
+}
+
+/* applyUrlParams/syncUrl'un calistigi SAHTE ALAN. markaKatla yalnizca `marka` parametresi
+   varken cagrilir — bu kol `kategori` parametresini olcer, o yol kimlik degildir. */
+function sahaAlan(h) {
+  const alan = {
+    URLSearchParams: URLSearchParams,
+    location: { hash: '', search: '', pathname: '/',
+                replace: function () { throw new Error('beklenmedik yonlendirme'); } },
+    history: { replaceState: function (a, b, c) { this.url = c; } },
+    PRUVO_ATIF: { urlKorunan: function () { return []; } },
+    activeCat: 'Tümü', activeSeri: false, activeAlt: 'Tümü', activeBrand: 'Tümü',
+    activeModel: 'Tümü', query: '', searchEl: { value: '' }, clearEl: { className: '' },
+    aktifSayfa: '', markaKatla: function (x) { return x; }
+  };
+  ['CATEGORIES', 'GIZLI_KATEGORILER', 'KATEGORI_ALIAS', 'KATEGORI_GORUNUR', 'RESIMDEN_SAYFA']
+    .forEach(function (ad) {
+      const ham = htmlSabit(h, ad);
+      if (ham === null) { throw new Error('sabit bulunamadi: ' + ad); }
+      alan[ad] = JSON.parse(ham);
+    });
+  return alan;
+}
+
+function fonksiyonlariYukle(alan, h, adlar) {
+  const kaynak = adlar.map(function (ad) {
+    const src = jsFonksiyon(h, ad);
+    if (!src) { throw new Error('fonksiyon bulunamadi: ' + ad); }
+    return src;
+  }).join('\n');
+  vm.createContext(alan);
+  vm.runInContext(kaynak, alan);
+  return alan;
+}
+
+/* Canli sayfa davranisi: verilen sorgu dizesiyle applyUrlParams calisir, activeCat/activeSeri
+   okunur. Hata olursa null doner (harness kirildi = iddia KIRMIZI, sessiz gecmez). */
+function kategoriAktif(h, search) {
+  try {
+    const alan = fonksiyonlariYukle(sahaAlan(h), h, ['applyUrlParams']);
+    alan.location.search = search;
+    alan.applyUrlParams();
+    return { kat: alan.activeCat, seri: alan.activeSeri, hata: null };
+  } catch (e) {
+    return { kat: null, seri: null, hata: String((e && e.message) || e) };
+  }
+}
+
+/* syncUrl'in YAZDIGI adres (adres cubugu "Figur" demeli, eski seri adini geri yazmamali). */
+function syncUrlYaz(h, search) {
+  const alan = fonksiyonlariYukle(sahaAlan(h), h,
+    ['applyUrlParams', 'aktifKategoriEtiketi', 'gorunurKategori', 'syncUrl']);
+  alan.location.search = search;
+  alan.applyUrlParams();
+  alan.syncUrl();
+  return alan.history.url;
+}
+
+/* S kolunun iddialari — h metni UZERINDE yeniden calistirilabilir (mutant kollari icin). */
+function sIddialari(h) {
+  const i = {};
+  const aliasIdx = h.indexOf('kat === "Skan Art"');
+  const aliasKolIdx = h.indexOf('hasOwnProperty.call(KATEGORI_ALIAS, kat)');
+  i.S1_aliasSatiriTEK = (h.match(/kat === "Skan Art"/g) || []).length === 1;
+  i.S2_sira = aliasIdx !== -1 && aliasKolIdx !== -1 && aliasIdx < aliasKolIdx;
+  const harita = JSON.parse(htmlSabit(h, 'KATEGORI_ALIAS'));
+  i.S3_haritadaYOK = !Object.prototype.hasOwnProperty.call(harita, 'Skan Art');
+  const canli = kategoriAktif(h, '?kategori=Skan%20Art');
+  i.S4_figurdur = canli.hata === null && canli.kat === 'Figür';
+  i.S4b_sariSeriYOK = canli.hata === null && canli.seri === false;
+  const denetim = kategoriAktif(h, '?kategori=BoyleBirKategoriYok');
+  i.S5_kontrolTumü = denetim.hata === null && denetim.kat === 'Tümü';
+  let url = null, hata = null;
+  try { url = syncUrlYaz(h, '?kategori=Skan%20Art'); } catch (e) { hata = String((e && e.message) || e); }
+  const yazilan = url ? new URLSearchParams(url.split('?')[1] || '').get('kategori') : null;
+  i.S6_syncUrlFigur = hata === null && yazilan === 'Figür';
+  return i;
+}
+
+const sTemel = sIddialari(html);
+Object.keys(sTemel).forEach(function (ad) {
+  kontrol('S ' + ad + ' (canli index.html uzerinde dogrulanir)', sTemel[ad], sTemel[ad]);
+});
+const sCanli = kategoriAktif(html, '?kategori=Skan%20Art');
+bildir('S-r "?kategori=Skan%20Art" -> activeCat', sCanli.kat + ' | activeSeri=' + sCanli.seri
+       + (sCanli.hata ? ' | HATA: ' + sCanli.hata : ''));
+bildir('S-r "?kategori=Figür" -> activeCat (yeni adres de calisiyor)',
+       (function () { const c = kategoriAktif(html, '?kategori=Fig%C3%BCr');
+                     return c.kat + (c.hata ? ' | HATA: ' + c.hata : ''); })());
+
+console.log('\n[S-MUTANT] her yeni iddia icin bir mutant kirmizi yakar');
+/* Mutantlar YALNIZ bellekteki metin kopyasinda uygulanir — repo dosyasi ACILMAZ. */
+function aliasSatiriniSil(h) {
+  return h.split('\n').filter(function (s) {
+    return s.indexOf('kat === "Skan Art"') === -1;
+  }).join('\n');
+}
+const sMutantlar = [
+  ['MS1 alias satiri SILINDI (eski baglanti Figur\'u acmaz)', aliasSatiriniSil(html),
+   ['S1_aliasSatiriTEK', 'S4_figurdur', 'S6_syncUrlFigur']],
+  ['MS2 KATEGORI_ALIAS haritasina "Skan Art" eklendi (sari seri bayragi yanlis)',
+   html.replace(/var KATEGORI_ALIAS = \{/, 'var KATEGORI_ALIAS = {"Skan Art":"Figür",'),
+   ['S3_haritadaYOK']],
+];
+sMutantlar.forEach(function (m) {
+  const uygulandi = m[1] !== html;
+  kontrol('S-MUTANT ' + m[0] + ' — KURULABILDI', uygulandi, null);
+  if (!uygulandi) { return; }
+  const sonuc = sIddialari(m[1]);
+  m[2].forEach(function (hedef) {
+    kontrol('S-MUTANT ' + m[0] + ' -> ' + hedef + ' KIRMIZI yanar',
+            sonuc[hedef] === false, sonuc[hedef]);
+  });
+});
 
 console.log('\n' + (FAILS.length ? 'SONUC: KIRMIZI — kalan ' + FAILS.length : 'SONUC: YESIL'));
 process.exit(FAILS.length ? 1 : 0);
