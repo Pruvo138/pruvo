@@ -193,13 +193,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 2,
+      "Diğer": 1,
       "Gri": 1,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -241,13 +243,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 2,
+      "Diğer": 1,
       "Gri": 1,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -289,13 +293,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 2,
+      "Diğer": 1,
       "Gri": 1,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -479,13 +485,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 2,
+      "Diğer": 1,
       "Gri": 1,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -667,13 +675,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 2,
+      "Diğer": 1,
       "Gri": 1,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -853,13 +863,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 2,
+      "Diğer": 1,
       "Gri": 1,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -3189,13 +3201,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 2,
+      "Diğer": 1,
       "Gri": 1,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -3423,13 +3437,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 2,
+      "Diğer": 1,
       "Gri": 1,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -4597,13 +4613,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 2,
+      "Diğer": 1,
       "Gri": 1,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -5777,13 +5795,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 2,
+      "Diğer": 1,
       "Gri": 1,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -5825,13 +5845,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 2,
+      "Diğer": 1,
       "Gri": 1,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -5873,13 +5895,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 2,
+      "Diğer": 1,
       "Gri": 1,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -6437,13 +6461,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 2,
+      "Diğer": 1,
       "Gri": 1,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -6485,13 +6511,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 2,
+      "Diğer": 1,
       "Gri": 1,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -6673,13 +6701,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 2,
+      "Diğer": 1,
       "Gri": 1,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
@@ -6721,13 +6751,15 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 2,
+      "Diğer": 1,
       "Gri": 1,
       "Siyah": 0
     },
     "renkler": [
       "Siyah",
       "Beyaz",
-      "Gri"
+      "Gri",
+      "Diğer"
     ],
     "varsayilanMalzeme": "PLA"
   },
