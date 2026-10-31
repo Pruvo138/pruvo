@@ -538,7 +538,24 @@ baslik("== 2) 3x TAVAN (shop/src/konfigur.js:59 — 3 x fiyatCapalari[0][1]) hal
   let dogrusalTavansiz = 0;
   let tekBoy = 0;
   let hacimModlu = 0;
-  for (const u of KONFIGUR_URUNLER) {
+  // 31 Eki (Okan: Skan serisi de 100 TL/cm dogrusal): katalogda hacim modlu urun KALMADI. Hacim
+  // kolu + 3x tavan Worker'da YASAMAYA devam eder (yeni hacim urunu gelirse ayni yol) -> kol
+  // VAKUMA dusmesin diye katalog hacimsizse SENTETIK bir hacim kaydi (eski Skan semasi) eklenir.
+  const HACIM_FIKSTUR = {
+    id: "x-hacim-fikstur", baslik: "hacim fikstur", kategori: "Dekorasyon",
+    gorseller: ["https://media.pruvo3d.com/urunler/x-hacim-fikstur.jpg"],
+    konfigur: {
+      renkler: ["Siyah", "Beyaz", "Gri"], renkGorselIndeks: { Siyah: 0, Beyaz: 1, Gri: 2 },
+      boyutMm: { min: 60, max: 300, adim: 10, varsayilan: 150, etiket: "Yükseklik" },
+      hacim: { refYukseklikMm: 150, refHacimCm3: 300 },
+      fiyatCapalari: [[60, 500], [300, 2500]],
+      malzemeler: [{ ad: "PLA", katsayi: 1.0 }, { ad: "PETG", katsayi: 1.3 }, { ad: "ASA", katsayi: 1.6 }],
+      varsayilanMalzeme: "PLA" }
+  };
+  const katalogHacimli = KONFIGUR_URUNLER.some((u) => u.konfigur.fiyatModu !== "dogrusal");
+  const TAVAN_KUMESI = katalogHacimli ? KONFIGUR_URUNLER : KONFIGUR_URUNLER.concat([HACIM_FIKSTUR]);
+  if (!katalogHacimli) { not("katalogda hacim modlu urun YOK -> tavan kolu sentetik hacim kaydiyla olculur"); }
+  for (const u of TAVAN_KUMESI) {
     const kf = u.konfigur;
     const tavan = 3 * kf.fiyatCapalari[0][1] * 100;
     const kat = (kf.malzemeler.find((m) => m.ad === "ASA") || {}).katsayi;
