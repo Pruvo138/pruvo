@@ -159,20 +159,22 @@ const VERI = {
     "boyutMm": {
       "adim": 10,
       "etiket": "Yükseklik",
-      "max": 300,
+      "max": 250,
       "min": 60,
       "varsayilan": 150
     },
     "fiyatCapalari": [
       [
         60,
-        500
+        600
       ],
       [
-        300,
+        250,
         2500
       ]
     ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
     "hacim": {
       "refHacimCm3": 669.09,
       "refYukseklikMm": 150
@@ -209,20 +211,22 @@ const VERI = {
     "boyutMm": {
       "adim": 10,
       "etiket": "Yükseklik",
-      "max": 300,
+      "max": 250,
       "min": 60,
       "varsayilan": 150
     },
     "fiyatCapalari": [
       [
         60,
-        500
+        600
       ],
       [
-        300,
+        250,
         2500
       ]
     ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
     "hacim": {
       "refHacimCm3": 267.47,
       "refYukseklikMm": 150
@@ -259,20 +263,22 @@ const VERI = {
     "boyutMm": {
       "adim": 10,
       "etiket": "Yükseklik",
-      "max": 300,
+      "max": 250,
       "min": 60,
       "varsayilan": 150
     },
     "fiyatCapalari": [
       [
         60,
-        500
+        600
       ],
       [
-        300,
+        250,
         2500
       ]
     ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
     "hacim": {
       "refHacimCm3": 269.34,
       "refYukseklikMm": 150
@@ -451,20 +457,22 @@ const VERI = {
     "boyutMm": {
       "adim": 10,
       "etiket": "Yükseklik",
-      "max": 300,
+      "max": 250,
       "min": 60,
       "varsayilan": 150
     },
     "fiyatCapalari": [
       [
         60,
-        500
+        600
       ],
       [
-        300,
+        250,
         2500
       ]
     ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
     "hacim": {
       "refHacimCm3": 213.12,
       "refYukseklikMm": 150
@@ -641,20 +649,22 @@ const VERI = {
     "boyutMm": {
       "adim": 10,
       "etiket": "Yükseklik",
-      "max": 300,
+      "max": 250,
       "min": 60,
       "varsayilan": 150
     },
     "fiyatCapalari": [
       [
         60,
-        500
+        600
       ],
       [
-        300,
+        250,
         2500
       ]
     ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
     "hacim": {
       "refHacimCm3": 77.27,
       "refYukseklikMm": 150
@@ -829,20 +839,22 @@ const VERI = {
     "boyutMm": {
       "adim": 10,
       "etiket": "Yükseklik",
-      "max": 300,
+      "max": 250,
       "min": 60,
       "varsayilan": 150
     },
     "fiyatCapalari": [
       [
         60,
-        500
+        600
       ],
       [
-        300,
+        250,
         2500
       ]
     ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
     "hacim": {
       "refHacimCm3": 319.18,
       "refYukseklikMm": 150
@@ -3167,20 +3179,22 @@ const VERI = {
     "boyutMm": {
       "adim": 10,
       "etiket": "Yükseklik",
-      "max": 300,
+      "max": 250,
       "min": 60,
       "varsayilan": 150
     },
     "fiyatCapalari": [
       [
         60,
-        500
+        600
       ],
       [
-        300,
+        250,
         2500
       ]
     ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
     "hacim": {
       "refHacimCm3": 55.68,
       "refYukseklikMm": 150
@@ -3403,20 +3417,22 @@ const VERI = {
     "boyutMm": {
       "adim": 10,
       "etiket": "Yükseklik",
-      "max": 300,
+      "max": 250,
       "min": 60,
       "varsayilan": 150
     },
     "fiyatCapalari": [
       [
         60,
-        500
+        600
       ],
       [
-        300,
+        250,
         2500
       ]
     ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
     "hacim": {
       "refHacimCm3": 346.49,
       "refYukseklikMm": 150
@@ -4579,20 +4595,22 @@ const VERI = {
     "boyutMm": {
       "adim": 10,
       "etiket": "Yükseklik",
-      "max": 300,
+      "max": 250,
       "min": 60,
       "varsayilan": 150
     },
     "fiyatCapalari": [
       [
         60,
-        500
+        600
       ],
       [
-        300,
+        250,
         2500
       ]
     ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
     "hacim": {
       "refHacimCm3": 239222.8,
       "refYukseklikMm": 1899.739
@@ -5761,20 +5779,22 @@ const VERI = {
     "boyutMm": {
       "adim": 10,
       "etiket": "Yükseklik",
-      "max": 300,
+      "max": 250,
       "min": 60,
       "varsayilan": 150
     },
     "fiyatCapalari": [
       [
         60,
-        500
+        600
       ],
       [
-        300,
+        250,
         2500
       ]
     ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
     "hacim": {
       "refHacimCm3": 133.94,
       "refYukseklikMm": 150
@@ -5811,20 +5831,22 @@ const VERI = {
     "boyutMm": {
       "adim": 10,
       "etiket": "Yükseklik",
-      "max": 300,
+      "max": 250,
       "min": 60,
       "varsayilan": 150
     },
     "fiyatCapalari": [
       [
         60,
-        500
+        600
       ],
       [
-        300,
+        250,
         2500
       ]
     ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
     "hacim": {
       "refHacimCm3": 221.9,
       "refYukseklikMm": 150
@@ -5861,20 +5883,22 @@ const VERI = {
     "boyutMm": {
       "adim": 10,
       "etiket": "Yükseklik",
-      "max": 300,
+      "max": 250,
       "min": 60,
       "varsayilan": 150
     },
     "fiyatCapalari": [
       [
         60,
-        500
+        600
       ],
       [
-        300,
+        250,
         2500
       ]
     ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
     "hacim": {
       "refHacimCm3": 247.33,
       "refYukseklikMm": 150
@@ -6427,20 +6451,22 @@ const VERI = {
     "boyutMm": {
       "adim": 10,
       "etiket": "Yükseklik",
-      "max": 300,
+      "max": 250,
       "min": 60,
       "varsayilan": 150
     },
     "fiyatCapalari": [
       [
         60,
-        500
+        600
       ],
       [
-        300,
+        250,
         2500
       ]
     ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
     "hacim": {
       "refHacimCm3": 33.57,
       "refYukseklikMm": 150
@@ -6477,20 +6503,22 @@ const VERI = {
     "boyutMm": {
       "adim": 10,
       "etiket": "Yükseklik",
-      "max": 300,
+      "max": 250,
       "min": 60,
       "varsayilan": 150
     },
     "fiyatCapalari": [
       [
         60,
-        500
+        600
       ],
       [
-        300,
+        250,
         2500
       ]
     ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
     "hacim": {
       "refHacimCm3": 171.99,
       "refYukseklikMm": 150
@@ -6667,20 +6695,22 @@ const VERI = {
     "boyutMm": {
       "adim": 10,
       "etiket": "Yükseklik",
-      "max": 300,
+      "max": 250,
       "min": 60,
       "varsayilan": 150
     },
     "fiyatCapalari": [
       [
         60,
-        500
+        600
       ],
       [
-        300,
+        250,
         2500
       ]
     ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
     "hacim": {
       "refHacimCm3": 152.83,
       "refYukseklikMm": 150
@@ -6717,20 +6747,22 @@ const VERI = {
     "boyutMm": {
       "adim": 10,
       "etiket": "Yükseklik",
-      "max": 300,
+      "max": 250,
       "min": 60,
       "varsayilan": 150
     },
     "fiyatCapalari": [
       [
         60,
-        500
+        600
       ],
       [
-        300,
+        250,
         2500
       ]
     ],
+    "fiyatModu": "dogrusal",
+    "gorselOrnek": true,
     "hacim": {
       "refHacimCm3": 51.58,
       "refYukseklikMm": 150
