@@ -114,6 +114,7 @@ import json
 import os
 
 KATEGORI = "Skan Art"
+SERI_ID_SONEKI = "-serit-dekoratif-figur"   # shop/src/konfigur-beklenen.js KONFIGUR_ID_SONEKI
 
 # 1 BAYTLIK "x" dosyasi hook'ta gecerli taban_render sayiliyordu; gercek bir STL
 # render'i asla bu kadar kucuk olmaz.
@@ -372,7 +373,7 @@ def tetikleyenler(eski, yeni):
     """{id:urun} eski/yeni -> koken kaniti GEREKEN urun id'leri (sirali)."""
     tetik = []
     for pid, u in (yeni or {}).items():
-        if not isinstance(u, dict) or u.get("kategori") != KATEGORI:
+        if not kapsamda(pid, u):
             continue
         g = u.get("gorseller")
         if not g:
@@ -382,9 +383,18 @@ def tetikleyenler(eski, yeni):
             tetik.append(pid)                     # 1. yeni urun
         elif gorsel_kumesi_degisti(e.get("gorseller"), g):
             tetik.append(pid)                     # 2. gorsel COK-KUMESI degisti
-        elif e.get("kategori") != KATEGORI:
+        elif not kapsamda(pid, e):
             tetik.append(pid)                     # 3. kategori Skan Art'a cevrildi
     return sorted(tetik)
+
+
+def kapsamda(pid, u):
+    """Koken kapisinin kapsami: kategori "Skan Art" YA DA Skan Art seri id soneki. 31 Eki (Okan):
+    seri urunleri "Figür" kategorisine tasindi; kategoriyle sinirli kalsaydi 16 ozgun urunun
+    gorsel koruma kapisi SESSIZCE kapanirdi. Diger Figür urunleri kapsama GIRMEZ (normal
+    lisans/kaynak akisi — figur-fiyat-dogrusal kararı)."""
+    return isinstance(u, dict) and (u.get("kategori") == KATEGORI or
+                                     str(pid or "").endswith(SERI_ID_SONEKI))
 
 
 # -------------------------------------------------------------- dogrulama
@@ -537,7 +547,7 @@ def _denetim(kok):
 
     print("\n(2) HER kayit YENIDEN YAYINLANIYOR kosumu (eski = bos katalog)")
     tetik2 = tetikleyenler({}, h)
-    print("    tetiklenen: %d (kategori '%s' + gorselli)" % (len(tetik2), KATEGORI))
+    print("    tetiklenen: %d (kategori '%s' ya da seri soneki + gorselli)" % (len(tetik2), KATEGORI))
     kirmizi = []
     for pid in tetik2:
         sebep, kanit = manifest_dogrula(pid, h[pid].get("gorseller"), kok)
@@ -559,10 +569,7 @@ def _denetim(kok):
         for ad, _ in SINIFLAR + (("diger", ()),):
             if ad in sayac:
                 print("      %-18s %2d  %s" % (ad, len(sayac[ad]), ", ".join(sayac[ad])))
-    kats = {}
-    for p in urunler:
-        kats[p.get("kategori")] = kats.get(p.get("kategori"), 0) + 1
-    disi = sum(v for k, v in kats.items() if k != KATEGORI)
+    disi = sum(1 for p in urunler if not kapsamda(p.get("id"), p))
     print("    kapsam disi (tetiklenmeyen) kayit: %d" % disi)
     return 0
 

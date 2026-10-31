@@ -361,6 +361,18 @@ def mw_kayit(lisans):
             "lisans": lisans, "tur": "ucretsiz-cc"}
 
 
+# OZGUN TASARIM (31 Eki): IP bizde -> lisans BOS olsa da auto_sil URETMEZ (Skan Art serisi 16
+# kayit gercek bicimiyle). Muafiyet TUR'a bagli: ayni bos lisans ozgun-disi turde HALA auto_sil.
+check("ozgun-tasarim + bos lisans -> gecer",
+      lis({"kaynak": "ozgun", "tasarimci": "", "lisans": "", "tur": "ozgun-tasarim"}) is None)
+check("kendi-tasarim + bos lisans -> gecer",
+      lis({"kaynak": "ozgun", "lisans": "", "tur": "kendi-tasarim"}) is None)
+check("ozgun-model-okan + bos lisans -> gecer",
+      lis({"kaynak": "okan", "lisans": "", "tur": "ozgun-model-okan"}) is None)
+check("ucretsiz-cc + bos lisans -> HALA auto_sil (muafiyet ture bagli)",
+      lis({"kaynak": "ozgun", "lisans": "", "tur": "ucretsiz-cc"}) == "lisans")
+check("tursuz + bos lisans -> HALA auto_sil", lis({"kaynak": "ozgun", "lisans": ""}) == "lisans")
+
 # MakerWorld CIPLAK CC -> satilabilir (GECMELI); bug oncesi HEPSI yanlis auto_sil idi
 check("MW 'BY' -> gecer (lisans)", lis(mw_kayit("BY")) is None)
 check("MW 'BY-SA' -> gecer", lis(mw_kayit("BY-SA")) is None)

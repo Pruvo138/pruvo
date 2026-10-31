@@ -746,6 +746,17 @@ def _satin_alma(kayit):
     return isinstance(kayit, dict) and kayit.get("tur") == "satin-alma"
 
 
+# Ozgun/kendi tasarimimiz: IP bizde -> LISANS kolundan muaf (YALNIZ lisans; olcu kolu degismez).
+# 31 Eki olcumu: gizli defterde bu turde `lisans` BOS 34 kayit (Skan Art serisi 16 dahil) —
+# muafiyet yokken degisen/yeni parti olarak denetlenince "lisans kaydi yok" -> auto_sil
+# raporlaniyordu (Skan Art -> Figür kategori tasimasinda MaCiT yakaladi).
+OZGUN_TURLER = {"ozgun-tasarim", "ozgun-model-okan", "kendi-tasarim"}
+
+
+def _ozgun_tasarim(kayit):
+    return isinstance(kayit, dict) and str(kayit.get("tur") or "").strip() in OZGUN_TURLER
+
+
 def _kendi_urunumuz(urun, kayit):
     """Kendi/uyelik IP'miz mi? (lisans/olcu kapisindan MUAF) — parametrik, uyelik (odemeli
     tedarikci), ya da kendi jeneratorumuz."""
@@ -912,7 +923,7 @@ def kapi_lisans(urun, kayit):
     natif-bicim saklayan bir adaptorse (MakerWorld/Cults3D/MyMiniFactory) o platformun satilabilir()'i
     HAM string'e uygulanir, degilse (Printables/Thingiverse/bilinmeyen) lisans_kisaltma() ->
     pr.satilabilir() yolu kullanilir (bkz _kaynak_satilabilir_fn). Her iki yol da FAIL-CLOSED."""
-    if _satin_alma(kayit) or _kendi_urunumuz(urun, kayit):
+    if _satin_alma(kayit) or _kendi_urunumuz(urun, kayit) or _ozgun_tasarim(kayit):
         return None, ""
     ham = _lisans_ham(kayit)
     if not ham or not str(ham).strip():

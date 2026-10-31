@@ -25,9 +25,10 @@ VE YALNIZ bunlar bloklayicidir:
       iki kaynakta da.
   B3. "Skan Art" FONKSIYONEL_KATEGORILER icinde — tools/build.py VE secenekler.js.
   B4. GOOGLE_PRODUCT_CATEGORY["Skan Art"] tanimli (merchant feed taksonomisi).
-  B5. kurt urununun kategorisi == "Skan Art".
-  B6. kategorisi "Skan Art" olan urun sayisi >= 1 (banner bos kategoriye link vermesin).
-  B7. kategorisi "Skan Art" olan HER urun `konfigur` alani TASIR.  ⚠️ PARA EMNIYETI:
+  B5. kurt urununun kategorisi == "Figür" (31 Eki: seri Figür'e tasindi).
+  B6. id'si "-serit-dekoratif-figur" ile biten seri urunu >= 1, HEPSI "Figür"de, "Skan Art"
+      kategorisinde urun 0.
+  B7. seri (id soneki) HER urunu `konfigur` alani TASIR.  ⚠️ PARA EMNIYETI:
       shop odeme Worker'i secenekler.js'i BUNDLE'a gommuyor -> canli worker "Skan Art"i
       bilmez; konfigursuz bir Skan Art urununde malzeme/renk katsayisi SESSIZCE duser
       (olculdu: ASA + ozel renk 27.600 yerine 15.000 kurus). Yanlis-kirmizi yuzeyi YOK:
@@ -135,6 +136,10 @@ filament_ortak = _kaynaktan_yukle("filament_ortak", os.path.join(TOOLS, "filamen
 build = _kaynaktan_yukle("build", os.path.join(TOOLS, "build.py"))
 
 KATEGORI = "Skan Art"
+# 31 Eki (Okan): seri urunleri "Figür" kategorisine tasindi; "Skan Art" artik urunsuz gizli
+# kategori adidir. Seri id sonekiyle tanınır (shop/src/konfigur-beklenen.js KONFIGUR_ID_SONEKI).
+SERI_KATEGORI = "Figür"
+SERI_ID_SONEKI = "-serit-dekoratif-figur"
 PID = "kurt-heykeli-serit-dekoratif-figur"
 SKAN_ART_TABAN = 1             # (B6) seri bosalirsa banner bos kategoriye link verir
 # Banner ROOT'unun mesru sayilan asgari hesaplanan yuksekligi (YALNIZ UYARI katmaninda).
@@ -1318,14 +1323,22 @@ print("(B5/B6/B7) urun verisi — kurt kategorisi, seri bos degil, konfigur emni
 kurtlar = [u for u in katalog if u.get("id") == PID]
 kontrol(len(kurtlar) == 1, "%s katalogda TEK kayit (bulunan: %d)" % (PID, len(kurtlar)))
 kurt = kurtlar[0] if kurtlar else None
-kontrol(kurt is not None and kurt.get("kategori") == KATEGORI,
+kontrol(kurt is not None and kurt.get("kategori") == SERI_KATEGORI,
         'kurt urununun kategorisi == "%s" (bulunan: %r)'
-        % (KATEGORI, kurt.get("kategori") if kurt else None))
+        % (SERI_KATEGORI, kurt.get("kategori") if kurt else None))
 
-skan_urunler = [u for u in katalog if u.get("kategori") == KATEGORI]
+# Seri KATEGORIDEN degil id sonekinden tanınır (31 Eki: kategori Figür'e tasindi). Kategoriyle
+# sussaydik B7 PARA EMNIYETI bos kumede sessizce YESIL kalirdi.
+skan_urunler = [u for u in katalog if str(u.get("id") or "").endswith(SERI_ID_SONEKI)]
 n_skan = len(skan_urunler)
 kontrol(n_skan >= SKAN_ART_TABAN,
         "Skan Art serisi BOS DEGIL (>= %d; bulunan: %d)" % (SKAN_ART_TABAN, n_skan))
+kategori_disi = [u.get("id") for u in skan_urunler if u.get("kategori") != SERI_KATEGORI]
+kontrol(not kategori_disi,
+        'her seri urunu "%s" kategorisinde (disarida: %s)' % (SERI_KATEGORI, kategori_disi or "-"))
+eski_kategori = [u.get("id") for u in katalog if u.get("kategori") == KATEGORI]
+kontrol(not eski_kategori,
+        '"%s" kategorisinde urun KALMADI (Okan 31 Eki; bulunan: %s)' % (KATEGORI, eski_kategori or "-"))
 
 konfigursuz = [u.get("id") for u in skan_urunler if not u.get("konfigur")]
 kontrol(not konfigursuz,
