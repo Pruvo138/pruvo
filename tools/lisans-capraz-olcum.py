@@ -26,6 +26,7 @@ KOVALAR
   B-ATIF-BORCU        otoriter CC-BY, bizde bos -> atif gorunmuyor ([[lisans-atifi-cc]])
   D-CC0               otoriter CC0 -> CC0 atif ISTEMEZ, risk YOK (bilgi kalemi)
   G-BIZIM-BILINMEYEN  bizim deger CC disi ('kisisel'/'uyelik') -> karsilastirilamaz
+  H-OKAN-ISTISNASI    tasarimciya ozel Okan istisnasi (OKAN_ISTISNA_TASARIMCI, satin-alma) -> bilgi
   F-OTORITER-CELISKILI ayni tid'e IKI farkli havuz degeri -> hangisi otoriter OLCULEMEDI
   E-DIGER             yukaridakilerin disi
 
@@ -155,6 +156,11 @@ def havuz_lut():
     return lut, sayac
 
 
+# Okan'in TASARIMCIYA OZEL lisans istisnasi (11 Eyl 2026): Cults listelemesi "Private Use" olsa da
+# ayni tasarimciyla baska platformda royalty-free satin-alma iliskisi var. YALNIZ bu kume ve
+# yalniz `tur == "satin-alma"` kayitlari; baska tasarimcinin cults_pu kaydi SATILAMAZ kalir.
+OKAN_ISTISNA_TASARIMCI = {"mostudio_print_3d"}
+
 # Kaynak defteri `link` -> (platform, havuzdaki aday id). 1 Kas 2026: eskiden yalniz
 # `thing:<id>` olculuyordu; Printables/MakerWorld/Cults3D linkli kayitlar capraz olcum DISIYDI.
 LINK_KALIP = {
@@ -245,6 +251,10 @@ def main():
         canli += 1
         canli_plat[anahtar[0]] += 1
         kid = ":".join(anahtar)
+        if k.get("tur") == "satin-alma" and k.get("tasarimci") in OKAN_ISTISNA_TASARIMCI:
+            kovalar.setdefault("H-OKAN-ISTISNASI", []).append(
+                (uid, kid, "", "", " | ".join(sorted(kume)), k.get("tasarimci")))
+            continue
         siniflar = set(sinif(x) for x in kume)
         lis = u.get("lisans")
         bizim_ham = (lis.get("tur") if isinstance(lis, dict) else (lis or "")) or ""
