@@ -62,26 +62,49 @@ def profil_urunleri(profil_url):
     return urls
 
 
+def ld_urun(html):
+    """Sayfadaki TUM ld+json bloklarindan Product dugumunu dondurur (yoksa None).
+    31 Eki 2026: CGTrader JSON-LD'yi `@graph` dizisine tasidi (WebPage + Product + ...);
+    eski kod yalniz ILK blogun KOK nesnesini okuyordu -> baslik "?", fiyat bos."""
+    for blok in re.findall(r'<script[^>]*type="application/ld\+json"[^>]*>(.*?)</script>', html, re.S):
+        try:
+            veri = json.loads(blok.strip())
+        except Exception:
+            continue
+        yigin = veri if isinstance(veri, list) else [veri]
+        while yigin:
+            n = yigin.pop(0)
+            if not isinstance(n, dict):
+                continue
+            if isinstance(n.get("@graph"), list):
+                yigin.extend(n["@graph"])
+            tip = n.get("@type")
+            if tip == "Product" or (isinstance(tip, list) and "Product" in tip):
+                return n
+    return None
+
+
+def indirim_yuzdesi(html):
+    """Gorunur indirim rozeti (`>-50%<`). 31 Eki 2026: eski `-(\\d{1,2})%` sayfadaki CSS'i
+    (`translateX(-50%)`) indirim sanip final modda fiyati YARIYA dusuruyordu."""
+    pcts = re.findall(r'>\s*-(\d{1,2})\s*%\s*<', html)
+    return int(collections.Counter(pcts).most_common(1)[0][0]) if pcts else 0
+
+
 def urun_verisi(url, author=None):
     html = fetch(url)
     if not html:
         return None
     if author and ("/designers/" + author).lower() not in html.lower():   # slug kucuk harf olabilir
         return {"_yanlis_yazar": True}
-    m = re.search(r'<script[^>]*type="application/ld\+json"[^>]*>(.*?)</script>', html, re.S)
+    d = ld_urun(html)
     baslik = usd = None
-    if m:
-        try:
-            d = json.loads(m.group(1).strip())
-            baslik = (d.get("name") or "").split("|")[0].strip()
-            off = d.get("offers") or {}
-            off = off if isinstance(off, dict) else (off[0] if off else {})
-            usd = off.get("price")           # LISTE (indirimsiz) fiyati
-        except Exception:
-            pass
-    # site geneli indirim yuzdesi (or. -50%); en sik goruleni al
-    pcts = re.findall(r'-(\d{1,2})%', html)
-    disc = int(collections.Counter(pcts).most_common(1)[0][0]) if pcts else 0
+    if d:
+        baslik = (d.get("name") or "").split("|")[0].strip() or None
+        off = d.get("offers") or {}
+        off = off if isinstance(off, dict) else (off[0] if off else {})
+        usd = off.get("price") or off.get("lowPrice")   # LISTE (indirimsiz) fiyati
+    disc = indirim_yuzdesi(html)
     imgs = re.findall(r'https://img-new\.cgtrader\.com/items/(\d+)/[a-z0-9]+/[a-z0-9-]+\.(?:webp|jpg|png)', html)
     galeri = list(dict.fromkeys(re.findall(
         r'https://img-new\.cgtrader\.com/items/\d+/[a-z0-9]+/[a-z0-9-]+\.(?:webp|jpg|png)', html)))
@@ -276,8 +299,46 @@ def kuru(urls, mode="list"):
         print()
 
 
+def kendini_test():
+    """Ag YOK: ld_urun + indirim_yuzdesi sentetik sayfalarla. rc 0 = hepsi gecti."""
+    def ld(o):
+        return '<script type="application/ld+json">' + json.dumps(o) + '</script>'
+    urun = {"@type": "Product", "name": "KTM Parca | 3D Print Model",
+            "offers": {"@type": "Offer", "price": "2.99", "priceCurrency": "USD"}}
+    css = '<style>.a{transform:translateX(-50%)}.b{top:-50%}</style>'
+    vakalar = [
+        ("@graph icinde Product (31 Eki bicimi)",
+         ld({"@context": "https://schema.org/", "@graph": [{"@type": "WebPage", "name": "X"}, urun]}),
+         ("KTM Parca", "2.99")),
+        ("kok Product (eski bicim)", ld(urun), ("KTM Parca", "2.99")),
+        ("liste kok", ld([{"@type": "BreadcrumbList"}, urun]), ("KTM Parca", "2.99")),
+        ("Product ikinci blokta", ld({"@type": "Organization"}) + ld(urun), ("KTM Parca", "2.99")),
+        ("bozuk blok + gecerli blok", '<script type="application/ld+json">{bozuk</script>' + ld(urun),
+         ("KTM Parca", "2.99")),
+        ("Product yok", ld({"@type": "WebPage", "name": "X"}), (None, None)),
+    ]
+    kalan = 0
+    for ad, html, bek in vakalar:
+        d = ld_urun(html)
+        got = ((d.get("name") or "").split("|")[0].strip(), d["offers"]["price"]) if d else (None, None)
+        ok = got == bek
+        kalan += not ok
+        print("  %s %s -> %s" % ("GECTI" if ok else "KALDI", ad, got))
+    for ad, html, bek in [("CSS translateX(-50%) indirim DEGIL", css, 0),
+                          ("gorunur rozet >-50%<", css + '<span class="d">-50%</span>', 50),
+                          ("sayfada yuzde yok", "<p>x</p>", 0)]:
+        got = indirim_yuzdesi(html)
+        ok = got == bek
+        kalan += not ok
+        print("  %s %s -> %s" % ("GECTI" if ok else "KALDI", ad, got))
+    print("SONUC: %s — %d kaldi" % ("YESIL" if kalan == 0 else "KIRMIZI", kalan))
+    return 1 if kalan else 0
+
+
 if __name__ == "__main__":
     args = sys.argv[1:]
+    if args == ["--kendini-test"]:
+        sys.exit(kendini_test())
     if not args:
         sys.exit('Kullanim: python3 tools/cgt-ekle.py "<profil url>" [list|final]   (SATICI MODU)\n'
                  '     ya da python3 tools/cgt-ekle.py --marka [--kuru] [list|final] <url1> <url2> ...')
