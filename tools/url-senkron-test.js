@@ -54,18 +54,23 @@ if (m) {
   // harness onu tanımıyordu → ham ReferenceError ile ÇÖKTÜ). Çökme, kırmızı iddiadan ayırt
   // edilemez; bu yüzden çağrı sarılır ve eksik değişken ADIYLA kırmızı bir iddia olur.
   let harnessHatasi = null;
-  function urlUret(kat, marka, ara, alt, model) {
+  // 31 Eki: syncUrl ara sayfa görünümüne (aktifSayfa / RESIMDEN_SAYFA) uzandı. Sabit
+  // index.html'den OKUNUR (ikinci kopya yok); okunamazsa iddia ADIYLA kırmızı yanar.
+  const rsM = /var RESIMDEN_SAYFA = "([^"]+)";/.exec(INDEX);
+  kontrol("index.html'den RESIMDEN_SAYFA ayıklandı", rsM !== null);
+  const RESIMDEN = rsM ? rsM[1] : "";
+  function urlUret(kat, marka, ara, alt, model, sayfa) {
     let sonUrl = null;
     const sandbox = new Function(
       "activeCat", "activeAlt", "activeBrand", "activeModel", "query", "history", "location",
-      "URLSearchParams",
+      "URLSearchParams", "aktifSayfa", "RESIMDEN_SAYFA",
       ONEK + m[0] + "; syncUrl();"
     );
     try {
       sandbox(kat, alt === undefined ? "Tümü" : alt, marka,
         model === undefined ? "Tümü" : model, ara,
         { replaceState: (a, b, url) => { sonUrl = url; } },
-        { pathname: "/" }, URLSearchParams);
+        { pathname: "/" }, URLSearchParams, sayfa || "", RESIMDEN);
     } catch (e) {
       if (harnessHatasi === null) harnessHatasi = String(e && e.message ? e.message : e);
       return "<HARNESS HATASI: " + harnessHatasi + ">";
@@ -85,6 +90,14 @@ if (m) {
   kontrol("arama → ?ara= yazılır (kırpılmış)",
     urlUret("Tümü", "Tümü", "  jant  ") === "/?ara=jant",
     "çıktı: " + urlUret("Tümü", "Tümü", "  jant  "));
+
+  // ara sayfa görünümü (31 Eki, "Resimden figür üret") — syncUrl parametreyi KORUR
+  kontrol("ara sayfa görünümünde ?sayfa=" + RESIMDEN + " yazılır",
+    urlUret("Tümü", "Tümü", "", undefined, undefined, RESIMDEN) === "/?sayfa=" + RESIMDEN,
+    "çıktı: " + urlUret("Tümü", "Tümü", "", undefined, undefined, RESIMDEN));
+  kontrol("bilinmeyen görünüm değeri URL'ye YAZILMAZ (fail-closed)",
+    urlUret("Tümü", "Tümü", "", undefined, undefined, "xyz") === "/",
+    "çıktı: " + urlUret("Tümü", "Tümü", "", undefined, undefined, "xyz"));
 
   // alt kategori çipi (grup filtresi) — syncUrl'un dördüncü ekseni
   kontrol("alt kategori seçili → ?altkategori= yazılır (kategoriyle birlikte)",

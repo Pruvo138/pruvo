@@ -85,6 +85,15 @@ ETIKET_CAPALARI = ("tasarımcı örneğidir", "tek renkte")
 # (build._renk_butonlari_html, konfigur dali) cagrilarak yapilir; capalar onun ciktisinda aranir.
 DIGER_KATEGORILER = ("Figür", "Fidget")
 DIGER_CAPALARI = ('data-renk="Diğer"', 'id="renkOzel"')
+# 31 Eki (Okan: "skan art ürünlerini figürlere taşı"): Skan Art serisi (16, hacim fiyatli) Figür'e
+# YALNIZ kategori olarak tasindi; renk/fiyat secenekleri AYNEN kalir (Siyah/Beyaz/Gri, Diğer YOK —
+# Diğer eklemek shop bundle'ini ve fiyati degistirir, istenmedi). Eksen D bu seriyi aramaz.
+DIGER_MUAF_ID_SONEKI = "-serit-dekoratif-figur"   # shop/src/konfigur-beklenen.js KONFIGUR_ID_SONEKI
+
+
+def _diger_kapsaminda(u):
+    return (u.get("kategori") in DIGER_KATEGORILER and
+            not str(u.get("id") or "").endswith(DIGER_MUAF_ID_SONEKI))
 
 # uretim_turetimi() build.py'yi yukleyince etiket ve renk dugmesi fonksiyonlarini da buraya koyar.
 _ETIKET_FN = None
@@ -135,7 +144,7 @@ def urun_hukmu(u, turet):
         return "OLCULEMEDI", "gorseller yok / bos"
 
     # EKSEN D — Figur/Fidget'te sayfa "Diğer" dugmesini + serbest renk kutusunu basiyor mu.
-    if u.get("kategori") in DIGER_KATEGORILER:
+    if _diger_kapsaminda(u):
         if _RENK_BUTON_FN is None:
             return "OLCULEMEDI", ("build.py'de _renk_butonlari_html YOK — Figur/Fidget "
                                   "kaydinin 'Diğer' rengi olculemiyor")
@@ -240,7 +249,7 @@ def main():
     print("  on-secim '%s'  : %d" % (BEKLENEN_RENK, tam))
     print("  'Diğer' kapsami  : %d (kategori %s + konfigur; eksen D)"
           % (sum(1 for u in urunler if isinstance(u, dict) and isinstance(u.get("konfigur"), dict)
-                 and u.get("kategori") in DIGER_KATEGORILER), "/".join(DIGER_KATEGORILER)))
+                 and _diger_kapsaminda(u)), "/".join(DIGER_KATEGORILER)))
     print("  " + satir)
     for pid, s in olculemedi:
         print("    OLCULEMEDI %s :: %s" % (pid, s))

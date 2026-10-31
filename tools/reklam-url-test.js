@@ -118,6 +118,14 @@ const SYNC_SRC = capa("syncUrl", () => {
   return src;
 });
 
+/* 31 Eki: syncUrl ara sayfa gorunumune (aktifSayfa === RESIMDEN_SAYFA) uzandi. Sabit
+   index.html'den AYNEN ayiklanir (ikinci kopya yok); bulunamazsa FAIL-CLOSED kirmizi. */
+const RESIMDEN_SRC = capa("RESIMDEN_SAYFA", () => {
+  const mm = /  var RESIMDEN_SAYFA = "[^"]+";/.exec(INDEX);
+  assert(mm !== null, "index.html'de `var RESIMDEN_SAYFA = \"...\";` satiri YOK");
+  return mm[0].trim();
+});
+
 /* 🔴 syncUrl 11 Agu'da GORUNEN kategori etiketine uzandi (ic seri adi adres cubuginda
    gorunmesin diye): `?kategori=` artik gorunurKategori(activeCat) yaziyor. Bagimlilik
    STUB'LANMAZ — index.html'deki GERCEK tablo + fonksiyon ayiklanip sandbox govdesinin
@@ -170,7 +178,9 @@ function kosum(baslangicUrl, durum) {
     "var activeAlt = " + JSON.stringify(durum.altkategori || "Tümü") + ";" +
     "var activeBrand = " + JSON.stringify(durum.marka || "Tümü") + ";" +
     "var activeModel = " + JSON.stringify(durum.model || "Tümü") + ";" +
-    "var query = " + JSON.stringify(durum.ara || "") + ";\n" +
+    "var query = " + JSON.stringify(durum.ara || "") + ";" +
+    // 31 Eki: syncUrl ara sayfa görünümüne uzandı; sabit index.html'den (RESIMDEN_SRC)
+    "var aktifSayfa = " + JSON.stringify(durum.sayfa || "") + ";" + RESIMDEN_SRC() + "\n" +
     GOR_ONEK + ATIF_SRC() + "\n" + SYNC_SRC() + "\nsyncUrl();", kutu);
   assert(basilan !== null, "syncUrl replaceState CAGIRMADI");
   return basilan;
