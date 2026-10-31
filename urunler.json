@@ -1,5 +1,52 @@
 [
   {
+    "id": "th6756511-ktm-catal-kablo-kilavuzu-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "KTM"
+    ],
+    "uyum": [
+      {
+        "marka": "KTM"
+      }
+    ],
+    "baslik": "KTM Çatal Kablo Kılavuzu Kapağı",
+    "aciklama": "KTM çatal koruyucusunun sol tarafında açık kalan kablo kılavuzunu örtmek için hazırlanmış kozmetik bir kapaktır. Kaynağında kapağın, yüksek çamurluk kiti takılı bir motosiklette iki kanalın, yuvanın ve açık vida deliklerinin görüntüsünü gidermek için çizildiği anlatılır. Kaynakta oturma ve yüzey kalitesinin ileride yeniden tasarlanabileceği de belirtilir. Fotoğraflarda beyaz renkli kapak motosiklet üzerinde görünür. Motosiklet ve çatal koruyucusu ürüne dahil değildir.\nYaklaşık dış ölçüler: 45 × 23 × 8 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6756511-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6756511-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6756511-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6756511-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "macfxr",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "th5877809-ktm-1290-on-cam-baglanti-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "KTM"
+    ],
+    "uyum": [
+      {
+        "marka": "KTM"
+      }
+    ],
+    "baslik": "KTM 1290 Ön Cam Bağlantı Kapağı",
+    "aciklama": "KTM 1290 motosikletinin ön cam bağlantısının üst kısmında, GPS tutucusu çıkarılınca açıkta kalan boşluğu örtmek için hazırlanmış bir kapaktır. Kaynağında GPS tutucusunun motosikletle birlikte geldiği, tutucu çıkarılınca ön cam bağlantısının üstünde delik kaldığı ve kapağın bu boşluk için çizildiği anlatılır. Kaynakta kapağın, çıkarılan parçanın kendisi elde olmadan çizildiği için biraz farklı olabileceği de belirtilir. Fotoğrafta kapak, motosikletin gösterge kümesinin yanında görünür. Motosiklet ve GPS tutucusu ürüne dahil değildir.\nYaklaşık dış ölçüler: 26 × 25 × 20 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5877809-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "-mace-",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "pr299339-ikea-alex-cekmece-kulpu-ve-etiket-tutucusu",
     "kategori": "Ev",
     "marka": [
