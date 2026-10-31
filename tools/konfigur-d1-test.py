@@ -258,11 +258,28 @@ def main():
     # katalog basina dogrusal Figur/Fidget eklenince [0] `hacim`siz kayit oldu. Fikstur artik
     # SINIFINDAN secilir — her fiyat modu kendi bozulma ekseniyle (hacim modu: `hacim` yok;
     # dogrusal: `fiyatModu` yok -> hacim moduna duser, `hacim` de yok = bozuk).
+    # 31 Eki: Skan serisi de dogrusal oldu (`hacim` anahtari kaldi ama fiyata girmez) ->
+    # hacim modu = `hacim` VAR ve fiyatModu dogrusal DEGIL. Katalogda boyle kayit kalmadiysa
+    # SENTETIK hacim kaydi kurulur (hacim kolu d1-sync'te yasamaya devam eder; vakuma dusmez).
+    def _hacim_fikstur():
+        taban = next((u for u in konf_urunler if isinstance(u["konfigur"], dict)), None)
+        if taban is None:
+            return None
+        u = json.loads(json.dumps(taban))
+        u["id"] = "x-hacim-fikstur"
+        u["konfigur"].pop("fiyatModu", None)
+        u["konfigur"].pop("gorselOrnek", None)
+        u["konfigur"]["hacim"] = {"refYukseklikMm": 150, "refHacimCm3": 300}
+        return u
     for mod, sart, silinen in (
-            ("hacim", lambda k: "hacim" in k, "hacim"),
+            ("hacim", lambda k: "hacim" in k and k.get("fiyatModu") != "dogrusal", "hacim"),
             ("dogrusal", lambda k: k.get("fiyatModu") == "dogrusal", "fiyatModu")):
         kaynak = next((u for u in konf_urunler if isinstance(u["konfigur"], dict)
                        and sart(u["konfigur"])), None)
+        if kaynak is None and mod == "hacim":
+            kaynak = _hacim_fikstur()
+            if kaynak is not None:
+                harita[kaynak["id"]] = d1.konfigur_haritasi_d1([kaynak])[0].get(kaynak["id"], "")
         dogrula("BOZUK konfigur fiksturu (%s modu) katalogda VAR" % mod, kaynak is not None,
                 "konfigurlu %d urunde %s modu yok" % (len(konf_urunler), mod))
         if kaynak is None:
