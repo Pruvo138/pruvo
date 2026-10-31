@@ -136,6 +136,16 @@ FIX_D_FIDGET_EKSIK = [_rs("x-d-fidget-eksik", kategori="Fidget", renkler=_UC_REN
 FIX_D_KATEGORI_DISI = [_rs("x-d-oyun", kategori="Oyun/Hobi", renkler=_UC_RENK),
                        _rs("x-d-dekor", kategori="Dekorasyon", renkler=_UC_RENK),
                        _gecerli("x-d-skan")]
+# C18 — 31 Eki: Skan Art serisi (hacim, id soneki) Figür'e tasindi, renkleri AYNEN (Diğer YOK)
+# -> TAM; soneksiz Figür kaydi Diğer'siz -> HALA IHLAL (muafiyet seriye dar).
+def _seri_figur(uid):
+    u = _gecerli(uid)
+    u["kategori"] = "Figür"
+    return u
+
+
+FIX_D_SERI_MUAF = [_seri_figur("x-d-kurt-serit-dekoratif-figur"),
+                   _rs("x-d-figur-soneksiz-eksik", renkler=_UC_RENK)]
 # C16 — konfigursuz Figur kaydi kapsam DISI (sayilmaz, OLCULEMEDI de olmaz).
 FIX_D_KONFIGURSUZ = [_rs("x-d-figur-ok"),
                      {"id": "x-d-figur-duz", "kategori": "Figür", "gorseller": _g(2)}]
@@ -250,6 +260,13 @@ def c15_d_kategori_disi(mod):
     return (ihlal == [] and olc == [] and tam == 3 and mod.JETON_TAM in satir), satir
 
 
+def c18_d_seri_muaf(mod):
+    """Skan Art serisi (id soneki) Figür'de Diğer'siz -> TAM; soneksiz Figür -> YALNIZ o IHLAL."""
+    satir, ihlal, olc, tam = mod.denetle(FIX_D_SERI_MUAF, _turet(mod))
+    ids = [pid for pid, _ in ihlal]
+    return (ids == ["x-d-figur-soneksiz-eksik"] and olc == [] and tam == 1), satir
+
+
 def c16_d_konfigursuz(mod):
     """konfigursuz Figur kaydi kapsam DISI -> sayilmaz."""
     satir, ihlal, olc, tam = mod.denetle(FIX_D_KONFIGURSUZ, _turet(mod))
@@ -282,6 +299,7 @@ IDDIALAR = [
     ("C14 D FIDGET     (Fidget kaydinda Diğer yok -> IHLAL)", c14_d_fidget_eksik),
     ("C15 D KATEGORI   (Figur/Fidget disi Diğer'siz kayit -> TAM)", c15_d_kategori_disi),
     ("C16 D KONFIGURSUZ (konfigursuz Figur kapsam disi)", c16_d_konfigursuz),
+    ("C18 D SERI MUAF  (Figür'e tasinan Skan seri Diğer'siz TAM; soneksiz IHLAL)", c18_d_seri_muaf),
     ("C17 D OLCULEMEDI (renk dugmesi fonksiyonu yok -> OLCULEMEDI)", c17_d_fn_yok),
 ]
 
@@ -367,9 +385,13 @@ MUTANTLAR = [
      'DIGER_KATEGORILER = ("Figür",)\n',
      True, "C14"),
     ("N-14 D KATEGORI KISITI SOKULDU (her konfigur urunu Diğer ister)",
-     "    if u.get(\"kategori\") in DIGER_KATEGORILER:\n",
+     "    if _diger_kapsaminda(u):\n",
      "    if True:\n",
      True, "C15"),
+    ("N-16 SERI MUAFIYETI SILINDI (Figür'e tasinan Skan serisi Diğer ister)",
+     "            not str(u.get(\"id\") or \"\").endswith(DIGER_MUAF_ID_SONEKI))\n",
+     "            True)\n",
+     True, "C18"),
     ("N-15 KONFIGURSUZ KAYIT KAPSAMA ALINDI (konfigursuz Figur sayilir)",
      '        if not isinstance(u, dict) or not isinstance(u.get("konfigur"), dict):\n',
      '        if not isinstance(u, dict):\n',

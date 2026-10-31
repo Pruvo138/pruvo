@@ -128,8 +128,34 @@ def kontroller(index, bolum, veri, build):
         s.append(("Y1 kap varsayilan gizli (hidden)", re.search(r"\shidden\b", kap.group(0)) is not None, kap.group(0)))
         s.append(("Y1 tek kap", len(re.findall(r'id="fotoUretim"', index)) == 1, ""))
     liste = re.search(r'\[\s*"katPanels"[^\]]*\]\.forEach', index)
-    s.append(("Y2 renderGrid gorunum listesinde fotoUretim",
-              bool(liste) and '"fotoUretim"' in liste.group(0), liste.group(0) if liste else "liste yok"))
+    # 31 Eki: foto uretim bolumu ANA SAYFADAN AYRILDI; artik YALNIZ "resimden-uretim" ara
+    # sayfasinda gorunur (ana sayfada gizli). Onceki "gorunum listesinde" iddiasi TERSI:
+    # bolum listeden CIKARILDI ve kendi kuraliyla (resimdenSayfasi) yonetiliyor.
+    fotoKural = re.search(r'fotoEl\.style\.display\s*=\s*resimdenSayfasi\s*\?\s*""\s*:\s*"none"', index)
+    s.append(("Y2 renderGrid: #fotoUretim YALNIZ ara sayfada gorunur (resimdenSayfasi ? '' : 'none')",
+              bool(fotoKural), fotoKural.group(0) if fotoKural else "kural yok"))
+    s.append(("Y2b #fotoUretim ana sayfa toggle listesinde DEGIL (ara sayfaya tasindi)",
+              bool(liste) and '"fotoUretim"' not in liste.group(0), liste.group(0) if liste else "liste yok"))
+    # 31 Eki: giris banner'i (#fotoBanner) ara sayfaya baglanir; VARSAYILAN gizlidir
+    # (fail-closed: uretim programi kapaliyken gorunmez).
+    ban = re.search(r'<a\b[^>]*\bid="fotoBanner"[^>]*>', index)
+    s.append(("Y17 giris banner'i (#fotoBanner) href'i birebir /?sayfa=resimden-uretim",
+              bool(ban) and 'href="/?sayfa=resimden-uretim"' in ban.group(0),
+              ban.group(0) if ban else "banner yok"))
+    s.append(("Y17b giris banner'i VARSAYILAN `hidden` (program kapaliyken gorunmez)",
+              bool(ban) and re.search(r"\shidden\b", ban.group(0)) is not None,
+              ban.group(0) if ban else "banner yok"))
+    # 31 Eki: ara sayfa blogu — kisa baslik + "program kapali" satiri (WA baglantisiyla).
+    ara = re.search(r'<section\b[^>]*\bid="resimdenSayfaBas"[^>]*>[\s\S]*?</section>', index)
+    # h1 METNI ayrica olculur (bolumun aria-label'i ayni sozlesigi tasidigi icin
+    # "metin blokta var" demek tek basina yeterli DEGIL — h1'in kendisi olculur).
+    araH1 = re.search(r'<h1\b[^>]*>([^<]*)</h1>', ara.group(0) if ara else "")
+    s.append(("Y18 ara sayfa blogu VAR: h1 'Resimden figür üret' + kapali satiri (WA baglantisi)",
+              bool(ara) and bool(araH1) and araH1.group(1).strip() == "Resimden figür üret"
+              and 'id="fotoKapaliMesaj"' in ara.group(0) and "WhatsApp'tan yazın" in ara.group(0),
+              "yok" if not ara else (araH1.group(1) if araH1 else "h1 yok")))
+    s.append(("Y18b ara sayfa blogu VARSAYILAN gizli (style=\"display:none\")",
+              bool(ara) and 'style="display:none"' in ara.group(0), ""))
     sv = index.find('<script src="/foto-uretim-veri.js" defer>')
     sb = index.find('<script src="/foto-uretim.js" defer>')
     se = index.find('<script src="/secenekler.js">')
@@ -296,7 +322,17 @@ def main():
                                     '<div id="katPanels" class="kat-panels"></div>' + kap.group(0), 1)
         mutantlar.append(("M1 kap kategorilerin ALTINA tasindi", (tasinmis, bolum, veri, build), True))
     mutantlar += [
-        ("M2 gorunum listesinden dustu", (index.replace(', "fotoUretim"]', "]"), bolum, veri, build), True),
+        ("M2 #fotoUretim kurali terslendi (her zaman gorunur — ana sayfada da acilir)",
+         (index.replace('fotoEl.style.display = resimdenSayfasi ? "" : "none";',
+                        'fotoEl.style.display = "";'), bolum, veri, build), True),
+        ("M27 banner href'i ara sayfadan baska yere baglandi",
+         (index.replace('href="/?sayfa=resimden-uretim"', 'href="/?kategori=Skan%20Art"'), bolum, veri, build), True),
+        ("M28 bannerdan `hidden` kaldirildi (fail-closed kirildi)",
+         (index.replace('href="/?sayfa=resimden-uretim" hidden', 'href="/?sayfa=resimden-uretim"'), bolum, veri, build), True),
+        ("M29 ara sayfa basligi degisti",
+         (index.replace("Resimden figür üret</h1>", "Hemen başlayın</h1>"), bolum, veri, build), True),
+        ("M30 ara sayfa blogu varsayilan gorunur birakildi",
+         (index.replace('class="resimden-sayfa-bas" style="display:none"', 'class="resimden-sayfa-bas"'), bolum, veri, build), True),
         ("M3 durustluk ifadesi silindi", (index, bolum, veri.replace(DURUSTLUK, "önizlemenin yorumu"), build), True),
         ("M14 bolum sabit durustluk metnine dondu",
          (index, bolum.replace("t && t.durustluk ? t.durustluk : \"\"", "\"Ürün en çok 4 renkle kabartma olarak üretilir\""), veri, build), True),

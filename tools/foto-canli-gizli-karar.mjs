@@ -66,6 +66,10 @@ function sahteBelge() {
   const body = new Oge("body");
   const bolum = new Oge("section"); bolum.id = "fotoUretim"; bolum.setAttribute("hidden", "");
   body.appendChild(bolum);
+  // 31 Eki: ana sayfa giris banner'i da fail-closed (varsayilan `hidden`) — program kapaliyken
+  // ACILMAMALI. Karar kosucusu ikisini birden olcer.
+  const banner = new Oge("a"); banner.id = "fotoBanner"; banner.setAttribute("hidden", "");
+  body.appendChild(banner);
   const document = {
     readyState: "complete", head, body,
     createElement: (e) => new Oge(e),
@@ -74,7 +78,7 @@ function sahteBelge() {
     querySelector: () => null,
     addEventListener: () => {},
   };
-  return { document, bolum };
+  return { document, bolum, banner };
 }
 
 // Bolum kodunun fetch geri cagrisinda firlayan istisna (yakalanmamis Promise reddi) kosucuyu COKERTMEZ, SAYILIR:
@@ -92,7 +96,7 @@ try {
   bitir({ gorunur: null, istisna: 0, hata: "dosya-okunamadi: " + String(e && e.message).slice(0, 200) }, 2);
 }
 
-const { document, bolum } = sahteBelge();
+const { document, bolum, banner } = sahteBelge();
 const kok = {
   document, setTimeout, clearTimeout, setInterval: () => 0, clearInterval: () => {}, console: { log() {}, warn() {}, error() {} },
   // secenekler.js taklidi: bolum kodu SECENEK yoksa erken doner (bolum gizli kalir) — saplama kosucuyu
@@ -137,4 +141,4 @@ try {
   bitir({ gorunur: null, istisna: 0, hata: "js-kosmadi: " + String(e && e.message).slice(0, 200) }, 2);
 }
 for (let i = 0; i < 10; i++) { await new Promise((c) => setTimeout(c, 0)); }
-bitir({ gorunur: !bolum.hidden, istisna, hata: null }, 0);
+bitir({ gorunur: !bolum.hidden, bannerGorunur: !banner.hidden, istisna, hata: null }, 0);

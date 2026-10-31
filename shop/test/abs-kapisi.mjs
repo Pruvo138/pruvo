@@ -40,6 +40,7 @@ import crypto from "node:crypto";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { createRequire } from "node:module";
 import { execFileSync } from "node:child_process";
+import { KONFIGUR_ID_SONEKI } from "../src/konfigur-beklenen.js";
 
 const BURASI = path.dirname(fileURLToPath(import.meta.url));
 const SHOP = path.dirname(BURASI);
@@ -569,13 +570,15 @@ baslik("== 8) Skan Art konfigur kolu DEGISMEDI (ABS SIZMADI) ==");
     }
   }
   // 18 Eki: dogrusal konfigur serisi (Figur + Fidget) eklendi; Skan Art dekor serisi 16'da sabit.
-  const skanArt = konf.filter((u) => u.kategori === "Skan Art");
+  // 31 Eki (Okan): seri urunleri "Figür" kategorisine tasindi -> seri KATEGORIDEN degil id
+  // sonekinden tanınır (TEK KAYNAK: shop/src/konfigur-beklenen.js KONFIGUR_ID_SONEKI).
+  const skanArt = konf.filter((u) => String(u.id || "").endsWith(KONFIGUR_ID_SONEKI));
   ol("8.1 Skan Art dekor serisi konfigur urun sayisi 16", skanArt.length === 16,
      "sayi=" + skanArt.length + " (toplam konfigur=" + konf.length + ")");
   // 19 Eki (BaBa 01:1x): dogrusal sinif KATEGORIDEN BAGIMSIZ (Pentakoron Oyun/Hobi/Ev). Kategori
   // listesi ABS'i korumuyordu (8.3 korur: malzeme listesi acik, ABS'siz); korunan sinif kurali:
   // hacim modlu konfigur yalniz Skan Art dekor serisindedir, digerleri fiyatModu "dogrusal".
-  const sinifDisi = konf.filter((u) => !(u.kategori === "Skan Art" ||
+  const sinifDisi = konf.filter((u) => !(String(u.id || "").endsWith(KONFIGUR_ID_SONEKI) ||
     (u.konfigur && u.konfigur.fiyatModu === "dogrusal")));
   ol("8.2 her konfigur urunu ya Skan Art (hacim) ya fiyatModu \"dogrusal\"",
      sinifDisi.length === 0,

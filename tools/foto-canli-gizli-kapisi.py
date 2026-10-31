@@ -39,6 +39,7 @@ DEPO = BURASI.parent
 KARAR = BURASI / "foto-canli-gizli-karar.mjs"
 KOK_URL = "https://pruvo3d.com/"
 BOLUM_ID = "fotoUretim"
+BANNER_ID = "fotoBanner"
 UA = "pruvo-foto-canli-gizli-kapisi/1"
 ZAMAN_ASIMI = 20
 
@@ -58,12 +59,15 @@ class _BolumBul(HTMLParser):
     def __init__(self):
         super().__init__(convert_charrefs=True)
         self.bolum = None  # None = yok; aksi halde ozellik sozlugu
+        self.banner = None  # 31 Eki: ana sayfa giris banner'i (varsayilan `hidden`)
         self.betikler = []
 
     def handle_starttag(self, etiket, ozellikler):
         o = dict(ozellikler)
         if o.get("id") == BOLUM_ID and self.bolum is None:
             self.bolum = o
+        if o.get("id") == BANNER_ID and self.banner is None:
+            self.banner = o
         if etiket == "script" and o.get("src"):
             self.betikler.append(o["src"])
 
@@ -71,7 +75,7 @@ class _BolumBul(HTMLParser):
 def html_coz(html):
     p = _BolumBul()
     p.feed(html)
-    return p.bolum, p.betikler
+    return p.bolum, p.banner, p.betikler
 
 
 def getir(url):
@@ -114,7 +118,7 @@ def karar_kos(veri_yol, js_yol, acik_yol=None, ok=True, durum=200, pozitif=False
         raise Olculemedi("karar-kosucusu-cikti rc=%s" % r.returncode)
     if r.returncode != 0 or sonuc.get("hata") or not isinstance(sonuc.get("gorunur"), bool):
         raise Olculemedi("karar-kosucusu:%s" % (sonuc.get("hata") or r.returncode))
-    return sonuc["gorunur"]
+    return sonuc
 
 
 def acik_turu(ok, veri):
@@ -133,13 +137,13 @@ def olc(a, gecici):
         acik_ok, acik_durum = a.fikstur_acik_ok != "0", 200 if a.fikstur_acik_ok != "0" else 503
         js_yol = Path(a.fikstur_js) if a.fikstur_js else DEPO / "foto-uretim.js"
         veri_yol = Path(a.fikstur_veri) if a.fikstur_veri else DEPO / "foto-uretim-veri.js"
-        bolum, _ = html_coz(html)
+        bolum, banner, _ = html_coz(html)
         js_metin = js_yol.read_text(encoding="utf-8")
     else:
         ok, durum, html = getir(a.kok)
         if not ok:
             raise Olculemedi("ana-sayfa-http-%s" % durum)
-        bolum, betikler = html_coz(html)
+        bolum, banner, betikler = html_coz(html)
         js_src, veri_src = betik_bul(betikler, "foto-uretim.js"), betik_bul(betikler, "foto-uretim-veri.js")
         if not js_src or not veri_src:
             raise Olculemedi("betik-yok js=%s veri=%s" % (bool(js_src), bool(veri_src)))
@@ -169,16 +173,29 @@ def olc(a, gecici):
     if bolum is None:
         return "KIRMIZI", "sebep=bolum-yok (#%s HTML'de bulunamadi; kapi kor kalmasin diye fail-closed)" % BOLUM_ID
     html_gizli = "hidden" in bolum
-    js_gorunur = karar_kos(veri_yol, js_yol, acik_yol, acik_ok, acik_durum)
+    js = karar_kos(veri_yol, js_yol, acik_yol, acik_ok, acik_durum)
+    js_gorunur = js.get("gorunur")
+    js_banner = js.get("bannerGorunur")
     # Pozitif kontrol: ayni kosucu "acik + 1 tur" ile bolumu ACAMIYORSA (b) kolu kordur -> YESIL verilmez.
-    if not karar_kos(veri_yol, js_yol, pozitif=True):
+    poz = karar_kos(veri_yol, js_yol, pozitif=True)
+    if not poz.get("gorunur"):
         raise Olculemedi("pozitif-kontrol (kosucu acik programda bile bolumu acamadi: karar kolu kor)")
+    if not poz.get("bannerGorunur"):
+        raise Olculemedi("pozitif-kontrol (kosucu acik programda banner'i acamadi: karar kolu kor)")
     sebepler = []
     if not html_gizli:  # MUTANT-CAPA-A
         sebepler.append("html-hidden-yok")
     if js_gorunur:  # MUTANT-CAPA-B
         sebepler.append("js-aciyor")
-    ozet = "acik_tur=0 html_hidden=%d js_gorunur=%d pozitif=1" % (html_gizli, js_gorunur)
+    # 31 Eki: giris banner'i da fail-closed — program kapaliyken gorunmemeli.
+    if banner is None:  # MUTANT-CAPA-C-banner-yok
+        sebepler.append("banner-yok")
+    if banner is not None and "hidden" not in banner:  # MUTANT-CAPA-C-banner-hidden
+        sebepler.append("banner-hidden-yok")
+    if js_banner:  # MUTANT-CAPA-C-js-banner
+        sebepler.append("js-banner-aciyor")
+    ozet = ("acik_tur=0 html_hidden=%d js_gorunur=%d banner_hidden=%s js_banner=%s pozitif=1"
+            % (html_gizli, js_gorunur, (banner is not None and "hidden" in banner), js_banner))
     if sebepler:
         return "KIRMIZI", "sebep=%s %s" % ("+".join(sebepler), ozet)
     return "YESIL", ozet

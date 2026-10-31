@@ -34,6 +34,12 @@
   var MESAFELI_URL = "/mesafeli-satis/";
   var ANA_BOLUM_ID = "fotoUretim";
   var STIL_ID = "fotoUretimStil";
+  // 31 Eki: foto üretim bölümü ana sayfadan ayrıldı; ana sayfada giriş banner'ı var
+  // (#fotoBanner → /?sayfa=resimden-uretim). Banner varsayılan `hidden` (fail-closed) —
+  // program AÇIK olduğunda burada görünür olur; kapalı/hata hâlinde gizli kalır.
+  var BANNER_ID = "fotoBanner";
+  // Ara sayfada program kapalıysa gösterilen tek satır (WhatsApp bağlantısıyla).
+  var KAPALI_MESAJ_ID = "fotoKapaliMesaj";
   // ① KARTLAR — TEK tablo, YALNIZ Okan'ın 4 modeli, Okan'ın SIRASIYLA ve ADLARIYLA (Okan 10 Eki ~16:3x, 14 Eki anahtarlık
   // çıkarılmış: "1- insan ayakta duran figür 2- pet ayakta duran figür 3- Kabartma plaket 4- Model figür.
   // sadece bunları yapalım."). kod = kart · tur = üretim türü (manifest/`/acik` kodu) · alt = figür alt türü (S.altTur;
@@ -2548,12 +2554,23 @@
     gezintiGuncelle();
   }
 
-  /* ============== /acik ============== */
+  /* ============== /acik ==============
+     "Program kapalı" satırı (31 Eki): üretim AÇIKSA gizli, kapalıysa/hata olduysa görünür
+     (tek satır + WhatsApp bağlantısı). Bölümün kendi `hidden` durumu DEĞİŞMEZ (fail-closed:
+     program kapalıyken sihirbaz hiç açılmaz). */
+  function kapaliMesaji(acik) {
+    var el = document.getElementById(KAPALI_MESAJ_ID);
+    if (!el) return;
+    if (acik) { el.setAttribute("hidden", ""); return; }
+    el.removeAttribute("hidden");
+  }
+
   function acikYukle() {
     jsonGetir(ACIK_URL, function (ok, kod, veri) {
-      if (!ok || !veri) { adimKoy("kapali"); return; }
+      if (!ok || !veri) { adimKoy("kapali"); kapaliMesaji(false); return; }
       if (veri.acik !== true || !veri.turler || !veri.turler.length) {
         adimKoy("kapali");
+        kapaliMesaji(false);
         return;
       }
       // Okan 10 Eki: çalışmayan bölüm canlıda GÖRÜNMEZ. Bölüm yalnız sunucu açık + en az 1 tür dönünce açılır;
@@ -2561,6 +2578,10 @@
       var anaBolum = document.getElementById(ANA_BOLUM_ID);
       if (anaBolum) anaBolum.removeAttribute("hidden");
       capayaKaydir(anaBolum);
+      // 31 Eki: program AÇIK → ana sayfa giriş banner'ı da görünür olur (varsayılan `hidden`).
+      var banner = document.getElementById(BANNER_ID);
+      if (banner) banner.removeAttribute("hidden");
+      kapaliMesaji(true);
       S.acikVeri = veri;
       // ① kartları: yalnız /acik listesindeki türlerin kartları çizilir.
       if (S.ornekBlok) ornekCiz(S.ornekBlok, veri.turler.map(function (x) { return x.kod; }));
