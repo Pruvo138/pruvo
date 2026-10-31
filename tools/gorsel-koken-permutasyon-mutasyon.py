@@ -126,6 +126,17 @@ def b7_kategori_cevirme(mod):
     return t == ["x"], "tetik=%r (beklenen ['x'])" % (t,)
 
 
+def b9_seri_soneki_figurde(mod):
+    """31 Eki: seri Figür'e tasindi -> id soneki kapsamı TASIR (gorsel degisimi TETIKLER);
+    soneksiz Figür urunu kapsama GIRMEZ (kapsam genislemedi)."""
+    sid = "x" + mod.SERI_ID_SONEKI
+    u = lambda g: {"id": sid, "kategori": "Figür", "gorseller": list(g)}
+    t = mod.tetikleyenler({sid: u([G_GRI, G_SIYAH])}, {sid: u([G_GRI, G_YENI])})
+    t2 = mod.tetikleyenler({"y": {"id": "y", "kategori": "Figür", "gorseller": [G_GRI]}},
+                           {"y": {"id": "y", "kategori": "Figür", "gorseller": [G_YENI]}})
+    return (t == [sid] and t2 == []), "seri=%r (beklenen [%r]) · soneksiz=%r (beklenen [])" % (t, sid, t2)
+
+
 def b8_cozulemedi_fail_closed(mod):
     """LISTE-ESIT ama kanonik anahtar YOK -> "degismemis" DENMEZ, TETIKLER."""
     t = _tetik(mod, _COZULEMEZ, list(_COZULEMEZ))
@@ -141,6 +152,7 @@ IDDIALAR = [
     ("B6 YENI URUN       (kol 1 canli)", b6_yeni_urun),
     ("B7 KATEGORI CEVIRME(kol 3 ele gecirilmedi)", b7_kategori_cevirme),
     ("B8 COZULEMEDI      (kanonik anahtar yoksa fail-closed)", b8_cozulemedi_fail_closed),
+    ("B9 SERI SONEKI     (Figür'deki seri kapsamda, soneksiz Figür degil)", b9_seri_soneki_figurde),
 ]
 
 # ------------------------------------------------------------------------ mutantlar
@@ -162,7 +174,7 @@ _FAIL_CLOSED_KOLU = (
 _KOL1 = ("        if not isinstance(e, dict):\n"
          "            tetik.append(pid)                     # 1. yeni urun\n")
 
-_KOL3 = ("        elif e.get(\"kategori\") != KATEGORI:\n"
+_KOL3 = ("        elif not kapsamda(pid, e):\n"
          "            tetik.append(pid)                     # 3. kategori Skan Art'a cevrildi\n")
 
 MUTANTLAR = [
@@ -196,6 +208,10 @@ MUTANTLAR = [
      "    return a != b\n",
      "    return list(eski_g or []) != list(yeni_g or [])\n",
      True, "B1"),
+    ("M-8 SERI SONEKI KOLU OLDURULDU (Figür'e tasinan 16 ozgun urun korumasiz kalir)",
+     "                                     str(pid or \"\").endswith(SERI_ID_SONEKI))\n",
+     "                                     False)\n",
+     True, "B9"),
     ("M-7 KONTROL: simetrik OR operand SIRASI degisti (davranis DEGISMEZ) — YESIL kalmali",
      _FAIL_CLOSED_KOLU,
      "    if b is None or a is None:\n"
