@@ -330,9 +330,11 @@ async function ikiYol(urun, kalem) {
   return { a, b };
 }
 
+// 31 Eki (Okan: "skan art ürünlerinide sadece 6-25cm arası üretüm, 100tl per cm yap"): seri
+// dogrusal -> 150 mm = 1.500 TL · 300 mm istegi 250'ye kirpilir, ASA 1,6 -> 4.000 TL.
 const k1 = await ikiYol(CAPA, { id: CAPA.id, malzeme: "PLA", renk: "Siyah", adet: 1,
                                 parametreler: { boy_mm: 150 } });
-iddia("capa 150mm/PLA birim = 73600 kurus (kolon VAR)", k1.a.birimKurus === 73600,
+iddia("capa 150mm/PLA birim = 150000 kurus (kolon VAR)", k1.a.birimKurus === 150000,
       "olculen=" + k1.a.birimKurus);
 // FAZ 4: fiyat kaynagi D1 kolonu -> kolon YOKSA konfigur kalemi FAIL-CLOSED 400 alir
 // (bundle'a ya da sabit katalog fiyatina DUSULMEZ). Bedeli o kalemin WhatsApp'a dusmesidir;
@@ -343,7 +345,7 @@ iddia("capa 150mm/PLA kolon YOK -> FAIL-CLOSED 400 + tahsilat YOK",
 
 const k2 = await ikiYol(CAPA, { id: CAPA.id, malzeme: "ASA", renk: "Siyah", adet: 1,
                                 parametreler: { boy_mm: 300 } });
-iddia("capa 300mm/ASA birim = 150000 kurus (kolon VAR)", k2.a.birimKurus === 150000,
+iddia("capa 300mm/ASA birim = 400000 kurus (kolon VAR; 250 mm'ye kirpilir)", k2.a.birimKurus === 400000,
       "olculen=" + k2.a.birimKurus);
 iddia("capa 300mm/ASA kolon YOK -> FAIL-CLOSED 400 + tahsilat YOK",
       k2.b.kod === 400 && k2.b.govde.hata === "konfigur-urun" && k2.b.birimKurus === null,
@@ -356,10 +358,10 @@ const ankaKalem = { id: ANKA.id, malzeme: "PLA", renk: "Siyah", adet: 1,
                     parametreler: { boy_mm: 150 } };
 const p3 = await prova(MOD, [d1Satiri(ANKA)], ankaKalem);
 const p3b = await prova(MOD, [d1Satiri(ANKA)], ankaKalem, { konfigurKolonu: false });
-iddia("anka-kusu 150mm/PLA /fiyat tutar = '986,00 TL' (kargo dahil)",
-      p3.govde.tutar === "986,00 TL", "olculen=" + p3.govde.tutar);
-iddia("anka-kusu tahsilat_kurus = 98600 (73600 urun + 25000 kargo)",
-      p3.govde.tahsilat_kurus === 98600 && p3.govde.urun_kurus === 73600 &&
+iddia("anka-kusu 150mm/PLA /fiyat tutar = '1.750,00 TL' (kargo dahil)",
+      ["1.750,00 TL", "1750,00 TL"].includes(p3.govde.tutar), "olculen=" + p3.govde.tutar);
+iddia("anka-kusu tahsilat_kurus = 175000 (150000 urun + 25000 kargo)",
+      p3.govde.tahsilat_kurus === 175000 && p3.govde.urun_kurus === 150000 &&
       p3.govde.kargo_kurus === 25000, JSON.stringify(p3.govde));
 iddia("anka-kusu kolon YOKKEN provada da FAIL-CLOSED 400 (prova ile tahsilat AYRISMAZ)",
       p3b.kod === 400 && p3b.govde.hata === "konfigur-urun" && !p3b.govde.tutar,
@@ -371,11 +373,11 @@ const pCapa1 = await prova(MOD, [d1Satiri(CAPA)],
   { id: CAPA.id, malzeme: "PLA", renk: "Siyah", adet: 1, parametreler: { boy_mm: 150 } });
 const pCapa2 = await prova(MOD, [d1Satiri(CAPA)],
   { id: CAPA.id, malzeme: "ASA", renk: "Siyah", adet: 1, parametreler: { boy_mm: 300 } });
-iddia("/fiyat: capa 150mm/PLA birim_kurus = 73600",
-      pCapa1.govde.satirlar && pCapa1.govde.satirlar[0].birim_kurus === 73600,
+iddia("/fiyat: capa 150mm/PLA birim_kurus = 150000",
+      pCapa1.govde.satirlar && pCapa1.govde.satirlar[0].birim_kurus === 150000,
       JSON.stringify(pCapa1.govde.satirlar));
-iddia("/fiyat: capa 300mm/ASA birim_kurus = 150000",
-      pCapa2.govde.satirlar && pCapa2.govde.satirlar[0].birim_kurus === 150000,
+iddia("/fiyat: capa 300mm/ASA birim_kurus = 400000",
+      pCapa2.govde.satirlar && pCapa2.govde.satirlar[0].birim_kurus === 400000,
       JSON.stringify(pCapa2.govde.satirlar));
 
 const nKalem = { id: NORMAL.id, malzeme: "PLA", renk: "Siyah", adet: 1 };
@@ -448,8 +450,8 @@ const D1_BEKLENEN = FRONT.fiyatKurus(bozukKonf, FRONT.boyDuzelt(bozukKonf, 150),
 const rf = await baslat(MOD, [farkliSatir],
                         { id: CAPA.id, malzeme: "PLA", renk: "Siyah", adet: 1,
                           parametreler: { boy_mm: 150 } });
-iddia("TAHSILAT D1 SEMASINI IZLIYOR (" + D1_BEKLENEN + " kurus, bundle capasi 73600 DEGIL)",
-      rf.birimKurus === D1_BEKLENEN && rf.birimKurus !== 73600, "olculen=" + rf.birimKurus);
+iddia("TAHSILAT D1 SEMASINI IZLIYOR (" + D1_BEKLENEN + " kurus, bundle capasi 150000 DEGIL)",
+      rf.birimKurus === D1_BEKLENEN && rf.birimKurus !== 150000, "olculen=" + rf.birimKurus);
 iddia("artefakt driftu GORUNUR: tam 1 log yazildi", rf.loglar.length === 1,
       JSON.stringify(rf.loglar));
 const kayit = rf.loglar.length ? JSON.parse(rf.loglar[0].replace("konfigur-golge ", "")) : {};
@@ -492,11 +494,11 @@ iddia("D1'de VAR / bundle'da YOK -> durum 'bundle-eksik' KAYDEDILDI (pencere say
       kBE.durum === "bundle-eksik", JSON.stringify(kBE));
 // 🔴 FAZ 4 KAZANIMI: bu pencere KAPANDI. Eskiden bu kalem 400 aliyordu (satis kaybi);
 // artik sema D1'den okundugu icin DOGRU kurusla 200 doner — deploy beklemeden.
-iddia("... ve PENCERE KAPANDI: 200 + D1 semasindan DOGRU kurus (73600)",
-      rBundleEksik.kod === 200 && rBundleEksik.birimKurus === 73600,
+iddia("... ve PENCERE KAPANDI: 200 + D1 semasindan DOGRU kurus (150000)",
+      rBundleEksik.kod === 200 && rBundleEksik.birimKurus === 150000,
       rBundleEksik.kod + " birim=" + rBundleEksik.birimKurus);
 iddia("... ve artefaktin bayat oldugu YINE DE kayda gecti (deploy hatirlaticisi)",
-      kBE.d1_kurus === 73600, String(kBE.d1_kurus));
+      kBE.d1_kurus === 150000, String(kBE.d1_kurus));
 
 const rBozuk = await baslat(MOD, [d1Satiri(CAPA, "{bozuk-json")],
                             { id: CAPA.id, malzeme: "PLA", renk: "Siyah", adet: 1,

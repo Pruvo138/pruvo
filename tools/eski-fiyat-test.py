@@ -841,7 +841,24 @@ def bolum_e2(urunler):
     dogrusal = {p["id"] for p in urunler
                 if isinstance(p.get("konfigur"), dict)
                 and p["konfigur"].get("fiyatModu") == "dogrusal"}
-    for p, k, boy, kat in _kombinasyonlar(urunler):
+    # 31 Eki (Okan: Skan serisi de 100 TL/cm dogrusal): katalogda hacim modlu urun KALMADI.
+    # Hacim yolu build.py'de yasamaya devam eder -> karsilastirma vakuma dusmesin diye katalog
+    # hacimsizse SENTETIK bir hacim kaydi (eski Skan semasi) olculur.
+    e2_urunler = urunler
+    if not any(isinstance(p.get("konfigur"), dict) and p["id"] not in dogrusal for p in urunler):
+        e2_urunler = list(urunler) + [{
+            "id": "x-hacim-fikstur", "kategori": "Dekorasyon", "fiyat": "500 TL",
+            "konfigur": {
+                "renkler": ["Siyah", "Beyaz", "Gri"],
+                "boyutMm": {"min": 60, "max": 300, "adim": 10, "varsayilan": 150,
+                            "etiket": "Yükseklik"},
+                "hacim": {"refYukseklikMm": 150, "refHacimCm3": 300},
+                "fiyatCapalari": [[60, 500], [300, 2500]],
+                "malzemeler": [{"ad": "PLA", "katsayi": 1.0}, {"ad": "PETG", "katsayi": 1.3},
+                               {"ad": "ASA", "katsayi": 1.6}],
+                "varsayilanMalzeme": "PLA"}}]
+        print("     katalogda hacim modlu urun YOK -> sentetik hacim kaydiyla olculur")
+    for p, k, boy, kat in _kombinasyonlar(e2_urunler):
         if p["id"] in dogrusal:
             continue
         y = build.konfigur_fiyat_kurus(k, boy, kat)
