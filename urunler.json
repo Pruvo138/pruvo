@@ -71,7 +71,11 @@
       "https://media.pruvo3d.com/urunler/th5364383-1.jpg",
       "https://media.pruvo3d.com/urunler/th5364383-2.jpg",
       "https://media.pruvo3d.com/urunler/th5364383-3.jpg"
-    ]
+    ],
+    "lisans": {
+      "tasarimci": "SCO07",
+      "tur": "CC0"
+    }
   },
   {
     "id": "th5450187-yamaha-mt-07-lcd-arkasi-kamera-montaji",
@@ -449,7 +453,11 @@
       "https://media.pruvo3d.com/urunler/th4689372-2.jpg",
       "https://media.pruvo3d.com/urunler/th4689372-3.jpg",
       "https://media.pruvo3d.com/urunler/th4689372-4.jpg"
-    ]
+    ],
+    "lisans": {
+      "tasarimci": "Make3000",
+      "tur": "CC0"
+    }
   },
   {
     "id": "th4867629-honda-africa-twin-yakit-deposu-kaplama-levhasi",
