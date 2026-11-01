@@ -468,7 +468,11 @@
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th6774937-1.jpg",
       "https://media.pruvo3d.com/urunler/th6774937-2.jpg"
-    ]
+    ],
+    "lisans": {
+      "tasarimci": "FalconiformNate",
+      "tur": "CC0"
+    }
   },
   {
     "id": "th5441594-kawasaki-z900-usb-soket-tutucusu",
