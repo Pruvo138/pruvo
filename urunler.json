@@ -1,5 +1,255 @@
 [
   {
+    "id": "th1242581-yamaha-mt-07-on-taban-plakasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha"
+    ],
+    "uyum": [
+      {
+        "marka": "Yamaha"
+      }
+    ],
+    "baslik": "Yamaha MT-07 / MT-09 / FZ-07 / FZ-09 Ön Taban Plakası",
+    "aciklama": "Yamaha MT-07, MT-09, FZ-07 ve FZ-09 modellerinin ön bölümüne takılan bir taban plakasıdır. Parça, plaka üzerindeki raylardan oluşan bir gövde ve rayların üzerine oturan bağlantı parçalarından oluşur. Kaynağında farklı aksesuarların ön bölüme bağlanabileceği belirtilir. Motosiklet ve aksesuarlar ürüne dahil değildir.\nYaklaşık dış ölçüler: 160 × 100 × 19 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1242581-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1242581-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1242581-3.jpg",
+      "https://media.pruvo3d.com/urunler/th1242581-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Farin",
+      "tur": "LGPL"
+    }
+  },
+  {
+    "id": "th3666146-yamaha-mt-07-kilit-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "MT-07"
+    ],
+    "uyum": [
+      {
+        "marka": "Yamaha",
+        "model": "MT-07"
+      }
+    ],
+    "baslik": "Yamaha MT-07 Kontak Kilit Kapağı",
+    "aciklama": "Yamaha MT-07 kontak anahtarındaki kilit yuvasını örten bir kapak parçasıdır. Parça, yuvanın üzerine oturan bir gövde ve kilit düğmesinin çıktığı açıklıktan oluşur. Kaynağında MT-07 için tasarlandığı belirtilir. Motosiklet ve anahtar ürüne dahil değildir.\nYaklaşık dış ölçüler: 27 × 27 × 15 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3666146-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3666146-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3666146-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3666146-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "NorrisNoFun",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th5364383-yamaha-tracer-900-ekran-arkasi-plaka",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "Tracer 900"
+    ],
+    "uyum": [
+      {
+        "marka": "Yamaha",
+        "model": "Tracer 900"
+      }
+    ],
+    "baslik": "Yamaha Tracer 900 Ekran Arkası Bağlantı Plakası",
+    "aciklama": "Yamaha Tracer 900 gösterge panelinin arkasına yerleşen bir tutucu bağlantı plakasıdır. Parça, panelin arkasındaki bağlantı noktalarına göre kesilmiş düz bir gövdeden oluşur. Kaynağında 2019 modeli Tracer 900 için tasarlandığı yazılır. Motosiklet ve tutucu ürüne dahil değildir.\nYaklaşık dış ölçüler: 196 × 115 × 3 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5364383-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5364383-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5364383-3.jpg"
+    ]
+  },
+  {
+    "id": "th5450187-yamaha-mt-07-lcd-arkasi-kamera-montaji",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "MT-07"
+    ],
+    "uyum": [
+      {
+        "marka": "Yamaha",
+        "model": "MT-07"
+      }
+    ],
+    "baslik": "Yamaha MT-07 LCD Gösterge Arkası Kamera Montajı",
+    "aciklama": "Yamaha MT-07 2021 ve sonrası modellerinin LCD gösterge panelinin arkasına takılan bir kamera montaj parçasıdır. Parça, panelin arkasındaki iki vida noktasına oturan bir gövde ve kameranın bağlandığı bağlantı başlığından oluşur. Kaynağında kamera bağlantısı için tasarlandığı yazılır. Motosiklet ve kamera ürüne dahil değildir.\nYaklaşık dış ölçüler: 66 × 62 × 18 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5450187-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5450187-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5450187-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Guildmarm",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th6417522-yamaha-mt-07-yakit-deposu-kamera-montaji",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "MT-07"
+    ],
+    "uyum": [
+      {
+        "marka": "Yamaha",
+        "model": "MT-07"
+      }
+    ],
+    "baslik": "Yamaha MT-07 Yakıt Deposu Kamera Montaj Plakası",
+    "aciklama": "Yamaha MT-07'nin yakıt deposu üzerine takılan bir kamera montaj plakasıdır. Parça, deponun üst yüzeyine oturan bir taban ve kamera ya da telefonun bağlandığı bir bağlantı noktasından oluşur. Kaynağında 2021 modeli MT-07 üzerinde denendiği yazılır. Motosiklet, kamera ve telefon ürüne dahil değildir.\nYaklaşık dış ölçüler: 172 × 115 × 19 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6417522-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6417522-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "netradsky",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "th6502076-yamaha-mt-07-aksesuar-bar-kure-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha"
+    ],
+    "uyum": [
+      {
+        "marka": "Yamaha"
+      }
+    ],
+    "baslik": "Yamaha MT-07 / Tracer Aksesuar Barı Küre Tutucusu",
+    "aciklama": "MT-07 ve Tracer modellerinin aksesuar barına takılmak üzere tasarlanmış bir küre bağlantı tutucusudur. Parça, barın üzerine kavradığı bir kıskaç bölümü ve küre bağlantı noktasından oluşur. Kaynağında tutucunun bar üzerine kavrayıp bir bağlantı elemanıyla sabitlendiği yazılır. Motosiklet ve tutucu ürüne dahil değildir.\nYaklaşık dış ölçüler: 70 × 40 × 32 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6502076-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6502076-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "netradsky",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "th6778292-yamaha-tenere-700-rally-bar-telefon-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha"
+    ],
+    "uyum": [
+      {
+        "marka": "Yamaha"
+      }
+    ],
+    "baslik": "Yamaha Tenere 700 Rally Bar Telefon Tutucusu",
+    "aciklama": "Yamaha Tenere 700'ün Rally Bar bölümüne telefon takmak için tasarlanmış bir tutucudur. Parça, barın üzerine oturan bir kaide ve telefonu çevreleyen bir yuva bölümünden oluşur. Kaynağında belirli bir telefon ve kılıf için ölçülendirildiği yazılır. Motosiklet ve telefon ürüne dahil değildir.\nYaklaşık dış ölçüler: 163 × 52 × 33 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6778292-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6778292-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6778292-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6778292-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "quickcutz",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "th7316830-yamaha-mt-07-2025-kamera-montaj-parcasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "MT-07"
+    ],
+    "uyum": [
+      {
+        "marka": "Yamaha",
+        "model": "MT-07"
+      }
+    ],
+    "baslik": "Yamaha MT-07 2025 Kamera Montaj Parçası",
+    "aciklama": "Yamaha MT-07 2025 ve 2026 modellerinin gösterge üstüne sabitlenen küçük bir kamera bağlantı parçasıdır. Parça, tek bir vida noktasına oturan bir gövde ve kameranın bağlandığı bir başlıktan oluşur. Kaynağında kamera bağlantısı için tasarlandığı yazılır. Motosiklet ve kamera ürüne dahil değildir.\nYaklaşık dış ölçüler: 24 × 24 × 2 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7316830-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7316830-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7316830-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "drt3k",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "th7405140-yamaha-tracer-9-navigasyon-cihazi-braketi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "Tracer 9"
+    ],
+    "uyum": [
+      {
+        "marka": "Yamaha",
+        "model": "Tracer 9"
+      }
+    ],
+    "baslik": "Yamaha Tracer 9 Navigasyon Cihazı Montaj Braketi",
+    "aciklama": "Yamaha Tracer 9 GT+ modellerinin gösterge üstüne navigasyon cihazı bağlamak için tasarlanmış bir montaj braketidir. Parça, cihazın oturduğu bir kaide ve braketin göstergeye bağlandığı gövde bölümünden oluşur. Kaynağında Tracer GT+ için tasarlandığı yazılır. Motosiklet ve navigasyon cihazı ürüne dahil değildir.\nYaklaşık dış ölçüler: 92 × 54 × 26 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7405140-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7405140-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7405140-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "kenwag",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "th7411363-yamaha-yz250-yan-kasa-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "YZ250"
+    ],
+    "uyum": [
+      {
+        "marka": "Yamaha",
+        "model": "YZ250"
+      }
+    ],
+    "baslik": "Yamaha YZ250 Yan Kasa Kapağı",
+    "aciklama": "2000 modeli Yamaha YZ250'nin yan kasa bölümünü örten bir kapak parçasıdır. Parça, kasa yüzeyine oturacak biçimde biçimlendirilmiş düz bir gövdeden oluşur. Kaynağında fabrikanın yan kapak parçasının yerini alacağı belirtilir. Motosiklet ürüne dahil değildir.\nYaklaşık dış ölçüler: 100 × 75 × 10 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7411363-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7411363-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Motoce51",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "th2643258-honda-cbr-1000-f-saat-tutucusu",
     "kategori": "Motosiklet",
     "marka": [
