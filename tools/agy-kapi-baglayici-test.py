@@ -26,6 +26,9 @@ cagrilara karsi kosulur; KACAK > 0 olmali (aksi halde batarya hukumsuz -> rc=1).
 
 Cikti: `DENY N/N KACAK 0` + `MUTANT KIRMIZI ...`. rc=0 yalniz ikisi birden tutarsa.
 """
+import contextlib
+import importlib.util
+import io
 import json
 import os
 import shutil
@@ -36,7 +39,9 @@ import tempfile
 BU = os.path.dirname(os.path.abspath(__file__))
 EV = os.path.dirname(BU)
 BAGLAYICI = os.path.join(BU, "agy-kapi-baglayici.py")
-GERCEK_ONEK = "/Users/okan/dev/pruvo/tools/"
+# Yalniz metin degistirme oneki (settings.json'daki mutlak yol izole kopyaya cevrilir);
+# yolun var olmasi gerekmez. CI'da settings.json yoktur -> gercek kapi kollari OLCULEMEDI.
+GERCEK_ONEK = os.environ.get("PRUVO_GERCEK_ONEK") or "/Users/okan/dev/pruvo/tools/"
 sys.path.insert(0, BU)
 from mimar_kimlik import kapi_cevresi  # noqa: E402
 
@@ -226,7 +231,22 @@ def mutant_yaz(kok):
     return yol
 
 
+def surec_ici_giris():
+    """Baglayicinin CLI girisini surec ICINDE cagirir: `--ev` yok -> DENY (rc 2).
+    Sahipsiz kapi nobetcisi bu yuklemeyi SURULEN sayar (spec_from_file_location + main)."""
+    spec = importlib.util.spec_from_file_location("agy_kapi_baglayici", BAGLAYICI)
+    baglayici = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(baglayici)
+    with contextlib.redirect_stdout(io.StringIO()) as cikti:
+        rc = baglayici.main(["agy-kapi-baglayici.py"])
+    return rc == 2 and '"deny"' in cikti.getvalue()
+
+
 def main():
+    giris_ok = surec_ici_giris()
+    print("SUREC_ICI_GIRIS %s (--ev yok -> DENY)" % ("GECTI" if giris_ok else "KIRMIZI"))
+    if not giris_ok:
+        return 1
     kok = tempfile.mkdtemp(prefix="agy-baglayici-test-")
     try:
         ok, toplam, kacak, yanlis, olculemedi = batarya(BAGLAYICI, os.path.join(kok, "a"))
