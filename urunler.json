@@ -1,5 +1,135 @@
 [
   {
+    "id": "pr1227243-bmw-r1250gs-aksiyon-kamera-adaptor-plakasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "BMW",
+      "R1250GS"
+    ],
+    "uyum": [
+      {
+        "marka": "BMW",
+        "model": "R1250GS"
+      }
+    ],
+    "baslik": "BMW R1250GS Aksiyon Kamera Adaptör Plakası",
+    "aciklama": "BMW R1250GS'in ön bölgesindeki sinyal plakası bağlantısına oturan bir aksiyon kamera adaptör plakasıdır. Plaka, kameranın motosiklet gövdesine daha uzak bir konumda durmasını sağlayacak biçimde şekillendirilmiştir. Fotoğraflarda parça motosiklete takılı halde görünür. Motosiklet, sinyal plakası ve kamera ürüne dahil değildir.\nYaklaşık dış ölçüler: 56 × 46 × 40 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1227243-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1227243-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DrMcNasty",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th5339565-bmw-r1200gs-usb-tutucu-braketi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "BMW",
+      "R1200GS"
+    ],
+    "uyum": [
+      {
+        "marka": "BMW",
+        "model": "R1200GS"
+      }
+    ],
+    "baslik": "BMW R1200GS USB Tutucu Braketi",
+    "aciklama": "BMW R1200GS'in ön bölgesine takılmak üzere çizilmiş bir USB tutucu braketidir. Parçanın geniş yuvasına oturan silindirik USB cihazı, braketin kolu sayesinde motosiklet gövdesine bağlanır. Kaynağında 2004-2012 model yılları arasındaki R1200GS için tasarlandığı belirtilir. Motosiklet ve USB cihazı ürüne dahil değildir.\nYaklaşık dış ölçüler: 107 × 54 × 46 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5339565-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5339565-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5339565-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5339565-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "pinux",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th6644464-bmw-r1200gs-aksiyon-kamera-montaj-plakasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "BMW",
+      "R1200GS"
+    ],
+    "uyum": [
+      {
+        "marka": "BMW",
+        "model": "R1200GS"
+      }
+    ],
+    "baslik": "BMW R1200GS Aksiyon Kamera Montaj Plakası",
+    "aciklama": "BMW R1200GS için çizilmiş bir aksiyon kamera montaj plakasıdır. Uzun plakanın iki ucundaki delikler, parçayı motosiklet üzerindeki bağlantı noktalarına bağlamak için kullanılır. Ortadaki üç kanallı bölüm, aksiyon kameranın ayağının oturduğu yuvayı oluşturur. Set içinde silindirik bir ayraç da yer alır; motosiklet ve kamera ürüne dahil değildir.\nYaklaşık dış ölçüler: 252 × 55 × 4 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6644464-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6644464-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6644464-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "NightHawk88",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "th6502737-bmw-r1250gs-navigasyon-ekrani-bar-braketi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "BMW",
+      "R1250GS"
+    ],
+    "uyum": [
+      {
+        "marka": "BMW",
+        "model": "R1250GS"
+      }
+    ],
+    "baslik": "BMW R1250GS Navigasyon Ekranı Bar Braketi",
+    "aciklama": "Bir navigasyon ekranını gidon barına bağlamak için çizilmiş iki parçalı bir montaj plakasıdır. Plaka, ekranın kendi dört vida deliğiyle hizalanan eğimli yüzeyi taşır ve ekranın küresel bağlantı parçasının çevresinde yarım daire biçiminde bir açıklık bırakır. Set, ön plaka ve arka plaka olmak üzere iki parça içerir. Motosiklet, bar ve navigasyon ekranı ürüne dahil değildir.\nYaklaşık dış ölçüler: 50 × 50 × 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6502737-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6502737-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "romeritoCL",
+      "tur": "GPL"
+    }
+  },
+  {
+    "id": "th4817804-bmw-s1000rr-belge-tutucu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "BMW",
+      "S1000RR"
+    ],
+    "uyum": [
+      {
+        "marka": "BMW",
+        "model": "S1000RR"
+      }
+    ],
+    "baslik": "BMW S1000RR 2019+ Belge Tutucu",
+    "aciklama": "BMW S1000RR kokpit bölgesine yerleştirilen küçük bir belge tutucudur. Ehliyet ve kredi kartı gibi belgeler, kokpitin iç duvarına sabitlenen gövdenin iç bölmesinde taşınır. Kaynağında belgelerin kalınlığına göre iki farklı gövde yüksekliği sunulduğu belirtilir. Motosiklet ve tutulan belgeler ürüne dahil değildir.\nYaklaşık dış ölçüler: 98 × 92 × 12 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4817804-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4817804-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4817804-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4817804-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "kInGpIn-RR",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "th6993434-yamaha-xs400-alt-yan-kapak-sasi-burcu",
     "kategori": "Motosiklet",
     "marka": [
