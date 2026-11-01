@@ -1,5 +1,608 @@
 [
   {
+    "id": "th1398738-kawasaki-klx110-on-disli-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Kawasaki",
+      "KLX110"
+    ],
+    "uyum": [
+      {
+        "marka": "Kawasaki",
+        "model": "KLX110"
+      }
+    ],
+    "baslik": "Kawasaki KLX110 Ön Dişli Kapağı",
+    "aciklama": "Kawasaki KLX110 motosikletinde ön zincir dişlisinin üzerini kapatan düz bir kapak plakasıdır. Stok kapaktan farklı olarak iki cıvata ile tutturulur ve dişli bölgesine bakan yüzünde bir zincir açıklığı bulunur. Kaynağında parçanın 2010 model KLX 110L için çizildiği yazılır. Fotoğrafta siyah renkli plaka, zincir ve dişli bölgesinde görünür.\nYaklaşık dış ölçüler: 80 × 76 × 17 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1398738-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1398738-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "bdub_24",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th1759342-kawasaki-z1000-sx-vites-gostergesi-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Kawasaki"
+    ],
+    "uyum": [
+      {
+        "marka": "Kawasaki"
+      }
+    ],
+    "baslik": "Kawasaki Z1000 SX Vites Göstergesi Tutucusu",
+    "aciklama": "Kawasaki Z1000 SX motosikletinde vites göstergesi cihazını yerinde tutan küçük bir tutucudur. Çift taraflı bant kullanmadan, motosikletin mevcut vidası ile bağlanır ve başka bir parça gerektirmez. Kaynağında parçanın 2015 model Z1000SX için çizildiği yazılır. Fotoğrafta siyah renkli tutucu, ahşap bir yüzey üzerinde tek başına görünür.\nYaklaşık dış ölçüler: 40 × 39 × 22 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1759342-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1759342-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "exean",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th3547647-kawasaki-zx7r-ram-kure-tutucu-tabani",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Kawasaki"
+    ],
+    "uyum": [
+      {
+        "marka": "Kawasaki"
+      }
+    ],
+    "baslik": "Kawasaki ZX7R RAM Küre Tutucu Tabanı",
+    "aciklama": "Kawasaki ZX7R motosikletinin yakıt deposu kapağının çevresine yerleşen, üzerinde küre biçimli bir uç bulunan taban parçasıdır. Yay biçimli plaka, depo kapağının çevresindeki vida deliklerine göre çizilmiştir. Küre uç, küre bağlantılı tutucu kolları için bir bağlantı noktası sağlar. Fotoğraflarda siyah renkli taban, yeşil renkli depo kapağının üzerinde görünür.\nYaklaşık dış ölçüler: 106 × 66 × 41 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3547647-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3547647-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3547647-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Crosoft",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th2963091-kawasaki-versys-650-telefon-tutucu-seti",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Kawasaki",
+      "Versys 650"
+    ],
+    "uyum": [
+      {
+        "marka": "Kawasaki",
+        "model": "Versys 650"
+      }
+    ],
+    "baslik": "Kawasaki Versys 650 Telefon Tutucu Seti",
+    "aciklama": "Kawasaki Versys 650 motosikletinde telefonu tutmak için hazırlanmış üç parçalı bir settir. Set; sağ ve sol taraf parçaları ile bir silindir parçadan oluşur. Kaynağında parçanın 2018 model yılı Versys 650 için çizildiği yazılır. Fotoğrafta siyah renkli braket, kablosuyla birlikte ahşap bir deneme düzeneğinde görünür.\nYaklaşık dış ölçüler: 205 × 25 × 25 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2963091-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "SebRom77",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th3547612-kawasaki-zx7r-aksiyon-kamera-hizli-taban",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Kawasaki"
+    ],
+    "uyum": [
+      {
+        "marka": "Kawasaki"
+      }
+    ],
+    "baslik": "Kawasaki ZX7R Aksiyon Kamera Hızlı Taban",
+    "aciklama": "Kawasaki ZX7R motosikletinin yakıt deposu kapağının çevresine yerleşen, aksiyon kamera bağlantılı bir tabandır. Taban yay biçimli bir plaka üzerinde yer alır ve depo kapağının çevresindeki vida deliklerine göre çizilmiştir. Plakanın üst kısmında kameranın hızlıca takılıp çıkarıldığı bir bağlantı ucu bulunur. Fotoğrafta siyah renkli taban, yeşil renkli depo kapağının üzerinde görünür.\nYaklaşık dış ölçüler: 106 × 91 × 22 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3547612-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3547612-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Crosoft",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th2921967-kawasaki-z750-sinyal-deligi-kapak-plakasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Kawasaki",
+      "Z750"
+    ],
+    "uyum": [
+      {
+        "marka": "Kawasaki",
+        "model": "Z750"
+      }
+    ],
+    "baslik": "Kawasaki Z750 Sinyal Deliği Kapak Plakası",
+    "aciklama": "Kawasaki Z750 motosikletinde sinyal lambasının bağlandığı noktaya takılan oval bir kapak plakasıdır. Plakanın ortasında sinyal vidasının geçmesi için yuvarlak bir delik bulunur. Plaka iki farklı kalınlıkta hazırlanmıştır ve her iki sürüm de aynı yuvaya göre çizilmiştir. Fotoğrafta siyah renkli iki sürüm yan yana görünür.\nYaklaşık dış ölçüler: 46 × 27 × 4 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2921967-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2921967-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2921967-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "fa30 (remix: gsimon_fr)",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th6669774-kawasaki-zr-7-far-izgarasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Kawasaki"
+    ],
+    "uyum": [
+      {
+        "marka": "Kawasaki"
+      }
+    ],
+    "baslik": "Kawasaki ZR-7 Far Izgarası",
+    "aciklama": "Kawasaki ZR-7 için hazırlanmış, yuvarlak farın önüne takılan dikey çubuklu bir ızgaradır. Izgara far çerçevesine oturur ve motosiklete kozmetik bir görünüm verir. Kaynağında ızgaranın yuvarlak far için tasarlandığı yazılır. Fotoğraflarda siyah renkli ızgara, motosikletin far camının önünde ve elde görünür.\nYaklaşık dış ölçüler: 185 × 185 × 30 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6669774-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6669774-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6669774-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6669774-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "slabua",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "th325403-kawasaki-1700-sinyal-lambasi-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Kawasaki"
+    ],
+    "uyum": [
+      {
+        "marka": "Kawasaki"
+      }
+    ],
+    "baslik": "Kawasaki 1700 Sinyal Lambası Kapağı",
+    "aciklama": "Kawasaki 1700 serisi motosikletlerde sinyal lambasının üzerine geçirilen kovan biçimli bir kapaktır. Kapağın ağzı, lambanın bakış yönüne doğru eğimli olarak açılır. Kaynağında kapağın lamba gövdesine çok az yapıştırıcı ile tutturulduğu, böylece gerektiğinde sökülebildiği anlatılır. Fotoğrafta siyah renkli kapak, motosikletin ön kaportası yanındaki sinyal lambasının çevresinde görünür.\nYaklaşık dış ölçüler: 71 × 71 × 54 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th325403-1.jpg",
+      "https://media.pruvo3d.com/urunler/th325403-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "italymaker",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "th3942367-kawasaki-ninja-400-kontak-anahtari-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Kawasaki",
+      "Ninja 400"
+    ],
+    "uyum": [
+      {
+        "marka": "Kawasaki",
+        "model": "Ninja 400"
+      }
+    ],
+    "baslik": "Kawasaki Ninja 400 Kontak Anahtarı Kapağı",
+    "aciklama": "Kawasaki Ninja 400 motosikletinde kontak anahtarı yuvasının üzerine geçirilen yuvarlak bir kapaktır. Kapak, anahtar çıkarıldığında yuvanın üst yüzünü örter. Kaynağında parçanın 2018 ve sonrası Ninja 400 için çizildiği yazılır. Fotoğrafta sarı renkli kapak, gidon üst köprüsündeki kontak bölgesinde görünür.\nYaklaşık dış ölçüler: 51 × 48 × 8 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3942367-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3942367-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ApertureEngineering",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "th5137306-kawasaki-ninja-650-bardaklik-ve-braket-seti",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Kawasaki",
+      "Ninja 650"
+    ],
+    "uyum": [
+      {
+        "marka": "Kawasaki",
+        "model": "Ninja 650"
+      }
+    ],
+    "baslik": "Kawasaki Ninja 650 Bardaklık ve Braket Seti",
+    "aciklama": "Kawasaki Ninja 650 motosikletinde arka selenin altına takılan bir braket ile ona geçen çıkarılabilir bir bardaklıktan oluşur. Braket, selenin altındaki stok vida deliklerine bağlanır ve iki ara parça ile gömülü deliklere ulaşır. Bardaklık, braketteki yuvaya kaydırılarak yerleşir ve bir kilit dili ile yerinde kalır. Fotoğrafta braket, motosikletin kuyruk bölümünün altında görünür.\nYaklaşık dış ölçüler: 144 × 74 × 29 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5137306-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5137306-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5137306-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5137306-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "poboy",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th5146482-kawasaki-kle-500-sase-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Kawasaki"
+    ],
+    "uyum": [
+      {
+        "marka": "Kawasaki"
+      }
+    ],
+    "baslik": "Kawasaki KLE 500 Şase Kapağı",
+    "aciklama": "Kawasaki KLE 500 motosikletinde şase üzerindeki bir açıklığı kapatan yuvarlak bir kapaktır. Kapağın alt kısmında, yuvaya geçmesini sağlayan çentikli bir halka bulunur. Büyük ve küçük olmak üzere iki ayrı ebatta hazırlanmıştır. Fotoğrafta beyaz renkli kapaklar, metal bir halka ile birlikte masa üzerinde görünür.\nYaklaşık dış ölçüler: 50 × 50 × 11 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5146482-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5146482-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5146482-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5146482-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "AgroMan",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th2259149-kawasaki-versys-650-sinyal-deligi-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Kawasaki",
+      "Versys 650"
+    ],
+    "uyum": [
+      {
+        "marka": "Kawasaki",
+        "model": "Versys 650"
+      }
+    ],
+    "baslik": "Kawasaki Versys 650 Sinyal Deliği Kapağı",
+    "aciklama": "Kawasaki Versys 650 motosikletinde stok sinyal lambasının bıraktığı açıklığı kapatan ince bir plakadır. Plakanın ortasında yeni takılan sinyal lambasının bağlantısı için küçük bir delik bulunur. Kaynağında parçanın 2015 ile 2017 model yılları arasındaki Versys 650 için hazırlandığı yazılır. Fotoğraflarda siyah renkli plaka, yan kaportada küçük bir sinyal lambasının çevresinde görünür.\nYaklaşık dış ölçüler: 50 × 30 × 2 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2259149-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2259149-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2259149-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2259149-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "yahyah206",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th2933093-kawasaki-er-6n-usb-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Kawasaki",
+      "ER-6N"
+    ],
+    "uyum": [
+      {
+        "marka": "Kawasaki",
+        "model": "ER-6N"
+      }
+    ],
+    "baslik": "Kawasaki ER-6N USB Tutucusu",
+    "aciklama": "Kawasaki ER-6N motosikletinde USB soketini yerinde tutan L biçimli küçük bir tutucudur. Alt kısmında bir bağlantı noktasına takılmak için vida deliği bulunur. Dik kısmında soketin oturduğu dikdörtgen bir yuva yer alır. Fotoğraflarda gri renkli tutucu, gidon yakınındaki bağlantı noktasında ve soketle birlikte görünür.\nYaklaşık dış ölçüler: 54 × 44 × 23 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2933093-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2933093-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2933093-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2933093-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "thedennis6",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th6016497-kawasaki-z900-aksiyon-kamera-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Kawasaki",
+      "Z900"
+    ],
+    "uyum": [
+      {
+        "marka": "Kawasaki",
+        "model": "Z900"
+      }
+    ],
+    "baslik": "Kawasaki Z900 Aksiyon Kamera Tutucusu",
+    "aciklama": "Kawasaki Z900 motosikletinin gidonunda, aynanın yakınında küçük bir aksiyon kamerayı taşımak için hazırlanmış bir tutucudur. Üst kısmında GoPro tipi üç çatallı bir bağlantı ucu bulunur. Gidon borusuna iki kablo bağı ile bağlanır; kablo bağları ürüne dahil değildir. Fotoğraflarda küçük bir kamera, tutucu üzerinde ve motosikletin gidon bölgesinde görünür.\nYaklaşık dış ölçüler: 42 × 30 × 22 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6016497-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6016497-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6016497-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6016497-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Pascal89",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th6018355-kawasaki-z900-catal-borulu-aksiyon-kamera-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Kawasaki",
+      "Z900"
+    ],
+    "uyum": [
+      {
+        "marka": "Kawasaki",
+        "model": "Z900"
+      }
+    ],
+    "baslik": "Kawasaki Z900 Çatal Borulu Aksiyon Kamera Tutucusu",
+    "aciklama": "Kawasaki Z900 motosikletinin ön çatal borusuna geçirilen halka biçimli bir aksiyon kamera tutucusudur. Halka çatal borusunun çevresine oturur ve yan yüzeyinde bir vida deliği taşır. Halkanın yan tarafında GoPro tipi üç çatallı bir bağlantı ucu bulunur. Fotoğraflarda siyah renkli halka, bağlantı ucuyla birlikte masa üzerinde görünür.\nYaklaşık dış ölçüler: 69 × 35 × 16 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6018355-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6018355-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6018355-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6018355-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Pascal89",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th4875814-kawasaki-kr1s-salincak-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Kawasaki"
+    ],
+    "uyum": [
+      {
+        "marka": "Kawasaki"
+      }
+    ],
+    "baslik": "Kawasaki KR1S Salıncak Kapağı",
+    "aciklama": "Kawasaki KR1S motosikletinin salıncağına takılan, dikey aralıklı yapıda bir kapak parçasıdır. Parça uzun bir gövde üzerinde dört açıklık taşır ve salıncağın yan tarafına oturur. Kaynağında parçanın KR1S 250 modeli için hazırlandığı yazılır. Fotoğraflarda siyah renkli parça, şase ve amortisör çevresinde görünür.\nYaklaşık dış ölçüler: 230 × 98 × 34 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4875814-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4875814-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4875814-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "SMC_NZ",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th4601545-kawasaki-versys-x-300-yardimci-anahtar-plakasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Kawasaki",
+      "Versys-X 300"
+    ],
+    "uyum": [
+      {
+        "marka": "Kawasaki",
+        "model": "Versys-X 300"
+      }
+    ],
+    "baslik": "Kawasaki Versys-X 300 Yardımcı Anahtar Plakası",
+    "aciklama": "Kawasaki Versys-X 300 motosikletinde iki yardımcı anahtarın yerleştirildiği bir tutucu plakadır. Plakanın iki ucunda motosiklete vidalanan kulaklar, ortasında ise anahtarların oturduğu dikdörtgen bir açıklık bulunur. Parça yalnızca plakadır; anahtarlar ve bağlantı kabloları ürüne dahil değildir. Fotoğraflarda gri renkli plaka, motosiklet üzerinde ve anahtarlar yerleşmiş halde görünür.\nYaklaşık dış ölçüler: 66 × 63 × 33 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4601545-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4601545-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "MichaelFinch",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th6564406-kawasaki-vaquero-sakos-hoparlor-halkasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Kawasaki"
+    ],
+    "uyum": [
+      {
+        "marka": "Kawasaki"
+      }
+    ],
+    "baslik": "Kawasaki Vaquero Sakoş Hoparlör Halkası",
+    "aciklama": "Kawasaki Vaquero motosikletinin sakoşunda hoparlör ile sakoş yüzeyi arasındaki boşluğu dolduran ince bir halkadır. Halka hoparlör yuvasının çevresine oturur. Kaynağında halkanın çift taraflı gövde bandı gibi bir bantla yerine tutturulması anlatılır. Fotoğrafta beyaz renkli halka, motosikletin sakoş kapağında hoparlör yuvasının üzerinde görünür.\nYaklaşık dış ölçüler: 165 × 165 × 16 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6564406-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6564406-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Lazaralus",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "th6774937-kawasaki-concours-1400-sakos-kilit-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Kawasaki",
+      "GTR1400"
+    ],
+    "uyum": [
+      {
+        "marka": "Kawasaki",
+        "model": "GTR1400"
+      }
+    ],
+    "baslik": "Kawasaki Concours 1400 Sakoş Kilit Kapağı",
+    "aciklama": "Kawasaki Concours 1400 ve GTR 1400 motosikletlerinin sakoş kapağındaki kilit bölgesini örten bir kapaktır. Parça iki ayrı kapak plakasından ve küçük tutturma klipslerinden oluşur. Kapak plakaları sakoşun kilit çevresindeki girintiye oturur. Fotoğraflarda siyah renkli kapaklar, sakoş üzerinde ve masa üzerinde klipsleriyle birlikte görünür.\nYaklaşık dış ölçüler: 89 × 58 × 18 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6774937-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6774937-2.jpg"
+    ]
+  },
+  {
+    "id": "th5441594-kawasaki-z900-usb-soket-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Kawasaki",
+      "Z900"
+    ],
+    "uyum": [
+      {
+        "marka": "Kawasaki",
+        "model": "Z900"
+      }
+    ],
+    "baslik": "Kawasaki Z900 USB Soket Tutucusu",
+    "aciklama": "Kawasaki Z900 motosikletinde USB soketini gidon bölgesinde yerinde tutan silindir biçimli bir tutucudur. Soket, tutucunun içindeki dairesel yuvaya yerleştirilir. Tutucu, gösterge panelinin yanında, gidon köprüsüne yakın bir noktaya takılır. Fotoğraflarda beyaz renkli tutucu, üzerinde soketle birlikte gidon ve gösterge paneli yakınında görünür.\nYaklaşık dış ölçüler: 92 × 64 × 54 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5441594-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5441594-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5441594-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5441594-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Epsilons1932",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th7350993-kawasaki-ninja-650-gidon-ortasi-telefon-tutucu-tabani",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Kawasaki",
+      "Ninja 650"
+    ],
+    "uyum": [
+      {
+        "marka": "Kawasaki",
+        "model": "Ninja 650"
+      }
+    ],
+    "baslik": "Kawasaki Ninja 650 Gidon Ortası Telefon Tutucu Tabanı",
+    "aciklama": "Kawasaki Ninja 650 motosikletinde telefon tutucunun gidonun ortasına yerleştirilmesi için hazırlanmış bir taban parçasıdır. Parça, gidon ortasındaki köprüye bağlanır ve Quad Lock tipi tutucunun oturacağı yüzeyi oluşturur. Kaynağında parçanın telefon tutucuyu gidonun kenarından ortasına taşımak için tasarlandığı yazılır. Fotoğraflarda siyah renkli taban, tek başına ve yakın planda görünür.\nYaklaşık dış ölçüler: 106 × 35 × 17 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7350993-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7350993-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7350993-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "BloodSweatAndTiresOfficial",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "th7394871-kawasaki-vulcan-800-on-catal-kapaklari",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Kawasaki",
+      "Vulcan 800"
+    ],
+    "uyum": [
+      {
+        "marka": "Kawasaki",
+        "model": "Vulcan 800"
+      }
+    ],
+    "baslik": "Kawasaki Vulcan 800 Ön Çatal Kapakları",
+    "aciklama": "Kawasaki Vulcan 800 Classic motosikletinin ön çatal bacaklarına geçirilen dört parçalı bir kapak setidir. Her çatal bacağı için alt ve üst olmak üzere iki kapak bulunur ve parçalar yarıklı yapıdadır. Kapaklar yarıkları kapatılarak çatal bacağına sıkıştırılır ve vida delikleri üzerinden tutturulur. Fotoğraflarda siyah renkli kapaklar, motosikletin ön çatalı üzerinde görünür.\nYaklaşık dış ölçüler: 206 × 80 × 80 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7394871-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7394871-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7394871-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7394871-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Cheapass-tro",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "th5475848-kawasaki-versys-650-vites-gostergesi-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Kawasaki",
+      "Versys 650"
+    ],
+    "uyum": [
+      {
+        "marka": "Kawasaki",
+        "model": "Versys 650"
+      }
+    ],
+    "baslik": "Kawasaki Versys 650 Vites Göstergesi Tutucusu",
+    "aciklama": "Kawasaki Versys 650 motosikletinde vites göstergesi cihazını rüzgarlık taşıyıcısına bağlamak için hazırlanmış kutu biçimli bir tutucudur. Cihaz çift taraflı bantla yapıştırılmak yerine tutucunun içine yerleşir. Kaynağında parçanın 2007 model Versys 650 için çizildiği, rüzgarlık sökülmeden takılabildiği ancak sıkı oturduğu yazılır. Fotoğrafta siyah renkli tutucu, kırmızı kaportanın altında rüzgarlık taşıyıcısında görünür.\nYaklaşık dış ölçüler: 36 × 32 × 20 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5475848-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5475848-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "SkewHusky",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th7392002-kawasaki-klr650-ruzgarlik-yukseltici",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Kawasaki",
+      "KLR650"
+    ],
+    "uyum": [
+      {
+        "marka": "Kawasaki",
+        "model": "KLR650"
+      }
+    ],
+    "baslik": "Kawasaki KLR650 Rüzgarlık Yükseltici",
+    "aciklama": "Kawasaki KLR650 ikinci nesil motosikletlerde rüzgarlık camını daha yukarı taşımak için kullanılan iki parçalı bir yükselticidir. Parça rüzgarlık ile taşıyıcı arasına girer ve camın duruş yüksekliğini değiştirir. Tasarım, aynı model için hazırlanmış önceki bir yükselticinin açıları düzeltilerek ve yüzey geçişleri yumuşatılarak yeniden çizilmiştir. Fotoğraflarda gri renkli parça, rüzgarlığın iki yanında ve motosiklet üzerinde görünür.\nYaklaşık dış ölçüler: 196 × 126 × 27 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7392002-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7392002-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7392002-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7392002-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "H4rk3n (remix: 12user)",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "th5878448-ducati-desert-x-on-catal-kir-kapagi",
     "kategori": "Motosiklet",
     "marka": [
