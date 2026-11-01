@@ -1,5 +1,291 @@
 [
   {
+    "id": "pr1227243-bmw-r1250gs-aksiyon-kamera-adaptor-plakasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "BMW",
+      "R1250GS"
+    ],
+    "uyum": [
+      {
+        "marka": "BMW",
+        "model": "R1250GS"
+      }
+    ],
+    "baslik": "BMW R1250GS Aksiyon Kamera Adaptör Plakası",
+    "aciklama": "BMW R1250GS'in ön bölgesindeki sinyal plakası bağlantısına oturan bir aksiyon kamera adaptör plakasıdır. Plaka, kameranın motosiklet gövdesine daha uzak bir konumda durmasını sağlayacak biçimde şekillendirilmiştir. Fotoğraflarda parça motosiklete takılı halde görünür. Motosiklet, sinyal plakası ve kamera ürüne dahil değildir.\nYaklaşık dış ölçüler: 56 × 46 × 40 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1227243-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1227243-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DrMcNasty",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th5339565-bmw-r1200gs-usb-tutucu-braketi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "BMW",
+      "R1200GS"
+    ],
+    "uyum": [
+      {
+        "marka": "BMW",
+        "model": "R1200GS"
+      }
+    ],
+    "baslik": "BMW R1200GS USB Tutucu Braketi",
+    "aciklama": "BMW R1200GS'in ön bölgesine takılmak üzere çizilmiş bir USB tutucu braketidir. Parçanın geniş yuvasına oturan silindirik USB cihazı, braketin kolu sayesinde motosiklet gövdesine bağlanır. Kaynağında 2004-2012 model yılları arasındaki R1200GS için tasarlandığı belirtilir. Motosiklet ve USB cihazı ürüne dahil değildir.\nYaklaşık dış ölçüler: 107 × 54 × 46 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5339565-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5339565-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5339565-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5339565-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "pinux",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th6644464-bmw-r1200gs-aksiyon-kamera-montaj-plakasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "BMW",
+      "R1200GS"
+    ],
+    "uyum": [
+      {
+        "marka": "BMW",
+        "model": "R1200GS"
+      }
+    ],
+    "baslik": "BMW R1200GS Aksiyon Kamera Montaj Plakası",
+    "aciklama": "BMW R1200GS için çizilmiş bir aksiyon kamera montaj plakasıdır. Uzun plakanın iki ucundaki delikler, parçayı motosiklet üzerindeki bağlantı noktalarına bağlamak için kullanılır. Ortadaki üç kanallı bölüm, aksiyon kameranın ayağının oturduğu yuvayı oluşturur. Set içinde silindirik bir ayraç da yer alır; motosiklet ve kamera ürüne dahil değildir.\nYaklaşık dış ölçüler: 252 × 55 × 4 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6644464-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6644464-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6644464-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "NightHawk88",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "th6502737-bmw-r1250gs-navigasyon-ekrani-bar-braketi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "BMW",
+      "R1250GS"
+    ],
+    "uyum": [
+      {
+        "marka": "BMW",
+        "model": "R1250GS"
+      }
+    ],
+    "baslik": "BMW R1250GS Navigasyon Ekranı Bar Braketi",
+    "aciklama": "Bir navigasyon ekranını gidon barına bağlamak için çizilmiş iki parçalı bir montaj plakasıdır. Plaka, ekranın kendi dört vida deliğiyle hizalanan eğimli yüzeyi taşır ve ekranın küresel bağlantı parçasının çevresinde yarım daire biçiminde bir açıklık bırakır. Set, ön plaka ve arka plaka olmak üzere iki parça içerir. Motosiklet, bar ve navigasyon ekranı ürüne dahil değildir.\nYaklaşık dış ölçüler: 50 × 50 × 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6502737-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6502737-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "romeritoCL",
+      "tur": "GPL"
+    }
+  },
+  {
+    "id": "th4817804-bmw-s1000rr-belge-tutucu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "BMW",
+      "S1000RR"
+    ],
+    "uyum": [
+      {
+        "marka": "BMW",
+        "model": "S1000RR"
+      }
+    ],
+    "baslik": "BMW S1000RR 2019+ Belge Tutucu",
+    "aciklama": "BMW S1000RR kokpit bölgesine yerleştirilen küçük bir belge tutucudur. Ehliyet ve kredi kartı gibi belgeler, kokpitin iç duvarına sabitlenen gövdenin iç bölmesinde taşınır. Kaynağında belgelerin kalınlığına göre iki farklı gövde yüksekliği sunulduğu belirtilir. Motosiklet ve tutulan belgeler ürüne dahil değildir.\nYaklaşık dış ölçüler: 98 × 92 × 12 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4817804-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4817804-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4817804-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4817804-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "kInGpIn-RR",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th6993434-yamaha-xs400-alt-yan-kapak-sasi-burcu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "XS400"
+    ],
+    "uyum": [
+      {
+        "marka": "Yamaha",
+        "model": "XS400"
+      }
+    ],
+    "baslik": "Yamaha XS400 Alt Yan Kapak Şasi Burcu",
+    "aciklama": "Yamaha XS400 yan kapağın alt kenarındaki çıkıntının şaseye bağlanması için çizilmiş küçük bir burçtur. Şase üzerindeki montaj deliğine sıkı biçimde oturur ve kapağın şaseye bağlanan kısmının yumuşak bir yüzeyle bitmesini sağlar. Parça tek parça halindedir ve kaynağında XS400 yan kapağıyla birlikte kullanılmak üzere çizilmiştir. Motosiklet ve yan kapak ürüne dahil değildir.\nYaklaşık dış ölçüler: 27 × 24 × 9 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6993434-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "AveMachina",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "th7046346-yamaha-tenere-700-yuksek-camurluk-catal-koruyucu-kapak-plakalari",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha"
+    ],
+    "uyum": [
+      {
+        "marka": "Yamaha"
+      }
+    ],
+    "baslik": "Yamaha Tenere 700 Yüksek Camurluk Çatal Koruyucu Kapak Plakaları",
+    "aciklama": "Yamaha Tenere 700 yüksek camurluk takıldığında çatalın alt kısmındaki mevcut parçalarda açılan delikleri kapatan bir plaka setidir. Sol ve sağ taraf için birer adet olmak üzere iki parça içerir. Kaynağında plakaların siyah vida ile tutulması gerektiği belirtilir; fotoğraflarda parçalar motosikletin çatal bölgesinde takılı halde görünür. Motosiklet ve vida ürüne dahil değildir.\nYaklaşık dış ölçüler: 72 × 35 × 3 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7046346-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7046346-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7046346-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7046346-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "saschodebeer",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "th7360351-yamaha-r1-2007-2008-kaporta-lastik-burcu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "R1"
+    ],
+    "uyum": [
+      {
+        "marka": "Yamaha",
+        "model": "R1"
+      }
+    ],
+    "baslik": "Yamaha R1 (2007-2008) Kaporta Lastik Burcu",
+    "aciklama": "Yamaha R1 2007-2008 kaportasının alt bağlantı noktasında kullanılan küçük bir lastik burçtur. Parça kaportanın alt kenarındaki montaj noktasına doğrudan oturur ve yumuşak bir yüzey oluşturur. Kaynağında parçanın kaporta bağlantı noktasına özel olarak çizildiği ve R1 2007 modelinde denendiği belirtilir. Motosiklet ve kaporta ürüne dahil değildir.\nYaklaşık dış ölçüler: 17 × 17 × 10 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7360351-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7360351-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7360351-3-v2.jpg",
+      "https://media.pruvo3d.com/urunler/th7360351-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "majestyq",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th7369025-yamaha-fjr1300-carplay-ekran-montaj-aparati",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "FJR1300"
+    ],
+    "uyum": [
+      {
+        "marka": "Yamaha",
+        "model": "FJR1300"
+      }
+    ],
+    "baslik": "Yamaha FJR1300 CarPlay Ekran Montaj Aparatı",
+    "aciklama": "Yamaha FJR1300 için çizilmiş bir CarPlay ekran ünitesi montaj aparatıdır. Tutamağın üst bölümüne yerleşen parça, ekran ünitesini tutar ve motosikletin ön bölümünde konumlanmasını sağlar. Kaynağında parçanın küçük ekranlı CarPlay üniteleri için çizildiği belirtilir. Ekran ünitesi ve motosiklet ürüne dahil değildir.\nYaklaşık dış ölçüler: 123 × 60 × 56 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7369025-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7369025-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7369025-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "crusemm",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "th7369023-yamaha-fjr1300-arka-kamera-montaj-aparati",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "FJR1300"
+    ],
+    "uyum": [
+      {
+        "marka": "Yamaha",
+        "model": "FJR1300"
+      }
+    ],
+    "baslik": "Yamaha FJR1300 Arka Kamera Montaj Aparatı",
+    "aciklama": "Yamaha FJR1300'un arka kasa plakasının altına bağlanan bir kamera montaj aparatıdır. Monokey tipi arka kasa sistemiyle birlikte kullanılır ve kameranın arka kasanın alt hizasında durmasını sağlar. Parça tek parça halindedir; fotoğraflarda motosiklete takılı halde görünür. Kamera, arka kasa ve motosiklet ürüne dahil değildir.\nYaklaşık dış ölçüler: 200 × 130 × 2 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7369023-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7369023-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7369023-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7369023-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "crusemm",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "th7369038-yamaha-fjr1300-garaj-kapi-kumandasi-tutucu-kutusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "FJR1300"
+    ],
+    "uyum": [
+      {
+        "marka": "Yamaha",
+        "model": "FJR1300"
+      }
+    ],
+    "baslik": "Yamaha FJR1300 Garaj Kapı Kumandası Tutucu Kutusu",
+    "aciklama": "Yamaha FJR1300'a takılan küçük bir garaj kapı kumandası için tutucu kutusudur. Kutunun üst tarafına yerleştirilen kumanda, iç kısımdaki esnek membran üzerinden bastırılır ve kumandanın tuşları hareket eder. Kaynağında kutunun dört adet vida yuvası ile monte edildiği belirtilir. Kumanda ve motosiklet ürüne dahil değildir.\nYaklaşık dış ölçüler: 92 × 56 × 53 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7369038-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7369038-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7369038-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7369038-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "crusemm",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "th1398738-kawasaki-klx110-on-disli-kapagi",
     "kategori": "Motosiklet",
     "marka": [
