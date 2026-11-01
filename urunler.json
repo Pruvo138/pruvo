@@ -268814,34 +268814,6 @@
     }
   },
   {
-    "id": "3033635",
-    "kategori": "Otomobil",
-    "marka": [
-      "Skoda"
-    ],
-    "uyum": [
-      {
-        "marka": "Skoda"
-      }
-    ],
-    "baslik": "Škoda Fabia Fabia Console Phone Holder",
-    "aciklama": "Fabia Console Phone Holder parça. giuliopierucci tasarımı; orijinal Škoda Fabia parça kırıldığında ya da kaybolduğunda değiştirmek için doğru boyutlu yedek. PETG malzemeden üretilir.\nYaklaşık dış ölçüler: 84 × 50 × 45 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th3033635-1.jpg",
-      "https://media.pruvo3d.com/urunler/th3033635-2.jpg",
-      "https://media.pruvo3d.com/urunler/th3033635-3.jpg",
-      "https://media.pruvo3d.com/urunler/th3033635-4.jpg"
-    ],
-    "tavsiyeFilament": [
-      "PETG"
-    ],
-    "lisans": {
-      "tasarimci": "giuliopierucci",
-      "tur": "kisisel"
-    }
-  },
-  {
     "id": "4669661",
     "kategori": "Otomobil",
     "marka": [
@@ -269203,34 +269175,6 @@
     "lisans": {
       "tasarimci": "iquack",
       "tur": "CC BY-SA 4.0"
-    }
-  },
-  {
-    "id": "7284798",
-    "kategori": "Otomobil",
-    "marka": [
-      "Skoda"
-    ],
-    "uyum": [
-      {
-        "marka": "Skoda"
-      }
-    ],
-    "baslik": "Škoda Octavia Octavia 3 - Cup Holder Organiser",
-    "aciklama": "Octavia 3 - Cup Holder Organis parça. Fenech tasarımı; orijinal Škoda Octavia parça kırıldığında ya da kaybolduğunda değiştirmek için doğru boyutlu yedek. PETG malzemeden üretilir.\nYaklaşık dış ölçüler: 105 × 69 × 55 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th7284798-1.jpg",
-      "https://media.pruvo3d.com/urunler/th7284798-2.jpg",
-      "https://media.pruvo3d.com/urunler/th7284798-3.jpg",
-      "https://media.pruvo3d.com/urunler/th7284798-4.jpg"
-    ],
-    "tavsiyeFilament": [
-      "PETG"
-    ],
-    "lisans": {
-      "tasarimci": "Fenech",
-      "tur": "kisisel"
     }
   },
   {
@@ -269861,31 +269805,6 @@
     "lisans": {
       "tasarimci": "DaftWully",
       "tur": "CC BY-SA 4.0"
-    }
-  },
-  {
-    "id": "6957072",
-    "kategori": "Otomobil",
-    "marka": [
-      "Skoda"
-    ],
-    "uyum": [
-      {
-        "marka": "Skoda"
-      }
-    ],
-    "baslik": "Skoda ball adapter for phone holder",
-    "aciklama": "ball adapter for phone holder parça. Markoska321 tasarımı; orijinal Skoda parça kırıldığında ya da kaybolduğunda değiştirmek için doğru boyutlu yedek. PETG malzemeden üretilir.\nYaklaşık dış ölçüler: 35 × 20 × 20 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6957072-1.jpg"
-    ],
-    "tavsiyeFilament": [
-      "PETG"
-    ],
-    "lisans": {
-      "tasarimci": "Markoska321",
-      "tur": "kisisel"
     }
   },
   {
