@@ -459,6 +459,14 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/serit-b-toplayici-test.py
 
+      # agy KAPI BAGLAYICISI (1 Kas 2026, KARARLAR 92 EK 2): yedek isci cagrilari PRUVO
+      # PreToolUse kapilarindan gecer. CI'da `.claude/settings.json` YOK (gitignore) ->
+      # gercek kapi kollari OLCULEMEDI yazilir; mekanizma kollari (exit 2 / stdout deny /
+      # cokme / 20 sn zaman asimi / taninmayan tool / settings yok) + deny->izin mutanti kosar.
+      - name: "agy kapi baglayicisi: fail-closed kabul + mutant"
+        if: ${{ !cancelled() }}
+        run: python3 tools/agy-kapi-baglayici-test.py
+
       # K184 sihirbazi + `/talep` ucu 27 Agu 2026'da KOKUNDEN KALDIRILDI (Okan karari):
       # `talep.mjs` ve `talep-hatti-test.py` adimlari kaldirilan kodla BIRLIKTE dustu.
       # 🔴 `talepler` TABLOSU ve icindeki MUSTERI KAYITLARI YERINDE DURUYOR -> saklama
