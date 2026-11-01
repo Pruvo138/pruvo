@@ -1,5 +1,30 @@
 [
   {
+    "id": "th5878448-ducati-desert-x-on-catal-kir-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Ducati",
+      "Desert X"
+    ],
+    "uyum": [
+      {
+        "marka": "Ducati",
+        "model": "Desert X"
+      }
+    ],
+    "baslik": "Ducati Desert X Ön Çatal Kir Kapağı",
+    "aciklama": "Ducati Desert X motosikletinin ön çatal borusuna takılmak üzere hazırlanmış küçük bir çatal kapağıdır. İki parçadan oluşur; her çatal bacağı için bir adet kullanılır ve kablo bağı ile yerine bağlanır. Kaynağında parçanın çatal üzerinde kir birikimi için çizildiği anlatılır; fotoğraflarda siyah renkli parça, ön çamurluğun üstünde çatal borusuna oturmuş halde görünür. Motosiklet ve kablo bağı ürüne dahil değildir.\nYaklaşık dış ölçüler: 125 × 63 × 21 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5878448-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5878448-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "pojamapeoples",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "ktm-690-sm-hava-kutusu-snorkeli",
     "kategori": "Motosiklet",
     "marka": [
