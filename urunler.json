@@ -1,5 +1,336 @@
 [
   {
+    "id": "pr1857428-triumph-tiger-1200-gps-tutucu-tutamak",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Triumph",
+      "Tiger 1200"
+    ],
+    "uyum": [
+      {
+        "marka": "Triumph",
+        "model": "Tiger 1200"
+      }
+    ],
+    "baslik": "Triumph Tiger 1200 GPS Tutucu Tutamak",
+    "aciklama": "Gidonun bir tarafında GPS cihazının tutulmasını sağlayan bir tutamaktır. Tutamak, standart tutamacın yerine geçerek üzerindeki vida delikleriyle gövdeye sabitlenir. Kaynağında 2022-2026 model yılları arasındaki Tiger 1200 için tasarlandığı belirtilir. Motosiklet ve GPS cihazı ürüne dahil değildir.\nYaklaşık dış ölçüler: 178 × 45 × 28 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1857428-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1857428-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1857428-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "WrenchandRepeat",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th3047849-triumph-tiger-955i-akilli-telefon-yuvasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Triumph"
+    ],
+    "uyum": [
+      {
+        "marka": "Triumph"
+      }
+    ],
+    "baslik": "Triumph Tiger 955i Akıllı Telefon Yuvası",
+    "aciklama": "Bir akıllı telefonu, şarj kablosuyla birlikte gövde üzerinde tutmak için tasarlanmış bir yuvadır. Yuva, üzerindeki yarıktan geçen şarj kablosunun motosikletin gövdesine ulaşmasını sağlar. Kaynağında 2003 modeli Tiger için tasarlandığı belirtilir. Motosiklet ve telefon ürüne dahil değildir.\nYaklaşık dış ölçüler: 153 × 94 × 47 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3047849-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3047849-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3047849-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3047849-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DrDroehn",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th3573104-triumph-speed-triple-aks-delik-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Triumph",
+      "Speed Triple"
+    ],
+    "uyum": [
+      {
+        "marka": "Triumph",
+        "model": "Speed Triple"
+      }
+    ],
+    "baslik": "Triumph Speed Triple Aks Delik Kapağı",
+    "aciklama": "2012 modeli Speed Triple arka aksında bulunan delikleri kapaklayan küçük bir parçadır. Parça, aksın üzerine sıkıca oturacak biçimde tasarlanmıştır. Kaynağında bu model yılı için hazırlandığı belirtilir. Motosiklet ürüne dahil değildir.\nYaklaşık dış ölçüler: 45 × 45 × 15 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3573104-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3573104-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3573104-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3573104-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Triumphtriple",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th4440992-triumph-street-triple-aksiyon-kamera-montaj-plakasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Triumph",
+      "Street Triple"
+    ],
+    "uyum": [
+      {
+        "marka": "Triumph",
+        "model": "Street Triple"
+      }
+    ],
+    "baslik": "Triumph Street Triple Aksiyon Kamera Montaj Plakası",
+    "aciklama": "Bir aksiyon kamerayı gidon ucuna bağlamak için tasarlanmış bir montaj plakasıdır. Plaka, standart aynanın oturduğu delikten gidon ucuna vida ile sabitlenir. Kaynağında Street Triple için üretildiği, tasarımın çoğu motosiklette kullanılabileceği belirtilir. Motosiklet ve kamera ürüne dahil değildir.\nYaklaşık dış ölçüler: 54 × 40 × 27 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4440992-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4440992-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4440992-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "bobburk",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th4807778-triumph-trident-660-on-arka-kamera-montaj-seti",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Triumph"
+    ],
+    "uyum": [
+      {
+        "marka": "Triumph"
+      }
+    ],
+    "baslik": "Triumph Trident 660 Ön ve Arka Kamera Montaj Seti",
+    "aciklama": "Bir motosiklette ön ve arka kamera bağlanması için tasarlanmış bir montaj setidir. Set, kameranın gövde üzerindeki belirli noktalara sabitlenmesini sağlayan iki ayrı plakadan oluşur. Kaynağında Trident 660 için üretildiği belirtilir. Motosiklet ve kameralar ürüne dahil değildir.\nYaklaşık dış ölçüler: 44 × 36 × 28 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4807778-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4807778-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4807778-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4807778-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "claustro",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th4813304-triumph-scrambler-1200-ruzgarlik-montaj-takimi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Triumph"
+    ],
+    "uyum": [
+      {
+        "marka": "Triumph"
+      }
+    ],
+    "baslik": "Triumph Scrambler 1200 Rüzgârlık Montaj Takımı",
+    "aciklama": "Scrambler 1200 modelinde rüzgârlık takmak için tasarlanmış bir montaj takımıdır. Takımdaki parçalar, saydam levhanın gövde üzerindeki bağlantı noktalarına vida ve somun ile sabitlenmesini sağlar. Kaynağında bu bağlantı için ayrıca vida yuvası kullanılması gerektiği belirtilir. Motosiklet ve saydam levha ürüne dahil değildir.\nYaklaşık dış ölçüler: 196 × 136 × 54 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4813304-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4813304-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4813304-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4813304-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "grumpy_scrambler (remix: Daniel-STP)",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "th4914128-triumph-scrambler-1200-xe-ayna-araparcasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Triumph"
+    ],
+    "uyum": [
+      {
+        "marka": "Triumph"
+      }
+    ],
+    "baslik": "Triumph Scrambler 1200 XE Ayna Ara Parçası",
+    "aciklama": "Gidon ucundaki ayna ile motosikletin standart donanımındaki çubuk arasında kalan boşluğu dolduran ara parçalardır. Parça, iki bileşenin birbirine sıkışmasını önleyecek biçimde tasarlanmıştır. Kaynağında Scrambler 1200 XE için üretildiği belirtilir. Motosiklet ürüne dahil değildir.\nYaklaşık dış ölçüler: 29 × 29 × 6 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4914128-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4914128-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4914128-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "threar",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th5724116-triumph-street-triple-sele-kilidi-anahtar-yonlendirici",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Triumph",
+      "Street Triple"
+    ],
+    "uyum": [
+      {
+        "marka": "Triumph",
+        "model": "Street Triple"
+      }
+    ],
+    "baslik": "Triumph Street Triple Sele Kilidi Anahtar Yönlendiricisi",
+    "aciklama": "Selenin kilit mekanizmasındaki anahtarın çevrilmesini kolaylaştıran küçük bir yönlendiricidir. Parça, anahtarın takıldığı yuvaya oturarak hareket yönünü belirler. Kaynağında Street Triple için tasarlandığı belirtilir. Motosiklet ürüne dahil değildir.\nYaklaşık dış ölçüler: 74 × 33 × 22 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5724116-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5724116-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Fredlepp",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th5916363-triumph-speed-triple-arka-camurluk-araparcasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Triumph",
+      "Speed Triple"
+    ],
+    "uyum": [
+      {
+        "marka": "Triumph",
+        "model": "Speed Triple"
+      }
+    ],
+    "baslik": "Triumph Speed Triple Arka Çamurluk Ara Parçası",
+    "aciklama": "Arka çamurluk ile şasi arasında bir ara parça olarak kullanılır. Parça, çamurluğun şasi üzerine sabitlenmesini sağlayan boşluğu doldurur. Kaynağında 2009 modeli Speed Triple için üretildiği belirtilir. Motosiklet ve çamurluk ürüne dahil değildir.\nYaklaşık dış ölçüler: 148 × 33 × 16 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5916363-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5916363-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5916363-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "nate68c10",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th5935850-triumph-street-triple-r-aksiyon-kamera-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Triumph"
+    ],
+    "uyum": [
+      {
+        "marka": "Triumph"
+      }
+    ],
+    "baslik": "Triumph Street Triple R Aksiyon Kamera Tutucusu",
+    "aciklama": "Bir aksiyon kamerayı motosikletin ön bölgesinde tutmak için tasarlanmış bir tutucudur. Tutucu, kameranın ayağının oturduğu yuvayı oluşturur ve gövde üzerindeki bağlantı noktalarına sabitlenir. Kaynağında Street Triple R 2012 için üretildiği belirtilir. Motosiklet ve kamera ürüne dahil değildir.\nYaklaşık dış ölçüler: 57 × 42 × 17 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5935850-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5935850-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5935850-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Fredlepp",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th5946034-triumph-street-triple-arka-ayaklik-kamera-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Triumph",
+      "Street Triple"
+    ],
+    "uyum": [
+      {
+        "marka": "Triumph",
+        "model": "Street Triple"
+      }
+    ],
+    "baslik": "Triumph Street Triple Arka Ayaklık Aksiyon Kamera Tutucusu",
+    "aciklama": "Aksiyon kamerayı arka ayaklığın üzerine bağlamak için tasarlanmış bir tutucudur. Tutucu iki parça olarak tasarlanmıştır ve parçalar birbirine vida ile birleştirilir. Kaynağında Street Triple için üretildiği belirtilir. Motosiklet, ayaklık ve kamera ürüne dahil değildir.\nYaklaşık dış ölçüler: 102 × 25 × 22 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5946034-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5946034-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5946034-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5946034-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Fredlepp",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th6670295-triumph-street-triple-arka-kamera-montaj-braketi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Triumph",
+      "Street Triple"
+    ],
+    "uyum": [
+      {
+        "marka": "Triumph",
+        "model": "Street Triple"
+      }
+    ],
+    "baslik": "Triumph Street Triple Arka Kamera Montaj Braketi",
+    "aciklama": "Arka kamerayı motosikletin kuyruk düzenine bağlamak için tasarlanmış bir montaj braketidir. Set üst ve alt olmak üzere iki parçadan oluşur; üst parça üst kenarında eğimli bir kesik, alt parça ise vida ve somunun geçeceği bir bağlantı bölümü içerir. Kaynağında Street Triple için üretildiği belirtilir. Motosiklet, kamera ve kuyruk düzeni ürüne dahil değildir.\nYaklaşık dış ölçüler: 67 × 44 × 32 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6670295-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6670295-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6670295-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6670295-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Dashony",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "th7297325-triumph-speed-triple-1200-sele-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Triumph"
+    ],
+    "uyum": [
+      {
+        "marka": "Triumph"
+      }
+    ],
+    "baslik": "Triumph Speed Triple 1200 Sele Kapağı",
+    "aciklama": "Selenin üst yüzeyini saran ince bir kapaktır. Kapak, selenin üzerine çift taraflı yapıştırıcı ve bir vida ile sabitlenir. Kaynağında 2025 modeli Speed Triple 1200 için üretildiği belirtilir. Motosiklet ürüne dahil değildir.\nYaklaşık dış ölçüler: 142 × 51 × 2 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7297325-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7297325-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7297325-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "katak",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "th7402764-aprilia-125-mx-kozmetik-kapak",
     "kategori": "Motosiklet",
     "marka": [
