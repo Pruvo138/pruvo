@@ -1,5 +1,311 @@
 [
   {
+    "id": "th2643258-honda-cbr-1000-f-saat-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "uyum": [
+      {
+        "marka": "Honda"
+      }
+    ],
+    "baslik": "Honda CBR 1000 F Saat Tutucusu",
+    "aciklama": "Motosiklet üzerinde kullanılan saatlerin gösterge paneline takılması için tasarlanmış bir tutucudur. Parça, saatin gövdesini kavrayan bir bilezik bölümü ve panel üzerine oturan bir tabandan oluşur. Kaynağında 1990 modeli CBR 1000 için tasarlandığı belirtilir. Motosiklet ve saat ürüne dahil değildir.\nYaklaşık dış ölçüler: 63 × 60 × 49 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2643258-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2643258-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2643258-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ZeroCardinal",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th2814588-honda-africa-twin-navigasyon-cihazi-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda",
+      "Africa Twin"
+    ],
+    "uyum": [
+      {
+        "marka": "Honda",
+        "model": "Africa Twin"
+      }
+    ],
+    "baslik": "Honda Africa Twin Navigasyon Cihazı Tutucusu",
+    "aciklama": "Africa Twin motosikletinin gösterge üstü barına navigasyon cihazı bağlamak için tasarlanmış bir tutucudur. Parça, cihazın altında oturan bir kaide ve barı kavrayan bir kelepçe bölümünden oluşur. Kaynağında 2017 modeli Africa Twin için tasarlandığı belirtilir. Motosiklet ve navigasyon cihazı ürüne dahil değildir.\nYaklaşık dış ölçüler: 60 × 60 × 12 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2814588-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2814588-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2814588-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2814588-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Windsnow",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th3207434-honda-vfr-800-fi-zincir-yaglayici-hortum-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda",
+      "VFR800"
+    ],
+    "uyum": [
+      {
+        "marka": "Honda",
+        "model": "VFR800"
+      }
+    ],
+    "baslik": "Honda VFR800 FI Zincir Yağlayıcı Hortum Tutucusu",
+    "aciklama": "Zincir yağlayıcı ünitesinden gelen hortumların zincir halkalarına yönlendirilmesi için tasarlanmış bir tutucudur. Parça, hortumların geçeceği yuvaları ve bağlantı noktalarını bir arada tutar. Kaynağında 1998 modeli VFR 800 FI için tasarlandığı belirtilir. Motosiklet ve yağlayıcı ünitesi ürüne dahil değildir.\nYaklaşık dış ölçüler: 46 × 44 × 10 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3207434-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3207434-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3207434-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3207434-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "llanterner",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th3264333-honda-africa-twin-zincir-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda",
+      "Africa Twin"
+    ],
+    "uyum": [
+      {
+        "marka": "Honda",
+        "model": "Africa Twin"
+      }
+    ],
+    "baslik": "Honda Africa Twin Zincir Kapağı",
+    "aciklama": "Zincir halkalarının ön tarafında kalan bölümü örten bir kapak parçasıdır. Parça, zincirin geçtiği yarım daire biçimli bir kanal ile iki yan yüzeyi kapatacak gövde kısmından oluşur. Kaynağında RD07a tipi Africa Twin için tasarlandığı yazılır. Motosiklet ürüne dahil değildir.\nYaklaşık dış ölçüler: 152 × 96 × 33 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3264333-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3264333-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "gumior",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th4391610-honda-africa-twin-rd04-kokpit-yan-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda",
+      "Africa Twin"
+    ],
+    "uyum": [
+      {
+        "marka": "Honda",
+        "model": "Africa Twin"
+      }
+    ],
+    "baslik": "Honda Africa Twin RD04 Kokpit Yan Kapağı",
+    "aciklama": "Kokpit yan bölümündeki boşluğu kapatan bir gövde parçasıdır. Parça, motosikletin yan yüzeyine oturacak biçimde kavisli bir gövdeye ve arkasındaki bağlantı noktalarına sahiptir. Kaynağında 1989 yılı civarı RD04 tipi Africa Twin için ve sağ taraf için tasarlandığı yazılır. Motosiklet ürüne dahil değildir.\nYaklaşık dış ölçüler: 295 × 104 × 100 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4391610-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4391610-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4391610-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4391610-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "GonzoMagx",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th4620465-honda-africa-twin-kokpit-navigasyon-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda",
+      "Africa Twin"
+    ],
+    "uyum": [
+      {
+        "marka": "Honda",
+        "model": "Africa Twin"
+      }
+    ],
+    "baslik": "Honda Africa Twin Kokpit Navigasyon Tutucusu",
+    "aciklama": "Africa Twin gösterge üstündeki barın üzerine navigasyon cihazı bağlamak için tasarlanmış bir montaj parçasıdır. Parça, barı saran bir kelepçe ve cihazın oturduğu bir kaide bölümünden oluşur. Kaynağında 2018 modeli Africa Twin Adventure Sports için tasarlandığı yazılır. Motosiklet ve navigasyon cihazı ürüne dahil değildir.\nYaklaşık dış ölçüler: 72 × 52 × 50 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4620465-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4620465-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "B-Cup",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th4677594-honda-cb400sf-motor-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "uyum": [
+      {
+        "marka": "Honda"
+      }
+    ],
+    "baslik": "Honda CB400SF Motor Kapağı",
+    "aciklama": "Motorun krank kapağı üzerine oturan bir kapak parçasıdır. Parça, kapak yüzeyindeki cıvata konumlarına göre biçimlendirilmiştir. Kaynağında CB400 Super Four olarak adlandırılan motosiklet için tasarlandığı yazılır. Motosiklet ürüne dahil değildir.\nYaklaşık dış ölçüler: 35 × 35 × 16 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4677594-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4677594-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4677594-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "misha0310",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th4689372-honda-africa-twin-yakit-deposu-hava-savrulma-parcasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda",
+      "Africa Twin"
+    ],
+    "uyum": [
+      {
+        "marka": "Honda",
+        "model": "Africa Twin"
+      }
+    ],
+    "baslik": "Honda Africa Twin Yakıt Deposu Hava Savrulma Parçası",
+    "aciklama": "Africa Twin yakıt deposunun ön tarafına takılan bir hava savrulma parçasıdır. Parça, depo üzerindeki bağlantı noktalarına oturacak biçimde düz ve geniş bir yüzeyden oluşur. Kaynağında 2019 modeli Africa Twin için, depo üzerine ek bir depo kapağı takılmış hâllerde kullanılmak üzere tasarlandığı yazılır. Motosiklet ve yakıt deposu ürüne dahil değildir.\nYaklaşık dış ölçüler: 381 × 223 × 4 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4689372-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4689372-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4689372-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4689372-4.jpg"
+    ]
+  },
+  {
+    "id": "th4867629-honda-africa-twin-yakit-deposu-kaplama-levhasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda",
+      "Africa Twin"
+    ],
+    "uyum": [
+      {
+        "marka": "Honda",
+        "model": "Africa Twin"
+      }
+    ],
+    "baslik": "Honda Africa Twin Yakıt Deposu Kaplama Levhası",
+    "aciklama": "Africa Twin yakıt deposunun üzerine yerleştirilen ince bir kaplama parçasıdır. Parça, altıgen desenli bir yüzeyden oluşur ve depo yüzeyindeki kabartmalara göre biçimlendirilmiştir. Kaynağında Africa Twin için tasarlandığı yazılır. Motosiklet ve yakıt deposu ürüne dahil değildir.\nYaklaşık dış ölçüler: 230 × 160 × 3 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4867629-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4867629-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Greattherapy69",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th6560841-honda-crf1000-africa-twin-navigasyon-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda",
+      "Africa Twin"
+    ],
+    "uyum": [
+      {
+        "marka": "Honda",
+        "model": "Africa Twin"
+      }
+    ],
+    "baslik": "Honda CRF1000 Africa Twin Navigasyon Tutucusu",
+    "aciklama": "CRF1000 Africa Twin motosikletinde navigasyon cihazını taşımak için tasarlanmış bir montaj parçasıdır. Parça, cihazın oturduğu bir yuva ve gövde üzerindeki geçme noktalarından oluşur. Kaynağında CRF1000 Africa Twin için tasarlandığı belirtilir. Motosiklet ve navigasyon cihazı ürüne dahil değildir.\nYaklaşık dış ölçüler: 41 × 25 × 19 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6560841-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6560841-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6560841-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6560841-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dodther",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "th6712049-honda-crf-1000-aksesuar-tutucu-kelepcesi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda",
+      "Africa Twin"
+    ],
+    "uyum": [
+      {
+        "marka": "Honda",
+        "model": "Africa Twin"
+      }
+    ],
+    "baslik": "Honda CRF1000 Africa Twin Aksesuar Tutucu Kelepçesi",
+    "aciklama": "Africa Twin gidonuna aksesuar tutucularının takılması için tasarlanmış bir kelepçedir. Parça, yarım gövde ve vida geçme delikleriyle birlikte gelir. Kaynağında gidonun çapına göre ölçülendirildiği yazılır. Gidon ve aksesuar tutucusu ürüne dahil değildir.\nYaklaşık dış ölçüler: 68 × 31 × 30 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6712049-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6712049-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6712049-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6712049-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "powermanager",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "th7422962-honda-crf300l-telefon-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda",
+      "CRF300L"
+    ],
+    "uyum": [
+      {
+        "marka": "Honda",
+        "model": "CRF300L"
+      }
+    ],
+    "baslik": "Honda CRF300L Telefon Tutucusu",
+    "aciklama": "CRF300L motosikletine cep telefonu takmak için tasarlanmış bir tutucudur. Parça, telefonu çevreleyen bir yuva ve motosiklete bağlanan bir bağlantı bölümünden oluşur. Kaynağında CRF 300 L modeli için tasarlandığı yazılır. Motosiklet ve telefon ürüne dahil değildir.\nYaklaşık dış ölçüler: 176 × 101 × 84 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7422962-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7422962-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JN76",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "th3085330-kawasaki-vulcan-telefon-tutucusu",
     "kategori": "Motosiklet",
     "marka": [
