@@ -26,6 +26,7 @@ KOVALAR
   B-ATIF-BORCU        otoriter CC-BY, bizde bos -> atif gorunmuyor ([[lisans-atifi-cc]])
   D-CC0               otoriter CC0 -> CC0 atif ISTEMEZ, risk YOK (bilgi kalemi)
   G-BIZIM-BILINMEYEN  bizim deger CC disi ('kisisel'/'uyelik') -> karsilastirilamaz
+  H-OKAN-ISTISNASI    tasarimciya ozel Okan istisnasi (OKAN_ISTISNA_TASARIMCI, satin-alma) -> bilgi
   F-OTORITER-CELISKILI ayni tid'e IKI farkli havuz degeri -> hangisi otoriter OLCULEMEDI
   E-DIGER             yukaridakilerin disi
 
@@ -35,10 +36,11 @@ KULLANIM
   python3 tools/lisans-capraz-olcum.py --duzelt-listesi /tam/yol.json
         A + A2 + C kovalarini `duzelt.py --toplu` semasinda YAZAR (tek cikti dosyasi;
         `lisans` objesi KOMPLE yazilir, `lisans.tasarimci` = ATIF aynen korunur).
-CIKIS: rc=0 daima (bu bir OLCUM aracidir, kapi DEGIL — kapiya cevrilirse esik/mutant
+CIKIS: rc=0 daima, `--kendini-test` haric (bu bir OLCUM aracidir, kapi DEGIL — kapiya cevrilirse esik/mutant
        ayrica yazilir; simdiki hali "sayiyi bas, hukmu mimar versin").
 """
 import argparse
+import collections
 import glob
 import json
 import os
@@ -46,7 +48,43 @@ import re
 import sys
 
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-HASAT = os.path.join(os.path.dirname(KOK), "pruvo-hasat")
+
+
+def _hasat_kok(kok):
+    """pruvo-hasat KARDES dizini; worktree'den (.claude/worktrees/<ad>) kosulunca da bulunur."""
+    d = kok
+    while True:
+        aday = os.path.join(os.path.dirname(d), "pruvo-hasat")
+        if os.path.isdir(aday) or os.path.dirname(d) == d:
+            return aday
+        d = os.path.dirname(d)
+
+
+HASAT = _hasat_kok(KOK)
+# `.urun-kaynaklari.json` git DISI -> yalniz ana kopyada; worktree'den kosulunca ana depodan okunur.
+VERI_KOK = KOK if os.path.exists(os.path.join(KOK, ".urun-kaynaklari.json")) else \
+    os.path.join(os.path.dirname(HASAT), "pruvo")
+
+# Havuz dosya adindaki platform etiketi. 1 Kas 2026: havuz LUT'u yalniz sayisal id ile
+# kuruluyordu -> Thingiverse `thing:<id>` baska platformun AYNI numarali adayina (Printables
+# 1078370 = baska urun, CC-BY-SA) eslesip SAHTE C-SA-KACIRMA uretti. Artik yalniz THINGIVERSE
+# havuzlari otoriter; platformu belirsiz havuz SAYILIR ama kullanilmaz.
+PLATFORM_ETIKET = {"thingiverse": "thingiverse", "tv": "thingiverse",
+                   "printables": "printables", "pr": "printables",
+                   "makerworld": "makerworld", "mw": "makerworld",
+                   "cgt": "cgtrader", "cgtrader": "cgtrader",
+                   "c3d": "cults3d", "cults3d": "cults3d",
+                   "mmf": "myminifactory", "myminifactory": "myminifactory"}
+
+
+def havuz_platformu(yol, j):
+    """Havuzun platformu: JSON `platform` alani > dosya adindaki etiket; bulunamazsa None."""
+    p = j.get("platform") if isinstance(j, dict) else None
+    if isinstance(p, str) and p.strip():
+        return PLATFORM_ETIKET.get(p.strip().lower(), p.strip().lower())
+    ad = os.path.basename(yol)[len("hasat-"):-len("-havuz.json")]
+    bulunan = {PLATFORM_ETIKET[t] for t in re.split(r"[-_]", ad.lower()) if t in PLATFORM_ETIKET}
+    return bulunan.pop() if len(bulunan) == 1 else None
 
 # sinif -> katalogda yazilacak KANONIK metin
 KANON = {"CC-BY": "CC BY 4.0", "CC-BY-SA": "CC BY-SA 4.0", "CC-ND": "CC BY-ND 4.0",
@@ -92,9 +130,11 @@ def sinif(ham):
 
 
 def havuz_lut():
-    """thing id -> OTORITER ham lisans degerleri KUMESI (celiski gorunur kalsin diye kume)."""
+    """(platform, kaynak id) -> OTORITER ham lisans degerleri KUMESI (celiski gorunur kalsin
+    diye kume). Platform: aday `platform` alani > havuz platformu (bkz. havuz_platformu);
+    platformu belirsiz havuz SAYILIR ama kullanilmaz."""
     lut = {}
-    dosya = 0
+    sayac = collections.Counter()
     for kok in (HASAT, os.path.join(HASAT, ".claude", "worktrees")):
         for d in glob.glob(os.path.join(kok, "**", "hasat-*-havuz.json"), recursive=True):
             try:
@@ -104,11 +144,39 @@ def havuz_lut():
             ad = j.get("adaylar") if isinstance(j, dict) else None
             if not isinstance(ad, list):
                 continue
-            dosya += 1
+            plat = havuz_platformu(d, j)
+            sayac[plat or "belirsiz"] += 1
             for a in ad:
-                if isinstance(a, dict) and a.get("id") and a.get("lisans"):
-                    lut.setdefault(str(a["id"]).strip(), set()).add(a["lisans"])
-    return lut, dosya
+                if not (isinstance(a, dict) and a.get("id") and a.get("lisans")):
+                    continue
+                ap = a.get("platform")
+                ap = PLATFORM_ETIKET.get(ap.lower(), ap.lower()) if isinstance(ap, str) and ap else plat
+                if ap in LINK_KALIP:
+                    lut.setdefault((ap, str(a["id"]).strip()), set()).add(a["lisans"])
+    return lut, sayac
+
+
+# Okan'in TASARIMCIYA OZEL lisans istisnasi (11 Eyl 2026): Cults listelemesi "Private Use" olsa da
+# ayni tasarimciyla baska platformda royalty-free satin-alma iliskisi var. YALNIZ bu kume ve
+# yalniz `tur == "satin-alma"` kayitlari; baska tasarimcinin cults_pu kaydi SATILAMAZ kalir.
+OKAN_ISTISNA_TASARIMCI = {"mostudio_print_3d"}
+
+# Kaynak defteri `link` -> (platform, havuzdaki aday id). 1 Kas 2026: eskiden yalniz
+# `thing:<id>` olculuyordu; Printables/MakerWorld/Cults3D linkli kayitlar capraz olcum DISIYDI.
+LINK_KALIP = {
+    "thingiverse": re.compile(r"thing:(\d+)"),
+    "printables": re.compile(r"printables\.com/(?:[a-z]{2}/)?model/(\d+)"),
+    "makerworld": re.compile(r"makerworld\.com/(?:[a-z]{2}/)?models/(\d+)"),
+    "cults3d": re.compile(r"cults3d\.com/[a-z]{2}/3d-model/[^/]+/([^/?#]+)"),   # c3d havuz id = slug
+}
+
+
+def link_anahtari(link):
+    for plat, kalip in LINK_KALIP.items():
+        m = kalip.search(link or "")
+        if m:
+            return plat, m.group(1)
+    return None
 
 
 def kova_sec(bizim, beklenen):
@@ -127,42 +195,73 @@ def kova_sec(bizim, beklenen):
     return "E-DIGER"
 
 
+def kendini_test():
+    """Ag/dosya YOK: havuz_platformu. rc 0 = hepsi gecti."""
+    vakalar = [
+        ("/x/hasat-yanmar-thingiverse-havuz.json", {}, "thingiverse"),
+        ("/x/hasat-marin-minn-kota-tv-havuz.json", {}, "thingiverse"),
+        ("/x/hasat-zodiac-printables-havuz.json", {}, "printables"),
+        ("/x/hasat-bmw-cgt-1-series-havuz.json", {}, "cgtrader"),
+        ("/x/hasat-ktm-terim-havuz.json", {}, None),                       # belirsiz -> kullanilmaz
+        ("/x/hasat-ktm-tv-pr-havuz.json", {}, None),                       # iki etiket -> belirsiz
+        ("/x/hasat-ktm-terim-havuz.json", {"platform": "cults3d"}, "cults3d"),  # alan kazanir
+    ]
+    kalan = 0
+    for yol, j, bek in vakalar:
+        got = havuz_platformu(yol, j)
+        kalan += got != bek
+        print("  %s %s -> %s" % ("GECTI" if got == bek else "KALDI", os.path.basename(yol), got))
+    print("SONUC: %s — %d kaldi" % ("YESIL" if kalan == 0 else "KIRMIZI", kalan))
+    return 1 if kalan else 0
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--detay", action="store_true", help="her kovanin ilk 120 kaydini bas")
     ap.add_argument("--duzelt-listesi", metavar="JSON",
                     help="A+A2+C kovalarini duzelt.py --toplu semasinda bu dosyaya yaz")
+    ap.add_argument("--kendini-test", action="store_true", help="havuz platform cikarimi testi")
     a = ap.parse_args()
+    if a.kendini_test:
+        return kendini_test()
 
     lut, havuz_dosya = havuz_lut()
     if not lut:
         print("OLCULEMEDI: hasat havuzu bulunamadi (%s)" % HASAT)
         return 0
-    kaynaklar = json.load(open(os.path.join(KOK, ".urun-kaynaklari.json"), encoding="utf-8"))
+    kaynaklar = json.load(open(os.path.join(VERI_KOK, ".urun-kaynaklari.json"), encoding="utf-8"))
     urunler = json.load(open(os.path.join(KOK, "urunler.json"), encoding="utf-8"))
     kat = {u["id"]: u for u in urunler if u.get("id")}          # 🔴 anahtar `id`
 
     kovalar, duzelt = {}, []
     esli = canli = uyusan = 0
+    esli_plat, canli_plat = collections.Counter(), collections.Counter()
     for uid, k in kaynaklar.items():
-        m = re.search(r"thing:(\d+)", k.get("link") or "")
-        if not m:
+        anahtar = link_anahtari(k.get("link"))
+        if not anahtar:
             continue
-        kume = lut.get(m.group(1))
+        kume = lut.get(anahtar)
         if not kume:
             continue
         esli += 1
+        esli_plat[anahtar[0]] += 1
         u = kat.get(uid)
         if not u:
             continue
         canli += 1
+        canli_plat[anahtar[0]] += 1
+        kid = ":".join(anahtar)
+        if k.get("tur") == "satin-alma" and k.get("tasarimci") in OKAN_ISTISNA_TASARIMCI:
+            kovalar.setdefault("H-OKAN-ISTISNASI", []).append(
+                (uid, kid, "", "", " | ".join(sorted(kume)), k.get("tasarimci")))
+            continue
         siniflar = set(sinif(x) for x in kume)
         lis = u.get("lisans")
         bizim_ham = (lis.get("tur") if isinstance(lis, dict) else (lis or "")) or ""
         bizim = sinif(bizim_ham)
         if len(siniflar) > 1:
             kovalar.setdefault("F-OTORITER-CELISKILI", []).append(
-                (uid, m.group(1), bizim_ham, bizim, " | ".join(sorted(kume)),
+                (uid, kid, bizim_ham, bizim, " | ".join(sorted(kume)),
                  "/".join(sorted(siniflar))))
             continue
         beklenen = list(siniflar)[0]
@@ -171,7 +270,7 @@ def main():
             uyusan += 1
             continue
         kv = kova_sec(bizim, beklenen)
-        kovalar.setdefault(kv, []).append((uid, m.group(1), bizim_ham, bizim,
+        kovalar.setdefault(kv, []).append((uid, kid, bizim_ham, bizim,
                                            otoriter_ham, beklenen))
         if kv in ("A-NC-SATILAMAZ", "A2-ND-BEYAN-YANLIS", "C-SA-KACIRMA") and beklenen in KANON:
             yeni = dict(lis) if isinstance(lis, dict) else ({"tur": lis} if lis else {})
@@ -181,8 +280,11 @@ def main():
                                   % (otoriter_ham, beklenen, kv)})
 
     # 🔴 KAPSAM ONCE: canli sayi absurt kucukse ASAGIDAKI BULGU OKUNMAZ (anahtar hatasi).
-    print("KAPSAM  havuz dosyasi=%d · otoriter tid=%d · thing linkli kaynak kaydi=%d "
-          "-> CANLI katalogda=%d" % (havuz_dosya, len(lut), esli, canli))
+    print("KAPSAM  havuz dosyasi %s (belirsiz KULLANILMADI) · otoriter (platform,id)=%d · "
+          "esli kaynak kaydi=%d -> CANLI katalogda=%d"
+          % (" ".join("%s=%d" % kv for kv in sorted(havuz_dosya.items())), len(lut), esli, canli))
+    print("        platform basina esli/canli: %s"
+          % " ".join("%s=%d/%d" % (p, esli_plat[p], canli_plat[p]) for p in LINK_KALIP))
     print("UYUSAN  %d · UYUSMAYAN %d" % (uyusan, canli - uyusan))
     print("KOVALAR:")
     for kv in sorted(kovalar):
