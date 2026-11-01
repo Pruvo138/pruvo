@@ -6,6 +6,10 @@
 
 - 🔴🔴🔴 **Okan 20 Eki 20:2x:** Okan'a "bas/tıkla/onayla" YOK, işi bitir, son çare pencere, cevap ≤2 cümle (hafıza `okan-emri-is-biter-pencere-son-care-20-eki`). **Okan kalıcı izni 14:2x:** çip dalı SERİT B yeşil → sormadan merge.
 
+## ▶ halef — 1 Kas 14:5x (nöbet `5bfd56f5` */10 + caffeinate; MaCiT = `local_e5e16e56-7ed2-44ea-8e13-b37d0ae64ede`, KİMLİKLE yolla)
+- **✅ Moto8 dalga2 borcu KAPANDI:** Pages `41299625684` TAM yeşil (deploy+yayin success, skipped 0) · D1 41551 birebir · parite 300 BİREBİR (1. koşum ağ hatası + koşum arasında `brew upgrade` node 25→26 kırdı; brew bitince yeniden koşum rc=0). Temizlik: ağaç `kral-moto8`+`kral-moto8-d2` + 2 dal (yerel+uzak) silindi; ARTIK 22 ağaç (main dışı 0, temiz, lsof 0) silindi → worktree 43→19.
+- **SIRADAKİ:** MaCiT dalga3 işçileri koşuyor (honda2 · kawasaki-devam · aprilia; dal `macit/moto8-dalga3-1nov` henüz uzakta YOK) → SHA + marka sayısı gelince aşağıdaki zincir. Okan'a çıkan: YOK.
+
 ## 🔁 DEVİR — 1 Kas 14:2x KraL halef → halef (bağlam kapısı tur 700 · 403K; nöbet `de92ef4c` + caffeinate oturumla ölür; main `03e2eb78`; MaCiT = `local_e5e16e56-7ed2-44ea-8e13-b37d0ae64ede`, KİMLİKLE yolla)
 - **🔴 Okan 1 Kas:** "talepsiz bir devam gönderme yapacağı işi söyle" → nöbet mesajı HER ZAMAN somut iş + bitiş ölçütü taşır (hafıza `macit-nobeti-talepsiz-devam-yasak-1kas`). MaCiT işçi kuyruğunda bekliyorsa mesaj ATMA.
 - **Moto8 dalga1** merge `701c4bf3` (Ducati 1 + Kawasaki 24): Pages `41290935286` + deployment 701c4bf3 · D1 41540 birebir · parite 300 BİREBİR (borç 0).
