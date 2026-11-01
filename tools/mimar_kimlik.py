@@ -26,7 +26,7 @@ import os
 # CANLI kat DEGIL (dagitim kumesine girmez), EMEKLI de DEGIL. Olcer:
 # tools/claude-api-motor-test.py.
 ISCI_MOTORLARI = ("minimax-m3", "kimi", "deepseek-pro", "deepseek-flash", "claude",
-                  "claude-api")
+                  "claude-api", "agy")
 
 # 🔴 YENI IS BU KUMEYE GONDERILIR. Sira ANLAMLIDIR: [0] birincil.
 #
@@ -41,6 +41,7 @@ ISCI_MOTORLARI = ("minimax-m3", "kimi", "deepseek-pro", "deepseek-flash", "claud
 # karsiligi `~/.claude/cron/isci.sh` MOTOR-YOK KAPISI'dir (uc anahtari yoksa
 # rc=1 + `HAL=MOTOR-YOK`); olcen kol `tools/motor-yok-kapisi-test.py` (3 kol:
 # mutant + kontrol + kapi-kaldirildi). `PRUVO_CLAUDE_ISCI_IZNI` o kolu ACMAZ.
+# 🔴 1 KAS 2026 (KARARLAR 92): m3 KARANTINADAYKEN `agy` YEDEK_ISCI_MOTORLARI'dan devralir; Claude'a DUSUS hala YOK.
 #
 # 🔴 m3 DE 9 EYL RAPORUNDA ORAN >=1,5 TUTMAZSA IPTAL (Okan, ayni karar).
 #
@@ -52,6 +53,11 @@ ISCI_MOTORLARI = ("minimax-m3", "kimi", "deepseek-pro", "deepseek-flash", "claud
 # `USTUSTE_ONARIMSIZ=63`). Bir kati emekli etmek o kata ATANMIS isleri tasimiyor
 # ([[goc-yolu-eski-kapiya-takilir]]); goc icin dagitimin CANLI kumeden turemesi sart.
 CANLI_ISCI_MOTORLARI = ("minimax-m3",)
+
+# m3 KARANTINA yedegi (1 Kas 2026, KARARLAR 92): yalniz m3 karantinadayken devralir.
+# Model YALNIZ gemini-3.8-flash-*; claude-* / gpt-oss YASAK. Ucretli plan / API anahtari
+# ACILMAZ. CANLI DEGIL (dagitim kumesine girmez), EMEKLI de DEGIL.
+YEDEK_ISCI_MOTORLARI = ("agy",)
 
 # Emekli: yeni is YOLLANMAZ. Kimlik tanimada gecerli kalir.
 # 🔴 7 Eyl 2026: "kimi" BU KUMEYE ALINDI (Okan karari 6 Eyl). Yani ona artik
@@ -97,7 +103,8 @@ MOTOR_BLOK_SON = "# === PRUVO MOTOR KUMESI (TURETILDI) BITIS ==="
 
 # Turetilen adlar: kurulu kopyada BU UCU ve imza satiri bulunur.
 MOTOR_TURETILEN_ADLAR = (
-    "ISCI_MOTORLARI", "CANLI_ISCI_MOTORLARI", "EMEKLI_ISCI_MOTORLARI")
+    "ISCI_MOTORLARI", "CANLI_ISCI_MOTORLARI", "EMEKLI_ISCI_MOTORLARI",
+    "YEDEK_ISCI_MOTORLARI")
 MOTOR_IMZA_ADI = "ISCI_MOTOR_KAYNAK_IMZASI"
 
 
@@ -107,6 +114,7 @@ def motor_kumeleri():
         "ISCI_MOTORLARI": tuple(ISCI_MOTORLARI),
         "CANLI_ISCI_MOTORLARI": tuple(CANLI_ISCI_MOTORLARI),
         "EMEKLI_ISCI_MOTORLARI": tuple(EMEKLI_ISCI_MOTORLARI),
+        "YEDEK_ISCI_MOTORLARI": tuple(YEDEK_ISCI_MOTORLARI),
     }
 
 

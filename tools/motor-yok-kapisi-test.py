@@ -21,6 +21,10 @@ NE OLCULUR (iki kol — biri olmadan digeri hukumsuzdur):
             yaniyor da olabilirdi ([[mutantli-kosum-tabanla-ayniysa-mutant-
             ulasmadi]]). Kontrol, kolun GERCEKTEN o dalda ateslendigini
             kanitlar.
+  YEDEK   : (4. kol, 1 Kas 2026 KARARLAR 92) `agy` YEDEK_ISCI_MOTORLARI'nda
+            TANIMLI ve izole kokte yedek-bilen `tools/agy-yedek/isci-karantina-durum.py`
+            kurulu iken m3 anahtari YOK -> yine rc=1 + `HAL=MOTOR-YOK` + claude
+            HIC CAGRILMADI. Yedek tanimi MOTOR-YOK kapisini Claude'a delmez.
 
 IZOLASYON (Okan disk kurali + filo dersi):
   * Mutant CANLI govdede KOSMAZ — `tempfile.mkdtemp` altinda izole bir
@@ -54,6 +58,8 @@ MOTOR = "minimax-m3"
 # Izole kokte SEMBOLIK BAGLANMAYACAK olanlar: ya yeniden yazilir (isci.sh,
 # sabitler, log) ya da BILEREK yok birakilir (mutantta anahtar).
 BAGLANMAZ = {"isci.sh", "isci-sabitler.zsh", "isci.log", ANAHTAR_ADI}
+BU_TOOLS = os.path.dirname(os.path.abspath(__file__))
+YEDEK_KARANTINA = os.path.join(BU_TOOLS, "agy-yedek", "isci-karantina-durum.py")
 
 
 def _izole_kok_kur(tmp, anahtar_yaz):
@@ -240,10 +246,43 @@ def main():
             if not olcut_dustu:
                 print("  ESKI_CIKTI(son 400): " + cikti3.strip()[-400:])
             sonuclar.append(olcut_dustu)
+
+        # 4. KOL — YEDEK TANIMLI: agy yedekte, m3 anahtari yok -> yine MOTOR-YOK.
+        sys.path.insert(0, BU_TOOLS)
+        try:
+            from mimar_kimlik import YEDEK_ISCI_MOTORLARI
+        except ImportError:
+            YEDEK_ISCI_MOTORLARI = ()
+        y_tmp = os.path.join(tmp, "yedek")
+        os.makedirs(y_tmp, exist_ok=True)
+        kok4, hata4 = _izole_kok_kur(y_tmp, anahtar_yaz=False)
+        if not hata4 and "agy" not in YEDEK_ISCI_MOTORLARI:
+            hata4 = "AGY_YEDEKTE_TANIMSIZ"
+        if not hata4 and not os.path.isfile(YEDEK_KARANTINA):
+            hata4 = "YEDEK_KARANTINA_BETIGI_YOK"
+        if hata4:
+            print("VAKA=yedek-tanimli BEKLENEN=izole-kurulum OLCULEN=" + hata4 +
+                  " SONUC=KALDI")
+            sonuclar.append(False)
+        else:
+            bag = os.path.join(kok4, "isci-karantina-durum.py")
+            if os.path.lexists(bag):
+                os.unlink(bag)              # izole kokteki SEMBOLIK bag; canli dosya degil
+            shutil.copy2(YEDEK_KARANTINA, bag)
+            rc4, cikti4, claude4 = _kos(y_tmp, kok4, "kabul-motor-yok-yedek")
+            hal4 = "HAL=MOTOR-YOK" in cikti4
+            gecti4 = (rc4 == 1) and hal4 and (not claude4)
+            print("VAKA=yedek-tanimli BEKLENEN=rc=1+HAL=MOTOR-YOK+claude-cagrilmadi "
+                  "OLCULEN=rc=%d hal_motor_yok=%s claude_cagrildi=%s yedek=%s SONUC=%s"
+                  % (rc4, hal4, claude4, ",".join(YEDEK_ISCI_MOTORLARI),
+                     "GECTI" if gecti4 else "KALDI"))
+            if not gecti4:
+                print("  YEDEK_CIKTI(son 400): " + cikti4.strip()[-400:])
+            sonuclar.append(gecti4)
     finally:
         _guvenli_sil(tmp, onek)
 
-    hukum = "GECTI" if all(sonuclar) and len(sonuclar) == 3 else "KALDI"
+    hukum = "GECTI" if all(sonuclar) and len(sonuclar) == 4 else "KALDI"
     print("KABUL=%s (%d vaka)" % (hukum, len(sonuclar)))
     return 0 if hukum == "GECTI" else 1
 
