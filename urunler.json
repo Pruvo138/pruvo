@@ -1,5 +1,28 @@
 [
   {
+    "id": "th7402764-aprilia-125-mx-kozmetik-kapak",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Aprilia"
+    ],
+    "uyum": [
+      {
+        "marka": "Aprilia"
+      }
+    ],
+    "baslik": "Aprilia 125 MX Kozmetik Kapak",
+    "aciklama": "Aprilia 125 MX için tasarlanmış kozmetik bir kapak parçasıdır. Kapak gövdesi düz yüzeyli, köşeleri yuvarlatılmış bir formdadır ve üzerinde iki küçük delik bulunur. Kaynağında parçanın bu model için hazırlandığı belirtilir. Motosiklet ve kapağın monte olduğu gövde bölümü ürüne dahil değildir.\nYaklaşık dış ölçüler: 195 × 179 × 22 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7402764-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7402764-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Xenon_54",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "pr1227243-bmw-r1250gs-aksiyon-kamera-adaptor-plakasi",
     "kategori": "Motosiklet",
     "marka": [
