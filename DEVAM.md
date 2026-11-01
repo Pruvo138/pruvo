@@ -6,6 +6,14 @@
 
 - 🔴🔴🔴 **Okan 20 Eki 20:2x:** Okan'a "bas/tıkla/onayla" YOK, işi bitir, son çare pencere, cevap ≤2 cümle (hafıza `okan-emri-is-biter-pencere-son-care-20-eki`). **Okan kalıcı izni 14:2x:** çip dalı SERİT B yeşil → sormadan merge.
 
+## 🔁 DEVİR — 1 Kas 14:2x KraL halef → halef (bağlam kapısı tur 700 · 403K; nöbet `de92ef4c` + caffeinate oturumla ölür; main `03e2eb78`; MaCiT = `local_e5e16e56-7ed2-44ea-8e13-b37d0ae64ede`, KİMLİKLE yolla)
+- **🔴 Okan 1 Kas:** "talepsiz bir devam gönderme yapacağı işi söyle" → nöbet mesajı HER ZAMAN somut iş + bitiş ölçütü taşır (hafıza `macit-nobeti-talepsiz-devam-yasak-1kas`). MaCiT işçi kuyruğunda bekliyorsa mesaj ATMA.
+- **Moto8 dalga1** merge `701c4bf3` (Ducati 1 + Kawasaki 24): Pages `41290935286` + deployment 701c4bf3 · D1 41540 birebir · parite 300 BİREBİR (borç 0).
+- **Moto8 dalga2** merge `03e2eb78` (Yamaha 6 + BMW 5, katalog 41551): SERİT B `41294617893` ESIT, parite OLCULEMEDI (429) = BORÇ. Pages `41299625684` 11:14Z koşuyordu → **İLK İŞ:** sonucu (deploy+yayin dahil, jobs listesi ağ yüzünden eksik dönebilir → github-pages deployments kaydına da bak) → `d1-sync.py --durum` 41551 → `parite-test.js 300` rc=0 (ağ zaman aşımında tekrar koş).
+- **Temizlik:** ağaç `kral-moto8` + `kral-moto8-d2`, dal `kral/moto8-dalga1-1nov` + `kral/moto8-dalga2-1nov` (yerel+uzak; ikisi main'de). MaCiT dalları `macit/moto8-{ducati,kawasaki,yamaha,bmw}-1nov` MaCiT'in.
+- **SIRADAKİ:** MaCiT dalga3 `macit/moto8-dalga3-1nov` (Honda/Suzuki/Aprilia/Triumph + 6 marka taze tarama; işçi semaforu 2 slot, saatler sürebilir) → SHA + marka başına sayı gelince bağımsız jq (lisans dolu, gizli 0, yalnız urunler.json) → DAL_PROVA → SERİT B → merge → Pages → D1 → parite.
+- TAMİRCİ 1 Kas kutuda (YARGI + MOTOR ORANI). KALEM: `kral-sabah.py` kuyruğu `--no-merged` süzmüyor (225 adın 168'i main'de). Okan'a çıkan: YOK.
+
 ## ▶ halef — 1 Kas 07:2x (nöbet `741bf6aa` */10 + caffeinate; MaCiT = `local_e5e16e56-7ed2-44ea-8e13-b37d0ae64ede`, KİMLİKLE yolla)
 - **✅ lisans dalı KAPANDI:** merge `15d89090` · 130 kayıt lisans.tur kaynağa hizalandı · ölçüm A/A2/C 0 · E 3 · G 3 · H 31 · SERİT B `41257448942` ESIT · Pages `41263541285` TAM yeşil · D1 41518 birebir · parite 300 BİREBİR. kanıt: /private/tmp/claude-501/-Users-okan-dev-pruvo/4962c601-1f4b-4f9c-bec0-cb08f41f14b4/scratchpad/kanit/2026-11-01-lisans-ve-nc-silme-kapanis.txt
 - **✅ NC/OCL silme 3/3 KAPANDI (BaBa liste onayı):** merge `2c7e0441` · katalog 41515 · silme kapısı DUSEN 3/ARSIVLI 3/IZINSIZ 0 · Pages `41269786143` TAM yeşil · D1 41515 birebir · parite 300 BİREBİR · 404 ×3 · R2 yetim 9/9. kanıt: /private/tmp/claude-501/-Users-okan-dev-pruvo/4962c601-1f4b-4f9c-bec0-cb08f41f14b4/scratchpad/kanit/2026-11-01-lisans-ve-nc-silme-kapanis.txt
