@@ -4738,7 +4738,7 @@
   {
     "id": "ford-f-serisi-1973-1979-pencere-kolu-dugmesi",
     "silinme_ts": "2026-10-25T02:06:53Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "e8ee55538ef2ff0ca1b4a0ecff31eff98ef9acb1f3851ab195786b573464b662",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4746,7 +4746,7 @@
   {
     "id": "ford-f-serisi-buyuk-boy-matara-tutucu-halkasi",
     "silinme_ts": "2026-10-25T02:06:54Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "ecadcb6f6295e1494a7e6c7a7b08fbf163120f710519cf860ff3c52568b4f94c",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4754,7 +4754,7 @@
   {
     "id": "ford-f150-expedition-vites-donusum-kiti",
     "silinme_ts": "2026-10-25T02:06:54Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "6f1a51c2451b95431c671110eebff22a7b3963017085caecbf758142d0b456c4",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4762,7 +4762,7 @@
   {
     "id": "ford-f150-far-anahtari-dugmesi-yonlu",
     "silinme_ts": "2026-10-25T02:06:55Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "d7a169e2be6c3e7ae9c2b7bb6ce27a59d70e10ba742b1d0e88747846dd26eb1d",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4770,7 +4770,7 @@
   {
     "id": "ford-f150-king-ranch-soket-plakasi-2008",
     "silinme_ts": "2026-10-25T02:06:56Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "3cc60234b8555c1d68fbbe8bbfceb54e39670946acf1743470cd494e084e08e6",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4778,7 +4778,7 @@
   {
     "id": "ford-f150-lightning-donel-vites-kutusu-donusumu",
     "silinme_ts": "2026-10-25T02:06:57Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "3deab939d3ffff56cb4b068701b248f062aef2d6c7adc75b7f0bf589b5f15043",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4786,7 +4786,7 @@
   {
     "id": "ford-f150-mikrofon-klipsi-menfez-tutucu",
     "silinme_ts": "2026-10-25T02:06:58Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "3b2dd0496dba6ec1f370a710437170dfed59648d9b2037d54f4ecc8ddaae7837",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4794,7 +4794,7 @@
   {
     "id": "ford-f150-vites-konsolu-genis-agizli-sise-yuvali",
     "silinme_ts": "2026-10-25T02:06:58Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "44b362a0901c5e3a4dc6d3e01cc1f35da96a34144d680f4f7d408367171e2ad4",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4802,7 +4802,7 @@
   {
     "id": "ford-falcon-territory-aku-hortumu-klipsi",
     "silinme_ts": "2026-10-25T02:06:59Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "9f98e676082e66a4d99140b9b008f18a04117b77e1f5b9e6387cb155b00b56b6",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4810,7 +4810,7 @@
   {
     "id": "ford-falcon-territory-aku-kutusu-anahtari",
     "silinme_ts": "2026-10-25T02:07:00Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "1581d22f694e82612b49b0c0a2c4e04472dd5761e26e6af0625d1032353ccc99",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4818,7 +4818,7 @@
   {
     "id": "ford-fiesta-2011-cd-yuvasi-telefon-tutucu",
     "silinme_ts": "2026-10-25T02:07:01Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "e54a5e2384336eedc3b36f505bae03c3f98d20e82cb57641fb29ad34408d2940",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4826,7 +4826,7 @@
   {
     "id": "ford-fiesta-cd-yuvas-telefon-tutucu",
     "silinme_ts": "2026-10-25T02:07:02Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "3c1207f427d63b7830fdf6f24cb1a0df47c8476e9514a1c45238319ca125596e",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4834,7 +4834,7 @@
   {
     "id": "ford-fiesta-focus-bardaklik-telefon-dock-genis",
     "silinme_ts": "2026-10-25T02:07:03Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "76cfe509d92fc33377a38add81b1886b5124d87a3c3da23ba6202a0943ddf7bb",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4842,7 +4842,7 @@
   {
     "id": "ford-fiesta-klima-aktuator-kolu",
     "silinme_ts": "2026-10-25T02:07:04Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "53d250b681c6e43fe68c1db204ffe01a35927d02931414135f729b8c951e3069",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4850,7 +4850,7 @@
   {
     "id": "ford-fiesta-sempozer-silme-hortum-tapasi",
     "silinme_ts": "2026-10-25T02:07:05Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "3240196f33df406e3d3c59f78491889d51aad6bd5fdad1a7f559b9d544749556",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4858,7 +4858,7 @@
   {
     "id": "ford-flathead-motor-egzoz-manifoldu",
     "silinme_ts": "2026-10-25T02:07:07Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "1e4659fdbb1b2d283800caecbceb6f44b0e008f476a941f25df6e70ad6bff1a9",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4866,7 +4866,7 @@
   {
     "id": "ford-focus-2012-koltuk-basligi-tablet-tutucu",
     "silinme_ts": "2026-10-25T02:07:08Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "353f5b26106d12dad890b967d05326e9ec82108d1c07628623a79c4adeabd7a0",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4874,7 +4874,7 @@
   {
     "id": "ford-focus-bardaklik-telefon-dock",
     "silinme_ts": "2026-10-25T02:07:09Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "0e3b1473015bc645fdcf418b4c712c1c585f4b0334e5f172ad739630ea8da54b",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4882,7 +4882,7 @@
   {
     "id": "ford-focus-hava-emis-snorkel-borusu",
     "silinme_ts": "2026-10-25T02:07:10Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "947736ad460005326a9b6955dd0e329966fa068030fffc6a038cd560658084d9",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4890,7 +4890,7 @@
   {
     "id": "ford-focus-mk2-harici-multimedya-ekrani-tutucu-sag-egik",
     "silinme_ts": "2026-10-25T02:07:11Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "3ab47be65fbf029432f9e541d18a0dfe1a89dba93d3384bc349b38ca31f9771a",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4898,7 +4898,7 @@
   {
     "id": "ford-focus-telefon-tutucusu-v2",
     "silinme_ts": "2026-10-25T02:07:12Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "25a05bf98ffd6bb243e26dca3e7c8c29b99d91e70692a6d636bd880c2cddca28",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4906,7 +4906,7 @@
   {
     "id": "ford-fusion-telefon-yuvasi-klipsi",
     "silinme_ts": "2026-10-25T02:07:14Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "cf1b1ca42dc86dc6bd2a6fe2af6857d6c0f862686be403dfd948becd8eec8b40",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4914,7 +4914,7 @@
   {
     "id": "ford-ka-arka-raf-tutucu-sol",
     "silinme_ts": "2026-10-25T02:07:15Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "9e1b219ebcd94a61c7b7f9cac13b5563a4704433599863e2518c0c143ca5b35c",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4922,7 +4922,7 @@
   {
     "id": "ford-krank-mili-keci-takma-aleti-v6-v8",
     "silinme_ts": "2026-10-25T02:07:16Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "3373705f9d16c4071947d895141fa9e71350dc7da77da643063f24807f91d8b0",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4930,7 +4930,7 @@
   {
     "id": "ford-kurukafa-formunda-vites-topuzu",
     "silinme_ts": "2026-10-25T02:07:18Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "67bb3b82cf0b9e03f6623ff616020abdb5042f663396b9ad054dfa40a337a0d8",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4938,7 +4938,7 @@
   {
     "id": "ford-maverick-fits-el-dezenfektani-tutucu",
     "silinme_ts": "2026-10-25T02:07:19Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "c1d6040473b549b7b78caf7ffe8308c2bf04255d590d04d8d026079bc784c30b",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4946,7 +4946,7 @@
   {
     "id": "ford-maverick-kasa-kapagi-kablo-kilavuzu",
     "silinme_ts": "2026-10-25T02:07:20Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "4c2f8a462299a8b04d52143ecc10200981e5db812b5211a7977a411759aefe71",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4954,7 +4954,7 @@
   {
     "id": "ford-maverick-kasa-rayi-kancasi",
     "silinme_ts": "2026-10-25T02:07:22Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "973508449e520d685128db8f58c89b52e458ffaf4b54dd0914cd624ca9452db5",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4962,7 +4962,7 @@
   {
     "id": "ford-maverick-termos-bardak-tutucu-adaptoru",
     "silinme_ts": "2026-10-25T02:07:23Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "b93abf10f17adf419ffd68d0dd12e875e33cec664987ebda840c442b650f3437",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4970,7 +4970,7 @@
   {
     "id": "ford-mondeo-fusion-mk5-uyumlu-telefon-yuvasi",
     "silinme_ts": "2026-10-25T02:07:25Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "adad43c0faaeaa44e0ec90a1382ba86e3de8f3b1fa945dff81280460f39c2d59",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4978,7 +4978,7 @@
   {
     "id": "ford-mondeo-havalandirma-telefon-tutucu",
     "silinme_ts": "2026-10-25T02:07:26Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "e0933a4d2bd1587abf474a65b1303f94b81a262237eea0eb8161bb0f49ae62f0",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4986,7 +4986,7 @@
   {
     "id": "ford-mondeo-mk4-telefon-tutucu-klips-plakali",
     "silinme_ts": "2026-10-25T02:07:28Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "8a2f2de23947f6cf1294a4a3f74367f326ef9866392c667c628ff97bca70c119",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -4994,7 +4994,7 @@
   {
     "id": "ford-mustang-1969-mini-atx-sigorta-adaptoru",
     "silinme_ts": "2026-10-25T02:07:29Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "04c69678ea6aec7660421d004910682be117a21dceebf524f063433a1c076a02",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -5002,7 +5002,7 @@
   {
     "id": "ford-mustang-foxbody-1979-1986-bos-gosterge-cercevesi",
     "silinme_ts": "2026-10-25T02:07:31Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "0a285ee07d929c7da8c1af063f54c3e221bc2375fbb768c2b0ab3d732b475c20",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -5010,7 +5010,7 @@
   {
     "id": "ford-mustang-gt-bardaklik-telefon-tutucu",
     "silinme_ts": "2026-10-25T02:07:33Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "93d39070e4f77458b762316718fe15defe4d24cb36ced84fdff5940380582a09",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -5018,7 +5018,7 @@
   {
     "id": "ford-ranger-el-freni-kolu-kapagi",
     "silinme_ts": "2026-10-25T02:07:34Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "7556d3df44c461d1ce0737bc72ff0b05f62467dad1257c12591cda4742051c03",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -5026,7 +5026,7 @@
   {
     "id": "ford-ranger-fan-kontrol-dugmesi",
     "silinme_ts": "2026-10-25T02:07:36Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "125f84567a1fa2886bfa2a7ae70cade91adc0ea9e164d8ce8353f778233717a8",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -5034,7 +5034,7 @@
   {
     "id": "ford-ranger-turbo-basinc-gostergesi-yuvasi",
     "silinme_ts": "2026-10-25T02:07:38Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "93ba4f99370a1c9427566fb9d8155750f9f20e5f5ba3947407ad4b5c3504c8ca",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -5042,7 +5042,7 @@
   {
     "id": "ford-sinyal-kablosu-braketi",
     "silinme_ts": "2026-10-25T02:07:39Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "957146c725c96ba51bdde0e188e3cd676884342e0eb453b5fcb4973683ff2874",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -5050,7 +5050,7 @@
   {
     "id": "ford-superduty-kablosuz-sarjli-bardaklik-tepsisi",
     "silinme_ts": "2026-10-25T02:07:41Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "1e365211bed296a152c56f8d1d753040aeb0941431ff0d688ada6224436c5883",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -5058,7 +5058,7 @@
   {
     "id": "ford-tourneo-custom-cd-yuvas-tablet-tutucu",
     "silinme_ts": "2026-10-25T02:07:43Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "479831393cfde3be66cb97486ed96b5cb75b07b9221a65f15f05e7e94f6fe0a1",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -5066,7 +5066,7 @@
   {
     "id": "ford-transit-2016-koltuk-mandali-kapaklari",
     "silinme_ts": "2026-10-25T02:07:45Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "7c576f0576bf910514e6cd1e20af9ba3c5512ce1a2f719693776746a9939e6d7",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -5074,7 +5074,7 @@
   {
     "id": "ford-transit-bisiklet-telefon-tutucu-adaptoru-v3",
     "silinme_ts": "2026-10-25T02:07:47Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "01bf8a13c4b077f7a5d359cb0440d00e9ffc739cdb291b1b7a1ebae7e549c91d",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -5082,7 +5082,7 @@
   {
     "id": "ford-transit-connect-2023-ucuncu-sira-koltuk-dolgu",
     "silinme_ts": "2026-10-25T02:07:48Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "407a4e863fb3ec9ad3160d352b4f112febabb07ec38aa8a143be6e9f13f02b30",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -5090,7 +5090,7 @@
   {
     "id": "ford-vites-gostergesi-braketi-guclendirilmis",
     "silinme_ts": "2026-10-25T02:07:50Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "7b9230733edc22391fdcbc319d394ffaf9900efe259f7edfbe4dc392cb723384",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -5098,7 +5098,7 @@
   {
     "id": "ford-yag-cubugu-kurukafa-tutamak",
     "silinme_ts": "2026-10-25T02:07:52Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "9a1d1e0164b7fd2ee2d7957b7de4dc62352f420ae5bde5d540d5ba0263c0d700",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -5106,7 +5106,7 @@
   {
     "id": "ford-yakit-hatti-sokme-aleti-3-8-inc",
     "silinme_ts": "2026-10-25T02:07:54Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "7bebe406c0d5838d91b63eb2494c39eeda6ff4de3d3b84f9194bf0aa84c937f0",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -5114,7 +5114,7 @@
   {
     "id": "fujifilm-instax-sq6-kameraya-takilan-fotograf-kutusu",
     "silinme_ts": "2026-10-25T02:07:56Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "866970c531c8f7e41ff8ecb3cfdf6cfec749106c263f643470456ea0c5103401",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -5122,7 +5122,7 @@
   {
     "id": "fujifilm-x100-serisi-49mm-filtre-adaptor-halkasi",
     "silinme_ts": "2026-10-25T02:07:58Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "6a1ebe13a178897f5245de46e2968a99baac7942112a2369fca3615581e01170",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -5130,7 +5130,7 @@
   {
     "id": "garmin-montana-kayak-gunluk-canta-montaji",
     "silinme_ts": "2026-10-25T02:08:00Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "85d06518b763fa62436ef519958e0d23204e54330b8a5f3d90e0dd2e2db27725",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -5138,7 +5138,7 @@
   {
     "id": "golf-autovox-display-mount",
     "silinme_ts": "2026-10-25T02:08:02Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "ee6c7a257aacf21bd0dd16aca7247699cbbe73edb217984da989f1ca574151ee",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -5146,7 +5146,7 @@
   {
     "id": "golf-gti-iphone-dock-gti-mk7",
     "silinme_ts": "2026-10-25T02:08:04Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "c21d60640c789156b47e834fea4907857a4e2db017c4bb04e03bf1bce16d1330",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -5154,7 +5154,7 @@
   {
     "id": "guclendirilmis-evrensel-bisiklet-telefon-tutucusu",
     "silinme_ts": "2026-10-25T02:08:07Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "0e33c4004d66e80d2c9ff791abe5763564f63118237cc0918ed8e6a3345d2cfa",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -5162,7 +5162,7 @@
   {
     "id": "honda-accord-10-nesil-orta-havalandirma-telefon-tutucusu",
     "silinme_ts": "2026-10-25T02:08:09Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "2e950c34b0178a68a79aee33852651562f26b7de13180ef49bb7309dbb18242a",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -5170,7 +5170,7 @@
   {
     "id": "honda-accord-viii-hava-filtresi-ve-maf-sensoru-montaji",
     "silinme_ts": "2026-10-25T02:08:11Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "c30fde66a8bed96576bf523b54ec7e2e811c86fccb5aaa14e4d1992722f54ca5",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -5178,7 +5178,7 @@
   {
     "id": "honda-beat-pp1-bagaj-cubugu-tutucusu",
     "silinme_ts": "2026-10-25T02:08:13Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "545b4b52c8f9c93071dc08707a0a65dabea66b563ca67abd3e3cdfeeb332a30b",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -5186,7 +5186,7 @@
   {
     "id": "honda-beat-pp1-bardaklik",
     "silinme_ts": "2026-10-25T02:08:15Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "99b0b799d8933b3a84c6ea413c072e4319fafb975fd6796d9fb2b184fe7842c4",
     "yazan": "duzelt.py",
     "kuyruk_id": null
@@ -5194,8 +5194,32 @@
   {
     "id": "honda-cb500x-radyator-sicrama-koruyucusu",
     "silinme_ts": "2026-10-25T02:08:17Z",
-    "silme_commit": null,
+    "silme_commit": "05b16c839f13f1393a54342c101e30feb6ca6b77",
     "govde_sha256": "b79cf16b440ab1e801199cebd615f0afbf6f9f0a68c3e53c346f45c1733a4f8c",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "6957072",
+    "silinme_ts": "2026-11-01T02:03:31Z",
+    "silme_commit": null,
+    "govde_sha256": "f6b149be9823550b9a6be328d56d015f3e1d54d78a3ba99bfe9d0414a5ad9670",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "3033635",
+    "silinme_ts": "2026-11-01T02:03:32Z",
+    "silme_commit": null,
+    "govde_sha256": "b9a72257f2c16e505f9e0f179d8f479aace250a1c7e2559c3e8c9adc2ec63f38",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null
+  },
+  {
+    "id": "7284798",
+    "silinme_ts": "2026-11-01T02:03:32Z",
+    "silme_commit": null,
+    "govde_sha256": "c8e412b825934d20cd1b4a3a3340ee3d9eecf921176158c7c9540b0b3c436a83",
     "yazan": "duzelt.py",
     "kuyruk_id": null
   }
