@@ -1,5 +1,86 @@
 [
   {
+    "id": "th5981774-bmw-r1200rs-r1250rs-telefon-tutucu-adaptoru",
+    "kategori": "Motosiklet",
+    "marka": [
+      "BMW",
+      "R1200RS"
+    ],
+    "uyum": [
+      {
+        "marka": "BMW",
+        "model": "R1200RS"
+      }
+    ],
+    "baslik": "BMW R1200RS / R1250RS Telefon Tutucu Adaptörü",
+    "aciklama": "BMW R1200RS ve R1250RS modellerinde, fabrika navigasyon bağlantı plakasının yerine geçen bir telefon tutucu adaptörüdür. Parça; cihazın bağlandığı döner kilit plakası, motosiklete tutunan bağlantı kolu ve aralarında yer alan titreşim sönümleyici parçalardan oluşur. Kaynağında sönümleyicilerin cihaz ile bağlantı noktası arasında konumlandırıldığı yazılır. Motosiklet ve telefon tutucu ürüne dahil değildir.\nYaklaşık dış ölçüler: 140 × 70 × 5 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5981774-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5981774-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5981774-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5981774-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "lucsry",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "pr1810991-bmw-f800gs-gidon-ustu-navigasyon-braketi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "BMW",
+      "F800GS"
+    ],
+    "uyum": [
+      {
+        "marka": "BMW",
+        "model": "F800GS"
+      }
+    ],
+    "baslik": "BMW F800GS Gidon Üstü Navigasyon Braketi",
+    "aciklama": "BMW F800GS'nin 2024 ve sonrası ayarlanabilir ön camlı modelleri için tasarlanmış bir navigasyon braketidir. Parça, gidon yükseltme barını kavrayan iki kelepçe gövdesi ile cihazın oturduğu üst bağlantı noktasından oluşur. Kaynağında navigasyon cihazının gösterge panelinin üzerindeki konuma taşındığı yazılır. Motosiklet ve navigasyon cihazı ürüne dahil değildir.\nYaklaşık dış ölçüler: 286 × 91 × 64 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1810991-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1810991-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1810991-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1810991-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "New2Print",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "pr1833229-bmw-r-ninet-dekoratif-numara-levhasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "BMW",
+      "R nineT"
+    ],
+    "uyum": [
+      {
+        "marka": "BMW",
+        "model": "R nineT"
+      }
+    ],
+    "baslik": "BMW R nineT Dekoratif Numara Levhası",
+    "aciklama": "BMW R nineT'nin yan bölümüne vida ile sabitlenen yuvarlak biçimli boş bir dekoratif numara levhasıdır. Parça düz bir gövdeden oluşur ve yüzeyinde yazı, sayı ya da logo bulunmaz. Kaynağında levhanın boyanarak veya etiketlenerek kişiselleştirilebileceği yazılır. Motosiklet ve levha üzerine uygulanan süsleme ürüne dahil değildir.\nYaklaşık dış ölçüler: 249 × 204 × 4 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1833229-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1833229-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1833229-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1833229-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "binominem",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "th1242581-yamaha-mt-07-on-taban-plakasi",
     "kategori": "Motosiklet",
     "marka": [
