@@ -1,5 +1,182 @@
 [
   {
+    "id": "c3dducati-monster-hiz-gostergesi-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Ducati",
+      "Monster"
+    ],
+    "uyum": [
+      {
+        "marka": "Ducati",
+        "model": "Monster"
+      }
+    ],
+    "baslik": "Ducati Monster Hız Göstergesi Kapağı",
+    "aciklama": "Ducati Monster 696 ve 1200 modellerinin hız göstergesi bölümüne tasarlanmış bir kapaktır. Gösterge ünitesinin ön yüzeyini kapatarak panel görünümünü tamamlar. Açılı hatlarıyla sade bir dış görünüm sunar. Motosiklet ve gösterge ürüne dahil değildir.",
+    "fiyat": "420 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dducati-monster-speedometer-cover-scarrod-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dducati-monster-speedometer-cover-scarrod-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dducati-monster-speedometer-cover-scarrod-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dducati-monster-speedometer-cover-scarrod-4.jpg"
+    ]
+  },
+  {
+    "id": "c3dyamaha-ybr125-alt-gosterge-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha"
+    ],
+    "uyum": [
+      {
+        "marka": "Yamaha"
+      }
+    ],
+    "baslik": "Yamaha YBR 125 Alt Gösterge Kapağı",
+    "aciklama": "Yamaha YBR 125 ve Libero 125 motosikletlerinin devir saati alt bölümüne oturan bir kapaktır. Gösterge gövdesinin alt kısmını kapatarak panel görünümünü tamamlar. Bağlantı bölümünde geçme yüzeyleri ve iç takviyeler yer alır. Motosiklet ve gösterge ürüne dahil değildir.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3d3d-printed-yamaha-ybr-libero-125-tachometer-lower-cover-tapa-inferior-tacometro-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3d3d-printed-yamaha-ybr-libero-125-tachometer-lower-cover-tapa-inferior-tacometro-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3d3d-printed-yamaha-ybr-libero-125-tachometer-lower-cover-tapa-inferior-tacometro-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3d3d-printed-yamaha-ybr-libero-125-tachometer-lower-cover-tapa-inferior-tacometro-4.jpg"
+    ]
+  },
+  {
+    "id": "c3dyamaha-mt15-ekran-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha"
+    ],
+    "uyum": [
+      {
+        "marka": "Yamaha"
+      }
+    ],
+    "baslik": "Yamaha MT-15 Ekran Kapağı",
+    "aciklama": "Yamaha MT-15 gösterge ekranının üzerine oturan bir kapak parçasıdır. Ekran ölçüsüne göre tasarlanmıştır ve üzerine cam yerleştirilecek şekilde düzenlenmiştir. Ekran çevresindeki kenarı kapatarak panel görünümünü değiştirir. Motosiklet ve ekran ürüne dahil değildir.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dcubre-pantalla-yamaha-mt-15-hokage-r-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dcubre-pantalla-yamaha-mt-15-hokage-r-2.jpg"
+    ]
+  },
+  {
+    "id": "c3dyamaha-xmax-on-cam-kubbe-parcasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha"
+    ],
+    "uyum": [
+      {
+        "marka": "Yamaha"
+      }
+    ],
+    "baslik": "Yamaha X-MAX Ön Cam Kubbe Parçası",
+    "aciklama": "Yamaha X-MAX ön camının üzerine oturan kubbe biçimli bir parçadır. Küçük yazıcılarda sığdırılabilmesi için iki parçaya bölünmüştür. Parçalar birleştirildiğinde ön cam yüzeyinde kavisli bir görünüm oluşur. Motosiklet ve ön cam ürüne dahil değildir.",
+    "fiyat": "2500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dcupula-pantalla-yamaha-xmax-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dcupula-pantalla-yamaha-xmax-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dcupula-pantalla-yamaha-xmax-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dcupula-pantalla-yamaha-xmax-4.jpg"
+    ]
+  },
+  {
+    "id": "c3dyamaha-nmax-ikincil-gosterge-montaj-parcasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha"
+    ],
+    "uyum": [
+      {
+        "marka": "Yamaha"
+      }
+    ],
+    "baslik": "Yamaha NMAX İkincil Gösterge Montaj Parçası",
+    "aciklama": "Yamaha NMAX gösterge paneline ikincil bir devir saati bağlanması için tasarlanmış bir montaj parçasıdır. Gösterge paneli üzerindeki bağlantı noktasına oturur. Panel yüzeyiyle düz temas sağlayacak biçimde şekillendirilmiştir. Motosiklet ve gösterge ürüne dahil değildir.",
+    "fiyat": "765 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dkoso-tachometer-dashboard-mount-yamaha-nmax-v2-1.jpg"
+    ]
+  },
+  {
+    "id": "c3dyamaha-tenere700-telefon-bar-titreim-azaltma-parcasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha"
+    ],
+    "uyum": [
+      {
+        "marka": "Yamaha"
+      }
+    ],
+    "baslik": "Yamaha Tenere 700 Telefon Barı Titreşim Azaltma Parçası",
+    "aciklama": "Yamaha Tenere 700 ön bölümündeki telefon tutucu barını sağlamlaştıran bir parçadır. Barın alt bağlantısını kavrayarak ekipmanın sallanmasını azaltır. Mevcut bar ve vida noktalarına göre tasarlanmıştır. Motosiklet ürüne dahil değildir.",
+    "fiyat": "750 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dnavigation-anti-vibration-bracket-anti-shake-yamaha-tenere-700-2023-1.jpg"
+    ]
+  },
+  {
+    "id": "c3dyamaha-tenere700-on-cam-uzatma-savrulma-parcasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha"
+    ],
+    "uyum": [
+      {
+        "marka": "Yamaha"
+      }
+    ],
+    "baslik": "Yamaha Tenere 700 Ön Cam Uzatma Savrulma Parçası",
+    "aciklama": "Yamaha Tenere 700 ön cam uzatma bölümünün üzerine oturan bir savrulma parçasıdır. Uzatma camı tamamen açıldığında oluşan boşluğu kapatır. Cam ile gövde arasında yumuşak bir geçiş sağlar. Motosiklet ve cam ürüne dahil değildir.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dwindshield-extension-deflector-yamaha-tenere-700-t7-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dwindshield-extension-deflector-yamaha-tenere-700-t7-2.jpg"
+    ]
+  },
+  {
+    "id": "c3dyamaha-tenere700-telefon-tutucu-montaj-parcasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha"
+    ],
+    "uyum": [
+      {
+        "marka": "Yamaha"
+      }
+    ],
+    "baslik": "Yamaha Tenere 700 Telefon Tutucu Montaj Parçası",
+    "aciklama": "Yamaha Tenere 700 ön cam bağlantısının üzerine takılan bir telefon tutucu montaj parçasıdır. Piyasadaki herhangi bir telefon tutucunun bağlanmasına uygun geniş bir bağlantı yüzeyi sunar. Küçük çaplı barın yarattığı dönme hareketini giderir. Motosiklet ve telefon tutucu ürüne dahil değildir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dyamaha-tenere-700-phone-mount-and-anti-vibration-support-1.jpg"
+    ]
+  },
+  {
+    "id": "c3dyamaha-yz-wr250-on-disli-kaplama-parcasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha"
+    ],
+    "uyum": [
+      {
+        "marka": "Yamaha"
+      }
+    ],
+    "baslik": "Yamaha YZ / WR 250 Ön Dişli Kaplama Parçası",
+    "aciklama": "Yamaha YZ ve WR 250 modellerinin ön dişli bölümüne takılan bir kaplama parçasıdır. Dişli ile yanma odası kapağı arasındaki alanı örter. Motor kapağı üzerindeki vida noktalarına sabitlenir. Motosiklet ürüne dahil değildir.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dcovertor-protector-pinon-sprocket-crankase-guard-yz-wr-250-90-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dcovertor-protector-pinon-sprocket-crankase-guard-yz-wr-250-90-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dcovertor-protector-pinon-sprocket-crankase-guard-yz-wr-250-90-3.jpg"
+    ]
+  },
+  {
     "id": "th5981774-bmw-r1200rs-r1250rs-telefon-tutucu-adaptoru",
     "kategori": "Motosiklet",
     "marka": [
