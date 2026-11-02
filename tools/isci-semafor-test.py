@@ -22,12 +22,15 @@ VAKALAR
   (e) sinyalle (TERM) oldurulen isci trap'te `birak` ile slotunu HEMEN birakir
   (g) varsayilan aralik 60 sn: yuk 6.5->5.9 dustukten sonra 7 sn icinde
       BASLAMAZ, 60 sn'lik yeniden olcumde baslar; `sinir` alt komutu 2 basar
+  (h) cagiranin stderr borusu kapaliyken tavan yine rc=64 (2 Kas 2026: EPIPE ->
+      rc=120 -> isci.sh FAIL-OPEN, isci yuk 9,19'da basladi)
   (f) kurulu kopya repo kopyasiyla BIREBIR (yalniz kurulu kopya varsa; CI'da ATLANDI)
 MUTANTLAR (kopya uzerinde; beklenen KIRMIZI)
   M1 SINIR 2 -> 3             => (a) KIRMIZI
   M2 yuk kolu kaldirilir      => (b) KIRMIZI
   M3 YUK_ESIK 6 -> 12         => (b) KIRMIZI
   M4 ARALIK_SN 60 -> 5        => (g) KIRMIZI
+  M5 tavan stderr korumasiz   => (h) KIRMIZI
 
 Cikis: hepsi YESIL ve tum mutantlar OLDURULDU ise 0, aksi 1.
 """
@@ -304,6 +307,32 @@ def vaka_g(yardimci):
         d.kapat()
 
 
+def vaka_h(yardimci):
+    """2 Kas 2026: cagiranin stderr borusu KAPALIYKEN (isci-ayrik ile ayrilan kosumun
+    cagirani oldu) tavan yine rc=64 doner; stderr yazimi EPIPE ile patlayip rc=120'ye
+    (isci.sh FAIL-OPEN kolu -> isci yuk altinda BASLAR) DONMEZ."""
+    d = Dunya(yardimci)
+    try:
+        yuk_yaz(d.yuk, "6.5\n")
+        p = d.isci("h1", uyku=30, ek=["--tavan-sn", "1.0"])
+        p.stderr.close()   # okuyan taraf yok: sonraki stderr yazimi EPIPE
+        try:
+            p.wait(timeout=8)
+        except subprocess.TimeoutExpired:
+            return False, "tavan asildi ama isci cikmadi"
+        satirlar = [s for s in d.log_metni().splitlines() if "HAL=KUYRUK-TAVAN" in s]
+        if p.returncode != 64:
+            return False, ("stderr kapali: rc=%s (beklenen 64; 120/70 = isci.sh FAIL-OPEN)"
+                           % p.returncode)
+        if len(satirlar) != 1:
+            return False, "stderr kapali: KUYRUK-TAVAN satiri yok/coklu: %r" % satirlar
+        if alindi_sayisi(d, "h1") or d.dolu() != 0:
+            return False, "stderr kapali: tavan sonrasi slot tutuldu"
+        return True, "stderr borusu kapaliyken tavan: rc=64 + tek KUYRUK-TAVAN satiri"
+    finally:
+        d.kapat()
+
+
 def vaka_f():
     if not KURULU.exists():
         return None, "kurulu kopya yok (CI) — ATLANDI"
@@ -329,7 +358,7 @@ def mutant(adi, eski, yeni, vaka):
 def main():
     sonuc = []
     for ad, fn in (("a", vaka_a), ("b", vaka_b), ("c", vaka_c), ("d", vaka_d), ("e", vaka_e),
-                   ("g", vaka_g)):
+                   ("g", vaka_g), ("h", vaka_h)):
         ok, neden = fn(YARDIMCI)
         sonuc.append(ok)
         print("%s (%s) %s" % ("YESIL" if ok else "KIRMIZI", ad, neden))
@@ -344,6 +373,8 @@ def main():
         ("M2 yuk kolu yok", "if yuk > a.yuk_esik:", "if False:", vaka_b),
         ("M3 YUK_ESIK 6->12", "YUK_ESIK = 6.0\n", "YUK_ESIK = 12.0\n", vaka_b),
         ("M4 ARALIK_SN 60->5", "ARALIK_SN = 60.0\n", "ARALIK_SN = 5.0\n", vaka_g),
+        ("M5 tavan stderr korumasiz", 'hata_yaz("HATA: HAL=KUYRUK-TAVAN',
+         'sys.stderr.write("HATA: HAL=KUYRUK-TAVAN', vaka_h),
     )
     olen = 0
     for ad, eski, yeni, vaka in mutantlar:

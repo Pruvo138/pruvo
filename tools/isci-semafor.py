@@ -127,6 +127,24 @@ def yuk_oku():
     return os.getloadavg()[0]   # == sysctl -n vm.loadavg ilk alan
 
 
+def hata_yaz(metin):
+    """stderr'e yazar; HICBIR stderr hatasi rc'yi degistirmez (2 Kas 2026).
+    isci-ayrik ile ayrilan kosumun cagirani olunce boru okuyucusuz kalir: yazim
+    EPIPE verir, cikistaki flush da patlar ve Python rc'yi 120 yapar -> isci.sh
+    FAIL-OPEN kolu tavani asan isciyi yuk altinda BASLATIR (isci.log 08:02:11Z).
+    EPIPE'te fd 2 /dev/null'a baglanir; tamponda kalan bayt oraya bosalir."""
+    try:
+        sys.stderr.write(metin)
+        sys.stderr.flush()
+    except OSError:
+        try:
+            fd = os.open(os.devnull, os.O_WRONLY)
+            os.dup2(fd, 2)
+            os.close(fd)
+        except OSError:
+            pass
+
+
 def log_yaz(log, satir):
     if not log:
         return
@@ -134,7 +152,7 @@ def log_yaz(log, satir):
         with open(log, "a", encoding="utf-8") as f:
             f.write(satir + "\n")
     except OSError:
-        sys.stderr.write(satir + "\n")
+        hata_yaz(satir + "\n")
 
 
 def dizinler(kok):
@@ -496,7 +514,7 @@ def al(a):
                     "YUK_KAPISI=%g dolu=%d/%d tavan_dk=%d rc=1 pid=%d ==="
                     % (damga(), ortak, sira, int(gecen // 60), sebep, yuk, a.yuk_esik, dolu,
                        a.sinir, int(a.tavan_sn // 60), a.sahip))
-            sys.stderr.write("HATA: HAL=KUYRUK-TAVAN rc=1 — %d dk bekledi (sebep=%s yuk=%.2f "
+            hata_yaz("HATA: HAL=KUYRUK-TAVAN rc=1 — %d dk bekledi (sebep=%s yuk=%.2f "
                              "YUK_KAPISI=%g dolu=%d/%d), isci BASLATILMADI.\n"
                              % (int(gecen // 60), sebep, yuk, a.yuk_esik, dolu, a.sinir))
             return RC_TAVAN
@@ -563,7 +581,7 @@ def grup(argv):
     if argv and argv[0] == "--":
         argv = argv[1:]
     if not argv:
-        sys.stderr.write("KULLANIM: isci-semafor.py grup -- <komut..>\n")
+        hata_yaz("KULLANIM: isci-semafor.py grup -- <komut..>\n")
         return 2
     try:
         os.setsid()
@@ -575,7 +593,7 @@ def grup(argv):
     try:
         os.execvp(argv[0], argv)
     except OSError as hata:
-        sys.stderr.write("grup: %s: %s\n" % (argv[0], hata.strerror))
+        hata_yaz("grup: %s: %s\n" % (argv[0], hata.strerror))
         return 127
 
 
@@ -627,5 +645,5 @@ if __name__ == "__main__":
     except SystemExit:
         raise
     except Exception as hata:   # isci.sh FAIL-OPEN kolu (rc 70 -> SEMAFOR=OLCULEMEDI)
-        sys.stderr.write("SEMAFOR ic hata: %r\n" % (hata,))
+        hata_yaz("SEMAFOR ic hata: %r\n" % (hata,))
         sys.exit(RC_IC_HATA)
