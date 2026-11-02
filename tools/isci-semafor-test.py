@@ -31,6 +31,7 @@ MUTANTLAR (kopya uzerinde; beklenen KIRMIZI)
   M3 YUK_ESIK 6 -> 12         => (b) KIRMIZI
   M4 ARALIK_SN 60 -> 5        => (g) KIRMIZI
   M5 tavan stderr korumasiz   => (h) KIRMIZI
+  M6 EPIPE'te dup2 yok        => (h) KIRMIZI (cikis flush'i rc'yi 120 yapar)
 
 Cikis: hepsi YESIL ve tum mutantlar OLDURULDU ise 0, aksi 1.
 """
@@ -375,6 +376,7 @@ def main():
         ("M4 ARALIK_SN 60->5", "ARALIK_SN = 60.0\n", "ARALIK_SN = 5.0\n", vaka_g),
         ("M5 tavan stderr korumasiz", 'hata_yaz("HATA: HAL=KUYRUK-TAVAN',
          'sys.stderr.write("HATA: HAL=KUYRUK-TAVAN', vaka_h),
+        ("M6 EPIPE'te dup2 yok", "            os.dup2(fd, 2)\n", "            pass\n", vaka_h),
     )
     olen = 0
     for ad, eski, yeni, vaka in mutantlar:
