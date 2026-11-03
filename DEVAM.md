@@ -6,6 +6,11 @@
 
 - 🔴🔴🔴 **Okan 20 Eki 20:2x:** Okan'a "bas/tıkla/onayla" YOK, işi bitir, son çare pencere, cevap ≤2 cümle (hafıza `okan-emri-is-biter-pencere-son-care-20-eki`). **Okan kalıcı izni 14:2x:** çip dalı SERİT B yeşil → sormadan merge.
 
+## ✅ 3 Kas 22:4x — Moto8 DALGA4 KAPANDI (MaCiT Printables+Thingiverse taze tarama; MakerWorld 403 24 sa bekletildi)
+- merge `1cace9ff` (+9: Yamaha 2 · Suzuki 3 · BMW 4; Ducati/Aprilia/Triumph 0) · katalog 41618 · bağımsız jq: düşen 0, silinen satır 0, lisans CC BY/BY-SA 9/9, gizli 0 · DAL_PROVA 9/0/0 · SERİT B `41687298431` ESIT · Pages `41699375230` deploy+yayin success · D1 41618 birebir · parite 300 BİREBİR (OLCULEMEDI borcu kapandı) · ağaç `kral-dalga4` silindi. Not: 2 Yamaha kaydında `marka` model elemanı yok (yalnız başlıkta).
+- **KALEM (KraL araç kodu, MaCiT bildirdi):** `hasat_tara` ilan tarihi getirmiyor · `secim.tsv` `yeni_model` bayrağı dosya-bazlı sabit · `hasat_ekle._marka_ayristir` 3. marka elemanını düşürüyor (th5703421 R1250GS) · denetim-kapisi/parti-kontrol taban commit'i env'den alamıyor. MOTOR ORANI: tarama/ekleme m3 işçide (MaCiT), Claude 0.
+- **AÇIK:** Google Ads 9 onaysız öğe (logo 2 · ad 1 · resim 6, hepsi duraklatılmış kampanyada; "1 konu daha" = İşletme Logosunda Boş Alan) — kaldırma tıkı sınıflandırıcıya takıldı, Okan'a soruldu.
+
 ## ▶ halef — 3 Kas 16:5x yeni hesap (açılış tamam: disk = devir bloğu · jeton 16:17 basılı 108 B ∧ oat 1 → yalnız SAYILDI · caffeinate 24 sa · KraL rutini 0 · MaCiT YENİ oturum `local_04f7543e-1e54-4b4b-ab5f-13b72d873f33` (pruvo-hasat; Okan açtı — ilk "MaCiT" sekmesi `pruvo-pazarlama`da doğup ArTisT kimliği almıştı, arşivlendi) · nöbet `4c518ee5` */10 · kutu "cevap bekleyen 4" hepsi kapalı) → sıradaki iş 4 Kas TAMİRCİ (aşağıda). AÇIK: ArTisT 16:5x ccd talebi — 30 Eki Google Ads onaysız ad/logo öğeleri (kanıt `pruvo-pazarlama/kanit/2026-10-29-ads-bildirim-adlar-logolar.txt`), sahiplik Okan'a soruldu. Okan'a çıkan: YOK.
 
 ## 🔁 DEVİR — 3 Kas 16:0x KraL → yeni hesap (Okan `/devir`; nöbet `02f330ea` SİLİNDİ; caffeinate 14:4x'te 24 sa kuruldu, oturumla ölebilir; main `035da925` = origin/main; MaCiT = `local_e5e16e56-7ed2-44ea-8e13-b37d0ae64ede`, açık işi YOK)
