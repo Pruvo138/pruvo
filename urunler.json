@@ -1,5 +1,53 @@
 [
   {
+    "id": "th6576219-yamaha-fz-07-gosterge-konum-braketi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha"
+    ],
+    "uyum": [
+      {
+        "marka": "Yamaha"
+      }
+    ],
+    "baslik": "Yamaha FZ-07 Gösterge Konum Braketi",
+    "aciklama": "Yamaha FZ-07'nin hız göstergesini fabrika konumundan farklı bir konuma taşıyan bir braket parçasıdır. Parça, gösterge panelinin oturduğu bir gövde ve gövde üzerindeki bağlantı noktalarından oluşur. Kaynağında göstergeyi camın braketlerine taşımak için tasarlandığı yazılır. Motosiklet ve gösterge ürüne dahil değildir.\nYaklaşık dış ölçüler: 153 × 96 × 60 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6576219-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6576219-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6576219-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ch6ney",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "th7430184-yamaha-fz6r-tutamak-boslugu-kapatma-plakasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha"
+    ],
+    "uyum": [
+      {
+        "marka": "Yamaha"
+      }
+    ],
+    "baslik": "Yamaha FZ6R Tutamak Boşluğu Kapatma Plakası",
+    "aciklama": "Yamaha FZ6R'nin yan tutamakları söküldüğünde geride kalan boşluğu kapatan kozmetik bir plaka setidir. Parça, boşluğun kenarına oturan düz gövdelerden oluşur ve fabrika vidalarıyla bağlanır. Kaynağında parçanın boşluğu kapatmak üzere tasarlandığı yazılır. Motosiklet ve tutamak ürüne dahil değildir.\nYaklaşık dış ölçüler: 101 × 79 × 8 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7430184-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7430184-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7430184-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "gejstaudio",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "c3dducati-monster-hiz-gostergesi-kapagi",
     "kategori": "Motosiklet",
     "marka": [
