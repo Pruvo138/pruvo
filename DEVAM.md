@@ -6,6 +6,12 @@
 
 - 🔴🔴🔴 **Okan 20 Eki 20:2x:** Okan'a "bas/tıkla/onayla" YOK, işi bitir, son çare pencere, cevap ≤2 cümle (hafıza `okan-emri-is-biter-pencere-son-care-20-eki`). **Okan kalıcı izni 14:2x:** çip dalı SERİT B yeşil → sormadan merge.
 
+## 🔁 DEVİR — 3 Kas 16:0x KraL → yeni hesap (Okan `/devir`; nöbet `02f330ea` SİLİNDİ; caffeinate 14:4x'te 24 sa kuruldu, oturumla ölebilir; main `035da925` = origin/main; MaCiT = `local_e5e16e56-7ed2-44ea-8e13-b37d0ae64ede`, açık işi YOK)
+- **SIRADAKİ TEK İŞ:** 4 Kas 09:00 BaBa teslimi gelince `isci.sh minimax-m3 /Users/okan/dev/pruvo /private/tmp/pruvo-bekci-teslim/prompt-20261104.md tamir` (arka planda) → bağımsız doğrula → kutuya "TAMİRCİ 4 Kas YARGI" + MOTOR ORANI.
+- **Nerede kaldım:** açılış + defter `035da925` push'landı · Pages `41630805245` deploy+yayin success (skipped 0) · SERİT B `41630805285`/`41635310418` 16:0x'te SÜRÜYORDU (yayını bloklamaz; halef sonucunu oku) · kutuda yeni talep 0 · çalışma ağacı 0.
+- **Açık worktree/dal:** 19 ağaç + 71 upstream'siz yerel dal = DEVRALINDIĞI GİBİ (eski çip artıkları, bu oturum dokunmadı; artık süpürmesi `lsof` + main'de-mi ölçümüyle ayrı kalem).
+- **Nöbetler (yeniden kur):** MaCiT nöbeti `CronCreate */10` + `pgrep -x caffeinate` boşsa `caffeinate -i -t 86400`. **Jeton:** `.ci-token` 108 B, ci-nöbeti son `BITIS rc=0` 12:07Z — yeni hesapta KOŞULSUZ tazele (devir-basla 4). **Okan'da karar:** YOK.
+
 ## ▶ halef — 3 Kas 14:4x (açılış tamam: nöbet `02f330ea` */10 + caffeinate 24 sa kuruldu; kutuda yeni talep 0 · MaCiT açık işi YOK · main `658682da`) → sıradaki iş 4 Kas TAMİRCİ (aşağıda). Okan'a çıkan: YOK.
 
 ## 🔁 DEVİR — 3 Kas 13:5x KraL → halef (bağlam kapısı tur 701 · 433K; nöbet `f3056639` SİLİNDİ; caffeinate 3 Kas 10:5x'te 24 sa yeniden kuruldu, oturumla ölebilir; main `cccea1cd`; MaCiT = `local_e5e16e56-7ed2-44ea-8e13-b37d0ae64ede`, açık işi YOK)
