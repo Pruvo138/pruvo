@@ -6,6 +6,8 @@
 
 - 🔴🔴🔴 **Okan 20 Eki 20:2x:** Okan'a "bas/tıkla/onayla" YOK, işi bitir, son çare pencere, cevap ≤2 cümle (hafıza `okan-emri-is-biter-pencere-son-care-20-eki`). **Okan kalıcı izni 14:2x:** çip dalı SERİT B yeşil → sormadan merge.
 
+## ▶ halef — 3 Kas 16:5x yeni hesap (açılış tamam: disk = devir bloğu · jeton 16:17 basılı 108 B ∧ oat 1 → yalnız SAYILDI · caffeinate 24 sa · KraL rutini 0 · MaCiT YENİ oturum `local_04f7543e-1e54-4b4b-ab5f-13b72d873f33` (pruvo-hasat; Okan açtı — ilk "MaCiT" sekmesi `pruvo-pazarlama`da doğup ArTisT kimliği almıştı, arşivlendi) · nöbet `4c518ee5` */10 · kutu "cevap bekleyen 4" hepsi kapalı) → sıradaki iş 4 Kas TAMİRCİ (aşağıda). AÇIK: ArTisT 16:5x ccd talebi — 30 Eki Google Ads onaysız ad/logo öğeleri (kanıt `pruvo-pazarlama/kanit/2026-10-29-ads-bildirim-adlar-logolar.txt`), sahiplik Okan'a soruldu. Okan'a çıkan: YOK.
+
 ## 🔁 DEVİR — 3 Kas 16:0x KraL → yeni hesap (Okan `/devir`; nöbet `02f330ea` SİLİNDİ; caffeinate 14:4x'te 24 sa kuruldu, oturumla ölebilir; main `035da925` = origin/main; MaCiT = `local_e5e16e56-7ed2-44ea-8e13-b37d0ae64ede`, açık işi YOK)
 - **SIRADAKİ TEK İŞ:** 4 Kas 09:00 BaBa teslimi gelince `isci.sh minimax-m3 /Users/okan/dev/pruvo /private/tmp/pruvo-bekci-teslim/prompt-20261104.md tamir` (arka planda) → bağımsız doğrula → kutuya "TAMİRCİ 4 Kas YARGI" + MOTOR ORANI.
 - **Nerede kaldım:** açılış + defter `035da925` push'landı · Pages `41630805245` deploy+yayin success (skipped 0) · SERİT B `41630805285`/`41635310418` 16:0x'te SÜRÜYORDU (yayını bloklamaz; halef sonucunu oku) · kutuda yeni talep 0 · çalışma ağacı 0.
