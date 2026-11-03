@@ -6,6 +6,11 @@
 
 - 🔴🔴🔴 **Okan 20 Eki 20:2x:** Okan'a "bas/tıkla/onayla" YOK, işi bitir, son çare pencere, cevap ≤2 cümle (hafıza `okan-emri-is-biter-pencere-son-care-20-eki`). **Okan kalıcı izni 14:2x:** çip dalı SERİT B yeşil → sormadan merge.
 
+## 🔁 DEVİR — 3 Kas 13:5x KraL → halef (bağlam kapısı tur 701 · 433K; nöbet `f3056639` SİLİNDİ; caffeinate 3 Kas 10:5x'te 24 sa yeniden kuruldu, oturumla ölebilir; main `cccea1cd`; MaCiT = `local_e5e16e56-7ed2-44ea-8e13-b37d0ae64ede`, açık işi YOK)
+- **AÇILIŞ:** MaCiT nöbeti `CronCreate */10` + `caffeinate -i -t 86400` yeniden kur (`pgrep -x caffeinate` boşsa).
+- **SIRADAKİ TEK İŞ:** YOK. TAMİRCİ 3 Kas kapandı (kutu 09:2x YARGI DOĞRULANDI); 4 Kas 06:20 spec doğumu + 09:00 BaBa teslimi → `isci.sh minimax-m3 /Users/okan/dev/pruvo /private/tmp/pruvo-bekci-teslim/prompt-20261104.md tamir` (arka planda) → bağımsız doğrula → kutuya "TAMİRCİ 4 Kas YARGI". Kutu tavanı 300 (`kutu-arsivle.py --tavan 300 --kapanislari-isle`).
+- **KALEM:** 06:20 cron uyku kaçağı kalıcı çaresi (BaBa hükmü) · M17b kararsız mutant 2. tekrarda kök neden çipi · MaCiT araç kalemleri (aşağıda). Okan'a çıkan: YOK.
+
 ## ▶ halef — 3 Kas 09:2x (nöbet `f3056639` */10 + caffeinate sürüyor; MaCiT açık işi YOK)
 - **✅ TAMİRCİ 3 Kas KAPANDI:** spec 06:21 doğdu (caffeinate açıkken cron kaçmadı) · tek kırmızı erişim alarmı `41561186131` geçici 503 → ardıl `41572089205` aynı sha success · m3 `tamir` SAGLIKLI $2,06 · tamir YOK · kutu 310→237. Okan'a çıkan: YOK. kanıt: /private/tmp/claude-501/-Users-okan-dev-pruvo/ba494932-5e44-4586-b9da-266e21d4d7a9/scratchpad/kanit/2026-11-03-0634-erisim-ardil.txt
 
