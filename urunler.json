@@ -1,5 +1,85 @@
 [
   {
+    "id": "th5192459-suzuki-dr-z400-kamera-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "DR-Z400"
+    ],
+    "uyum": [
+      {
+        "marka": "Suzuki",
+        "model": "DR-Z400"
+      }
+    ],
+    "baslik": "Suzuki DR-Z400 Kamera Tutucusu",
+    "aciklama": "Suzuki DR-Z400'e takılan bir kamera tutucusu plakasıdır. Parça, hafif içe eğimli bir gövde plakası ve bu plaka üzerindeki iki bağlantı başlığından oluşur. Kaynağında kameranın plaka üzerine yerleştirilerek bağlandığı yazılır. Motosiklet ve kamera ürüne dahil değildir.\nYaklaşık dış ölçüler: 82 × 54 × 13 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5192459-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5192459-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5192459-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5192459-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dankun7",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th6494801-suzuki-xf650-koruk-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "XF650"
+    ],
+    "uyum": [
+      {
+        "marka": "Suzuki",
+        "model": "XF650"
+      }
+    ],
+    "baslik": "Suzuki XF650 Körük Tutucusu",
+    "aciklama": "Suzuki XF650'nin çatal borularına takılan bir körük tutucusu parçasıdır. Parça, çatal borusunun üzerine itilen kovan biçimli bir gövde ve onu çatal kelepçe vidalarına bağlayan bir bileşkeden oluşur. Kaynağında körüğün bu parçanın üzerine geçirildiği yazılır. Motosiklet ve körük ürüne dahil değildir.\nYaklaşık dış ölçüler: 76 × 73 × 53 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6494801-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6494801-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6494801-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6494801-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "flydown",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "th6494812-suzuki-xf650-catal-koruyucu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "XF650"
+    ],
+    "uyum": [
+      {
+        "marka": "Suzuki",
+        "model": "XF650"
+      }
+    ],
+    "baslik": "Suzuki XF650 Çatal Koruyucu",
+    "aciklama": "Suzuki XF650'nin çatal borusunun üzerine geçen kozmetik bir kılıf parçasıdır. Parça, çatal borusunun dış yüzeyine oturan kovan biçimli bir gövdeden oluşur ve çatal kelepçe vidalarıyla bağlanır. Kaynağında parçanın sol taraf için tasarlandığı ve sağ taraf için aynalanabileceği yazılır. Motosiklet ürüne dahil değildir.\nYaklaşık dış ölçüler: 92 × 79 × 78 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6494812-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6494812-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6494812-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "flydown",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "th6576219-yamaha-fz-07-gosterge-konum-braketi",
     "kategori": "Motosiklet",
     "marka": [
