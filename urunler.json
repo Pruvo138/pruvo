@@ -1,5 +1,241 @@
 [
   {
+    "id": "th5522769-bmw-g650x-zincir-yaglayici-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "BMW",
+      "G650X"
+    ],
+    "uyum": [
+      {
+        "marka": "BMW",
+        "model": "G650X"
+      }
+    ],
+    "baslik": "BMW G650X Zincir Yağlayıcı Tutucusu",
+    "aciklama": "BMW G650X'in zincir yağlayıcısını tutan bir parçadır. Parça, yağlayıcı aparatının oturduğu kovan biçimli bir gövde ile bu gövdeyi alt şasiyeye bağlayan ikinci bir bileşkeden oluşur. Kaynağında gövdenin alt şasiyeye sarılarak oturduğu ve yağlayıcının vanasının dik konumda kaldığı yazılır. Motosiklet ve yağlayıcı aparatı ürüne dahil değildir.\nYaklaşık dış ölçüler: 85 × 63 × 54 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5522769-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5522769-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5522769-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5522769-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "bmacw",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th5703421-bmw-gs-isitma-kontrol-unitesi-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "BMW",
+      "R1200GS"
+    ],
+    "uyum": [
+      {
+        "marka": "BMW",
+        "model": "R1200GS"
+      }
+    ],
+    "baslik": "BMW GS Isıtma Kontrol Ünitesi Tutucusu",
+    "aciklama": "BMW GS serisi motosikletlerin gidonuna takılan bir tutucudur. Parça, gidonun çevresine kelepçeyle sarılan bir bilezik gövde ve kontrol ünitesinin oturduğu bir montaj yüzeyinden oluşur. Kaynağında bu revizyonun kontrol ünitesi bağlantı noktasını gidonun orta hizasından daha yukarı aldığı yazılır. Isıtma kontrol ünitesi ürüne dahil değildir.\nYaklaşık dış ölçüler: 72 × 34 × 17 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5703421-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5703421-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5703421-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5703421-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "AdamWebber",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th7429618-bmw-r1200r-kadran-cercevesi-esya-kutusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "BMW",
+      "R1200R"
+    ],
+    "uyum": [
+      {
+        "marka": "BMW",
+        "model": "R1200R"
+      }
+    ],
+    "baslik": "BMW R1200R Kadran Çerçevesi Eşya Kutusu",
+    "aciklama": "BMW R1200R'nin kadran çerçevesinin yanına eklenen kapaklı bir eşya kutusudur. Parça, çerçeveye yandan bağlanan bir gövde ve onun üzerine oturan kapaklı bir kutu bölümünden oluşur. Kaynağında kutu içine anahtar gibi küçük eşyalar konulduğu yazılır. Motosiklet ve kutunun içine konulan eşyalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 90 × 75 × 71 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7429618-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7429618-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7429618-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7429618-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "fralinuxbot",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "th7429620-bmw-r1200r-sasi-yan-esya-kutusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "BMW",
+      "R1200R"
+    ],
+    "uyum": [
+      {
+        "marka": "BMW",
+        "model": "R1200R"
+      }
+    ],
+    "baslik": "BMW R1200R Şasi Yan Eşya Kutusu",
+    "aciklama": "BMW R1200R'nin şasi yanına eklenen kapaklı bir eşya kutusudur. Parça, şasi ile arka amortisör arasındaki boşluğa oturan bir gövde ve onun üzerine oturan kapaklı bir kutu bölümünden oluşur. Kaynağında kutu içine küçük eşyalar konulduğu yazılır. Motosiklet ve kutunun içine konulan eşyalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 165 × 156 × 70 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7429620-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7429620-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7429620-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7429620-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "fralinuxbot",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "th5192459-suzuki-dr-z400-kamera-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "DR-Z400"
+    ],
+    "uyum": [
+      {
+        "marka": "Suzuki",
+        "model": "DR-Z400"
+      }
+    ],
+    "baslik": "Suzuki DR-Z400 Kamera Tutucusu",
+    "aciklama": "Suzuki DR-Z400'e takılan bir kamera tutucusu plakasıdır. Parça, hafif içe eğimli bir gövde plakası ve bu plaka üzerindeki iki bağlantı başlığından oluşur. Kaynağında kameranın plaka üzerine yerleştirilerek bağlandığı yazılır. Motosiklet ve kamera ürüne dahil değildir.\nYaklaşık dış ölçüler: 82 × 54 × 13 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5192459-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5192459-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5192459-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5192459-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dankun7",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th6494801-suzuki-xf650-koruk-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "XF650"
+    ],
+    "uyum": [
+      {
+        "marka": "Suzuki",
+        "model": "XF650"
+      }
+    ],
+    "baslik": "Suzuki XF650 Körük Tutucusu",
+    "aciklama": "Suzuki XF650'nin çatal borularına takılan bir körük tutucusu parçasıdır. Parça, çatal borusunun üzerine itilen kovan biçimli bir gövde ve onu çatal kelepçe vidalarına bağlayan bir bileşkeden oluşur. Kaynağında körüğün bu parçanın üzerine geçirildiği yazılır. Motosiklet ve körük ürüne dahil değildir.\nYaklaşık dış ölçüler: 76 × 73 × 53 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6494801-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6494801-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6494801-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6494801-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "flydown",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "th6494812-suzuki-xf650-catal-koruyucu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "XF650"
+    ],
+    "uyum": [
+      {
+        "marka": "Suzuki",
+        "model": "XF650"
+      }
+    ],
+    "baslik": "Suzuki XF650 Çatal Koruyucu",
+    "aciklama": "Suzuki XF650'nin çatal borusunun üzerine geçen kozmetik bir kılıf parçasıdır. Parça, çatal borusunun dış yüzeyine oturan kovan biçimli bir gövdeden oluşur ve çatal kelepçe vidalarıyla bağlanır. Kaynağında parçanın sol taraf için tasarlandığı ve sağ taraf için aynalanabileceği yazılır. Motosiklet ürüne dahil değildir.\nYaklaşık dış ölçüler: 92 × 79 × 78 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6494812-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6494812-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6494812-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "flydown",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "th6576219-yamaha-fz-07-gosterge-konum-braketi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha"
+    ],
+    "uyum": [
+      {
+        "marka": "Yamaha"
+      }
+    ],
+    "baslik": "Yamaha FZ-07 Gösterge Konum Braketi",
+    "aciklama": "Yamaha FZ-07'nin hız göstergesini fabrika konumundan farklı bir konuma taşıyan bir braket parçasıdır. Parça, gösterge panelinin oturduğu bir gövde ve gövde üzerindeki bağlantı noktalarından oluşur. Kaynağında göstergeyi camın braketlerine taşımak için tasarlandığı yazılır. Motosiklet ve gösterge ürüne dahil değildir.\nYaklaşık dış ölçüler: 153 × 96 × 60 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6576219-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6576219-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6576219-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ch6ney",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "th7430184-yamaha-fz6r-tutamak-boslugu-kapatma-plakasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha"
+    ],
+    "uyum": [
+      {
+        "marka": "Yamaha"
+      }
+    ],
+    "baslik": "Yamaha FZ6R Tutamak Boşluğu Kapatma Plakası",
+    "aciklama": "Yamaha FZ6R'nin yan tutamakları söküldüğünde geride kalan boşluğu kapatan kozmetik bir plaka setidir. Parça, boşluğun kenarına oturan düz gövdelerden oluşur ve fabrika vidalarıyla bağlanır. Kaynağında parçanın boşluğu kapatmak üzere tasarlandığı yazılır. Motosiklet ve tutamak ürüne dahil değildir.\nYaklaşık dış ölçüler: 101 × 79 × 8 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7430184-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7430184-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7430184-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "gejstaudio",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "c3dducati-monster-hiz-gostergesi-kapagi",
     "kategori": "Motosiklet",
     "marka": [
