@@ -1,5 +1,113 @@
 [
   {
+    "id": "th5522769-bmw-g650x-zincir-yaglayici-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "BMW",
+      "G650X"
+    ],
+    "uyum": [
+      {
+        "marka": "BMW",
+        "model": "G650X"
+      }
+    ],
+    "baslik": "BMW G650X Zincir Yağlayıcı Tutucusu",
+    "aciklama": "BMW G650X'in zincir yağlayıcısını tutan bir parçadır. Parça, yağlayıcı aparatının oturduğu kovan biçimli bir gövde ile bu gövdeyi alt şasiyeye bağlayan ikinci bir bileşkeden oluşur. Kaynağında gövdenin alt şasiyeye sarılarak oturduğu ve yağlayıcının vanasının dik konumda kaldığı yazılır. Motosiklet ve yağlayıcı aparatı ürüne dahil değildir.\nYaklaşık dış ölçüler: 85 × 63 × 54 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5522769-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5522769-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5522769-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5522769-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "bmacw",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th5703421-bmw-gs-isitma-kontrol-unitesi-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "BMW",
+      "R1200GS"
+    ],
+    "uyum": [
+      {
+        "marka": "BMW",
+        "model": "R1200GS"
+      }
+    ],
+    "baslik": "BMW GS Isıtma Kontrol Ünitesi Tutucusu",
+    "aciklama": "BMW GS serisi motosikletlerin gidonuna takılan bir tutucudur. Parça, gidonun çevresine kelepçeyle sarılan bir bilezik gövde ve kontrol ünitesinin oturduğu bir montaj yüzeyinden oluşur. Kaynağında bu revizyonun kontrol ünitesi bağlantı noktasını gidonun orta hizasından daha yukarı aldığı yazılır. Isıtma kontrol ünitesi ürüne dahil değildir.\nYaklaşık dış ölçüler: 72 × 34 × 17 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5703421-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5703421-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5703421-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5703421-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "AdamWebber",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "th7429618-bmw-r1200r-kadran-cercevesi-esya-kutusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "BMW",
+      "R1200R"
+    ],
+    "uyum": [
+      {
+        "marka": "BMW",
+        "model": "R1200R"
+      }
+    ],
+    "baslik": "BMW R1200R Kadran Çerçevesi Eşya Kutusu",
+    "aciklama": "BMW R1200R'nin kadran çerçevesinin yanına eklenen kapaklı bir eşya kutusudur. Parça, çerçeveye yandan bağlanan bir gövde ve onun üzerine oturan kapaklı bir kutu bölümünden oluşur. Kaynağında kutu içine anahtar gibi küçük eşyalar konulduğu yazılır. Motosiklet ve kutunun içine konulan eşyalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 90 × 75 × 71 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7429618-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7429618-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7429618-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7429618-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "fralinuxbot",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "th7429620-bmw-r1200r-sasi-yan-esya-kutusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "BMW",
+      "R1200R"
+    ],
+    "uyum": [
+      {
+        "marka": "BMW",
+        "model": "R1200R"
+      }
+    ],
+    "baslik": "BMW R1200R Şasi Yan Eşya Kutusu",
+    "aciklama": "BMW R1200R'nin şasi yanına eklenen kapaklı bir eşya kutusudur. Parça, şasi ile arka amortisör arasındaki boşluğa oturan bir gövde ve onun üzerine oturan kapaklı bir kutu bölümünden oluşur. Kaynağında kutu içine küçük eşyalar konulduğu yazılır. Motosiklet ve kutunun içine konulan eşyalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 165 × 156 × 70 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7429620-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7429620-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7429620-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7429620-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "fralinuxbot",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "th5192459-suzuki-dr-z400-kamera-tutucusu",
     "kategori": "Motosiklet",
     "marka": [
