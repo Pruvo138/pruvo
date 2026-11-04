@@ -1,5 +1,45 @@
 [
   {
+    "id": "ebike-motor-dislisi-30dis-40mm",
+    "kategori": "Bisiklet",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Elektrikli Bisiklet (E-bike) Motor Dişlisi 30 Diş 40mm T30 D40",
+    "aciklama": "Elektrikli bisiklet (e-bike) motorunun tahrik dişlisidir; motorun hareketini tekerleğe aktarır.\nDişleri aşındığında motor dönse de tekerlek çekmez ve tıkırdar.\nTasarımcının yayımladığı ölçüler: 30 diş (T30), 40 mm dış çap (D40), 12 mm kalınlık, 608 rulman yuvası.\nMontajdan önce eski dişlinizin diş sayısını, dış çapını ve rulman ölçüsünü karşılaştırın.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt5268471-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt5268471-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt5268471-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt5268471-4.jpg"
+    ]
+  },
+  {
+    "id": "ford-fiesta-mk7-kalorifer-flap-aktuator-kolu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Fiesta"
+    ],
+    "uyum": [
+      {
+        "marka": "Ford",
+        "model": "Fiesta"
+      }
+    ],
+    "baslik": "Ford Fiesta Mk7 Isıtıcı Klape Aktüatör Kolu (Visteon 19E616-BB)",
+    "aciklama": "Ford Fiesta Mk7 (2008-2017) ısıtıcı klape aktüatöründe (Visteon 19E616-BB) hareketi ısıtma hava kapağına aktaran koldur.\nYıldız biçimli gövdesi aktüatör miline oturur; kolun ucundaki kızak ısıtma kapağını hareket ettirir.\nSet, kolla birlikte aktüatörün klima ünitesindeki ısıtma kapağına bağlanmasını sağlayan bağlantı parçası ve pimleri içerir.\nTasarımcı, üretilen parçanın ölçülerinin birebir olduğunu belirtir.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt5783689-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt5783689-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt5783689-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt5783689-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt5783689-5.jpg",
+      "https://media.pruvo3d.com/urunler/cgt5783689-6.jpg"
+    ]
+  },
+  {
     "id": "th5522769-bmw-g650x-zincir-yaglayici-tutucusu",
     "kategori": "Motosiklet",
     "marka": [
