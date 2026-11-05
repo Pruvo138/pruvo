@@ -6,7 +6,7 @@
   V2 pencere siniri: bitis HARIC, baslangic DAHIL              -> sinir disi sayilmaz
   V3 TOPLAM=0                                                  -> KABUL_ORANI=TANIMSIZ, rc=0
   V4 beyaz liste disi karar                                    -> BILINMEYEN_KARAR + rc=4
-  V5 d1-json zarf listesi (canli ayristirici)                  -> V1 ile ayni ozet
+  V5 d1-json GERCEK zarf (`d1_zarf_fikstur`, canli ayristirici)  -> V1 ile ayni ozet
   V6 d1-json bozuk zarf                                        -> OLCULEMEDI rc=3 (sessiz 0 YOK)
   V7 tarih bicimi / bitis<=baslangic                           -> rc=2
   M1 MUTANT topla() bitisi dahil eder                          -> V5 KIRMIZI
@@ -26,6 +26,9 @@ from pathlib import Path
 
 KOK = Path(__file__).resolve().parent.parent
 ARAC = KOK / "tools" / "riza-sayac-oku.py"
+sys.dont_write_bytecode = True
+sys.path.insert(0, str(KOK / "tools"))
+import d1_zarf_fikstur                                   # noqa: E402  (ortak GERCEK wrangler zarfi)
 
 SATIRLAR = [
     ("2026-10-29", "kabul", 9),     # pencere disi (once)
@@ -96,8 +99,8 @@ def vakalar(mod):
         out["V4"] = (rc == 4 and "BILINMEYEN_KARAR=4" in o, "rc=%s o=%s" % (rc, o.strip()[-80:]))
 
         js = Path(td) / "d1.json"
-        js.write_text(json.dumps([{"results": [{"gun": g, "karar": k, "n": n} for g, k, n in SATIRLAR],
-                                   "success": True}]), encoding="utf-8")
+        js.write_text(d1_zarf_fikstur.zarf_metni(
+            [{"gun": g, "karar": k, "n": n} for g, k, n in SATIRLAR]), encoding="utf-8")
         rc, o = kos(mod, ["--baslangic", BAS, "--bitis", BIT, "--d1-json", str(js)])
         ilk = o.splitlines()[0] if o else ""
         out["V5"] = (rc == 0 and ilk == BEKLENEN_OZET, "rc=%s ilk=%s" % (rc, ilk))
