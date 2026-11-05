@@ -1,5 +1,200 @@
 [
   {
+    "id": "c3dopel-denge-mili-zincir-kilavuzu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel"
+    ],
+    "uyum": [
+      {
+        "marka": "Opel"
+      }
+    ],
+    "baslik": "Opel Denge Mili Zincir Kılavuzu 24435752",
+    "aciklama": "Opel motorlarda zamanlama zincirinin denge mili kılavuzudur. Zincir ile denge mili arasında geçme yapan bir kılavuz gövdesidir. Parça, Astra, Frontera, Omega, Signum, Vectra ve Zafira ile Saab 9-3 ve 9-5 araç modelleri için hazırlanmıştır. Araç, motor ve zamanlama zinciri ürüne dahil değildir.",
+    "fiyat": "1250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dbalance-shaft-chain-guide-24435752-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dbalance-shaft-chain-guide-24435752-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dbalance-shaft-chain-guide-24435752-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dbalance-shaft-chain-guide-24435752-4.jpg"
+    ]
+  },
+  {
+    "id": "c3dmotorola-vb400v3-kamera-montaj-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Motorola"
+    ],
+    "uyum": [
+      {
+        "marka": "Motorola"
+      }
+    ],
+    "baslik": "Motorola VB400V3 Gövde Kamerası Montaj Adaptörü",
+    "aciklama": "Motorola VB400V3 gövde kamerasının arka gövde arayüzüne takılan bir montaj adaptörüdür. Adaptör, kameranın gövde üzerindeki bağlantı yüzeyiyle birleşen tarafta konumlanır. Vida noktaları kameranın gövde arayüzüne göre yerleştirilmiştir. Kamera ve araç ürüne dahil değildir.",
+    "fiyat": "1149 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dmotorola-vb400v3-camera-mount-adapter-vb400v3-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dmotorola-vb400v3-camera-mount-adapter-vb400v3-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dmotorola-vb400v3-camera-mount-adapter-vb400v3-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dmotorola-vb400v3-camera-mount-adapter-vb400v3-4.jpg"
+    ]
+  },
+  {
+    "id": "c3dlexus-rx300-ic-kapi-paneli-vida-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Lexus",
+      "RX300"
+    ],
+    "uyum": [
+      {
+        "marka": "Lexus",
+        "model": "RX300"
+      }
+    ],
+    "baslik": "Lexus RX300 İç Kapı Paneli Vida Kapağı 74226-48010",
+    "aciklama": "Lexus RX300 iç kapı panelinde kolçak bölgesindeki vida deliğini kapatan küçük bir kapaktır. Panel yüzeyiyle aynı hizada oturacak biçimde şekillendirilmiştir. Bağlantı noktasının açıkta kalmasını önleyen kapalı bir yüzey sunar. Araç ve iç kapı paneli ürüne dahil değildir.",
+    "fiyat": "899 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dlexus-rx300-door-panel-trim-cover-74226-48010-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dlexus-rx300-door-panel-trim-cover-74226-48010-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dlexus-rx300-door-panel-trim-cover-74226-48010-3.jpg"
+    ]
+  },
+  {
+    "id": "c3dlexus-rx300-sag-ic-ayna-ucgen-kaplamasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Lexus",
+      "RX300"
+    ],
+    "uyum": [
+      {
+        "marka": "Lexus",
+        "model": "RX300"
+      }
+    ],
+    "baslik": "Lexus RX300 Sağ İç Ayna Üçgen Parçası 67491-48010",
+    "aciklama": "Lexus RX300 ön kapı ayna montaj bölgesinde, sağ tarafta yer alan üçgen biçimli bir iç panel parçasıdır. Ayna ile kapı paneli arasındaki boşluğu kapatır ve geçme yüzeyleri panel açıklığına göre şekillendirilmiştir. Kaynakta Toyota Harrier ile ortak parça olarak listelenmiştir. Ayna, araç ve kapı paneli ürüne dahil değildir.",
+    "fiyat": "799 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dtoyota-lexus-rx300-right-inner-mirror-triangle-trim-67491-48010-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dtoyota-lexus-rx300-right-inner-mirror-triangle-trim-67491-48010-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dtoyota-lexus-rx300-right-inner-mirror-triangle-trim-67491-48010-3.jpg"
+    ]
+  },
+  {
+    "id": "c3dlexus-rx300-emniyet-kemeri-kilavuz-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Lexus",
+      "RX300"
+    ],
+    "uyum": [
+      {
+        "marka": "Lexus",
+        "model": "RX300"
+      }
+    ],
+    "baslik": "Lexus RX300 Emniyet Kemeri Kılavuz Klipsi 73371-30030-C0",
+    "aciklama": "Lexus RX300 emniyet kemerinin koltuk arasından geçtiği bölümde kemeri taşıyan küçük bir klips parçasıdır. Kemerin geçtiği noktada kaymasını sınırlandıran bir geçme yüzeyi bulunur. Klips, koltuk yanındaki montaj noktasına oturacak biçimde şekillendirilmiştir. Araç, emniyet kemeri ve koltuk ürüne dahil değildir.",
+    "fiyat": "649 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dlexus-seat-belt-guide-holder-73371-30030-c0-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dlexus-seat-belt-guide-holder-73371-30030-c0-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dlexus-seat-belt-guide-holder-73371-30030-c0-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dlexus-seat-belt-guide-holder-73371-30030-c0-4.jpg"
+    ]
+  },
+  {
+    "id": "c3dmazda-626-gosterge-paneli-cercevesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mazda",
+      "626"
+    ],
+    "uyum": [
+      {
+        "marka": "Mazda",
+        "model": "626"
+      }
+    ],
+    "baslik": "Mazda 626 Gösterge Paneli Çerçevesi GD7A-55-446",
+    "aciklama": "Mazda 626 gösterge panelinin çevresini saran, panel ile gövde arasındaki geçişi kapatan bir trim çerçevesidir. Açılı yüzeyleri sayesinde panelin çevresinde düzgün bir görünüm bırakır. Geçme yuvaları panelin çevresindeki bağlantı noktalarına göre yerleştirilmiştir. Araç ve gösterge paneli ürüne dahil değildir.",
+    "fiyat": "1999 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dinstrument-cluster-bezel-gd7a-55-446c-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dinstrument-cluster-bezel-gd7a-55-446c-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dinstrument-cluster-bezel-gd7a-55-446c-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dinstrument-cluster-bezel-gd7a-55-446c-4.jpg"
+    ]
+  },
+  {
+    "id": "c3dwebasto-isitma-sistemi-vanasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Webasto"
+    ],
+    "uyum": [
+      {
+        "marka": "Webasto"
+      }
+    ],
+    "baslik": "Webasto Isıtma Sistemi Soğutma Suyu Kontrol Vanası 7N0819809E",
+    "aciklama": "Araç yardımcı ısıtma sisteminde ısıtıcı ile soğutma suyu devresi arasındaki geçişi yöneten bir vanadır. Gövdesi üzerindeki bağlantı noktaları hortum ve boru bağlantılarına göre yerleştirilmiştir. Parça, Volkswagen grubu motor ailelerindeki ısıtıcı üniteleri için hazırlanmıştır. Isıtıcı, hortum ve araç ürüne dahil değildir.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dwebasto-heater-valve-7n0819809e-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dwebasto-heater-valve-7n0819809e-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dwebasto-heater-valve-7n0819809e-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dwebasto-heater-valve-7n0819809e-4.jpg"
+    ]
+  },
+  {
+    "id": "c3dvolkswagen-ikincil-hava-kombinasyon-vanasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volkswagen"
+    ],
+    "uyum": [
+      {
+        "marka": "Volkswagen"
+      }
+    ],
+    "baslik": "Volkswagen / Audi İkincil Hava Kombinasyon Vanası 06K131097K",
+    "aciklama": "Volkswagen ve Audi motorlarının ikincil hava enjeksiyon sisteminde farklı hava yollarını tek noktada birleştiren bir kombinasyon vanasıdır. Gövde üzerindeki kanallar sistemdeki basınç hatlarını birbirine bağlar. Parça, 1,8 ve 2,0 litre hacimli motor sürümleri için hazırlanmıştır. Araç, motor ve hava yolları ürüne dahil değildir.",
+    "fiyat": "2000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dcombination-valve-secondary-air-06k131097k-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dcombination-valve-secondary-air-06k131097k-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dcombination-valve-secondary-air-06k131097k-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dcombination-valve-secondary-air-06k131097k-4.jpg"
+    ]
+  },
+  {
+    "id": "c3dhyundai-far-arka-toz-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "uyum": [
+      {
+        "marka": "Hyundai"
+      }
+    ],
+    "baslik": "Hyundai Far Arka Toz Kapağı 92140-2D000",
+    "aciklama": "Hyundai araçlarının far arkasındaki ampul erişim ağzını kapatan bir toz kapağıdır. Kapak, far gövdesindeki yuvaya geçen biçimdedir. Aynı gövde birden fazla araç grubu için de listelenmiştir. Araç, far ve ampul ürüne dahil değildir.",
+    "fiyat": "649 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dheadlight-rear-dust-cover-cap-92140-2d000-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dheadlight-rear-dust-cover-cap-92140-2d000-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dheadlight-rear-dust-cover-cap-92140-2d000-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dheadlight-rear-dust-cover-cap-92140-2d000-4.jpg"
+    ]
+  },
+  {
     "id": "bmw-r1200gs-yan-ruzgar-savuran",
     "kategori": "Motosiklet",
     "marka": [
