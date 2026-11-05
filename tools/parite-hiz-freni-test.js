@@ -34,6 +34,8 @@
  *      zamandan ~8 kat hizli tukendi (cikti "frende harcanan 1509 sn" derken kosum
  *      288,2 sn surmustu) ve kosum 539/1334 sorguda durdu.
  */
+// V9-V12 (D1 yogunlugu) icin bekleme kisaltilir; modul YUKLENIRKEN okunur, require'dan ONCE.
+if (!process.env.PARITE_D1_YOGUN_BEKLEME_MS) process.env.PARITE_D1_YOGUN_BEKLEME_MS = "5";
 const ortak = require("./parite-ortak.js");
 
 let kalan = 0;
@@ -51,6 +53,13 @@ function sahteUc(durumlar) {
     anlar.push(Date.now());
     const d = durumlar[Math.min(i++, durumlar.length - 1)];
     if (d === "ZAMAN_ASIMI") { const e = new Error("abort"); e.name = "TimeoutError"; throw e; }
+    // "D1" = canlida olculen imza (HTTP 500 + D1_ERROR overloaded) · "500" = baska 5xx hatasi
+    if (d === "D1" || d === "500") {
+      const hata = d === "D1"
+        ? "D1_ERROR: D1 DB is overloaded. Too many resources consumed within a 10 second window"
+        : "ic hata (fikstur)";
+      return { status: 500, async text() { return ""; }, async json() { return { hata }; } };
+    }
     return {
       status: d,
       async text() { return ""; },
@@ -215,8 +224,71 @@ function sahteUc(durumlar) {
       "fren=" + fren + " ms · toplam-varsayimi≈" + toplamVarsayim + " ms");
   }
 
+  // ── V9-V12: D1 YOGUNLUGU (5 Kas 2026, kalem D1-YOGUNLUK-04KAS) ─────────────────
+  // Canlida olculdu: parite 300'de 7-10 sorgu "D1 DB is overloaded" ile dustu ve AYRISMA
+  // (KIRMIZI) sayildi; icerik ayrismasi 0'di. Bu imza GECICI'dir: beklenip yeniden denenir,
+  // hak biterse OlcumHatasi (cikis 3) olur — asla KIRMIZI, asla sessiz 0 degil.
+  console.log("\nV9) gecici D1 yogunlugu (2 kez) -> yeniden deneme TUTAR, 200 doner");
+  ortak.hizFreniSifirla();
+  {
+    const u = sahteUc(["D1", "D1", 200]);
+    const sayac = ortak.sayacYeni();
+    let c = null, hata = null;
+    try { c = await ortak.canliGetir("http://x/v9", sayac, ortak.DENEME); } catch (e) { hata = e; }
+    ona(!hata, "hata ATILMADI", hata && hata.message);
+    ona(c && c.durum === 200, "200 alindi (3. denemede)");
+    ona(sayac.d1Yogun === 2 && sayac.yenidenDeneme === 2, "D1 yogun 2 + yeniden deneme 2 SAYILDI",
+      JSON.stringify(sayac));
+    ona(u.sayi() === 3, "tam 3 fetch", "fetch=" + u.sayi());
+  }
+
+  console.log("\nV10) D1 yogunlugu surer -> hak tukenir -> OlcumHatasi('D1_YOGUN'), AYRISMA DEGIL");
+  ortak.hizFreniSifirla();
+  {
+    const u = sahteUc(["D1"]);
+    const sayac = ortak.sayacYeni();
+    let hata = null;
+    try { await ortak.canliGetir("http://x/v10", sayac, ortak.DENEME); } catch (e) { hata = e; }
+    ona(!!hata && hata.olcum === true, "OlcumHatasi atildi (ayrisma yoluna DUSMEZ)", hata && hata.message);
+    ona(!!hata && hata.tur === "D1_YOGUN", "tur D1_YOGUN", hata && hata.tur);
+    ona(u.sayi() === ortak.DENEME_D1_YOGUN, "D1 hakki TAM kullanildi",
+      "fetch=" + u.sayi() + " hak=" + ortak.DENEME_D1_YOGUN);
+    ona(ortak.DENEME_D1_YOGUN > ortak.DENEME, "D1 hakki eski 5xx hakkindan BUYUK");
+    ona(ortak.D1_YOGUN_BEKLEME_MS === 5, "test beklemesi env'den okundu (varsayilan 11000 ms)",
+      "bekleme=" + ortak.D1_YOGUN_BEKLEME_MS);
+    const not = ortak.olcumNotu(hata, "test");
+    ona(not.indexOf("D1 YOGUN") !== -1 && not.indexOf("ÖLÇÜLEMEDİ") === 0,
+      "olcumNotu 'ÖLÇÜLEMEDİ: D1 YOGUN' basiyor", not.slice(0, 60));
+  }
+
+  console.log("\nV11) D1 DISI 5xx hatasi -> ESKI davranis (DENEME kez, duz Error = ayrisma)");
+  ortak.hizFreniSifirla();
+  {
+    const u = sahteUc(["500"]);
+    const sayac = ortak.sayacYeni();
+    let hata = null;
+    try { await ortak.canliGetir("http://x/v11", sayac, ortak.DENEME); } catch (e) { hata = e; }
+    ona(!!hata && !hata.olcum, "duz Error (olcum arizasina CEVRILMEDI — af genislemedi)",
+      hata && (hata.tur || hata.message));
+    ona(u.sayi() === ortak.DENEME, "deneme sayisi DEGISMEDI (DENEME)", "fetch=" + u.sayi());
+    ona(sayac.d1Yogun === 0, "D1 yogun SAYILMADI", JSON.stringify(sayac));
+  }
+
+  console.log("\nV12) d1YogunMu imzasi dar: yalniz 5xx + 'D1 DB is overloaded'");
+  {
+    const IMZA = "D1_ERROR: D1 DB is overloaded. Too many resources consumed within a 10 second window";
+    ona(ortak.d1YogunMu(500, { hata: IMZA }) === true, "500 + imza -> true");
+    ona(ortak.d1YogunMu(503, { hata: IMZA }) === true, "503 + imza -> true");
+    ona(ortak.d1YogunMu(200, { hata: IMZA }) === false, "200 + imza -> false (yalniz 5xx)");
+    ona(ortak.d1YogunMu(500, { hata: "D1_ERROR: no such column" }) === false,
+      "500 + baska D1 hatasi -> false (sema hatasi affedilmez)");
+    ona(ortak.d1YogunMu(500, null) === false, "govdesiz -> false");
+    ona(ortak.FIKSTUR_ENV.indexOf("PARITE_D1_YOGUN_BEKLEME_MS") !== -1,
+      "bekleme knob'u FIKSTUR_ENV'de (canli kosumu kanoniklikten cikarir)");
+  }
+
   global.fetch = GERCEK_FETCH;
   ortak.hizFreniSifirla();
-  console.log("\n%s", kalan ? "KIRMIZI: " + kalan + " iddia dustu" : "GECTI: 8 eksen, tum iddialar");
+  console.log("\n%s", kalan ? "KIRMIZI: " + kalan + " iddia dustu" : "GECTI: 12 eksen, tum iddialar");
   process.exit(kalan ? 1 : 0);
 })();

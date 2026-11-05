@@ -128,6 +128,7 @@ const FIKSTUR_ENV = [
   "PARITE_ZAMAN_ASIMI_MS",
   "PARITE_DENEME",
   "PARITE_BEKLEME_MS",
+  "PARITE_D1_YOGUN_BEKLEME_MS",  // D1 yogunluk beklemesi ELLE kisaltildi
   "PARITE_SUPURME_TAVANI",
   "PARITE_SUPURME_MUTLAK",       // supurme MUTLAK ust siniri ELLE degistirildi
   "PARITE_YAYIN_HALI",           // yayin hali komutu ELLE verildi (kanonik D1 okunmuyor)
@@ -155,6 +156,21 @@ const ZAMAN_ASIMI_MS = sayiEnv("PARITE_ZAMAN_ASIMI_MS", 20000, 50, 120000);
 // Gecici hata (429 / zaman asimi / 5xx) icin sinirli yeniden deneme + ustel bekleme.
 const DENEME = sayiEnv("PARITE_DENEME", 3, 1, 6);
 const BEKLEME_MS = sayiEnv("PARITE_BEKLEME_MS", 400, 1, 5000);
+// ── D1 YOGUNLUGU (5 Kas 2026, kalem D1-YOGUNLUK-04KAS) ──────────────────────────────
+// Worker HTTP 5xx + `hata: "D1_ERROR: D1 DB is overloaded. Too many resources consumed
+// within a 10 second window"` donduruyor. OLCULDU (4-5 Kas, canli parite 300): 3 kosumda
+// 10/300 · 7/300 · 7/300 sorgu bu hatayla dustu, ICERIK ayrismasi 0. Eski kol bunu duz
+// 5xx gibi 3 kez / 400-800 ms arayla deniyor (pencere 10 sn -> hak bosuna yaniyor) ve
+// tukenince AYRISMA (KIRMIZI) sayiyordu: SERIT B filament TEST 5 kronik kirmizisi buydu.
+// YENI: bu imza GECICI'dir -> pencereden UZUN bekle + DENEME_D1_YOGUN kez dene; hak
+// tukenirse OlcumHatasi("D1_YOGUN") (cikis 3): asla KIRMIZI degil, asla 0 degil.
+const D1_YOGUN_BEKLEME_MS = sayiEnv("PARITE_D1_YOGUN_BEKLEME_MS", 11000, 1, 60000);
+const DENEME_D1_YOGUN = 4;
+const D1_YOGUN_IMZA = /D1 DB is overloaded/i;
+/** 5xx govdesindeki hata D1 yogunluk imzasi mi? SAF. */
+function d1YogunMu(durum, govde) {
+  return durum >= 500 && !!govde && D1_YOGUN_IMZA.test(String(govde.hata || ""));
+}
 // ── SUPURME TAVANI — SABIT DEGIL, KATALOG BOYUTUNDAN TURETILIR ──────────────────────
 // /katalog?ids= parti sayisi ust siniri (1 parti = IDS_PARTI id). Tavan asilirsa
 // "yerel ⊆ D1" kaniti URETILMEZ.
@@ -386,7 +402,7 @@ function kardesUc(uc, ad) {
  *        her yeniden deneme +1 (429/zaman asimi/5xx; ust sinir DENEME).
  */
 function sayacYeni(tavan) {
-  return { istek: 0, r429: 0, yenidenDeneme: 0, supurmeParti: 0, tavan: tavan || 0 };
+  return { istek: 0, r429: 0, d1Yogun: 0, yenidenDeneme: 0, supurmeParti: 0, tavan: tavan || 0 };
 }
 
 function bekle(ms) {
@@ -518,6 +534,7 @@ async function canliGetir(url, sayac, deneme) {
   const azamiTur = Math.max(kere, DENEME_429);
   let son = null;
   let gorulen429 = 0;
+  let gorulenD1 = 0;
   for (let i = 0; i < azamiTur; i++) {
     if (sayac.tavan && sayac.istek >= sayac.tavan) {
       throw new OlcumHatasi("TAVAN", "istek TAVANI asildi (" + sayac.tavan + ") — " + url);
@@ -569,6 +586,14 @@ async function canliGetir(url, sayac, deneme) {
     } catch (e) {
       son = new Error("JSON degil (HTTP " + r.status + ")");
       if (i + 1 < kere) { await bekle(BEKLEME_MS * Math.pow(2, i)); continue; }
+      throw son;
+    }
+    if (d1YogunMu(r.status, j)) {
+      sayac.d1Yogun = (sayac.d1Yogun || 0) + 1;
+      gorulenD1++;
+      son = new OlcumHatasi("D1_YOGUN", "D1 yogun (" + gorulenD1 + "/" + DENEME_D1_YOGUN +
+        " deneme, " + D1_YOGUN_BEKLEME_MS + " ms ara): " + String(j.hata).slice(0, 80) + " — " + url, r.status);
+      if (gorulenD1 < DENEME_D1_YOGUN && i + 1 < azamiTur) { await bekle(D1_YOGUN_BEKLEME_MS); continue; }
       throw son;
     }
     if (j && j.hata && r.status >= 500) {
@@ -1196,8 +1221,8 @@ function sonucYaz({ etiket, gecti, atlandi, hatalar, onKosul, sayac, sn, fazlaKu
   console.log("");
   console.log("gecti: %d | ACIKLANAMAYAN: %d | ACIKLANAN(senkron): %d | atlandi: %d | %s sn",
     gecti, kirmiziLar.length, aciklananLar.length, atlandi || 0, sn);
-  console.log("canli istek: %d (429: %d | yeniden deneme: %d | supurme partisi: %d)",
-    sayac.istek, sayac.r429 || 0, sayac.yenidenDeneme || 0, sayac.supurmeParti || 0);
+  console.log("canli istek: %d (429: %d | yeniden deneme: %d | supurme partisi: %d | D1 yogun: %d)",
+    sayac.istek, sayac.r429 || 0, sayac.yenidenDeneme || 0, sayac.supurmeParti || 0, sayac.d1Yogun || 0);
   // Fren DEVREYE GIRDIYSE gorunur olsun: "test neden 14 dk surdu" sorusu ciktidan
   // cevaplanabilmeli. Fren hic girmediyse (CI yolu) bu satir BASILMAZ -> eski cikti aynen.
   if (_hizBaslangicAni) {
@@ -1297,6 +1322,11 @@ function olcumNotu(e, etiket) {
   if (e.tur === "TAVAN") {
     return "ÖLÇÜLEMEDİ: TAVAN — " + e.message + " (af YOK: siniflandirma KAPALI)";
   }
+  if (e.tur === "D1_YOGUN") {
+    return "ÖLÇÜLEMEDİ: D1 YOGUN — " + DENEME_D1_YOGUN + " deneme / " +
+      Math.round(D1_YOGUN_BEKLEME_MS / 1000) + " sn ara TUKENDI (" + etiket + "). " +
+      "Ayrisma SAYILMADI, ama parite de BELGELENMEDI.";
+  }
   return "ÖLÇÜLEMEDİ: " + (e.message || String(e)) + " [" + etiket + "]";
 }
 
@@ -1347,6 +1377,7 @@ module.exports = {
   mutlakTavan, katalogIdAdedi, MUTLAK_KAT, MUTLAK_TABAN_PARTI,
   FIKSTUR_ENV,
   DENEME_429, HIZ_TABAN_ARA_MS, HIZ_AZAMI_ARA_MS, HIZ_BUTCESI_MS,
+  DENEME_D1_YOGUN, D1_YOGUN_BEKLEME_MS, d1YogunMu,
   hizFreniDurumu, hizFreniSifirla, hizFrenSuresiMs,
   OlcumHatasi, WafHatasi, kardesUc, sayacYeni, canliGetir, nonceUret,
   canliKatalogSayisi, d1deOlmayanlar, onKosulOlc, siniflandir,
