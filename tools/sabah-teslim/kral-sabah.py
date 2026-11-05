@@ -361,10 +361,10 @@ _BOLUCU_ONBELLEK: list = []
 
 
 def _kanonik_bolucu():
-    """K382 kanonik bolucu + kimlik kalibi (`tools/parti-borc-kapisi.py`).
+    """K382 kanonik bolucu + acik durum kumesi (`tools/parti-borc-kapisi.py`).
 
-    Doner: (hucrelere_bol, KalemKimligi) — cozulemezse (None, None).
-    IKINCI bir bolucu/kalip burada TANIMLANMAZ ([[ikiz-tanim-sessiz-ayrisma]]).
+    Doner: (hucrelere_bol, ACIK_DURUMLAR) — cozulemezse (None, None).
+    IKINCI bir bolucu/kume burada TANIMLANMAZ ([[ikiz-tanim-sessiz-ayrisma]]).
     """
     if _BOLUCU_ONBELLEK:
         return _BOLUCU_ONBELLEK[0]
@@ -373,19 +373,17 @@ def _kanonik_bolucu():
         spec = importlib.util.spec_from_file_location("pruvo_t4_bolucu_sabah", yol)
         mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)
-        _BOLUCU_ONBELLEK.append((mod.hucrelere_bol, mod.KalemKimligi))
+        _BOLUCU_ONBELLEK.append((mod.hucrelere_bol, mod.ACIK_DURUMLAR))
     except Exception:                                              # noqa: BLE001
         _BOLUCU_ONBELLEK.append((None, None))
     return _BOLUCU_ONBELLEK[0]
 
 
 def acik_kalemleri_topla(kalemler_txt: str) -> tuple[list[dict], int]:
-    """Markdown tablo satırlarını parse eder; durum ACIK veya 🔧 olanları döner.
+    """Markdown tablo satırlarını parse eder; durum ∈ ACIK_DURUMLAR (tek parser
+    kümesi: ACIK/UCUSTA/OKAN-KAPISI/🔧) olanları döner.
     Tablo formatı: '| id | tarih | kimden→kime | iş | durum | kapanış kanıtı |'.
-    'iş' hücresi içinde '|' veya '\n' olabilir (uzun metin). Bu yüzden:
-      - İlk 3 hücre (id/tarih/kimden) sabit konumda (F0,F1,F2).
-      - Son 2 hücre (durum/kanit) sabit konumda (F-2,F-1).
-      - Aradaki TÜM hücreler 'iş' hücresine toplanır.
+    Hücre konumları sabit (F0..F5); `\\|` kaçışı kanonik bölücüde çözülür.
     Boş dönerse (>=0) çağıran "ölçülemedi" dememeli; None ise zaten okunamadı demektir.
     """
     out: list[dict] = []
@@ -397,7 +395,7 @@ def acik_kalemleri_topla(kalemler_txt: str) -> tuple[list[dict], int]:
     # (b) `K\d+` kimlik kalibi `K339-EK` gibi ek-tasiyan kimligi HIC gormezdi
     # (canli defterde 1 satir OLCULDU: K339-EK aylardir sabah teslimine
     # girmiyordu). Bolucu tek kaynaktan alinir; ikinci yuklem KURULMAZ.
-    bol, id_re = _kanonik_bolucu()
+    bol, acik_durumlar = _kanonik_bolucu()
     for line in kalemler_txt.splitlines():
         if not line.lstrip().startswith("|"):
             continue
@@ -413,27 +411,29 @@ def acik_kalemleri_topla(kalemler_txt: str) -> tuple[list[dict], int]:
             raise RuntimeError(
                 "K382 BOLUCU OLCULEMEDI — acik-kalemler.md ayristirilamaz "
                 "(tools/parti-borc-kapisi.py yuklenemedi)")
-        if len(parts) < 4:
+        # 🔴 5 Kas 2026 — KONUM SOZLESMESI = TEK PARSER (`parti-borc-kapisi.py::
+        # acik_kalem_listesi`): durum = F4, is = F3, kanit = F5. Eski "son 2
+        # hucre = durum/kanit" kurali 7 hucreli satirda (K442: `kabul:` ayri
+        # hucre) durumu `kabul:` hucresinden okuyup kalemi DUSURUYORDU.
+        # Kimlik kalibi (`^K\d+...`) FILTRE DEGIL: `D1-YOGUNLUK-04KAS` gibi
+        # K-oneksiz kimlik de kalemdir; tek parser kimlik suzmez, baslik
+        # ("durum") ve ayrac ("---") durum kumesine girmedigi icin elenir.
+        # Olcum: canli defterde blok 5 kalemin 1'ini gosteriyordu.
+        parts = [p.strip() for p in parts]
+        if len(parts) < 5:
             continue
-        kid = parts[0].strip()
-        if not id_re.match(kid):
+        kid = parts[0]
+        durum = parts[4]
+        if not kid or durum not in acik_durumlar:
             continue
-        tarih = parts[1].strip() if len(parts) > 1 else ""
-        kimden = parts[2].strip() if len(parts) > 2 else ""
-        durum = parts[-2].strip() if len(parts) >= 2 else ""
-        kanit = parts[-1].strip() if len(parts) >= 1 else ""
-        # 'iş' hücresi F3..F-3 (yoksa F3)
-        is_hucreleri = parts[3:-2] if len(parts) > 5 else ([parts[3]] if len(parts) > 3 else [])
-        is_metni = " | ".join(is_hucreleri).strip()
-        if durum in ("ACIK", "🔧"):
-            out.append({
-                "id": kid,
-                "tarih": tarih,
-                "kimden": kimden,
-                "is": is_metni[:200],
-                "durum": durum,
-                "kanit": kanit[:120],
-            })
+        out.append({
+            "id": kid,
+            "tarih": parts[1],
+            "kimden": parts[2],
+            "is": parts[3][:200],
+            "durum": durum,
+            "kanit": (parts[5] if len(parts) > 5 else "")[:120],
+        })
     return out, len(out)
 
 
@@ -1360,7 +1360,7 @@ def build_spec(tarih: dt.date, kalemler: list[dict], kirmizi_blok: str, dal_blok
         baslik, meta,
         ci_basligi + kirmizi_blok + "\n",
         "## MERGE KUYRUĞU (main dışı dallar)\n" + dal_blok_render + "\n",
-        "## AÇIK KALEMLER (defter — `acik-kalemler.md`, durum ∈ {ACIK, 🔧})\n" + kalem_blok + "\n",
+        "## AÇIK KALEMLER (defter — `acik-kalemler.md`, durum ∈ {ACIK, UCUSTA, OKAN-KAPISI, 🔧})\n" + kalem_blok + "\n",
         "## KUTUDA YENİ (son 24 saat — bugün+dün)\n" + kutu_blok + "\n",
         "## DEVAM (canlı — ilk 40 satır özeti)\n```\n" + devam_blok_render + "\n```\n",
         _motor_raporu_bolumu(tarih) + "\n",

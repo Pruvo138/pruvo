@@ -1262,6 +1262,13 @@ jobs:
       - name: Sabah spec kirmizi seviyesi bataryasi (ardil kovasi)
         run: python3 tools/sabah-ardil-kova-test.py
 
+      # SABAH SPEC ACIK KALEM SAYIMI (5 Kas 2026): kral-sabah.py durumu TEK PARSER ile ayni
+      # konumdan (F4) okur ve kimlik suzmez. Eski kural (son-2-hucre + `^K\d+` filtresi)
+      # canli defterde 5 kalemin 1'ini gosteriyordu. Bloklayici: tempfile fiksturu, ag
+      # ISTEMEZ; canli defter vakasi CI'da ATLANDI basar; 2 mutant ayni kosumda KIRMIZI.
+      - name: Sabah spec acik kalem sayimi bataryasi (tek parser esitligi)
+        run: python3 tools/sabah-kalem-sayim-test.py
+
       # RIZA TIK-KIMLIGI (GIZLILIK) — 30 Tem'e kadar CI'da HIC kosmuyordu. Muafiyet gerekcesi
       # "CI build job'u Python-only (setup-node yok)" DIYORDU; olculdu ki YANLIS: yukaridaki
       # actions/setup-node@v4 (node 20) BLOKLAYICI on-kosuldur ve bu is akisinda zaten
