@@ -1,5 +1,91 @@
 [
   {
+    "id": "nissan-x-trail-t30-arka-bagaj-kancasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Nissan",
+      "X-Trail T30"
+    ],
+    "uyum": [
+      {
+        "marka": "Nissan",
+        "model": "X-Trail T30"
+      }
+    ],
+    "baslik": "Nissan X-Trail T30 Arka Bagaj Kancası (Sol + Sağ)",
+    "aciklama": "Nissan X-Trail T30 bagaj bölümünün yan panellerinde bulunan kanca için sol ve sağ takımıdır.\nBagaj filesi, çanta ve benzeri eşyaların askıya alınmasını sağlar.\nKırılan veya kaybolan parçanın yerine doğrudan takılır.\nAraç üzerindeki montaj yuvalarına oturur, ek delik açmayı gerektirmez.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt7532706-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt7532706-2.jpg"
+    ]
+  },
+  {
+    "id": "nissan-frontier-camurluk-koruma",
+    "kategori": "Otomobil",
+    "marka": [
+      "Nissan",
+      "Frontier"
+    ],
+    "uyum": [
+      {
+        "marka": "Nissan",
+        "model": "Frontier"
+      }
+    ],
+    "baslik": "Nissan Frontier Çamurluk Koruması",
+    "aciklama": "Nissan Frontier aracının çamurluk bölgesine takılan koruma parçasıdır.\nYol çamuru ve sıçrayan suyun aracın alt kısmına ulaşmasını azaltır.\nAraç üzerindeki montaj noktalarına doğrudan oturur.\nDış yüzeyi düz olduğu için araçla aynı renge boyanabilir.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt6541108-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6541108-2.jpg"
+    ]
+  },
+  {
+    "id": "chevrolet-captiva-far-ampul-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Chevrolet",
+      "Captiva"
+    ],
+    "uyum": [
+      {
+        "marka": "Chevrolet",
+        "model": "Captiva"
+      }
+    ],
+    "baslik": "Chevrolet Captiva Far Ampul Kapağı",
+    "aciklama": "Chevrolet Captiva 2006-2018 model araçların ön far ünitesinde kullanılan ampul kapağıdır.\nFar içindeki ampul yuvasının açıkta kalmasını önler ve toz ile su sıçramasına karşı koruma sağlar.\nFar ünitesindeki mevcut yuvaya doğrudan oturur.\nDış yüzeyi düz olduğu için araçla aynı renge boyanabilir.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt7276563-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt7276563-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt7276563-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt7276563-4.jpg"
+    ]
+  },
+  {
+    "id": "audi-a6-c7-far-yikama-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi",
+      "A6 C7"
+    ],
+    "uyum": [
+      {
+        "marka": "Audi",
+        "model": "A6 C7"
+      }
+    ],
+    "baslik": "Audi A6 C7 Far Yıkama Kapağı",
+    "aciklama": "Audi A6 C7 araçlarının ön tamponundaki far yıkama püskürtme deliğini koruyan kapak parçasıdır.\nFar yıkama sisteminin çalışma yüzeyini korur ve tampon yüzeyinin temiz kalmasına yardımcı olur.\nTampondaki mevcut yuvaya doğrudan oturur.\nDış yüzeyi düz olduğu için araçla aynı renge boyanabilir.",
+    "fiyat": "700 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt5718536-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt5718536-2.jpg"
+    ]
+  },
+  {
     "id": "c3dopel-denge-mili-zincir-kilavuzu",
     "kategori": "Otomobil",
     "marka": [
@@ -406090,7 +406176,7 @@
     ],
     "baslik": "Lexus NX200t 2012 Yan Ayna Kapağı",
     "aciklama": "Lexus NX200t dış dikiz aynası gövde kapağı (mirror cap). Orijinal parçayla aynı ölçü ve montaj noktalarına sahiptir.\n- Ayna gövdesine mevcut klips noktalarından oturur.\n- Çizilen ya da kırılan orijinal kapağın yerine geçer.\n- Boyanabilir ya da kaplanabilir düz yüzey sunar.\n- Özel sipariş üzerine üretilir.",
-    "fiyat": "260 TL",
+    "fiyat": "1500 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/cgt6996558-1.jpg",
       "https://media.pruvo3d.com/urunler/cgt6996558-2.jpg",
@@ -423075,7 +423161,7 @@
     ],
     "baslik": "Kia Picanto A-Direği İç Kaplama Çıtası",
     "aciklama": "Kia Picanto ön cam A-direği bölgesindeki iç kaplama çıtası. Kırılan, çatlayan ya da tırnakları kopup yerinden oynayan orijinal çıtanın birebir yedeğidir.\n\n- Fabrika klips yuvalarına oturur; delme ya da kesme gerektirmez.\n- Direk kaplamasının kapı fitiliyle birleştiği hattı düzgün kapatır.\n- Dayanıklı malzemeden aracınıza özel olarak üretilir.\n- İstenirse iç döşeme rengine boyanabilir.",
-    "fiyat": "260 TL",
+    "fiyat": "800 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/cgt6960514-1.jpg",
       "https://media.pruvo3d.com/urunler/cgt6960514-2.jpg",
@@ -426039,7 +426125,7 @@
     ],
     "baslik": "Nissan Rogue 2014 Güneşlik Tutucu Klipsi",
     "aciklama": "Nissan Rogue 2014 model aracın ön güneşliğini kapalı konumda tutan tavan klipsidir.\n\n- Kırılan veya gevşeyen orijinal klipsin yerine takılmak üzere tasarlanmıştır.\n- Güneşliğin sarkmasını önleyerek düzgün oturmasını sağlar.\n- Tavan döşemesindeki mevcut yuvaya ek delik açmadan geçer.\n- Özel sipariş üzerine üretilir, montaja hazır gönderilir.",
-    "fiyat": "260 TL",
+    "fiyat": "400 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/cgt4309618-1.jpg",
       "https://media.pruvo3d.com/urunler/cgt4309618-2.jpg",
