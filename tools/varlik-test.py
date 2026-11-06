@@ -659,6 +659,14 @@ BILEREK_DEGISEN_CSS_OZEL = (
      "  }\n",
      "Kabul Et birincil, Reddet ayni katmanda tek tik (nobetci: reklam-etiket-kapisi.py "
      "SINIF C, K20/K21)"),
+    # 2026-11-05 — RIZA BANDI DENEME-B: bant paragrafinin basligi ("Çerez tercihiniz")
+    # kendi satirinda kalin durur. TEK CSS satiri (eski_p bos -> yeni_p eklenen kural);
+    # metin degisikligi bu tabloya degil, GORUNUR METIN eksenine aittir.
+    # Nobetci: tools/riza-bandi-esitlik-test.py (E1: 6 kopya BAYT-ESIT · E6 metin jetonlari)
+    # + tools/reklam-etiket-kapisi.py SINIF C (bant yuzeyi metin/pozisyon).
+    ("", "  #pruvo-cerez-onay p strong{display:block;color:#fff;font-size:15px;margin-bottom:2px}\n",
+     "2026-11-05 — RIZA BANDI DENEME-B (BaBa 5 Kas 23:2x hükmü, ArTisT taslağı abfe12b6); "
+     "iddia tools/riza-bandi-esitlik-test.py + tools/reklam-etiket-kapisi.py'de fail-closed ölçülür"),
 )
 
 

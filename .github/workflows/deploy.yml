@@ -1291,6 +1291,11 @@ jobs:
       # binlerce sayfada Reddet yeniden baglanti gorunumune doner ve EKRANDA fark edilmez.
       - name: Riza bandi esitlik testi (6 kopya + esit gorunurluk + 9 mutant)
         run: python3 tools/riza-bandi-esitlik-test.py
+      # RIZA SAYACI OKUYUCU (5 Kas 2026, BaBa 23:2x hukmu ⑤ A/B olcumu): riza_sayac penceresini
+      # d1-sync uzerinden sayar; bos pencerede oran TANIMSIZ (sessiz %0 YOK), bozuk zarf rc=3,
+      # beyaz liste disi karar rc=4. Bloklayici: sqlite + json fiksturu, ag ISTEMEZ; 3 mutant.
+      - name: Riza sayaci okuyucu bataryasi (7 vaka + 3 mutant)
+        run: python3 tools/riza-sayac-oku-test.py
 
       # ATIF (LISANS) REFERANS MODULU — ayni R_NODE muafiyet sinifindaydi, ayni yanlis
       # gerekceyle. NE KORUR: attribution-ref.js, CC lisansli urunlerde tasarimci adi +
