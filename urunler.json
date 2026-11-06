@@ -80,6 +80,89 @@
     ]
   },
   {
+    "id": "porsche-panamera-turbo-s-on-camurluk-hava-giri-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Porsche",
+      "Panamera Turbo S"
+    ],
+    "uyum": [
+      {
+        "marka": "Porsche",
+        "model": "Panamera Turbo S"
+      }
+    ],
+    "baslik": "Porsche Panamera Turbo S Ön Sol Çamurluk Hava Girişi Parçası",
+    "aciklama": "Porsche Panamera Turbo S aracının sol ön çamurluk bölgesinde yer alan hava girişi parçasıdır.\nÇamurluk yüzeyindeki hava girişi açıklığının çevresini tamamlayarak aracın ön gövde yüzeyinin bütünlüğünü korur.\nAraç üzerindeki mevcut montaj yuvasına doğrudan oturur.\nDış yüzeyi düz olduğu için araçla aynı renge boyanabilir.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt5467359-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt5467359-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt5467359-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt5467359-4.jpg"
+    ]
+  },
+  {
+    "id": "renault-scenic-kolcak-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault",
+      "Scenic"
+    ],
+    "uyum": [
+      {
+        "marka": "Renault",
+        "model": "Scenic"
+      }
+    ],
+    "baslik": "Renault Scenic Kolçak Kapağı",
+    "aciklama": "Renault Scenic araç konsolundaki kolçağın üst bölümünü kaplayan kapağıdır.\nKolçağın üst yüzeyini toz ve sürtünmeye karşı korur.\nKonsoldaki mevcut yuvaya doğrudan oturur.\nDış yüzeyi düz olduğu için araçla aynı renge boyanabilir.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt5718610-1.jpg"
+    ]
+  },
+  {
+    "id": "infiniti-torpido-gogu-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Infiniti"
+    ],
+    "uyum": [
+      {
+        "marka": "Infiniti"
+      }
+    ],
+    "baslik": "Infiniti Torpido Gözü Kapağı",
+    "aciklama": "Infiniti araçların torpido gözünün üst kısmını kaplayan kapağıdır.\nTorpido gözünün açık kalan bölümünün toz ve küçük eşyalarla temas etmesini engeller.\nTorpido gözü kenarındaki yuvaya doğrudan oturur.\nDış yüzeyi düz olduğu için araçla aynı renge boyanabilir.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt5718642-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt5718642-2.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-lancer-x-yan-kapak",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Lancer X"
+    ],
+    "uyum": [
+      {
+        "marka": "Mitsubishi",
+        "model": "Lancer X"
+      }
+    ],
+    "baslik": "Mitsubishi Lancer X Yan Kapak",
+    "aciklama": "Mitsubishi Lancer X aracının yan bölümünde yer alan kapak parçasıdır.\nYan yüzeydeki açıklığın kapatılmasını sağlayarak aracın dış görünümünü tamamlar.\nAraç üzerindeki mevcut montaj noktalarına doğrudan oturur.\nDış yüzeyi düz olduğu için araçla aynı renge boyanabilir.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt5718513-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt5718513-2.jpg"
+    ]
+  },
+  {
     "id": "c3dopel-denge-mili-zincir-kilavuzu",
     "kategori": "Otomobil",
     "marka": [
