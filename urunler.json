@@ -1,5 +1,133 @@
 [
   {
+    "id": "respiratortip-210-filtre-kapak",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Tip 210 Filtreli Respiratör Filtre Kapağı",
+    "aciklama": "Tip 210 filtreli respiratör maskesinin filtre yuvasını kapatan kapak parçasıdır.\nMaskenin filtre gövdesinin üzerine oturur ve yuvanın açıkta kalmasını engeller.\nParça, yuvanın kenarına geçerek tek parça hâlde maskeye oturur.\nDış yüzeyi düz olduğu için maskeyle aynı renge boyanabilir.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt2814194-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2814194-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2814194-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2814194-4.jpg"
+    ]
+  },
+  {
+    "id": "tencere-kapagi-tutamagi-m5-civatali",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Tencere Kapağı Tutamağı (M5 Cıvatalı)",
+    "aciklama": "Tencere kapağının üst yüzeyine takılan, kapağı elle kaldırmayı kolaylaştıran tutamak parçasıdır.\nKapağın üzerindeki vida yuvasına doğrudan oturur.\nTutamak, paslanmaz çelik M5 cıvata ile kapağa sabitlenir.\nGeniş ve yuvarlatılmış üst yüzeyi, avuç içinde rahat bir kavrama sağlar.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt3132784-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3132784-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3132784-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3132784-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3132784-5.jpg"
+    ]
+  },
+  {
+    "id": "elektrikli-firin-ayar-dugmesi",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Elektrikli Fırın Ayar Düğmesi",
+    "aciklama": "Elektrikli fırının ön panelindeki ayar düğmesinin takılması için hazırlanmış parçadır.\nMerkezindeki düz kenarlı delik, düğme miline geçerek milin kaymasını önler.\nYuvarlak tabanı, paneldeki düğme açıklığının üzerine oturur.\nAvuç içine sığan yuvarlak gövdesi, düğmenin elle çevrilmesinde rahat bir tutuş sağlar.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt3697924-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3697924-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3697924-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3697924-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3697924-5.jpg"
+    ]
+  },
+  {
+    "id": "cam-termos-disli-kapak",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Cam Termos Dişli Kapak (1 Litre)",
+    "aciklama": "Bir litre hacimli cam termosların kapağı için tasarlanmış dişli kapak parçasıdır.\nİç yüzeyindeki diş, termosun ağzındaki dış dişe kıvrılarak oturur ve sıkıca tutar.\nMerkezindeki kubbe, termosun ağzının üzerini kapatır.\nKayıp veya kırılan kapağın yerine geçer.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt3888220-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3888220-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3888220-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3888220-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3888220-5.jpg"
+    ]
+  },
+  {
+    "id": "mutfak-davlumbazi-havalandirma-kanali-burcu",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Mutfak Davlumbazı Havalandırma Kanalı Burcu",
+    "aciklama": "Eski tip mutfak davlumbazlarında havalandırma kanalının, davlumbazın üst yüzeyindeki açıklığa oturmasını sağlayan burç parçasıdır.\nHalka biçimindeki gövdesi, kanalın çapına geçerek açıklığın çevresini sarar.\nDış yüzeyi konik olarak işlendiği için kanal açıklığa sıkıca oturur.\nDavlumbazın üst yüzeyine dört adet M4 cıvata ile sabitlenir.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt4660731-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4660731-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4660731-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4660731-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4660731-5.jpg"
+    ]
+  },
+  {
+    "id": "zelmer-nerro-mikser-motor-mili-kavramasi",
+    "kategori": "Ev",
+    "marka": [
+      "Zelmer"
+    ],
+    "uyum": [
+      {
+        "marka": "Zelmer"
+      }
+    ],
+    "baslik": "Zelmer Nerro Mikser Motor Mili Kavraması",
+    "aciklama": "Zelmer Nerro mikserde motor mili ile karıştırma bölümü arasındaki bağlantıyı kuran kavrama parçasıdır.\nÜst yüzeyindeki yıldız biçimli kanal, motor milinin dört köşeli sırtına oturur ve dönme hareketini iletir.\nAlt kısmındaki dar silindirik bölüm, mil üzerindeki bileziğe geçer.\nMil üzerine otururken geçmesi kolay olsun diye kenarları yuvarlatılmıştır.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt4691719-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4691719-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4691719-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4691719-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4691719-5.jpg"
+    ]
+  },
+  {
+    "id": "ukrayna-haritasi-madalyon-kalibi",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Ukrayna Haritası Madalyon Kalıbı",
+    "aciklama": "Ukrayna haritası şeklinde hazırlanmış, madalyon basma, trafaret ve kurabiye kesme işlemlerinde kullanılan kalıptır.\nHamur, kalıbın çevre kenarı boyunca kesilerek harita konturunda şekillendirilir.\nKalıp, hamur yüzeyinde madalyon deseni oluşturmak için de yerleştirilebilir.\nKenar bandı dar tutulduğu için hamurdan çıkan şekil ince detayları korur.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt3702136-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3702136-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3702136-3.jpg"
+    ]
+  },
+  {
+    "id": "ukrayna-haritasi-kurabiye-kesici",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Ukrayna Haritası Kurabiye Kesici",
+    "aciklama": "Ukrayna haritası konturunda hazırlanmış kurabiye kesici kalıbıdır.\nHamur, kalıbın çevre kenarı boyunca kesilerek harita şeklinde elde edilir.\nAynı kalıp, hamurdan şekil alma (trafaret) işlemi için de kullanılabilir.\nHaritanın her ayrıntısı, kalıbın kenar çizgisinde tek parça olarak işlenmiştir.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt3705527-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3705527-2.jpg"
+    ]
+  },
+  {
     "id": "oto-bagaj-kapagi-tamponu",
     "kategori": "Otomobil",
     "marka": [],
