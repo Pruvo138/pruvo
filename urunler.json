@@ -1,5 +1,163 @@
 [
   {
+    "id": "lcd-2004-panel-montaj-aparati",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "LCD 2004 Ekran Panel Montaj Aparatı",
+    "aciklama": "Karakterli LCD 2004 ekran modülünü çevreleyip bir panele monte eden çerçeve parçasıdır.\nÇerçevenin ortasındaki dikdörtgen pencere, ekranın gösterim alanını açıkta bırakır.\nKöşelerindeki vida delikleri, parçanın panel yüzeyine vidalarla sabitlenmesini sağlar.\nEkran modülünü arkasından tutan ayrı bir çerçeve, ekranın panele dayalı kalmasına yardımcı olur.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt2847485-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2847485-2.jpg"
+    ]
+  },
+  {
+    "id": "samsung-freestyle-projektor-montaj-aparati",
+    "kategori": "Elektronik",
+    "marka": [
+      "Samsung"
+    ],
+    "uyum": [
+      {
+        "marka": "Samsung"
+      }
+    ],
+    "baslik": "Samsung Freestyle Projektör Duvar ve Tavan Montaj Aparatı",
+    "aciklama": "Samsung Freestyle projektörün duvara veya tavana sabitlenmesi için hazırlanmış montaj aparatıdır.\nAparat, projektörün alt yuvasına oturan bir taban ile cihazı taşıyan bir kol bölümünden oluşur.\nKol bölümü duvar yüzeyine sabitlendiğinde projektör, zeminden bağımsız bir yükseklikte tutulur.\nParçanın diğer yarısı, projektörü bir pantograf tripodunun tablasına bağlamak için kullanılır.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt4707076-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4707076-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4707076-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4707076-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4707076-5.jpg"
+    ]
+  },
+  {
+    "id": "aksiyon-kamerasi-sise-kapagi-montaj-adaptoru",
+    "kategori": "Kamera",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Aksiyon Kamerası Şişe Kapağı Montaj Adaptörü",
+    "aciklama": "Plastik bir şişenin kapağına takılarak aksiyon kamerasını kapağa bağlayan adaptör parçasıdır.\nParça, kameranın standart bağlantı ayağını tutacak biçimde kapağın üzerine oturur.\nKapak şişeyle birlikte suya bırakıldığında kamera yüzeyde kalır ve yüzer tutamak görevi görür.\nAynı parça, kameranın elde taşınan bir tutamak olarak da kullanılabilir.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt2902167-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2902167-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2902167-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2902167-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2902167-5.jpg"
+    ]
+  },
+  {
+    "id": "aksiyon-kamerasi-aluminyum-profil-braket",
+    "kategori": "Kamera",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Aksiyon Kamerası Alüminyum Profil Braketi",
+    "aciklama": "Aksiyon kamerasını 20x20 kesitli alüminyum profil çerçeveye bağlayan montaj braketidir.\nBraketin kanal tarafı, profilin kenarındaki T somunu ve M4 vidasıyla sıkılır.\nKameranın bağlantı ayağı, braketin uç kısmına oturur.\nProfil üzerine kurulan bu bağlantı, kameranın sabit bir yere bağlı kalmasını sağlar.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt2904324-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2904324-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2904324-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2904324-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2904324-5.jpg"
+    ]
+  },
+  {
+    "id": "aksiyon-kamerasi-kafa-bandi-kemer-tutucu-adaptoru",
+    "kategori": "Kamera",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Aksiyon Kamerası Kafa Bandı ve Kemer Tutucu Adaptörü",
+    "aciklama": "Aksiyon kamerasını kafa bandı, kemer veya kask askısına bağlamak için kullanılan küçük adaptör parçasıdır.\nAdaptörün yarığı, kameranın standart bağlantı ayağını kavrar.\nBant kısmına oturan gövdesi, askının parçayı sıkıca tutmasını sağlar.\nBöylece kamera, elle tutulmadan baş hizasında sabitlenmiş olur.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt2904361-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2904361-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2904361-3.jpg"
+    ]
+  },
+  {
+    "id": "aksiyon-kamerasi-aksesuar-kiti",
+    "kategori": "Kamera",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Aksiyon Kamerası Aksesuar Kiti",
+    "aciklama": "Tripod, monopod, göğüs bandı, kafa bandı ve çeşitli bağlantı adaptörlerini bir araya getiren aksiyon kamerası aksesuar kitidir.\nKit içindeki parçalar, kameranın standart bağlantı ayağına takılarak farklı montaj noktalarında kullanılır.\nTripod ve monopod parçaları kamerayı tek başına ayakta tutar, bant parçaları ise onu gövdeye sabitler.\nBileşenler tek tek de kullanılabilir; ihtiyaç duyulan montaj düzenine göre seçilir.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt2915610-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2915610-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2915610-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2915610-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2915610-5.jpg"
+    ]
+  },
+  {
+    "id": "aksiyon-kamerasi-bisiklet-motosiklet-gidon-montaj-aparati",
+    "kategori": "Kamera",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Aksiyon Kamerası Bisiklet ve Motosiklet Gidon Montaj Aparatı",
+    "aciklama": "Aksiyon kamerasını bisiklet veya motosiklet gidonuna bağlamak için montaj aparatıdır.\nGidonu kavrayan kelepçe kolları, M5 cıvata ve somun ile birbirine bağlanır.\nKameranın standart bağlantı ayağı, aparatın üzerindeki parmak bağlantısına oturur.\nToka düzenek, aparatın gidon üzerinde kaymadan kalmasına yardımcı olur.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt2939997-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2939997-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2939997-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2939997-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2939997-5.jpg"
+    ]
+  },
+  {
+    "id": "muvp-140-elastik-mil-kaplini",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "MUVP-140 Elastik Mil Kaplini",
+    "aciklama": "MUVP-140 tipi elastik kaplin, iki mili birbirine bağlayan bir kaplin parçasıdır.\nGövde üzerindeki vida delikleri, kaplinin iki parçasının M8 vidalarla birleştirilmesini sağlar.\nMerkezdeki millik delik, milin kaplin içine geçirilerek sıkıca tutulmasına yarar.\nKaplinin esnek gövdesi, iki mil arasındaki hizalama farklarını karşılar.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt2935150-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2935150-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2935150-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2935150-4.jpg"
+    ]
+  },
+  {
+    "id": "gost-50894-96-kam-kavramasi",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "GOST 50894-96 Kam Kavraması",
+    "aciklama": "GOST 50894-96 tipi kam kavraması, iki mili birbirine bağlayan ve dönüş hareketini ileten iki gövdeli bir takımdır.\nHer iki gövdenin arasına çok kollu esnek bir ara parça yerleştirilir.\nGövdelerin millik kısmı, mil üzerine geçerek mili sıkıca kavrar.\nTakım, iki milin aynı hizada ve aynı dönüş yönünde birleştirilmesini sağlar.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt2935253-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2935253-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2935253-3.jpg"
+    ]
+  },
+  {
+    "id": "yazici-filament-tutucu",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "3D Yazıcı Filament Tutucu",
+    "aciklama": "3D yazıcının yanına takılan filament makarasını taşıyan bir tutucu parçasıdır.\nRulmanlı gövde, filament makarasının iç boşluğuna geçerek makarayı iki noktadan kavrar.\nTaban plakası, tutucunun bir yüzeye sabitlenmesini sağlar.\nPaket, farklı yazıcı yerleşimlerine uyacak iki ayrı tutucu varyantından oluşur.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt3707903-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3707903-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3707903-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3707903-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3707903-5.jpg"
+    ]
+  },
+  {
     "id": "respiratortip-210-filtre-kapak",
     "kategori": "Tamirat",
     "marka": [],
