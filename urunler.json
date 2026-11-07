@@ -1,5 +1,92 @@
 [
   {
+    "id": "great-wall-hover-kaput-cubugu-burcu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Great Wall",
+      "Hover"
+    ],
+    "uyum": [
+      {
+        "marka": "Great Wall",
+        "model": "Hover"
+      }
+    ],
+    "baslik": "Great Wall Hover Kaput Çubuğu Burcu",
+    "aciklama": "Great Wall Hover'ın kaput çubuğunun geçtiği yuvada kullanılan bir burç parçasıdır.\nKaput kapağı açılıp kapandığında çubuğun yuvada tutulmasını sağlar.\nBurcun iç boşluğundan geçen çubuk, dış flanşın yuvaya yaslanmasıyla yerinde kalır.\nMevcut yuvasına doğrudan yerleştirilir.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt4689566-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4689566-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4689566-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4689566-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4689566-5.jpg"
+    ]
+  },
+  {
+    "id": "oral-b-dis-fircasi-tutucusu",
+    "kategori": "Ev",
+    "marka": [
+      "Oral-B"
+    ],
+    "uyum": [
+      {
+        "marka": "Oral-B"
+      }
+    ],
+    "baslik": "Oral-B Diş Fırçası Tutucusu",
+    "aciklama": "Oral-B diş fırçaları için hazırlanmış, oval tabanlı bir tutucudur.\nİki kişilik kullanım için iki ayrı diş fırçası yuvası bulunur.\nOrtadaki yuvaya elektrikli bir diş fırçasının sapı da oturabilir.\nTaban plakası, fırçaların dik ve ayrı durmasını sağlar.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt2814184-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2814184-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2814184-3.jpg"
+    ]
+  },
+  {
+    "id": "kyocera-ecosys-m2040-mandal-dislisi",
+    "kategori": "Ofis",
+    "marka": [
+      "Kyocera"
+    ],
+    "uyum": [
+      {
+        "marka": "Kyocera"
+      }
+    ],
+    "baslik": "Kyocera ECOSYS M2040 Mandal Dişlisi",
+    "aciklama": "Kyocera ECOSYS M2040 serisi yazıcılarda kullanılan bir mandal dişlisidir.\nGövdesinin çevresinde dişli bir çevre ve üst kısmında kavisli bir kilit yüzeyi bulunur.\nMerkezdeki millik açıklık, dişlinin bir mile geçirilerek tutulmasını sağlar.\nYazıcının içindeki ilgili yuvaya doğrudan oturur.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt4689538-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4689538-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4689538-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4689538-4.jpg"
+    ]
+  },
+  {
+    "id": "sterwins-pbc43r-tirpan-mars-gobegi",
+    "kategori": "Bahçe",
+    "marka": [
+      "Sterwins"
+    ],
+    "uyum": [
+      {
+        "marka": "Sterwins"
+      }
+    ],
+    "baslik": "Sterwins PBC43R Tırpan Marş Göbeği",
+    "aciklama": "Sterwins PBC43R tırpanında kullanılan bir marş göbeğidir.\nMerkezindeki millik boşluk, marş milinin göbek içinden geçmesini sağlar.\nGövde üzerindeki yarıklar ve tırnaklar, göbeğin mil üzerinde tutulmasını sağlar.\nAlttaki geniş flanş, göbeğin tırpan motorundaki yuvaya oturmasını sağlar.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt4694378-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4694378-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4694378-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4694378-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4694378-5.jpg"
+    ]
+  },
+  {
     "id": "lcd-2004-panel-montaj-aparati",
     "kategori": "Elektronik",
     "marka": [],
