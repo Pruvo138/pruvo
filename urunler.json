@@ -1,5 +1,506 @@
 [
   {
+    "id": "lcd-2004-panel-montaj-aparati",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "LCD 2004 Ekran Panel Montaj Aparatı",
+    "aciklama": "Karakterli LCD 2004 ekran modülünü çevreleyip bir panele monte eden çerçeve parçasıdır.\nÇerçevenin ortasındaki dikdörtgen pencere, ekranın gösterim alanını açıkta bırakır.\nKöşelerindeki vida delikleri, parçanın panel yüzeyine vidalarla sabitlenmesini sağlar.\nEkran modülünü arkasından tutan ayrı bir çerçeve, ekranın panele dayalı kalmasına yardımcı olur.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt2847485-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2847485-2.jpg"
+    ]
+  },
+  {
+    "id": "samsung-freestyle-projektor-montaj-aparati",
+    "kategori": "Elektronik",
+    "marka": [
+      "Samsung"
+    ],
+    "uyum": [
+      {
+        "marka": "Samsung"
+      }
+    ],
+    "baslik": "Samsung Freestyle Projektör Duvar ve Tavan Montaj Aparatı",
+    "aciklama": "Samsung Freestyle projektörün duvara veya tavana sabitlenmesi için hazırlanmış montaj aparatıdır.\nAparat, projektörün alt yuvasına oturan bir taban ile cihazı taşıyan bir kol bölümünden oluşur.\nKol bölümü duvar yüzeyine sabitlendiğinde projektör, zeminden bağımsız bir yükseklikte tutulur.\nParçanın diğer yarısı, projektörü bir pantograf tripodunun tablasına bağlamak için kullanılır.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt4707076-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4707076-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4707076-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4707076-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4707076-5.jpg"
+    ]
+  },
+  {
+    "id": "aksiyon-kamerasi-sise-kapagi-montaj-adaptoru",
+    "kategori": "Kamera",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Aksiyon Kamerası Şişe Kapağı Montaj Adaptörü",
+    "aciklama": "Plastik bir şişenin kapağına takılarak aksiyon kamerasını kapağa bağlayan adaptör parçasıdır.\nParça, kameranın standart bağlantı ayağını tutacak biçimde kapağın üzerine oturur.\nKapak şişeyle birlikte suya bırakıldığında kamera yüzeyde kalır ve yüzer tutamak görevi görür.\nAynı parça, kameranın elde taşınan bir tutamak olarak da kullanılabilir.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt2902167-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2902167-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2902167-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2902167-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2902167-5.jpg"
+    ]
+  },
+  {
+    "id": "aksiyon-kamerasi-aluminyum-profil-braket",
+    "kategori": "Kamera",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Aksiyon Kamerası Alüminyum Profil Braketi",
+    "aciklama": "Aksiyon kamerasını 20x20 kesitli alüminyum profil çerçeveye bağlayan montaj braketidir.\nBraketin kanal tarafı, profilin kenarındaki T somunu ve M4 vidasıyla sıkılır.\nKameranın bağlantı ayağı, braketin uç kısmına oturur.\nProfil üzerine kurulan bu bağlantı, kameranın sabit bir yere bağlı kalmasını sağlar.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt2904324-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2904324-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2904324-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2904324-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2904324-5.jpg"
+    ]
+  },
+  {
+    "id": "aksiyon-kamerasi-kafa-bandi-kemer-tutucu-adaptoru",
+    "kategori": "Kamera",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Aksiyon Kamerası Kafa Bandı ve Kemer Tutucu Adaptörü",
+    "aciklama": "Aksiyon kamerasını kafa bandı, kemer veya kask askısına bağlamak için kullanılan küçük adaptör parçasıdır.\nAdaptörün yarığı, kameranın standart bağlantı ayağını kavrar.\nBant kısmına oturan gövdesi, askının parçayı sıkıca tutmasını sağlar.\nBöylece kamera, elle tutulmadan baş hizasında sabitlenmiş olur.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt2904361-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2904361-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2904361-3.jpg"
+    ]
+  },
+  {
+    "id": "aksiyon-kamerasi-aksesuar-kiti",
+    "kategori": "Kamera",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Aksiyon Kamerası Aksesuar Kiti",
+    "aciklama": "Tripod, monopod, göğüs bandı, kafa bandı ve çeşitli bağlantı adaptörlerini bir araya getiren aksiyon kamerası aksesuar kitidir.\nKit içindeki parçalar, kameranın standart bağlantı ayağına takılarak farklı montaj noktalarında kullanılır.\nTripod ve monopod parçaları kamerayı tek başına ayakta tutar, bant parçaları ise onu gövdeye sabitler.\nBileşenler tek tek de kullanılabilir; ihtiyaç duyulan montaj düzenine göre seçilir.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt2915610-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2915610-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2915610-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2915610-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2915610-5.jpg"
+    ]
+  },
+  {
+    "id": "aksiyon-kamerasi-bisiklet-motosiklet-gidon-montaj-aparati",
+    "kategori": "Kamera",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Aksiyon Kamerası Bisiklet ve Motosiklet Gidon Montaj Aparatı",
+    "aciklama": "Aksiyon kamerasını bisiklet veya motosiklet gidonuna bağlamak için montaj aparatıdır.\nGidonu kavrayan kelepçe kolları, M5 cıvata ve somun ile birbirine bağlanır.\nKameranın standart bağlantı ayağı, aparatın üzerindeki parmak bağlantısına oturur.\nToka düzenek, aparatın gidon üzerinde kaymadan kalmasına yardımcı olur.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt2939997-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2939997-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2939997-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2939997-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2939997-5.jpg"
+    ]
+  },
+  {
+    "id": "muvp-140-elastik-mil-kaplini",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "MUVP-140 Elastik Mil Kaplini",
+    "aciklama": "MUVP-140 tipi elastik kaplin, iki mili birbirine bağlayan bir kaplin parçasıdır.\nGövde üzerindeki vida delikleri, kaplinin iki parçasının M8 vidalarla birleştirilmesini sağlar.\nMerkezdeki millik delik, milin kaplin içine geçirilerek sıkıca tutulmasına yarar.\nKaplinin esnek gövdesi, iki mil arasındaki hizalama farklarını karşılar.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt2935150-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2935150-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2935150-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2935150-4.jpg"
+    ]
+  },
+  {
+    "id": "gost-50894-96-kam-kavramasi",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "GOST 50894-96 Kam Kavraması",
+    "aciklama": "GOST 50894-96 tipi kam kavraması, iki mili birbirine bağlayan ve dönüş hareketini ileten iki gövdeli bir takımdır.\nHer iki gövdenin arasına çok kollu esnek bir ara parça yerleştirilir.\nGövdelerin millik kısmı, mil üzerine geçerek mili sıkıca kavrar.\nTakım, iki milin aynı hizada ve aynı dönüş yönünde birleştirilmesini sağlar.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt2935253-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2935253-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2935253-3.jpg"
+    ]
+  },
+  {
+    "id": "yazici-filament-tutucu",
+    "kategori": "Elektronik",
+    "marka": [],
+    "uyum": [],
+    "baslik": "3D Yazıcı Filament Tutucu",
+    "aciklama": "3D yazıcının yanına takılan filament makarasını taşıyan bir tutucu parçasıdır.\nRulmanlı gövde, filament makarasının iç boşluğuna geçerek makarayı iki noktadan kavrar.\nTaban plakası, tutucunun bir yüzeye sabitlenmesini sağlar.\nPaket, farklı yazıcı yerleşimlerine uyacak iki ayrı tutucu varyantından oluşur.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt3707903-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3707903-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3707903-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3707903-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3707903-5.jpg"
+    ]
+  },
+  {
+    "id": "respiratortip-210-filtre-kapak",
+    "kategori": "Tamirat",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Tip 210 Filtreli Respiratör Filtre Kapağı",
+    "aciklama": "Tip 210 filtreli respiratör maskesinin filtre yuvasını kapatan kapak parçasıdır.\nMaskenin filtre gövdesinin üzerine oturur ve yuvanın açıkta kalmasını engeller.\nParça, yuvanın kenarına geçerek tek parça hâlde maskeye oturur.\nDış yüzeyi düz olduğu için maskeyle aynı renge boyanabilir.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt2814194-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2814194-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2814194-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2814194-4.jpg"
+    ]
+  },
+  {
+    "id": "tencere-kapagi-tutamagi-m5-civatali",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Tencere Kapağı Tutamağı (M5 Cıvatalı)",
+    "aciklama": "Tencere kapağının üst yüzeyine takılan, kapağı elle kaldırmayı kolaylaştıran tutamak parçasıdır.\nKapağın üzerindeki vida yuvasına doğrudan oturur.\nTutamak, paslanmaz çelik M5 cıvata ile kapağa sabitlenir.\nGeniş ve yuvarlatılmış üst yüzeyi, avuç içinde rahat bir kavrama sağlar.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt3132784-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3132784-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3132784-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3132784-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3132784-5.jpg"
+    ]
+  },
+  {
+    "id": "elektrikli-firin-ayar-dugmesi",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Elektrikli Fırın Ayar Düğmesi",
+    "aciklama": "Elektrikli fırının ön panelindeki ayar düğmesinin takılması için hazırlanmış parçadır.\nMerkezindeki düz kenarlı delik, düğme miline geçerek milin kaymasını önler.\nYuvarlak tabanı, paneldeki düğme açıklığının üzerine oturur.\nAvuç içine sığan yuvarlak gövdesi, düğmenin elle çevrilmesinde rahat bir tutuş sağlar.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt3697924-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3697924-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3697924-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3697924-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3697924-5.jpg"
+    ]
+  },
+  {
+    "id": "cam-termos-disli-kapak",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Cam Termos Dişli Kapak (1 Litre)",
+    "aciklama": "Bir litre hacimli cam termosların kapağı için tasarlanmış dişli kapak parçasıdır.\nİç yüzeyindeki diş, termosun ağzındaki dış dişe kıvrılarak oturur ve sıkıca tutar.\nMerkezindeki kubbe, termosun ağzının üzerini kapatır.\nKayıp veya kırılan kapağın yerine geçer.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt3888220-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3888220-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3888220-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3888220-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3888220-5.jpg"
+    ]
+  },
+  {
+    "id": "mutfak-davlumbazi-havalandirma-kanali-burcu",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Mutfak Davlumbazı Havalandırma Kanalı Burcu",
+    "aciklama": "Eski tip mutfak davlumbazlarında havalandırma kanalının, davlumbazın üst yüzeyindeki açıklığa oturmasını sağlayan burç parçasıdır.\nHalka biçimindeki gövdesi, kanalın çapına geçerek açıklığın çevresini sarar.\nDış yüzeyi konik olarak işlendiği için kanal açıklığa sıkıca oturur.\nDavlumbazın üst yüzeyine dört adet M4 cıvata ile sabitlenir.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt4660731-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4660731-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4660731-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4660731-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4660731-5.jpg"
+    ]
+  },
+  {
+    "id": "zelmer-nerro-mikser-motor-mili-kavramasi",
+    "kategori": "Ev",
+    "marka": [
+      "Zelmer"
+    ],
+    "uyum": [
+      {
+        "marka": "Zelmer"
+      }
+    ],
+    "baslik": "Zelmer Nerro Mikser Motor Mili Kavraması",
+    "aciklama": "Zelmer Nerro mikserde motor mili ile karıştırma bölümü arasındaki bağlantıyı kuran kavrama parçasıdır.\nÜst yüzeyindeki yıldız biçimli kanal, motor milinin dört köşeli sırtına oturur ve dönme hareketini iletir.\nAlt kısmındaki dar silindirik bölüm, mil üzerindeki bileziğe geçer.\nMil üzerine otururken geçmesi kolay olsun diye kenarları yuvarlatılmıştır.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt4691719-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4691719-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4691719-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4691719-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4691719-5.jpg"
+    ]
+  },
+  {
+    "id": "ukrayna-haritasi-madalyon-kalibi",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Ukrayna Haritası Madalyon Kalıbı",
+    "aciklama": "Ukrayna haritası şeklinde hazırlanmış, madalyon basma, trafaret ve kurabiye kesme işlemlerinde kullanılan kalıptır.\nHamur, kalıbın çevre kenarı boyunca kesilerek harita konturunda şekillendirilir.\nKalıp, hamur yüzeyinde madalyon deseni oluşturmak için de yerleştirilebilir.\nKenar bandı dar tutulduğu için hamurdan çıkan şekil ince detayları korur.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt3702136-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3702136-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3702136-3.jpg"
+    ]
+  },
+  {
+    "id": "ukrayna-haritasi-kurabiye-kesici",
+    "kategori": "Ev",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Ukrayna Haritası Kurabiye Kesici",
+    "aciklama": "Ukrayna haritası konturunda hazırlanmış kurabiye kesici kalıbıdır.\nHamur, kalıbın çevre kenarı boyunca kesilerek harita şeklinde elde edilir.\nAynı kalıp, hamurdan şekil alma (trafaret) işlemi için de kullanılabilir.\nHaritanın her ayrıntısı, kalıbın kenar çizgisinde tek parça olarak işlenmiştir.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt3705527-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3705527-2.jpg"
+    ]
+  },
+  {
+    "id": "oto-bagaj-kapagi-tamponu",
+    "kategori": "Otomobil",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Araç Bagaj Kapağı Tamponu",
+    "aciklama": "Araç bagaj kapağının arka gövdeye temas ettiği noktaya takılan lastik tampon parçasıdır.\nBagaj kapağının kapanırken gürültü yapmasını ve gövdeye darbe gelmesini azaltır.\nAracın üzerindeki montaj yuvasına doğrudan oturur.\nEsnek yapıda bir parçadır ve lastik benzeri esnek malzemeye uygundur.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt4658247-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4658247-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4658247-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4658247-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4658247-5.jpg"
+    ]
+  },
+  {
+    "id": "toyota-chaser-otomatik-sanziman-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota",
+      "Chaser"
+    ],
+    "uyum": [
+      {
+        "marka": "Toyota",
+        "model": "Chaser"
+      }
+    ],
+    "baslik": "Toyota Chaser Otomatik Şanzıman Kapağı",
+    "aciklama": "Toyota Chaser, Mark II ve Cresta serilerinin otomatik şanzıman bölümünde kullanılan kapak parçasıdır.\nŞanzıman üzerindeki açıklığın kapatılmasını sağlar.\nİki parçadan oluşan takım halinde şanzıman üzerine oturur.\nDış yüzeyi düz olduğu için araçla aynı renge boyanabilir.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt4658296-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4658296-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4658296-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4658296-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4658296-5.jpg"
+    ]
+  },
+  {
+    "id": "on-cam-silecek-tapasi",
+    "kategori": "Otomobil",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Araç Ön Cam Silecek Tapası",
+    "aciklama": "Araç ön cam sileceklerinde kullanılan tapa parçasıdır.\nTakıldığı yuvaya oturur ve açıklığı kapatır.\nKırılan veya kaybolan parçanın yerine doğrudan takılır.\nDış yüzeyi düz olduğu için araçla aynı renge boyanabilir.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt4658434-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4658434-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4658434-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4658434-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4658434-5.jpg"
+    ]
+  },
+  {
+    "id": "opel-zafira-b-kapi-paneli-tapasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Zafira"
+    ],
+    "uyum": [
+      {
+        "marka": "Opel",
+        "model": "Zafira"
+      }
+    ],
+    "baslik": "Opel Zafira B Kapı Paneli Tapası",
+    "aciklama": "Opel Zafira B kapı iç döşemesindeki montaj deliklerini kapatan tapa parçasıdır.\nKüçük ve büyük olmak üzere iki farklı boy seçeneği bulunur.\nParça, kapı panelindeki mevcut yuvaya doğrudan oturur.\nDış yüzeyi düz olduğu için araçla aynı renge boyanabilir.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt4658460-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4658460-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4658460-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4658460-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4658460-5.jpg"
+    ]
+  },
+  {
+    "id": "nissan-qashqai-disli-motor-cubugu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Nissan",
+      "Qashqai"
+    ],
+    "uyum": [
+      {
+        "marka": "Nissan",
+        "model": "Qashqai"
+      }
+    ],
+    "baslik": "Nissan Qashqai Dişli Motor Çubuğu",
+    "aciklama": "Nissan Qashqai'de kullanılan dişli motor çubuğudur.\nDişli motor mekanizmasının bir parçası olarak görev yapar.\nMevcut yuvasına doğrudan oturur.\nKırılan parçanın yerine doğrudan takılır.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt4676074-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4676074-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4676074-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4676074-4.jpg"
+    ]
+  },
+  {
+    "id": "opel-astra-h-aks-borusu-baglanti-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Astra H"
+    ],
+    "uyum": [
+      {
+        "marka": "Opel",
+        "model": "Astra H"
+      }
+    ],
+    "baslik": "Opel Astra H Aks Borusu Bağlantı Parçası",
+    "aciklama": "Opel Astra H aks borusunun bağlantı yerine takılan rakor parçasıdır.\nAks borusunun sistem üzerinde sabitlenmesini ve bağlantı noktasının sızdırmaz kalmasını sağlar.\nEski parça çıkarıldıktan sonra yenisinin yerine oturur.\nMevcut bağlantı yuvasına doğrudan geçer.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt4678653-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4678653-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4678653-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4678653-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4678653-5.jpg"
+    ]
+  },
+  {
+    "id": "nissan-qashqai-j10-makyajli-far-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Nissan",
+      "Qashqai"
+    ],
+    "uyum": [
+      {
+        "marka": "Nissan",
+        "model": "Qashqai"
+      }
+    ],
+    "baslik": "Nissan Qashqai J10 Far Kapağı (Makyajlı Kasa)",
+    "aciklama": "Nissan Qashqai J10 makyajlı kasa ön far ünitesinin kapağıdır.\nFar gövdesindeki açıklığın kapatılmasını ve toz ile su sıçramasına karşı korunmasını sağlar.\nMevcut yuvaya doğrudan oturur.\nDış yüzeyi düz olduğu için araçla aynı renge boyanabilir.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt4678927-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4678927-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4678927-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4678927-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4678927-5.jpg"
+    ]
+  },
+  {
+    "id": "mercedes-vito-w638-vites-kolu-burcu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mercedes",
+      "Vito"
+    ],
+    "uyum": [
+      {
+        "marka": "Mercedes",
+        "model": "Vito"
+      }
+    ],
+    "baslik": "Mercedes-Benz Vito W638 Vites Kolu Burcu",
+    "aciklama": "Mercedes-Benz Vito W638 vites kolu burcudur.\nVites kolu mekanizmasının geçme noktasında kullanılır.\nMevcut yuvaya doğrudan oturur.\nKırılan parçanın yerine doğrudan takılır.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt4681399-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4681399-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4681399-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4681399-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4681399-5.jpg"
+    ]
+  },
+  {
+    "id": "aku-tipasi-sokme-anahtari",
+    "kategori": "Otomobil",
+    "marka": [],
+    "uyum": [],
+    "baslik": "Akü Tıpası Sökme Anahtarı",
+    "aciklama": "Araç aküsü tıpalarının vida yuvasına zarar vermeden sökülmesi için tasarlanmış anahtardır.\nAnahtar tıpanın üzerine oturur ve sökme kuvvetini doğrudan tıpaya iletir.\nAkü tıpasının yuvasında ve akü yüzeyinde iz bırakmaz.\nFarklı araç akülerinde kullanılabilen genel bir araçtır.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt4694235-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4694235-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4694235-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4694235-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4694235-5.jpg"
+    ]
+  },
+  {
+    "id": "skoda-yeti-tsi-hava-filtre-kutusu-ve-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Skoda",
+      "Yeti"
+    ],
+    "uyum": [
+      {
+        "marka": "Skoda",
+        "model": "Yeti"
+      }
+    ],
+    "baslik": "Skoda Yeti TSI Motor Hava Filtre Kutusu ve Kapağı",
+    "aciklama": "Skoda Yeti TSI motorunun soğuk hava girişinde kullanılan filtre kutusu ve kutusun kapağıdır.\nHava filtresini barındırarak motorun soğuk hava giriş yolunu oluşturur.\nKutu, araç üzerindeki montaj yerine doğrudan oturur.\nKutu ve kapağı iki parça halinde birlikte monte edilir.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt5193106-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt5193106-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt5193106-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt5193106-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt5193106-5.jpg"
+    ]
+  },
+  {
     "id": "nissan-x-trail-t30-arka-bagaj-kancasi",
     "kategori": "Otomobil",
     "marka": [
