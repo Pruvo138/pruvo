@@ -821744,34 +821744,6 @@
     ]
   },
   {
-    "id": "bmw-yak-t-depo-kapa-tutucu-kablosu",
-    "kategori": "Otomobil",
-    "marka": [
-      "BMW"
-    ],
-    "baslik": "BMW Yakıt Depo Kapağı Tutucu Kablosu",
-    "aciklama": "BMW araçlarınız için zamanla kopan veya yıpranan depo kapağı askı kablosunun yerine kullanabileceğiniz dayanıklı yedek parça.\nYakıt dolumu esnasında depo kapağının düşmesini veya kaybolmasını engeller.\nEsnek yapısı sayesinde orijinal işlevini tam olarak yerine getirir.\nMontajı son derece kolaydır, mevcut bağlantı noktalarına doğrudan takılır.\nYüksek kaliteli malzemeden özel tasarım olarak üretilmiştir.\n\nYaklaşık dış ölçüler: 154 × 8 × 8 mm.",
-    "fiyat": "250 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/bmw-yak-t-depo-kapa-tutucu-kablosu-1.jpg",
-      "https://media.pruvo3d.com/urunler/bmw-yak-t-depo-kapa-tutucu-kablosu-2.jpg",
-      "https://media.pruvo3d.com/urunler/bmw-yak-t-depo-kapa-tutucu-kablosu-3.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "tommck",
-      "tur": "CC BY-SA 4.0"
-    },
-    "altkategori": "Yakıt ve Egzoz",
-    "uyum": [
-      {
-        "marka": "BMW"
-      }
-    ],
-    "tavsiyeFilament": [
-      "ABS"
-    ]
-  },
-  {
     "id": "bmw-e34-bardakl-k-konsol-aparat",
     "kategori": "Otomobil",
     "marka": [

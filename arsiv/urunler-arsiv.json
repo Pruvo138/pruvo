@@ -5222,5 +5222,13 @@
     "govde_sha256": "c8e412b825934d20cd1b4a3a3340ee3d9eecf921176158c7c9540b0b3c436a83",
     "yazan": "duzelt.py",
     "kuyruk_id": null
+  },
+  {
+    "id": "bmw-yak-t-depo-kapa-tutucu-kablosu",
+    "silinme_ts": "2026-11-07T19:08:51Z",
+    "silme_commit": null,
+    "govde_sha256": "3e7ba315c9a70e85f0dce61ff5105978c7d635825023286c350a506d34cdb591",
+    "yazan": "panel-uygulayici",
+    "kuyruk_id": 67
   }
 ]
