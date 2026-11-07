@@ -941,6 +941,10 @@ jobs:
       # KONTROL + M1/M2/KONTROL-MUTANT; A4 ucunu de sart kosar.
       - name: "Sozluk 24. tur marka kabul bataryasi (Keurig, Moccamaster, Roland)"
         run: python3 tools/sozluk24-marka-kabul-kapisi.py
+      # 25. tur kapali marka kumesi (Great Wall, Oral-B, Kyocera, Sterwins; MaCiT yta4ka marka
+      # kapisi): A1-A4 + KONTROL + M1/M2/KONTROL-MUTANT; A4 dordunu de sart kosar.
+      - name: "Sozluk 25. tur marka kabul bataryasi (Great Wall, Oral-B, Kyocera, Sterwins)"
+        run: python3 tools/sozluk25-marka-kabul-kapisi.py
 
       # Homonim baslik kolu KAPALI (Mini, Rover, Alpine, Sigma; BaBa tik 188/196): H1-H5 +
       # M1 (liste bos) / M2 (Rover cikti) / KONTROL-MUTANT; sayfa = uyelik = arama, sayilar sabit.
