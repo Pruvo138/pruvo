@@ -1851,6 +1851,16 @@ UYUM_MARKA_IZINLI = frozenset({
     #   durur (Yamaha|Roland model sayfasi olmasin) — ikisi celismez: marka ≠ model. FARK 139.
     #   Kabul: `tools/sozluk24-marka-kabul-kapisi.py`.
     "Keurig", "Moccamaster", "Roland",
+    # 25. tur (7 Kas 2026) — MaCiT yta4ka partisi (Okan "hepsini ekle", 38 aday) MARKA KAPISI
+    #   4 urun: `hasat_ekle` K302 fail-closed = sozluk boslugu (Geo emsali). SINIF:
+    #   `Great Wall` otomobil ureticisi (Hover kaput cubugu burcu; COK KELIMELI -> index.html
+    #   BILESIK_MARKA aynasi AYNI dalda, model-uyelik K8) · `Oral-B` dis fircasi ureticisi
+    #   (tutucu) · `Kyocera` yazici ureticisi (M2040 mandal disli) · `Sterwins` el aleti
+    #   ureticisi (PBC43R mars gobegi). OLCULDU (main 41.655): dordu de `marka[]`/`uyum[]`'da 0,
+    #   `uyum[].model` 0, arama.py'nin baska kumesinde yok (`Oral-B` yalniz Triumph yorumunda).
+    #   Veri (4 urun) AYNI dalda iner — ayri inerse A4 kirmizi. FARK 139 SABIT.
+    #   Kabul: `tools/sozluk25-marka-kabul-kapisi.py`.
+    "Great Wall", "Oral-B", "Kyocera", "Sterwins",
 })
 
 # 🔴 ONERI DISINDAN, MIMAR ONAYIYLA eklenen jetonlar. AYRI tutulmalari SART: budama
@@ -1963,6 +1973,9 @@ UYUM_MARKA_MIMAR_EKI = frozenset({
     # 24. tur (29 Eki 2026) — MaCiT ES20 blokaji. Gerekce UYUM_MARKA_IZINLI'nin 24. tur
     # basliginda yazili. TEKRAR EDILMEZ.
     "Keurig", "Moccamaster", "Roland",
+    # 25. tur (7 Kas 2026) — MaCiT yta4ka marka kapisi. Gerekce UYUM_MARKA_IZINLI'nin
+    # 25. tur basliginda yazili. TEKRAR EDILMEZ.
+    "Great Wall", "Oral-B", "Kyocera", "Sterwins",
 })
 
 # 🔴 REDDEDILEN ADAYLAR (2 Agu, mimar karari) — kayda geciyor ki bir sonraki tur ayni
