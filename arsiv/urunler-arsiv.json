@@ -5230,5 +5230,13 @@
     "govde_sha256": "3e7ba315c9a70e85f0dce61ff5105978c7d635825023286c350a506d34cdb591",
     "yazan": "panel-uygulayici",
     "kuyruk_id": 67
+  },
+  {
+    "id": "suzuki-motosiklet-yakit-deposu-lastigi",
+    "silinme_ts": "2026-11-09T21:03:30Z",
+    "silme_commit": null,
+    "govde_sha256": "fc80aaf099dacebd9813bf539e10286184607c7abfae5ded88fb3d11382f19bf",
+    "yazan": "panel-uygulayici",
+    "kuyruk_id": 73
   }
 ]

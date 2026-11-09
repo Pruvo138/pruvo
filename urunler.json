@@ -487907,24 +487907,6 @@
     }
   },
   {
-    "id": "suzuki-motosiklet-yakit-deposu-lastigi",
-    "kategori": "Motosiklet",
-    "marka": [
-      "Suzuki"
-    ],
-    "baslik": "Suzuki Motosiklet Yakıt Deposu Lastiği/Takozu",
-    "aciklama": "Yakıt deposunu gövdeye sabitleyen lastik takozdur; sertleşen orijinalin yedeğidir.\nTitreşimi söndürür, deponun sallanmasını önler.\nEsnek malzemeden üretilir.\nYaklaşık dış ölçüler: 24 × 24 × 7 mm.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th5781321-1.jpg",
-      "https://media.pruvo3d.com/urunler/th5781321-2.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Terenzio",
-      "tur": "CC BY 4.0"
-    }
-  },
-  {
     "id": "suzuki-alto-kalorifer-dugmesi",
     "kategori": "Otomobil",
     "marka": [
