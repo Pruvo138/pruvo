@@ -308,7 +308,20 @@ function sorgulariUret(hedef, urunler, sinifsiz) {
 const NONCE = ortak.nonceUret();
 const SAYAC = ortak.sayacYeni();
 
-async function araSor({ q, kat, marka }) {
+// MARKA DALI DUSUSU — YENIDEN SORMA (10 Kas 2026, KraL; BaBa Tamirci teslimi).
+// OLCULEN VAKA: main SERIT B 7 kosumun 6'sinda TEST 5 KIRMIZI, her seferinde 1-2 MARKA
+// sorgusu, AYNI SHA'da (6d24ff5d) 02:56Z YESIL / 13:01Z KIRMIZI. /ara sayilari yerelde
+// SERBEST METIN ile hesaplanan sayiya birebir: audi 1177, hyundai 616, SMEG 4, SMART 38,
+// gopro 300, Vauxhall 82 (marka dali: 1136/611/3/13/259/569). Kok: uc `araD1` marka dali
+// D1 hickiriginda FAIL-OPEN serbest metne duser (pruvo-bot `markaSorguKanonu` catch ->
+// null; `MARKA-ARAMA(site) DUSTU`) ve cevapta bunu belli eden alan YOK. Kusur kodda degil,
+// ANLIKTIR. Hukum: marka sorgusu (`aramaPlani(q).kanon` dolu) aciklanamayan ayrisirsa YENI
+// nonce ile BIR KEZ daha sorulur; ikinci cevap eslesirse sorgu GECER (satir basilir),
+// eslesmezse ILK hukum (KIRMIZI) aynen kalir. Kalici kirilma iki kez ayrisir -> maskelenmez.
+const MARKA_DUSUS_BEKLE_MS = 3000;
+const markaDusus = { yeniden: 0, eslesti: 0 };
+
+async function araSor({ q, kat, marka }, nonce) {
   const u = new URL(UC);
   u.searchParams.set("q", q);
   u.searchParams.set("limit", String(LIMIT));
@@ -319,7 +332,7 @@ async function araSor({ q, kat, marka }) {
   // ISE YARAMIYOR). Bu olmadan test Worker'i degil CDN'i olcer — bozuk bir surum, 60 sn
   // once onbellege girmis DOGRU cevapla YESIL yanabilir. FAZ 2'de yasandi (15 Tem),
   // ayni hata bu dosyada da vardi; ayni cozum.
-  u.searchParams.set("_nonce", NONCE);
+  u.searchParams.set("_nonce", nonce || NONCE);
   // UA: Cloudflare WAF varsayilan urllib/requests UA'sina 403 verir; 403/429 "ayrisma"
   // DEGIL "olculemedi" olarak yukari atilir (ortak.WafHatasi).
   const { govde } = await ortak.canliGetir(u.toString(), SAYAC, ortak.DENEME);
@@ -507,10 +520,10 @@ if (require.main === module) (async () => {
         continue;
       }
 
-      const k = ortak.siniflandir({
+      const sinifla = (cevap) => ortak.siniflandir({
         bekIds,
-        alinan: (g.urunler || []).map((u) => u.id),
-        toplam: g.toplam,
+        alinan: (cevap.urunler || []).map((u) => u.id),
+        toplam: cevap.toplam,
         limit: LIMIT,
         yerelIdKume: YEREL_ID_KUME,
         gecikmeModu: onKosul.gecikmeModu,
@@ -518,6 +531,22 @@ if (require.main === module) (async () => {
         // uc onlari BILEREK gizler, aranabilirlikleri olculebilir bir sey degildir.
         taslakKume: onKosul.taslakIdler,
       });
+      let k = sinifla(g);
+      // MARKA DALI DUSUSU: tek yeniden sorma (gerekce: MARKA_DUSUS_BEKLE_MS ustundeki blok).
+      if (k.sinif === ortak.SINIF_ACIKLANAMAYAN && ref().aramaPlani(s.q).kanon) {
+        markaDusus.yeniden++;
+        if (!fikstur) await new Promise((r) => setTimeout(r, MARKA_DUSUS_BEKLE_MS));
+        let g2 = null;
+        try { g2 = await araSor(s, NONCE + "y"); } catch (e) {
+          // Ariza ILK hukmu SILMEZ: kosum durur ama bu sorgunun kirmizisi asagida yazilir.
+          if (e && e.olcum) olcumArizasi = olcumArizasi || e;
+        }
+        const k2 = g2 ? sinifla(g2) : null;
+        console.log("  MARKA_DUSUS_YENIDEN q=%j kat=%j marka=%j ilk=%s yeniden=%s -> %s", s.q,
+          s.kat, s.marka, g.toplam, g2 ? g2.toplam : "OLCULEMEDI",
+          k2 && k2.sinif === ortak.SINIF_GECTI ? "ESLESTI (anlik dusus)" : "ESLESMEDI (ilk hukum kalir)");
+        if (k2 && k2.sinif === ortak.SINIF_GECTI) { markaDusus.eslesti++; g = g2; k = k2; }
+      }
       for (const id of k.fazla) fazlaKume.add(id);
       if (!k.kesin) olculemeyenPencere++;
       if (k.sinif === ortak.SINIF_GECTI) { gecti++; continue; }
@@ -583,6 +612,8 @@ if (require.main === module) (async () => {
       "arama semantigiyle ayrisiyor (uc = origin/main sitesi) -> parite BELGELENMEDI " +
       "sebep=kod-senkron kapanis=deploy-nobeti");
   }
+
+  console.log("MARKA_DUSUS_YENIDEN=%d eslesti=%d", markaDusus.yeniden, markaDusus.eslesti);
 
   // Aciklama GORULEN fazlaligi tasiyabiliyor mu? Tasimiyorsa (yetim satir) COKER -> KIRMIZI.
   const t = ortak.fazlalikTeshis(fazlaKume, onKosul.acik);

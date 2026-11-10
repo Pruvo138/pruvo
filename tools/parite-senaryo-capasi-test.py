@@ -158,8 +158,9 @@ def main():
     print("\n▶ A) FIKSTUR MENZIL KAPISI — menzil disi indeks YESIL veremez")
     rc, cikti = kos(["node", FIKSTUR, "29"])
     ortam = re.search(r"^OLCUM-ORTAMI: .*$", cikti, re.M)
-    ONA(re.search(r"senaryo=21\b", ortam.group(0)) is not None if ortam else False,
-        "ORTAM tek kumeyi uretti (senaryo=21; ortama bagli senaryo yok)", ortam and ortam.group(0))
+    # 21 -> 23 (10 Kas 2026): SMD1/SMD2 marka dali dususu senaryolari eklendi (ortama bagli DEGIL).
+    ONA(re.search(r"senaryo=23\b", ortam.group(0)) is not None if ortam else False,
+        "ORTAM tek kumeyi uretti (senaryo=23; ortama bagli senaryo yok)", ortam and ortam.group(0))
     ONA(rc == 3, "menzil disi indeks -> cikis 3 (OLCULEMEDI), 0 DEGIL  [rc=%d]" % rc,
         cikti[-500:])
     ONA("MENZIL DISI" in cikti, "sebep ADIYLA yazili (MENZIL DISI)", cikti[-400:])
