@@ -35,6 +35,7 @@ const { spawn } = require("child_process");
 
 const TOOLS = __dirname;
 const REF = require("./parite-test.js");          // norm/haystack/filtered — GERCEK referans
+const INDEX_REF = require("./index-arama-referansi.js");   // aramaPlani (marka sorgusu mu?)
 const PARITE_SITE = path.join(TOOLS, "parite-test.js");
 
 const TUMU = "Tümü";
@@ -100,6 +101,10 @@ function klonla(kurban, n) {
  * araToplamSapma: /ara'nin ILAN ETTIGI toplam'a eklenen sapma — donen SATIR sayisi degismez.
  *                 Boylece pencere, ucun ilan ettigi toplami KAPSAMAZ: pencere disi
  *                 OLCULMEMISTIR -> cikti kesin hukum BASMAMALIDIR (durustluk kapisi).
+ * markaDusus    : "ilk" | "hep" — MARKA sorgusunda (aramaPlani(q).kanon dolu) uc, marka dali
+ *                 FAIL-OPEN serbest metne dusmus gibi FARKLI kume doner (dogru kumenin SON
+ *                 urunu dusurulur). "ilk": her (q,kat,marka) icin yalniz ILK istek;
+ *                 "hep": her istek. (10 Kas 2026 — main SERIT B TEST 5 kok sebebi.)
  */
 /*
  * 🔴 SAHTE UC KENDI KATALOGUNU OLCER (6 Eyl 2026 — OLCULDU; S8 ve SM1'in ORTAK koku).
@@ -121,7 +126,8 @@ function klonla(kurban, n) {
  */
 function sunucuKur(secenek) {
   const { canli, mod403, wafSonraAra, r429SonraAra, r429IlkKere, susSonraAra,
-    idsHata, sayimHata, gizliAra, sayiSapma, araToplamSapma } = secenek;
+    idsHata, sayimHata, gizliAra, sayiSapma, araToplamSapma, markaDusus } = secenek;
+  const markaDususGorulen = new Set();
   // 🔴 SAHTE UC KENDI D1'INI MODELLER: `marka_kanon` haritasi SENARYONUN `canli`
   // katalogundan turemeli. Harness surecinde `PARITE_URUNLER` yoktu -> harita URETIM
   // katalogundan cozuluyor, sentetik id'lerin hicbiri orada olmadigi icin `uyeMi`nin
@@ -204,7 +210,12 @@ function sunucuKur(secenek) {
       if (!q.trim() && !kat && !marka) {
         return gonder({ hata: "q, kategori veya marka gerekli", toplam: 0, urunler: [] }, 400);
       }
-      const hepsi = suz(REF.filtered(canli, q, kat || TUMU, marka || TUMU));
+      let hepsi = suz(REF.filtered(canli, q, kat || TUMU, marka || TUMU));
+      if (markaDusus && hepsi.length && INDEX_REF.referans().aramaPlani(q).kanon) {
+        const anahtar = q + "\u0000" + kat + "\u0000" + marka;
+        if (markaDusus === "hep" || !markaDususGorulen.has(anahtar)) hepsi = hepsi.slice(0, -1);
+        markaDususGorulen.add(anahtar);
+      }
       return gonder({ toplam: sap(hepsi.length), urunler: hepsi.slice(0, limit).map((p) => ({ id: p.id })) });
     }
     return gonder({ hata: "bilinmeyen yol" }, 404);
@@ -726,6 +737,33 @@ async function main() {
       ONA(/OLCULMEDI/.test(r.cikti), "neyin olculmedigi yazili");
       ONA(!/Hicbir ayrisim 'yerelde var\/D1'de yok'/.test(r.cikti),
         "OLGUSAL HUKUM cumlesi ('hicbir ayrisim ... DEGIL') BASILMIYOR");
+    },
+  });
+  // MARKA DALI DUSUSU (10 Kas 2026): uc marka sorgusunda ANLIK olarak farkli kume doner
+  // (canli: pruvo-bot marka dali FAIL-OPEN serbest metne dustu). Tek yeniden sorma ANLIK
+  // dususu GECIRIR; KALICI dusus (her istek) iki kez ayrisir ve KIRMIZI KALIR.
+  senaryolar.push({
+    ad: "SMD1 MARKA DALI ANLIK DUSUS (yalniz ilk istek farkli) -> yeniden sorma ESLESIR, ayrisim 0",
+    dosya: PARITE_SITE, yerel: TABAN, canli: TABAN.slice(), markaDusus: "ilk",
+    dogrula: (r) => {
+      ONA(fiksturYesil(r), "cikis 3 + ayrisim 0 + 'FIKSTUR: BIREBIR ESLESTI'", r.cikti.slice(-900));
+      const m = /MARKA_DUSUS_YENIDEN=(\d+) eslesti=(\d+)/.exec(r.cikti);
+      ONA(m && +m[1] > 0 && m[1] === m[2], "yeniden sorulan marka sorgusu > 0 ve HEPSI eslesti",
+        m ? m[0] : "ozet satiri YOK");
+      ONA(/ESLESTI \(anlik dusus\)/.test(r.cikti), "sorgu satiri ADIYLA basildi");
+    },
+  });
+  senaryolar.push({
+    ad: "SMD2 MARKA DALI KALICI DUSUS (her istek farkli) -> cikis 1 KIRMIZI (maskelenmez)",
+    dosya: PARITE_SITE, yerel: TABAN, canli: TABAN.slice(), markaDusus: "hep",
+    dogrula: (r) => {
+      ONA(r.kod === 1, "cikis 1", r.cikti.slice(-900));
+      ONA(/PARITE YOK/.test(r.cikti), "KIRMIZI (PARITE YOK) yaziyor");
+      ONA(sayiOku(r.cikti, "ACIKLANAMAYAN") > 0, "aciklanamayan > 0");
+      const m = /MARKA_DUSUS_YENIDEN=(\d+) eslesti=(\d+)/.exec(r.cikti);
+      ONA(m && +m[1] > 0 && m[2] === "0", "yeniden soruldu ama HICBIRI eslesmedi",
+        m ? m[0] : "ozet satiri YOK");
+      ONA(/ESLESMEDI \(ilk hukum kalir\)/.test(r.cikti), "ilk hukum KALDI (satir adiyla)");
     },
   });
   console.log("═".repeat(78));
