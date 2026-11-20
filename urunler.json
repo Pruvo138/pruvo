@@ -1,5 +1,33 @@
 [
   {
+    "id": "mini-cooper-r53-dis-ayna-ayar-dugmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mini",
+      "Cooper R53"
+    ],
+    "baslik": "MINI Cooper R53 Dış Ayna Ayar Düğmesi (Joystick Topuzu)",
+    "aciklama": "MINI Cooper R53'ün orta konsoldaki elektrikli dış ayna kumanda ünitesinde, aynayı dört yöne ayarlamak için parmakla itilen yuvarlak topuzun (joystick başlığı) yedek parçasıdır.\nÜst yüzü kubbelidir; kenarında 90 derece arayla dört çentik bulunur.\nAlt yüzünde 3,1 mm kare geçme yuvası vardır.\nYaklaşık dış ölçüler: 25 × 25 × 9 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mini-cooper-r53-dis-ayna-ayar-dugmesi-1.jpg",
+      "https://media.pruvo3d.com/urunler/mini-cooper-r53-dis-ayna-ayar-dugmesi-2.jpg",
+      "https://media.pruvo3d.com/urunler/mini-cooper-r53-dis-ayna-ayar-dugmesi-3.jpg",
+      "https://media.pruvo3d.com/urunler/mini-cooper-r53-dis-ayna-ayar-dugmesi-4.jpg",
+      "https://media.pruvo3d.com/urunler/mini-cooper-r53-dis-ayna-ayar-dugmesi-5.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Cantyoudobetter"
+    },
+    "uyum": [
+      {
+        "marka": "Mini",
+        "model": "Cooper R53"
+      }
+    ]
+  },
+  {
     "id": "great-wall-hover-kaput-cubugu-burcu",
     "kategori": "Otomobil",
     "marka": [
