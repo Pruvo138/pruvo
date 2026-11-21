@@ -5238,5 +5238,13 @@
     "govde_sha256": "fc80aaf099dacebd9813bf539e10286184607c7abfae5ded88fb3d11382f19bf",
     "yazan": "panel-uygulayici",
     "kuyruk_id": 73
+  },
+  {
+    "id": "bmw-gs1250-uyumlu-basamak-lastigi",
+    "silinme_ts": "2026-11-21T16:06:34Z",
+    "silme_commit": null,
+    "govde_sha256": "1bddf88bc427ab2ad13e68d777b70fd7176737678d476d33e5ebc150c383b66b",
+    "yazan": "panel-uygulayici",
+    "kuyruk_id": 86
   }
 ]

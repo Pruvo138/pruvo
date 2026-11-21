@@ -717502,33 +717502,6 @@
     ]
   },
   {
-    "id": "bmw-gs1250-uyumlu-basamak-lastigi",
-    "kategori": "Motosiklet",
-    "marka": [
-      "BMW",
-      "R1250GS"
-    ],
-    "baslik": "Basamak Pedal Lastiği (BMW GS 1250 Uyumlu)",
-    "aciklama": "BMW GS 1250 sürücü basamakları için esnek pedal lastiğidir.\n- Esnek malzemeden üretilir; titreşimi azaltır.\n- M5 somunlarla basamağa sabitlenir (somunlar dahil değildir).\n- Siparişe göre özel tasarım üretimle hazırlanır.",
-    "fiyat": "350 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/mw1586751-1.jpg",
-      "https://media.pruvo3d.com/urunler/mw1586751-2.jpg",
-      "https://media.pruvo3d.com/urunler/mw1586751-3.jpg",
-      "https://media.pruvo3d.com/urunler/mw1586751-4.jpg"
-    ],
-    "tavsiyeFilament": [
-      "TPU"
-    ],
-    "altkategori": "Sele ve Sehpa",
-    "uyum": [
-      {
-        "marka": "BMW",
-        "model": "R1250GS"
-      }
-    ]
-  },
-  {
     "id": "bmw-f40-uyumlu-bardaklik-magsafe-tutucu",
     "kategori": "Otomobil",
     "marka": [
