@@ -38,7 +38,8 @@ import marka_model_build as mmb                                     # noqa: E402
 KAPALI = frozenset({"Mini", "Rover", "Alpine", "Sigma"})
 LITERAL = 'var BASLIK_KOLU_KAPALI = ["Mini", "Rover", "Alpine", "Sigma"];'
 # OLCULDU 26 Eki 2026 (dal kral/homonim-marka, katalog 40925): sayfa = uyelik = arama.
-SAYILAR = {"Mini": 138, "Rover": 3, "Alpine": 8, "Sigma": 4}
+# 21 Kas 2026: Mini 138 -> 139 (74b2c957 MINI R53 ayna dugmesi; gercek Mini uyesi, baslik-yalniz 0).
+SAYILAR = {"Mini": 139, "Rover": 3, "Alpine": 8, "Sigma": 4}
 VERI = {"Alpine": ("renault-alpine-a310-koltuk-kolu-kilavuzu",
                    "renault-alpine-a310-on-far-contasi",
                    "renault-alpine-a310-kapi-kolu-kilavuz-burcu"),
