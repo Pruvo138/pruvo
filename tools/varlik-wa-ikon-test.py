@@ -14,10 +14,16 @@ VAKALAR (hepsi `cikarim_kaybi()` uzerinden, sentetik sayfa):
   W3  eski: ikon + bant linki · yeni: ikon yok, BANT linki tumden yok -> "YOLU KAYIP" / "sorgu" KIRMIZI
   W4  eski: ikon + bant · yeni: ikon VAR ama metni degisti           -> KIRMIZI (ikon varken ayiklanmaz)
   W5  KONTROL: eski = yeni (ikonlu)                                  -> bulgu 0
+  H1  (Okan 23 Kas) bant metni eski sondan yeni sona, cift `_help_cta_beyani`dan -> bulgu 0
+  H2  ayni beyan, ama yeni metinde URL de degisti                   -> KIRMIZI
+  H3  ayni beyan, yeni metin baska bir son cumle                    -> KIRMIZI
+  H4  beyan VERILMEDEN H1 gecisi                                    -> KIRMIZI (kontrol)
 MUTANTLAR (izole kopya):
   M1  ayiklama kapatilir (eski aynen doner)       -> W1 KIRMIZI
   M2  "yenide ikon var mi" kosulu kalkar (her zaman ayikla) -> W4 YESIL (yakalanmali)
   M3  ayiklama deseni tum wa.me <a>'larina genisler -> W2 YESIL (yakalanmali)
+  M4  `_help_cta_beyani` bos doner                 -> H1 KIRMIZI
+  M5  son-cumle donusumu kalkar (eski=yeni)        -> H1 KIRMIZI
 
 KOSUM: python3 tools/varlik-wa-ikon-test.py   (rc=0 => YESIL)
 """
@@ -62,10 +68,27 @@ def kos(mod):
     r["W3"] = sk(mod.cikarim_kaybi(eski, sayfa(bant=False)))
     r["W4"] = sk(mod.cikarim_kaybi(eski, sayfa(IKON.replace("ilgileniyorum", "degisti"))))
     r["W5"] = sk(mod.cikarim_kaybi(eski, sayfa(IKON)))
+    # H: yardim bandi on-dolum deger beyani (Okan 23 Kas). Cift build'den TURETILIR.
+    from urllib.parse import quote
+    p = {"id": "deneme-parca", "baslik": "Deneme Parça"}
+    url = "https://pruvo3d.com/urun/deneme-parca/"
+    govde = u"Merhaba, şu sayfadaydım: Deneme Parça\n%s\n"
+    e_txt = quote(govde % url + mod.HELP_CTA_ESKI_SON)
+    y_txt = quote(govde % url + mod.HELP_CTA_YENI_SON)
+    beyan = tuple(mod._help_cta_beyani(p))
+    hs = lambda m: sayfa(bant_metin=m)
+    r["H1"] = sk(mod.cikarim_kaybi(hs(e_txt), hs(y_txt), deger_beyani=beyan))
+    r["H2"] = sk(mod.cikarim_kaybi(hs(e_txt), hs(quote(govde % (url + "x") + mod.HELP_CTA_YENI_SON)),
+                                   deger_beyani=beyan))
+    r["H3"] = sk(mod.cikarim_kaybi(hs(e_txt), hs(quote(govde % url + u"Başka bir şey.")),
+                                   deger_beyani=beyan))
+    r["H4"] = sk(mod.cikarim_kaybi(hs(e_txt), hs(y_txt)))
     return r
 
 
-BEKLENEN = {"W1": False, "W2": True, "W3": True, "W4": True, "W5": False}  # True = bulgu VAR
+BEKLENEN = {"W1": False, "W2": True, "W3": True, "W4": True, "W5": False,
+            "H1": False, "H2": True, "H3": True, "H4": True}  # True = bulgu VAR
+HELP_CAPA = "    eski = quote(msg[:-len(HELP_CTA_YENI_SON)] + HELP_CTA_ESKI_SON)\n"
 ESKI_GOVDE = ("    if _WA_IKON_RE.search(yeni_html):\n        return eski_html\n"
               "    return _WA_IKON_RE.sub(\"\", eski_html)\n")
 MUTANTLAR = (
@@ -74,6 +97,8 @@ MUTANTLAR = (
     ("M3 ayiklama tum wa.me <a>'larina genisledi",
      "    return _WA_IKON_RE.sub(\"\", eski_html)\n",
      "    return re.sub(r'<a [^>]*wa\\.me[^>]*>.*?</a>', \"\", eski_html, flags=re.S)\n", "W2"),
+    ("M4 help-cta beyani bos", HELP_CAPA, "    return ()\n", "H1"),
+    ("M5 son-cumle donusumu kalkti", HELP_CAPA, "    eski = yeni\n", "H1"),
 )
 
 
