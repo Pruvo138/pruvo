@@ -1,10 +1,10 @@
 # PRUVO
 
-> PRUVO, ölçüye özel endüstriyel parça üreten bir özel tasarım üretim atölyesidir. Kırılan, aşınan ya da artık üretilmediği için piyasada bulunamayan plastik parçanın yenisini, elinizdeki numuneden milimetrik ölçü alarak tek adet bile olsa üretir. Akış üç adımdır: getir, ölç, üret. Türkiye geneline üretim yapar. Sloganı: "Ölçü sizden, üretim bizden."
+> PRUVO, Türkiye geneline üretim yapan bir plastik yedek parça atölyesidir. Sitedeki hazır katalog parçalarını ve ölçüsü siteden seçilen sarı seri ürünlerini üretir; ölçü, malzeme ve renk müşteri tarafından ürün sayfasından seçilir. Aradığı parçayı sitede bulamayan müşteri WhatsApp hattından sorar, PRUVO katalogda olup olmadığına bakar. Sloganı: "Endüstriyel Parça Üretimi."
 
-PRUVO'nun iki ayırt edici tarafı vardır. **Tam ölçü:** parça hazır bir katalog kaleminden seçilmez, numunenin kendisinden ölçülür; kırık, eksik ya da deforme numunede özgün geometri bütünlenir, numune hiç yoksa parçanın oturduğu yuvadan ters ölçü alınır. **Doğru malzeme:** parça çalışacağı koşula göre bir malzeme sınıfına yerleştirilir — sıradan iç mekân sınıfından (PLA) ısı, UV ve deniz koşuluna dayanıklı sınıflara (PETG, ASA, ABS, PC) ve yüksek mukavemet gereken kritik işlerde karbon/cam fiber takviyeli naylona (PA-CF / PA-GF) kadar. Görünür parçalarda farklı renk seçenekleri sunulur.
+PRUVO'nun iki ayırt edici tarafı vardır. **Hazır katalog ve sitede seçilen ölçü:** parça ya kataloğun hazır bir kalemidir ya da sarı seri kategorisinde geometrisi standarttır ve ölçüsü siteden seçilir; kırık, eksik ya da deforme bir parçanın ölçüsü alınmaz. **Doğru malzeme:** parça çalışacağı koşula göre bir malzeme sınıfına yerleştirilir — sıradan iç mekân sınıfından (PLA) ısı, UV ve deniz koşuluna dayanıklı sınıflara (PETG, ASA, ABS, PC) ve yüksek mukavemet gereken kritik işlerde karbon/cam fiber takviyeli naylona (PA-CF / PA-GF) kadar. Görünür parçalarda farklı renk seçenekleri sunulur.
 
-**Sipariş ve ödeme:** ürün sayfasından malzeme, renk ve (ölçüye özel/parametrik kalemlerde) ölçü seçilir, sepete eklenir; site üzerinden kartla güvenli online ödeme yapılabilir — ölçüye özel kalemler de bu akışa dahildir. Ölçü danışmanlığı, özel iş ve malzeme sınıfının site seçeneklerini aştığı durumlar için WhatsApp hattı: **+90 545 138 6526**.
+**Sipariş ve ödeme:** ürün sayfasından malzeme, renk ve (sarı seri / parametrik kalemlerde) ölçü seçilir, sepete eklenir; site üzerinden kartla güvenli online ödeme yapılabilir — sarı seri kalemler de bu akışa dahildir. Ürün seçimi, malzeme danışmanlığı ve site seçeneklerini aşan talepler için WhatsApp hattı: **+90 545 138 6526**.
 
 **Dürüst sınır (PRUVO'nun kendi beyanı):** plastiğin pratik sürekli servis tavanı çoğu iş için 90-100 °C aralığındadır. Pervane ve çark tarafında fan ve havalandırma çarkı, pompa, sintine ve sirkülasyon çarkı (impeller) ve tekne pervanesi üretilir; ölçü ve kullanım koşulu birlikte netleştirilir. Contalarda sınır düşük–orta basınçtır; profil ve kiriş türü parçalarda hafif, yük dışı kullanım esastır. Belgeli gıda teması, yangın/can emniyeti ve yapısal taşıyıcı bağlantı sertifikasyonu verilmez.
 
@@ -15,7 +15,7 @@ PRUVO'nun iki ayırt edici tarafı vardır. **Tam ölçü:** parça hazır bir k
 - [Sıkça Sorulan Sorular](https://pruvo3d.com/sss/): sipariş, ödeme, malzeme, süre ve uyumluluk.
 - [Özel üretim rehberi](https://pruvo3d.com/ozel-uretim-rehberi/): ölçüye özel üretim sürecinin toplu anlatımı.
 - [İletişim](https://pruvo3d.com/iletisim/): WhatsApp ve iletişim kanalları.
-- [Plastik parça siparişinin ilk adımı nedir](https://pruvo3d.com/plastik-parca-siparisinin-ilk-adimi-nedir/): elinde kırık parça olan bir okurun atacağı ilk adım; sürecin giriş kapısı.
+- [Plastik parça siparişinin ilk adımı nedir](https://pruvo3d.com/plastik-parca-siparisinin-ilk-adimi-nedir/): bir okurun atacağı ilk adım; sürecin giriş kapısı.
 
 ## Malzeme ve teknik sınırlar
 

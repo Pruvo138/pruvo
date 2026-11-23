@@ -6,7 +6,8 @@ Sorun: bu iki buton wa.me ?text= prefill'inde ürün adı/URL taşımıyordu -> 
 sayfasından gelindiğini bilemiyor, lead düşüyor.
 
 ⚠️ NİYET EKSENİ (yalnız ad+URL YETMEZ):
-  * help-cta-btn'in KENDİ metni "Aradığınız parçayı bulamadınız mı? ... üretelim!" ->
+  * help-cta-btn'in KENDİ metni "Aradığınız parçayı bulamadınız mı? ... katalogda olup
+    olmadığını söyleyelim!" ->
     butona basan müşteri SAYFADAKİ ürünü İSTEMİYOR, bulamadığı BAŞKA parçayı arıyor.
     Prefill "bu ürünü istiyorum" derse Ege yanlış niyetle o ürün için fiyat/malzeme
     akışı başlatır — bağlamsız olmasından BETER. Bu test bağlamın VAR olduğunu VE
@@ -1159,10 +1160,16 @@ def main():
                 fails.append(
                     "organik prefill YANLIŞ NİYET taşıyor (%r) — buton 'aradığını "
                     "bulamayan' müşteri için, sayfadaki ürünü TALEP ETMEZ" % kotu)
-        # (c) NİYET: "bulamadım/üretebilir misiniz" niyetini TAŞIMALI
-        if not (u"bulamad" in dusuk and (u"üretebilir" in dusuk or u"üretelim" in dusuk)):
-            fails.append("organik prefill 'aradığımı bulamadım, üretebilir misiniz?' "
+        # (c) NİYET: "bulamadım / sitede var mı?" niyetini TAŞIMALI
+        if not (u"bulamad" in dusuk and u"sitede var mı" in dusuk):
+            fails.append("organik prefill 'aradığımı bulamadım, sitede var mı?' "
                          "niyetini taşımıyor")
+        # (c2) KALDIRILAN VAAT: niyet cümlesi numune/üretim vaadi TAŞIMAMALI.
+        # (Okan 23 Kas 2026: "böyle bir hizmetimiz yok" — numuneden ölçüp üretim yok.)
+        niyet = organik_text.rsplit("\n", 1)[-1].lower()
+        for yasak in (u"üretebilir", u"üretelim", u"numune", u"ölçü sizden"):
+            if yasak in niyet:
+                fails.append("organik prefill kaldırılan vaadi taşıyor (%r)" % yasak)
     _kodlama_kontrol("organik", organik_href, organik_text, fails)
 
     # ------------------------------------------------ MALZEME NOTU (malzeme-not)

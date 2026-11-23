@@ -100,15 +100,16 @@ def _kategori_sayfasi(ctx, kategori, slug, kalemler, sayfa, toplam_sayfa):
     basili = _kategori_sayfa_dilimi(kalemler, sayfa)
     n = len(kalemler)
 
-    h1 = gorunur + " Yedek Parça — Ölçüye Özel Üretim"
+    h1 = gorunur + " Yedek Parça"
     title = h1 if sayfa == 1 else h1 + " — Sayfa " + str(sayfa)
-    giris = (gorunur + " için kırılan ya da artık bulunamayan plastik parçaları numunenizden "
-             "ölçüye özel üretiyoruz. Klipsler, kapak ve tutamaklar, dişliler, braketler ve "
-             "bağlantı parçaları gibi küçük ama önemli parçaları elinizdeki numuneden birebir, "
-             "parçanın çalışacağı yere göre doğru malzemeyle yeniden üretiyoruz.")
+    giris = (gorunur + " kategorisindeki hazır yedek parçaları: klipsler, kapak ve tutamaklar, "
+             "dişliler, braketler ve bağlantı parçaları gibi küçük ama önemli parçalar. "
+             "Ölçüsü sitede seçilen sarı seri parçalar da bu kategoride; malzeme ve renk "
+             "seçimini ürün sayfasından yaparsınız.")
     if sayfa == 1:
         description = (gorunur + " yedek parçaları: " + str(n) + " parça listeleniyor. "
-                       "Bulamadığınız parçayı numunenizden ölçüye özel üretelim.")
+                       "Aradığınızı bulamadıysanız WhatsApp'tan sorun, katalogda olup "
+                       "olmadığına bakalım.")
     else:
         description = (gorunur + " yedek parçaları — sayfa " + str(sayfa) + ": "
                        + str(len(basili)) + " parça listeleniyor. Diğer sayfalara gezinme "
@@ -118,13 +119,13 @@ def _kategori_sayfasi(ctx, kategori, slug, kalemler, sayfa, toplam_sayfa):
           + esc(gorunur) + '</nav>')
 
     prefill = ("Merhaba, " + gorunur + " kategorisinde bir parça arıyorum, sitede bulamadım. "
-               "Elimdeki numuneyi ölçüp ölçüye özel üretebilir misiniz?")
+               "Katalogda var mı?")
     huni = mm._huni_blok(
         esc, gorunur + " parçanızı bulamadınız mı?",
         gorunur + " için aradığınız parçayı sitede bulamadıysanız bizimle konuşun. "
-        "Elinizdeki kırık veya eski parçayı ölçüp, çalışacağı yere göre doğru malzemeyle "
-        "ölçüye özel üretiyoruz. Ölçü sizden, üretim bizden. Parçanızın fotoğrafını "
-        "WhatsApp'tan " + mm.WA_TEL_GORUNUR + " numarasına gönderin.",
+        "Katalogdaki hazır parçaları ve ölçüsü sitede seçilen sarı seri ürünlerini "
+        "listeliyoruz. Parçanız katalogda varsa burada; yoksa WhatsApp'tan "
+        + mm.WA_TEL_GORUNUR + " numarasından sorun, birlikte bakalım.",
         prefill, "WhatsApp'tan Yazın")
 
     # Sayfa sayacı: kök = erişilebilir TÜM kalemler, devam = kendi dilimi. Marka hub'ıyla AYNI

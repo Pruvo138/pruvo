@@ -5,8 +5,8 @@
 NEDEN VAR (27 Tem, kök-sorun): ürün sayfaları Google'da KEŞFEDİLMİYOR — iç link yok +
 sitemap bayat. Bu modül marka -> model -> ürün CRAWLABLE (SSR, düz <a href>) bir hiyerarşi
 üretir; her seçim gerçek bir URL'e gider, içerik ilk yüklemede HTML'de, her sayfa sitemap'e
-<lastmod> ile girer. Ayrıca model sayfalarına "bulamadın -> WhatsApp'tan üretelim" bespoke
-hunisi basar (attribution-ref.js REF akışıyla ölçülür).
+<lastmod> ile girer. Ayrıca model sayfalarına "bulamadın -> WhatsApp'tan sor" hunisi basar
+(attribution-ref.js REF akışıyla ölçülür).
 
 ADDITIVE + İZOLE: build.py bunu main()'de ÇAĞIRIR; kendi urun/ + içerik akışına dokunmaz.
 urunler.json DEĞİŞMEZ — normalize BUILD ANINDA kanonik-eşleme (map) ile yapılır (spec §3).
@@ -323,71 +323,71 @@ _KANONIK_GOSTERIM = {
 # (marka, canon_key) -> {"h1":.., "giris":.., "huni":..}
 _PILOT_COPY = {
     ("Ford", "focus"): {
-        "h1": "Ford Focus Yedek Parça — Ölçüye Özel Üretim",
-        "giris": "Ford Focus'un yıllar içinde kırılan ya da artık bulunamayan plastik parçalarını mı arıyorsunuz? İç trim klipsleri, torpido kapakları, cam kriko dişlisi, konsol tutamakları, ayna braketleri ve kablo kanalları gibi küçük ama aracı zorlayan Focus parçalarını ölçüye özel üretiyoruz. Piyasada kalmayan ya da yalnızca komple set halinde satılan parçaları tek tek, elinizdeki numuneye göre yeniden üretiyoruz — sıradan plastikten değil, parçanın çalışacağı yere göre doğru malzemeden.",
-        "huni": "Aradığınız Ford Focus parçasını burada bulamadıysanız üretemeyeceğimiz anlamına gelmez. Kırık ya da eski parçayı bize getirin, ölçelim, doğru malzemeyle ölçüye özel üretelim. Ölçü sizden, üretim bizden. Parçanızın fotoğrafını WhatsApp'tan " + WA_TEL_GORUNUR + " numarasına gönderin.",
+        "h1": "Ford Focus Yedek Parça",
+        "giris": "Ford Focus için katalogdaki hazır yedek parçalar: iç trim klipsleri, torpido kapakları, cam kriko dişlisi, konsol tutamakları, ayna braketleri ve kablo kanalları gibi küçük ama aracı zorlayan parçalar. Ölçüsü sitede seçilen sarı seri parçalar da listelenir; malzeme ve renk seçimini ürün sayfasından yaparsınız.",
+        "huni": "Aradığınız Ford Focus parçasını burada bulamadıysanız WhatsApp'tan sorun; katalogda ya da sitede olup olmadığına bakalım. Parça katalogdaysa yolunu gösteririz, yoksa benzerini birlikte buluruz. WhatsApp " + WA_TEL_GORUNUR + " numarasından yazın.",
     },
     ("Ford", "f150"): {
-        "h1": "Ford F-150 Yedek Parça — Ölçüye Özel Üretim",
-        "giris": "Ford F-150 için bulunamayan ya da kırılan plastik parçaları arıyorsanız doğru yerdesiniz. Ön ızgara bağlantı tırnakları, kaput ve far klipsleri, kasa ve bagaj mandalları, iç konsol parçaları, bardaklık ve kablo kanalları gibi F-150 parçalarını ölçüye özel üretiyoruz. İthal olduğu için ülke genelinde zor bulunan ya da uzun süre beklenen parçaları, elinizdeki numuneden birebir yeniden üretiyoruz.",
-        "huni": "F-150 parçanızı listemizde göremediyseniz vazgeçmeyin. Kırık ya da eski parçayı getirin, ölçelim, kullanılacağı yere uygun dayanıklı malzemeyle ölçüye özel üretelim. Ölçü sizden, üretim bizden. Numunenizin fotoğrafını WhatsApp'tan " + WA_TEL_GORUNUR + " numarasına iletin.",
+        "h1": "Ford F-150 Yedek Parça",
+        "giris": "Ford F-150 için katalogdaki hazır yedek parçalar: ön ızgara bağlantı tırnakları, kaput ve far klipsleri, kasa ve bagaj mandalları, iç konsol parçaları, bardaklık ve kablo kanalları. Ölçüsü sitede seçilen sarı seri parçalar da listelenir; malzeme ve renk seçimini ürün sayfasından yaparsınız.",
+        "huni": "F-150 parçanızı listede göremediyseniz WhatsApp'tan sorun; katalogda ya da sitede olup olmadığına bakalım. WhatsApp " + WA_TEL_GORUNUR + " numarasından yazın.",
     },
     ("Ford", "fiesta"): {
-        "h1": "Ford Fiesta Yedek Parça — Ölçüye Özel Üretim",
-        "giris": "Ford Fiesta'nın küçük ama can sıkan kırık parçalarını mı arıyorsunuz? Kapı kolu mekanizmaları, cam kriko dişlileri, iç trim klipsleri, torpido ve konsol kapakları, havalandırma ızgarası kanatçıkları gibi Fiesta parçalarını ölçüye özel üretiyoruz. Model eskidikçe piyasadan kalkan bu parçaları elinizdeki numuneye göre tek tek yeniden üretiyoruz.",
-        "huni": "Aradığınız Fiesta parçası sitede yoksa üretemeyeceğimiz anlamına gelmez. Kırık parçayı bize ulaştırın, ölçelim, doğru malzemeyle ölçüye özel üretelim. Ölçü sizden, üretim bizden. Parçanızın fotoğrafını WhatsApp'tan " + WA_TEL_GORUNUR + " numarasına gönderin.",
+        "h1": "Ford Fiesta Yedek Parça",
+        "giris": "Ford Fiesta için katalogdaki hazır yedek parçalar: kapı kolu mekanizmaları, cam kriko dişlileri, iç trim klipsleri, torpido ve konsol kapakları, havalandırma ızgarası kanatçıkları. Ölçüsü sitede seçilen sarı seri parçalar da listelenir; malzeme ve renk seçimini ürün sayfasından yaparsınız.",
+        "huni": "Aradığınız Fiesta parçası sitede yoksa WhatsApp'tan sorun; katalogda var mı bakalım. WhatsApp " + WA_TEL_GORUNUR + " numarasından yazın.",
     },
     ("Ford", "maverick"): {
-        "h1": "Ford Maverick Yedek Parça — Ölçüye Özel Üretim",
-        "giris": "Ford Maverick için orijinali zor bulunan iç ve dış plastik parçaları arıyorsanız doğru yerdesiniz. Konsol ve bardaklık modülleri, kasa aksesuar bağlantıları, kapı cebi klipsleri, torpido kapakları ve kablo kanalları gibi Maverick parçalarını ölçüye özel üretiyoruz. Yeni nesil bir model olduğu için yan sanayisi henüz oturmamış bu parçaları, numunenizden birebir yeniden üretiyoruz.",
-        "huni": "Maverick parçanızı burada bulamadıysanız bizimle konuşun. Elinizdeki parçayı getirin, ölçelim, çalışacağı yere göre doğru malzemeyle ölçüye özel üretelim. Ölçü sizden, üretim bizden. Fotoğrafı WhatsApp'tan " + WA_TEL_GORUNUR + " numarasına iletin.",
+        "h1": "Ford Maverick Yedek Parça",
+        "giris": "Ford Maverick için katalogdaki hazır yedek parçalar: konsol ve bardaklık modülleri, kasa aksesuar bağlantıları, kapı cebi klipsleri, torpido kapakları ve kablo kanalları. Ölçüsü sitede seçilen sarı seri parçalar da listelenir; malzeme ve renk seçimini ürün sayfasından yaparsınız.",
+        "huni": "Maverick parçanızı burada bulamadıysanız WhatsApp'tan sorun; katalogda ya da sitede olup olmadığına bakalım. WhatsApp " + WA_TEL_GORUNUR + " numarasından yazın.",
     },
     ("Ford", "ranger"): {
-        "h1": "Ford Ranger Yedek Parça — Ölçüye Özel Üretim",
-        "giris": "Ford Ranger'ın arazi ve iş koşullarında zorlanan plastik parçalarını mı arıyorsunuz? Kasa mandalları ve kilit dilleri, çamurluk ve marşpiyel klipsleri, ön ızgara tırnakları, konsol parçaları ve bağlantı braketleri gibi Ranger parçalarını ölçüye özel üretiyoruz. Arazi ve yük altında kırılan bu parçaları, dayanıklı malzeme seçenekleriyle elinizdeki numuneden yeniden üretiyoruz.",
-        "huni": "Ranger parçanız listede yoksa üretemeyeceğimiz anlamına gelmez. Kırık ya da eski parçayı getirin, ölçelim, yük ve dış koşula uygun malzemeyle ölçüye özel üretelim. Ölçü sizden, üretim bizden. Numunenizin fotoğrafını WhatsApp'tan " + WA_TEL_GORUNUR + " numarasına gönderin.",
+        "h1": "Ford Ranger Yedek Parça",
+        "giris": "Ford Ranger için katalogdaki hazır yedek parçalar: kasa mandalları ve kilit dilleri, çamurluk ve marşpiyel klipsleri, ön ızgara tırnakları, konsol parçaları ve bağlantı braketleri. Arazi ve yük altında kullanılacak parçalarda dayanıklı malzeme seçeneklerini ürün sayfasından görürsünüz.",
+        "huni": "Ranger parçanız listede yoksa WhatsApp'tan sorun; katalogda ya da sitede olup olmadığına bakalım. WhatsApp " + WA_TEL_GORUNUR + " numarasından yazın.",
     },
     ("Ford", "transit"): {
-        "h1": "Ford Transit Yedek Parça — Ölçüye Özel Üretim",
-        "giris": "Ford Transit ve ticari filonuz için sürekli kırılan plastik parçaları mı arıyorsunuz? Kargo bölmesi mandalları, kapı kolu ve menteşe parçaları, konsol ve gösterge çevresi kapakları, kablo kanalları ve raf/bağlantı braketleri gibi Transit parçalarını ölçüye özel üretiyoruz. Yoğun kullanımdan yıpranan ya da artık bulunamayan bu parçaları, numunenizden birebir ve doğru malzemeyle yeniden üretiyoruz.",
-        "huni": "Transit'iniz küçük bir parça yüzünden beklemesin. Kırık parçayı getirin ya da kargoyla gönderin, ölçelim, dayanıklı malzemeyle ölçüye özel üretelim. Ölçü sizden, üretim bizden. WhatsApp'tan " + WA_TEL_GORUNUR + " numarasına yazın, hızlıca dönelim.",
+        "h1": "Ford Transit Yedek Parça",
+        "giris": "Ford Transit ve ticari filo için katalogdaki hazır yedek parçalar: kargo bölmesi mandalları, kapı kolu ve menteşe parçaları, konsol ve gösterge çevresi kapakları, kablo kanalları ve raf/bağlantı braketleri. Ölçüsü sitede seçilen sarı seri parçalar da listelenir; malzeme ve renk seçimini ürün sayfasından yaparsınız.",
+        "huni": "Transit'iniz küçük bir parça yüzünden beklemesin: parçayı WhatsApp'tan sorun, katalogda ya da sitede olup olmadığına bakalım. WhatsApp " + WA_TEL_GORUNUR + " numarasından yazın.",
     },
     ("BMW", "e46"): {
-        "h1": "BMW E46 Yedek Parça — Ölçüye Özel Üretim",
-        "giris": "BMW E46 sahiplerinin en çok zorlandığı yer, artık üretilmeyen küçük plastik parçalardır: kırılan kapı kolu, yerinden çıkan iç trim klipsi, sararıp kırılan havalandırma ızgarası kanatçığı ya da torpido menteşesi. Piyasada bulunamayan bu model-özel parçaları, elinizdeki numuneden milimetrik ölçüp ölçüye özel üretiyoruz. Isıya ve güneşe maruz kalan iç aksam için PETG ve ASA gibi dayanıklı malzeme, daha yüksek mukavemet gereken noktalar için karbon/cam fiber takviyeli seçenekler sunuyoruz; farklı renk seçenekleriyle orijinal dokusuna yakın durur.",
-        "huni": "Aradığınız E46 parçasını sitede bulamadıysanız durmayın: kırık ya da eksik parçayı bize getirin, ölçelim ve ölçüye özel üretelim. Ölçü sizden, üretim bizden. Parçanızın fotoğrafını WhatsApp " + WA_TEL_GORUNUR + "'ya gönderin, aynı gün dönüş yapalım.",
+        "h1": "BMW E46 Yedek Parça",
+        "giris": "BMW E46 için katalogdaki hazır yedek parçalar: kapı kolu, iç trim klipsi, havalandırma ızgarası kanatçığı ve torpido menteşesi gibi model-özel parçalar. Isıya ve güneşe maruz kalan iç aksam için PETG ve ASA gibi dayanıklı malzeme, daha yüksek mukavemet gereken noktalar için karbon/cam fiber takviyeli seçenekler ürün sayfasında listelenir.",
+        "huni": "Aradığınız E46 parçasını sitede bulamadıysanız WhatsApp'tan sorun; katalogda ya da sitede olup olmadığına bakalım. WhatsApp " + WA_TEL_GORUNUR + " numarasından yazın.",
     },
     ("BMW", "e36"): {
-        "h1": "BMW E36 Yedek Parça — Ölçüye Özel Üretim",
-        "giris": "1990'ların BMW E36'sında plastik aksam yıllara yenik düşer; kapı çıta klipsi, konsol parçaları, havalandırma yönlendirici kanatçığı ve tutucular çoğu yerde artık bulunamaz. Bu kırılan, sararan ve piyasada tükenen model-özel parçaları elinizdeki örnekten ölçüye özel üretiyoruz. Kabin içi parçalar için ısıya ve UV'ye dayanıklı malzeme seçer, yük taşıyan bağlantılar için karbon/cam fiber takviyeli seçenekleri konuşuruz.",
-        "huni": "E36 için aradığınız parça listede yoksa: numuneyi getirin, ölçelim, ölçüye özel üretelim. Ölçü sizden, üretim bizden. WhatsApp " + WA_TEL_GORUNUR + "'dan parçanızın fotoğrafını iletin.",
+        "h1": "BMW E36 Yedek Parça",
+        "giris": "1990'ların BMW E36'sında plastik aksam yıllara yenik düşer; kapı çıta klipsi, konsol parçaları, havalandırma yönlendirici kanatçığı ve tutucular çoğu yerde artık bulunamaz. Katalogdaki E36 model-özel parçaları, kabin içi parçalarda ısıya ve UV'ye dayanıklı malzeme seçenekleriyle listelenir.",
+        "huni": "E36 için aradığınız parça listede yoksa WhatsApp'tan sorun; katalogda var mı bakalım. WhatsApp " + WA_TEL_GORUNUR + " numarasından yazın.",
     },
     ("BMW", "e30"): {
-        "h1": "BMW E30 Yedek Parça — Ölçüye Özel Üretim",
-        "giris": "Klasik BMW E30, restorasyon severlerin gözdesidir; ama tam da bu yüzden orijinal plastik parçaları neredeyse tükenmiş durumdadır. Kırılan ızgara tutucusu, kapı paneli klipsi, iç aksam kapakları ve nadir küçük parçalar için artık sıfır yedek bulmak çok zor. Elinizdeki tek sağlam örnekten milimetrik ölçü alıp bu model-özel parçaları ölçüye özel üretiyoruz; klasik aracın dokusuna uygun, güneşe ve ısıya dayanıklı malzemeyle.",
-        "huni": "E30 restorasyonunuzda eksik kalan parçayı sitede bulamadıysanız: örneği bize ulaştırın, ölçelim, ölçüye özel üretelim. Ölçü sizden, üretim bizden. WhatsApp " + WA_TEL_GORUNUR + "'ya yazın.",
+        "h1": "BMW E30 Yedek Parça",
+        "giris": "Klasik BMW E30'un orijinal plastik parçaları neredeyse tükenmiş durumdadır; kırılan ızgara tutucusu, kapı paneli klipsi, iç aksam kapakları ve nadir küçük parçalar için yedek bulmak zor. Katalogdaki E30 model-özel parçaları, klasik aracın dokusuna uygun güneşe ve ısıya dayanıklı malzemeyle üretilir.",
+        "huni": "E30 restorasyonunuzda eksik kalan parçayı sitede bulamadıysanız WhatsApp'tan sorun; katalogda ya da sitede olup olmadığına bakalım. WhatsApp " + WA_TEL_GORUNUR + " numarasından yazın.",
     },
     ("BMW", "e39"): {
-        "h1": "BMW E39 Yedek Parça — Ölçüye Özel Üretim",
-        "giris": "BMW E39 5 Serisi'nde en sık kırılan parça, herkesin bildiği havalandırma ızgarası kanatçığı ve kapı kolu mekanizmasının plastik parçalarıdır. Torpido kapağı, konsol tutucuları ve iç trim klipsleri de zamanla kırılıp piyasadan kalkar. Bu bulunamayan model-özel parçaları elinizdeki numuneden ölçüye özel üretiyoruz; kabin sıcaklığına ve güneşe dayanıklı malzeme, gereken yerde karbon/cam fiber takviyeli seçeneklerle.",
-        "huni": "E39 için aradığınız parça sitede yoksa: kırık parçayı getirin, ölçelim, ölçüye özel üretelim. Ölçü sizden, üretim bizden. Fotoğrafı WhatsApp " + WA_TEL_GORUNUR + "'ya gönderin.",
+        "h1": "BMW E39 Yedek Parça",
+        "giris": "BMW E39 5 Serisi'nde en sık kırılan parça, havalandırma ızgarası kanatçığı ve kapı kolu mekanizmasının plastik parçalarıdır. Torpido kapağı, konsol tutucuları ve iç trim klipsleri de zamanla kırılıp piyasadan kalkar. Katalogdaki E39 model-özel parçaları; kabin sıcaklığına ve güneşe dayanıklı malzeme seçenekleriyle listelenir.",
+        "huni": "E39 için aradığınız parça sitede yoksa WhatsApp'tan sorun; katalogda var mı bakalım. WhatsApp " + WA_TEL_GORUNUR + " numarasından yazın.",
     },
     ("BMW", "r1200gs"): {
-        "h1": "BMW R1200GS Yedek Parça — Ölçüye Özel Üretim",
-        "giris": "BMW R1200GS gibi uzun yol motosikletlerinde düşme, titreşim ve güneş plastik aksamı yıpratır; kırılan ön kaporta parçası, far ve sinyal braketi, el koruma bağlantısı ve çeşitli plastik kılıf parçaları çoğu zaman zor bulunur ya da pahalıdır. Bu model-özel parçaları elinizdeki örnekten ölçüye özel üretiyoruz. Açığa dayanıklı ASA, daha yüksek mukavemet gereken braketlerde karbon/cam fiber takviyeli malzeme seçeneği sunar; parçanın taşıyacağı yükü açıkça konuşur, yük-dışı ve hafif kullanıma uygun olanı öneririz.",
-        "huni": "R1200GS'nizde kırılan plastik parçayı sitede bulamadıysanız: numuneyi getirin, ölçelim, doğru malzemeyle ölçüye özel üretelim. Ölçü sizden, üretim bizden. WhatsApp " + WA_TEL_GORUNUR + "'ya fotoğraf gönderin.",
+        "h1": "BMW R1200GS Yedek Parça",
+        "giris": "BMW R1200GS gibi uzun yol motosikletlerinde düşme, titreşim ve güneş plastik aksamı aşındırır; ön kaporta parçası, far ve sinyal braketi, el koruma bağlantısı ve çeşitli kılıf parçaları zor bulunur ya da pahalıdır. Katalogdaki R1200GS parçaları; açığa dayanıklı ASA ve karbon/cam fiber takviyeli malzeme seçenekleriyle listelenir.",
+        "huni": "R1200GS'nizde aradığınız parçayı sitede bulamadıysanız WhatsApp'tan sorun; katalogda ya da sitede olup olmadığına bakalım. WhatsApp " + WA_TEL_GORUNUR + " numarasından yazın.",
     },
     ("BMW", "i3"): {
-        "h1": "BMW i3 Yedek Parça — Ölçüye Özel Üretim",
-        "giris": "Az sayıda üretilen BMW i3'te küçük bir iç plastik parça bile bulmak uzun bir bekleyişe dönüşebiliyor; kırılan iç trim klipsi, bardaklık ve konsol parçaları, kapak tutucuları için model-özel yedek çoğu yerde yok. Elinizdeki kırık parçayı milimetrik ölçüp ölçüye özel üretiyoruz. Kabin içinde göze batmaması için farklı renk seçenekleri, ısı ve UV'ye dayanıklı malzeme sunuyoruz.",
-        "huni": "i3 için aradığınız parça sitede yoksa: kırık parçayı bize getirin, ölçelim, ölçüye özel üretelim. Ölçü sizden, üretim bizden. WhatsApp " + WA_TEL_GORUNUR + "'dan fotoğrafı iletin.",
+        "h1": "BMW i3 Yedek Parça",
+        "giris": "Az sayıda üretilen BMW i3'te küçük bir iç plastik parça bile bulmak uzun bir bekleyişe dönüşebiliyor; iç trim klipsi, bardaklık ve konsol parçaları, kapak tutucuları için model-özel yedek çoğu yerde yok. Katalogdaki i3 parçaları; kabin içinde göze batmaması için farklı renk seçenekleriyle listelenir.",
+        "huni": "i3 için aradığınız parça sitede yoksa WhatsApp'tan sorun; katalogda var mı bakalım. WhatsApp " + WA_TEL_GORUNUR + " numarasından yazın.",
     },
 }
 
 # Marka-özel kısa açıklama (özgün intro için)
 _MARKA_GIRIS = {
-    "Ford": "Ford'un kırılan ya da artık bulunamayan iç ve dış plastik parçalarını modele göre ölçüye özel üretiyoruz. Modelinizi seçin; klips, tutamak, kapak, braket ve bağlantı gibi parçaları elinizdeki numuneden birebir, çalışacağı yere göre doğru malzemeyle yeniden üretelim.",
-    "BMW": "BMW'nin üretimden kalkmış ya da piyasada bulunamayan model-özel plastik parçalarını ölçüye özel üretiyoruz. Modelinizi seçin; kırılan kapı kolu, iç trim klipsi, havalandırma kanatçığı, braket ve kaporta parçalarını numunenizden milimetrik ölçüp doğru malzemeyle yeniden üretelim.",
+    "Ford": "Ford'un iç ve dış plastik yedek parçalarını modele göre katalogda bulabilirsiniz. Modelinizi seçin; klips, tutamak, kapak, braket ve bağlantı gibi parçaların ölçüsü sitede seçilir, malzemesi ve rengi ürün sayfasından belirlenir.",
+    "BMW": "BMW'nin model-özel plastik yedek parçalarını katalogda bulabilirsiniz. Modelinizi seçin; kapı kolu, iç trim klipsi, havalandırma kanatçığı, braket ve kaporta parçalarının ölçüsü sitede seçilir, malzemesi ve rengi ürün sayfasından belirlenir.",
 }
 
 
@@ -2365,8 +2365,8 @@ def _kapsam_not_html(esc):
             '<a id="kapsamNotSifirla" href="./">' + esc("Tüm kategoriler") + '</a>'
             '</div>'
             '<p class="mm-bos" id="kapsamBos" style="display:none">'
-            + esc("Bu kapsamda listelenen parça yok. Aradığınızı WhatsApp'tan yazın, "
-                  "ölçüye özel üretelim.") + '</p>')
+            + esc("Bu kapsamda listelenen parça yok. WhatsApp'tan yazın, katalogda var mı "
+                  "bakalım.") + '</p>')
 
 
 def _wa_href(esc, prefill):
@@ -2899,21 +2899,17 @@ def _model_sayfasi(ctx, marka, g, kategoriler):
         giris = copy["giris"]
         huni_govde = copy["huni"]
     else:
-        h1 = marka + " " + display + " Yedek Parça — Ölçüye Özel Üretim"
-        giris = (marka + " " + display + " için kırılan ya da artık bulunamayan plastik "
-                 "parçaları mı arıyorsunuz? Klipsler, kapak ve tutamaklar, dişliler, "
-                 "braketler, kablo kanalları ve bağlantı parçaları gibi küçük ama önemli "
-                 + display + " parçalarını ölçüye özel üretiyoruz. Piyasada kalmayan bu "
-                 "parçaları elinizdeki numuneden birebir, sıradan plastikten değil parçanın "
-                 "çalışacağı yere göre doğru malzemeden, farklı renk seçenekleriyle yeniden "
-                 "üretiyoruz.")
+        h1 = marka + " " + display + " Yedek Parça"
+        giris = (marka + " " + display + " için katalogdaki hazır yedek parçaları: "
+                 "klipsler, kapak ve tutamaklar, dişliler, braketler, kablo kanalları "
+                 "ve bağlantı parçaları gibi küçük ama önemli parçalar. Ölçüsü sitede "
+                 "seçilen sarı seri parçalar da listelenir; malzeme ve renk seçimini "
+                 "ürün sayfasından yaparsınız.")
         huni_govde = ("Aradığınız " + marka + " " + display + " parçasını listede "
-                      "bulamadıysanız üretemeyeceğimiz anlamına gelmez. Kırık ya da eski "
-                      "parçayı bize ulaştırın — getirin ya da kargoyla gönderin; "
-                      "milimetrik ölçüp, çalışacağı yere göre doğru malzemeyle ölçüye özel "
-                      "üretelim. Ölçü sizden, üretim bizden. Parçanızın fotoğrafını "
-                      "WhatsApp'tan " + WA_TEL_GORUNUR + " numarasına önceden iletirseniz "
-                      "ön teyit veririz.")
+                      "bulamadıysanız WhatsApp'tan sorun; katalogda ya da sitede olup "
+                      "olmadığına bakalım. Parça katalogdaysa yolunu gösteririz, yoksa "
+                      "benzerini birlikte buluruz. WhatsApp " + WA_TEL_GORUNUR +
+                      " numarasından yazın.")
 
     # Model sayfasının KANONİK toplamı: ana liste + kuşak bölümleri, TEKİL (model butonu yok).
     # Marka sayfasıyla AYNI fonksiyon — sayaç birimi iki sayfa türünde ayrışmasın.
@@ -2924,13 +2920,12 @@ def _model_sayfasi(ctx, marka, g, kategoriler):
                          "%d kalem, kova tekil %d (sayaç birimi bozuk)."
                          % (marka, display, len(_kalemler), len(_tekil(g["urunler"]))))
     n = len(_kalemler)
-    description = (marka + " " + display + " için bulunamayan ya da kırılan plastik yedek "
-                  "parçaları numunenizden ölçüye özel üretiyoruz. " + str(n) + " parça "
-                  "listeleniyor; bulamadığınızı WhatsApp'tan üretelim.")
+    description = (marka + " " + display + " için katalogdaki hazır yedek parçalar. "
+                  + str(n) + " parça listeleniyor; aradığınızı bulamadıysanız "
+                  "WhatsApp'tan sorun.")
 
     prefill = ("Merhaba, " + marka + " " + display + " için bir parça arıyorum, sitede "
-               "bulamadım. Elimdeki numuneyi ölçüp ölçüye özel üretebilir misiniz? "
-               "Fotoğrafını iletiyorum.")
+               "bulamadım. Katalogda var mı?")
 
     # breadcrumb (görünür)
     # data-kapsam-tasi: kapsam varsa marka geri-linki de aynı kapsamda kalsın (JS ekler).
@@ -3069,15 +3064,15 @@ def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler, kategoriler,
     basili_ids = set(p.get("id") for p in basili)
 
     giris = _MARKA_GIRIS.get(marka, (
-        marka + " için kırılan ya da artık bulunamayan plastik parçaları modele göre ölçüye "
-        "özel üretiyoruz. Modelinizi seçin; klips, kapak, tutamak, dişli, braket ve bağlantı "
-        "gibi parçaları elinizdeki numuneden birebir, çalışacağı yere göre doğru malzemeyle "
-        "yeniden üretelim. Ölçü sizden, üretim bizden."))
+        marka + " için katalogdaki hazır yedek parçaları modele göre bulabilirsiniz. "
+        "Modelinizi seçin; klips, tutamak, kapak, dişli, braket ve bağlantı gibi "
+        "parçaların ölçüsü sitede seçilir, malzemesi ve rengi ürün sayfasından "
+        "belirlenir."))
     title = h1 if sayfa == 1 else h1 + " — Sayfa " + str(sayfa)
     if sayfa == 1:
-        description = (marka + " yedek parçaları: modele göre gezinin, kırılan ya da bulunamayan "
-                       "parçayı ölçüye özel üretelim. " + str(len(buyuk_gruplar)) + " model, "
-                       + str(toplam) + " parça listeleniyor.")
+        description = (marka + " yedek parçaları: modele göre gezinin, aradığınızı "
+                       "bulamadıysanız WhatsApp'tan sorun. " + str(len(buyuk_gruplar))
+                       + " model, " + str(toplam) + " parça listeleniyor.")
     else:
         description = (marka + " yedek parçaları — sayfa " + str(sayfa) + ": "
                        + str(len(basili)) + " parça listeleniyor. Diğer sayfalara gezinme "
@@ -3243,13 +3238,13 @@ def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler, kategoriler,
             "o": override,
         }
 
-    prefill = ("Merhaba, " + marka + " için bir parça arıyorum, sitede bulamadım. Elimdeki "
-               "numuneyi ölçüp ölçüye özel üretebilir misiniz?")
+    prefill = ("Merhaba, " + marka + " için bir parça arıyorum, sitede bulamadım. "
+               "Katalogda var mı?")
     huni_govde = (marka + " için aradığınız parçayı sitede bulamadıysanız ya da modelinizi "
-                  "listede göremediyseniz bizimle konuşun. Elinizdeki kırık veya eski parçayı "
-                  "ölçüp, çalışacağı yere göre doğru malzemeyle ölçüye özel üretiyoruz. Ölçü "
-                  "sizden, üretim bizden. Parçanızın fotoğrafını WhatsApp'tan "
-                  + WA_TEL_GORUNUR + " numarasına gönderin.")
+                  "listede göremediyseniz bizimle konuşun. Katalogdaki hazır parçaları ve "
+                  "ölçüsü sitede seçilen sarı seri ürünlerini listeliyoruz; parçanız katalogda "
+                  "varsa burada. WhatsApp " + WA_TEL_GORUNUR + " numarasından yazın, olup "
+                  "olmadığına bakalım.")
     huni = _huni_blok(esc, marka + " parçanızı bulamadınız mı?", huni_govde, prefill,
                       "WhatsApp'tan Yazın")
 
@@ -3336,8 +3331,8 @@ def _marka_index(ctx, ozet):
     SITE = ctx["SITE"]
     url = SITE + "/marka/"
     h1 = "Markaya ve Modele Göre Yedek Parça"
-    description = ("Markanızı ve modelinizi seçin; kırılan ya da bulunamayan plastik yedek "
-                   "parçayı numunenizden ölçüye özel üretelim. Ölçü sizden, üretim bizden.")
+    description = ("Markanızı ve modelinizi seçin; katalogdaki hazır yedek parçayı bulun, "
+                   "bulamadıysanız WhatsApp'tan sorun.")
     bc = '<nav class="mm-bc" aria-label="breadcrumb"><a href="/">Ana Sayfa</a> &rsaquo; Markalar</nav>'
     btns = []
     for marka, marka_url, msay, psay in ozet:

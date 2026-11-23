@@ -3187,12 +3187,13 @@ def help_cta_href(p, url):
     """ORGANİK "Bizimle İletişime Geçin" (help-cta-btn) butonunun wa.me href'i.
 
     ⚠️ BU BUTONUN NİYETİ: kendi metni "Aradığınız parçayı bulamadınız mı? Bizimle
-    iletişime geçin, üretelim!" -> basan müşteri SAYFADAKİ ürünü İSTEMİYOR, BULAMADIĞI
-    BAŞKA bir parçayı arıyor. Prefill bu yüzden "bu ürünü istiyorum" DEMEZ; yoksa Ege
-    yanlış niyetle o ürün için fiyat/malzeme akışı başlatır (bağlamsızdan beter).
+    iletişime geçin, katalogda olup olmadığını söyleyelim." -> basan müşteri
+    SAYFADAKİ ürünü İSTEMİYOR, BULAMADIĞI BAŞKA bir parçayı arıyor. Prefill bu yüzden
+    "bu ürünü istiyorum" DEMEZ; yoksa Ege yanlış niyetle o ürün için fiyat/malzeme akışı
+    başlatır (bağlamsızdan beter).
     Eskiden prefill BAĞLAM-KÖRdü (sabit metin — hangi sayfadan gelindiği belirsiz).
     Çözüm: sayfa bağlamını (ad + canonical URL) VER, niyeti ("aradığımı bulamadım,
-    üretebilir misiniz?") KORU.
+    sitede var mı?") KORU.
 
     Kodlama sözleşmesi wa_href ile BİREBİR AYNI: metin quote() ile TEK KEZ
     percent-kodlanır (boşluk=%20, Türkçe ç/ğ/ı/ö/ş/ü UTF-8 %XX), döndürülen URL
@@ -3203,7 +3204,7 @@ def help_cta_href(p, url):
     from urllib.parse import quote
     msg = (u"Merhaba, şu sayfadaydım: " + (p.get("baslik") or "")
            + "\n" + url + "\n"
-           + u"Aradığım parçayı bulamadım, üretebilir misiniz?")
+           + u"Aradığım parçayı bulamadım, sitede var mı?")
     return "https://wa.me/" + WHATSAPP + "?text=" + quote(msg)
 
 
@@ -4461,7 +4462,7 @@ def render_product(p, all_products, chip_map=None):
 
 <section class="help-cta">
   <div class="help-cta-inner">
-    <span class="help-cta-text">Aradığınız parçayı bulamadınız mı? <strong>Bizimle iletişime geçin, üretelim!</strong></span>
+    <span class="help-cta-text">Aradığınız parçayı bulamadınız mı? <strong>Bizimle iletişime geçin, katalogda olup olmadığını söyleyelim.</strong></span>
     <a class="help-cta-btn" href="{help_wa}" target="_blank" rel="noopener"
        onclick="window.pruvoGA4Track('generate_lead',{{method:'help_cta'}});">{icon} <span class="wa-uzun">Bizimle </span>İletişime Geçin</a>
   </div>
@@ -4629,12 +4630,11 @@ var URUN_KART_SECIM = {kart_secim};{konfigur_tanim}
 def render_content_page(slug, title, meta, body_html):
     title_tag = esc(title) + " — PRUVO"
     url = SITE + "/" + slug + "/"
-    wa_mesaj = ("Merhaba, %s konusunda özel tasarım üretim için bilgi almak istiyorum."
-                % title)
+    wa_mesaj = ("Merhaba, %s konusunda bilgi almak istiyorum." % title)
     wa_href = "https://wa.me/905451386526?text=" + _urlq(wa_mesaj, safe="")
     wa_cta = (
         '<aside class="landing-wa-cta" aria-label="WhatsApp ile iletişim">'
-        '<p>Parçanızın fotoğrafını ve ölçülerini gönderin; birlikte değerlendirelim.</p>'
+        '<p>Parçanızı kısaca tarif edin; katalogda ve sitede olup olmadığına bakalım.</p>'
         '<a class="landing-wa-link" href="%s" target="_blank" rel="noopener">'
         'WhatsApp üzerinden bilgi alın</a></aside>' % esc(wa_href)
     )
