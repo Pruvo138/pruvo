@@ -1160,6 +1160,34 @@ def _wa_ikonu_ayikla(eski_html, yeni_html):
     return _WA_IKON_RE.sub("", eski_html)
 
 
+# 🔴 OKAN 23 Kas 2026 ("numuneden olcup olcuye ozel uretim" hizmeti YOK -> sitede kaldir): urun
+# sayfasindaki yardim bandinin (`help-cta-btn`) WhatsApp on-dolum metninin SONU bilerek degisti
+# ("…uretebilir misiniz?" -> "…sitede var mi?"). WhatsApp sorgu parametresi BEYAN EDILEMEZ sinifta
+# ve `--referans-tazele` kapi kirmiziyken calismaz -> 16 Eki ikon vakasiyla AYNI KILITLI DONGU (2. tekrar).
+# DAR DEGER BEYANI (istisna DEGIL, mevcut `deger_beyani` duzenegi): cift ELLE YAZILMAZ; YENI deger
+# build'in KENDI `help_cta_href(p, product_url(id))` ciktisindan, ESKI deger ayni metnin yalniz SON
+# cumlesi eskiye cevrilerek TURETILIR. Baslik, URL, numara ya da baska herhangi bir harf degisirse
+# cift eslesmez -> bulgu KIRMIZI kalir. Diger WhatsApp/siparis baglantilari AYNEN beyan edilemez.
+# Olcen batarya: tools/varlik-wa-ikon-test.py (H vakalari + M4/M5 mutantlari).
+HELP_CTA_ESKI_SON = u"Aradığım parçayı bulamadım, üretebilir misiniz?"
+HELP_CTA_YENI_SON = u"Aradığım parçayı bulamadım, sitede var mı?"
+
+
+def _help_cta_beyani(p):
+    """Doner: deger_ciftleri — ((eski_text, yeni_text, gerekce),) ya da ()."""
+    from urllib.parse import quote, unquote
+    try:
+        href = build.help_cta_href(p, build.product_url(p["id"]))
+    except Exception:
+        return ()
+    _yol, _, yeni = href.partition("?text=")
+    msg = unquote(yeni)
+    if not yeni or not msg.endswith(HELP_CTA_YENI_SON):
+        return ()
+    eski = quote(msg[:-len(HELP_CTA_YENI_SON)] + HELP_CTA_ESKI_SON)
+    return ((eski, yeni, "yardim bandi WhatsApp on-dolum sonu (Okan 23 Kas, numune vaadi kaldirma)"),)
+
+
 def cikarim_kaybi(eski_html, yeni_html, beyan_tablosu=None, eslesen_kovasi=None,
                   deger_beyani=(), dalga1_beyani=None):
     """🔴 EKSEN 1'IN IDDIASI (3 Agu'da DARALTILDI, gevsetilmedi):
@@ -3264,7 +3292,7 @@ def olc(eski, yeni, secim, urunler, ref):
                  + _onsecim_tutar_beyani(p_urun) + aralik_metin)
         kayip = cikarim_kaybi(iskelet(eski[pid]), iskelet(yeni[pid]),
                               beyan_tablosu=tablo,
-                              deger_beyani=seri_deger + aralik_deger,
+                              deger_beyani=seri_deger + aralik_deger + _help_cta_beyani(p_urun),
                               eslesen_kovasi=eslesen_beyan,
                               dalga1_beyani=dalga1_beyani(p_urun))
         # BEYANLA GECEN BULGULAR baskiya girer; kapsam disi + beyan edilemez HATA olur.

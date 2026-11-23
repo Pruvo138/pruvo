@@ -153,9 +153,9 @@ def uret(ctx):
     url = SITE + "/" + HUB_SLUG + "/"
     landingler = _landingler()
 
-    description = ("Ölçüye özel üretim ve yedek parça konularının tümünü tek sayfada topladık. "
-                   "Aradığınız konuya en yakın başlığı seçin; kırılan ya da bulunamayan parçayı "
-                   "numunenizden ölçüye özel üretelim. Ölçü sizden, üretim bizden.")
+    description = ("Yedek parça ve üretim konularının tümünü tek sayfada topladık. "
+                   "Aradığınız konuya en yakın başlığı seçin; parçanızı sitede bulamadıysanız "
+                   "WhatsApp'tan sorun, katalogda olup olmadığına bakalım.")
 
     bc = ('<nav class="hub-bc" aria-label="breadcrumb"><a href="/">Ana Sayfa</a> &rsaquo; '
           + esc(HUB_H1) + '</nav>')
