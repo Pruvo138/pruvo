@@ -23,6 +23,10 @@ IDDIALAR:
                     "KIRMIZI <hedef> -> KURAL A" satiri ADIYLA basilir.
   M2 BOS KATALOG  — CONTENT_PAGES bos: rc!=0 (fail-closed, sessiz yesil YOK).
   M3 RENDER HATASI— hedef uretici istisna atar: rc!=0 (fail-closed).
+  M4 B1 SILINDI   — REVIZYON_ZORUNLU[0] govdesinden "siz yazarsiniz/girersiniz" cikar:
+                    rc!=0 · "KURAL B: eksik: olcu sorumlulugu" ADIYLA (Okan 23 Kas 2026).
+  M5 B2 EKLENDI   — KURAL A hedefine "bizim aldigimiz olcuden" cumlesi eklenir: rc!=0 ·
+                    "KURAL B2" ADIYLA · "ihlal: 1" (olcu alma hizmeti YOK -> yanlis beyan).
   O  ONCUL        — mutant fiksturu gercekten KURAL A kapsaminda ve sinirsiz (degilse M1
                     anlamsiz yesil verirdi -> test KIRMIZI, OLCULEMEDI basar).
 
@@ -120,13 +124,20 @@ def _sarmala(kayit):
         return (slug, baslik, meta, lambda u=uretici: _tm.sinir_sil(u()))
     if KIP == "M3":
         return (slug, baslik, meta, _patla)
+    if KIP == "M4":
+        return (slug, baslik, meta,
+                lambda u=uretici: re.sub(r"(?i)siz (yazarsınız|girersiniz)", "x", u()))
+    if KIP == "M5":
+        return (slug, baslik, meta,
+                lambda u=uretici: u() + "<p>Bu fark bizim aldığımız ölçüden gelir.</p>")
     return kayit
 
+import re
 if KIP == "K0":
     CONTENT_PAGES = list(_g.CONTENT_PAGES)
 elif KIP == "M2":
     CONTENT_PAGES = []
-elif KIP in ("M1", "M3"):
+elif KIP in ("M1", "M3", "M4", "M5"):
     CONTENT_PAGES = [_sarmala(k) for k in _g.CONTENT_PAGES]
 else:
     raise SystemExit("bilinmeyen kip %%r" %% KIP)
@@ -205,6 +216,24 @@ def main():
         print("M3 — RENDER HATASI (%s)" % hedef)
         rc, cikti = kos(gecici, "M3", hedef)
         bekle(rc != 0 and "render edilemedi" in cikti, "M3: rc!=0 + 'render edilemedi' (rc=%d)" % rc)
+
+        # KURAL B (Okan 23 Kas 2026 yeniden tanimi): B1 olcu sorumlulugu, B2 olcu alma beyani
+        hedef_b1 = kapi.REVIZYON_ZORUNLU[0]
+        print("M4 — B1 OLCU SORUMLULUGU SILINDI (%s)" % hedef_b1)
+        rc, cikti = kos(gecici, "M4", hedef_b1)
+        bekle(rc != 0, "M4: rc!=0 (rc=%d)" % rc)
+        bekle(("KIRMIZI %s -> KURAL B: eksik: olcu sorumlulugu" % hedef_b1) in cikti,
+              "M4: B1 ihlali hedefi ADIYLA basiyor")
+        if rc == 0:
+            print(cikti)
+
+        print("M5 — B2 OLCU ALMA BEYANI EKLENDI (%s)" % hedef)
+        rc, cikti = kos(gecici, "M5", hedef)
+        bekle(rc != 0, "M5: rc!=0 (rc=%d)" % rc)
+        bekle(("KIRMIZI %s -> KURAL B2" % hedef) in cikti and "ihlal: 1" in cikti,
+              "M5: B2 ihlali hedefi ADIYLA basiyor, yalniz hedef dustu")
+        if rc == 0:
+            print(cikti)
 
     print("-" * 70)
     print("IDDIA SAYISI: %d · dusen: %d" % (IDDIA[0], len(HATA)))

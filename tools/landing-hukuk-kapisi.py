@@ -19,12 +19,16 @@ KURAL A — gida/tibbi kapsam beyani
     KIRMIZI yapar; muaf sayfada "gida" gecisleri beyan edilen izinli baglamin
     DISINA cikarsa muafiyet duser ve KURAL A normal isler (silent-hole yok).
 
-KURAL B — revizyon ucret kosulu
-    Olcu/revizyon konulu landing'lerde (asagidaki acik liste) sapma kosulu yazili
-    olmali: "sapma bizim aldigimiz olcuden" + duzeltme kelimesi (revizyon /
-    yeniden uretim / duzeltme) + ucret tarafi ("yeni bir is" veya "ucret").
-    Sebep: ozel uretimde cayma hakki yok (bkz. /teslimat-iade); revizyonun kimden
-    oldugu yazili degilse bosluk bize doner.
+KURAL B — olcu sorumlulugu + cayma siniri (Okan 23 Kas 2026 yeniden tanimi)
+    ESKI hali "sapma bizim aldigimiz olcuden" cumlesini ZORUNLU tutuyordu; Okan 23 Kas:
+    PRUVO musterinin parcasini/numunesini OLCMEZ, revizyon/teklif sureci YOKTUR. Eski
+    cumle artik YANLIS BEYAN oldugu icin kural, ayni hukuki boslugu GERCEK akisla kapatir:
+      B1 (asagidaki acik liste) olcu konulu landing'de olcuyu MUSTERININ yazdigi
+         ("siz yazarsiniz" / "siz girersiniz") VE cayma siniri ("cayma") yazili olmali.
+         Sebep: olcuye ozel uretimde cayma hakki yok (bkz. /teslimat-iade); olcunun
+         kimden geldigi yazili degilse bosluk bize doner.
+      B2 (TUM landing'ler) "bizim aldigimiz olcu" / "aldigimiz olcu" GECMEZ — olcu alma
+         hizmeti olmadigi icin bu ifade her sayfada yanlis beyandir (kural SIKILASTI).
 
 Fail-closed: import, okuma ya da render hatasinda KIRMIZI (exit 1).
 """
@@ -65,9 +69,9 @@ KURAL_A_MUAF = {}
 KURAL_A_MUAF_ALANLARI = ("gerekce", "izinli_baglam")
 
 KAPSAM_IFADELERI = ("sertifika", "kapsam dış", "kapsamımız dış")
-DUZELTME_IFADELERI = ("revizyon", "yeniden üretim", "düzeltme")
-UCRET_IFADELERI = ("yeni bir iş", "ücret")
-SAPMA_KOSULU = "sapma bizim aldığımız ölçüden"
+OLCU_SORUMLULUK_IFADELERI = ("siz yazarsınız", "siz girersiniz")
+CAYMA_IFADELERI = ("cayma",)
+YASAK_OLCU_ALMA = ("bizim aldığımız ölçü", "aldığımız ölçü")
 
 
 def kucult(s):
@@ -209,20 +213,26 @@ def main():
         elif muaf_kayit is not None:
             muaf_durum[slug] = "gida-yok"
 
-        # KURAL B
+        # KURAL B1 — olcu sorumlulugu + cayma siniri (acik liste)
         if slug in REVIZYON_ZORUNLU:
             revizyon_sayfa += 1
             eksik = []
-            if SAPMA_KOSULU not in g:
-                eksik.append("sapma kosulu")
-            if not any(k in g for k in DUZELTME_IFADELERI):
-                eksik.append("revizyon/duzeltme ifadesi")
-            if not any(k in g for k in UCRET_IFADELERI):
-                eksik.append("ucret tarafi (yeni bir is / ucret)")
+            if not any(k in g for k in OLCU_SORUMLULUK_IFADELERI):
+                eksik.append("olcu sorumlulugu (olcuyu siz yazarsiniz)")
+            if not any(k in g for k in CAYMA_IFADELERI):
+                eksik.append("cayma siniri")
             if eksik:
                 ihlaller.append(
                     "%s -> KURAL B: eksik: %s" % (slug, ", ".join(eksik))
                 )
+
+        # KURAL B2 — olcu alma beyani YASAK (tum landing'ler)
+        for ifade in YASAK_OLCU_ALMA:
+            if ifade in g:
+                ihlaller.append(
+                    "%s -> KURAL B2: olcu alma beyani: '%s'" % (slug, ifade)
+                )
+                break
 
     # liste bakimi: kapsam listesindeki slug gercekten var mi (fail-closed)
     for slug in tuple(REVIZYON_ZORUNLU) + tuple(KURAL_A_MUAF):
@@ -241,7 +251,7 @@ def main():
 
     print("taranan landing: %d" % taranan)
     print("KURAL A kapsaminda (gida gecen, muaf olmayan): %d sayfa" % gida_sayfa)
-    print("KURAL B kapsaminda (olcu/revizyon): %d sayfa" % revizyon_sayfa)
+    print("KURAL B1 kapsaminda (olcu sorumlulugu): %d sayfa" % revizyon_sayfa)
     print("KURAL A muafiyeti: %d kalem" % len(KURAL_A_MUAF))
     for slug in sorted(KURAL_A_MUAF):
         kayit = KURAL_A_MUAF[slug]
