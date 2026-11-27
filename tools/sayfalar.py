@@ -362,8 +362,8 @@ def _mesafeli_satis():
 
 def _malzeme_rehberi():
     """/malzeme-rehberi/ — sitede satılan malzemeler (PLA/PETG/ASA/ABS/TPU) tam açıklama +
-    karşılaştırma tablosu; ayrıca satışa kapalı mühendislik malzemesi (Karbon Katkılı —
-    WhatsApp özel talebiyle) ayrı bölümde, SİTE SEÇENEĞİ OLARAK SUNULMADAN anlatılır.
+    karşılaştırma tablosu; ayrıca satışa kapalı mühendislik malzemesi (Karbon Katkılı)
+    ayrı bölümde, SİTE SEÇENEĞİ OLARAK SUNULMADAN anlatılır.
     Bölümlere hangi malzemenin gireceği ELLE YAZILMAZ: `site` bayrağından türer (ABS 14
     Ağu'da satışa açıldı, ısınmayan ev/ofis/dekor gruplarında seçilemez).
     İçerik tools/filamentler.json'dan üretilir (tek kaynak; ürün sayfası balonlarıyla
@@ -386,7 +386,27 @@ def _malzeme_rehberi():
                _esc(f["uzun"])))
 
     bolumler = "".join(_bolum(f) for f in site_fil)
-    ozel_bolumler = "".join(_bolum(f) for f in ozel_fil)
+    # Satışa kapalı (site=False) filamentin metni filamentler.json'dan gelir; bu metindeki
+    # "özel talep" ve "size sorarak" ifadeleri PRUVO akışıyla çeliştiği için sayfada dürüst
+    # karşılıklarıyla gösterilir. Veri dosyası (TEK KAYNAK) DEĞİŞMEZ.
+    def _ozel_bolum(f):
+        uzun = (f.get("uzun") or "")
+        uzun = uzun.replace(" — size sorarak belirleriz", "")
+        uzun = uzun.replace(
+            "Standart malzeme seçeneklerimizin dışındadır; WhatsApp'tan özel talep "
+            "olarak değerlendiririz, kritik parçada değerini verir.",
+            "Standart malzeme seçeneklerimizin dışındadır; sitede satılmaz.")
+        return (
+            "<h2>%s — %s</h2>"
+            '<p><strong>Isı dayanımı (HDT @ 0.45 MPa):</strong> %s%s</p>'
+            "<p>%s</p>"
+            % (_esc(f.get("uzunAd") or f["ad"]), _esc(f["kisaEtiket"]),
+               _esc(f["isiDayanimi"]),
+               (" (%s)" % _esc(f["isiDetay"])) if f.get("isiDetay") else "",
+               _esc(uzun))
+        )
+
+    ozel_bolumler = "".join(_ozel_bolum(f) for f in ozel_fil)
 
     def _satir(f):
         return ("<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>"
@@ -418,34 +438,30 @@ def _malzeme_rehberi():
         oneri_md.append("<li><strong>%s:</strong> %s</li>"
                         % (_esc(", ".join(gruplar[anahtar])), _esc(parca)))
 
-    wa = ("https://wa.me/905451386526?text=Merhaba%2C%20m%C3%BChendislik%20malzemesiyle%20"
-          "%C3%B6zel%20%C3%BCretim%20hakk%C4%B1nda%20bilgi%20almak%20istiyorum.")
-
     return (
         "<h1>Malzeme Rehberi</h1>"
         '<p class="lead">Hangi malzeme nerede kullanılır? Dürüst değerler, net öneriler.</p>'
         "<p>Her parçayı kullanım yerine göre uygun malzemeyle üretiyoruz. Aşağıda "
         "sitede sipariş edebileceğiniz malzeme sınıflarının özelliklerini ve hangi "
-        "parçada hangisini önerdiğimizi bulabilirsiniz. Emin değilseniz WhatsApp'tan "
-        "sorun; kullanım alanınıza göre birlikte seçelim.</p>"
+        "parçada hangisini önerdiğimizi bulabilirsiniz. Emin değilseniz ürün sayfasındaki "
+        "malzeme seçeneğini ve sitede yazılı sıcaklık sınırını karşılaştırın.</p>"
         + bolumler +
         "<h2>Karşılaştırma</h2>" + tablo +
         '<p>Parçanız sürekli sıcak ortamda çalışıyorsa, hangi sınıfın o sıcaklıkta formunu koruduğunu <a href="/isiya-dayanikli-plastik-parca-uretimi/">ısıya dayanıklı plastik parça üretimi</a> sayfasında ayrıntılı anlatıyoruz.'
         ' Sürekli güneş altında duran, sararma ve renk sabitliği önem taşıyan parçalar için ise <a href="/uv-gunes-dayanikli-dis-mekan-plastik-parca-uretimi/">UV ve güneşe dayanıklı dış mekan parça üretimi</a> sayfasına bakabilirsiniz.'
         ' En üst sınıfa gerçekten ihtiyacınız olup olmadığını tartmak isterseniz <a href="/karbon-fiber-takviyeli-naylon-parca-ne-zaman-gerekir/">karbon fiber takviyeli naylon parça ne zaman gerekir</a> sayfası bunu beş soruyla ayırıyor.</p>'
         "<h2>Hangi parçada hangi malzeme?</h2><ul>" + "".join(oneri_md) + "</ul>"
-        "<h2>Mühendislik malzemeleri (özel talep)</h2>"
-        '<p>Daha yüksek mukavemet gereken kritik parçalar için '
-        'karbon fiber katkılı malzemeleri <strong>WhatsApp üzerinden özel talep</strong> '
-        "olarak değerlendiriyoruz; bu malzemeler standart sipariş akışında (sepet) yer almaz, "
-        "kullanım koşullarınızı konuşarak fiyatlandırırız. Karbon katkı ısı dayanımını "
-        "artırmaz, taşıyıcı malzemenin değerini korur; katkının kazandırdığı sertlik ve "
-        "mukavemettir.</p>"
+        "<h2>Karbon katkılı sınıflar</h2>"
+        '<p>Daha yüksek mukavemet gereken kritik parçalar için kullanılan '
+        'karbon fiber katkılı malzemeler standart sipariş akışında (sepet) yer almaz; '
+        "sitede bulunmayan bir malzeme sınıfı için özel üretim açılmaz. Karbon katkı ısı "
+        "dayanımını artırmaz, taşıyıcı malzemenin değerini korur; katkının kazandırdığı "
+        "sertlik ve mukavemettir.</p>"
         + ozel_bolumler +
-        '<p><a href="%s" target="_blank" rel="noopener">WhatsApp\'tan mühendislik '
-        "malzemesi hakkında bilgi alın &rarr;</a></p>"
-        "<p>Ölçüye özel üretilen parçalarda en uygun malzemeyi kullanım alanınıza göre "
-        "size sorarak belirleriz.</p>") % _esc(wa)
+        "<p>Karbon katkılı sınıflar sitede seçilemez; sitede ölçüsü seçilen kalemler "
+        "dahil tüm aile <a href=\"/kategori/olcuye-ozel-uretim/\">ölçüye özel üretim "
+        "kategorisinde</a> listelenir.</p>"
+        "<p>Ölçüye özel parçalarda malzeme ve renk seçimini ürün sayfasından yaparsınız.</p>")
 
 
 def _numuneye_gore_plastik_parca_uretimi():
@@ -521,7 +537,7 @@ def _oto_ic_trim_klips_parca_uretimi():
 
 def _makine_parcasi_olcuye_ozel_uretim():
     return (
-        "<h1>Makine Parçası: Katalogdaki Hazır Yedek ve Ölçüye Özel Seçenekler</h1>"
+        "<h1>Makine Parçası: Katalogdaki Hazır Yedek Seçenekleri</h1>"
         "<p>Nasıl çalışır: bu sayfadaki parça sitede satılan bir üründür. Ürün sayfasındaki ölçü alanlarına ihtiyacınız olan çap, boy, kesit ya da diş ölçüsünü siz yazarsınız, parça o ölçüde hazırlanır ve kartla ödeyerek sipariş verirsiniz. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Üretimden kalkmış makinenin dişlisi, kasnağı ya da burcu bulunamıyor mu? PRUVO'da 41.000'den fazla hazır parça ve ölçüyü siz girdiğiniz bir <em>ölçüye özel</em> ürün ailesi var.</p>"
         "<h2>Parçanın kendisi değil, bulunamaması işi durdurur</h2>"
@@ -564,7 +580,7 @@ def _tekne_plastik_parca_ozel_uretim_gocek_fethiye():
 
 def _kisiye_ozel_logolu_kase_yaptirma():
     return (
-        "<h1>Kişiye Özel Logolu Kaşe: Yazı, Logo ve İkon İşleme</h1>"
+        "<h1>Logolu Kaşe: Yazı, Logo ve İkon İşleme</h1>"
         "<p>Nasıl çalışır: kaşe sitede satılan bir üründür; içerik, biçim, ölçü ve renk seçeneklerini siz seçersiniz, logo dosyanızı sayfa üzerinden yüklersiniz ve kartla ödeyerek sipariş verirsiniz. Katalogda olmayan bir kaşe için teklif ve onay görseli süreci yoktur; numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz.</p>"
         "<p class=\"lead\">Kaşeyi sitede kendiniz oluşturursunuz: içerik, biçim, çerçeve ve sap seçimi size kalır, işlenmiş kaşe hazır parça olarak kargolanır.</p>"
         "<h2>Logolu kaşe neden zor bulunur?</h2>"
@@ -587,7 +603,7 @@ def _kisiye_ozel_logolu_kase_yaptirma():
 
 def _olcuye_ozel_conta_uretimi():
     return (
-        "<h1>Ölçüye Özel Conta ve O-Ring: İç Çap ve Kesiti Siz Girin</h1>"
+        "<h1>Conta ve O-Ring: Sitede Ölçüsü Seçilen Seçenekler</h1>"
         "<p>Nasıl çalışır: bu sayfadaki parça sitede satılan bir üründür. Ürün sayfasındaki ölçü alanlarına ihtiyacınız olan çap, boy, kesit ya da diş ölçüsünü siz yazarsınız, parça o ölçüde hazırlanır ve kartla ödeyerek sipariş verirsiniz. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Sızdıran contanın ölçüsünü siz belirlersiniz; ürün sayfasındaki alanlara iç çap ve kesit kalınlığını yazın, conta o ölçüde hazırlansın. Profil, malzeme ve renk seçenekleri sayfada.</p>"
         "<h2>Conta neden bulunamaz?</h2>"
@@ -608,7 +624,7 @@ def _olcuye_ozel_conta_uretimi():
 
 def _olcuye_ozel_plastik_disli_uretimi():
     return (
-        "<h1>Ölçüye Özel Plastik Dişli ve Kramayer Üretimi</h1>"
+        "<h1>Plastik Dişli ve Kramayer: Sitede Ölçüsü Seçilen Seçenekler</h1>"
         "<p>Nasıl çalışır: bu sayfadaki parça sitede satılan bir üründür. Ürün sayfasındaki ölçü alanlarına ihtiyacınız olan çap, boy, kesit ya da diş ölçüsünü siz yazarsınız, parça o ölçüde hazırlanır ve kartla ödeyerek sipariş verirsiniz. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Diş sayısı, modül, dış çap ve mil çapını siz girersiniz; dişli o ölçüde hazırlanır. Düz, helis, konik, sonsuz ve kramayer formları sayfada seçilir.</p>"
         "<h2>Bir dişli aşındığında iş neden durur?</h2>"
@@ -656,7 +672,7 @@ def _numuneye_gore_triger_kasnagi_uretimi():
 
 def _numuneden_plastik_burc_rulman_uretimi():
     return (
-        "<h1>Plastik Burç ve Rulman Yatağı: İç/Dış Çap ve Genişliğe Göre</h1>"
+        "<h1>Plastik Burç ve Rulman Yatağı: Sitede Ölçüsü Seçilen Seçenekler</h1>"
         "<p>Nasıl çalışır: bu sayfadaki parça sitede satılan bir üründür. Ürün sayfasındaki ölçü alanlarına ihtiyacınız olan çap, boy, kesit ya da diş ölçüsünü siz yazarsınız, parça o ölçüde hazırlanır ve kartla ödeyerek sipariş verirsiniz. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Rulman ölçüsünü ya da iç/dış çap ve genişliği siz girersiniz; burç ve rulman yatağı o ölçüde, seçtiğiniz malzemeyle hazırlanır.</p>"
         "<h2>Aşınmış bir burç neden büyük bir duruş yaratır?</h2>"
@@ -748,7 +764,7 @@ def _tek_adet_ozel_parca_uretimi():
 
 def _olcuye_ozel_baglanti_konektor():
     return (
-        "<h1>Ölçüye Özel Bağlantı ve Konektör: Çap, Kol Sayısı ve Açı</h1>"
+        "<h1>Bağlantı ve Konektör: Sitede Ölçüsü Seçilen Katalog Ürünleri</h1>"
         "<p>Nasıl çalışır: bu sayfadaki parça sitede satılan bir üründür. Ürün sayfasındaki ölçü alanlarına ihtiyacınız olan çap, boy, kesit ya da diş ölçüsünü siz yazarsınız, parça o ölçüde hazırlanır ve kartla ödeyerek sipariş verirsiniz. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Boruyu boruya, çubuğu çubuğa birleştiren parçanın ölçüsünü siz belirlersiniz: kaç kol, hangi çap, hangi açı. Ürün sayfasında seçip sipariş verirsiniz.</p>"
         "<h2>Standart konektör neden oturmaz?</h2>"
@@ -770,7 +786,7 @@ def _olcuye_ozel_baglanti_konektor():
 
 def _olcuye_ozel_montaj_braketi():
     return (
-        "<h1>Ölçüye Özel Montaj Braketi: Delik Düzeninden İç Açıya</h1>"
+        "<h1>Montaj Braketi: Delik Düzeninden İç Açıya</h1>"
         "<p>Nasıl çalışır: bu sayfadaki parça sitede satılan bir üründür. Ürün sayfasındaki ölçü alanlarına ihtiyacınız olan çap, boy, kesit ya da diş ölçüsünü siz yazarsınız, parça o ölçüde hazırlanır ve kartla ödeyerek sipariş verirsiniz. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Standart köşebent ve L braketler belli deliklere göre seri üretilir. Montajınızın ölçüsü farklıysa braketi siz o ölçüye göre oluşturursunuz: iç açı, vida deliği düzeni ve kol boyları sayfada seçilir.</p>"
         "<h2>Standart braket nereye oturmaz?</h2>"
@@ -795,7 +811,7 @@ def _olcuye_ozel_montaj_braketi():
 
 def _olcuye_ozel_profil_beam():
     return (
-        "<h1>Ölçüye Özel Profil, Kızak ve Kiriş: Kesit ve Ölçü Sizin</h1>"
+        "<h1>Profil, Kızak ve Kiriş: Kesit ve Ölçü Sizin</h1>"
         "<p>Nasıl çalışır: bu sayfadaki parça sitede satılan bir üründür. Ürün sayfasındaki ölçü alanlarına ihtiyacınız olan çap, boy, kesit ya da diş ölçüsünü siz yazarsınız, parça o ölçüde hazırlanır ve kartla ödeyerek sipariş verirsiniz. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Kesit tipini, yüksekliği, genişliği ve et kalınlığını siz belirlersiniz; profil o ölçüde hazırlanır. I, T, L, U, kutu, çokgen ve sigma kesitler seçilebilir.</p>"
         "<h2>Standart profil neden işe yaramaz?</h2>"
@@ -817,7 +833,7 @@ def _olcuye_ozel_profil_beam():
 
 def _kasnak_olcuye_ozel_uretim():
     return (
-        "<h1>Ölçüye Özel Kasnak: Kanal Sayısı, Dış Çap ve Mil Bağlantısı</h1>"
+        "<h1>Kasnak: Kanal Sayısı, Dış Çap ve Mil Bağlantısı</h1>"
         "<p>Nasıl çalışır: bu sayfadaki parça sitede satılan bir üründür. Ürün sayfasındaki ölçü alanlarına ihtiyacınız olan çap, boy, kesit ya da diş ölçüsünü siz yazarsınız, parça o ölçüde hazırlanır ve kartla ödeyerek sipariş verirsiniz. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Kayışı döndüren kasnağın ölçüsünü siz belirlersiniz: dış çap, kanal (oluk) sayısı ve mil bağlantısı. Triger ve zamanlama kasnakları için ürün sayfasında profil, diş sayısı ve genişlik seçilir.</p>"
         "<h2>Piyasadaki kasnak neden oturmaz?</h2>"
@@ -841,7 +857,7 @@ def _kasnak_olcuye_ozel_uretim():
 
 def _olcuye_ozel_vida_somun_civata_uretimi():
     return (
-        "<h1>Ölçüye Özel Vida, Somun ve Cıvata: Çap, Diş Adımı ve Kafa Tipi</h1>"
+        "<h1>Vida, Somun ve Cıvata: Çap, Diş Adımı ve Kafa Tipi</h1>"
         "<p>Nasıl çalışır: vida, somun ve cıvata sitede satılan hazır ürünlerdir; fiyatları ürün sayfasında yazılıdır. Sitede belirlenen ölçü aralığı içinde kalan çap, adım ve boy değerlerini siz yazarsınız, parça o ölçüde hazırlanır ve kartla ödeyerek sipariş verirsiniz. Sitede satılmayan bir bağlantı elemanı için özel üretim yapmıyoruz; numune, çizim ya da fotoğraftan teklif ve prototip süreci yoktur.</p>"
         "<p class=\"lead\">Piyasada bulunmayan çapta, adımda ya da malzemede bir bağlantı elemanına mı ihtiyacınız var? Ölçüyü siz girersiniz: metrik ya da inç diş, kafa biçimi ve gövde boyu sayfada seçilir.</p>"
         "<h2>Standart olmayan bağlantı elemanı neden bulunamaz?</h2>"
@@ -866,7 +882,7 @@ def _olcuye_ozel_vida_somun_civata_uretimi():
 
 def _olcuye_ozel_yay_uretimi():
     return (
-        "<h1>Ölçüye Özel Plastik Yay: Serbest Boy, Çap ve Sarım</h1>"
+        "<h1>Plastik Yay: Serbest Boy, Çap ve Sarım</h1>"
         "<p>Nasıl çalışır: bu sayfadaki parça sitede satılan bir üründür. Ürün sayfasındaki ölçü alanlarına ihtiyacınız olan çap, boy, kesit ya da diş ölçüsünü siz yazarsınız, parça o ölçüde hazırlanır ve kartla ödeyerek sipariş verirsiniz. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Bası yayının ölçüsünü siz belirlersiniz: serbest boy, dış çap, tel çapı ve sarım sayısı. Klasik bası yayı ile dalga (wave spring) formu aynı sayfada seçilir.</p>"
         "<h2>Yay neden standart kataloğunda bulunamaz?</h2>"
@@ -936,7 +952,7 @@ def _motosiklet_plastik_parca_ozel_uretim():
 
 def _olcuye_ozel_huni_uretimi():
     return (
-        "<h1>Ölçüye Özel Huni: Ağız ve Akıtma Ucunun Ölçüsü</h1>"
+        "<h1>Plastik Huni: Ağız ve Akıtma Ucunun Ölçüsü</h1>"
         "<p>Nasıl çalışır: bu sayfadaki parça sitede satılan bir üründür. Ürün sayfasındaki ölçü alanlarına ihtiyacınız olan çap, boy, kesit ya da diş ölçüsünü siz yazarsınız, parça o ölçüde hazırlanır ve kartla ödeyerek sipariş verirsiniz. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Standart huni girmediği dar, eğik veya derin ağızlara uymaz. Ağız çapı, koni yüksekliği ve akıtma ucu ölçüsünü siz yazarsınız; huni o ölçüde hazırlanır.</p>"
         "<h2>Hazır huni neden işe yaramaz?</h2>"
@@ -962,7 +978,7 @@ def _olcuye_ozel_huni_uretimi():
 
 def _olcuye_ozel_izgara_petek_uretimi():
     return (
-        "<h1>Ölçüye Özel Izgara, Menfez ve Petek Panel: Boşluğa Tam Oturan</h1>"
+        "<h1>Izgara, Menfez ve Petek Panel: Sitede Ölçüsü Seçilen Seçenekler</h1>"
         "<p>Nasıl çalışır: bu sayfadaki parça sitede satılan bir üründür. Ürün sayfasındaki ölçü alanlarına ihtiyacınız olan çap, boy, kesit ya da diş ölçüsünü siz yazarsınız, parça o ölçüde hazırlanır ve kartla ödeyerek sipariş verirsiniz. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Havalandırma menfezi, fan kapağı, filtre ızgarası ya da petek paneli boşluğunuza göre hazırlanır: en, boy, derinlik ve montaj biçimi siz belirlersiniz.</p>"
         "<h2>Standart menfez neden boşluk bırakır?</h2>"
@@ -986,7 +1002,7 @@ def _olcuye_ozel_izgara_petek_uretimi():
 
 def _olcuye_ozel_klips_kelepce_uretimi():
     return (
-        "<h1>Ölçüye Özel Klips ve Kelepçe: Tuttuğu Parçanın Gerçek Çapı</h1>"
+        "<h1>Klips ve Kelepçe: Tuttuğu Parçanın Gerçek Çapı</h1>"
         "<p class=\"lead\">18 mm ararsınız, rafta 16 ile 20 vardır; biri boşta oynar, öteki geçmez. Kelepçenin tutacağı parçanın çapını ve geçme sıkılığını siz belirlersiniz.</p>"
         "<h2>Yaklaşık kelepçe neden işe yaramaz?</h2>"
         "<p>Boruyu, hortumu, kabloyu ya da mili tutması gereken parça çoğu zaman \"yaklaşık\" gelir: biri boşta oynar, öteki geçmez. Kırılan orijinal kelepçenin muadili hiç yoktur ya da koca bir set almadan tek parça satılmaz. Sonuçta ya zorlayıp kırarsınız ya da bant, kablo bağı, tel gibi geçici çözümlerle idare edersiniz. Aynı sıkıntı boyu ayarlanan teleskopik boruların ucundaki sıkma bileziğinde de yaşanır: <a href=\"/olcuye-ozel-teleskopik-boru-kilidi-sikma-bilezigi-uretimi/\">ölçüye özel teleskopik boru kilidi ve sıkma bileziği</a> sayfasında ele alınıyor.</p>"
@@ -1010,7 +1026,7 @@ def _olcuye_ozel_klips_kelepce_uretimi():
 
 def _olcuye_ozel_kablo_kanali_organizer_uretimi():
     return (
-        "<h1>Ölçüye Özel Kablo Kanalı ve Organizer: Boşluğunuza Göre</h1>"
+        "<h1>Kablo Kanalı ve Organizer: Boşluğunuza Göre</h1>"
         "<p class=\"lead\">Masanın altında dağılan kablolar, panoda birbirine giren besleme hatları, araç içinde sabitlenmeyen tesisat… Kanalın kesitini, kanal sayısını ve montaj biçimini siz belirlersiniz.</p>"
         "<h2>Hazır kablo kanalı neye uymaz?</h2>"
         "<p>Piyasadaki hazır kablo kanalları hep bir \"standart\" kesitte gelir; sizin boşluğunuza ya çok büyük ya çok küçük olur, kanal sayısı tutmaz, montaj yeri uymaz. Aradığınızı bulamayınca ya idare edersiniz ya da olmayacak bir parçayı zorlarsınız. Kabloyu kanal içinde taşımak yerine demet hâlinde yüzeye sabitlemek yeterliyse, bağın geçtiği tablayı <a href=\"/olcuye-ozel-plastik-kablo-bagi-tabani-ve-kaide-uretimi/\">ölçüye özel plastik kablo bağı tabanı ve kaidesi</a> sayfasındaki ölçülere göre çıkarıyoruz.</p>"
@@ -1034,7 +1050,7 @@ def _olcuye_ozel_kablo_kanali_organizer_uretimi():
 
 def _olcuye_ozel_mentese_uretimi():
     return (
-        "<h1>Ölçüye Özel Plastik Menteşe: Kanat Boyu, Pim Çapı ve Delik Düzeni</h1>"
+        "<h1>Plastik Menteşe: Kanat Boyu, Pim Çapı ve Delik Düzeni</h1>"
         "<p>Nasıl çalışır: bu sayfadaki parça sitede satılan bir üründür. Ürün sayfasındaki ölçü alanlarına ihtiyacınız olan çap, boy, kesit ya da diş ölçüsünü siz yazarsınız, parça o ölçüde hazırlanır ve kartla ödeyerek sipariş verirsiniz. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Dolabın kapağı elinizde kaldı, kutunun kilit mekanizması oynadı, eski bir cihazın menteşesi çatladı. Hırdavatçıda yok, aynı ölçü hiçbir yerde çıkmıyor. Menteşeyi siz oluşturursunuz: ölçüyü yazarsınız, parça hazırlanır.</p>"
         "<h2>\"Bulunamayan menteşe\" nasıl bir çıkmaz?</h2>"
@@ -1060,7 +1076,7 @@ def _olcuye_ozel_mentese_uretimi():
 
 def _olcuye_ozel_kulp_tutamak_uretimi():
     return (
-        "<h1>Ölçüye Özel Kulp ve Tutamak: Delik Aralığı ve Form</h1>"
+        "<h1>Kulp ve Tutamak: Delik Aralığı ve Form</h1>"
         "<p class=\"lead\">Çekmecenin, dolabın ya da bir cihazın kulbu kırıldığında iş tek bir parçada tıkanır: mağazadaki kulplar güzel ama delikleri arası mesafe sizinkiyle uyuşmaz. Ölçüyü siz verirsiniz.</p>"
         "<h2>\"Yaklaşık\" kulp neden yetmez?</h2>"
         "<p>Eski deliklere yeni delik açmak, mobilyayı sabitleyip durmak ya da \"yaklaşık olsun\" demek çözüm değil. Siz aynı delik aralığını, aynı formu ve doğru vida ölçüsünü istiyorsunuz. Katalogda bu tür kalemler var: <a href=\"/kategori/ev/\">ev kategorisi</a> 900'den fazla ürün içeriyor ve <a href=\"/marka/ikea/\">IKEA</a> marka sayfasında çekmece kulpu, raf ve kablo düzenleyici gibi onlarca kalem listelenir. Marka sayfasından doğrudan bakabilir, arama kutusuna da parçanın adını yazabilirsiniz.</p>"
@@ -1084,7 +1100,7 @@ def _olcuye_ozel_kulp_tutamak_uretimi():
 
 def _olcuye_ozel_tapa_kapak_uretimi():
     return (
-        "<h1>Ölçüye Özel Tapa ve Kapak: İç/Dış Çap ve Geçme Sıkılığı</h1>"
+        "<h1>Tapa ve Kapak: İç ve Dış Çap ile Geçme Sıkılığı</h1>"
         "<p>Nasıl çalışır: bu sayfadaki parça sitede satılan bir üründür. Ürün sayfasındaki ölçü alanlarına ihtiyacınız olan çap, boy, kesit ya da diş ölçüsünü siz yazarsınız, parça o ölçüde hazırlanır ve kartla ödeyerek sipariş verirsiniz. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Boru, profil ya da hazne ağzının tapası zamanla kırılır, kaybolur veya hiç birlikte gelmez. Ağzın çapını ve geçme tipini siz belirlersiniz; tapa o ölçüde hazırlanır.</p>"
         "<h2>Tapa neden bulunamaz?</h2>"
@@ -1174,10 +1190,10 @@ def _drone_rc_model_plastik_parca_uretimi():
 
 def _ev_aleti_plastik_disli_parca_uretimi():
     return (
-        "<h1>Ev Aleti Plastik Dişli ve Parça Üretimi</h1>"
+        "<h1>Ev Aleti Plastik Dişli ve Parçası: Katalogdaki Seçenekler</h1>"
         "<p class=\"lead\">Mutfak robotu dönmüyor, kıyma makinesi çalışırken tıkırdıyor ya da mikser boşta kalıyorsa, arızanın kaynağı çoğu zaman gövdedeki küçük plastik dişli veya onun taşıyıcı parçasıdır. Bu kalemler hazır katalogda neredeyse hiç bulunmaz; çalışan yol, katalogdaki parçalardan ve sitede ölçüsü seçilen kalemlerden yararlanmaktır.</p>"
         "<p>Plastik dişlilerin çoğu zaman üç ayrı nedenle yorulduğunu görürüz. Birincisi yük altında sürekli çalışma: her devir bir diş teması demektir ve temas yüzeyindeki yuvarlanma yorulması zamanla diş profilini bozar. İkincisi sıcaklık: motor gövdesinin yanında çalışan bir dişli, kısa sürede 60-70 santigrat derece bandına çıkabilir; PLA bu ortamda yumuşar. Üçüncüsü kirlenme: un, şeker ve yağ diş dibinde birikince sürtünme artar ve kırılma daha hızlı gelir.</p>"
-        "<p>Malzeme seçimi bu yüzden yükün büyüklüğüne göre yapılır. Düşük devirli, düşük torklu aktarma elemanlarında PETG yeterlidir. Yüksek devirde çalışan ve sürtünmenin yoğun olduğu dişlilerde POM (asetal) ve cam elyaf takviyeli PA sınıfı tercih edilir; POM'un düşük sürtünme katsayısı ve yüksek aşınma direnci burada işe yarar. Kesme bıçağı, mil ve tork taşıyan gövde parçaları ise metalden olmalıdır; plastik bu yükü taşımaz.</p>"
+        "<p>Malzeme seçimi bu yüzden yükün büyüklüğüne göre yapılır. Düşük devirli, düşük torklu aktarma elemanlarında PETG yeterlidir. Yüksek devirde çalışan ve sürtünmenin yoğun olduğu dişlilerde PA sınıfı tercih edilir; PA'nın düşük sürtünme katsayısı ve yüksek aşınma direnci burada işe yarar. Kesme bıçağı, mil ve tork taşıyan gövde parçaları ise metalden olmalıdır; plastik bu yükü taşımaz.</p>"
         "<h2>Ölçü olarak neler gerekir</h2>"
         "<p>Bir dişli veya dişli taşıyıcısı hazırlanırken modül (diş adımı), diş sayısı, gövde çapı, delik çapı, eksen mesafesi ve toplam boy belirleyicidir. Modül bilinmezse iki dişin üstten görünen mesafesini alıp diş sayısıyla bölmek işe yarar. Kişisel cihazlarda çoğu zaman tek dişli yerine tek parça hâlinde bir dişli kutusu ya da planet dişli grubu gerekir; bu durumda gövde ve kapak birlikte düşünülür.</p>"
         "<p>Genel dişli kurguları için <a href=\"/olcuye-ozel-plastik-disli-uretimi/\">ölçüye özel plastik dişli üretimi</a>, <a href=\"/olcuye-ozel-konik-disli-uretimi/\">ölçüye özel plastik konik dişli üretimi</a> ve <a href=\"/olcuye-ozel-plastik-disli-kutusu-govdesi-ve-kapagi-uretimi/\">ölçüye özel plastik dişli kutusu gövdesi ve kapağı üretimi</a> sayfalarına bakabilirsiniz.</p>"
@@ -1185,7 +1201,7 @@ def _ev_aleti_plastik_disli_parca_uretimi():
         "<p>Ana giriş noktaları <a href=\"/kategori/ev/\">ev</a>, <a href=\"/kategori/elektronik/\">elektronik</a> ve <a href=\"/kategori/ofis/\">ofis</a> kategorileridir. Hazır örnekler: <a href=\"/urun/pr478460-cuisinart-mutfak-robotu-bicak-organizeri/\">Cuisinart mutfak robotu bıçak ve gövde organizeri</a>, <a href=\"/urun/pr1413062-moulinex-doubleforce-hiz-kontrol-dugmesi/\">Moulinex hız kontrol düğmesi</a> ve <a href=\"/urun/pr81031-miele-supurge-nozulu/\">Miele süpürge nozulu</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-toka/\">ölçüye özel toka</a>, <a href=\"/urun/olcuye-ozel-vida-civata-somun-pul/\">ölçüye özel vida, cıvata, somun ve pul</a> ile <a href=\"/urun/olcuye-ozel-rulman/\">ölçüye özel rulman</a> uygundur. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz; katalogdaki hazır parçayı ya da sitede ölçüsü seçilen kalemi tercih ediyoruz. Kesme bıçağı, mil, şaft, kaplin ve sürtünme yükünü tek başına taşıyan dişli gövdeleri kapsam dışıdır; bunlar metal ve sertifikalı ekipmandan gelmelidir. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Cihazın adı, parçanın konumu ve ölçüleri yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -1215,18 +1231,18 @@ def _olcuye_ozel_cetvel_mastar_sablon_uretimi():
 
 def _olcuye_ozel_koruma_kapagi_muhafaza_uretimi():
     return (
-        "<h1>Ölçüye Özel Koruma Kapağı ve Muhafaza Üretimi</h1>"
+        "<h1>Koruma Kapağı ve Muhafaza: Sitede Ölçüsü Seçilen Seçenekler</h1>"
         "<p class=\"lead\">Açıkta kalan bir dişli, kayış, terminal ya da sensör; toz, çapak, darbe ve istenmeyen temasın hedefidir. Piyasada tam o parçaya oturan bir koruma kapağı çoğu zaman bulunmaz: ya çok büyük, ya çok küçük, ya da hiç yoktur. Net cevap: koruma elemanı katalogdaki hazır seçeneklerden ya da siteden seçilir.</p>"
         "<p>Koruma kapağının tasarımında beş kural işe yarar. Birincisi hava: kapak, altındaki parçanın ısıtmasını engellememeli; kapalı bir kutu içinde sıkışan hava, motorlu veya elektronik parçada arıza üretir. İkincisi kablo çıkışı: her kablo girişinde bir conta ya da kıskaçlı geçiş bulunmalı. Üçüncüsü montaj delikleri: kapak, altındaki parçaya ulaşmadan sökülebilmeli. Dördüncüsü yükseklik: kapak, dokunulmayacak bir mesafede kalmalı. Beşincisi iç köşe: keskin köşeler hem parçaya hem de kapak kapağına zarar verir; iç köşeler yuvarlatılmalıdır.</p>"
         "<p>Burada bir ayrım önemlidir. Koruma kapağı yük taşıyan bir eleman değildir; altındaki parçanın hareketini engellemez, sadece çevresini korur. Bu yüzden tasarımda enerji emme esnekliği aranır: darbe geldiğinde kapak hafifçe çatlayabilir ya da esneyebilir, ama altındaki parçaya aktarılan kuvvet sınırlı kalmalıdır.</p>"
         "<h2>Doğru malzeme</h2>"
-        "<p>Darbe riski yüksek ortamlarda ASA ve PC iyi bir seçimdir; ASA dış mekâna çıkan kapaklarda UV dayanımıyla öne çıkar. PETG, dengeli bir genel tercihtir ve iç mekân koruma kapaklarında yeterlidir. Sürekli ıslak ortamda kalacak kapaklarda PA12 daha iyi yaşlar. Kapak, sık sık açılıp kapanan bir parça ise menteşe bölgesindeki yorulma hesaba katılmalıdır.</p>"
+        "<p>Darbe riski yüksek ortamlarda ASA ve ABS iyi bir seçimdir; ASA dış mekâna çıkan kapaklarda UV dayanımıyla öne çıkar. PETG, dengeli bir genel tercihtir ve iç mekân koruma kapaklarında yeterlidir. Sürekli ıslak ortamda kalacak kapaklarda PA daha iyi yaşlar. Kapak, sık sık açılıp kapanan bir parça ise menteşe bölgesindeki yorulma hesaba katılmalıdır.</p>"
         "<p>Koruma elemanlarının kurgu çeşitleri için <a href=\"/olcuye-ozel-toz-koruma-tozluk-kapagi-uretimi/\">ölçüye özel toz koruma tozluk kapağı üretimi</a>, <a href=\"/olcuye-ozel-kose-kenar-koruyucu-uretimi/\">ölçüye özel köşe kenar koruyucu üretimi</a> ve <a href=\"/olcuye-ozel-plastik-vantuz-tutucu-govdesi-uretimi/\">ölçüye özel plastik vantuz tutucu gövdesi üretimi</a> sayfalarına bakabilirsiniz.</p>"
         "<h2>Katalogda nasıl bulunur</h2>"
         "<p>Ana giriş noktaları <a href=\"/kategori/elektronik/\">elektronik</a>, <a href=\"/kategori/tamirat/\">tamirat</a> ve <a href=\"/kategori/ofis/\">ofis</a> kategorileridir. Hazır örnekler: <a href=\"/urun/olcuye-ozel-izgara-menfez-kapak/\">ölçüye özel ızgara ve menfez kapağı</a>, <a href=\"/urun/skoda-yeti-tsi-hava-filtre-kutusu-ve-kapagi/\">Skoda Yeti hava filtre kutusu ve kapağı</a> ve <a href=\"/urun/respiratortip-210-filtre-kapak/\">Tip 210 filtreli respiratör filtre kapağı</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-kutu-organizer/\">ölçüye özel kutu ve organizer</a>, <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüye özel montaj braketi</a> ile <a href=\"/urun/olcuye-ozel-cerceve/\">ölçüye özel çerçeve</a> uygundur. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz; koruma kapağının ölçüsü hazır kalemler arasından seçilir. Koruma kapağı, altındaki parçanın taşıdığı yükün yerine geçmez ve onu muhafaza etmez; yük taşıyan bir muhafaza kapsam dışıdır. Sıcaklık veya kimyasal temas içeren bir kapakta malzeme dayanımı konusunda özel sınıf beyanı verilmez. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Korunacak parçanın konumu, çevresindeki alan ve montaj yüzeyi yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -1234,7 +1250,7 @@ def _olcuye_ozel_koruma_kapagi_muhafaza_uretimi():
 
 def _olcuye_ozel_adaptor_reduksiyon_gecis_uretimi():
     return (
-        "<h1>Ölçüye Özel Adaptör, Redüksiyon ve Geçiş Parçası</h1>"
+        "<h1>Adaptör, Redüksiyon ve Geçiş Parçası: Sitede Ölçüsü Seçilen Seçenekler</h1>"
         "<p>Nasıl çalışır: bu sayfadaki parça sitede satılan bir üründür. Ürün sayfasındaki ölçü alanlarına ihtiyacınız olan çap, boy, kesit ya da diş ölçüsünü siz yazarsınız, parça o ölçüde hazırlanır ve kartla ödeyerek sipariş verirsiniz. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Bir çaptan başka çapa geçmeniz gereken parça piyasada yoksa giriş ve çıkış çapını siz yazarsınız; parça o ölçüde hazırlanır.</p><h2>Neden hazır fiting yetmez?</h2>"
         "<p>Çoğu geçiş ihtiyacı standart üründe karşılığı olmayan bir ölçüde ortaya çıkar: bir ucu 40 mm, diğer ucu 32 mm olan bir hortum adaptörü; süpürge ağzına oturmayan bir aparat; iki farklı boru hattını birleştiren bir çap düşürücü. Hazır fitinglerde bu ara ölçüler çoğu zaman bulunmaz, bulunsa da tam oturmaz. Sonuç bant, conta ve kaçak dolu geçici çözümlerdir.</p>"
@@ -1311,7 +1327,7 @@ def _oyuncak_hobi_model_plastik_parca_uretimi():
 <h2>Dürüst sınır</h2>
 <p>Bunlar hobi ve oyuncak amaçlı, hafif kullanım parçalarıdır; ağır darbe ya da sürekli yük altında çalışan mekanik parçaların yerini tutmaz. Küçük çocukların kullandığı oyuncaklarda küçük/ayrılabilir parça yutma riski ve malzeme güvenliği sizin sorumluluğunuzdadır; sitedeki kalemler bu konuda bilgilendirme amaçlıdır, sertifikalı çocuk ürünü değildir. Sürekli açık havada uçan ve inişte darbe alan modellerin iniş takozu ayrı bir dayanım kalemidir; ayrıntısı <a href="/drone-inis-takozu-plastik-oem-parca-uretimi/">drone iniş takozu plastik OEM parça üretimi</a> sayfasındadır.</p>
 <h2>Sipariş</h2>
-<p>Parçayı sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup sepetinize ekleyin ve kartla online ödeme yapın. Sitede var mı diye bakmak istediğiniz bir kalem varsa WhatsApp hattımız <a href="https://wa.me/905451386526" target="_blank" rel="noopener"><strong>+90 545 138 6526</strong></a> üzerinden yalnız sitede var mı diye yazın; varsa adresini paylaşırız, yoksa sitede bulunmadığını açıkça söyleriz. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>
+<p>Parçayı sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup sepetinize ekleyin ve kartla online ödeme yapın. Sitede var mı diye bakmak istediğiniz bir kalem varsa WhatsApp hattımız <a href="https://wa.me/905451386526" target="_blank" rel="noopener"><strong>+90 545 138 6526</strong></a> üzerinden yalnız sitede var mı diye yazın; varsa adresini paylaşırız, yoksa sitede bulunmadığını açıkça söyleriz. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; """ + AYIP_HAKLARI_CUMLESI + """</p>
 """)
 
 
@@ -1365,7 +1381,7 @@ def _aydinlatma_armatur_plastik_parca_uretimi():
 <h2>Dürüst sınır</h2>
 <p>Açık olalım: ampule ya da ısı kaynağına çok yakın, sürekli yüksek sıcaklığa maruz kalan noktalar plastik parçanın sınırıdır. Doğrudan ısınan cam yuvası ya da güçlü halojen ampule temas eden bir bileşen için plastik doğru çözüm olmaz. Isı kaynağından uzaktaki montaj, tutuş ve bağlantı parçalarında ise katalogdaki kalemler uzun süre iş görür. Hangi malzemenin kaç dereceye kadar güvenle çalıştığını <a href="/plastik-parca-kac-dereceye-dayanir/">plastik parça kaç dereceye dayanır</a> sayfasında örneklerle anlattık.</p>
 <p>Daha genel kırık plastik parça ihtiyaçları için <a href="/kirik-plastik-parca-yaptirma/">kırık plastik parça yaptırma</a>, cihaz içi parçalar için <a href="/elektronik-cihaz-plastik-parca-uretimi/">elektronik cihaz plastik parça</a> sayfalarına bakabilirsiniz.</p>
-<p>Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>
+<p>Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; """ + AYIP_HAKLARI_CUMLESI + """</p>
 <h2>Sipariş ve iletişim</h2>
 <p>Parçayı sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup siparişi tamamlarsınız. Bulamazsanız WhatsApp hattımız <a href="https://wa.me/905451386526" target="_blank" rel="noopener"><strong>+90 545 138 6526</strong></a> üzerinden yalnız sitede var mı diye yazın; armatürün modeli ve parçanın konumu eşleştirmeyi hızlandırır.</p>""")
 
@@ -1643,7 +1659,7 @@ def _elektrikli_scooter_plastik_parca_uretimi():
         "<h2>Dürüst sınır</h2>"
         "<p>Scooter tarafında üretilen aile bellidir: çamurluk, kapaklar, gidon parçaları, tutucular ve örtü parçaları. Bunlar kırıldığında cihazın kullanımını bozan ama güvenliğini doğrudan belirlemeyen parçalardır.</p>"
         "<p>Üretilmeyen parçalar da aynı netlikte: fren sistemine ait parçalar, şasi boru bağlantıları ve sürüş sırasında ağırlığı taşıyan katlama kilidinin ana gövdesi. Bu parçalar ani ve tek yönlü bir kuvvet altında çalışır; verdikleri hata sessiz olmaz, sürüş sırasında olur. Plastikle üretilmeleri doğru değildir ve bu taleplerde sizi orijinal parçaya ya da metal muadiline yönlendiririz.</p>"
-        "<p>Ölçü konusunda da aynı dürüstlük geçerli: parçanın takıldığı yuvayı göremiyorsak tahmine dayalı bir üretim yapılmaz.</p><h2>Sipariş ve iletişim</h2>"
+        "<p>Ölçü konusunda da aynı dürüstlük geçerli: parçanızı görüp ölçmüyoruz. Ölçüsü sitede seçilen kalemlerde değeri ürün sayfasına siz yazarsınız ve parça o değerle hazırlanır; ölçüye özel hazırlanan üründe cayma hakkı kullanılamaz; " + AYIP_HAKLARI_CUMLESI + ".</p><h2>Sipariş ve iletişim</h2>"
         "<p>Parçayı siteden kartla online ödeme ile sipariş verin; sitede ölçüsü seçilen işler de buna dahildir. Ölçüden emin değilseniz ya da parçanın kapsama girip girmediğini merak ediyorsanız WhatsApp hattımızdan <strong>sitede var mı</strong> diye yazın: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\">"
         "<strong>+90 545 138 6526</strong></a>. Sitede arama yaparken şunları kullanın: Scooter markası, modeli ve eksik parçanın adı.</p>"
     )
@@ -1719,7 +1735,7 @@ def _parca_olcusu_nasil_alinir_ve_gonderilir():
         "<strong>Arama kutusu.</strong> Ana sayfadaki arama kutusuna parçanın adını yazın; sonuçlar marka, model ve kategori olarak gruplanır.</li></ul>\n"
         "<p>Katalogdaki kaydın ölçüleri, parçanın üretildiği gerçek ölçülerdir: montaj yerindeki yuvanın genişliği, delik çapı ve vida aralığı gibi kalemler ürün sayfasında yazılıdır. Kendi parçanızla karşılaştırırken bu değerleri esas alın.</p>\n"
         "<h2>Ölçüsü sitede seçilebilen parçalar</h2>\n"
-        "<p>Katalogdaki <em>ölçüye özel</em> ürün ailesinde ölçüyü parça göndererek değil, doğrudan sitede siz belirlersiniz: ürün sayfasındaki ölçü alanlarına ihtiyacınız olan çap, boy ya da kesiti yazarsınız, parça o ölçüde hazırlanır. <a href=\"/urun/olcuye-ozel-oring-conta/\">ölçüye özel conta</a>, <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüye özel montaj braketi</a> ve <a href=\"/urun/olcuye-ozel-baglanti-konektor/\">ölçüye özel bağlantı parçası</a> bu şekilde çalışır.</p>\n"
+        "<p>Katalogdaki <em>ölçüye özel</em> ürün ailesinde ölçüyü parça göndererek değil, doğrudan sitede siz belirlersiniz: ürün sayfasındaki ölçü alanlarına ihtiyacınız olan çap, boy ya da kesiti yazarsınız, parça o ölçüde hazırlanır. <a href=\"/urun/olcuye-ozel-oring-conta/\">ölçüye özel conta</a>, <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüye özel montaj braketi</a> ve <a href=\"/urun/olcuye-ozel-baglanti-konektor/\">ölçüye özel bağlantı parçası</a> bu şekilde çalışır. Ölçüyü siz yazarsınız; bu yüzden ölçüye özel hazırlanan üründe cayma hakkı kullanılamaz; " + AYIP_HAKLARI_CUMLESI + ".</p>\n"
         "<h2>Geçme ve tolerans</h2>\n"
         "<p>Montaj yuvasına oturan bir parçada ölçüden çok geçme biçimi önemlidir. Montajda parçanın gevşek ya da sıkı çıkması çoğu zaman malzeme ve baskı yönlendirmesiyle ilgilidir; <a href=\"/plastik-parcada-gecme-toleransi-nasil-belirlenir/\">geçme toleransı</a> sayfasında bu ayrım anlatılır. Yuvanın ölçüsü katalog kaydında yazıyorsa katalogdaki parça birebir uyar.</p>\n"
         "<h2>Sitede yoksa</h2>\n"
@@ -2041,7 +2057,7 @@ def _yaga_ve_kimyasala_dayanikli_plastik_parca_uretimi():
     )
 def _kalip_yaptirmadan_parca_urettirme():
     return (
-        "<h1>Kalıp Yaptırmadan Parça: Küçük Seri ve Adet</h1>"
+        "<h1>Küçük Seri Parça Siparişi: Adet ve Maliyet</h1>"
         "<p>Nasıl çalışır: PRUVO'da kalıp yok. Sitede ölçüsü seçilen ürün ailesinde ölçüyü ve adedi siz belirlersiniz; parça o ölçüde hazırlanır ve kartla ödeyerek sipariş verirsiniz. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Küçük seri bir işin asıl duvarı parçanın kendisi değil, onu üretilebilir hâle getirmenin sabit maliyetidir. Kalıp bedeli, kalıp bekleme süresi ve kalıp üzerinde revizyon derdi yoksa maliyet adete dağılır: az adette birim daha yüksektir ama peşin ve geri dönüşsüz bir yatırım yapmazsınız. PRUVO kataloğunda hazır parçaların yanında ölçüsü sizin belirlediğiniz parametrik ürün ailesi var; adet aralığı ve malzeme seçimi bu ailede sizin tarafınızdan belirlenir.</p>"
         "<h2>Karar ekseni tektir</h2>"
@@ -2093,6 +2109,7 @@ def _plastik_pim_yaptirma():
         "<strong>Katalogda arayacağınız parçalar:</strong> mekanizma, menteşe, kapak ve muhafaza pimleri; eksen görevi gören, dönme ya da eksen tutma işi yapan küçük çaplı pimler; emniyet deliği veya kanalı olan pim takımları. Pimin görevi tutmak değil de sıkışma anında kasten kopmaksa tasarım mantığı terse döner; o parçayı <a href=\"/olcuye-ozel-plastik-emniyet-pimi-ve-kesme-pimi-uretimi/\">emniyet pimi ve kesme pimi</a> sayfasında ayrıca ele aldık. Kırılan pim değil de pimin oturduğu U biçimli çatal uçsa ölçüsü <a href=\"/olcuye-ozel-plastik-catal-klevis-baglanti-ucu-uretimi/\">çatal ve klevis bağlantı ucu</a> sayfasında yazılı.</p>"
         "<p>"
         "<strong>Bu sayfanın konusu dışında kalanlar:</strong> yüksek tork aktaran mil ve şaft işleri. Bir pim, dönme hareketini taşımak yerine bir motorun ya da kompresörün gücünü aktarıyorsa plastik bir eksenin yeri orası değildir; böyle bir işte metal çözüme yönlendirilir. Darbeyle çakılan, çekiçle yerine oturtulan pimler de bu sayfanın kapsamı dışındadır. Sınırı önden söylemek, parçanın yerinde ne kadar dayanacağını konuşmadan sipariş almaktan daha değerlidir.</p>"
+        "<p>Ölçüsü sitede seçilen pimde çapı ve boyu ürün sayfasına siz yazarsınız; parça o değerle hazırlanır. Ölçüye özel hazırlanan üründe cayma hakkı kullanılamaz; " + AYIP_HAKLARI_CUMLESI + ".</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçayı siteden kartla online ödeme ile sipariş verin; sitede ölçüsü seçilen ürünler de buna dahildir. Hangi çapın, payın ya da uç formunun gerektiğinden emin değilseniz WhatsApp hattımızdan <strong>sitede var mı</strong> diye yazın: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\">"
         "<strong>+90 545 138 6526</strong></a>. Sitede arama yaparken şunları kullanın: Parçanın adını ve birkaç ölçüyü.</p>"
@@ -2122,7 +2139,7 @@ def _kirik_plastik_tirnak_yaptirma():
         "<h2>Dürüst sınır</h2><p>"
         "<strong>Katalogda arayacağınız parçalar:</strong> kapak, panel, muhafaza ve kutu kapaklarındaki geçme tırnakları, tek tırnaklı kollar, çift taraflı kelepçe tırnakları ve ayrı vidalanan tırnaklı tutucular. Aynı yaklaşım aracın önündeki far gövdesinde kırılan kulak ve tespit tırnağı için de geçerlidir; o parçayı <a href=\"/oto-far-kulagi-tespit-tirnagi-yaptirma/\">far kulağı ve tespit tırnağı</a> sayfasında ayrıca ele alıyoruz. Konsoldaki klima ızgarasını yuvasında tutan dış çerçeve ya da montaj tırnağı kırıldıysa <a href=\"/oto-klima-izgarasi-cercevesi-ve-montaj-tirnagi-yaptirma/\">klima ızgarası çerçevesi ve montaj tırnağı</a> sayfası doğrudan o parçaya ayrıldı.</p>"
         "<p>"
-        "<strong>Yapmayız:</strong> her kırık gövde kurtarılamaz. Tırnağın oturacağı yüzey çatlamış, gövdenin kendisi ezilmiş ya da yuva ağzı kopmuşsa yeni tırnak da tutunacak sağlam bir zemin bulamaz — bu durumda açıkça söylenir, ücret ödenmez. Aynı şekilde kapağın tamamının taşıyıcı bir yük altında çalıştığı, çarpma emniyeti gibi can güvenliğine bağlı uygulamalara girilmez. Kilit, mandal ve hareketli bağlantı elemanları da üretilir; onlar bu sayfanın konusu dışında, kendi sayfalarında anlatılıyor.</p>"
+        "<strong>Yapmayız:</strong> her kırık gövde kurtarılamaz. Tırnağın oturacağı yüzey çatlamış, gövdenin kendisi ezilmiş ya da yuva ağzı kopmuşsa yeni tırnak da tutunacak sağlam bir zemin bulamaz — bu durumda yeni tırnak sipariş etmek işe yaramaz. Ölçüsü sitede seçilen tırnakta değerleri siz yazarsınız; ölçüye özel hazırlanan üründe cayma hakkı kullanılamaz; " + AYIP_HAKLARI_CUMLESI + " Aynı şekilde kapağın tamamının taşıyıcı bir yük altında çalıştığı, çarpma emniyeti gibi can güvenliğine bağlı uygulamalara girilmez. Kilit, mandal ve hareketli bağlantı elemanları da üretilir; onlar bu sayfanın konusu dışında, kendi sayfalarında anlatılıyor.</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçayı siteden kartla online ödeme ile sipariş verin; sitede ölçüsü seçilen ürünler de buna dahildir. Sitede arama yaparken şunları kullanın: Kırılan parçanın adını, markasını ve modelini. Emin olamadığınız her şey için WhatsApp hattımızdan <strong>sitede var mı</strong> diye yazın: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\">"
         "<strong>+90 545 138 6526</strong></a>.</p>"
@@ -2176,7 +2193,7 @@ def _plastik_stoper_durdurucu_yaptirma():
         "<h2>Dürüst sınır</h2><p>"
         "<strong>Katalogda arayacağınız parçalar:</strong> hareketin sınırını belirleyen kapak, çekmece, kol, tabla ve mekanizma durdurucuları; yuvaya oturan takozlar, vidalı durdurucu plakaları, tampon gövdeleri.</p><p>"
         "<strong>Üretmeyiz:</strong> insan güvenliğinin tek dayanağı olan emniyet durdurucuları, ağır yükün düşmesini engelleyen son emniyet elemanları, yangın ve tahliye ekipmanına ait parçalar. Bunlar sertifikalı metal elemanların işidir.</p>"
-        "<p>Açıkça söyleyelim: sert darbenin sürekli tekrarlandığı bir noktada malzeme sınıfı yukarı çekilir, ama stoper doğası gereği sarf parçadır — yükü o karşılar ki arkasındaki pahalı grup karşılamasın. Zamanla yüzeyi ezilir ve yenilenmesi gerekir. Bunu peşinen bilmeniz, sonradan hayal kırıklığı yaşamanızdan iyidir. Tutma ve sabitleme görevi olan parçalar bu sayfanın konusu dışındadır; stoper yalnızca hareketi sınırlar. Sert temas yerine son anda yumuşayarak duran bir kapanma isteniyorsa <a href=\"/olcuye-ozel-plastik-yumusak-kapanma-tamponu-uretimi/\">sitede ölçüsü seçilen plastik yumuşak kapanma tamponu</a> sayfasına bakabilirsiniz.</p>"
+        "<p>Açıkça söyleyelim: sert darbenin sürekli tekrarlandığı bir noktada malzeme sınıfı yukarı çekilir, ama stoper doğası gereği sarf parçadır — yükü o karşılar ki arkasındaki pahalı grup karşılamasın. Zamanla yüzeyi ezilir ve yenilenmesi gerekir. Bunu peşinen bilmeniz, sonradan hayal kırıklığı yaşamanızdan iyidir. Tutma ve sabitleme görevi olan parçalar bu sayfanın konusu dışındadır; stoper yalnızca hareketi sınırlar. Sert temas yerine son anda yumuşayarak duran bir kapanma isteniyorsa <a href=\"/olcuye-ozel-plastik-yumusak-kapanma-tamponu-uretimi/\">sitede ölçüsü seçilen plastik yumuşak kapanma tamponu</a> sayfasına bakabilirsiniz. Ölçüye özel hazırlanan stoperde cayma hakkı kullanılamaz; " + AYIP_HAKLARI_CUMLESI + " Bu yüzden gövde yüksekliğini yazmadan önce bir kez daha ölçün.</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçayı siteden kartla online ödeme ile sipariş verin; sitede ölçüsü seçilen ürünler de buna dahildir. Sitede arama yaparken şunları kullanın: Ölçünüzü ve parçanın çalıştığı yeri. Emin değilseniz WhatsApp hattımızdan <strong>sitede var mı</strong> diye yazın: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\">"
         "<strong>+90 545 138 6526</strong></a>.</p>"
@@ -2339,7 +2356,7 @@ def _cim_bicme_bahce_makinesi_plastik_parca_yaptirma():
     )
 def _ozel_parca_kac_gunde_hazir_olur():
     return (
-        "<h1>Ne Kadar Sürede Hazır Olur? Takvimi Sipariş ve Adet Belirler</h1>"
+        "<h1>Ne Kadar Sürede Hazır Olur? Takvimi Ölçü Belirler</h1>"
         "<p>Nasıl çalışır: sitede satılan hazır ürünlerde süre siparişinizden sonra başlar ve 3-5 iş günüdür. Sitede ölçüsü seçilen ürünlerde ölçüyü siz yazarsınız. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Fiyattan önce sorulan soru genelde şudur: parça kaç günde hazır olur? Soru yerinde, çünkü bu sayfaya çoğunlukla bir iş beklerken gelinir — makine durmuştur, araç kullanılamaz hâldedir ya da tezgâhın bir gözü boş kalmıştır. Parça arayışında geçen günlerin üstüne bir de belirsiz bir üretim süresi eklenince takvim tümüyle kayar.</p>"
         "<h2>Net cevap</h2><p>Üretim süresi her iki durumda da <strong>3-5 iş günüdür</strong>; değişen tek şey sayacın hangi anda başladığıdır.</p><ul><li>"
@@ -2478,49 +2495,40 @@ def _karbon_fiber_takviyeli_naylon_parca_ne_zaman_gerekir():
 
 
 def _kaseye_islenecek_logo_dosyasi_nasil_hazirlanir():
-    return (u"""<h1>Kaşeye İşlenecek Logo Dosyası Nasıl Hazırlanır?</h1>
-<p>Logolu kaşe siparişlerinde işi geciktiren tek şey neredeyse hep aynı: gönderilen logo dosyası. Kartvizitte güzel duran bir görsel, kaşe gövdesine işlendiğinde okunmayabilir. Bu sayfa, dosyanızı göndermeden önce kendi kendinize yapabileceğiniz kontrolleri anlatır. Ölçü sizden, üretim bizden.</p>
-<p>Kaşede logo, mürekkebi taşıyan yüzeyin kâğıda göre yükseltilmesiyle oluşur. Yani logonuz renkle değil, <strong>yüzey farkıyla</strong> çalışır. Bu yüzden sorulacak soru "logom güzel mi" değil, "logom iki renge indirildiğinde ne kalıyor" sorusudur.</p>
-<h2>Hangi dosya işlenir: SVG mi PNG mi</h2>
+    return u"""<h1>Kaşe Logosu İçin Dosya Nasıl Hazırlanır?</h1>
+<p class="lead">Logolu kaşe siparişlerinde işi geciktiren tek şey neredeyse hep aynı: yüklenen logo dosyası. Bu sayfa, dosyanızı yüklemeden önce kendi kendinize yapabileceğiniz kontrolleri anlatır.</p>
+<p>Nasıl çalışır: kaşe sitede satılan bir üründür. İçerik türünü, biçimi, ölçüyü ve rengi ürün sayfasından seçersiniz, logo dosyanızı sayfa üzerinden yüklersiniz ve kartla online ödersiniz. Hazır kaşe basılıp kargolanır. Katalogda olmayan bir kaşe için tasarım, revizyon ya da onay görüntüsü süreci yoktur; dosyanızı bize gönderip bir işlem yaptırmak yerine, yüklenebilir dosyayı siz hazırlarsınız.</p>
+<h2>Hangi dosya yüklenir: SVG mi PNG mi</h2>
 <p>Kısa cevap: <strong>SVG tercih edilir, temiz bir PNG de çoğu zaman iş görür.</strong></p>
-<p><strong>SVG (vektör):</strong> En iyisi budur. Vektör dosyada logonun kenarları matematiksel eğrilerdir; kaşe boyutuna küçültüldüğünde kenar bozulmaz. Elinizde marka kılavuzu, tabela dosyası veya tasarımcınızın verdiği bir vektör varsa (SVG, AI, EPS, PDF) onu gönderin; gerekirse SVG'ye biz çeviririz. SVG gönderirken yazıları "eğriye dönüştürülmüş" (outline) haliyle kaydettirin — aksi halde bizde o font yoksa yazı kayar.</p>
-<p><strong>PNG (piksel):</strong> Şeffaf zeminli, en az 1000 piksel genişliğinde ve keskin kenarlı bir PNG işlenebilir. Logoyu vektöre çevirip kaşe formuna oturturuz. Ancak PNG'de ince detaylar, gölge, degrade ve yumuşak kenarlar ayıklanmak zorundadır; bu ayıklama sırasında logonun bir kısmı sadeleşebilir.</p>
-<p><strong>Çalışmayan dosyalar:</strong> WhatsApp'tan geçmiş ekran görüntüsü, sosyal medya profil fotoğrafı, faturadan telefonla çekilmiş logo fotoğrafı, JPEG sıkıştırması yüzünden kenarları bulanmış görseller. Bunlar gelirse size haber verir, elinizdeki temiz kaynağı isteriz.</p>
+<p><strong>SVG (vektör):</strong> Vektör dosyada logonun kenarları matematiksel eğrilerdir; kaşe boyutuna küçültüldüğünde kenar bozulmaz. Elinizde marka kılavuzu, tabela dosyası ya da tasarımcınızın verdiği bir vektör varsa (SVG, AI, EPS, PDF) onu kullanabilirsiniz. SVG yüklerken yazıları eğriye dönüştürülmüş (outline) haliyle kaydedin; aksi halde bizde o font yoksa yazı kayar.</p>
+<p><strong>PNG (piksel):</strong> Şeffaf zeminli, en az 1000 piksel genişliğinde ve keskin kenarlı bir PNG işlenebilir. Ancak PNG'de ince detaylar, gölge, degrade ve yumuşak kenarlar zor ayrılır; logonun bir kısmı sadeleşmiş görünebilir.</p>
+<p><strong>Yüklemeye uygun olmayan dosyalar:</strong> WhatsApp'tan geçmiş ekran görüntüsü, sosyal medya profil fotoğrafı, faturadan çekilmiş logo fotoğrafı, JPEG sıkıştırması yüzünden kenarları bulanmış görseller. Bunları yüklemek yerine elinizdeki temiz kaynağı kullanın.</p>
 <h2>Logonuzu ikiye indirin: kalan şey kaşeniz olur</h2>
-<p>Gönderdiğiniz logoyu zihninizde siyah-beyaza indirin. Gri tonlar, degradeler ve gölgeler kaşede yoktur; hepsi ya dolu ya boş olur. Şu üç kontrolü yapın:</p>
-<p><strong>1. Renk ayrımına dayanan detay var mı?</strong> Lacivert zemin üstünde gri yazı gibi bir kurgu, iki renge indiğinde kaybolur. Bu tür logolarda genelde markanın sade tek renk versiyonunu kullanırız.</p>
-<p><strong>2. En ince çizgi ne kadar ince?</strong> Kaşe ölçeğinde 0,4 mm'nin altındaki çizgiler ve çok küçük puntolu alt başlıklar ("kurumsal çözümler", vergi numarası, web adresi) mürekkeple dolar ve leke gibi çıkar. Ölçüyü küçültmek yerine o satırı çıkarmak ya da büyütmek daha doğrudur.</p>
-<p><strong>3. İç boşluklar kapanıyor mu?</strong> "a", "e", "o" harflerinin gözleri ile logo içindeki dar boşluklar, mürekkep yayıldığında birbirine kaynayabilir. Sık dokulu, çok çizgili amblemlerde bu riski önceden söyleriz.</p>
-<p>Bu üç maddeyi geçen bir logo, kaşede rahat okunur.</p>
-<h2>Nasıl sipariş verilir ve dosya nasıl gönderilir</h2>
-<p>Akış basittir: logonuzu gönderirsiniz, işlenebilirliğini kontrol eder, gerekiyorsa sadeleştirme öneririz; onayınızdan sonra kaşe gövdesi ölçüye göre üretilir.</p>
-<p>Logolu ya da özel biçimli kaşede sizden istediğimiz bilgiler şunlar:</p>
+<p>Görseli zihninizde siyah-beyaza indirin. Gri tonlar, degradeler ve gölgeler kaşede yoktur; hepsi ya dolu ya boş olur. Şu üç kontrolü yapın:</p>
+<p><strong>1. Renk ayrımına dayanan detay var mı?</strong> Lacivert zemin üstünde gri yazı gibi bir kurgu, iki renge indiğinde kaybolur. Bu tür logolarda markanın sade tek renkli sürümü daha iyi sonuç verir.</p>
+<p><strong>2. En ince çizgi ne kadar ince?</strong> Kaşe ölçeğinde 0,4 mm'nin altındaki çizgiler ve çok küçük puntolu alt başlıklar mürekkeple dolar ve leke gibi çıkar. Ölçüyü küçültmek yerine o satırı çıkarmak ya da büyütmek daha doğrudur.</p>
+<p><strong>3. İç boşluklar kapanıyor mu?</strong> "a", "e", "o" harflerinin gözleri ile logo içindeki dar boşluklar, mürekkep yayıldığında birbirine kaynayabilir. Sık dokulu, çok çizgili amblemlerde bu risk daha yüksektir.</p>
+<h2>Nasıl sipariş verilir</h2>
+<p>Logolu ya da özel biçimli kaşede ürün sayfasında şunları siz seçersiniz:</p>
 <ul>
-<li><strong>İçerik türü:</strong> yalnız yazı, emoji/ikon, yazı + ikon ya da logo (SVG). Logolu seçenekte dosyayı siz gönderirsiniz.</li>
-<li><strong>Yazı satırları:</strong> firma adı, unvan, vergi dairesi ve numarası gibi satırları düz metin olarak yazın; görselden okumaya çalışmayalım.</li>
+<li><strong>İçerik türü:</strong> yalnız yazı, emoji/ikon, yazı + ikon ya da kendi logonuz.</li>
+<li><strong>Yazı satırları:</strong> firma adı, unvan, vergi dairesi ve numarası gibi satırları düz metin olarak yazın.</li>
 <li><strong>Biçim:</strong> dikdörtgen, kare veya yuvarlak.</li>
-<li><strong>Yaklaşık ölçü ve satır sayısı:</strong> gövde içeriğe göre büyür, bu yüzden kaç satır olacağı ölçüyü belirler.</li>
+<li><strong>Ölçü:</strong> gövde içeriğe göre büyür, yazı yüksekliği ile kenar payı ölçüyü belirler.</li>
 <li><strong>Çerçeve:</strong> yok, düz ya da kesikli.</li>
-<li><strong>Sap:</strong> saplı ya da sapsız. Sap ayrı parçadır, gövdeye vidalanarak takılır; istenirse sonradan değiştirilebilir.</li>
-<li><strong>Renk:</strong> standart sınıflarda farklı renk seçenekleri arasından seçersiniz.</li>
+<li><strong>Sap:</strong> saplı ya da sapsız. Sap ayrı parçadır, gövdeye vidalanarak takılır.</li>
+<li><strong>Renk:</strong> standart sınıflarda farklı renk seçenekleri arasından seçilir.</li>
 </ul>
-<p>Ürün sayfasındaki gerçek aralıklar şunlardır: yazı yüksekliği 6–14 mm (varsayılan 8 mm), kenar payı 3–10 mm (varsayılan 5 mm), yüzey kabartması 0,8–2,2 mm (varsayılan 1,4 mm) ve kaşe metni en çok 40 karakter. Biçim dikdörtgen, kare ya da yuvarlak; sap saplı ya da sapsız seçilir. Gövde ölçüsü ayrı bir alan değildir, yazı yüksekliği ile kenar payından çıkar. İhtiyacınız bu aralıkların dışındaysa — daha büyük gövde, 40 karakterden uzun metin, logo ya da özel kenar işlemi — ürün sayfası yerine WhatsApp'tan +90 545 138 6526 numarasına yazın; ölçüyü ve fiyatı belirledikten sonra siparişinizi kartla online ödeyerek tamamlarsınız. Süreç ve ürün seçenekleri için <a href="/kisiye-ozel-logolu-kase-yaptirma/">kişiye özel logolu kaşe yaptırma</a> sayfasına bakabilirsiniz.</p>
+<p>Ürün sayfasındaki gerçek aralıklar şunlardır: yazı yüksekliği 6-14 mm (varsayılan 8 mm), kenar payı 3-10 mm (varsayılan 5 mm), yüzey kabartması 0,8-2,2 mm (varsayılan 1,4 mm) ve kaşe metni en çok 40 karakter. Biçim dikdörtgen, kare ya da yuvarlak; sap saplı ya da sapsız seçilir. Gövde ölçüsü ayrı bir alan değildir, yazı yüksekliği ile kenar payından çıkar. Doğrudan ürün sayfası: <a href="/urun/olcuye-ozel-damga-kase/">ölçüye özel damga kaşe</a>. Süreç ve seçenekler için <a href="/kisiye-ozel-logolu-kase-yaptirma/">kişiye özel logolu kaşe yaptırma</a> sayfasına bakabilirsiniz.</p>
 <h2>Doğru malzeme</h2>
 <p>Kaşe gövdesi ve sapı, elde tutulan ve düzenli kullanılan bir parçadır; boyut kararlılığı ve tokluk ister. Standart kullanım için PETG uygundur: darbeye PLA'dan dayanıklıdır, ofis ve tezgâh koşullarında ölçüsünü korur.</p>
-<p>Kaşenin araç içinde, güneş gören bir vitrinde veya sıcak bir depoda kalma ihtimali varsa ASA öneririz; ısı ve güneş altında deforme olmaya karşı daha güvenlidir. Günde defalarca kullanılan kaşelerde en çok zorlanan yer sap ile gövdenin vida dişi bölgesidir; orada da PETG ya da ASA sınıfında kalırız, ikisi de ürün sayfasından seçilir. Kaşeyi naylon ya da takviyeli sınıfa çıkarmak gerekmez; ıslak mürekkeple sürekli sanayi temposu bu ürünün hedefi değildir. PLA yalnız az kullanılan, masada duran kaşelerde tercih edilir.</p>
-<p>Logo işlenecek, gövdesi ürün sayfasındaki aralıkların dışında kalacak ya da özel kenar işlemi istenen kaşelerde yazı satırlarını, biçimi, yaklaşık ölçüyü ve varsa logo dosyanızı WhatsApp'tan +90 545 138 6526 numarasına gönderin; fiyatı belirledikten sonra siparişinizi kartla online ödeyerek tamamlarsınız.</p>
-<p>Parçanın nerede duracağını söyleyin, malzemeyi biz doğru seçelim.</p>
+<p>Kaşenin araç içinde, güneş gören bir vitrinde ya da sıcak bir depoda kalma ihtimali varsa ASA önerilir; ısı ve güneş altında deforme olmaya karşı daha güvenlidir. Günde defalarca kullanılan kaşelerde en çok zorlanan yer sap ile gövdenin vida dişi bölgesidir; orada da PETG ya da ASA sınıfında kalırız, ikisi de ürün sayfasından seçilir. Kaşeyi naylon ya da takviyeli sınıfa çıkarmak gerekmez; ıslak mürekkeple sürekli sanayi temposu bu ürünün hedefi değildir. PLA yalnız az kullanılan, masada duran kaşelerde tercih edilir.</p>
 <h2>Dürüst sınır</h2>
-<p>Kaşe, üzerine ıstampa mürekkebi alan bir yüzeydir; matbaa klişesi değildir. Beklentiyi doğru kuralım:</p>
-<ul>
-<li><strong>Çok ince detay sınırlıdır.</strong> Saç teli inceliğindeki çizgiler, mikro yazılar ve fotoğraf tonlaması kaşede karşılık bulmaz. Bu yüzden sadeleştirme öneriyoruz.</li>
-<li><strong>Metal klişe, lazer gravür, kauçuk döküm gibi işleri biz yapmayız.</strong> İşiniz gerçekten kauçuk otomatik kaşe gerektiriyorsa bunu açıkça söyler, kendi çözümümüzü dayatmayız.</li>
-<li><strong>Islak mürekkeple sürekli sanayi temposu</strong> için tasarlanmış bir üründen bahsetmiyoruz; günlük ofis, atölye, muhasebe ve etkinlik kullanımı hedefimizdir.</li>
-</ul>
-<p>Aynı dosya mantığı ölçülü işaretleme gereken ürünlerde de geçerlidir; ölçü ve işaret isteyen işler için <a href="/olcuye-ozel-cetvel-mastar-sablon-uretimi/">ölçüye özel cetvel, mastar ve şablon üretimi</a> sayfası yol gösterir.</p>
+<p>Kaşe, üzerine ıstampa mürekkebi alan bir yüzeydir; matbaa klişesi değildir. Beklentiyi doğru kuralım: saç teli inceliğindeki çizgiler, mikro yazılar ve fotoğraf tonlaması kaşede karşılık bulmaz; bu yüzden logonun sadeleşmesi gerekebilir. Metal klişe, lazer gravür ve kauçuk döküm gibi işleri biz yapmayız; işiniz gerçekten kauçuk otomatik kaşe gerektiriyorsa bunu açıkça söyleriz. Islak mürekkeple sürekli sanayi temposu için tasarlanmış bir üründen bahsetmiyoruz; günlük ofis, atölye, muhasebe ve etkinlik kullanımı hedefimizdir. Aynı dosya mantığı ölçülü işaretleme gereken ürünlerde de geçerlidir; <a href="/olcuye-ozel-cetvel-mastar-sablon-uretimi/">ölçüye özel cetvel, mastar ve şablon üretimi</a> sayfası yol gösterir.</p>
 <h2>Sipariş</h2>
-<p>Logolu ya da emoji/ikonlu kaşe siparişleri WhatsApp'tan ilerler: dosyanızı ve yazı satırlarınızı <strong>+90 545 138 6526</strong> numarasına gönderin; işlenebilirliğini kontrol eder, biçimi ve ölçüyü birlikte netleştiririz, ardından siparişinizi <strong>kartla online ödeyerek</strong> tamamlarsınız. Yalnız yazıdan oluşan kaşede ise ürün sayfasına girip metin, yazı boyutu, kenar payı, kabartma derinliği, biçim ve sap seçimini yaptıktan sonra Sepete Ekle ile sepete ekler, kartla online ödersiniz.</p>
-<p>Onaylanan işler 3-5 iş gününde kargoya verilir. Fiyatın neye göre çıktığını <a href="/ozel-parca-uretimi-fiyati-nasil-belirlenir/">özel parça üretimi fiyatı nasıl belirlenir</a> sayfasında, süreye etki eden adımları <a href="/ozel-parca-kac-gunde-hazir-olur/">özel parça kaç günde hazır olur</a> sayfasında bulabilirsiniz.</p>""")
+<p>Kaşeyi siteden kartla online ödeme ile sipariş edebilirsiniz: içerik, biçim ve ölçüyü siz seçersiniz, logo dosyanızı sayfa üzerinden yüklersiniz. Onaylanan işler 3-5 iş gününde kargoya verilir. Fiyatın neye göre çıktığını <a href="/ozel-parca-uretimi-fiyati-nasil-belirlenir/">özel parça üretimi fiyatı nasıl belirlenir</a> sayfasında, süreye etki eden adımları <a href="/ozel-parca-kac-gunde-hazir-olur/">özel parça kaç günde hazır olur</a> sayfasında bulabilirsiniz. Sitede olmayan bir kalem için WhatsApp hattımız: <a href="https://wa.me/905451386526" target="_blank" rel="noopener"><strong>+90 545 138 6526</strong></a>.</p>
+"""
+
 
 
 def _kayis_profili_nasil_belirlenir_gt2_htd_t5():
@@ -2922,7 +2930,7 @@ def _tekne_kabin_dolap_mandali_yaptirma():
 
 def _titresim_sonumleyici_esnek_plastik_parca_yaptirma():
     return (
-        "<h1>Titreşim Sönümleyici Esnek Plastik Parça</h1>"
+        "<h1>Titreşim Sönümleyici: Esnek Tampon ve Ayak Seçenekleri</h1>"
         "<p>Nasıl çalışır: PRUVO kataloğunda satılan hazır kalemleri marka, model ve kategori sayfalarından bulursunuz; seçtiğiniz ürünü kartla ödeyerek sipariş verirsiniz. Sitede ölçüsü seçilen ürün ailesinde ölçüyü siz yazarsınız, parça o ölçüde hazırlanır. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Bir cihaz masa üzerinde yürüyorsa, kapak belirli devirde zırıltı yapıyorsa veya iki sert yüzey birbirine vuruyorsa daha sert parça çözüm olmayabilir. Tekrarlayan hareketi kesmek için kuvveti emen, kontrollü esneyen bir ara eleman gerekir. PRUVO kataloğunda 41.000'den fazla hazır parça var; titreşim sönümleyici ayak ve tampon türü kayıtlar <a href=\"/kategori/elektronik/\">elektronik</a> ve <a href=\"/kategori/ofis/\">ofis</a> kategorilerinde toplanır.</p>"
         "<p>Ani darbeye karşı sert ve tok parça arıyorsanız <a href=\"/darbeye-dayanikli-plastik-parca-yaptirma/\">darbeye dayanıklı plastik parça</a> sayfası daha uygundur. Buradaki hedef, tekrarlı titreşimi ve temas sesini azaltan esnek sınıftır. Aradığınız şey titreşim değil de zeminde ya da elde kaymayı önleyen bir yüzeyse <a href=\"/kaymaz-tutus-saglayan-plastik-parca-uretimi/\">kaymaz tutuş sağlayan plastik parça</a> sayfası daha doğru başlangıçtır.</p>"
@@ -2979,7 +2987,7 @@ def _oto_havalandirma_izgara_klipsi_yaptirma():
 
 def _ozel_parcaya_logo_ve_yazi_isleme():
     return (
-        "<h1>Özel Parçaya Logo ve Yazı İşleme</h1>"
+        "<h1>Parça Üzerine Yazı ve İşaretleme</h1>"
         "<p>Nasıl çalışır: sitede yazı ve logo seçeneği olan damga kaşe ve cetvel ürünlerinde yazıyı, logoyu, rengi ve ölçüyü siz seçersiniz; kartla ödeyerek sipariş verirsiniz. Katalogda olmayan bir parçaya logo ya da yazı işlemi yapmıyoruz; teklif, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Bir parçanın üzerine marka logosu, yön oku, kısa kullanım notu ya da parça kodu eklemek hem tanımayı kolaylaştırır hem montaj hatasını azaltır. Fakat ekranda net görünen her logo küçük bir yüzeyde okunmaz; ince çizgiler kaybolabilir, uzun metin sıkışabilir. PRUVO kataloğunda 41.000'den fazla hazır parça var; işaretleme yapılan ürünler katalogdaki <a href=\"/urun/olcuye-ozel-damga-kase/\">sitede ölçüsü seçilen damga kaşe</a> ve <a href=\"/urun/olcuye-ozel-cetvel/\">sitede ölçüsü seçilen cetvel</a> gibi kalemlerdir.</p>"
         "<p>Bu hizmet kaşe yaptırmakla aynı niyet değildir. Kaşe arıyorsanız <a href=\"/kisiye-ozel-logolu-kase-yaptirma/\">kişiye özel logolu kaşe</a> sayfasını kullanın. Buradaki konu, nihai parçanın kendi yüzeyindeki kalıcı işaret ve tanımlamadır; bir sertifika ya da ödül plaketinin çerçevesine ad ve tarih işlenmesi de <a href=\"/olcuye-ozel-sertifika-diploma-ve-tablo-cercevesi-uretimi/\">sertifika, diploma ve tablo çerçevesi</a> sayfasındaki örneklerden biridir.</p>"
@@ -3019,7 +3027,7 @@ def _mil_rulman_icin_olcuye_ozel_plastik_yuva():
         "<h2>sitede ölçüsü seçilen rulman seçenekleri</h2><ul><li>"
         "<strong>Ölçü:</strong> standart rulman kodu (608, 6000/6200/6900 serileri, R-serisi, flanşlı F-serisi) ya da özel iç çap · dış çap · genişlik.</li><li>"
         "<strong>Yuvarlanma elemanı:</strong> bilya, makara ya da tutmalı (dumbbell); boşluk ve tolerans dönüş yumuşaklığına göre.</li><li>"
-        "<strong>Flanş:</strong> yuvaya oturma için opsiyonel flanşlı tip.</li><li><strong>Malzeme:</strong> düşük sürtünmeli PETG, POM benzeri ya da esnek seçenek; farklı renk seçenekleri.</li></ul>"
+        "<strong>Flanş:</strong> yuvaya oturma için opsiyonel flanşlı tip.</li><li><strong>Malzeme:</strong> düşük sürtünmeli PETG, PA benzeri ya da esnek seçenek; farklı renk seçenekleri.</li></ul>"
         "<p>Rulman kodu ve yuvanın montaj ölçüsü katalog kaydında yazılıdır. Cetvel genel ölçek verir, fakat geçme çapı için kumpas gerekir. Ölçü sırasını <a href=\"/parca-olcusu-nasil-alinir-ve-gonderilir/\">parça ölçüsü alma rehberi</a> ile kontrol edebilirsiniz. Rulmanın dönmesi gereken bilezik ile gövdeye sabit kalması gereken bileziği açıkça belirtin.</p>"
         "<p>Geçme toleransı kullanım yerine göre değişir. Sıkı, kayar ve boşluklu geçme kararını görev ve prova üzerinden ayırmak için <a href=\"/plastik-parcada-gecme-toleransi-nasil-belirlenir/\">plastik parçada geçme toleransı</a> rehberine bakabilirsiniz. Çok sıkı yuva rulmanı sıkıştırabilir ya da montajda gövdeyi çatlatabilir; çok gevşek yuva ise titreşim ve eksen kaçıklığı üretir. Isı değişimi, nem ve montaj vidasının sıkma kuvveti de boşluğu etkiler. Hazır bir L ya da T mesnet çözümü gerekiyorsa <a href=\"/urun/olcuye-ozel-montaj-braketi/\">sitede ölçüsü seçilen montaj braketi</a> seçenekleri değerlendirilebilir.</p>"
         "<h2>Hizalama hatasını önleme</h2>"
@@ -3089,43 +3097,48 @@ def _olcuye_ozel_triger_kayisi_yaptirma():
 
 
 def _olcuye_ozel_kutu_bolmeli_organizer_uretimi():
-    return (u"""<h1>Ölçüye Özel Kutu ve Bölmeli Organizer Üretimi</h1>
-<p>Çekmecede, atölye rafında veya paketleme masasında kullanılan küçük parçalar standart kutuların içinde ya boşlukta dolaşır ya da birbirine karışır. Ölçüye özel kutu ve bölmeli organizer, saklanacak parçanın kapladığı gerçek hacme ve yerleştirileceği alanın sınırlarına göre hazırlanır. Ürün sayfasında iç en, iç boy, iç yükseklik, duvar kalınlığı, kapak ve bölme sayısı seçilerek tek gözlü bir kutudan çok gözlü bir düzenleyiciye kadar farklı düzenler kurulabilir.</p>
-<p>Bu ürün; vida, dübel, uç, bağlantı parçası, elektronik sarf, boncuk, hobi malzemesi, kart veya küçük yedek parça gibi nesnelerin ayrılmasına uygundur. Kablo güzergâhını düzenleyen bir kanal değildir. Kabloyu masa veya pano üzerinde yönlendirmek istiyorsanız <a href="/olcuye-ozel-kablo-kanali-organizer-uretimi/">ölçüye özel kablo kanalı ve organizer</a> çözümü farklı bir göreve hizmet eder. Buradaki amaç, belirli bir hacmi bölmelerle düzenlemek ve istenirse geçme kapakla kapatmaktır.</p>
+    return u"""<h1>Ölçüye Özel Kutu ve Bölmeli Organizer Üretimi</h1>
+<p class="lead">Saklanacak parçanın kapladığı gerçek hacme ve yerleştirileceği alanın sınırlarına göre hazırlanır.</p>
+<p>Çekmecede, atölye rafında ya da paketleme masasında kullanılan küçük parçalar standart kutuların içinde ya boşlukta dolaşır ya da birbirine karışır. Ölçüye özel kutu ve bölmeli organizer, saklanacak parçanın kapladığı gerçek hacme ve yerleştirileceği alanın sınırlarına göre hazırlanır. Ürün sayfasında iç en, iç boy, iç yükseklik, duvar kalınlığı, kapak ve bölme sayısı seçilerek tek gözlü bir kutudan çok gözlü bir düzenleyiciye kadar farklı düzenler kurulabilir.</p>
+<p>Bu ürün; vida, dübel, uç, bağlantı parçası, elektronik sarf, boncuk, hobi malzemesi, kart ya da küçük yedek parça gibi nesnelerin ayrılmasına uygundur. Kablo güzergâhını düzenleyen bir kanal değildir; kabloyu pano üzerinde yönlendirmek istiyorsanız <a href="/olcuye-ozel-kablo-kanali-organizer-uretimi/">ölçüye özel kablo kanalı ve organizer</a> çözümü farklı bir göreve hizmet eder. Buradaki amaç belirli bir hacmi bölmelerle düzenlemek ve istenirse geçme kapakla kapatmaktır.</p>
 <h2>Nasıl ölçü seçilir?</h2>
-<p>Önce kutuya girecek en büyük nesnenin en, boy ve yüksekliğini ölçün. Rahat çıkarılması gereken parçalar için parmak payını; sıkı dizilecek parçalar için üretim ve kullanım payını düşünün. Ardından kutunun yerleşeceği çekmeceyi veya rafı içten ölçün. Doğru başlangıç noktaları için <a href="/parca-olcusu-nasil-alinir-ve-gonderilir/">parça ölçüsü alma ve gönderme rehberi</a> kumpas, cetvel ve fotoğraf kullanımını açıklar. Çoklu kutular yan yana dizilecekse tek kutunun dış sınırı kadar aradaki çıkarma boşluğu da hesaba katılmalıdır.</p>
-<p>Ürün sayfasında iç en 20 ile 150 mm, iç boy 20 ile 200 mm, iç yükseklik 10 ile 100 mm arasında birer milimetre adımla seçilir. Duvar kalınlığı 1,2 ile 3 mm arasında 0,2 mm adımla ayarlanır. Kapaksız kullanım veya ayrı gelen geçme kapak tercih edilebilir. Bölme duvarı sayısı 0 ile 6 arasındadır; sıfır seçildiğinde tek hacim oluşur. Bölmeler iç boy boyunca eşit dağıtılır ve her gözün en az 15 mm kalması gerekir. Bu sınır, çok kısa bir kutuda çok fazla göz seçilmesini önler. Aralık dışı ölçü, eşit olmayan gözler veya özel bölme yönü gerekiyorsa doğrudan yapılandırmak yerine WhatsApp üzerinden özel değerlendirme isteyin.</p>
-<p>Duvar kalınlığını sadece sağlamlık beklentisiyle en yüksek değere taşımak her zaman iyi sonuç vermez; kullanılabilir iç hacim, ağırlık ve maliyet de değişir. Hafif sarflar için daha ince duvar yeterli olabilirken, sık taşınan atölye kutularında daha kalın yapı tercih edilebilir. Geçme kapağın düzenli açılıp kapanması için kutuyu yanlardan aşırı sıkıştıracak bir raf aralığı bırakmamak gerekir.</p>
-<p>Bir çekmece düzeni kurarken önce bütün alanı tek büyük kutuya ayırmak yerine, kullanım sıklığına göre birkaç ölçü planlamak daha işlevsel olabilir. Her gün kullanılan uçlar ön sırada küçük gözlerde, yedek bağlantılar arkada daha derin hacimde tutulabilir. Aynı dış yükseklikte kutular seçmek çekmecenin kapanmasını kolaylaştırır. Etiket yapıştırılacaksa düz bir dış yüz bırakın ve yazının görüleceği yönü yerleşimden önce belirleyin.</p>
+<p>Önce kutuya girecek en büyük nesnenin en, boy ve yüksekliğini siz ölçün. Rahat çıkarılması gereken parçalar için parmak payını; sıkı dizilecek parçalar için üretim ve kullanım payını düşünün. Ardından kutunun yerleşeceği çekmeceyi ya da rafı içten ölçün. Çoklu kutular yan yana dizilecekse tek kutunun dış sınırı kadar aradaki çıkarma boşluğu da hesaba katılmalıdır.</p>
+<p>Ürün sayfasında iç en 20 ile 150 mm, iç boy 20 ile 200 mm, iç yükseklik 10 ile 100 mm arasında birer milimetre adımla seçilir. Duvar kalınlığı 1,2 ile 3 mm arasında 0,2 mm adımla ayarlanır. Kapaksız kullanım ya da ayrı gelen geçme kapak tercih edilebilir. Bölme duvarı sayısı 0 ile 6 arasındadır; sıfır seçildiğinde tek hacim oluşur. Bölmeler iç boy boyunca eşit dağıtılır ve her gözün en az 15 mm kalması gerekir. Bu sınır, çok kısa bir kutuda çok fazla göz seçilmesini önler. Aralık dışı ölçü ya da eşit olmayan gözler için özel üretim açılmaz; sitedeki seçeneklerle ilerlenir.</p>
+<p>Duvar kalınlığını yalnız sağlamlık beklentisiyle en yüksek değere taşımak her zaman iyi sonuç vermez; kullanılabilir iç hacim, ağırlık ve maliyet de değişir. Hafif sarflar için daha ince duvar yeterli olabilirken, sık taşınan atölye kutularında daha kalın yapı tercih edilir. Geçme kapağın düzenli açılıp kapanması için kutuyu yanlardan aşırı sıkıştıracak bir raf aralığı bırakmamak gerekir.</p>
+<p>Bir çekmece düzeni kurarken önce bütün alanı tek büyük kutuya ayırmak yerine kullanım sıklığına göre birkaç ölçü planlamak daha işlevsel olabilir. Her gün kullanılan uçlar ön sırada küçük gözlerde, yedek bağlantılar arkada daha derin hacimde tutulabilir. Aynı dış yükseklikte kutular seçmek çekmecenin kapanmasını kolaylaştırır. Etiket yapıştırılacaksa düz bir dış yüz bırakın ve yazının görüleceği yönü yerleşimden önce belirleyin.</p>
 <p>Temizlik sırasında organizerin çekmeceden rahat çıkması için yanlarda parmak boşluğu bırakılması yararlıdır. Keskin köşeli nesneler tek bir bölme duvarına sürekli yük bindiriyorsa yerleşim yönünü değiştirin. Geçme kapaklı kutu taşınacaksa içeriğin kapağa vurmayacağı yükseklik payı verin. Bu küçük kararlar yalnız ölçünün sığmasını değil, günlük kullanımın düzenli ve tekrarlanabilir olmasını sağlar.</p>
 <h2>Doğru malzeme</h2>
-<p>İç mekânda, düşük ısı ve kuru ortamda kullanılan masaüstü düzenleyiciler için PLA boyutsal kararlılık sağlar. Darbe, nem, atölye kullanımı veya daha sık taşıma söz konusuysa PETG daha dengeli bir seçenektir. Güneş ve dış ortam etkisi varsa ASA değerlendirilir. TPU esnek bir malzemedir; rijit duvar ve düzgün çalışan geçme kapak beklenen klasik organizer gövdesinde ilk tercih değildir. Malzeme seçimini kutunun içine konacak nesne kadar, düşme riski, temizlik yöntemi ve ortam koşulu belirlemelidir.</p>
-<p>Paketleme masasında kullanılan kutular, makinenin kendi hareketli yedek parçasıyla karıştırılmamalıdır. Masadaki sarf düzenini bu organizerle kurabilir; aşınmış bir kılavuz, tutucu veya sensör braketi için <a href="/paketleme-makinesi-plastik-yedek-parca-yaptirma/">paketleme makinesi plastik yedek parça</a> değerlendirmesine geçebilirsiniz. Böylece saklama çözümü ile makine üzerinde çalışan parça için gereken malzeme ve tolerans ayrı ele alınır.</p>
+<p>İç mekânda, düşük ısı ve kuru ortamda kullanılan masaüstü düzenleyiciler için PLA boyutsal kararlılık sağlar. Darbe, nem, atölye kullanımı ya da daha sık taşıma söz konusuysa PETG daha dengeli bir seçenektir. Güneş ve dış ortam etkisi varsa ASA değerlendirilir. TPU esnek bir malzemedir; rijit duvar ve düzgün çalışan geçme kapak beklenen klasik organizer gövdesinde ilk tercih değildir. Malzeme seçimini kutunun içine konacak nesne kadar, düşme riski, temizlik yöntemi ve ortam koşulu belirlemelidir.</p>
+<p>Paketleme masasında kullanılan kutular, makinenin kendi hareketli yedek parçasıyla karıştırılmamalıdır. Masadaki sarf düzenini bu organizerle kurabilir; aşınmış bir kılavuz, tutucu ya da sensör braketi için <a href="/paketleme-makinesi-plastik-yedek-parca-yaptirma/">paketleme makinesi plastik yedek parça</a> değerlendirmesine geçebilirsiniz. Böylece saklama çözümü ile makine üzerinde çalışan parça için gereken malzeme ve tolerans ayrı ele alınır.</p>
 <h2>Dürüst sınır</h2>
-<p>Bu kutu ağır yük taşıyan kasa, kilitli güvenlik kabı, sızdırmaz sıvı haznesi veya sertifikalı koruma kutusu değildir. Geçme kapak günlük saklama ve düzenleme içindir; basınç, su geçirmezlik ya da çocuk güvenliği kilidi iddiası taşımaz. Keskin, çok ağır veya tehlikeli maddeler için kullanım yeri ayrıca değerlendirilmelidir. Kimyasal saklanacaksa yalnız kabın ölçüsüne bakmak yeterli olmaz; maddenin türü, yoğunluğu ve temas süresi bilinmeden uyumluluk sözü verilmez.</p>
-<p>Bölmeler eşit paylaştırıldığı için her gözü farklı ölçüde isteyen düzenler standart ürün akışının dışındadır. Benzer şekilde menteşeli kapak, conta kanalı, özel mandal veya üst üste kilitlenen modüler geometri ürün sayfasındaki seçenekler arasında değildir. Bu talepler fotoğraf ve ölçüyle ayrıca değerlendirilir. Üst üste istiflenen ve birbirine kilitlenen bir düzen istiyorsanız o iş ölçüye özel ayrı bir üretim olarak ele alınır; ayrıntısı <a href="/moduler-saklama-kabi-pod-sistemi-uretimi/">çok parçalı modüler saklama kabı (pod sistemi)</a> sayfasındadır. Üretim hacmi arttıkça malzeme tüketimi ve süre değişir; fiyatı etkileyen başlıkları <a href="/ozel-parca-uretimi-fiyati-nasil-belirlenir/">özel parça üretimi fiyat rehberinde</a> görebilirsiniz.</p>
+<p>Bu kutu ağır yük taşıyan kasa, kilitli güvenlik kabı, sızdırmaz sıvı haznesi ya da sertifikalı koruma kutusu değildir. Geçme kapak günlük saklama ve düzenleme içindir; basınç, su geçirmezlik ya da çocuk güvenliği kilidi iddiası taşımaz. Keskin, çok ağır ya da tehlikeli maddeler için kullanım yeri ayrıca değerlendirilmelidir. Kimyasal saklanacaksa yalnız kabın ölçüsüne bakmak yeterli olmaz; maddenin türü, yoğunluğu ve temas süresi bilinmeden uyumluluk sözü verilmez.</p>
+<p>Bölmeler eşit paylaştırıldığı için her gözü farklı ölçüde isteyen düzenler standart ürün akışının dışındadır. Benzer şekilde menteşeli kapak, conta kanalı, özel mandal ya da üst üste kilitlenen modüler geometri ürün sayfasındaki seçenekler arasında değildir. Üst üste istiflenen ve birbirine kilitlenen bir düzen istiyorsanız o iş ölçüye özel ayrı bir üretim olarak ele alınır; ayrıntısı <a href="/moduler-saklama-kabi-pod-sistemi-uretimi/">çok parçalı modüler saklama kabı (pod sistemi)</a> sayfasındadır. Üretim hacmi arttıkça malzeme tüketimi ve süre değişir; fiyatı etkileyen başlıkları <a href="/ozel-parca-uretimi-fiyati-nasil-belirlenir/">özel parça üretimi fiyat rehberinde</a> görebilirsiniz.</p>
 <h2>Sipariş</h2>
-<p>Ürün sayfasında iç en, iç boy ve iç yüksekliği girin; duvar kalınlığını, kapak tipini ve bölme sayısını seçin. Ardından malzeme ile renk seçimini tamamlayıp Sepete Ekle düğmesini kullanın ve kartla online ödeme yapın. Sitedeki aralığın dışında kalan ölçüler veya eşit olmayan özel bölmeler için +90 545 138 6526 numaralı WhatsApp hattına yerleşim alanının fotoğrafını, iç ve dış sınırları, saklanacak nesneleri ve adet bilgisini gönderin. Yapılabilirlik ve fiyat netleştikten sonra kartla online ödeme yapılır. Onaylanan ürün 3-5 iş gününde kargoya verilir. Farklı renk seçenekleri arasından çalışma alanınıza uygun görünümü seçebilirsiniz.</p>""")
+<p>Ürün sayfasında iç en, iç boy ve iç yüksekliği girin; duvar kalınlığını, kapak tipini ve bölme sayısını seçin. Ardından malzeme ile renk seçimini tamamlayıp Sepete Ekle düğmesini kullanın ve kartla online ödeme yapın. Onaylanan ürün 3-5 iş gününde kargoya verilir. Farklı renk seçenekleri arasından çalışma alanınıza uygun görünümü seçebilirsiniz. Sitede olmayan bir kalem için WhatsApp hattımız: <a href="https://wa.me/905451386526" target="_blank" rel="noopener"><strong>+90 545 138 6526</strong></a>.</p>
+"""
+
 
 
 def _kisiye_ozel_jeton_cip_madalyon_yaptirma():
-    return (u"""<h1>Kişiye Özel Yazılı Jeton, Çip ve Madalyon</h1>
-<p>Bir oyun setindeki değerleri ayırmak, etkinlikte kullanım hakkını göstermek, turnuva için hatıra hazırlamak veya isimli küçük bir ödül oluşturmak gerektiğinde standart jetonlar yeterli olmayabilir. Kişiye özel jeton, çip ve madalyon ürününde çapı, kalınlığı, işlenecek yüz sayısını, yazı biçimini ve kenar görünümünü ürün sayfasından seçebilirsiniz. Kısa bir isim, sayı, tarih ya da değer yüzeye işlenir; tek bir hatıra parçasından farklı değerlere sahip bir sete kadar düzenli bir görünüm kurulabilir.</p>
-<p>Ürün doğrudan jeton, oyun çipi ve dekoratif madalyon niyetine yöneliktir. Başka bir parçanın yüzüne marka, uyarı veya tanımlama eklemek istiyorsanız <a href="/ozel-parcaya-logo-ve-yazi-isleme/">özel parçaya logo ve yazı işleme</a> rehberi daha geniş uygulamaları anlatır. Jetondaki içerik kısa ve okunaklı tutulduğunda yüz dengesi korunur; çok uzun metin, küçük çapta harflerin sıkışmasına ve okunabilirliğin düşmesine yol açabilir.</p>
+    return u"""<h1>Kişiye Özel Yazılı Jeton, Çip ve Madalyon</h1>
+<p class="lead">Çap, kalınlık, işlenecek yüz sayısı, yazı biçimi ve kenar görünümü ürün sayfasından seçilir.</p>
+<p>Nasıl çalışır: jeton, oyun çipi ve madalyon sitede satılan ürünlerdir. Ürün sayfasında çapı, kalınlığı, yüz sayısını, yazı stilini ve kenar desenini siz seçersiniz; kısa bir isim, sayı, tarih ya da değer yüzeye işlenir. Sepete ekleyip kartla online ödersiniz, hazır parça basılıp kargolanır. Katalogdaki doğrudan ürün: <a href="/urun/kisiye-ozel-jeton-cip-madalyon/">kişiye özel jeton, çip ve madalyon</a>.</p>
+<p>Ürün doğrudan jeton, oyun çipi ve dekoratif madalyon niyetine yöneliktir. Başka bir parçanın yüzüne marka, uyarı veya tanımlama eklemek istiyorsanız <a href="/ozel-parcaya-logo-ve-yazi-isleme/">özel parçaya logo ve yazı işleme</a> rehberi daha geniş uygulamaları anlatır. Jeton yüzündeki içerik kısa ve okunaklı tutulduğunda yüz dengesi korunur; çok uzun metin, küçük çapta harflerin sıkışmasına ve okunabilirliğin düşmesine yol açabilir.</p>
 <h2>Nasıl yapılandırılır?</h2>
-<p>Ürün sayfasında çap 20 ile 80 mm arasında birer milimetre adımla seçilir. Kalınlık 2,5 ile 8 mm arasında 0,1 mm adımla ayarlanabilir. Yazı gömme, oyma veya kabartma görünümünde işlenir. Yalnız ön yüz ya da iki yüz birden seçilebilir; kenar düz veya segmentli olabilir. Yüz yazısı en çok 20 karakter kabul eder. Bu alan kısa bir değer, isim veya tarih için uygundur. Çift yüz seçildiğinde aynı kısa içerik iki yüze uygulanır; iki yüzde farklı içerik için WhatsApp'tan özel değerlendirme isteyin.</p>
-<p>Segmentli kenar oyun çipi görünümünü güçlendirirken düz kenar daha sade bir madalyon veya işletme jetonu oluşturur. Çap büyüdükçe yazı için alan artar; fakat elde kullanım, kutuya sığma ve set hacmi de değişir. Kalınlık arttığında parça daha tok hissedilir, toplam ağırlık ve maliyet yükselir. Bir set hazırlarken bütün değerlerde aynı çap ve kalınlığı korumak, yalnız yazı ile rengi değiştirmek ayırt etmeyi kolaylaştırır. Sitedeki aralığın dışında ölçü veya yapılandırıcıda bulunmayan bir grafik gerekiyorsa talebi WhatsApp üzerinden fotoğraf ve dosyayla özel değerlendirmeye gönderebilirsiniz.</p>
-<p>Set oluştururken önce değer listesini tek tabloda netleştirin. Örneğin beş farklı oyun değeri varsa her değer için adet, yüz yazısı, renk ve kenar seçimini ayrı satırda belirtin. Ön yüzde sayı, arka yüzde etkinlik adı istenecekse bütün satırlarda aynı yönü koruyun. Tarih kullanılacaksa gün, ay ve yıl yazımını set boyunca değiştirmeyin. Bu hazırlık, benzer jetonların yanlış gruba ayrılmasını ve sipariş sırasında içerik karışmasını önler.</p>
-<p>Madalyon amacıyla kullanılacak parçada taşıma deliği veya boyun bağı bağlantısı ürün sayfasındaki standart seçeneklerden biri değildir. Böyle bir özellik gerekiyorsa deliğin çapı, kenardan uzaklığı ve kullanılacak bağın kalınlığı özel talepte belirtilmelidir. Jetonların bir kutuya veya hazır tepsiye oturması gerekiyorsa yalnız çapı değil, kalınlığı ve çıkarma payını da ölçün. Kenar deseninin tepsiye sürtmemesi için küçük bir boşluk bırakılması günlük kullanımı kolaylaştırır.</p>
-<p>Logo gibi çizgisel bir içerik düşünülüyorsa ayrıntının küçük ölçekte nasıl sadeleşeceği önemlidir. <a href="/kaseye-islenecek-logo-dosyasi-nasil-hazirlanir/">logo dosyası hazırlama rehberindeki</a> yüksek kontrast, temiz kontur ve gereksiz ayrıntıyı azaltma ilkeleri küçük jeton yüzeyinde de işe yarar. Bununla birlikte ürün sayfasındaki doğrudan alan kısa yazı içindir; özel logo, sembol veya karmaşık iki yüz düzeni yapılandırıcı dışı talep olarak ayrıca incelenir.</p>
+<p>Ürün sayfasında çap 20 ile 80 mm arasında birer milimetre adımla seçilir. Kalınlık 2,5 ile 8 mm arasında 0,1 mm adımla ayarlanabilir. Yazı gömme, oyma ya da kabartma görünümünde işlenir. Yalnız ön yüz ya da iki yüz birden seçilebilir; kenar düz veya segmentli olabilir. Yüz yazısı en çok 20 karakter kabul eder; bu alan kısa bir değer, isim veya tarih için uygundur. Çift yüz seçildiğinde aynı kısa içerik iki yüze uygulanır. Yapılandırıcıda bulunmayan bir özellik için özel üretim açılmaz.</p>
+<p>Segmentli kenar oyun çipi görünümünü güçlendirirken düz kenar daha sade bir madalyon ya da işletme jetonu oluşturur. Çap büyüdükçe yazı için alan artar; fakat elde kullanım, kutuya sığma ve set hacmi de değişir. Kalınlık arttığında parça daha tok hissedilir, toplam ağırlık ve maliyet yükselir. Bir set hazırlarken bütün değerlerde aynı çap ve kalınlığı korumak, yalnız yazı ile rengi değiştirmek ayırt etmeyi kolaylaştırır.</p>
+<p>Set oluştururken önce değer listesini tek tabloda netleştirin. Beş farklı oyun değeri varsa her değer için adet, yüz yazısı, renk ve kenar seçimini ayrı satırda belirtin. Ön yüzde sayı, arka yüzde etkinlik adı istenecekse bütün satırlarda aynı yönü koruyun. Tarih kullanılacaksa gün, ay ve yıl yazımını set boyunca değiştirmeyin. Bu hazırlık, benzer jetonların yanlış gruba ayrılmasını ve sipariş sırasında içerik karışmasını önler.</p>
+<p>Madalyon amacıyla kullanılacak parçada taşıma deliği ya da boyun bağı bağlantısı ürün sayfasındaki standart seçeneklerden biri değildir. Jetonların bir kutuya ya da hazır tepsiye oturması gerekiyorsa yalnız çapı değil, kalınlığı ve çıkarma payını da hesaba katın; kenar deseninin tepsiye sürtmemesi için küçük bir boşluk bırakılması günlük kullanımı kolaylaştırır. Logo gibi çizgisel bir içerik düşünülüyorsa <a href="/kaseye-islenecek-logo-dosyasi-nasil-hazirlanir/">logo dosyası hazırlama rehberindeki</a> yüksek kontrast, temiz kontur ve gereksiz ayrıntıyı azaltma ilkeleri küçük jeton yüzeyinde de işe yarar.</p>
 <h2>Doğru malzeme</h2>
-<p>İç mekânda oyun ve hatıra amacıyla kullanılacak jetonlarda PLA net yüzey ve boyutsal kararlılık sağlar. Daha sık elde dolaşan, düşme ve neme maruz kalan setlerde PETG değerlendirilebilir. Açık hava etkinliği veya güneş etkisi varsa ASA daha uygun olabilir. TPU esnek bir seçenektir; tok ve rijit oyun çipi hissi aranan kullanımda ilk tercih değildir, ancak yumuşak temas istenen özel bir uygulamada düşünülebilir. Malzeme ile renk ürün sayfasında seçilir; farklı renk seçenekleri değer gruplarını ayırmak için kullanılabilir.</p>
-<p>Renk ayrımını yalnız görsel tercihe bırakmayın. Birden fazla değer varsa sayı, kısa etiket ve kenar görünümü birlikte farklılaştırılmalıdır. Böylece benzer ışıkta veya renk algısı farklı kullanıcılar için de set daha anlaşılır olur. Adet, çap, kalınlık ve yüz sayısı fiyatı etkiler. Set bütçesini planlarken <a href="/ozel-parca-uretimi-fiyati-nasil-belirlenir/">özel parça üretimi fiyatının nasıl belirlendiğini</a> anlatan rehber genel maliyet bileşenlerini açıklar.</p>
+<p>İç mekânda oyun ve hatıra amacıyla kullanılacak jetonlarda PLA net yüzey ve boyutsal kararlılık sağlar. Daha sık elde dolaşan, düşme ve neme maruz kalan setlerde PETG değerlendirilebilir. Açık hava etkinliği veya güneş etkisi varsa ASA daha uygun olabilir. TPU esnek bir seçenektir; tok ve rijit oyun çipi hissi aranan kullanımda ilk tercih değildir, ancak yumuşak temas istenen bir uygulamada düşünülebilir. Malzeme ile renk ürün sayfasında seçilir; farklı renk seçenekleri değer gruplarını ayırmak için kullanılabilir.</p>
+<p>Renk ayrımını yalnız görsel tercihe bırakmayın. Birden fazla değer varsa sayı, kısa etiket ve kenar görünümü birlikte farklılaştırılmalıdır; böylece benzer ışıkta ya da farklı renk algısına sahip kullanıcılar için set daha anlaşılır olur. Adet, çap, kalınlık ve yüz sayısı fiyatı etkiler; set bütçenizi planlarken <a href="/ozel-parca-uretimi-fiyati-nasil-belirlenir/">özel parça üretimi fiyatının nasıl belirlendiğini</a> anlatan rehber genel maliyet bileşenlerini açıklar.</p>
 <h2>Dürüst sınır</h2>
-<p>Bu ürün resmî para, kimlik, ruhsat, sertifika, mühür veya yetki belgesi yerine geçmez. Kamu kurumlarına ait işaretleri, başkasının markasını ya da kullanıcıyı yanıltabilecek değer ve ibareleri yetkisiz biçimde çoğaltmayız. Etkinlik jetonu yalnız düzenleyenin kendi kullanım kuralını temsil eder; parasal değer, resmî doğrulama veya güvenlik özelliği taşıdığı iddia edilmemelidir. Çocukların kullanacağı küçük çaplı parçalar yutma riski nedeniyle yetişkin gözetimi gerektirir.</p>
-<p>Jeton yüzündeki ince ayrıntı büyüklüğe bağlıdır. Küçük çapta çok uzun metin veya karmaşık şekil okunaklı çıkmayabilir; bu durumda içerik sadeleştirilir. Kişiye özel kaşe arıyorsanız <a href="/kisiye-ozel-logolu-kase-yaptirma/">logolu kaşe yaptırma</a> ayrı bir kullanım ve ürün akışıdır; jeton damga işlevi görmek üzere tasarlanmaz.</p>
+<p>Bu ürün resmî para, kimlik, ruhsat, sertifika, mühür ya da yetki belgesi yerine geçmez. Kamu kurumlarına ait işaretleri, başkasının markasını ya da kullanıcıyı yanıltabilecek değer ve ibareleri yetkisiz biçimde çoğaltmayız. Etkinlik jetonu yalnız düzenleyenin kendi kullanım kuralını temsil eder; parasal değer, resmî doğrulama ya da güvenlik özelliği taşıdığı iddia edilmemelidir. Çocukların kullanacağı küçük çaplı parçalar yutma riski nedeniyle yetişkin gözetimi gerektirir.</p>
+<p>Jeton yüzündeki ince ayrıntı büyüklüğe bağlıdır. Küçük çapta çok uzun metin ya da karmaşık şekil okunaklı çıkmayabilir; bu durumda içerik sadeleştirilir. Kişiye özel kaşe arıyorsanız <a href="/kisiye-ozel-logolu-kase-yaptirma/">logolu kaşe yaptırma</a> ayrı bir kullanım ve ürün akışıdır; jeton damga işlevi görmek üzere tasarlanmaz.</p>
 <h2>Sipariş</h2>
-<p>Ürün sayfasında çapı, kalınlığı, yazı stilini, tek veya çift yüzü ve kenar desenini seçin. Yüz yazısını en fazla 20 karakter olacak şekilde girin; ardından malzeme ile renk tercihini tamamlayın. Sepete Ekle düğmesiyle ürünü sepetinize alın ve kartla online ödeme yapın. Yapılandırıcıda olmayan logo, özel sembol veya farklı yüz kompozisyonu için +90 545 138 6526 numaralı WhatsApp hattına kullanım amacını, adet bilgisini, ölçüyü ve görsel dosyayı gönderin. Uygunluk ve fiyat netleştikten sonra kartla online ödeme yapılır. Onaylanan ürün 3-5 iş gününde kargoya verilir.</p>""")
+<p>Ürün sayfasında çapı, kalınlığı, yazı stilini, tek veya çift yüzü ve kenar desenini seçin. Yüz yazısını en fazla 20 karakter olacak şekilde girin; ardından malzeme ile renk tercihini tamamlayın. Sepete Ekle düğmesiyle ürünü sepetinize alın ve kartla online ödeme yapın. Onaylanan ürün 3-5 iş gününde kargoya verilir. Sitede olmayan bir kalem için WhatsApp hattımız: <a href="https://wa.me/905451386526" target="_blank" rel="noopener"><strong>+90 545 138 6526</strong></a>.</p>
+"""
+
 
 
 def _olcuye_ozel_vidali_kavanoz_ve_kor_tapa():
@@ -3159,7 +3172,7 @@ def _olcuye_ozel_vidali_kavanoz_ve_kor_tapa():
 
 def _araba_guneslik_klipsi_yaptirma():
     return (
-        "<h1>Kırık Araba Güneşlik Klipsi Parçası Nereden Bulunur</h1>"
+        "<h1>Araba Güneşlik Klipsi Parçası Nereden Bulunur</h1>"
         "<p>Nasıl çalışır: güneşlik klipsi sitede satılan hazır bir parçadır; marka-model sayfasından aracınıza uyan kaydı bulursunuz, ürün sayfasından malzeme ve rengi seçer, kartla ödeyerek sipariş verirsiniz. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Araba güneşlik klipsi küçük görünür; fakat güneşliğin tavanda sabit durmasını, gerektiğinde kolayca ayrılıp dönebilmesini sağlayan geometrisi oldukça özeldir. Kanca ağzı, bağlantı ayağı, pim yuvası ve sağ-sol yönü araçtan araca değişebilir. PRUVO kataloğunda 41.000'den fazla hazır parça var; güneşlik tutucular marka-model uyumu belirtilmiş kayıtlar hâlinde katalogda yer alır.</p>"
         "<p>Bu sayfa genel <a href=\"/oto-ic-trim-klips-parca-uretimi/\">oto iç trim klipsi üretimi</a> kapsamından farklı olarak yalnız güneşlik tutucu klipsi, vizör ayağı ve ilgili bağlantı geometrisini ele alır. Özellikle eski araçlarda aynı model adının farklı kasa, üretim yılı ya da tavan döşemesi sürümleri bulunabilir; bu yüzden marka ve model bilgisi başlangıçtır, kesin uyum için parçanın yuvası da görülmelidir.</p>"
@@ -3351,16 +3364,22 @@ def _kablo_gecis_burcu_gerilim_alici_yaptirma():
 
 
 def _olcuye_ozel_zincir_dislisi_uretimi():
-    return (u"""<h1>Ölçüye Özel Zincir Dişlisi Üretimi</h1>
-<p>Bir zincir dişlisinin dişleri, üzerinde koşacağı zincirin adımına birebir kilitlenir; bu yüzden aslında tek başına dişli değil, zincirle dişlinin birlikte oluşturduğu geometri üretilir. 06B, 08B ya da 3/8" gibi yaygın adımlarda çalışan bir düzenekte tek bir dişli aşınıp diş kaçırmaya yöneldiğinde, piyasada çoğu zaman aynı diş sayısı, aynı mil çapı ve aynı göbekle birebir örtüşen bir karşılık bulunmaz. PRUVO'da zincirin adımını, diş sayısını, mil deliği çapını ve göbek ölçüsünü ürün sayfasında girerek ölçüye özel zincir dişlisi yaptırabilirsiniz — en yakın standart değere zorlanan bir uyarlama değil, kendi düzeneğinizin gerçek ölçülerine göre çıkmış bir parça alırsınız. Bu tür özel dişliler çoğunlukla hafif konveyör hatlarında, hobi ve masaüstü makinelerde ve bir mekanizmanın ince ayar düzeneğinde işe yarar. Pedal torkunu aktaran bisiklet aynakolu ve kaset dişlileri bu kapsamın dışındadır; orada üreticinin belirlediği metal parça kullanılmalıdır. Zincirin gövdeye sıçramasını engelleyen muhafazayı ve jant tellerini örten siperi ise <a href="/bisiklet-zincir-koruma-jant-teli-koruyucu-uretimi/">bisiklet zincir koruma ve tel koruyucu üretimi</a> sayfasında ele alıyoruz. Zincire güç aktaran dişli değil de zincirin üzerinde sürttüğü aşınan kayar yüzey söz konusuysa, o parçayı <a href="/olcuye-ozel-plastik-zincir-kilavuzu-kizagi-uretimi/">ölçüye özel plastik zincir kılavuzu ve kayar kızak</a> olarak ayrı üretiriz. Ölçü sizden gelir, üretim bizde tamamlanır.</p>
-<h2>Nasıl ölçü alınır ve seçim yapılır?</h2>
-<p>Doğru bir zincir dişlisi için ilk belirlenecek değer zincirin adımıdır: iki komşu pim merkezi arasındaki mesafe. 06B tipinde bu yaklaşık 9,525 mm (3/8"), 08B tipinde 12,7 mm (1/2") gibi standart değerlere oturur ve dişin profilini doğrudan tayin eder. Adımı netleştirdikten sonra ürün sayfasında diş sayısını girin; pratikte küçük dişliler tek haneli değil, çoğunlukla 9-10 dişten yürüyen düzenekte 60'a varan bir aralıkta seçilir. Bu değer hem aktarma oranınızı hem dişlinin dış çapını belirleyen ana parametredir; bu yüzden özel diş sayılı zincir dişlisi ihtiyacında ilk kesinleştirilecek şey budur. Ardından mil deliği çapını, gerekiyorsa kama kanalı (kamalı yuva) ölçüsünü ve göbek kalınlığını tanımlayın; göbek, dişlinin mile oturan et kalınlığıdır ve zincirin tek sıra mı yoksa çift sıra mı olduğuna göre genişliği değişir. Dış çapı ayrıca ölçmenize gerek yoktur; adım ile diş sayısı doğru girildiğinde dişlinin dış çapı ve diş taban profili bu iki değerden hesaplanır, böylece ölçüleriniz kendi içinde tutarlı bir geometriye oturur. Elinizde sökülmüş eski dişli varsa çoğu değer mevcut dişliden okunur: diş sayısı sayılarak, mil deliği ve göbek bir kumpasla ölçülerek netleşir; diş profili belirsizse zincirin bir parçasını da ölçmek adımı doğrular. Aynı ölçüde birden çok yedek gerekiyorsa, bir kez doğru tanımlanan değerlerle birbirinin aynı parçaları tutarlı biçimde çoğaltmak mümkündür. Aynı düzenekte farklı bir dişli tipi de yenilenecekse, temel diş hesabı için <a href="/kirik-dislinin-modulu-nasil-bulunur/">kırık dişlinin modülü nasıl bulunur</a> rehberindeki ölçüm sırası yol gösterir. Zincir dişlisiyle aynı mantıkta çalışan düz dişli çözümleri içinse <a href="/olcuye-ozel-plastik-disli-uretimi/">ölçüye özel plastik dişli üretimi</a> sayfasındaki adım ve diş kontrollerini birlikte değerlendirebilirsiniz. Sitedeki aralığın dışında bir ölçü gerekiyorsa parçayı rastgele en yakın değere itmeyin; fotoğraf, ölçü ve kullanım bilgisini WhatsApp üzerinden gönderip özel değerlendirme isteyin.</p>
+    return u"""<h1>Zincir Dişlisi Seçimi: Adım, Diş Sayısı ve Mil Çapı</h1>
+<p class="lead">Zincir adımı, diş sayısı, mil deliği ve göbek ölçüsü ürün sayfasında girilir; parça kendi düzeneğinizin ölçülerine göre çıkar.</p>
+<p>Bir zincir dişlisinin dişleri, üzerinde koşacağı zincirin adımına birebir kilitlenir; bu yüzden aslında tek başına dişli değil, zincirle dişlinin birlikte oluşturduğu geometri üretilir. 06B, 08B ya da 3/8" gibi yaygın adımlarda çalışan bir düzenekte diş sayısı, mil çapı ve göbek ölçüsü birlikte seçilir. Sitede satılan zincir dişlisi ürün sayfasında bu değerleri siz girdiğiniz için parça kendi düzeneğinizin değerlerine göre basılır; en yakın standart değere zorlanmaz. Bu dişliler çoğunlukla hafif konveyör hatlarında, hobi ve masaüstü makinelerde ve bir mekanizmanın ince ayar düzeneğinde işe yarar. Doğrudan ürün sayfası: <a href="/urun/bisiklet-disk-uyumlu-zincir-dislisi-parametrik/">disk frenli göbek uyumlu zincir dişlisi (parametrik)</a>.</p>
+<p>Pedal torkunu aktaran bisiklet aynakolu ve kaset dişlileri bu kapsamın dışındadır; orada üreticinin belirlediği metal parça kullanılmalıdır. Zincirin gövdeye sıçramasını engelleyen muhafazayı ve jant tellerini örten siperi ise <a href="/bisiklet-zincir-koruma-jant-teli-koruyucu-uretimi/">bisiklet zincir koruma ve tel koruyucu üretimi</a> sayfasında ele alıyoruz. Zincire güç aktaran dişli değil de zincirin üzerinde sürttüğü aşınan kayar yüzey söz konusuysa, o parça <a href="/olcuye-ozel-plastik-zincir-kilavuzu-kizagi-uretimi/">plastik zincir kılavuzu ve kayar kızak</a> ailesinde yer alır.</p>
+<h2>Nasıl ölçü seçilir?</h2>
+<p>Doğru bir zincir dişlisi için ilk belirlenecek değer zincirin adımıdır: iki komşu pim merkezi arasındaki mesafe. 06B tipinde bu yaklaşık 9,525 mm (3/8"), 08B tipinde 12,7 mm (1/2") gibi standart değerlere oturur ve dişin profilini doğrudan tayin eder. Adımı netleştirdikten sonra ürün sayfasında diş sayısını girin; pratikte küçük dişliler tek haneli değil, çoğunlukla 9-10 dişten yürüyen düzenekte 60'a varan bir aralıkta seçilir. Bu değer hem aktarma oranınızı hem dişlinin dış çapını belirleyen ana parametredir. Ardından mil deliği çapını, gerekiyorsa kama kanalı (kamalı yuva) ölçüsünü ve göbek kalınlığını tanımlayın; göbek, dişlinin mile oturan et kalınlığıdır ve zincirin tek sıra mı çift sıra mı olduğuna göre genişliği değişir.</p>
+<p>Dış çapı ayrı bir alan değildir; adım ile diş sayısı birlikte verildiğinde parça kendi içinde tutarlı bir geometriye oturur. Bu değerleri kendi düzeneğinize göre siz yazarsınız: zincirin adımı zincirin pim merkezleri arasındaki mesafeden, diş sayısı dişlerin sayılmasından belirlenir. Aynı ölçüde birden çok yedek gerekiyorsa bir kez doğru tanımlanan değerlerle parçaları tutarlı biçimde çoğaltmak mümkündür. Zincir dişlisiyle aynı mantıkta çalışan düz dişli çözümleri için <a href="/olcuye-ozel-plastik-disli-uretimi/">plastik dişli</a> sayfasındaki adım ve diş kontrollerini birlikte değerlendirebilirsiniz.</p>
 <h2>Doğru malzeme</h2>
-<p>Zincir dişlisi seçiminde malzeme, dayanımı belirleyen asıl unsurdur. Sıradan PLA bu iş için uygun değildir; ısıya ve sürtünmeye karşı zayıf kalır. Zincir dişinde sürekli bir sürtünme ve tekrarlı temas olduğundan, malzemenin aşınma direnci en az mukavemeti kadar belirleyicidir; yanlış malzeme, parça kırılmadan da dişleri erken yuvarlatarak zinciri kaçırır. Isıya ve neme dayanıklı ortamlar için PETG, dış koşullara ve UV etkisine karşı ASA daha doğru seçeneklerdir. Yükün ve titreşimin daha belirgin olduğu düzeneklerde ise karbon ya da cam fiber takviyeli PA-CF / PA-GF malzemeler, boyutsal kararlılık ve mukavemet açısından öne çıkar; bu takviyeli seçenekler sitede doğrudan seçilemediği için ihtiyacınızı WhatsApp üzerinden iletmeniz gerekir. Malzeme ve renk seçimini ürün sayfasında yapabilirsiniz; farklı renk seçenekleri mevcuttur. Aynı aktarma hattında bir kasnak da yenilenecekse, kanal ve göbek ölçülerini <a href="/kasnak-olcuye-ozel-uretim/">kasnak ölçüye özel üretim</a> sayfasındaki parametrelerle birlikte planlamak, iki parçanın uyumunu en baştan güvence altına alır.</p>
+<p>Zincir dişlisi seçiminde malzeme, dayanımı belirleyen asıl unsurdur. Sıradan PLA bu iş için uygun değildir; ısıya ve sürtünmeye karşı zayıf kalır. Zincir dişinde sürekli bir sürtünme ve tekrarlı temas olduğundan malzemenin aşınma direnci en az mukavemeti kadar belirleyicidir; yanlış malzeme parça kırılmadan da dişleri erken yuvarlatarak zinciri kaçırır. Isıya ve neme dayanıklı ortamlar için PETG, dış koşullara ve UV etkisine karşı ASA daha doğru seçeneklerdir. Yükün ve titreşimin daha belirgin olduğu düzeneklerde ise karbon ya da cam fiber takviyeli PA-CF / PA-GF malzemeler boyutsal kararlılık ve mukavemet açısından öne çıkar; bu takviyeli seçenekler sitede doğrudan seçilemez ve sitede bulunmayan bir malzeme sınıfı için özel üretim açılmaz. Malzeme ve renk seçimini ürün sayfasında yapabilirsiniz. Aynı aktarma hattında bir kasnak da yenilenecekse kanal ve göbek değerlerini aynı anda planlamak, iki parçanın uyumunu en baştan güvence altına alır.</p>
 <h2>Dürüst sınır</h2>
-<p>Bu noktada net konuşmak güven verir. Zincir gerginliği altında sürekli çekiş aktaran bir dişli, çoğu zaman yük-kritik bir parçadır. Özel üretim zincir dişlisi; masaüstü mekanizmalar, hafif otomasyon düzenekleri, konveyör denemeleri, hobi makineleri ve bir ayar düzeneğindeki hafif hareket aktarımı gibi düşük ya da orta yüklü, düşük devirli işler için düşünülmelidir. Yüksek tork, yüksek devir veya kesintisiz ağır çekiş gerektiren motor ve ana aktarma uygulamalarında plastik bir dişlinin metal muadilinin yerini tutacağını söylemeyiz; böyle bir yük vaadi vermeyiz. Plastiğin bir ısı tavanı vardır — yaklaşık 90-100 °C üzerindeki ortamlar malzeme seçimini sınırlar. Talaşlı imalat, döküm ya da metal işleme yapmıyoruz; işimiz, parçanızı çalışacağı koşula göre doğru plastikle, doğru ölçüde üretmek. Doğru yaklaşım, dişliyi taşıyabileceği yükün altında konumlandırmak ve gerekiyorsa zincir gerginliğini düşük tutarak çalıştırmaktır. Sınırı en baştan bildiğinizde, dişlinin ömrünü ve düzeneğinizin güvenliğini birlikte doğru planlarız.</p>
+<p>Bu noktada net konuşmak güven verir. Zincir gerginliği altında sürekli çekiş aktaran bir dişli, çoğu zaman yük-kritik bir parçadır. Bu aile; masaüstü mekanizmalar, hafif otomasyon düzenekleri, konveyör denemeleri, hobi makineleri ve bir ayar düzeneğindeki hafif hareket aktarımı gibi düşük ya da orta yüklü, düşük devirli işler için düşünülmelidir. Yüksek tork, yüksek devir ya da kesintisiz ağır çekiş gerektiren motor ve ana aktarma uygulamalarında plastik bir dişlinin metal muadilinin yerini tutacağını söylemeyiz; böyle bir yük vaadi vermeyiz.</p>
+<p>Plastiğin bir ısı tavanı vardır; yaklaşık 90-100 °C üzerindeki ortamlar malzeme seçimini sınırlar. Talaşlı imalat, döküm ya da metal işleme yapmıyoruz; işimiz, parçanızı çalışacağı koşula göre doğru plastikle ve doğru ölçüde üretmek. Doğru yaklaşım, dişliyi taşıyabileceği yükün altında konumlandırmak ve gerekiyorsa zincir gerginliğini düşük tutarak çalıştırmaktır.</p>
 <h2>Sipariş</h2>
-<p>Ürün sayfasında önce zincir adımını, ardından diş sayısını seçin. Mil deliği çapını, göbek kalınlığını ve gerekiyorsa kama kanalı ölçüsünü girin; sonra malzeme ile renk seçimini tamamlayın. Sepete Ekle düğmesiyle ürünü sepetinize alın ve kartla online ödemeyle siparişinizi verin. Sitedeki ölçü aralığının dışındaysanız ya da takviyeli PA-CF / PA-GF gibi özel bir malzeme istiyorsanız, +90 545 138 6526 numaralı WhatsApp hattına kırık dişlinin fotoğrafını, zincir adımını ve mil ölçülerini gönderin; hangi değerin sitede seçilebildiğini, hangisinin özel çalışma gerektirdiğini birlikte değerlendirelim. Onaylanan ürün 3-5 iş gününde kargoya verilir. Zincir yerine kayışla çalışan bir aktarma düzeneğiniz varsa, <a href="/olcuye-ozel-triger-kayisi-yaptirma/">ölçüye özel triger kayışı yaptırma</a> sayfası da aynı mantıkla ihtiyacınıza yanıt verir. Ölçü sizden, üretim bizden.</p>""")
+<p>Ürün sayfasında önce zincir adımını, ardından diş sayısını seçin. Mil deliği çapını, göbek kalınlığını ve gerekiyorsa kama kanalı ölçüsünü girin; sonra malzeme ile renk seçimini tamamlayın. Sepete Ekle düğmesiyle ürünü sepetinize alın ve kartla online ödemeyle siparişinizi verin. Hazır parça basılıp kargolanır; ürün 3-5 iş gününde kargoya verilir. Zincir yerine kayışla çalışan bir aktarma düzeneğiniz varsa <a href="/olcuye-ozel-triger-kayisi-yaptirma/">triger kayışı</a> sayfası da aynı mantıkla ihtiyacınıza yanıt verir. Ölçüyü siz yazarsınız, parça o değerlerde basılır.</p>
+"""
+
 
 
 def _olcuye_ozel_el_carki_volan_uretimi():
@@ -3485,7 +3504,7 @@ def _teknik_cizim_veya_stl_ile_parca_urettirme():
 
 def _kirik_plastik_parca_tamir_mi_yeniden_uretim_mi():
     return (
-        "<h1>Kırık Plastik Parça: Tamir mi, Hazır Yedek mi?</h1>"
+        "<h1>Kırık Plastik Parça: Onarım mı, Hazır Yedek mi?</h1>"
         "<p>Nasıl çalışır: kırık bir parçanın karşılığı katalogdaki hazır yedeğe ya da sitede ölçüsü seçilen ürün ailesine bakar. Hazır yedekte marka-model sayfasından kaydı bulursunuz; ölçüye özel ailede ölçüyü ürün sayfasındaki alanlara siz yazarsınız. Her iki yolda da kartla ödeyerek sipariş verirsiniz. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Bir plastik parça kırıldığında önce üç yol karşınıza çıkar: onarmak, katalogdaki hazır yedeği bulmak ya da sitede ölçüsü seçilen bir parça yaptırmak. Hangisinin doğru olduğu parçanın görevine ve kırığın nerede olduğuna bağlıdır. PRUVO kataloğunda 41.685 hazır parça var; parçanın adı, markası ve ölçüsü yazıldığında çoğu zaman hazır yedek bulunur, yedek yoksa da sitede ölçüsü seçilen seçenekler devreye girer.</p>"
         "<h2>Onarım mı, yedek mi? Kararı ne belirler</h2>"
@@ -3538,7 +3557,7 @@ def _elektrik_yalitkani_plastik_parca_uretimi():
 <p>Burada hazırlanan parça, plastik geometrinin iki iletkeni fiziksel olarak birbirinden ayırdığı bir yalıtım çözümüdür; belgeli bir dielektrik dayanım değeri ya da yangın sınıfı sertifikası verilmez ve bu tür bir değer iddia edilmez. Parça, iletkenler arası mesafeyi ve teması kontrol etmek için tasarlanır; sertifikalı bir güvenlik bileşeni olarak sunulmaz.</p>
 <p>Isı tavanı nettir: bu plastikler yaklaşık 90-100 santigrat derece üzerinde yumuşamaya başlar; bu yüzden sürekli yüksek sıcaklık gören ya da ısınan iletkene doğrudan temas eden noktalar için uygun değildir. Şebeke ve yüksek gerilim hatlarında can güvenliği taşıyan bir izolasyon parçası olarak kullanılamaz; bu tür kritik yerlerde ilgili standartlara uygun sertifikalı ürün gerekir. Parça mekanik ayrım ve konumlandırma görevi görür; elektriksel güvenliğin tek dayanağı olarak değil, mevcut yalıtım düzeninin fiziksel bir tamamlayıcısı olarak düşünülmelidir.</p>
 <p>Yükü yalıtmak yerine biriken statiği kontrollü dağıtması gereken bir gövde arıyorsanız <a href="/antistatik-esd-plastik-parca-uretimi/">antistatik (ESD) plastik parça</a> tam ters görevi üstlenir. Gövdenin içinden anten ya da kablosuz modül sinyali geçecekse <a href="/elektromanyetik-sinyali-engellemeyen-plastik-parca-uretimi/">sinyal geçirgen plastik parça</a> sayfasına bakın. Bir kablonun panele giriş noktasında yalıtım ve sıyrılma koruması gerekiyorsa <a href="/kablo-gecis-burcu-gerilim-alici-yaptirma/">kablo geçiş burcu ve gerilim alıcı</a> sayfası o ihtiyacı ayrıca ele alır. Metal işleme, döküm, seramik ya da kalıplı üretim yapılmaz.</p>
-<p>Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>
+<p>Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; """ + AYIP_HAKLARI_CUMLESI + """</p>
 <h2>Sipariş ve iletişim</h2>
 <p>Parçayı sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup malzeme ve renk seçimini yaparak siparişi tamamlarsınız. Bulamazsanız WhatsApp hattımız <a href="https://wa.me/905451386526" target="_blank" rel="noopener"><strong>+90 545 138 6526</strong></a> üzerinden yalnız sitede var mı diye yazın; parçanın türü ve kullanıldığı düzenek eşleştirmeyi hızlandırır.</p>""")
 
@@ -3611,7 +3630,7 @@ def _olcuye_ozel_sonsuz_disli_uretimi():
 
 
 def _olcuye_ozel_plastik_kanca_aski_uretimi():
-    return (u"""<h1>Ölçüye Özel Plastik Kanca ve Askı Üretimi</h1>
+    return (u"""<h1>Plastik Kanca ve Askı: Sitede Ölçüsü Seçilen Seçenekler</h1>
 <p>Bir eşyayı asmadan önce iki şey belirleyicidir: parçanın taşıyacağı ağırlık ve çengelin ağzından geçmesi gereken kayış, halka ya da kenar kalınlığı. Hazır bir askının çengel ağzı çoğu zaman ya fazla dar kalıp eşyanın kulpunu geçirmez ya da fazla geniş açıldığı için asılan yük durmadan sallanır; buna montaj deliğinin tutmaması, gövdenin asacağınız eşyaya göre kısa gelmesi ya da duvarın, rafın biçimine oturmaması eklenir. Standart bir askıyı yerine zorlamak hem eşyayı düşürme riski taşır hem de montaj yüzeyinde iz bırakır. Bu yüzden sitedeki kanca ve askı kalemlerini, çengelin ağız genişliğinden montaj deliği aralığına ve gövde derinliğine kadar ürün sayfasında seçtiğiniz değerlerle tanımlıyoruz; asacağınız eşyanın ağırlığı ve montaj yüzeyinin biçimi ne ise parça ona göre çıkar. Elinizdeki parçadan, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay adımı yoktur.</p>
 <p>Özel kanca üretimi; garaj ve atölye düzeni, mutfak ve banyo askıları, dolap içi organizasyon, kablo ve hortum toplama, vitrin ve stant kancaları gibi hafif asma işleri için düşünülür. Teknede usturmaçayı korkuluğa asan fender kancası ise güneş ve tuz yükü nedeniyle ayrı değerlendirilir; ayrıntısı <a href="/tekne-fenderi-usturmaca-tutucu-kancasi-ozel-uretim/">tekne fenderi tutucu kancası</a> sayfasındadır. Kablonun çıkış noktasındaki bükülme yükünü karşılayan gerilim giderici çengel de farklı bir görevdir; ayrıntısı <a href="/olcuye-ozel-plastik-kalici-gerilim-giderici-cengel-uretimi/">plastik gerilim giderici çengel</a> sayfasındadır. Dolap kapağını sabit tutan manyetik bir mekanizma arıyorsanız, farklı bir sınıf olan <a href="/olcuye-ozel-plastik-miknatis-mandal-govdesi-uretimi/">ölçüye özel plastik mıknatıs mandal gövdesi üretimi</a> sayfamıza bakabilirsiniz. Aynı ölçü tanımıyla birden çok noktada kullanılacak bir set de aynı biçimde çıkar.</p>
 <h2>Doğru ölçüler nasıl belirlenir?</h2>
@@ -3627,7 +3646,7 @@ def _olcuye_ozel_plastik_kanca_aski_uretimi():
 
 
 def _olcuye_ozel_hortum_rakoru_dirsek_uretimi():
-    return (u"""<h1>Ölçüye Özel Hortum Rakoru ve Dirsek Üretimi</h1>
+    return (u"""<h1>Hortum Rakoru ve Dirsek: Sitede Ölçüsü Seçilen Seçenekler</h1>
 <p>Elinizdeki hortumun çapı bir türlü mağazadaki hazır rakora oturmuyor; oturan boyu bulduğunuzda ise hattın dönmesi gereken açı tutmuyor. Köşeye 90 derece giren bir devreye düz bir rakor takınca hortum katlanıp akışı boğuyor, açıyı zorlayınca da kelepçe kayıp sızdırıyor. Piyasadaki rakorlar sabit çap ve sabit açı kombinasyonlarıyla üretildiği için çoğu hat, tam da bu ikisinin aynı anda tutmadığı noktada tıkanıp kalır. Doğru yaklaşım, hortum çapı ile dirsek açısını birbirinden bağımsız iki değişken gibi ele almaktır. PRUVO'da ölçüye özel hortum rakoru ve plastik hortum dirseğini ürün sayfasındaki değerleri seçerek tanımlarsınız: iç çapı, dikenli ucun kademe sayısını ve dönüş açısını hattınızın gerçek gidişatına göre ayrı ayrı belirlersiniz. Elinizdeki parçadan, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay adımı yoktur.</p>
 <p>Bu çözüm; bahçe ve sulama hatları, akvaryum ve filtre düzenekleri, klima yoğuşma tahliyesi, atölye içi hava ve sıvı yönlendirmesi, tekne içi düşük basınçlı su devreleri ve benzeri hafif akışkan uygulamaları için düşünülür. Atölyedeki hava hattının ucundaki tabancada kırılan tetik, kabza ya da tetik muhafazası gibi plastik parçalar gerekiyorsa <a href="/kompresor-hava-tabancasi-plastik-parca-uretimi/">kompresör ve hava tabancası plastik parça üretimi</a> sayfasına geçebilirsiniz. Aynı hattın üstündeki valf kumanda topuzu, sensör braketi ve hortum tutucusu gibi basınç taşımayan parçalar içinse <a href="/hidrolik-pnomatik-ekipman-plastik-parca-uretimi/">hidrolik ve pnömatik ekipman plastik parça üretimi</a> sayfası doğru adrestir. Bir su arıtma cihazının kırılan haznesini, kapağını ve bağlantı parçasını da aynı mantıkla hazırlıyoruz; ayrıntı için <a href="/su-aritma-filtre-cihazi-plastik-parca-uretimi/">su arıtma ve filtre cihazı plastik parça üretimi</a> sayfasına bakın. Hattın ucunda suyu ya da havayı belirli bir açı ve debide dağıtan bir uç gerekiyorsa, o parçayı <a href="/olcuye-ozel-plastik-sprey-hava-nozul-meme-uretimi/">ölçüye özel sprey ve hava nozulu (meme) üretimi</a> tarafında ele alıyoruz.</p>
 <p>Amaç, hortumu güvenle tutan bir dikenli uç ile akışı istenen yöne çeviren bir gövdeyi tek parçada birleştirmek, böylece ara ekleri ve fazladan sızıntı noktalarını en aza indirmektir. Piyasadan iki üç ayrı dirsek ve redüksiyon alıp uç uca eklemek yerine, tek gövdede tanımlanmış bir parça hem daha az bağlantı noktası hem de daha derli toplu bir montaj demektir. Dirsekli bir yönlendirme yerine yalnız çap değiştirmeniz gereken bir nokta varsa parçayı zorlamayın; o iş <a href="/olcuye-ozel-adaptor-reduksiyon-gecis-uretimi/">ölçüye özel adaptör ve redüksiyon geçiş üretimi</a> sayfasına aittir. Hortum ucu değil de gövde üzerine geçmeli bir bağlantı elemanı gerekiyorsa <a href="/olcuye-ozel-baglanti-konektor/">ölçüye özel bağlantı konektörü</a> seçenekleri daha uygundur.</p>
@@ -3709,19 +3728,22 @@ def _distan_takma_deniz_motoru_plastik_parca_uretimi():
 
 
 def _plastik_parca_kac_dereceye_dayanir():
-    return (u"""<h1>Plastik Parça Kaç Dereceye Dayanır?</h1>
-<p>Kırılan ya da yenilenmesi gereken bir parça sipariş etmeden önce en çok sorulan soru şudur: plastik parça kaç dereceye dayanır? Kısa yanıt, "hangi plastik" ve "ne kadar süre, hangi yükle" sorularına bağlıdır. Aynı parça oda sıcaklığında sorunsuz çalışırken, motor bölmesi ya da güneş altındaki bir yüzeyde yumuşayıp biçim değiştirebilir. Plastik tek bir malzeme değil, birbirinden çok farklı davranan bir ailedir; birinin rahatça çalıştığı sıcaklık, diğerinin biçim kaybettiği eşik olabilir. Bu sayfada plastik parça sıcaklık dayanımını nasıl değerlendirmeniz gerektiğini, hangi malzemenin hangi koşula uygun olduğunu ve dürüst pratik sınırı açıkça anlatıyoruz. Amacımız tek bir sihirli sayı vermek değil; parçanızın çalışacağı gerçek ortama göre doğru seçimi birlikte belirlemek. Böylece hem gereksiz maliyetten hem de erken bozulmadan kaçınır, ilk seferde uzun ömürlü çalışan bir parçaya ulaşırsınız.</p>
+    return u"""<h1>Plastik Parça Kaç Dereceye Dayanır?</h1>
+<p class="lead">Tek bir sihirli sayı yok; doğru yanıt "hangi plastik" ve "ne kadar süre, hangi yükle" sorularına bağlı.</p>
+<p>Kırılan ya da yenilenmesi gereken bir parça sipariş etmeden önce en çok sorulan soru şudur: plastik parça kaç dereceye dayanır? Aynı parça oda sıcaklığında sorunsuz çalışırken, motor bölmesi ya da güneş altındaki bir yüzeyde yumuşayıp biçim değiştirebilir. Plastik tek bir malzeme değil, birbirinden çok farklı davranan bir ailedir; birinin rahatça çalıştığı sıcaklık, diğerinin biçim kaybettiği eşik olabilir.</p>
 <h2>Nasıl doğru sıcaklık için malzeme seçilir?</h2>
-<p>Isıya dayanıklı plastik kaç derece sorusunu doğru yanıtlamak için önce parçanın maruz kalacağı üç bilgiyi netleştirmek gerekir: en yüksek sıcaklık, bu sıcaklıkta geçireceği süre ve o an üzerindeki yük. Kısa süreli 70 °C ile sürekli 70 °C aynı şey değildir; plastik, tavana yakın sıcaklıkta üzerine yük binince çok daha erken yumuşar. Bu yüzden ölçüyü "en kötü an"a göre yaparız: yazın kapalı araç içi, güneşe bakan bir pano, sıcak su hattına yakın bir bağlantı gibi. Bu üç bilgiyi net verdiğinizde seçim de netleşir; belirsiz bırakıldığında ise ya gereksiz pahalı malzemeye ya da erken deforme olan yanlış malzemeye kayılır.</p>
-<p>Değerlendirme sırasında parçanın işlevini de ayırırız. Sadece biçim tutan, yük taşımayan bir kapak ile sürekli gerilen, titreşen bir tutucu farklı malzeme ister. Sıcaklığın yanında UV, nem ve deniz koşulu varsa bunları da hesaba katarız; çünkü çoğu zaman parçayı yoran tek başına sıcaklık değil, sıcaklıkla birlikte gelen güneş, tuzlu hava ve tekrarlayan yüktür. Ortam koşullarını ve malzeme davranışını bir arada görmek isterseniz <a href="/malzeme-rehberi/">plastik malzeme rehberi</a> her seçeneğin güçlü ve zayıf yanını yan yana koyar. Isı öne çıkan tek kısıt ise <a href="/isiya-dayanikli-plastik-parca-uretimi/">ısıya dayanıklı plastik parça üretimi</a> sayfası, sıcak ortama göre malzeme seçimini adım adım açıklar. Sıcaklık yalnız dayanımı değil ölçüyü de etkiler; parçanın yazın genleşip genleşmediğini <a href="/parca-olcusu-sicaklikla-degisir-mi/">parça ölçüsü sıcaklıkla değişir mi</a> sayfasında ayrıca ele aldık.</p>
+<p>Değerlendirme üç bilgiye dayanır: parçanın maruz kalacağı en yüksek sıcaklık, bu sıcaklıkta geçireceği süre ve o an üzerindeki yük. Kısa süreli 70 °C ile sürekli 70 °C aynı şey değildir; plastik, tavana yakın sıcaklıkta üzerine yük binince çok daha erken yumuşar. Bu yüzden ölçüyü "en kötü an"a göre siz yazarsınız: yazın kapalı araç içi, güneşe bakan bir pano, sıcak su hattına yakın bir bağlantı gibi. Parçanın işlevi de ayrı değerlendirilir: sadece biçim tutan, yük taşımayan bir kapak ile sürekli gerilen, titreşen bir tutucu farklı malzeme ister. Sıcaklığın yanında UV, nem ve deniz koşulu varsa bunlar da hesaba katılır.</p>
+<p>Ortam koşullarını ve malzeme davranışını bir arada görmek isterseniz <a href="/malzeme-rehberi/">plastik malzeme rehberi</a> her seçeneğin güçlü ve zayıf yanını yan yana koyar. Isı öne çıkan tek kısıt ise <a href="/isiya-dayanikli-plastik-parca-uretimi/">ısıya dayanıklı plastik parça üretimi</a> sayfası, sıcak ortama göre malzeme seçimini adım adım açıklar. Sıcaklık yalnız dayanımı değil ölçüyü de etkiler; parçanın yazın genleşip genleşmediğini <a href="/parca-olcusu-sicaklikla-degisir-mi/">parça ölçüsü sıcaklıkla değişir mi</a> sayfasında ayrıca ele aldık.</p>
 <h2>Doğru malzeme</h2>
-<p>Sıcaklık söz konusu olduğunda ilk kural, ucuz ve yaygın olan PLA'yı ısı gören yerde kullanmamaktır. PLA yaklaşık 55-60 °C'de yumuşamaya başlar; yaz sıcağındaki bir araç içi bile bunu aşar. Bu yüzden dış mekân, motor yakını ya da güneş gören parçalarda PLA yerine PETG ve ASA öneririz. PETG daha yüksek sıcaklığa ve darbeye dayanır, nem ve kimyasala karşı da makul davranır; ASA ise UV ve hava koşuluna karşı özellikle dayanıklıdır, dışarıda uzun süre kalan parçalar için uygundur ve zamanla renk atması PLA'ya göre çok daha azdır. Orta sıcaklıkta sertlik istenen kimi iç mekân parçalarında ABS de değerlendirilir. Sürekli esneme gereken parçalarda TPU tercih edilir; sürtünme ve aşınmanın öne çıktığı parçalarda PETG'nin darbe ve aşınma dengesi genellikle yeterlidir. Bu malzemelerin hepsinde farklı renk seçenekleri mevcuttur ve seçimi ürün sayfasında yaparsınız.</p>
-<p>Yük ve sıcaklığın birlikte zorladığı, mekanik olarak kritik parçalarda karbon ya da cam fiber takviyeli naylon (PA-CF / PA-GF) devreye girer. Bu malzemeler standart plastiklere göre çok daha rijit ve ısıya toleranslıdır; boyutsal kararlılığını daha geniş bir sıcaklık aralığında korurlar. Ancak site üzerinden doğrudan seçilemezler; bu tür bir ihtiyaç için +90 545 138 6526 numaralı WhatsApp hattından özel talep oluşturmanız gerekir. Takviyeli naylonun hangi durumda gerçekten gerekli olduğunu <a href="/karbon-fiber-takviyeli-naylon-parca-ne-zaman-gerekir/">karbon fiber takviyeli naylon parça ne zaman gerekir</a> sayfasında somut örneklerle açıkladık; her parça bu sınıfı gerektirmez, gereksiz seçim maliyeti boşa artırır. Doğru yaklaşım, malzemeyi baştan en pahalısına değil, parçanın gerçekten çalışacağı koşula göre seçmektir.</p>
+<p>Sıcaklık söz konusu olduğunda ilk kural, ucuz ve yaygın olan PLA'yı ısı gören yerde kullanmamaktır. PLA yaklaşık 55-60 °C'de yumuşamaya başlar; yaz sıcağındaki bir araç içi bile bunu aşar. Bu yüzden dış mekân, motor yakını ya da güneş gören parçalarda PLA yerine PETG ve ASA öneririz. PETG daha yüksek sıcaklığa ve darbeye dayanır, nem ve kimyasala karşı da makul davranır; ASA ise UV ve hava koşuluna karşı özellikle dayanıklıdır ve zamanla renk atması PLA'ya göre çok daha azdır. Orta sıcaklıkta sertlik istenen kimi iç mekân parçalarında ABS de değerlendirilir. Sürekli esneme gereken parçalarda TPU tercih edilir; sürtünme ve aşınmanın öne çıktığı parçalarda PETG'nin darbe ve aşınma dengesi genellikle yeterlidir. Bu malzemelerin hepsinde farklı renk seçenekleri vardır ve seçimi ürün sayfasında yaparsınız.</p>
+<p>Yük ve sıcaklığın birlikte zorladığı, mekanik olarak kritik parçalarda karbon ya da cam fiber takviyeli naylon (PA-CF / PA-GF) devreye girer. Bu malzemeler standart plastiklere göre çok daha rijit ve ısıya toleranslıdır; boyutsal kararlılıklarını daha geniş bir sıcaklık aralığında korurlar. Ancak site üzerinden doğrudan seçilemezler ve sitede bulunmayan bir malzeme sınıfı için özel üretim açılmaz. Takviyeli naylonun hangi durumda gerçekten gerekli olduğunu <a href="/karbon-fiber-takviyeli-naylon-parca-ne-zaman-gerekir/">karbon fiber takviyeli naylon parça ne zaman gerekir</a> sayfasında somut örneklerle açıkladık; her parça bu sınıfı gerektirmez, gereksiz seçim maliyeti boşa artırır.</p>
 <h2>Dürüst sınır</h2>
 <p>Plastiğin bir tavanı vardır ve bunu saklamayız. Kullandığımız üretim malzemelerinde pratik sürekli servis sınırı çoğu iş için yaklaşık 90-100 °C aralığındadır; bunun üzerinde uzun süre kalan bir parçada biçim bozulması ya da yük altında akma riski gerçektir. Belgeli, laboratuvar onaylı bir sürekli servis sıcaklığı değeri vaat etmeyiz; verdiğimiz aralık saha koşulundaki güvenli pratik sınırdır. Kaynar suya doğrudan temas eden, alev ya da egzoz yakınındaki, sürekli çok yüksek sıcaklık gören parçalar plastiğin işi değildir ve bunu baştan söyleriz. Parça sıcak yüzeye değmek zorunda değilse araya giren bir yalıtım takozuyla temas sıcaklığını düşürmek de bir yoldur; bunu <a href="/isi-yalitimi-saglayan-plastik-ara-parca-uretimi/">ısı yalıtımı sağlayan plastik ara parça üretimi</a> sayfasında anlattık.</p>
-<p>Sıcaklığın yanında yük de sınırı belirler. Isı-kritik ve aynı anda taşıyıcı olan bir parçada, doğru plastikle bile beklentiyi gerçekçi tutmak gerekir; kısa süre dayanan bir çözüm ile aylarca sorunsuz çalışan bir çözüm arasındaki farkı genellikle bu ayrım belirler. Bazı işlerde en doğru cevap malzeme değil, parçanın metal kalmasıdır; bu durumda size açıkça söyleriz. Buna karşılık pek çok metal parçanın makul ısı ve yük aralığında plastik muadille değişebileceğini de <a href="/metal-parca-yerine-plastik-muadil-uretimi/">metal parça yerine plastik muadil üretimi</a> sayfasında ele aldık. Doğru sınırı bilmek, güveni azaltmaz; hangi parçanın plastikle çözüleceğini netleştirir. Parçanın ısı davranışını üretim sonrası bir işlemle değiştirip değiştirmediğimiz ayrı bir sorudur; yanıtı <a href="/ozel-uretim-plastik-parca-tavlanir-mi-isil-islem-gorur-mu/">özel üretim parça ısıl işlem görür mü</a> sayfasında yazılı.</p>
+<p>Sıcaklığın yanında yük de sınırı belirler. Isı-kritik ve aynı anda taşıyıcı olan bir parçada, doğru plastikle bile beklentiyi gerçekçi tutmak gerekir. Bazı işlerde en doğru cevap malzeme değil, parçanın metal kalmasıdır; bu durumda size açıkça söyleriz. Buna karşılık pek çok metal parçanın makul ısı ve yük aralığında plastik muadille değişebileceğini <a href="/metal-parca-yerine-plastik-muadil-uretimi/">metal parça yerine plastik muadil üretimi</a> sayfasında ele aldık. Parçanın ısı davranışını üretim sonrası bir işlemle değiştirip değiştirmediğimiz ayrı bir sorudur; yanıtı <a href="/ozel-uretim-plastik-parca-tavlanir-mi-isil-islem-gorur-mu/">özel üretim parça ısıl işlem görür mü</a> sayfasında yazılı.</p>
 <h2>Sipariş</h2>
-<p>Parçanızın çalışacağı sıcaklığı ve üzerindeki yükü belirledikten sonra ürün sayfasından uygun malzemeyi ve rengi seçin, Sepete Ekle düğmesiyle ürünü sepetinize alın ve kartla online ödeme yapın. Isı, UV ya da yük açısından zorlu bir iş varsa ve site üzerindeki seçenekler ihtiyacınızı karşılamıyorsa, takviyeli naylon gibi özel malzemeler için +90 545 138 6526 numaralı WhatsApp hattına parçanın fotoğrafını, çalışacağı sıcaklığı ve kullanım yükünü gönderin; size en uygun malzemeyi birlikte belirleyelim. Onaylanan ürün 3-5 iş gününde kargoya verilir. Ölçü sizden, üretim bizden.</p>""")
+<p>Parçanızın çalışacağı sıcaklığı ve üzerindeki yükü belirledikten sonra ürün sayfasından uygun malzemeyi ve rengi seçin, Sepete Ekle düğmesiyle ürünü sepetinize alın ve kartla online ödeme yapın. Isı, UV ya da yük açısından zorlu bir iş için sitedeki seçenekler yeterli değilse bu durumu sitede açıkça görürsünüz; sitede bulunmayan bir malzeme sınıfı için özel üretim açılmaz. Onaylanan ürün 3-5 iş gününde kargoya verilir. Ölçü sizden, üretim bizden.</p>
+"""
+
 
 
 def _parcanin_hangi_plastikten_oldugu_nasil_anlasilir():
@@ -3775,7 +3797,7 @@ def _gida_temasina_uygun_plastik_parca_uretimi():
 <h2>Dürüst sınır</h2>
 <p>Belgeli gıda güvenliği ya da resmi gıda sınıfı sertifikası iddia edilmez; bu tür bir sertifika verilmez. Üretim yüzeyi doğası gereği tümüyle pürüzsüz olmayabilir; bu nedenle sürekli, sıcak ya da yağlı gıdayla temas ile yoğun temizlik koşulu her parça için ayrı değerlendirilir. Kritik hijyen gerektiren, doğrudan ve sürekli gıda temaslı profesyonel kullanımlarda sertifikalı hazır ürünler daha doğru tercih olabilir.</p>
 <p>Yeni parçanın ilk günlerdeki hafif kokusu normaldir; nedeni <a href="/ozel-uretim-parcada-koku-olur-mu/">özel üretim parçada koku olur mu</a> sayfasında yazılıdır. Plastiğin fiziksel sınırı da bellidir: yaklaşık 90-100 santigrat derece üzeri sürekli sıcaklık, yük-kritik taşıyıcı işlev ve sürekli mekanik zorlanma uygun değildir. Soğuk ortamdaki raf ve vitrin düzeni için <a href="/olcuye-ozel-raf-pimi-tutucu-uretimi/">ölçüye özel raf pimi ve tutucu</a> sayfası doğru başlangıçtır. Temas gıdayla değil doğrudan ciltle oluyorsa <a href="/cilde-temas-eden-plastik-parca-uretimi/">cilde temas eden plastik parça</a> sayfasındaki sınırlar geçerlidir. Metal işleme, döküm ya da kalıplı seri üretim yapılmaz.</p>
-<p>Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>
+<p>Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; """ + AYIP_HAKLARI_CUMLESI + """</p>
 <h2>Sipariş ve iletişim</h2>
 <p>Parçayı sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup malzeme ve renk seçimini yaparak siparişi tamamlarsınız. Bulamazsanız WhatsApp hattımız <a href="https://wa.me/905451386526" target="_blank" rel="noopener"><strong>+90 545 138 6526</strong></a> üzerinden yalnız sitede var mı diye yazın; gıdayla temas biçimi ve temizlik koşulu eşleştirmeyi hızlandırır.</p>""")
 
@@ -3796,7 +3818,7 @@ def _antistatik_esd_plastik_parca_uretimi():
 <p>Sitede ölçüsü seçilen seçeneklerden <a href="/urun/olcuye-ozel-montaj-braketi/">montaj braketi</a>, <a href="/urun/olcuye-ozel-kutu-organizer/">kutu ve organizer</a> ve <a href="/urun/olcuye-ozel-izgara-menfez-kapak/">ızgara menfez kapağı</a> bu aileden örneklerdir. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız; aynı kalemin tekrarında ölçüyü yeniden siz yazarsınız.</p>
 <h2>Dürüst sınır</h2>
 <p>Bu işte belgeli bir yüzey direnci değeri ya da sertifikalı bir ESD sınıfı verilmez. Antistatik katkılı malzemeyle statik birikimini azaltırız; ölçülü iletkenlik, garantili boşalma süresi veya standart sertifikası iddia edilmez. Uygulamanız tanımlı bir yüzey direnci aralığı ya da denetlenen bir montaj hattı standardı zorunluysa doğru çözüm belgeli malzeme kullanan bir tedarikçidir. Plastiğin genel sınırları da geçerlidir: sürekli ısı tavanı yaklaşık 90-100 santigrat derece dolayındadır ve yük taşıyan ya da güvenlik açısından kritik taşıyıcı parçalar için uygun değildir.</p>
-<p>Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>
+<p>Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; """ + AYIP_HAKLARI_CUMLESI + """</p>
 <h2>Sipariş ve iletişim</h2>
 <p>Parçayı sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup malzeme ile renk seçimini yapar, sepete ekleyip kartla ödersiniz. Bulamazsanız WhatsApp hattımız <a href="https://wa.me/905451386526" target="_blank" rel="noopener"><strong>+90 545 138 6526</strong></a> üzerinden yalnız sitede var mı diye yazın; kullanım yerini belirtmeniz doğru malzeme sınıfının seçimini hızlandırır.</p>""")
 
@@ -3812,7 +3834,7 @@ def _mikrodalga_doner_tabla_gobegi_yaptirma():
 <h2>Dürüst sınır</h2>
 <p>Buradaki parça mekanik bir göbek, makara ve tutucudur; yani cam tablayı merkezde tutan ve döndüren fiziksel bağlantıdır. Isıya dayanıklı malzeme seçilse de plastiğin bir tavanı vardır: yaklaşık 90-100 °C üzerindeki sürekli sıcaklıklara uygun değildir ve normal mikrodalga kullanımı bu aralığın içinde kalır; parçayı doğrudan bir ısı kaynağına yaslamak ya da fırın gibi yüksek sıcaklıkta çalıştırmak beklenmez. Cihazın elektronik ve elektriksel emniyet tarafı kapsam dışıdır: magnetron, yüksek gerilim düzeneği, kablolama ve güvenlik anahtarları üretilmez ve bunlara müdahale önerilmez. Isıtma ve güvenlik sistemi arızalıysa cihaz yetkili serviste değerlendirilmelidir. Metal işleme, döküm ya da kaplama gibi işlemler yapmıyoruz. Aynı dürüst yaklaşım kapak menteşesi gibi hareketli aksamlarda da geçerli olup, konu <a href="/olcuye-ozel-mentese-uretimi/">ölçüye özel menteşe üretimi</a> örneğinde olduğu gibi parçanın taşıyacağı yüke göre netleştirilir.</p>
 <h2>Sipariş</h2>
-<p>Ürün sayfasında önce mil yuvasının biçimini (düz kesitli "D" ya da kare) seçin, ardından makara çapına göre göbek ölçüsünü ve yüksekliği girin. Sonra malzeme ve renk seçimini yaparak Sepete Ekle düğmesiyle ürünü sepetinize alın ve kartla online ödeme ile siparişi tamamlayın. Aradığınız kalem sitede yoksa WhatsApp hattımız <a href="https://wa.me/905451386526" target="_blank" rel="noopener"><strong>+90 545 138 6526</strong></a> üzerinden yalnız sitede var mı diye yazın; varsa adresini paylaşırız, yoksa sitede bulunmadığını açıkça söyleriz. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>
+<p>Ürün sayfasında önce mil yuvasının biçimini (düz kesitli "D" ya da kare) seçin, ardından makara çapına göre göbek ölçüsünü ve yüksekliği girin. Sonra malzeme ve renk seçimini yaparak Sepete Ekle düğmesiyle ürünü sepetinize alın ve kartla online ödeme ile siparişi tamamlayın. Aradığınız kalem sitede yoksa WhatsApp hattımız <a href="https://wa.me/905451386526" target="_blank" rel="noopener"><strong>+90 545 138 6526</strong></a> üzerinden yalnız sitede var mı diye yazın; varsa adresini paylaşırız, yoksa sitede bulunmadığını açıkça söyleriz. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; """ + AYIP_HAKLARI_CUMLESI + """</p>
 """)
 
 
@@ -3824,7 +3846,7 @@ def _firin_ocak_dugmesi_ve_kulpu_yaptirma():
         "<p>Düğme genellikle bir eksende dönerek ya da bir yayla itilerek çalışır ve parça gücü doğrudan kullanıcı eline aktarır; burada dayanım ve hareketin yumuşaklığı önemlidir. Kulpu ise bir yükü taşıyan, çoğu zaman ısıtıcının önünde duran ve parçanın sıcaklığıyla temas eden bir parçadır. Kapak aksamındaki menteşe ve kilit dilleri ise sürekli açılıp kapanma yükü altındadır. Üçü de katalogda ayrı ayrı kayıt olarak bulunur; doğru kaydı bulmak için parçanın işlevini bilmek gerekir.</p>"
         "<p>Mutfak cihazlarının kırılan diğer kalemleri için <a href=\"/tost-makinesi-parcasi-nereden-bulunur/\">tost makinesi parçası</a> ve <a href=\"/ekmek-yapma-makinesi-parcasi-ozel-uretim/\">ekmek yapma makinesi parçası</a> sayfaları aynı arama mantığını gösterir; cihazın kendi markasının sayfası bulunmuyorsa <a href=\"/tost-makinesi-parcasi-nereden-bulunur/\">marka sayfasından</a> başlamak her zaman işe yarar.</p>"
         "<h2>Sıcaklığa yakın parçada nelere dikkat edilir</h2>"
-        "<p>Ocak düğmesi gövdeye, fırın kulpu ise kapak yüzeyine yakın durur; parçanın sıcaklığa ne kadar yakın olduğu malzeme kararını belirler. Sıradan PLA bu bölgelerde uzun süre kalmaz: hem ısı hem de yağ buzdolabı kapısı tutacağına yakın bölgelerde PLA'nın gevrekleşmesi hızlıdır. PETG ve ASA bu işlerde daha iyi sonuç verir; ısıtıcıya, rezistansa ya da buhar lülesine doğrudan temas eden bir parça içinse plastik önerilmez.</p>"
+        "<p>Ocak düğmesi gövdeye, fırın kulpu ise kapak yüzeyine yakın durur; parçanın sıcaklığa ne kadar yakın olduğu malzeme kararını belirler. Sıradan PLA bu bölgelerde uzun süre kalmaz: hem ısı hem de yağ kaynaklı yakın bölgelerde PLA'nın gevrekleşmesi hızlıdır. PETG ve ASA bu işlerde daha iyi sonuç verir; ısıtıcıya, rezistansa ya da buhar lülesine doğrudan temas eden bir parça içinse plastik önerilmez.</p>"
         "<p>Parçanın işlevi de belirleyicidir: kullanıcının elinin sıcak yüzeye değmemesi için araya bir tutuş payı koymak, kulp ve düğme tasarımında gövdeyi öne çıkar. Bu tür ayrıntılar katalog kaydının ölçülerinde zaten vardır; ölçüyü karşılaştırırken parçanın cihazdaki konumunu da not edin.</p>"
         "<h2>Katalogda nasıl bulunur</h2>"
         "<p>Ana sayfadaki arama kutusuna parçanın adını yazın; sonuçlar marka, model ve kategori olarak gruplanır. Kaydı bulamazsanız marka sayfasından başlayın: <a href=\"/marka/\">marka sayfası</a> bütün markaları listeler. Konuya göre giriş noktaları:</p>"
@@ -3981,7 +4003,7 @@ def _olcuye_ozel_kablo_tasima_zinciri_baklasi_uretimi():
 
 def _olcuye_ozel_plastik_gecme_dubel_vida_yuvasi_uretimi():
     return (
-        "<h1>Geçme, Dübel ve Vida Yuvası: Ölçü Seçimi</h1>"
+        "<h1>Geçme, Dübel ve Vida Yuvası: Sitede Ölçüsü Seçilen Seçenekler</h1>"
         "<p class=\"lead\">Bir parçanın başka bir parçaya bağlanması çoğu zaman üç ölçüyle belirlenir: geçme çapı, dübel çapı ve vida yuvasının çapı ile derinliği. Bu üçü birbirine göre seçilmez; yanlış ölçüde bir geçme ya da derinliği yetersiz bir vida yuvası parçayı kullanılamaz hale getirir. Katalogda hazır bağlantı elemanları bulunur, ölçüye özel seçeneklerde ise değerleri siz yazarsınız.</p>"
         "<h2>Geçme payı neden belirleyicidir</h2>"
         "<p>Geçme, iki parçanın birbirine girdiği yuvadır ve burada iki ayrı tolerans devreye girer: parçanın kendi ölçüsü ve parçanın üzerinde olduğu yuvanın ölçüsü. Bu yüzden yalnız parçanın dış çapını vermek yetmez, yuvanın da ölçülmesi gerekir. Plastik bir geçmede sürtünme direnci düşük olduğu için üretim toleransı gergin olabilir; ancak toleransın sıfıra yakın sıkı bir geçme, ısı farkı ve şişme nedeniyle sıkışabilir. Boşluk payının nasıl verileceği <a href=\"/plastik-parcada-gecme-toleransi-nasil-belirlenir/\">plastik parçada geçme toleransı</a> sayfasında formülle anlatılıyor.</p>"
@@ -4378,7 +4400,7 @@ def _olcuye_ozel_lineer_kizak_kilavuz_uretimi():
         "<p>Kızak kılavuzunun profili, taşıyacağı yükün dağılımıyla doğrudan ilişkilidir: geniş profiller daha büyük yüzey alanı sunar ve daha ağır yükleri taşır. Kılavuzun kanal içindeki boşluğu, kızağın yanal oynamasını belirler ve bu boşluk fazlaysa yük tek noktaya düşer. Rayın tabanına sabitlenmesi ise bağlantı deliklerinin aralığı ve çapıyla ilgilidir.</p>"
         "<p>Doğrusal hareketin hızı ve ivmesi de yük kavramına dâhildir: hızlı hareket, durma mesafesinde yüksek dinamik kuvvet doğurur. Kılavuzun sonunda hareketin sönümlenmesi gerekiyorsa tampon parça gerekir; bu, kızak ve kılavuzun tasarımına ek bir ölçü ekler. Tampon ve son durma elemanları için <a href=\"/olcuye-ozel-plastik-yumusak-kapanma-tamponu-uretimi/\">yumuşak kapanma tamponu</a> ürünü katalogda hazırdır.</p>"
         "<h2>Katalog ve ölçüye özel seçenekler</h2>"
-        "<p>Hazır kayıtlar arasında ray, kızak, kılavuz ve tutucu çeşitleri bulunur; arama marka-model sayfasından ya da ilgili kategori sayfasından yapılır. Ölçüye özel seçeneklerde profil genişliği, kanal ölçüsü, ray delik aralığı ve kızak genişliği alanları doldurulur; parça bu değerlere göre hazırlanır. Benzer lineer hareket parçaları <a href=\"/olcuye-ozel-lineer-kizak-kilavuz-uretimi/\">lineer kızak kılavuzu</a> ve <a href=\"/olcuye-ozel-plastik-sevk-olugu-ve-urun-kilavuzu-uretimi/\">hareketli tel kılavuzu</a> başlıkları altında toplanmıştır.</p>"
+        "<p>Hazır kayıtlar arasında ray, kızak, kılavuz ve tutucu çeşitleri bulunur; arama marka-model sayfasından ya da ilgili kategori sayfasından yapılır. Ölçüye özel seçeneklerde profil genişliği, kanal ölçüsü, ray delik aralığı ve kızak genişliği alanları doldurulur; parça bu değerlere göre hazırlanır. Benzer lineer hareket parçaları lineer kızak kılavuzu ve <a href=\"/olcuye-ozel-plastik-sevk-olugu-ve-urun-kilavuzu-uretimi/\">hareketli tel kılavuzu</a> başlıkları altında toplanmıştır.</p>"
         "<p>Konum doğrulaması gerektiren uygulamalarda Limit anahtarı ve sensör tutucusu da plastik parça olarak üretilebilir; bu tutucuların kılavuza göre konumu da ölçülmelidir.</p>"
         "<h2>Katalogda nasıl bulunur</h2>"
         "<p>Ana sayfadaki arama kutusuna parçanın adını yazın; sonuçlar marka, model ve kategori olarak gruplanır. Kaydı bulamazsanız marka sayfasından başlayın: <a href=\"/marka/\">marka sayfası</a> bütün markaları listeler. Konuya göre giriş noktaları:</p>"
@@ -4511,7 +4533,7 @@ def _kompresor_hava_tabancasi_plastik_parca_uretimi():
         "<p>Kabza üzerindeki tutuş kabartmaları zamanla aşınır ve el kaymasına yol açar. Hortum bağlantısı ise basınca maruz kalır; geçme payı fazla olan bir bağlantı yavaşça sızar, çok dar olan bağlantı ise hortumu zorlar. Bu kalemlerin tamamı <a href=\"/olcuye-ozel-hortum-rakoru-dirsek-uretimi/\">plastik hortum rakoru</a>, <a href=\"/olcuye-ozel-adaptor-reduksiyon-gecis-uretimi/\">hortum adaptörü</a> ve <a href=\"/olcuye-ozel-kulp-tutamak-uretimi/\">kulp ve tutamak</a> başlıkları altında toplanmıştır.</p>"
         "<h2>Basınç ve yağ koşulu</h2>"
         "<p>Tabancanın gövdesi ve kabzası, atölye ortamında yağ ve talaş tozuyla karşılaşır. PLA bu ortamda yağ çözücüleriyle temas ettiğinde yüzeyi bozulabilir; PETG yağ ve darbeye karşı daha dengelidir. Tetik gibi sık hareket eden parçalarda yorma direnci önem kazanır ve takviyeli PA-CF / PA-GF gerekir; bu ileri malzemeler siteden seçilemez.</p>"
-        "<p>Kompresörün kendisindeki plastik parçalar — hava filtresi kutusu, motor kapağı, üstü açılan kapak — ise sürekli sıcaklık görür; sıcaklık sınırı bu kalemlerde belirleyicidir. Benzer atölye ekipmanı parçaları <a href=\"/oto-yikama-ekipmani-plastik-parca-uretimi/\">oto yıkama ekipmanı</a> ve <a href=\"/kompresor-hava-tabancasi-plastik-parca-uretimi/\">hava tabancası</a> sayfalarında örneklenir.</p>"
+        "<p>Kompresörün kendisindeki plastik parçalar — hava filtresi kutusu, motor kapağı, üstü açılan kapak — ise sürekli sıcaklık görür; sıcaklık sınırı bu kalemlerde belirleyicidir. Benzer atölye ekipmanı parçaları <a href=\"/oto-yikama-ekipmani-plastik-parca-uretimi/\">oto yıkama ekipmanı</a> ve hava tabancası sayfalarında örneklenir.</p>"
         "<h2>Katalogda nasıl bulunur</h2>"
         "<p>Ana sayfadaki arama kutusuna parçanın adını yazın; sonuçlar marka, model ve kategori olarak gruplanır. Kaydı bulamazsanız marka sayfasından başlayın: <a href=\"/marka/\">marka sayfası</a> bütün markaları listeler. Konuya göre giriş noktaları:</p>"
         "<ul><li>ATÖLYE VE ENDÜSTRİ: <a href=\"/kategori/ofis/\">ofis kategorisi</a>.</li><li>GENEL ONARIM: <a href=\"/kategori/tamirat/\">tamirat kategorisi</a>.</li>"
@@ -4988,7 +5010,7 @@ def _gozluk_optik_cerceve_plastik_parca_uretimi():
 def _endustriyel_mutfak_restoran_ekipmani_plastik_parca_uretimi():
     return (
         "<h1>Endüstriyel mutfak ve restoran ekipmanı plastik parçası</h1>"
-        "<p class=\"lead\">Bir restoran ya da otel mutfağı gün boyu durmadan çalışır; bu tempoda en çok da küçük plastik parçalar yorulur. Endüstriyel yıkama sepet tekeri, mikserin ayar düğmesi, dilimleyicinin itici kulpu, teşhir rafının kelepçesi ve buzdolabı kapağı bu kalemlerdendir.</p>"
+        "<p class=\"lead\">Bir restoran ya da otel mutfağı gün boyu durmadan çalışır; bu tempoda en çok da küçük plastik parçalar yorulur. Endüstriyel yıkama sepet tekeri, mikserin ayar düğmesi, dilimleyicinin itici kulpu, teşhir rafının kelepçesi bu kalemlerdendir.</p>"
         "<h2>İki büyük zorluk: ısı ve nem</h2>"
         "<p>Mutfak ortamının iki büyük zorluğu vardır: ısı ve sürekli nem. Sıradan plastik, sıcak suyla yıkanan ya da fırın benmarine yakın çalışan bir parçada çabuk yumuşar ve biçim kaybeder. <a href=\"/sicak-su-ve-buhar-temasli-plastik-parca-uretimi/\">Sıcak su ve buhar temaslı parça</a> sayfası ısı tarafını işler. Yıkama ve temizlik kimyasalları için <a href=\"/yaga-ve-kimyasala-dayanikli-plastik-parca-uretimi/\">yağa ve kimyasala dayanıklı parça</a> ayrıtı açılmıştır.</p>"
         "<p>Tekerlek, makara ve menteşe gibi hareketli kalemlerde tokluk gerekir. <a href=\"/olcuye-ozel-tekerlek-makara-uretimi/\">Ölçüye özel tekerlek ve makara</a>, <a href=\"/olcuye-ozel-mentese-uretimi/\">ölçüye özel menteşe</a> ve <a href=\"/olcuye-ozel-mandal-kilit-dili-uretimi/\">mandal ve kilit dili</a> aileleri bu kalemlerin karşılığıdır. Sınıf karşılaştırması <a href=\"/malzeme-rehberi/\">malzeme rehberi</a> sayfasında. Koku ve tat bırakma beklentisi olan yüzeyler için <a href=\"/ozel-uretim-parcada-koku-olur-mu/\">özel üretim parçada koku olur mu</a> sayfası ayrıtı açılmıştır.</p>"
@@ -5046,7 +5068,7 @@ def _servis_parca_bulamiyor_ne_yapilir():
         "<h2>Adım 2: Marka ve model sayfasına geçin</h2>"
         "<p>Parçanın hangi cihaza ait olduğu biliniyorsa marka sayfası en kısa yoldur. <a href=\"/marka/\">Marka dizininden</a> markanızı seçer, sonraki ekranda model başlığı görünür. En çok ürünü olan markalar arasında <a href=\"/marka/bmw/\">BMW</a>, <a href=\"/marka/ford/\">Ford</a>, <a href=\"/marka/volkswagen/\">Volkswagen</a>, <a href=\"/marka/toyota/\">Toyota</a>, <a href=\"/marka/renault/\">Renault</a>, <a href=\"/marka/philips/\">Philips</a>, <a href=\"/marka/philips/\">Philips</a> ve <a href=\"/marka/yamaha/\">Yamaha</a> sayfaları var. Model yazısı bilecekseniz doğrudan arama kutusuna marka ile model adını birlikte yazmak en hızlı yoldur.</p>"
         "<h2>Adım 3: Kategoriye göre daraltın</h2>"
-        "<p>Sonuç çoğsa kategori filtresi işe yarar. Genel onarım ve yedek parça için <a href=\"/kategori/tamirat/\">tamirat</a>, araç için <a href=\"/kategori/otomobil/\">otomobil</a>, elektrikli cihazlar için <a href=\"/kategori/elektronik/\">elektronik</a>, beyaz eşya ve mutfak için <a href=\"/kategori/ev/\">ev</a>, ofis düzeni için <a href=\"/kategori/ofis/\">ofis</a> kategorileri ilk bakılacak yerlerdir.</p>"
+        "<p>Sonuç çoğsa kategori filtresi işe yarar. Genel onarım ve yedek parça için <a href=\"/kategori/tamirat/\">tamirat</a>, araç için <a href=\"/kategori/otomobil/\">otomobil</a>, elektrikli cihazlar için <a href=\"/kategori/elektronik/\">elektronik</a>, ev ve mutfak için <a href=\"/kategori/ev/\">ev</a>, ofis düzeni için <a href=\"/kategori/ofis/\">ofis</a> kategorileri ilk bakılacak yerlerdir.</p>"
         "<h2>Adım 4: Ölçüyü siz belirleyin</h2>"
         "<p>Parça standart bir kalem değilse katalogdaki <strong>ölçüye özel üretim</strong> ailesinde karşılığı bulunur. Bu ailede ölçüyü parçayı göndererek değil, doğrudan sitede siz yazarsınız: ürün sayfasındaki alanlara ihtiyacınız olan çap, boy ya da kesit değerini girersiniz. <a href=\"/urun/olcuye-ozel-montaj-braketi/\">montaj braketi</a>, <a href=\"/urun/olcuye-ozel-oring-conta/\">oring conta</a>, <a href=\"/urun/olcuye-ozel-profil-beam/\">profil</a> ve <a href=\"/urun/olcuye-ozel-vida-civata-somun-pul/\">vida, somun ve pul</a> ürünleri bu akışın örnekleridir. Metrik ve inç arasındaki farkı çözmek gerekiyorsa <a href=\"/metrik-inch-olcu-farki-parca-nasil-uyarlanir/\">metrik ve inç ölçü farkı</a> sayfası işe yarar.</p>"
         "<h2>Dürüst sınır</h2>"
@@ -5438,7 +5460,7 @@ def _kuru_temizleme_camasirhane_ekipmani_plastik_parca_uretimi():
         "<h2>Katalogda arama yolu</h2>"
         "<ul>"
         "<li><a href=\"/kategori/ofis/\">ofis kategorisi</a> — ortak kullanım alanı ekipmanı.</li>"
-        "<li><a href=\"/kategori/ev/\">ev kategorisi</a> — ev tipi çamaşırlık ve beyaz eşya çevresi ekipmanı.</li>"
+        "<li><a href=\"/kategori/ev/\">ev kategorisi</a> — ev tipi çamaşırlık çevresi ekipmanı.</li>"
         "<li><a href=\"/makine-parcasi-olcuye-ozel-uretim/\">makine parçası özel üretim</a>.</li>"
         "<li><a href=\"/kategori/olcuye-ozel-uretim/\">ölçüye özel üretim kategorisi</a> — ölçüsü sitede seçilen bağlantı ve conta elemanları.</li>"
         "</ul>"
@@ -5512,7 +5534,7 @@ def _siparis_sonrasi_olcu_degisikligi_iptal_politikasi():
         "<p>Parçanız elinizdeyse ölçümü kendiniz yapın ve değeri olduğu gibi yazın. Katalogdaki ürünlerde ölçü alanları, karşılık geldiği ölçünün adıyla listelenir; alan adındaki ölçüye dikkat etmek yeterlidir. Ölçüsü size bağlı ürün ailelerinin tamamı <a href=\"/kategori/olcuye-ozel-uretim/\">ölçüye özel üretim kategorisinde</a> toplanmıştır.</p>"
         "<h2>Sipariş verildikten sonra</h2>"
         "<p>Üretim başlamadan önce, siparişinizde bir değişiklik yapılması gerekiyorsa WhatsApp hattımızdan <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a> numarasına yazın; sipariş numaranızla birlikte hangi değerin değişeceğini belirtin. Değişiklik üretim öncesi yapılabiliyorsa ücretsizdir; üretim başladıysa artık aynı iş değildir.</p>"
-        "<p>Üretim başladıktan sonra, ölçüye bağlı olarak hazırlanan bir parçanın iptali ya da iadesi mümkün değildir: parça sizin girdiğiniz değerlerle üretilmiştir ve katalogda standart bir ürün değildir. Bu kural, ayıplı üretim durumunda değişmez. Ayıplı ürün, hasarlı ürün ve teslim sorunları için <a href=\"/ozel-uretim-parca-iadesi-ve-geri-odemesi-nasil-isler/\">iade ve geri ödeme süreci</a> sayfasındaki yol izlenir. Katalogda hazır bir üründen aldığınız kargo iadesi ise <a href=\"/ozel-uretim-parca-iadesi-ve-geri-odemesi-nasil-isler/\">aynı sayfada</a> anlatılır.</p>"
+        "<p>Üretim başladıktan sonra, ölçüye bağlı olarak hazırlanan bir parçanın iptali ya da iadesi mümkün değildir: parça sizin girdiğiniz değerlerle üretilmiştir ve katalogda standart bir ürün değildir. Bu kural, " + AYIP_HAKLARI_CUMLESI + " Ayıplı ürün, hasarlı ürün ve teslim sorunları için <a href=\"/ozel-uretim-parca-iadesi-ve-geri-odemesi-nasil-isler/\">iade ve geri ödeme süreci</a> sayfasındaki yol izlenir. Katalogda hazır bir üründen aldığınız kargo iadesi ise <a href=\"/ozel-uretim-parca-iadesi-ve-geri-odemesi-nasil-isler/\">aynı sayfada</a> anlatılır.</p>"
         "<h2>Ölçü değişikliği yerine doğru seçim</h2>"
         "<p>Sık karşılaşılan durum şudur: parça hazır ama beklenenden farklı bir ölçüde çıkar. Genellikle sorun seçimde değil, ölçünün farklı bir yorumunda yatar. Ölçüye bağlı ürünlerin ölçü ve geçme mantığı <a href=\"/plastik-parcada-gecme-toleransi-nasil-belirlenir/\">plastik parçada geçme toleransı</a> sayfasında açıklanır; montaj öncesi kontrol için <a href=\"/ozel-uretim-plastik-parca-nasil-monte-edilir/\">nasıl monte edilir</a> rehberine bakabilirsiniz.</p>"
         "<h2>Sipariş ve iletişim</h2>"
@@ -5527,7 +5549,7 @@ def _olcu_tutmazsa_ne_olur_uyum_garantisi():
         "<p>Üç sebep öne çıkar. Birincisi, girilen değerin yanlış yorumlanması: dış çap ile oturma çapının, kesit yüksekliği ile genişliğin karıştırılması tipik hatadır. İkincisi, ölçümün kendisindeki hata: milimetre ile inç karışıklığı ya da cetvelin gözle okunması. Üçüncüsü ve en sık görüleni, geçme toleransıdır: 3D baskıda ölçü tam sayıda olmaz, katman izi ve baskı yönü belirli bir pay bırakır. Bu payın nasıl belirlendiği <a href=\"/plastik-parcada-gecme-toleransi-nasil-belirlenir/\">plastik parçada geçme toleransı</a> sayfasında açıklanır.</p>"
         "<p>Ölçüyü doğru okumanın yolu basittir: parçanın üzerindeki en büyük çap dış çaptır; geçme yüzeyindeki çap oturma çapıdır. Metrik ve inç farkı için <a href=\"/metrik-inch-olcu-farki-parca-nasil-uyarlanir/\">metrik ve inç ölçü farkı</a> sayfasındaki tablo işe yarar.</p>"
         "<h2>Yaklaşık değil, katalog değeri</h2>"
-        "<p>Ölçüye özel ürünler dışında katalogdaki standart parçalarda ürün sayfasında yazan ölçü değerleri esas alınır. Bu değerler belirli bir toleransla üretilir ve sayfada yazan aralık, parçanın o aralıkta üretildiği anlamına gelir. Buna rağmen parça yine de oturmuyorsa uyum vaadi yerine gerçekçi bir yol izlenir: iade ve ayıp süreci. <a href=\"/ozel-uretim-parca-garantiyi-bozar-mi/\">özelliklerin garanti durumu</a> başlığı ve <a href=\"/ozel-uretim-parca-iadesi-ve-geri-odemesi-nasil-isler/\">iade ve geri ödeme süreci</a> sayfası bu konunun ayrıntısını verir.</p>"
+        "<p>Ölçüye özel ürünler dışında katalogdaki standart parçalarda ürün sayfasında yazan ölçü değerleri esas alınır. Bu değerler belirli bir toleransla üretilir ve sayfada yazan aralık, parçanın o aralıkta üretildiği anlamına gelir. Buna rağmen parça yine de oturmuyorsa uyum vaadi yerine gerçekçi bir yol izlenir: " + AYIP_HAKLARI_CUMLESI + " <a href=\"/ozel-uretim-parca-garantiyi-bozar-mi/\">özelliklerin garanti durumu</a> başlığı ve <a href=\"/ozel-uretim-parca-iadesi-ve-geri-odemesi-nasil-isler/\">iade ve geri ödeme süreci</a> sayfası bu konunun ayrıntısını verir.</p>"
         "<h2>Ölçüyü siz giriyorsunuz</h2>"
         "<p>Bu ayrım önemlidir: bir parçayı bize gönderip onun üzerinden ölçü çıkaran bir hizmetimiz yok. Ürün sayfasındaki alanlar boş gelmez; siz doldurursunuz. <a href=\"/urun/olcuye-ozel-montaj-braketi/\">montaj braketi</a>, <a href=\"/urun/olcuye-ozel-oring-conta/\">oring conta</a>, <a href=\"/urun/olcuye-ozel-profil-beam/\">profil</a> ve <a href=\"/urun/olcuye-ozel-vida-civata-somun-pul/\">vida, somun ve pul</a> ürünlerinde hangi değerin ne anlama geldiği sayfada yazılıdır. İnce detaylar ve minimum et kalınlığı için <a href=\"/en-ince-detay-ve-minimum-et-kalinligi/\">en ince detay ve minimum et kalınlığı</a> başlığına bakabilirsiniz.</p>"
         "<h2>Montaj öncesi kontrol</h2>"
@@ -5574,7 +5596,7 @@ def _olcuye_ozel_plastik_boru_kelepcesi_ve_aski_uretimi():
 <h2>Dürüst sınır: kelepçe her hatta uygun değildir</h2>
 <p>Açık konuşalım. Ölçüye özel plastik kelepçe; düşük ve orta basınçlı su, hava, sulama ve drenaj hatlarında, kablo ve hortum toplamada, makine içi düzenlemede ve sabitlemede doğru bir çözümdür. Buna karşılık yüksek basınçlı buhar hattı, yangın söndürme tesisatı, basınçlı gaz hattı ve yapı taşıyıcı askı sistemleri kapsamımızın dışındadır; bunlar sertifikalı ve genellikle metal elemanların alanıdır. Isı sınırımız da nettir: malzeme sınıfına göre sürekli 90-100 °C bandına kadar çıkabiliriz, üzeri bizim işimiz değildir. Sıcak su borusunun doğrudan üzerine oturan bir kelepçe için sıcaklığı bilmemiz gerekir; söylerseniz uygun sınıfı seçer, uygun değilse bunu üretimden önce söyleriz. Sera ve damla sulama hatlarındaki benzer parçalar için <a href="/sera-havalandirma-damla-sulama-plastik-parca-uretimi/">sera havalandırma ve damla sulama parçaları</a> sayfası ayrıca yol gösterir. Kelepçe bir yağmur iniş borusunu duvara tutuyorsa, oluk askısı ve dirsek gibi kalemlerle birlikte <a href="/cati-olugu-ve-yagmur-inis-borusu-plastik-parca-uretimi/">çatı oluğu ve yağmur iniş borusu plastik parça üretimi</a> sayfası daha doğru adrestir.</p>
 <h2>Sipariş</h2>
-<p>Kelepçe küçük bir parçadır ama yanlış ölçü büyük iş çıkarır; bu yüzden akışı baştan doğru kurmak önemlidir. Hattın nerede olduğunu bir cümleyle bilmek — kapalı tesisat mı, açık saha mı, makine içi mi — malzeme kararının neredeyse tamamını belirler. Ürün sayfasında boru dış çapını, gövde genişliğini, montaj deliği çapı ve delikler arası mesafeyi, kapanma biçimini girersiniz; ardından malzeme ve renk seçimini tamamlayıp Sepete Ekle düğmesiyle sepetinize alır ve kartla online ödeme yaparsınız. Aynı hatta on beş adet aynı kelepçe gerekiyorsa adedi sipariş notuna yazın; tek parçayla aynı ölçüde ilerler, sonra çoğaltılır. Sitede ölçüsü seçilen kalemlerden biri işinizi görmüyorsa WhatsApp hattımız <a href="https://wa.me/905451386526" target="_blank" rel="noopener"><strong>+90 545 138 6526</strong></a> üzerinden yalnız sitede var mı diye yazın; yoksa sitede bulunmadığını açıkça söyleriz. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>
+<p>Kelepçe küçük bir parçadır ama yanlış ölçü büyük iş çıkarır; bu yüzden akışı baştan doğru kurmak önemlidir. Hattın nerede olduğunu bir cümleyle bilmek — kapalı tesisat mı, açık saha mı, makine içi mi — malzeme kararının neredeyse tamamını belirler. Ürün sayfasında boru dış çapını, gövde genişliğini, montaj deliği çapı ve delikler arası mesafeyi, kapanma biçimini girersiniz; ardından malzeme ve renk seçimini tamamlayıp Sepete Ekle düğmesiyle sepetinize alır ve kartla online ödeme yaparsınız. Aynı hatta on beş adet aynı kelepçe gerekiyorsa adedi sipariş notuna yazın; tek parçayla aynı ölçüde ilerler, sonra çoğaltılır. Sitede ölçüsü seçilen kalemlerden biri işinizi görmüyorsa WhatsApp hattımız <a href="https://wa.me/905451386526" target="_blank" rel="noopener"><strong>+90 545 138 6526</strong></a> üzerinden yalnız sitede var mı diye yazın; yoksa sitede bulunmadığını açıkça söyleriz. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; """ + AYIP_HAKLARI_CUMLESI + """</p>
 """)
 
 
@@ -5715,7 +5737,7 @@ def _ozel_uretim_plastik_parca_boyanabilir_mi():
 
 def _ayni_parcadan_tekrar_siparis_ve_olcu_kaydi():
     return (
-        "<h1>Aynı Parçadan Tekrar Sipariş: Ölçüyü Siz Giriyorsunuz</h1>"
+        "<h1>Aynı Parçadan Tekrar Sipariş: Ölçü Kaydı Nasıl İşler?</h1>"
         "<p>Nasıl çalışır: aynı parçayı tekrar istediğinizde ölçüyü yeniden ölçtürmek yok; ölçüye özel ürünlerin sayfasındaki alanlara aynı değerleri siz yazarsınız, parça o ölçüde hazırlanır ve kartla ödeyerek sipariş verirsiniz. Hazır katalog ürünlerinde de aynı kayıt tekrar tekrar sepete eklenebilir. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Bir parçayı ölçüye özel hazırlattıktan sonra en sık gelen soru şudur: aynısından bir tane daha lazım olursa yeniden aynı yolu yürümem gerekecek mi? Çoğu zaman hayır. Hazır katalog ürünlerinde aynı kaydı tekrar tekrar sepete ekleyebilirsiniz; ölçüye özel ürün ailesinde ise ölçüyü ürün sayfasındaki alanlara siz yazarsınız. Parçanın adını ya da hangi cihaz için istediğinizi yazmanız katalogda arama yapmak için yeterlidir.</p>"
         "<h2>Bu düzen hangi durumlarda işe yarıyor?</h2><ul><li>"
@@ -5742,10 +5764,10 @@ def _ayni_parcadan_tekrar_siparis_ve_olcu_kaydi():
 
 def _kaucuk_parca_yerine_esnek_plastik_muadil_uretimi():
     return (
-        "<p class=\"lead\">Bir lastik conta, bir tutamak, bir hortum bağlantısı ya da bir yay: hepsi esnek olmalıdır. Kauçuk iyi çalışır ama tedarikte bulmak zor ve pahalı olabilir. Esnek plastikler (TPU ve TPE) bu alanda alternatif olur — ama her kauçuk işini karşılamaz. PRUVO katalogunda 41.000'den fazla hazır parça var ve esnek sınıftaki ürünler de katalogda bulunuyor.</p>"
-        "<h2>TPU ile TPE arasındaki fark</h2>"
-        "<p><strong>TPU</strong> sertlik ve yorulma direnci açısından güçlüdür; sürekli esneme-sıkışma döngüsüne dayanır ve yüksek aşınmaya karşı dirençlidir. Bu yüzden uzun süreli mekanik hareket gerektiren yerlerde tercih edilir. <strong>TPE</strong> ise daha yumuşaktır ve doğal kauçuğa daha çok benzer; basınçlı conta ve yumuşak tutuş gerektiren uygulamalarda rahat çalışır.</p>"
-        "<p>Pratik ayrım şudur: parça sürekli esneme yapıyorsa ve aşınmaya karşı direnç arıyorsa TPU; yumuşaklık, conta sızdırmazlığı ya da elde rahat tutulma hissi ön plandaysa TPE. Sertlik değeri (shore) bu seçimde belirleyicidir: yumuşak sınıflar daha esnek, sert sınıflar daha dayanıklı ama daha az esnektir.</p>"
+        "<p class=\"lead\">Bir lastik conta, bir tutamak, bir hortum bağlantısı ya da bir yay: hepsi esnek olmalıdır. Kauçuk iyi çalışır ama tedarikte bulmak zor ve pahalı olabilir. Esnek plastikler (TPU) bu alanda alternatif olur — ama her kauçuk işini karşılamaz. PRUVO katalogunda 41.000'den fazla hazır parça var ve esnek sınıftaki ürünler de katalogda bulunuyor.</p>"
+        "<h2>TPU ile sert plastikler arasındaki fark</h2>"
+        "<p><strong>TPU</strong> sertlik ve yorulma direnci açısından güçlüdür; sürekli esneme-sıkışma döngüsüne dayanır ve yüksek aşınmaya karşı dirençlidir. Bu yüzden uzun süreli mekanik hareket gerektiren yerlerde tercih edilir. <strong>TPU'nun yumuşak sınıfları</strong> ise daha yumuşaktır ve doğal kauçuğa daha çok benzer; basınçlı conta ve yumuşak tutuş gerektiren uygulamalarda rahat çalışır.</p>"
+        "<p>Pratik ayrım şudur: parça sürekli esneme yapıyorsa ve aşınmaya karşı direnç arıyorsa TPU; yumuşaklık, conta sızdırmazlığı ya da elde rahat tutulma hissi ön plandaysa yumuşak TPU sınıfı. Sertlik değeri (shore) bu seçimde belirleyicidir: yumuşak sınıflar daha esnek, sert sınıflar daha dayanıklı ama daha az esnektir.</p>"
         "<h2>Kauçuğun yerini alabilir mi?</h2>"
         "<p>İşlev bazında bakılır. Sıkıştırılmış bir conta görevi esnek plastik de yerine getirebilir; ancak sürekli basınç altında kalan, yağa maruz kalan ya da çok yüksek sıcaklıkta çalışan bir conta için kauçuk ya da uygun bir elastomer daha doğrudur. Aşınma yüzeylerinde esnek plastik, metalik yüzeye göre daha hızlı aşınır; sürtünme yükü yüksekse yüzey malzemesi seçimi belirleyicidir.</p>"
         "<p>Esnek sınıfın genel kullanım çerçevesi <a href=\"/ozel-uretim-parca-sert-mi-esnek-mi-olmali/\">sert mi esnek mi olmalı</a> başlığında; malzeme sınıflarının tamamı <a href=\"/malzeme-rehberi/\">malzeme rehberi</a> sayfasında.</p>"
@@ -6170,9 +6192,7 @@ def _muadil_parca_nedir_orijinaliyle_farki():
     )
 def _ozel_uretim_plastik_parca_su_sizdirir_mi():
     return (
-        '<h1>'
-        'Ölçüye Özel Plastik Parça Su Sızdırır mı?'
-        '</h1>'
+        '<h1>Ölçülü Plastik Parça Su Sızdırır mı?</h1>'
         '<p class="lead">'
         'Soru en çok kapak, tapa, hazne, muhafaza ve rakor işlerinde geliyor ve yerinde bir soru. Kısa cevap: sitedeki ölçüye özel aileler su tutar, ama su tutmak ile basınç altında sızdırmazlık aynı şey değildir. Bir su haznesinin dibinde duran parça ile tesisat hattında basınca karşı duran parça farklı işler yapar.'
         '</p>'
@@ -7741,9 +7761,7 @@ def _tekne_aku_ekipman_sabitleme_parcasi_ozel_uretim():
     )
 def _tekne_yedek_parcasi_bulunamiyorsa_ozel_uretim():
     return (
-        '<h1>'
-        'Bulunamayan Tekne Yedek Parçası'
-        '</h1>'
+        '<h1>Tekne Yedek Parçası Katalogda Yoksa Ne Olur?</h1>'
         '<p class="lead">'
         'Tekne sahibinin servis tezgâhında en sık duyduğu cümle şudur: o parça artık gelmiyor. İkincisi de bundan iyi değildir: sipariş verdik, birkaç ay sürer. Sezonun ortasında bunların ikisi de aynı anlama gelir, tekne iskelede bekler.'
         '</p>'
@@ -8267,9 +8285,7 @@ def _oto_yan_ayna_kapagi_govdesi_yaptirma():
     )
 def _olcuye_ozel_motosiklet_camurluk_uretimi():
     return (
-        '<h1>'
-        'Ölçüye Özel Motosiklet Çamurluk ve Uzatma'
-        '</h1>'
+        '<h1>Plastik Motosiklet Çamurluk ve Uzatma: Sitede Ölçüsü Seçilen Seçenekler</h1>'
         '<p class="lead">'
         'Çamurluk motosikletin en çok yük gören plastik parçalarından biridir. Ön tekerlekten savrulan taş ve su ona çarpar, arka çamurluk motorun ve zincirin üstüne sıçrayan çamuru tutar, plaka ve stop lambası çoğu modelde onun üzerinde taşınır. Devrilmede ilk kırılan, düşük hızlı bir temasta ilk çatlayan da odur. Kırıldığında yalnız görüntü bozulmaz: su ve çamur doğrudan zincire, elektrik tesisatına ve şanzıman çıkışına ulaşır.'
         '</p>'
@@ -9224,9 +9240,7 @@ def _hidrolik_pnomatik_ekipman_plastik_parca_uretimi():
     )
 def _olcuye_ozel_plastik_koruk_ve_toz_mansonu_uretimi():
     return (
-        '<h1>'
-        'Ölçüye Özel Plastik Körük ve Toz Manşonu'
-        '</h1>'
+        '<h1>Plastik Körük ve Toz Manşonu: Sitede Ölçüsü Seçilen Seçenekler</h1>'
         '<p class="lead">'
         'Körük görünmez bir parçadır: işini yaptığı sürece kimse varlığını fark etmez. Yırtıldığı gün ise arkasındaki her şey bozulmaya başlar. Toz ve nem mafsalın içine dolar, gres kaçar, mil çizilir ve kısa sürede küçük bir lastik parçası yüzünden pahalı bir mekanizma değişir.'
         '</p>'
@@ -9397,9 +9411,7 @@ def _olcuye_ozel_plastik_koruk_ve_toz_mansonu_uretimi():
     )
 def _olcuye_ozel_plastik_suzgec_ve_filtre_sepeti_uretimi():
     return (
-        '<h1>'
-        'Ölçüye Özel Plastik Süzgeç ve Filtre Sepeti'
-        '</h1>'
+        '<h1>Plastik Süzgeç ve Filtre Sepeti: Sitede Ölçüsü Seçilen Seçenekler</h1>'
         '<p class="lead">'
         'Süzgeç sepeti çatladığında sorun sepetle bitmez. Tutması gereken tortu, saç ve yaprak doğrudan pompaya ya da hatta gider; birkaç gün içinde tıkanma, aşırı ısınma ve çok daha pahalı bir arıza gelir. Buna karşılık sepetin kendisi çoğu markada tek başına satılmaz, satılsa bile eski model için stokta yok cevabı verilir.'
         '</p>'
@@ -9458,11 +9470,6 @@ def _olcuye_ozel_plastik_suzgec_ve_filtre_sepeti_uretimi():
         '<a href="/urun/th3402220-dji-osmo-pocket-filtre-saklama-kutusu/">'
         'DJI Osmo Pocket filtre saklama kutusu'
         '</a>'
-        ', '
-        '<a href="/urun/th969784-miele-bulasik-makinesi-sepet-tekerlegi/">'
-        'Miele bulaşık makinesi sepet tekerleği'
-        '</a>'
-        ', '
         '<a href="/urun/pr34336-hario-v60-kagit-filtre-kutusu/">'
         'Hario V60 kâğıt filtre saklama ve dağıtma kutusu'
         '</a>'
@@ -9926,9 +9933,7 @@ def _ozel_uretim_plastik_parca_nasil_monte_edilir():
     )
 def _ozel_uretim_parcanin_yuzey_kalitesi_nasil_olur():
     return (
-        '<h1>'
-        'Ölçüye Özel Parçanın Yüzey Kalitesi Nasıl Olur?'
-        '</h1>'
+        '<h1>Ölçülü Parçanın Yüzey Kalitesi Nasıl Olur?</h1>'
         '<p class="lead">'
         'Bu sorunun dürüst cevabı iki cümledir. Ölçü ve işlev tarafında hedef, istenen ölçülerin birebir karşılanmasıdır; görünüm tarafında ise katalogdaki parçanın yüzeyi, seri üretilmiş bir fabrika parçasının ayna gibi parlak yüzeyiyle aynı olmaz. Yüzeyde ince, düzenli bir doku bulunur. Bu doku çoğu konumda hiç görünmez, görünen konumlarda ise birkaç adımla eşitlenebilir.'
         '</p>'
@@ -10114,7 +10119,7 @@ def _cikma_parca_mi_ozel_uretim_mi():
         "<h2>Dürüst sınır</h2>"
         "<p>Sizin elinizdeki bir parçayı temel alıp ona özel bir gövde hazırlamıyoruz. Kapsam, katalogdaki hazır ürünler ve sitede ölçüsü seçilen aileyle sınırlıdır.</p>"
         "<p>Bazı parçalarda ne çıkma parça ne de katalogdaki bir ürün doğru cevaptır; doğru cevap üreticinin belirlediği yeni parçadır. Fren, direksiyon, kaldırma ve taşıma hattındaki emniyet elemanları, insan ağırlığını taşıyan bağlantı parçaları bu kapsamın dışındadır. Liste <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar hazırlanamaz</a> sayfasında.</p>"
-        "<p>Ölçüye göre hazırlanan ürünlerde on dört günlük cayma hakkı bulunmaz; ayıplı üründe <a href=\"/ozel-uretim-parca-iadesi-ve-geri-odemesi-nasil-isler/\">iade ve geri ödeme süreci</a> sayfasındaki koşullar geçerlidir.</p>"
+        "<p>Ölçüye göre hazırlanan ürünlerde on dört günlük cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + " Ayrıntı <a href=\"/ozel-uretim-parca-iadesi-ve-geri-odemesi-nasil-isler/\">iade ve geri ödeme süreci</a> sayfasında yazılıdır.</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Hazır katalog ürünlerini siteden kartla online sipariş verebilirsiniz. Marka, model ve parçanın adıyla WhatsApp hattımıza yazın: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>. <strong>Sitede var mı</strong> diye sorabilirsiniz; katalogu kendiniz arayın.</p>"
     )
@@ -10150,7 +10155,7 @@ def _atv_utv_plastik_parca_ozel_uretim():
 
 def _bavul_ve_valiz_plastik_parca_yaptirma():
     return (
-        "<h1>Bavul ve Valiz Plastik Parçası: Yedek Parça Bulma</h1>"
+        "<h1>Bavul ve Valiz Parçaları: Katalogdaki Yedekler</h1>"
         "<p>Nasıl çalışır: PRUVO kataloğunda satılan hazır kalemleri marka, model ve kategori sayfalarından bulursunuz; seçtiğiniz ürünü kartla ödeyerek sipariş verirsiniz. Sitede ölçüsü seçilen ürün ailesinde ölçüyü siz yazarsınız, parça o ölçüde hazırlanır. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Sağlam bir valizin çöpe gitme nedeni genellikle kumaşı ya da kabuğu değildir. Çıkan şey avuç içi kadar bir plastiktir: teleskopik kolun tutamağı, tekerleği tutan çatal, köşedeki ayak ya da kolu yerinde kilitleyen düğme. Marka servisi çoğu zaman bu parçaları tek satmaz; ya bütün kol takımını verir ya da modelin eskidiğini söyleyip kapatır. Sonuçta yüz binlerce kilometre daha gidecek bir bavul, tek bir tırnak yüzünden elden çıkar. PRUVO kataloğunda 41.000'den fazla hazır parça var.</p>"
         "<h2>Valizde hangi kalemler aranır?</h2>"
@@ -10787,9 +10792,7 @@ def _plastik_parca_neden_kirilir_yine_kirilir_mi():
     )
 def _olcuye_ozel_plastik_bobin_ve_sarim_makarasi_uretimi():
     return (
-        '<h1>'
-        'Ölçüye Özel Plastik Bobin ve Sarım Makarası'
-        '</h1>'
+        '<h1>Plastik Bobin ve Sarım Makarası: Sitede Ölçüsü Seçilen Seçenekler</h1>'
         '<p>'
         'Nasıl çalışır: PRUVO kataloğunda satılan hazır kalemleri marka, model ve kategori sayfalarından bulursunuz; seçtiğiniz ürünü kartla ödeyerek sipariş verirsiniz. Sitede ölçüsü seçilen ürün ailesinde ölçüyü siz yazarsınız, parça o ölçüde hazırlanır. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.'
         '</p>'
@@ -10986,9 +10989,7 @@ def _olcuye_ozel_plastik_bobin_ve_sarim_makarasi_uretimi():
     )
 def _olcuye_ozel_kelebek_somun_ve_yildiz_kol_uretimi():
     return (
-        '<h1>'
-        'Ölçüye Özel Kelebek Somun ve Yıldız Kol'
-        '</h1>'
+        '<h1>Kelebek Somun ve Yıldız Kol: Sitede Ölçüsü Seçilen Seçenekler</h1>'
         '<p class="lead">'
         'Alet kutusuna uzanmadan sıkılıp gevşetilen her bağlantının ucunda bunlardan biri vardır: kelebek somun, yıldız kollu topuz, tırtıllı somun ya da kollu sıkma vidası. Tripod bacağını kilitler, koşu bandının yüksekliğini tutar, kapak mandalını sıkar, kalıp ayarını sabitler. Küçüktür, ucuzdur ve tam da bu yüzden kaybolunca hiçbir yerde tek başına bulunmaz; elinizdeki dişe uyan boyu aramak işi büsbütün zorlaştırır.'
         '</p>'
@@ -11787,9 +11788,7 @@ def _klozet_kapagi_mentesesi_ve_rezervuar_parcasi_yaptirma():
     )
 def _olcuye_ozel_montaj_aparati_ve_jig_uretimi():
     return (
-        '<h1>'
-        'Ölçüye Özel Montaj Aparatı ve Jig'
-        '</h1>'
+        '<h1>Montaj Aparatı ve Jig: Sitede Ölçüsü Seçilen Seçenekler</h1>'
         '<p class="lead">'
         'Atölyede zamanı yiyen şey çoğu zaman işin kendisi değildir; her seferinde yeniden kurulan düzendir. Aynı deliği her parçada gözle hizalamak, iki parçayı yapıştırırken elle tutmak, kutuya giren adedi tek tek saymak: ayrı ayrı küçük görünen bu adımlar gün sonunda saatleri götürür. Tekrarı ortadan kaldıran şey genelde avuç içi kadar bir aparattır, ama o aparat hiçbir yerde satılmaz; katalogdaki her aparat belirli bir iş için tasarlanmıştır.'
         '</p>'
@@ -11983,9 +11982,7 @@ def _olcuye_ozel_montaj_aparati_ve_jig_uretimi():
     )
 def _prototip_ve_deneme_parcasi_urettirme():
     return (
-        '<h1>'
-        'Prototip ve Deneme Parçası'
-        '</h1>'
+        '<h1>Bir Parçayı Denemeden Önce Ne Yapılır?</h1>'
         '<p>'
         'Nasıl çalışır: PRUVO kataloğunda satılan hazır kalemleri marka, model ve kategori sayfalarından bulursunuz; seçtiğiniz ürünü kartla ödeyerek sipariş verirsiniz. Sitede ölçüsü seçilen ürün ailesinde ölçüyü siz yazarsınız, parça o ölçüde hazırlanır. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.'
         '</p>'
@@ -12142,9 +12139,7 @@ def _prototip_ve_deneme_parcasi_urettirme():
     )
 def _gonderilen_numune_parca_geri_verilir_mi():
     return (
-        '<h1>'
-        'Parçanız Size Geri Verilir mi?'
-        '</h1>'
+        '<h1>Parçanız Size Geri Verilir mi?</h1>'
         '<p class="lead">'
         'Bu soruyu en çok, elinde tek bir örneği olan ve onun kaybolmasını istemeyen insanlar sorar. Kısa cevap: parça sizindir, bizde kalmaz.'
         '</p>'
@@ -12719,7 +12714,7 @@ def _yuksek_devirde_donen_plastik_parca_uretimi():
 """)
 
 def _ozel_uretimde_parca_boyut_siniri_nedir():
-    return (u"""<h1>Ölçüye Özel Üretimde Parça Boyut Sınırı Nedir?</h1>
+    return (u"""<h1>Ölçülü Ürünlerde Parça Boyut Sınırı Nedir?</h1>
 <p>Nasıl çalışır: PRUVO kataloğunda satılan hazır kalemleri marka, model ve kategori sayfalarından bulursunuz; seçtiğiniz ürünü kartla ödeyerek sipariş verirsiniz. Sitede ölçüsü seçilen ürün ailesinde ölçüyü siz yazarsınız, parça o ölçüde hazırlanır. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>
 <p>Ölçüye özel ürünlerde en sık sorulan soru şudur: parçam çok büyük, bu ölçüde yapılabilir mi? İkinci sırada da tersi gelir: parçam çok küçük, o kadar ince detay çıkar mı? İkisinin de cevabı tek bir sayıya bağlı değildir; parçanın biçimine, hangi yönde uzadığına ve ne iş yapacağına göre değişir.</p>
 <p>Katalogdaki ölçüye özel ailelerin her biri kendi ölçü aralığına sahiptir. Profil ve kiriş, petek delikli panel, çerçeve, kutu organizatör, montaj braketi, huni ve cetvel ailelerinde ürün sayfasındaki milimetre alanları hangi değerlerin seçilebildiğini gösterir. Alanların dışındaki bir değer kabul edilmez; o ölçüde bir gövde hazırlanmaz.</p>
@@ -12741,7 +12736,7 @@ def _ozel_uretimde_parca_boyut_siniri_nedir():
 """)
 
 def _ozel_uretim_parcanin_ici_dolu_mu():
-    return (u"""<h1>Ölçüye Özel Parçanın İçi Dolu mu?</h1>
+    return (u"""<h1>Parçanın İçi Dolu mu, Boşluklu mu?</h1>
 <p>Nasıl çalışır: PRUVO kataloğunda satılan hazır kalemleri marka, model ve kategori sayfalarından bulursunuz; seçtiğiniz ürünü kartla ödeyerek sipariş verirsiniz. Sitede ölçüsü seçilen ürün ailesinde ölçüyü siz yazarsınız, parça o ölçüde hazırlanır. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>
 <p>Elinize gelen parçayı ilk tarttığınızda beklediğinizden hafif ya da ağır gelebilir. Bu doğal bir sorudur: parçanın içi dolu mu, yoksa boşluklu mu? Kısa cevap şudur: iç yapı, parçanın yapacağı işe göre belirlenir ve katalog ürünlerinde bu belirleme zaten yapılmıştır.</p>
 <p>İç yapının üç kararı vardır ve üçü de birbirine bağlıdır: yükün hangi yönden geldiği, parçanın ölçüsünün ne kadar hassas kalması gerektiği ve parçanın ne kadar ağır olması gerektiği. Katalog ürünlerinde bu üçü bir arada düşünülür ve sizin seçiminize bırakılmaz; hangi sınıfın ne kadar dolu çıktığı malzeme sınıfına ve geometriye bağlıdır.</p>
@@ -12812,7 +12807,7 @@ def _robot_supurge_plastik_parca_yaptirma():
 
 
 def _olcuye_ozel_plastik_mil_ve_saft_uretimi():
-    return (u"""<h1>Ölçüye Özel Plastik Mil ve Şaft</h1>
+    return (u"""<h1>Plastik Mil ve Şaft: Sitede Ölçüsü Seçilen Seçenekler</h1>
 <p>Küçük makinelerin içinde hareketi taşıyan miller göze görünmez; kırıldıklarında ise cihaz bir anda kullanılamaz olur. Mutfak robotunun tahrik mili burulur, oyuncak redüktörünün çıkış mili sıyrılır, ayar düğmesinin arkasındaki ince mil kökünden kopar, makara mili aşınıp boşluk yapar. Parça avuç içinden küçüktür ama ayrı satılmaz: üretici çoğu zaman komple grup satar, üretimden kalkmış bir modelde ise hiç bulunmaz.</p>
 <p>Bu yüzden buradaki yaklaşım şudur: mil, şaft ve kama gibi bağlantı elemanları katalogdaki ailelerle karşılık bulur. Ölçüyü siz ürün sayfasındaki milimetre alanlarına yazarsınız; milin kendisi için ayrı bir gövde hazırlanmıyor.</p>
 <p>Milde ölçü listesi kısadır ama hiçbiri atlanamaz: gövde çapı, toplam boy, varsa kademelerin çapı ile boyu, D yüzeyinin genişliği ve derinliği, kama kanalının eni ile derinliği, uçtaki pim deliğinin çapı ve merkezden uzaklığı. Bunlara bir de milin oturduğu karşı parçanın ölçüsünü eklemek gerekir: hangi çaptaki yuvaya giriyor, hangi dişlinin göbeğine geçiyor.</p>
@@ -12837,7 +12832,7 @@ def _olcuye_ozel_plastik_mil_ve_saft_uretimi():
 """)
 
 def _olcuye_ozel_plastik_toka_ve_kayis_kilidi_uretimi():
-    return (u"""<h1>Ölçüye Özel Plastik Toka ve Kayış Kilidi</h1>
+    return (u"""<h1>Plastik Toka ve Kayış Kilidi: Sitede Ölçüsü Seçilen Seçenekler</h1>
 <p>Toka, bir ürünün en çok zorlanan ve en kolay kırılan parçasıdır. Sırt çantasının göğüs tokası çatlar, alet çantasının kapak kilidi kırılır, kamp sandalyesinin kayış kilidi açılmaz olur, evcil hayvan tasmasının tokası dişini kaybeder, bir kılıfın ayar kayışındaki kilit boşluk yapar. Ürünün geri kalanı sapasağlamdır; iş on gramlık bir plastikte tıkanır.</p>
 <p>Standart ölçüdeki tokalar mağazalarda bulunur ama çoğu ürün kendi ölçüsünde çalışır: kayış genişliği tutmaz, kol açıklığı farklıdır, dilin geçme açısı uymaz. Bu yüzden katalogdaki ölçüye özel toka ailesi, kayışın kendi ölçüsüne göre seçilir: kayışın genişliği, kalınlığı ve geçme tipi ürün sayfasındaki alanlarda belirleyicidir.</p>
 <p>Tokada belirleyici ölçüler şunlardır: kayışın geçtiği ağzın iç genişliği ve yüksekliği, gövdenin dış ölçüleri, dilin boyu ile geçme derinliği, iki dil arasındaki açıklık, dişlerin adımı ve kalınlığı. Kayışın kendisi de ölçüye dâhildir: kaç milimetre genişlikte, kaç milimetre kalınlıkta, dokuma mı yoksa kalın bantlı mı.</p>
@@ -13084,7 +13079,7 @@ def _alev_geciktirici_plastik_parca_uretilir_mi():
     )
 
 def _olcuye_ozel_plastik_vidali_seviye_ayar_ayagi_uretimi():
-    return (u"""<h1>Ölçüye Özel Vidalı Seviye Ayar Ayağı</h1>
+    return (u"""<h1>Vidalı Seviye Ayar Ayağı: Sitede Ölçüsü Seçilen Seçenekler</h1>
 <p>Zemini tam düz olmayan her yerde duran cihazın altında ayarlanabilir bir ayak vardır ve o ayak çoğu zaman plastiktir. Ofis dolabının ayağı dişinden sıyrılır, dolabın altındaki ayar pabucu çatlar, sehpanın ayağı eğik yükte yana yatar, rafın taban diski ezilip yamulur. Cihazın kendisi sağlamdır; tek bir küçük parça yüzünden titrer, yürür, kapağı tam oturmaz.</p>
 <p>Bu ayak neredeyse hiçbir zaman tek başına satılmaz. Üretici çoğu modelde komple gövde ya da alt grup satar, eski bir seride ise hiç bulunmaz. Katalogda ise montaj braketi, vida-somun-pul ve profil aileleri vardır; ölçüyü siz ürün sayfasındaki alanlara yazarsınız. Mobilyaya özel bir ayak gövdesi hazırlanmıyor.</p>
 <p>Bu parçada ölçü listesi kısadır ama hiçbiri atlanamaz: vida gövdesinin dış çapı ve diş adımı, gövdenin boyu, taban diskinin çapı ve kalınlığı, ayarın en kısa ve en uzun hâlindeki toplam yükseklik, varsa kilit somununun anahtar ağzı ve tırtıl çapı. Bunlara bir de ayağın oturduğu karşı parçayı eklemek gerekir: cihazın altındaki somun yuvası hangi ölçüdedir.</p>
@@ -13110,7 +13105,7 @@ def _olcuye_ozel_plastik_vidali_seviye_ayar_ayagi_uretimi():
 
 
 def _olcuye_ozel_plastik_buton_kapagi_ve_tus_uretimi():
-    return (u"""<h1>Ölçüye Özel Plastik Buton Kapağı ve Tuş</h1>
+    return (u"""<h1>Plastik Buton Kapağı ve Tuş: Sitede Ölçüsü Seçilen Seçenekler</h1>
 <p>Bir cihazın en çok dokunulan parçası tuşudur ve ilk yorulan da odur. Panelin tuşu kırılıp içine düşer, kapağın altındaki tırnak kopar, tuş kaybolur ve geriye yalnız çıplak bir şalter kalır. Cihazın kendisi hâlâ çalışır; parmakla bastırılacak yüzey olmadığı için kullanılamaz duruma gelir. Servisin verdiği cevap çoğu zaman komple panel değişimidir ve o panel çoğu zaman ya çok pahalıdır ya da hiç yoktur.</p>
 <p>Aranan şey küçük bir kapaktır ve katalogdaki buton, kapak ve tuş ailelerinde bu kalemler yer alır. Ölçüyü siz ürün sayfasındaki alanlara yazarsınız; cihazınıza özel bir tuş gövdesi hazırlanmıyor.</p>
 <p>Tuşta ölçü hassasiyeti yüksektir, çünkü parça hem görünür yüzeydir hem de hareket eder. Ölçü listesi şudur: tuşun dış boyu ve eni, yüzey yüksekliği, altındaki gövdenin uzunluğu, tırnakların yeri ile kalınlığı, şaltere değen pimin çapı ve boyu, çerçeveyle arasında kalan boşluk. Bu boşluk kritik bir ayardır: dar kalırsa tuş takılır ve geri dönmez, geniş kalırsa oynar ve tık sesi kaybolur.</p>
@@ -13370,7 +13365,7 @@ def _oto_marspiye_ve_kapi_esigi_kaplamasi_yaptirma():
 
 
 def _olcuye_ozel_plastik_rulman_kafesi_uretimi():
-    return (u"""<h1>Ölçüye Özel Plastik Rulman Kafesi</h1>
+    return (u"""<h1>Plastik Rulman Kafesi: Sitede Ölçüsü Seçilen Seçenekler</h1>
 <p>Yatak söküldüğünde çoğu zaman bilyeler ve bilezikler sapasağlam çıkar; dağılan tek şey bilyeleri eşit aralıkta tutan kafestir. Kafes çatladığı anda bilyeler birbirine yaklaşır, sürtünme artar, yatak ısınır ve ses yapar. Parçanın kendisi küçüktür ama tek başına satılmaz: üretici komple yatak satar, eski bir seride ise o ölçü hiç bulunmaz.</p>
 <p>Katalogda rulman ve yuva aileleri bu işi karşılar. Bilye adımı, iç ve dış çap, cep derinliği gibi değerleri ürün sayfasındaki alanlara siz yazarsınız; parça o değerlerle hazırlanır. Bilezik ve bilye elemanlarının kendisi bizim işimiz değildir, onlar hazır olarak temin edilir.</p>
 <p>Bu parçada ölçü listesi kısadır ama hiçbiri atlanamaz: kafesin iç ve dış çapı, yüksekliği, bilye çapı, bilye sayısı ve bilyeler arasındaki adım, cep derinliği ve geçme dilinin kalınlığı. Kafesin yanında yatağın koşulları da hesaba katılır: devri yaklaşık kaçtır, yük eksen boyunca mı yoksa yana mı biner, ortam yağlı mıdır, sıcaklık nedir. Aynı ölçüdeki iki kafes farklı işlerde farklı malzeme ister.</p>
@@ -13393,7 +13388,7 @@ def _olcuye_ozel_plastik_rulman_kafesi_uretimi():
 """)
 
 def _olcuye_ozel_plastik_siyirici_ve_kazima_agzi_uretimi():
-    return (u"""<h1>Ölçüye Özel Plastik Sıyırıcı ve Kazıma Ağzı</h1>
+    return (u"""<h1>Plastik Sıyırıcı ve Kazıma Ağzı: Sitede Ölçüsü Seçilen Seçenekler</h1>
 <p>Nasıl çalışır: PRUVO kataloğunda satılan hazır kalemleri marka, model ve kategori sayfalarından bulursunuz; seçtiğiniz ürünü kartla ödeyerek sipariş verirsiniz. Sitede ölçüsü seçilen ürün ailesinde ölçüyü siz yazarsınız, parça o ölçüde hazırlanır. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>
 <p>Bir yüzeyi temizleyen, bir hazneyi boşaltan ya da bandın üzerinde kalan artığı alan parçanın çoğu zaman adı yoktur; makinenin kataloğunda yalnızca sıyırıcı diye geçer ve ayrı satılmaz. Ağzı köreldiğinde, ucu kırıldığında ya da esnek dili sertleşip çatladığında makine çalışmaya devam eder ama işini yapmaz: bant artık temiz dönmez, hazne dibinde ürün kalır, silinen yüzeyde iz kalır.</p>
 <p>Bu parça neredeyse her zaman ölçüye bağlıdır: bir milimetre kısa olduğunda yüzeye değmez, bir milimetre uzun olduğunda sürter ve çabuk aşınır. Katalogdaki kazıma, tutucu ve kapak aileleri bu işi karşılar; ölçüyü siz ürün sayfasındaki alanlara yazarsınız.</p>
@@ -13418,7 +13413,7 @@ def _olcuye_ozel_plastik_siyirici_ve_kazima_agzi_uretimi():
 """)
 
 def _olcuye_ozel_plastik_circir_mandal_disli_uretimi():
-    return (u"""<h1>Ölçüye Özel Plastik Cırcır ve Mandal Dişlisi</h1>
+    return (u"""<h1>Plastik Cırcır ve Mandal Dişlisi: Sitede Ölçüsü Seçilen Seçenekler</h1>
 <p>Nasıl çalışır: PRUVO kataloğunda satılan hazır kalemleri marka, model ve kategori sayfalarından bulursunuz; seçtiğiniz ürünü kartla ödeyerek sipariş verirsiniz. Sitede ölçüsü seçilen ürün ailesinde ölçüyü siz yazarsınız, parça o ölçüde hazırlanır. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>
 <p>Bir mekanizmanın tek yönde dönüp geri kaçmamasını sağlayan iki küçük parça vardır: dişleri tek yöne eğimli cırcır dişlisi ve o dişlere oturan mandal dili. İkisi birlikte çalışır, ikisi birlikte bozulur. Dişin ucu yuvarlandığında ya da mandalın tırnağı kırıldığında mekanizma tutmaz: koltuğun ayarı geri kaçar, kutu kapağının kilidi tutmaz, kurma yayı boşa döner.</p>
 <p>Bu ikili çoğu zaman ayrı satılmaz; üretici komple mekanizma satar, eski bir modelde ise hiç bulunmaz. Katalogda ise dişli ve mandal aileleri vardır; ölçüyü siz ürün sayfasındaki alanlara yazarsınız. Diş sayısı ve adım doğru seçilmeden mandalın tutmadığı görülür, bu yüzden iki değerin birlikte düşünülmesi gerekir.</p>
@@ -14033,7 +14028,7 @@ def _ayakkabi_ve_deri_imalat_ekipmani_plastik_parca_uretimi():
         "<p>Yapıştırıcı, çözücü ve boyayla temas eden parçalarda önce <a href=\"/yaga-ve-kimyasala-dayanikli-plastik-parca-uretimi/\">yağa ve kimyasala dayanıklı plastik parça</a> sayfasına bakılır; her sıvı her sınıfla bağdaşmaz. Presin ısınan bölgelerine yakın duran parçalarda ısı belirleyicidir: pratik tavan malzeme sınıfına göre 90-100 santigrat derecedir, ayrıntı <a href=\"/isiya-dayanikli-plastik-parca-uretimi/\">ısıya dayanıklı plastik parça</a> sayfasındadır. Yük taşıyan kalemlerde karbon ya da elyaf takviyeli naylon gündeme gelir; bu sınıf sitede doğrudan seçilemez. Sınıfların karşılaştırması <a href=\"/malzeme-rehberi/\">malzeme rehberi</a> sayfasındadır.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Presin doğrudan yük taşıyan kalıbı, kesim bıçağı ve bıçak yatağı plastikle çözülmez; o iş metal işleyen atölyelerin alanıdır. Isıtıcı tabana temas eden, sıcaklığı 90-100 santigrat derece bandının üstüne çıkan hiçbir parça hazırlanmaz. Makinenin elektriğini ve emniyet düzeneğini değiştiren, koruma kapağının işlevini ortadan kaldıran talepler kabul edilmez.</p>"
-        "<p>Sıcaklık ölçmeniz gerekiyorsa çalışan makinenin yüzeyine elle dokunmayın; sıcaklığı makinenin kendi göstergesinden ya da temassız bir ölçüm cihazıyla okuyun. sitede ölçüsü seçilen hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur. Uyumsuzluğun sınırları <a href=\"/olcu-tutmazsa-ne-olur-uyum-garantisi/\">ölçü tutmazsa ne olur</a> sayfasında, kapsam dışı kalanların listesi <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
+        "<p>Sıcaklık ölçmeniz gerekiyorsa çalışan makinenin yüzeyine elle dokunmayın; sıcaklığı makinenin kendi göstergesinden ya da temassız bir ölçüm cihazıyla okuyun. sitede ölçüsü seçilen hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + " Uyumsuzluğun sınırları <a href=\"/olcu-tutmazsa-ne-olur-uyum-garantisi/\">ölçü tutmazsa ne olur</a> sayfasında, kapsam dışı kalanların listesi <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Hazır katalog ürünlerini siteden kartla online sipariş verebilirsiniz. Makinenin adını, parçanın nerede durduğunu ve aradığınız kalemin adını WhatsApp hattımıza yazın: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\">"
         "<strong>+90 545 138 6526</strong></a>. <strong>Sitede var mı</strong> diye sorabilirsiniz; katalogu kendiniz arayın.</p>"
@@ -14189,7 +14184,7 @@ def _parca_olcusu_buyutulup_kucultulerek_uretilir_mi():
 <p>Ürün sayfasındaki seçeneklerden katalog fiyatını görür, siteden kartla ödeme yaparsınız. Gereken milimetre değerlerini siz yazarsınız; parça o değerlerle hazırlanır. Seçebileceğiniz ölçü aralığını aşıyorsanız WhatsApp hattımızdan yazın: <a href="https://wa.me/905451386526" target="_blank" rel="noopener"><strong>+90 545 138 6526</strong></a>, yalnız sitede var mı diye sormak yeterli. Fiyat <a href="/ozel-parca-uretimi-fiyati-nasil-belirlenir/">fiyat nasıl belirlenir</a>, süre <a href="/ozel-parca-kac-gunde-hazir-olur/">parça kaç günde hazır olur</a> sayfalarında açıklanır.</p>""")
 
 def _uretim_oncesi_olcu_teyidi_ve_onay_gorseli_verilir_mi():
-    return (u"""<h1>Üretim Öncesi Ölçü Teyidi ve Onay Görseli: Katalogda Nasıl İşliyor</h1>
+    return (u"""<h1>Ölçüyü Siz Yazıyorsunuz: Teyit Turu Var mı?</h1>
 <p>Ölçüye özel işlerde en pahalı hata, yanlış anlaşılmış tek bir sayıdır: parça hazırlanır, yola çıkar, yerine oturmaz; hem zaman hem para gider. Katalog akışında bu riski en aza indiren şey baştan kurgulanmış olmasıdır: ölçüyü siz, sipariş sayfasında kendiniz seçersiniz ve seçtiğiniz değer kayda geçer. Ayrı bir "teyit turu" ya da onay görseli adımı yoktur.</p>
 <p>Bunun yerine ne yapıyoruz? Sitede ölçüsü seçilen ürünlerde alanlar açıktır ve hangi değerin neyi belirlediği ürün sayfasında yazılıdır. Aralığın dışına düşen bir değer istediğinizde ya da belirsiz kaldığınız bir ölçüde WhatsApp hattımızdan yalnız sitede var mı diye sorarsınız; sitede olmayan bir ölçü için özel üretim açılmaz.</p>
 <h2>Katalogda ölçü nasıl seçilir</h2>
@@ -14495,7 +14490,7 @@ def _sikca_sokulup_takilan_plastik_parca_uretimi():
 
 def _ozel_uretim_parca_siparisinde_en_cok_yapilan_hatalar():
     return (
-        "<h1>Siparişte En Sık Yapılan Hatalar ve Önlenmesi</h1>"
+        "<h1>Siparişte En Çok Yapılan Hatalar</h1>"
         "<p>Nasıl çalışır: PRUVO kataloğunda satılan hazır kalemleri marka, model ve kategori sayfalarından bulursunuz; seçtiğiniz ürünü kartla ödeyerek sipariş verirsiniz. Sitede ölçüsü seçilen ürün ailesinde ölçüyü siz yazarsınız, parça o ölçüde hazırlanır. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Bir siparişin geri dönmesinin tek sebebi üretim değildir; genellikle ilk mesajdaki iki ya da üç bilgi eksiktir. PRUVO kataloğunda 41.000'den fazla hazır parça var ve ölçüsü siteden seçilen bir ürün ailesi var; bu ikisinden hangisinin işinize uyduğu, siparişten önce netleşirse hatalar çoğu zaman hiç oluşmaz. Bu sayfada sık görülen hataları ve her birini nasıl önleyeceğinizi yazdık.</p>"
         "<h2>Sipariş aslında üç adımdan oluşur</h2>"
@@ -14525,7 +14520,7 @@ def _ozel_uretim_parca_siparisinde_en_cok_yapilan_hatalar():
         "<h2>Dürüst sınır</h2>"
         "<p>Ölçüye özel bir parça, ölçüsü doğru girildiğinde katalogdaki geometriyi verir; ancak malzemenin taşıyabileceği yük sınırlıdır. Ağır bir kiriş, basınçlı bir hat bağlantısı ya da güvenlik kritik bir bağlantı elemanının yerini tutmaz. Böyle bir iş istediğinizde bunu baştan söyleriz; doğru malzemeyi ya da metal çözümü sitedeki malzeme rehberinde kendiniz görürsünüz. Parçanın malzemesini kendisi belirlemek isterseniz <a href=\"/parcanin-hangi-plastikten-oldugu-nasil-anlasilir/\">hangi plastikten olduğu nasıl anlaşılır</a> sayfasındaki ipuçları işe yarar.</p>"
         "<h2>Sipariş ve iletişim</h2>"
-        "<p>Ölçü alanları, malzeme, renk ve fiyat ürün sayfasında listelenir; sipariş siteden tamamlanır. Aradığınız parçanın sitede olup olmadığını merak ediyorsanız WhatsApp hattımıza <strong>sitede var mı</strong> diye yazın: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>. Model ve parça adını yazmanız yeterli; sitede varsa ilgili sayfanın adresini, yoksa sitede bulunmadığını söyleriz. Sipariş takibi ve iade konuları <a href=\"/ozel-uretim-parca-siparisinde-en-cok-yapilan-hatalar/\">bu başlıkta</a> ve <a href=\"/ozel-uretim-parca-iadesi-ve-geri-odemesi-nasil-isler/\">iade sayfasında</a> anlatılır; revizyon hizmeti vermiyoruz.</p>"
+        "<p>Ölçü alanları, malzeme, renk ve fiyat ürün sayfasında listelenir; sipariş siteden tamamlanır. Aradığınız parçanın sitede olup olmadığını merak ediyorsanız WhatsApp hattımıza <strong>sitede var mı</strong> diye yazın: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>. Model ve parça adını yazmanız yeterli; sitede varsa ilgili sayfanın adresini, yoksa sitede bulunmadığını söyleriz. Sipariş takibi <a href=\"/ozel-uretim-parca-siparisi-nasil-takip-edilir/\">sipariş takip sayfasında</a> ve <a href=\"/ozel-uretim-parca-iadesi-ve-geri-odemesi-nasil-isler/\">iade sayfasında</a> anlatılır; revizyon hizmeti vermiyoruz.</p>"
     )
 
 
@@ -14643,7 +14638,7 @@ def _oto_bijon_kapagi_ve_sibop_tapasi_yaptirma():
 
 def _olcuye_ozel_plastik_bayonet_kilit_ve_ceyrek_tur_gecme_uretimi():
     return (
-        "<h1>Ölçüye Özel Bayonet Kilit ve Çeyrek Tur Geçme Parçaları</h1>"
+        "<h1>Bayonet Kilit ve Çeyrek Tur Geçme: Sitede Ölçüsü Seçilen Seçenekler</h1>"
         "<p class=\"lead\">Bayonet kilidi, yani süngü kilidi, kapakla gövdeyi pimler üzerinden bir çeyrek tur döndürerek birleştiren bir bağlantıdır. Kilit açılırken ve kapanırken aynı yolu izlemez: kapak önce oturur, sonra döner ve kilitlenir. Bu davranışı doğru taklit etmek için üç şey aynı anda doğru olmalıdır: pim sayısı, kilitleme açısı ve conta yüzeyi. PRUVO katalogunda 41.000'den fazla hazır parça var; ölçüsü siteden seçilen ürün ailesinde ölçüyü sitedeki seçim alanlarından siz belirlersiniz.</p>"
         "<h2>Bayonet bağlantıda neler belirleyicidir</h2>"
         "<ul>"
@@ -14670,7 +14665,7 @@ def _olcuye_ozel_plastik_bayonet_kilit_ve_ceyrek_tur_gecme_uretimi():
 
 def _olcuye_ozel_plastik_gosterge_kadrani_ve_skala_halkasi_uretimi():
     return (
-        "<h1>Ölçüye Özel Gösterge Kadranı ve Skala Halkası</h1>"
+        "<h1>Gösterge Kadranı ve Skala Halkası: Sitede Ölçüsü Seçilen Seçenekler</h1>"
         "<p class=\"lead\">Bir kadranın okunabilirliği üç şeye bağlıdır: işaretlerin arasındaki bölüntü, kadranın kaç derece döndüğü ve ibrenin göstereceği aralık. Rengi solan bir kadranın en sık şikayeti kırık olması değil, tırtıklı ve yanlış okunmasıdır. PRUVO kataloğunda 41.000'den fazla hazır parça var; ölçüsü siteden seçilen ürün ailesinde ölçüyü sitedeki seçim alanlarından siz belirlersiniz.</p>"
         "<h2>Kadran ve skala halkasında hangi değerler önemli</h2>"
         "<ul>"
@@ -14731,7 +14726,7 @@ def _kasap_ve_et_isleme_ekipmani_plastik_parca_uretimi():
         "<h2>Kasap tarafında hangi kalemler aranır</h2>"
         "<ul>"
         "<li><strong>Kıyma ve dilimleme itici pabuçları.</strong> Eti tabdaya iten, gıdaya temas eden pabuçlar; kaymazlık ve yıkanabilirlik ön plandadır.</li>"
-        "<li><strong>Vitrin raf pimi ve raf tutucusu.</strong> Buzdolabı ve tezgah altı rafları; soğukta sürekli yük taşıyan küçük bağlantı elemanlarıdır.</li>"
+        "<li><strong>Vitrin raf pimi ve raf tutucusu.</strong> Tezgah altı rafları; soğukta sürekli yük taşıyan küçük bağlantı elemanlarıdır.</li>"
         "<li><strong>Dolum hunisi ve konik adaptörler.</strong> Huni ağzının çapı, kapların ağzına göre değişir; kenarı yuvarlak olmalı, keskin kenar bırakmamalıdır.</li>"
         "<li><strong>Tepsi arabası burcu ve tekerlek pabuçları.</strong> Zeminle sürekli temas eden, kir ve suyla yıkanan parçalardır.</li>"
         "<li><strong>Kanca, şişe kapağı ve etiket taşıyıcı.</strong> Etiketleme ve depolama sırasında sürekli takılıp çıkarılan, yıpranmayı hızlandıran küçük parçalardır.</li>"
@@ -14780,7 +14775,7 @@ def _yakit_ve_benzin_temasli_plastik_parca_uretimi():
 
 def _ozel_uretim_parca_orijinaliyle_ayni_renkte_olur_mu():
     return (
-        "<h1>Özel Üretim Parça Orijinaliyle Aynı Renkte Olur mu?</h1>"
+        "<h1>Parça Orijinaliyle Aynı Renkte Olur mu?</h1>"
         "<p class=\"lead\">Kısa cevap: yakın bir ton elde edebilirsiniz, birebir aynı rengi değil. Aynı renk kodunu kullanmak bile aynı görüntüyü vermez, çünkü yüzey yapısı, ışık ve çevre değişmiştir. Bu sayfada renk beklentisini gerçekçi kurmanın yolunu anlatıyoruz. PRUVO kataloğunda 41.000'den fazla hazır parça var; birçok üründe renk seçeneği doğrudan ürün sayfasında listelenir.</p>"
         "<h2>Renk nerede önemli, nerede değil</h2>"
         "<p>Görünür yüzeylerde renk önemlidir: konsol kapağı, direksiyon kolonu kabuğu, panel çerçevesi, gösterge kadranı. Fonksiyonel parçalarda renk önemsizdir: braket, dübel, kelepçe, vida, kaide. İkinci grupta doğru seçim ölçü ve malzemedir; renk için ekstra beklentide bulunmak gerekmez.</p>"
@@ -14826,7 +14821,7 @@ def _parcanin_calisma_kosulunu_nasil_tarif_ederim():
         "<h2>Koşulu bilmediğiniz durumda</h2>"
         "<p>Koşul bilinmiyorsa parça seçimi yapılmaz; en azından varsayılan bir koşul varsayılır ve bu varsayım size yazılı olarak bildirilir. Size en uygun seçenek, işinizin kataloğunun uygun olduğu durumlar. Sitede var mı sorusunu WhatsApp hattımızdan sorabilirsiniz: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>; yalnız <strong>sitede var mı</strong> diye yazmanız yeterli.</p>"
         "<h2>Doğru malzeme</h2>"
-        "<p>Yedi başlığın her biri malzeme tablosundaki bir sütuna karşılık gelir. Isı, UV ve nem için PETG ve ASA; yük ve tork için cam elyaf ya da karbon takviyeli PA-CF / PA-GF; esneklik gereken yerler için esnek sınıflar; gıda ve cilt teması için uygun yüzey sınıfları. Karşılaştırmalı tablo <a href=\"/malzeme-rehberi/\">malzeme rehberi</a> sayfasındadır. Sert ile esnek arasındaki seçim <a href=\"/ozel-uretim-parca-sert-mi-esnek-mi-olmali/\">sert mi esnek mi olmalı</a> başlığında açıklanır.</p>"
+        "<p>Yedi başlığın her biri malzeme tablosundaki bir sütuna karşılık gelir. Isı, UV ve nem için PETG ve ASA; yük ve tork için cam elyaf ya da karbon takviyeli PA-CF / PA-GF; esneklik gereken yerler için esnek sınıflar; gıda ve cilt teması için uygun yüzey sınıfları (gıda ya da tıbbi sertifika gerektiren kullanım kapsam dışıdır). Karşılaştırmalı tablo <a href=\"/malzeme-rehberi/\">malzeme rehberi</a> sayfasındadır. Sert ile esnek arasındaki seçim <a href=\"/ozel-uretim-parca-sert-mi-esnek-mi-olmali/\">sert mi esnek mi olmalı</a> başlığında açıklanır.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Malzeme seçimi bir hesaplama değil, bir uzmanlık alanıdır ve katalog ürünleri belirli koşullar için hazırlanmış sınıflardır. Kritik güvenlik elemanlarında, kaldırma ve askı sistemlerinde ya da insana doğrudan yük bindiren bağlantılarda plastik çözüm önerilmez; bu durumda doğru malzemeye ya da metal çözüme yönlendirme yapılır. Ayrıca bazı kimyasallara dayanıklı bir malzeme, başka bir kimyasalla temas ettiğinde uygun olmayabilir; koşulu yazmak bu yüzden zorunludur.</p>"
         "<h2>Sipariş ve iletişim</h2>"
@@ -14893,7 +14888,7 @@ def _sisme_bot_ve_zodyak_plastik_parcasi_ozel_uretim():
 
 def _oto_multimedya_ve_radyo_panel_plastik_parcasi_yaptirma():
     return (
-        "<h1>Oto Multimedya ve Radyo Paneli Parçaları</h1>"
+        "<h1>Oto Multimedya ve Radyo Paneli Parçası: Katalogdaki Seçenekler</h1>"
         "<p class=\"lead\">Torpido üstündeki radyo paneli, aracın en sıcak ve en sık dokunulan yüzeylerinden biridir: yazın güneşte kızışır, kışın soğuktan sertleşir, her gün düğmeleri çevrilir. Panelin çerçevesi çatladığında ekranın arkasındaki toz ve nem geçmeye başlar. PRUVO kataloğunda 41.000'den fazla hazır parça var; otomobil kategorisi en geniş bölümü oluşturuyor.</p>"
         "<h2>Panel tarafında hangi kalemler aranır</h2>"
         "<ul>"
@@ -14949,7 +14944,7 @@ def _oto_motor_alt_koruma_ve_karter_muhafazasi_klipsi_yaptirma():
 
 def _olcuye_ozel_plastik_sensor_yuvasi_ve_tutucusu_uretimi():
     return (
-        "<h1>Ölçüye Özel Sensör Yuvası ve Tutucu Parçaları</h1>"
+        "<h1>Sensör Yuvası ve Tutucu: Sitede Ölçüsü Seçilen Seçenekler</h1>"
         "<p class=\"lead\">Bir sensör, ancak doğru yerde ve doğru açıda durduğunda doğru veriyi üretir; tutucu bu yüzden ikincil görünen ama sonucu belirleyen bir parçadır. Titreşim, ısı ve kablo çekişi tutucunun üç ana hasar kaynağıdır. PRUVO katalogunda 41.000'den fazla hazır parça var; ölçüsü siteden seçilen ürünlerde ölçüyü sitedeki seçim alanlarından siz belirlersiniz.</p>"
         "<h2>Hangi kalemler aranır</h2>"
         "<ul>"
@@ -14977,7 +14972,7 @@ def _olcuye_ozel_plastik_sensor_yuvasi_ve_tutucusu_uretimi():
 
 def _olcuye_ozel_plastik_kart_kizagi_ve_pcb_kilavuzu_uretimi():
     return (
-        "<h1>Ölçüye Özel Kart Kızağı ve PCB Kılavuzu</h1>"
+        "<h1>Kart Kızağı ve PCB Kılavuzu: Sitede Ölçüsü Seçilen Seçenekler</h1>"
         "<p class=\"lead\">Bir kartın konumunu koruyan şey kartın kendisi değil, taşıdığı kızağıdır. Kart kızağı, kartın ağırlığını, titreşim yükünü ve ısıyı taşır; ayrıca kartın çevresinde hava akışı için açıklık bırakmak zorundadır. PRUVO katalogunda 41.000'den fazla hazır parça var; ölçüsü siteden seçilen ürünlerde ölçüyü sitedeki seçim alanlarından siz belirlersiniz.</p>"
         "<h2>Kızak ve kılavuzda hangi kalemler aranır</h2>"
         "<ul>"
@@ -15078,7 +15073,7 @@ def _basinc_altinda_calisan_plastik_parca_uretilir_mi():
         "<p>En sık gelen itiraz şudur: daha güçlü bir malzeme seçsek olmaz mı? Olmuyor, çünkü basınç bir malzeme sorusu değil, bir yapı ve sızdırmazlık sorusudur. Çeper kalınlığı, ek yerlerinin davranışı ve uzun vadeli sünme birlikte belirler; malzemeyi sertleştirmek bu üçünü çözmez. Karbon ya da cam fiber takviyeli naylon sınıfı bile basınç tutan gövdeyi kapsama almaz.</p>"
         "<p>İkincil parçalarda seçim her zamanki gibi koşula göre yapılır. Kapalı ve gölge yerlerde PETG dengeli bir tercihtir; güneş gören, dış hava alan ya da ılık bölmede duran parçada ASA öne geçer. Sınıfların yan yana karşılaştırması <a href=\"/malzeme-rehberi/\">malzeme rehberi</a> sayfasındadır.</p>"
         "<h2>Dürüst sınır</h2>"
-        "<p>Bu sayfanın tamamı zaten bir sınır metnidir, yine de maddeleri tekrar yazalım. Pompa, sintine ve sirkülasyon çarkı ile fan çarkı hazırlanır. Basıncı tutan gövde, valf ve bağlantı elemanı hazırlanmaz; onların çevresindeki kapak, tutucu ve muhafaza hazırlanır. Conta yalnız düşük ve orta basınçta, sızdırmazlık taahhüdü verilmeden hazırlanır. sitede ölçüsü seçilen hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur.</p>"
+        "<p>Bu sayfanın tamamı zaten bir sınır metnidir, yine de maddeleri tekrar yazalım. Pompa, sintine ve sirkülasyon çarkı ile fan çarkı hazırlanır. Basıncı tutan gövde, valf ve bağlantı elemanı hazırlanmaz; onların çevresindeki kapak, tutucu ve muhafaza hazırlanır. Conta yalnız düşük ve orta basınçta, sızdırmazlık taahhüdü verilmeden hazırlanır. sitede ölçüsü seçilen hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Hazır katalog ürünlerini siteden kartla online sipariş verebilirsiniz. Parçanın çalıştığı yeri, sıvı mı hava mı geçtiğini ve sürekli mi çalıştığını WhatsApp hattımıza yazın: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\">"
         "<strong>+90 545 138 6526</strong></a>. Sınırın hangi tarafında kaldığı genelde ilk mesajda söylenir.</p>"
@@ -15282,7 +15277,7 @@ def _oto_tavan_tutamagi_ve_tavan_doseme_klipsi_yaptirma():
 
 def _olcuye_ozel_plastik_doner_tabla_ve_donus_halkasi_uretimi():
     return (
-        "<h1>Ölçüye Özel Plastik Döner Tabla ve Dönüş Halkası</h1>"
+        "<h1>Plastik Döner Tabla ve Dönüş Halkası: Sitede Ölçüsü Seçilen Seçenekler</h1>"
         "<p class=\"lead\">Döner tablalar ve dönüş halkaları, sürekli dönen parçalardır: yük taşıdıkları kadar aşınan yüzeylerdir de. Plastik bir halka metal bir rulmana göre sessiz çalışır, ama taşıma kapasitesi ve ömrü farklıdır. PRUVO katalogunda 41.000'den fazla hazır parça var; ölçüsü siteden seçilen ürünlerde ölçüyü sitedeki seçim alanlarından siz belirlersiniz.</p>"
         "<h2>Döner sistemde hangi kalemler aranır</h2>"
         "<ul>"
@@ -15310,7 +15305,7 @@ def _olcuye_ozel_plastik_doner_tabla_ve_donus_halkasi_uretimi():
 
 def _olcuye_ozel_plastik_disli_kutusu_govdesi_ve_kapagi_uretimi():
     return (
-        "<h1>Ölçüye Özel Plastik Dişli Kutusu Gövdesi ve Kapağı</h1>"
+        "<h1>Plastik Dişli Kutusu Gövdesi ve Kapağı: Sitede Ölçüsü Seçilen Seçenekler</h1>"
         "<p class=\"lead\">Dişli kutusu gövdesi, iki görevi aynı anda yapar: mili taşır ve yağı içinde tutar. Bu yüzden gövde hem mekanik dayanım hem de kapısal sızdırmazlık ister; gövdeyi kapatan kapak da aynı yüzeyi tamamlamak zorundadır. PRUVO katalogunda 41.000'den fazla hazır parça var; ölçüsü siteden seçilen ürünlerde ölçüyü sitedeki seçim alanlarından siz belirlersiniz.</p>"
         "<h2>Kutu gövdesinde hangi kalemler aranır</h2>"
         "<ul>"
@@ -15394,7 +15389,7 @@ def _traktor_ve_bicerdover_kabin_plastik_parca_uretimi():
 
 def _ozel_uretim_parca_garantiyi_bozar_mi():
     return (
-        "<h1>Özel Üretim Parça Garantiyi Bozar mı?</h1>"
+        "<h1>Hazırlanan Parça Garantiyi Bozar mı?</h1>"
         "<p class=\"lead\">Bu sorunun tek ve doğru cevabı şudur: kararı garanti belgesini veren taraf verir. Markanın ya da servisin kendi garantisi kendi ürünü üzerinden geçer; marka dışı, siteden alınan bir yedek parça için verilen bir garanti ise markanın sorumluluğu anlamına gelmez. PRUVO kataloğunda 41.000'den fazla hazır parça var; garanti sorusunun yanında pratik yol da önemlidir.</p>"
         "<h2>Hangi durumda ne yapılır</h2>"
         "<ol>"
@@ -15575,7 +15570,7 @@ def _oto_park_sensoru_ve_geri_gorus_kamerasi_tutucusu_yaptirma():
         "<h2>Siteden ölçüsü seçilen parçalar</h2>"
         "<p>Ölçüsü sitede seçilen braket ve kapak kalemleri katalogda hazırdır: <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüsü siteden seçilen montaj braketi</a> ile <a href=\"/urun/olcuye-ozel-izgara-menfez-kapak/\">ölçüsü siteden seçilen ızgara menfez kapağı</a> bu gruptan iki örnek. Ölçüyü sitedeki seçim alanlarından siz belirlersiniz. Elinizdeki parçayı bize gönderip ondan fiziksel ölçüm alıp yeniden hazırlama hizmeti vermiyoruz; doğru parçayı seçmek için arama terimini birlikte yazışmada netleştiririz.</p>"
         "<h2>Dürüst sınır</h2>"
-        "<p>Sensörün ve kameranın kendisi bu işin dışındadır: ultrasonik verici, mercek, görüntü modülü, kablo demeti ve ekran tarafı kapsama girmez. Üretilen taraf, bunları yerinde ve doğru açıda tutan plastiktir. Tamponun büyük gövde paneli de bu yöntemin kapsamında değildir. Park sensörü ve geri görüş sistemi sürüş güvenliğine bağlı bir donanımdır: montaj sonrası kalibrasyon ve çalışma denemesi montajı yapan servisin işidir; sistem doğru çalışıyor diye bir belge ya da taahhüt verilmez. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur.</p>"
+        "<p>Sensörün ve kameranın kendisi bu işin dışındadır: ultrasonik verici, mercek, görüntü modülü, kablo demeti ve ekran tarafı kapsama girmez. Üretilen taraf, bunları yerinde ve doğru açıda tutan plastiktir. Tamponun büyük gövde paneli de bu yöntemin kapsamında değildir. Park sensörü ve geri görüş sistemi sürüş güvenliğine bağlı bir donanımdır: montaj sonrası kalibrasyon ve çalışma denemesi montajı yapan servisin işidir; sistem doğru çalışıyor diye bir belge ya da taahhüt verilmez. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçayı sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup siparişi tamamlarsınız. Bulamazsanız WhatsApp hattımız <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a> üzerinden yalnız sitede var mı diye yazın. Montaj rehberi <a href=\"/ozel-uretim-plastik-parca-nasil-monte-edilir/\">nasıl monte edilir</a> başlığında yer alıyor.</p>"
     )
@@ -15600,7 +15595,7 @@ def _oto_sigorta_kutusu_kapagi_ve_role_yuvasi_yaptirma():
         "<h2>Siteden ölçüsü seçilen parçalar</h2>"
         "<p>Ölçüsü sitede seçilen kutu ve bağlantı kalemleri katalogda hazırdır: <a href=\"/urun/olcuye-ozel-baglanti-konektor/\">ölçüsü siteden seçilen bağlantı konektörü</a>, <a href=\"/urun/olcuye-ozel-kutu-organizer/\">ölçüsü siteden seçilen kutu ve organizer</a> ile <a href=\"/urun/olcuye-ozel-oring-conta/\">ölçüsü siteden seçilen conta</a> bu aileden örneklerdir. Ölçüyü sitedeki seçim alanlarından siz belirlersiniz. Elinizdeki parçayı bize gönderip ondan fiziksel ölçüm alıp yeniden hazırlama hizmeti vermiyoruz; kutu ölçüsünü ve yuva adedini sitedeki seçim alanlarından siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
-        "<p>Sigortayı, röleyi, kablo demetini ve kontakları bu işin dışındadır; bunlar akım değerine ve tip onayına bağlı elemanlardır. Üretilen taraf, onların çevresinde duran plastik gövdedir: kapak, bölme duvarı, etiket çerçevesi, geçiş burcu, klips ve bilezik. Motor bölmesinde ölçülen sıcaklığın 90-100 derece tavanını aştığı noktalar kapsam dışıdır; parçanın gerçek çalışma sıcaklığını sipariş öncesi konuşuruz. Alev geciktirici sınıf aranan kapaklarda o sınıf üretilmez, belge verilmez. Aracın elektrik tesisatına yapılacak müdahale yetkili servisin işidir. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur.</p>"
+        "<p>Sigortayı, röleyi, kablo demetini ve kontakları bu işin dışındadır; bunlar akım değerine ve tip onayına bağlı elemanlardır. Üretilen taraf, onların çevresinde duran plastik gövdedir: kapak, bölme duvarı, etiket çerçevesi, geçiş burcu, klips ve bilezik. Motor bölmesinde ölçülen sıcaklığın 90-100 derece tavanını aştığı noktalar kapsam dışıdır; parçanın gerçek çalışma sıcaklığını sipariş öncesi konuşuruz. Alev geciktirici sınıf aranan kapaklarda o sınıf üretilmez, belge verilmez. Aracın elektrik tesisatına yapılacak müdahale yetkili servisin işidir. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçayı sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup siparişi tamamlarsınız. Bulamazsanız WhatsApp hattımız <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a> üzerinden yalnız sitede var mı diye yazın. Fiyatın neye göre çıktığı <a href=\"/ozel-parca-uretimi-fiyati-nasil-belirlenir/\">fiyat nasıl belirlenir</a> sayfasında anlatılıyor.</p>"
     )
@@ -15705,14 +15700,14 @@ def _kurumsal_ve_isletme_musterileri_icin_ozel_parca_uretimi():
         "<h2>Adet, kayıt ve fatura tarafı</h2>"
         "<p>Aynı parçanın ikinci kez gerektiğinde ölçüyü yeniden yazarsınız: önceki siparişinizde kullandığınız değerler sipariş geçmişinizde durur, ikinci sipariş aynı ölçüde tekrar verilebilir. Süreç <a href=\"/ayni-parcadan-tekrar-siparis-ve-olcu-kaydi/\">ölçü kaydıyla tekrar sipariş</a> sayfasında anlatılıyor. Liste hâlinde çok kalemli bir ihtiyaçta her kalemin fiyatı ve süresi ürün sayfasında yazılıdır; hepsini tek seferde almak isterseniz adetleri kalem kalem girersiniz. Faturalı satış yapılır; fatura ayrıntısı gerekiyorsa WhatsApp hattından yazın.</p>"
         "<h2>Dürüst sınır</h2>"
-        "<p>İşimiz düşük ve orta adetli, katalogdan baskı üretimidir; fabrika ölçeğinde binlerce adetlik iş bizim işimiz değildir ve o hacimde başka bir üretim yöntemi daha doğrudur, bunu baştan söyleriz. Sertifika ya da onay gerektiren üretimler kapsam dışıdır: gıda teması, tıbbi kullanım, yangın standardı aranan uygulamalar ve can güvenliğine bağlı yapısal taşıyıcı parçalar. Üretemediğimiz parçaların topluca listesi <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur.</p>"
+        "<p>İşimiz düşük ve orta adetli, katalogdan baskı üretimidir; fabrika ölçeğinde binlerce adetlik iş bizim işimiz değildir ve o hacimde başka bir üretim yöntemi daha doğrudur, bunu baştan söyleriz. Sertifika ya da onay gerektiren üretimler kapsam dışıdır: gıda teması, tıbbi kullanım, yangın standardı aranan uygulamalar ve can güvenliğine bağlı yapısal taşıyıcı parçalar. Üretemediğimiz parçaların topluca listesi <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Siparişi sitede ürün sayfasındaki ölçü alanlarını doldurarak tamamlarsınız; ölçüsü sitede seçilebilen kalemlerde kartla online ödeme yapılabilir. Sitede olmayan bir kalem için özel üretim açılmaz; yalnız <strong>sitede var mı</strong> diye sormak için WhatsApp hattımız <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a> üzerinden yazın. Fiyatın neye göre çıktığı <a href=\"/ozel-parca-uretimi-fiyati-nasil-belirlenir/\">fiyat nasıl belirlenir</a>, teslim süresi <a href=\"/ozel-parca-kac-gunde-hazir-olur/\">kaç günde hazır olur</a> sayfalarında anlatılıyor.</p>"
     )
 
 def _ozel_uretim_parca_stoklanir_mi_raf_omru_nedir():
     return (
-        "<h1>Yedek Parça Stoklanır mı, Raf Ömrü Nedir?</h1>"
+        "<h1>Yedek Parça ve Raf Ömrü</h1>"
         "<p class=\"lead\">\"Bu parça bir gün yine kırılacak; şimdiden bir tane daha alıp depoya koysam orada beklerken bozulur mu?\" Sorusu sık gelir ve yerindedir. Rafta duran parça hiç iş yapmıyor gibi görünür, ama bulunduğu ortamın etkisinde kalır ve o etki takıldığı gün karşınıza çıkar. PRUVO katalogunda 41.000'i aşkın hazır parça var; yedek ihtiyacı olan kalem aynı sayfadan ikinci kez alınabilir.</p>"
         "<h2>Rafta bekleyen parçayı gerçekte ne etkiler</h2>"
         "<ul>"
@@ -15734,7 +15729,7 @@ def _ozel_uretim_parca_stoklanir_mi_raf_omru_nedir():
         "<h2>Depoda pratik saklama notu</h2>"
         "<p>Kural kısadır: serin, kuru, karanlık; düz yatırılmış ve üstüne başka kutu binmemiş; ağzı kapalı bir poşet ya da kutuda, yakıt ve çözücülerden ayrı bir dolapta. İnce ve uzun parçaları düz bir yüzeye yatırın, kenarından sarkacak biçimde bırakmayın. Kutunun üstüne parçanın adını ve hangi ekipmana ait olduğunu yazmak, iki yıl sonra arayan kişiye en büyük iyiliktir. Takmadan önce yumuşak bir bezle silmek yeterlidir; bakım ayrıntısı <a href=\"/ozel-uretim-plastik-parcanin-bakimi-ve-temizligi/\">bakım ve temizlik</a> sayfasında.</p>"
         "<h2>Dürüst sınır</h2>"
-        "<p>Bir parçanın rafta tam olarak kaç yıl bekleyeceğine dair kesin bir sayı vermeyiz ve raf ömrü konusunda sertifikalı taahhütte bulunmayız. Gıda teması, tıbbi malzeme ve yangın standardı aranan depolama koşulları kapsamımızın dışındadır. Söyleyebileceğimiz şudur: serin, kuru ve karanlık bir yerde, üstüne yük binmeden saklanan parça uzun süre beklemeye elverişlidir; bunun ötesinde kesin süre garantisi vermek dürüst olmaz. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur.</p>"
+        "<p>Bir parçanın rafta tam olarak kaç yıl bekleyeceğine dair kesin bir sayı vermeyiz ve raf ömrü konusunda sertifikalı taahhütte bulunmayız. Gıda teması, tıbbi malzeme ve yangın standardı aranan depolama koşulları kapsamımızın dışındadır. Söyleyebileceğimiz şudur: serin, kuru ve karanlık bir yerde, üstüne yük binmeden saklanan parça uzun süre beklemeye elverişlidir; bunun ötesinde kesin süre garantisi vermek dürüst olmaz. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Yedeği alacağınız kalemi sitede bulup aynı sayfadan ikinci adedi sipariş edebilirsiniz. Bulamazsanız WhatsApp hattımız <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a> üzerinden yalnız sitede var mı diye yazın. Fiyatın neye göre çıktığı <a href=\"/ozel-parca-uretimi-fiyati-nasil-belirlenir/\">fiyat nasıl belirlenir</a> sayfasında açıklanıyor.</p>"
     )
@@ -15760,7 +15755,7 @@ def _tekne_kokpit_masasi_ayagi_ve_katlanir_masa_mandali_ozel_uretim():
         "<h2>Siteden ölçüsü seçilen parçalar</h2>"
         "<p>Ölçüsü sitede seçilen montaj ve tutucu kalemleri katalogda hazırdır: <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüsü siteden seçilen montaj braketi</a>, <a href=\"/urun/olcuye-ozel-toka/\">ölçüsü siteden seçilen toka</a> ve <a href=\"/urun/olcuye-ozel-kutu-organizer/\">ölçüsü siteden seçilen kutu ve organizer</a> bu aileden örneklerdir. Ölçüyü sitedeki seçim alanlarından siz belirlersiniz. Elinizdeki parçayı bize gönderip ondan fiziksel ölçüm alıp yeniden hazırlama hizmeti vermiyoruz; boru çapı ya da montaj yüzeyi gibi değerleri sitede girersiniz.</p>"
         "<h2>Dürüst sınır</h2>"
-        "<p>Masanın ahşap ya da laminat yüzeyini üretmeyiz, yalnız ayağı ve mekanizması kapsama girer. Masanın güverteye taşıyıcı bağlantısı yapısal bir iştir: güverteye gömülü takviye ve cıvata yatağı teknenin kendi montaj noktasıdır, onun mühendislik onayı tekne servisinizin işidir. Küçük taban pabucu ise bunun dışındadır ve katalogdaki kalemlerle karşılanır. Sürekli ağır yük altında kalan, can güvenliğine bağlı yapısal taşıyıcı donanım kapsam dışıdır. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur.</p>"
+        "<p>Masanın ahşap ya da laminat yüzeyini üretmeyiz, yalnız ayağı ve mekanizması kapsama girer. Masanın güverteye taşıyıcı bağlantısı yapısal bir iştir: güverteye gömülü takviye ve cıvata yatağı teknenin kendi montaj noktasıdır, onun mühendislik onayı tekne servisinizin işidir. Küçük taban pabucu ise bunun dışındadır ve katalogdaki kalemlerle karşılanır. Sürekli ağır yük altında kalan, can güvenliğine bağlı yapısal taşıyıcı donanım kapsam dışıdır. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçayı sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup siparişi tamamlarsınız. Bulamazsanız WhatsApp hattımız <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a> üzerinden yalnız sitede var mı diye yazın. Montaj rehberi <a href=\"/ozel-uretim-plastik-parca-nasil-monte-edilir/\">nasıl monte edilir</a> başlığında yer alıyor.</p>"
     )
@@ -15785,7 +15780,7 @@ def _tekne_fenderi_usturmaca_tutucu_kancasi_ozel_uretim():
         "<h2>Siteden ölçüsü seçilen parçalar</h2>"
         "<p>Ölçüsü sitede seçilen bağlama ve tutma kalemleri katalogda hazırdır: <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüsü siteden seçilen montaj braketi</a>, <a href=\"/urun/olcuye-ozel-toka/\">ölçüsü siteden seçilen toka</a> ve <a href=\"/urun/olcuye-ozel-hortum-adaptoru/\">ölçüsü siteden seçilen hortum adaptörü</a> bu aileden örneklerdir. Ölçüyü sitedeki seçim alanlarından siz belirlersiniz. Elinizdeki parçayı bize gönderip ondan fiziksel ölçüm alıp yeniden hazırlama hizmeti vermiyoruz; korkuluk çapı ya da ip geçiş ölçüsünü sitede girersiniz.</p>"
         "<h2>Dürüst sınır</h2>"
-        "<p>Fenderin kendisini, yani şişme gövdeyi, vinil ya da kumaş kılıfı üretmeyiz; bu yumuşak malzemeler bizim yöntemimizin kapsamı dışındadır. Ağır deniz koşulunda tam yük altında çalışan ana bağlama halatı elemanları ve palamar babaları gibi yapısal-taşıyıcı donanım da kapsam dışıdır: bu tür kalemler teknenin bağlanma güvenliğini doğrudan etkiler ve sertifikalı donanımla değiştirilmelidir. Bizim tarafımız fenderin teknede asılı kalmasını sağlayan, orta düzey yük taşıyan yardımcı parçalardır. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur.</p>"
+        "<p>Fenderin kendisini, yani şişme gövdeyi, vinil ya da kumaş kılıfı üretmeyiz; bu yumuşak malzemeler bizim yöntemimizin kapsamı dışındadır. Ağır deniz koşulunda tam yük altında çalışan ana bağlama halatı elemanları ve palamar babaları gibi yapısal-taşıyıcı donanım da kapsam dışıdır: bu tür kalemler teknenin bağlanma güvenliğini doğrudan etkiler ve sertifikalı donanımla değiştirilmelidir. Bizim tarafımız fenderin teknede asılı kalmasını sağlayan, orta düzey yük taşıyan yardımcı parçalardır. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçayı sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup siparişi tamamlarsınız. Bulamazsanız WhatsApp hattımız <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a> üzerinden yalnız sitede var mı diye yazın. Fiyatın neye göre çıktığı <a href=\"/ozel-parca-uretimi-fiyati-nasil-belirlenir/\">fiyat nasıl belirlenir</a> sayfasında anlatılıyor.</p>"
     )
@@ -15810,7 +15805,7 @@ def _feribot_vapur_ve_yolcu_gemisi_ic_donanim_plastik_parca_uretimi():
         "<h2>Siteden ölçüsü seçilen parçalar</h2>"
         "<p>Ölçüsü sitede seçilen tutma ve montaj kalemleri katalogda hazırdır: <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüsü siteden seçilen montaj braketi</a>, <a href=\"/urun/olcuye-ozel-toka/\">ölçüsü siteden seçilen toka</a> ve <a href=\"/urun/olcuye-ozel-izgara-menfez-kapak/\">ölçüsü siteden seçilen ızgara menfez kapağı</a> bu aileden örneklerdir. Ölçüyü sitedeki seçim alanlarından siz belirlersiniz. Elinizdeki parçayı bize gönderip ondan fiziksel ölçüm alıp yeniden hazırlama hizmeti vermiyoruz; koltuk sırası ve ölçü bilgisini sitedeki seçim alanlarından siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
-        "<p>Can güvenliği donanımının kendisini hiçbir koşulda üretmeyiz: can yeleği, can simidi, yangın söndürme ekipmanı ve acil çıkış mekanizması bu kapsamın dışındadır. Bu donanıma erişimi sağlayan can yeleği ya da yangın dolabının mandalı, menteşesi ve kilit dili de aynı şekilde kapsam dışıdır, çünkü acil erişim zincirinin parçasıdır. Yangın kapısı ve su geçirmez bölme kapısı donanımı da üretilmez; geminin batmazlığına bağlı hiçbir kilit ve mandal elemanı kapsama girmez. Alev geciktiricilik ya da yanmazlık sınıfında parça üretmiyoruz, bu sınıfı iddia etmiyoruz ve belge vermiyoruz. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur.</p>"
+        "<p>Can güvenliği donanımının kendisini hiçbir koşulda üretmeyiz: can yeleği, can simidi, yangın söndürme ekipmanı ve acil çıkış mekanizması bu kapsamın dışındadır. Bu donanıma erişimi sağlayan can yeleği ya da yangın dolabının mandalı, menteşesi ve kilit dili de aynı şekilde kapsam dışıdır, çünkü acil erişim zincirinin parçasıdır. Yangın kapısı ve su geçirmez bölme kapısı donanımı da üretilmez; geminin batmazlığına bağlı hiçbir kilit ve mandal elemanı kapsama girmez. Alev geciktiricilik ya da yanmazlık sınıfında parça üretmiyoruz, bu sınıfı iddia etmiyoruz ve belge vermiyoruz. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçayı sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup siparişi tamamlarsınız. Bulamazsanız WhatsApp hattımız <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a> üzerinden yalnız sitede var mı diye yazın. Toplu ihtiyaçlarda <a href=\"/birden-fazla-adet-ozel-parca-siparisi-toplu/\">toplu sipariş</a> sayfasına bakabilirsiniz.</p>"
     )
@@ -15835,7 +15830,7 @@ def _oto_stop_lambasi_govdesi_ve_soket_yuvasi_yaptirma():
         "<h2>Siteden ölçüsü seçilen parçalar</h2>"
         "<p>Ölçüsü sitede seçilen kapak ve muhafaza kalemleri katalogda hazırdır: <a href=\"/urun/olcuye-ozel-izgara-menfez-kapak/\">ölçüsü siteden seçilen ızgara menfez kapağı</a>, <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüsü siteden seçilen montaj braketi</a> ve <a href=\"/urun/olcuye-ozel-oring-conta/\">ölçüsü siteden seçilen conta</a> bu aileden örneklerdir. Ölçüyü sitedeki seçim alanlarından siz belirlersiniz. Elinizdeki parçayı bize gönderip ondan fiziksel ölçüm alıp yeniden hazırlama hizmeti vermiyoruz; gövde dış hattı ve soket çapı gibi değerleri sitede girersiniz.</p>"
         "<h2>Dürüst sınır</h2>"
-        "<p>Lambanın şeffaf lens ve ışık kaynağı kapsam dışıdır: ampul, LED modülü ve balast üretilmez. Işık veren şeffaf lens tip onayına tabi bir parçadır, yerine geçecek bir muadil üretmek doğru olmaz. Aynı nedenle net bir çekince koyalım: gövdenin, soket yuvasının ya da çerçevenin muayeneden geçeceğine ya da tip onayı taşıyacağına dair bir taahhüt verilmez; teslim edilen şey ölçüsü doğru bir gövdedir, belgeli bir lamba grubu değil. Elektrik tesisatının kendisi, sigorta ve röle gibi güvenlik bileşenleri de bu kapsamın dışındadır. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur.</p>"
+        "<p>Lambanın şeffaf lens ve ışık kaynağı kapsam dışıdır: ampul, LED modülü ve balast üretilmez. Işık veren şeffaf lens tip onayına tabi bir parçadır, yerine geçecek bir muadil üretmek doğru olmaz. Aynı nedenle net bir çekince koyalım: gövdenin, soket yuvasının ya da çerçevenin muayeneden geçeceğine ya da tip onayı taşıyacağına dair bir taahhüt verilmez; teslim edilen şey ölçüsü doğru bir gövdedir, belgeli bir lamba grubu değil. Elektrik tesisatının kendisi, sigorta ve röle gibi güvenlik bileşenleri de bu kapsamın dışındadır. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçayı sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup siparişi tamamlarsınız. Bulamazsanız WhatsApp hattımız <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a> üzerinden yalnız sitede var mı diye yazın. Montaj rehberi <a href=\"/ozel-uretim-plastik-parca-nasil-monte-edilir/\">nasıl monte edilir</a> başlığında yer alıyor.</p>"
     )
@@ -15860,7 +15855,7 @@ def _oto_kapi_kilidi_cevre_bilezigi_ve_anahtar_deligi_kapagi_yaptirma():
         "<h2>Siteden ölçüsü seçilen parçalar</h2>"
         "<p>Ölçüsü sitede seçilen kapak ve tutma kalemleri katalogda hazırdır: <a href=\"/urun/olcuye-ozel-cerceve/\">ölçüsü siteden seçilen çerçeve</a>, <a href=\"/urun/olcuye-ozel-oring-conta/\">ölçüsü siteden seçilen conta</a> ve <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüsü siteden seçilen montaj braketi</a> bu aileden örneklerdir. Ölçüyü sitedeki seçim alanlarından siz belirlersiniz. Elinizdeki parçayı bize gönderip ondan fiziksel ölçüm alıp yeniden hazırlama hizmeti vermiyoruz; dış çap ve iç boşluk gibi değerleri sitede girersiniz.</p>"
         "<h2>Dürüst sınır</h2>"
-        "<p>Kilit göbeğinin kendisi üretilmez. Göbek dediğimiz şey kilidin silindir gövdesidir ve o gövde aracın güvenlik mekanizmasıdır: tumbler pimleri, silindir gövdesi ve immobilizer çipi kapsamımızın tamamen dışındadır. Üretilen taraf, o göbeği çevreleyen parçalardır: kapak, bilezik, dekor halkası, conta ve conta yuvası, tespit klipsi. Bu ayrım net bir nedene dayanır: kilit mekanizması aracın hırsızlığa karşı güvenlik sistemidir, orijinal üreticinin belirlediği toleranslarda üretilir; onun yerine geçecek bir muadil güvenlik açığı doğurur. Merkezi kilit sisteminin elektronik ve motor aksamı da kapsam dışıdır. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur.</p>"
+        "<p>Kilit göbeğinin kendisi üretilmez. Göbek dediğimiz şey kilidin silindir gövdesidir ve o gövde aracın güvenlik mekanizmasıdır: tumbler pimleri, silindir gövdesi ve immobilizer çipi kapsamımızın tamamen dışındadır. Üretilen taraf, o göbeği çevreleyen parçalardır: kapak, bilezik, dekor halkası, conta ve conta yuvası, tespit klipsi. Bu ayrım net bir nedene dayanır: kilit mekanizması aracın hırsızlığa karşı güvenlik sistemidir, orijinal üreticinin belirlediği toleranslarda üretilir; onun yerine geçecek bir muadil güvenlik açığı doğurur. Merkezi kilit sisteminin elektronik ve motor aksamı da kapsam dışıdır. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçayı sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup siparişi tamamlarsınız. Bulamazsanız WhatsApp hattımız <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a> üzerinden yalnız sitede var mı diye yazın. Fiyatın neye göre çıktığı <a href=\"/ozel-parca-uretimi-fiyati-nasil-belirlenir/\">fiyat nasıl belirlenir</a> sayfasında açıklanıyor.</p>"
     )
@@ -15885,7 +15880,7 @@ def _oto_koltuk_basligi_kilavuz_borusu_ve_kilit_dugmesi_yaptirma():
         "<h2>Siteden ölçüsü seçilen parçalar</h2>"
         "<p>Ölçüsü sitede seçilen mekanizma kalemleri katalogda hazırdır: <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüsü siteden seçilen montaj braketi</a>, <a href=\"/urun/olcuye-ozel-yay-dalga-flexure/\">ölçüsü siteden seçilen yay</a> ve <a href=\"/urun/olcuye-ozel-rulman/\">ölçüsü siteden seçilen rulman</a> bu aileden örneklerdir. Ölçüyü sitedeki seçim alanlarından siz belirlersiniz. Elinizdeki parçayı bize gönderip ondan fiziksel ölçüm alıp yeniden hazırlama hizmeti vermiyoruz; boru çapı ve pim çapı gibi değerleri sitede girersiniz.</p>"
         "<h2>Dürüst sınır</h2>"
-        "<p>Başlığın darbe emme köpüğünü ve dış kaplama malzemesini üretmeyiz; ürettiğimiz yalnız kılavuz borusunun dış kılıfı ve yatağı ile düğmenin gövdesi ve yay yuvası gibi konfor parçalarıdır. Koltuğun ana taşıyıcı iskeleti ve emniyet kemeri bağlantı noktaları güvenlik-kritik yapılardır ve kapsam dışıdır: bu tür parçalar çarpışma anında yük taşıyacak şekilde mühendislik hesabıyla üretilir. Aynı gerekçeyle başlığı yerinde tutan kilitleme zincirini de üretmeyiz; başlık piminin kendisi ve onu tutan tırnak elemanı orijinaliyle değiştirilmelidir. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur.</p>"
+        "<p>Başlığın darbe emme köpüğünü ve dış kaplama malzemesini üretmeyiz; ürettiğimiz yalnız kılavuz borusunun dış kılıfı ve yatağı ile düğmenin gövdesi ve yay yuvası gibi konfor parçalarıdır. Koltuğun ana taşıyıcı iskeleti ve emniyet kemeri bağlantı noktaları güvenlik-kritik yapılardır ve kapsam dışıdır: bu tür parçalar çarpışma anında yük taşıyacak şekilde mühendislik hesabıyla üretilir. Aynı gerekçeyle başlığı yerinde tutan kilitleme zincirini de üretmeyiz; başlık piminin kendisi ve onu tutan tırnak elemanı orijinaliyle değiştirilmelidir. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçayı sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup siparişi tamamlarsınız. Bulamazsanız WhatsApp hattımız <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a> üzerinden yalnız sitede var mı diye yazın. Montaj rehberi <a href=\"/ozel-uretim-plastik-parca-nasil-monte-edilir/\">nasıl monte edilir</a> başlığında yer alıyor.</p>"
     )
@@ -15910,7 +15905,7 @@ def _madencilik_ve_tas_ocagi_ekipmani_plastik_parca_uretimi():
         "<h2>Siteden ölçüsü seçilen parçalar</h2>"
         "<p>Ölçüsü sitede seçilen kanal, kapak ve tutma kalemleri katalogda hazırdır: <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüsü siteden seçilen montaj braketi</a>, <a href=\"/urun/olcuye-ozel-kutu-organizer/\">ölçüsü siteden seçilen kutu ve organizer</a> ve <a href=\"/urun/olcuye-ozel-petek-delikli-panel/\">ölçüsü siteden seçilen petek delikli panel</a> bu aileden örneklerdir. Ölçüyü sitedeki seçim alanlarından siz belirlersiniz. Elinizdeki parçayı bize gönderip ondan fiziksel ölçüm alıp yeniden hazırlama hizmeti vermiyoruz; kesim ağzı ve montaj delik aralığı gibi değerleri sitede girersiniz.</p>"
         "<h2>Dürüst sınır</h2>"
-        "<p>Kayaç ve cevherle doğrudan temas eden ana aşınma parçalarını, yani kırıcı ağzını, elek telini ve bant kaplamasını üretmeyiz; bunlar ayrı bir üretim alanıdır. Konveyörün taşıyıcı iskeleti, ana yapısal bağlantılar ve güvenlik koruma bariyerleri de kapsam dışıdır; üretilen taraf, çevresindeki kapak, muhafaza ve kaydırma elemanlarıdır. Bu ayrım tesisin güvenliği açısından bağlayıcıdır: taşıyıcı yapı ve koruma bariyeri iş güvenliği mevzuatına göre boyutlandırılan, düzenli denetimden geçen unsurlardır. Ortam tarafında da sınır nettir: patlayıcı ya da gazlı ortam, grizulu yer altı ocağı ve gaz algılama bölgeleri kapsam dışıdır. Alev geciktiricilik sınıfında parça üretmiyoruz, bu sınıfı iddia etmiyoruz ve belge vermiyoruz. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur.</p>"
+        "<p>Kayaç ve cevherle doğrudan temas eden ana aşınma parçalarını, yani kırıcı ağzını, elek telini ve bant kaplamasını üretmeyiz; bunlar ayrı bir üretim alanıdır. Konveyörün taşıyıcı iskeleti, ana yapısal bağlantılar ve güvenlik koruma bariyerleri de kapsam dışıdır; üretilen taraf, çevresindeki kapak, muhafaza ve kaydırma elemanlarıdır. Bu ayrım tesisin güvenliği açısından bağlayıcıdır: taşıyıcı yapı ve koruma bariyeri iş güvenliği mevzuatına göre boyutlandırılan, düzenli denetimden geçen unsurlardır. Ortam tarafında da sınır nettir: patlayıcı ya da gazlı ortam, grizulu yer altı ocağı ve gaz algılama bölgeleri kapsam dışıdır. Alev geciktiricilik sınıfında parça üretmiyoruz, bu sınıfı iddia etmiyoruz ve belge vermiyoruz. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçayı sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup siparişi tamamlarsınız. Bulamazsanız WhatsApp hattımız <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a> üzerinden yalnız sitede var mı diye yazın. Toplu ihtiyaçlarda <a href=\"/birden-fazla-adet-ozel-parca-siparisi-toplu/\">toplu sipariş</a> sayfasına bakabilirsiniz.</p>"
     )
@@ -15935,7 +15930,7 @@ def _guvenlik_turnikesi_ve_gecis_kontrol_sistemi_plastik_parca_uretimi():
         "<h2>Siteden ölçüsü seçilen parçalar</h2>"
         "<p>Ölçüsü sitede seçilen çerçeve ve kapak kalemleri katalogda hazırdır: <a href=\"/urun/olcuye-ozel-cerceve/\">ölçüsü siteden seçilen çerçeve</a>, <a href=\"/urun/olcuye-ozel-izgara-menfez-kapak/\">ölçüsü siteden seçilen ızgara menfez kapağı</a> ve <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüsü siteden seçilen montaj braketi</a> bu aileden örneklerdir. Ölçüyü sitedeki seçim alanlarından siz belirlersiniz. Elinizdeki parçayı bize gönderip ondan fiziksel ölçüm alıp yeniden hazırlama hizmeti vermiyoruz; montaj delik aralığı gibi değerleri sitede girersiniz.</p>"
         "<h2>Dürüst sınır</h2>"
-        "<p>Kart okuyucunun elektronik anteni, çipi ve turnikenin erişim kontrol yazılımı kapsam dışıdır; üretilen taraf, çevresindeki gövde, çerçeve ve kapaklardır. Kolun ana taşıyıcı mili ve gövdenin yapısal iskeleti de kapsam dışıdır: bu parçalar günde binlerce kez tekrar eden mekanik yükü taşır ve üretici toleranslarında kalması gerekir. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur.</p>"
+        "<p>Kart okuyucunun elektronik anteni, çipi ve turnikenin erişim kontrol yazılımı kapsam dışıdır; üretilen taraf, çevresindeki gövde, çerçeve ve kapaklardır. Kolun ana taşıyıcı mili ve gövdenin yapısal iskeleti de kapsam dışıdır: bu parçalar günde binlerce kez tekrar eden mekanik yükü taşır ve üretici toleranslarında kalması gerekir. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçayı sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup siparişi tamamlarsınız. Bulamazsanız WhatsApp hattımız <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a> üzerinden yalnız sitede var mı diye yazın. Montaj rehberi <a href=\"/ozel-uretim-plastik-parca-nasil-monte-edilir/\">nasıl monte edilir</a> başlığında yer alıyor.</p>"
     )
@@ -15961,7 +15956,7 @@ def _iki_farkli_malzeme_tek_parcada_birlestirilir_mi():
         "<h2>Doğru malzeme</h2>"
         "<p>Sert taraf için PETG ya da ASA, yorulmaya dayanıklı gövdeler için karbon ve cam elyaf takviyeli naylon kullanılır; bu sınıf sitedeki seçeneklerde yer almaz; sitede olmayan bir malzeme için özel üretim açılmaz. Esnek taraf ayrı bir malzeme sınıfıdır: conta, tampon ve esneyerek geçen tutucu gibi yumuşak işlerde ilk tercihimiz sitede seçilebilen standart esnek sınıf TPU'dur. Gerçek kauçuğun ya da silikonun kendisi kapsam dışıdır; TPU esnektir ama gerçek kauçuğun sünekliğiyle birebir aynı değildir. Sınıfların karşılaştırması <a href=\"/malzeme-rehberi/\">malzeme rehberi</a> sayfasındadır.</p>"
         "<h2>Dürüst sınır</h2>"
-        "<p>Tek üretimde iki farklı malzemeyi aynı anda harmanlayan bir yöntemimiz yoktur; bu farklı bir teknoloji ve tesis gerektirir, bizim alanımızın dışındadır. Gerçek kauçuk ya da silikon esaslı parça da kapsam dışıdır. İki parça sonradan birleştirildiği için bağlantı noktası orijinaldeki kadar görünmez olmayabilir; bu durumun garanti tarafındaki karşılığı <a href=\"/ozel-uretim-parca-garantiyi-bozar-mi/\">özel üretim parça garantiyi bozar mı</a> sayfasında anlatılıyor. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur.</p>"
+        "<p>Tek üretimde iki farklı malzemeyi aynı anda harmanlayan bir yöntemimiz yoktur; bu farklı bir teknoloji ve tesis gerektirir, bizim alanımızın dışındadır. Gerçek kauçuk ya da silikon esaslı parça da kapsam dışıdır. İki parça sonradan birleştirildiği için bağlantı noktası orijinaldeki kadar görünmez olmayabilir; bu durumun garanti tarafındaki karşılığı <a href=\"/ozel-uretim-parca-garantiyi-bozar-mi/\">özel üretim parça garantiyi bozar mı</a> sayfasında anlatılıyor. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>İki kalemi sitede bulup ayrı ayrı sipariş edebilirsiniz; ölçü alanlarını ürün sayfalarında doldurmanız yeterli. Emin değilseniz WhatsApp hattımız <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a> üzerinden yazın; iki kalemin birbirine uyup uymadığını siz karşılaştırırsınız.</p>"
     )
@@ -15985,7 +15980,7 @@ def _ozel_uretim_siparisinde_hizli_acil_teslim_mumkun_mu():
         "<h2>Doğru malzeme</h2>"
         "<p>Acil işlerde de malzeme seçimi kısa birkaç sınıftan yürür: PETG ve ASA stokta hazır sınıflardır, ek tedarik beklemez. PLA yalnız ölçü doğrulama denemesinde kullanılır. Karbon ve cam elyaf takviyeli naylon gerektiren işlerde tedarik süresi ayrıca hesaba katılır; bu sınıf sitedeki seçeneklerde yer almaz; sitede olmayan bir malzeme için özel üretim açılmaz. Sınıfların karşılaştırması <a href=\"/malzeme-rehberi/\">malzeme rehberi</a> sayfasındadır.</p>"
         "<h2>Dürüst sınır</h2>"
-        "<p>Acil etiketi kaliteyi düşürmez; üretilen her parça aynı ölçü ve malzeme kontrolünden geçer, yalnız sıradaki bekleme süresi kısalır. Aynı anda birden fazla acil talep gelirse hepsine \"hemen\" diyemeyiz; gerçekçi olmayan söz vermeyiz. Bir parçanın acil hazırlanması, o parçanın taşıdığı sorumluluğu ya da garanti tarafını değiştirmez; konunun tamamı <a href=\"/ozel-uretim-parca-garantiyi-bozar-mi/\">özel üretim parça garantiyi bozar mı</a> sayfasında anlatılıyor. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur.</p>"
+        "<p>Acil etiketi kaliteyi düşürmez; üretilen her parça aynı ölçü ve malzeme kontrolünden geçer, yalnız sıradaki bekleme süresi kısalır. Aynı anda birden fazla acil talep gelirse hepsine \"hemen\" diyemeyiz; gerçekçi olmayan söz vermeyiz. Bir parçanın acil hazırlanması, o parçanın taşıdığı sorumluluğu ya da garanti tarafını değiştirmez; konunun tamamı <a href=\"/ozel-uretim-parca-garantiyi-bozar-mi/\">özel üretim parça garantiyi bozar mı</a> sayfasında anlatılıyor. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Acil bir durumdaysanız oyalanmadan WhatsApp hattımız <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a> üzerinden yazın; ekipmanın adını ve kalemin adını belirtmeniz aramayı kısaltır. Sitede ölçüye özel siparişler dahil kartla online ödeme yapılabilir. Fiyatın neye göre çıktığı <a href=\"/ozel-parca-uretimi-fiyati-nasil-belirlenir/\">fiyat nasıl belirlenir</a>, normal teslim süresi <a href=\"/ozel-parca-kac-gunde-hazir-olur/\">kaç günde hazır olur</a> sayfalarında anlatılıyor.</p>"
     )
@@ -16013,7 +16008,7 @@ def _ozel_uretim_parcaya_desen_doku_ve_yuzey_islemi_uygulanir_mi():
         "<h2>Siteden ölçüsü seçilen parçalar</h2>"
         "<p>Ölçüsü sitede seçilen tutuş kalemleri katalogda hazırdır: <a href=\"/urun/olcuye-ozel-vidali-kavanoz-tapa/\">ölçüsü siteden seçilen vidalı kavanoz kapağı</a>, <a href=\"/urun/olcuye-ozel-damga-kase/\">ölçüsü siteden seçilen damga kase</a> ve <a href=\"/urun/olcuye-ozel-toka/\">ölçüsü siteden seçilen toka</a> bu aileden örneklerdir. Ölçüyü sitedeki seçim alanlarından siz belirlersiniz. Elinizdeki parçayı bize gönderip ondan fiziksel ölçüm alıp yeniden hazırlama hizmeti vermiyoruz; istediğiniz yüzeyi ürün sayfasındaki görsellerden seçersiniz.</p>"
         "<h2>Dürüst sınır</h2>"
-        "<p>Elektrostatik boya, toz kaplama ya da parlak vernik gibi ayrı bir yüzey kaplama sürecimiz yoktur; teslim edilen yüzey üretimden çıktığı hâliyle mat ya da yarı mattır, üstüne hafif zımparalama dışında işlem uygulamayız. Orijinal parçanın dokusu, üstündeki marka izi ya da özel yüzey kaplaması varsa birebir aynısını taahhüt etmeyiz, yakın bir sonuç hedefleriz. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur.</p>"
+        "<p>Elektrostatik boya, toz kaplama ya da parlak vernik gibi ayrı bir yüzey kaplama sürecimiz yoktur; teslim edilen yüzey üretimden çıktığı hâliyle mat ya da yarı mattır, üstüne hafif zımparalama dışında işlem uygulamayız. Orijinal parçanın dokusu, üstündeki marka izi ya da özel yüzey kaplaması varsa birebir aynısını taahhüt etmeyiz, yakın bir sonuç hedefleriz. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Yüzey beklentinizi yazışmada belirtmeniz yeterli; ürün sayfasındaki görseller size en gerçekçi referansı verir. Sorularınız için WhatsApp hattımız <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a> üzerinden yazın. Fiyatın neye göre çıktığı <a href=\"/ozel-parca-uretimi-fiyati-nasil-belirlenir/\">fiyat nasıl belirlenir</a> sayfasında açıklanıyor.</p>"
     )
@@ -16039,7 +16034,7 @@ def _medikal_cihaz_ve_fizyoterapi_ekipmani_plastik_parca_ozel_uretim():
         "<h2>Siteden ölçüsü seçilen parçalar</h2>"
         "<p>Ölçüsü sitede seçilen kalemler kliniklerde en çok işe yarayan gruptur: <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüsü siteden seçilen montaj braketi</a>, <a href=\"/urun/olcuye-ozel-kutu-organizer/\">ölçüsü siteden seçilen kutu ve organizer</a> ve <a href=\"/urun/olcuye-ozel-izgara-menfez-kapak/\">ölçüsü siteden seçilen ızgara menfez kapağı</a> bu aileden örneklerdir. Ölçüyü sitedeki seçim alanlarından siz belirlersiniz. Parça gönderip fiziksel ölçüm alıp yeniden hazırlama işi yapmıyoruz; cihazın modelini ve montaj ölçüsünü sitede yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
-        "<p>Sınırı baştan çizelim ki beklenti net olsun. Biz sertifikalı tıbbi cihaz üreticisi değiliz. Reçeteli ya da regüle edilmiş ölçüm cihazının kendisi, vücuda giren ya da doğrudan hasta dokusuyla temas eden parça ve can güvenliğini doğrudan taşıyan kritik bileşenler kapsamımızın tamamen dışındadır; bunlar sertifikalı üreticinin işidir, muadil takılmaz. Ürettiğimiz şey cihazın çevresindeki plastiktir: dış gövde, kapak, tutucu, montaj parçası, tekerlek gövdesi, kablo kılavuzu gibi ikincil elemanlar. Isı tarafında da net bir tavan var: pratik dayanımımız 90-100 santigrat derece civarındadır; buhar ve otoklav sterilizasyonu bu sıcaklığın üstüne çıktığı için otoklavla sterilize edilecek parça üretmeyiz, silme dezenfeksiyona uygun malzeme seçimi ayrı bir konudur ve mümkündür. Hastanın ağırlığını doğrudan taşıyan ana taşıyıcı gövdeler kapsamımızın dışındadır. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur.</p>"
+        "<p>Sınırı baştan çizelim ki beklenti net olsun. Biz sertifikalı tıbbi cihaz üreticisi değiliz. Reçeteli ya da regüle edilmiş ölçüm cihazının kendisi, vücuda giren ya da doğrudan hasta dokusuyla temas eden parça ve can güvenliğini doğrudan taşıyan kritik bileşenler kapsamımızın tamamen dışındadır; bunlar sertifikalı üreticinin işidir, muadil takılmaz. Ürettiğimiz şey cihazın çevresindeki plastiktir: dış gövde, kapak, tutucu, montaj parçası, tekerlek gövdesi, kablo kılavuzu gibi ikincil elemanlar. Isı tarafında da net bir tavan var: pratik dayanımımız 90-100 santigrat derece civarındadır; buhar ve otoklav sterilizasyonu bu sıcaklığın üstüne çıktığı için otoklavla sterilize edilecek parça üretmeyiz, silme dezenfeksiyona uygun malzeme seçimi ayrı bir konudur ve mümkündür. Hastanın ağırlığını doğrudan taşıyan ana taşıyıcı gövdeler kapsamımızın dışındadır. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçayı sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup siparişi tamamlarsınız. Bulamazsanız WhatsApp hattımız <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a> üzerinden yalnız sitede var mı diye yazın; cihazın modelini belirtmeniz eşleştirmeyi hızlandırır.</p>"
     )
@@ -16065,7 +16060,7 @@ def _itfaiye_ve_afet_mudahale_ekipmani_plastik_parca_ozel_uretim():
         "<h2>Siteden ölçüsü seçilen parçalar</h2>"
         "<p>Ölçüsü sitede seçilen organizatör ve bağlantı kalemleri katalogda hazırdır: <a href=\"/urun/olcuye-ozel-kutu-organizer/\">ölçüsü siteden seçilen kutu ve organizer</a>, <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüsü siteden seçilen montaj braketi</a> ve <a href=\"/urun/olcuye-ozel-toka/\">ölçüsü siteden seçilen toka</a> bu aileden örneklerdir. Ölçüyü sitedeki seçim alanlarından siz belirlersiniz. Elinizdeki parçayı bize gönderip ondan fiziksel ölçüm alıp yeniden hazırlama hizmeti vermiyoruz; sandık iç ölçüsü gibi değerleri sitede girersiniz.</p>"
         "<h2>Dürüst sınır</h2>"
-        "<p>Basınç taşıyan gövdeleri üretmeyiz: yangın söndürme tüpünün basınç kabı, solunum cihazının basınçlı hava tankı, kurtarma aletinin hidrolik gövdesi ve hattı, hortum nozulunun yüksek basınçlı ana gövdesi kapsam dışıdır. Hayat güvenliği taşıyan yapısal bileşenler, yani kask kabuğu, emniyet kemeri tokası, karabina ve düşüş önleyici bağlantı elemanı, sertifikalı üreticiden alınmalıdır; bizim tarafımız bunların çevresindeki tutucu, kapak ve klipslerdir. Elektronik alarm, telsiz ve dedektör gövdesinin iç devresi kapsam dışıdır. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur.</p>"
+        "<p>Basınç taşıyan gövdeleri üretmeyiz: yangın söndürme tüpünün basınç kabı, solunum cihazının basınçlı hava tankı, kurtarma aletinin hidrolik gövdesi ve hattı, hortum nozulunun yüksek basınçlı ana gövdesi kapsam dışıdır. Hayat güvenliği taşıyan yapısal bileşenler, yani kask kabuğu, emniyet kemeri tokası, karabina ve düşüş önleyici bağlantı elemanı, sertifikalı üreticiden alınmalıdır; bizim tarafımız bunların çevresindeki tutucu, kapak ve klipslerdir. Elektronik alarm, telsiz ve dedektör gövdesinin iç devresi kapsam dışıdır. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçayı sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup siparişi tamamlarsınız. Bulamazsanız WhatsApp hattımız <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a> üzerinden yalnız sitede var mı diye yazın. Toplu ihtiyaçlarda <a href=\"/birden-fazla-adet-ozel-parca-siparisi-toplu/\">toplu sipariş</a> sayfasına bakabilirsiniz.</p>"
     )
@@ -16091,7 +16086,7 @@ def _sunucu_kabini_ve_data_center_plastik_parca_ozel_uretim():
         "<h2>Siteden ölçüsü seçilen parçalar</h2>"
         "<p>Ölçüsü sitede seçilen kanal, kapak ve bağlantı kalemleri katalogda hazırdır: <a href=\"/urun/olcuye-ozel-kutu-organizer/\">ölçüsü siteden seçilen kutu ve organizer</a>, <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüsü siteden seçilen montaj braketi</a> ve <a href=\"/urun/olcuye-ozel-baglanti-konektor/\">ölçüsü siteden seçilen bağlantı konektörü</a> bu aileden örneklerdir. Ölçüyü sitedeki seçim alanlarından siz belirlersiniz. Elinizdeki parçayı bize gönderip ondan fiziksel ölçüm alıp yeniden hazırlama hizmeti vermiyoruz; rack ölçüsü ve panel ağız ölçüsünü sitede yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
-        "<p>Akım taşıyan hiçbir parçayı üretmeyiz: bara, kontak ve sigorta elemanının kendisi sertifikalı elektrik malzemesinin işidir. Üretilen parça yalıtkan bir gövdedir; metal köprüyü ve vidayı siz takarsınız. Devre kartının kendisini, üzerindeki elektronik devreyi ya da lehimli bağlantıyı üretmeyiz; ürettiğimiz yalnız kartı tutan, yönlendiren ve koruyan plastik gövdedir. Sunucu şasisini taşıyan rack rayın yapısal görevini üstlenecek bir parça sunmayız; bu, sertifikalı metal rayın işidir. Yangın sınıfı ya da belirli bir ESD direnç değeri için sertifika vermeyiz. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur.</p>"
+        "<p>Akım taşıyan hiçbir parçayı üretmeyiz: bara, kontak ve sigorta elemanının kendisi sertifikalı elektrik malzemesinin işidir. Üretilen parça yalıtkan bir gövdedir; metal köprüyü ve vidayı siz takarsınız. Devre kartının kendisini, üzerindeki elektronik devreyi ya da lehimli bağlantıyı üretmeyiz; ürettiğimiz yalnız kartı tutan, yönlendiren ve koruyan plastik gövdedir. Sunucu şasisini taşıyan rack rayın yapısal görevini üstlenecek bir parça sunmayız; bu, sertifikalı metal rayın işidir. Yangın sınıfı ya da belirli bir ESD direnç değeri için sertifika vermeyiz. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçayı sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup siparişi tamamlarsınız. Bulamazsanız WhatsApp hattımız <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a> üzerinden yalnız sitede var mı diye yazın. Birden fazla kabin için aynı kalem gerekiyorsa <a href=\"/birden-fazla-adet-ozel-parca-siparisi-toplu/\">toplu sipariş</a> sayfasına bakabilirsiniz.</p>"
     )
@@ -16118,7 +16113,7 @@ def _veteriner_klinik_ve_hayvan_hastanesi_ekipmani_plastik_parca_ozel_uretim():
         "<h2>Siteden ölçüsü seçilen parçalar</h2>"
         "<p>Ölçüsü sitede seçilen kalemler klinikte en çok işe yarayan gruptur: <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüsü siteden seçilen montaj braketi</a>, <a href=\"/urun/olcuye-ozel-kutu-organizer/\">ölçüsü siteden seçilen kutu ve organizer</a> ve <a href=\"/urun/olcuye-ozel-vidali-kavanoz-tapa/\">ölçüsü siteden seçilen vidalı kavanoz kapağı</a> bu aileden örneklerdir. Ölçüyü sitedeki seçim alanlarından siz belirlersiniz. Elinizdeki parçayı bize gönderip ondan fiziksel ölçüm alıp yeniden hazırlama hizmeti vermiyoruz; ekipmanın modelini ve montaj ölçüsünü sitede yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
-        "<p>Bu iş, her veteriner ekipmanı parçasının aynı güvenle üretildiği anlamına gelmez; sınırı baştan söylemek daha doğrudur. Otoklav ya da buharlı yüksek sıcaklık sterilizasyonuna giren aletler için, ki tipik olarak 120 derece üzerinde işlem görür, malzemelerimiz uygun değildir: üretilen parçalar günlük dezenfeksiyon sıcaklığını, yaklaşık 90-100 derece tavanı kaldıracak şekilde seçilir, otoklav döngüsüne girecek bir bileşen için üretim önermeyiz. Doğrudan hayvanla invaziv temas eden, cilt altına giren ya da sertifikalı tıbbi cihaz sınıfına giren bir bileşen kapsam dışıdır; biz yalnız ekipmanın çevresindeki yapısal ve mekanik parçaları basıyoruz. Ağır yük taşıyan, kliniğin tüm ekipman ağırlığını üstlenen ana taşıyıcı iskelet parçaları için taşıyıcı görevi metal aksam üstlenmelidir. Uygun olmayan bir talepte bu sınırı baştan söyleriz. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur.</p>"
+        "<p>Bu iş, her veteriner ekipmanı parçasının aynı güvenle üretildiği anlamına gelmez; sınırı baştan söylemek daha doğrudur. Otoklav ya da buharlı yüksek sıcaklık sterilizasyonuna giren aletler için, ki tipik olarak 120 derece üzerinde işlem görür, malzemelerimiz uygun değildir: üretilen parçalar günlük dezenfeksiyon sıcaklığını, yaklaşık 90-100 derece tavanı kaldıracak şekilde seçilir, otoklav döngüsüne girecek bir bileşen için üretim önermeyiz. Doğrudan hayvanla invaziv temas eden, cilt altına giren ya da sertifikalı tıbbi cihaz sınıfına giren bir bileşen kapsam dışıdır; biz yalnız ekipmanın çevresindeki yapısal ve mekanik parçaları basıyoruz. Ağır yük taşıyan, kliniğin tüm ekipman ağırlığını üstlenen ana taşıyıcı iskelet parçaları için taşıyıcı görevi metal aksam üstlenmelidir. Uygun olmayan bir talepte bu sınırı baştan söyleriz. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçayı sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup siparişi tamamlarsınız. Bulamazsanız WhatsApp hattımız <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a> üzerinden yalnız sitede var mı diye yazın; ekipmanın marka ve modelini belirtmeniz eşleştirmeyi hızlandırır.</p>"
     )
@@ -16144,7 +16139,7 @@ def _kum_ve_toz_asindirici_ortamda_plastik_parca_uretimi():
         "<h2>Siteden ölçüsü seçilen parçalar</h2>"
         "<p>Ölçüsü sitede seçilen kapak, panel ve tutucu kalemleri katalogda hazırdır: <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüsü siteden seçilen montaj braketi</a>, <a href=\"/urun/olcuye-ozel-petek-delikli-panel/\">ölçüsü siteden seçilen petek delikli panel</a> ve <a href=\"/urun/olcuye-ozel-kutu-organizer/\">ölçüsü siteden seçilen kutu ve organizer</a> bu aileden örneklerdir. Ölçüyü sitedeki seçim alanlarından siz belirlersiniz. Parça gönderip fiziksel ölçüm alıp yeniden hazırlama işi yapmıyoruz; aşınmayı yavaşlatan malzeme seçimi sitede standart sınıflarla sınırlıdır.</p>"
         "<h2>Dürüst sınır</h2>"
-        "<p>Kum ve toz aşındırıcı ortamda plastiğin sınırı nettir: hiçbir plastik, aşınmaya karşı çelik ya da tungsten karbür kadar dayanmaz. Kırıcı çenesi astarı, kum püskürtme nozülü ve sürekli yüksek hızda parçacık akışına maruz kalan eleme yüzeyi gibi ağır abrasif temas taşıyan parçalar bizim alanımızın dışındadır; bu iş metal ve sert kaplama alanına girer, önermeyiz. Üretilen parça sınıfı; koruma kapağı, toz manşonu, kızak kılavuzu, braket ve muhafaza gibi orta düzeyde ve aralıklı abrasif temas gören parçalardır. Fan ya da havalandırma çarkının yanında pompa, sintine ve sirkülasyon çarkı da basılabilir; parçanın gerçek çalışma koşulunu bilmeden malzeme önermeyiz. Ömür beklentisini abartmayız: aşındırıcı ortamdaki her parça, temiz ortamdaki eşine göre daha sık kontrol ister. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur.</p>"
+        "<p>Kum ve toz aşındırıcı ortamda plastiğin sınırı nettir: hiçbir plastik, aşınmaya karşı çelik ya da tungsten karbür kadar dayanmaz. Kırıcı çenesi astarı, kum püskürtme nozülü ve sürekli yüksek hızda parçacık akışına maruz kalan eleme yüzeyi gibi ağır abrasif temas taşıyan parçalar bizim alanımızın dışındadır; bu iş metal ve sert kaplama alanına girer, önermeyiz. Üretilen parça sınıfı; koruma kapağı, toz manşonu, kızak kılavuzu, braket ve muhafaza gibi orta düzeyde ve aralıklı abrasif temas gören parçalardır. Fan ya da havalandırma çarkının yanında pompa, sintine ve sirkülasyon çarkı da basılabilir; parçanın gerçek çalışma koşulunu bilmeden malzeme önermeyiz. Ömür beklentisini abartmayız: aşındırıcı ortamdaki her parça, temiz ortamdaki eşine göre daha sık kontrol ister. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçayı sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup siparişi tamamlarsınız. Bulamazsanız WhatsApp hattımız <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a> üzerinden yalnız sitede var mı diye yazın. Fiyatın neye göre çıktığı <a href=\"/ozel-parca-uretimi-fiyati-nasil-belirlenir/\">fiyat nasıl belirlenir</a> sayfasında anlatılıyor.</p>"
     )
@@ -16171,39 +16166,40 @@ def _surekli_titresimli_makinede_gevsemeyen_plastik_parca_uretimi():
         "<h2>Siteden ölçüsü seçilen parçalar</h2>"
         "<p>Ölçüsü sitede seçilen montaj kalemleri katalogda hazırdır: <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüsü siteden seçilen montaj braketi</a>, <a href=\"/urun/olcuye-ozel-kutu-organizer/\">ölçüsü siteden seçilen kutu ve organizer</a> ve <a href=\"/urun/olcuye-ozel-izgara-menfez-kapak/\">ölçüsü siteden seçilen ızgara menfez kapağı</a> bu aileden örneklerdir. Ölçüyü sitedeki seçim alanlarından siz belirlersiniz. Elinizdeki parçayı bize gönderip ondan fiziksel ölçüm alıp yeniden hazırlama hizmeti vermiyoruz; montaj delik aralığı ve vida çapı gibi değerleri sitede girersiniz.</p>"
         "<h2>Dürüst sınır</h2>"
-        "<p>Titreşime karşı yapabileceğimiz iyileştirme geometri ve malzeme seçimiyle sınırlıdır; makinenin kendi titreşim üreten arızasını, yani dengesiz rotoru, aşınmış yatağı ya da gevşek kaplini onarmayız, bu makine servisinin işidir. Aşırı yüksek frekansta, parçanın kendi doğal frekansına yakın bir titreşim rejiminde malzeme sınıfı ne olursa olsun ömür kısalır; bu durumda geometri değişikliği gerekir; sitedeki standart seçeneklerle bu değişiklik yapılamaz. Ağır yapısal taşıyıcı braket ya da can güvenliğine bağlı kilitleme mekanizması da kapsam dışıdır. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur.</p>"
+        "<p>Titreşime karşı yapabileceğimiz iyileştirme geometri ve malzeme seçimiyle sınırlıdır; makinenin kendi titreşim üreten arızasını, yani dengesiz rotoru, aşınmış yatağı ya da gevşek kaplini onarmayız, bu makine servisinin işidir. Aşırı yüksek frekansta, parçanın kendi doğal frekansına yakın bir titreşim rejiminde malzeme sınıfı ne olursa olsun ömür kısalır; bu durumda geometri değişikliği gerekir; sitedeki standart seçeneklerle bu değişiklik yapılamaz. Ağır yapısal taşıyıcı braket ya da can güvenliğine bağlı kilitleme mekanizması da kapsam dışıdır. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçayı sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup siparişi tamamlarsınız. Bulamazsanız WhatsApp hattımız <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a> üzerinden yalnız sitede var mı diye yazın; makinenin çalışma hızı ve titreşim şiddeti gibi ölçülemeyen detaylar malzeme seçimini etkiler.</p>"
     )
 
 
 def _ozon_ve_klor_gazina_dayanikli_plastik_parca_uretimi():
-    return (u"""<h1>Ozon ve Klor Gazına Dayanıklı Plastik Parça Özel Üretimi</h1>
-<p>Havuz dezenfeksiyon üniteleri, su arıtma hatları ve klorlama sistemlerinde çalışan plastik parçalar sürekli ozon ve klor gazına maruz kalır. Bu iki gaz güçlü oksitleyicidir; sıradan plastiği kısa sürede çatlatır, renk attırır ve gevrekleştirir. Kapak, braket, gövde, sensör yuvası, bağlantı parçası ya da destek ayağı gibi bileşenleri ölçünüze göre, gaz maruziyetine uygun malzemeden özel üretiyoruz.</p>
-<p>Piyasada hazır bulunmayan ya da kırılan bir parçanız varsa ölçüyü ya da örneği bize ulaştırırsınız; <a href="/havuz-ekipmani-plastik-parca-yaptirma/">havuz ekipmanı parçaları</a> ve <a href="/su-aritma-filtre-cihazi-plastik-parca-uretimi/">su arıtma / filtre cihazı parçaları</a> için kurduğumuz aynı süreçle üretime alırız. Gaz değil de tuzlu neme karşı laboratuvar tipi dayanım (ASTM B117 tuz spreyi) soruluyorsa, malzeme yaklaşımını <a href="/tuz-spreyi-astm-b117-dayanimli-plastik-parca-uretimi/">tuz spreyi (ASTM B117) dayanımlı plastik parça üretimi</a> sayfasında ayrıca ele aldık.</p>
-<p>Tipik olarak karşımıza şu tür ihtiyaçlar çıkar: ozon üretim ünitesinin kabin kapağı, klor dozaj pompası muhafazası, pH/ORP sensör tutucusu, dezenfeksiyon ünitesi üzerindeki bağlantı braketi, kontrol paneli klipsi, kablo geçiş rakoru. Bu parçaların çoğu piyasada tek tek satılmaz; cihazın tamamıyla birlikte satılır ya da üretici stoktan çıkmıştır. Sizin durumunuz farklıysa da yazın, birlikte değerlendiririz.</p>
+    return (
+        u"""<h1>Ozon ve Klor Gazına Dayanıklı Plastik Parça: Malzeme Rehberi</h1>
+<p class="lead">Ozon ve klor güçlü oksitleyicidir; sıradan plastiği kısa sürede çatlatır, renk attırır ve gevrekleştirir.</p>
+<p>Havuz dezenfeksiyon üniteleri, su arıtma hatları ve klorlama sistemlerinde çalışan plastik parçalar sürekli ozon ve klor gazına maruz kalır. Kapak, braket, gövde, sensör yuvası, bağlantı parçası ya da destek ayağı gibi bileşenler, gaz maruziyetine uygun malzemeyle ve sitede seçilen ölçülerle üretilir. Piyasada hazır bulunmayan ya da kırılan bir parçanız varsa ölçüyü ya da örneği bize ulaştırmak yerine katalogdaki hazır seçeneklerden yararlanırsınız: <a href="/havuz-ekipmani-plastik-parca-yaptirma/">havuz ekipmanı parçaları</a> ve <a href="/su-aritma-filtre-cihazi-plastik-parca-uretimi/">su arıtma / filtre cihazı parçaları</a> sayfaları bu ürün grubunu toplar. Gaz değil de tuzlu neme karşı laboratuvar tipi dayanım (ASTM B117 tuz spreyi) soruluyorsa, malzeme yaklaşımını <a href="/tuz-spreyi-astm-b117-dayanimli-plastik-parca-uretimi/">tuz spreyi (ASTM B117) dayanımlı plastik parça üretimi</a> sayfasında ele aldık.</p>
+<p>Tipik ihtiyaçlar şunlardır: ozon üretim ünitesinin kabin kapağı, klor dozaj pompası muhafazası, pH/ORP sensör tutucusu, dezenfeksiyon ünitesi üzerindeki bağlantı braketi, kontrol paneli klipsi, kablo geçiş rakoru. Bu parçaların çoğu piyasada tek tek satılmaz; cihazın tamamıyla birlikte satılır ya da üretici stoktan çıkmıştır.</p>
 <h2>Nasıl çalışır</h2>
-<p>Önce parçanın çalıştığı ortamı öğreniriz: gaz sürekli mi yoksa aralıklı mı temas ediyor, kapalı bir dolap içinde mi yoksa açık havada mı duruyor, ıslak/nemli mi. Bu bilgi malzeme seçimini doğrudan belirler.</p>
-<p>Ardından ölçüyü alırsınız — kırık parça varsa fotoğrafını ve kalan parçaların ölçülerini, sağlam bir referans varsa onun ölçülerini gönderirsiniz. Basit ve tekrar eden geometrilerde (kapak, braket, klips gibi) ölçüyü siz iletirsiniz, biz çizime geçeriz; karmaşık veya birebir uyum gereken parçalarda örnek parçanın kendisini incelememiz süreci hızlandırır.</p>
-<p>Malzeme ve çizim netleşince üretime alırız. Parça elinize ulaşmadan önce ölçü ve montaj noktalarını sizinle teyit ederiz; teyit olmadan üretime geçilmez. Ödeme site üzerinden kartla, güvenli ödeme altyapısıyla alınır; ölçüye özel işler için de aynı yöntem geçerlidir. Standart dışı bir soru, özel bir geometri ya da malzeme belirsizliği varsa WhatsApp'tan <strong>+90 545 138 6526</strong> numarasından yazabilirsiniz.</p>
-<p>Gaz maruziyetinin şiddetini önceden bilemediğiniz durumlar da olur — örneğin parça kapalı bir pano içinde mi duruyor, yoksa gaz doğrudan üzerine mi geliyor, siz de emin değilseniz sorun değil. Fotoğraf ve parçanın cihazdaki konumunu anlatan birkaç cümle çoğu zaman yeterli olur; gerekirse ek soru sorarız, tahmine dayalı malzeme önermeyiz.</p>
+<p>Parçanın çalıştığı ortam belirleyicidir: gaz sürekli mi aralıklı mı temas ediyor, kapalı bir dolap içinde mi açık havada mı duruyor, ıslak ve nemli mi. Bu bilgi malzeme seçimini doğrudan belirler ve ürün sayfasındaki malzeme alanında hangi sınıfın uygun olduğu görünür. Ölçüyü siz yazarsınız; ölçüsü sitede seçilen parçalarda ölçü alanları ürün sayfasında hazırdır. Basit ve tekrar eden geometrilerde (kapak, braket, klips gibi) bu yol doğrudan çalışır.</p>
+<p>Ödeme site üzerinden kartla, güvenli ödeme altyapısıyla alınır; ölçüye özel işler için de aynı yöntem geçerlidir. Gaz maruziyetinin şiddeti konusunda emin değilseniz sitede hangi malzeme sınıfının neye uygun olduğu açıkça yazılıdır; tahmine dayalı bir malzeme önerisi yapmayız. Standart dışı bir soru için WhatsApp hattımız: <a href="https://wa.me/905451386526" target="_blank" rel="noopener"><strong>+90 545 138 6526</strong></a>.</p>
 <h2>Doğru malzeme</h2>
-<p>Ozon ve klor gazına dayanıklılık malzemeden malzemeye büyük fark gösterir; "her malzeme dayanır" demeyiz, doğru seçeneği ortama göre öneririz.</p>
+<p>Ozon ve klor gazına dayanıklılık malzemeden malzemeye büyük fark gösterir; "her malzeme dayanır" demeyiz, ortama göre uygun seçeneği işaretleriz.</p>
 <ul>
-<li><strong>PLA</strong> — bu ortamlar için uygun değildir; kısa sürede kırılganlaşır, önermeyiz.</li>
-<li><strong>PETG</strong> — düşük–orta yoğunlukta, aralıklı gaz temasında (örneğin dolap içinde duran, kapağı sık açılan bir sensör kutusu) makul bir başlangıç seçeneğidir; sürekli yüksek konsantrasyon için tek başına yeterli görmeyiz.</li>
-<li><strong>ASA</strong> — dış mekân ve UV dayanımı PETG'den yüksektir, kimyasal/gaz temasına da PETG'den biraz daha dirençlidir; açıkta duran kapak, muhafaza ve braket gibi parçalarda tercih ederiz. Aynı mantığı <a href="/uv-gunes-dayanikli-dis-mekan-plastik-parca-uretimi/">UV ve güneşe dayanıklı dış mekân parçaları</a> sayfasında da anlatıyoruz.</li>
-<li><strong>Karbon/cam fiber takviyeli (PA-CF / PA-GF)</strong> — yüksek mekanik mukavemet gereken, aynı zamanda gaz/kimyasal temasının da olduğu parçalarda (yük taşıyan braket, destek gövdesi gibi) düşünülür; bu malzeme sitedeki konfigüratörde seçilemez, ihtiyacınızı WhatsApp'tan <strong>+90 545 138 6526</strong> numarasına yazarsanız uygunluğunu birlikte değerlendiririz.</li>
+<li><strong>PLA</strong> — bu ortamlar için uygun değildir; kısa sürede kırılganlaşır, önerilmez.</li>
+<li><strong>PETG</strong> — düşük-orta yoğunlukta, aralıklı gaz temasında (örneğin dolap içinde duran, kapağı sık açılan bir sensör kutusu) makul bir başlangıç seçeneğidir; sürekli yüksek konsantrasyon için tek başına yeterli görmeyiz.</li>
+<li><strong>ASA</strong> — dış mekân ve UV dayanımı PETG'den yüksektir, kimyasal ve gaz temasına da PETG'den biraz daha dirençlidir; açıkta duran kapak, muhafaza ve braket gibi parçalarda tercih edilir. Aynı mantık <a href="/uv-gunes-dayanikli-dis-mekan-plastik-parca-uretimi/">UV ve güneşe dayanıklı dış mekân parçaları</a> sayfasında da anlatılıyor.</li>
+<li><strong>Karbon ya da cam fiber takviyeli (PA-CF / PA-GF)</strong> — yüksek mekanik mukavemet gereken, aynı zamanda gaz temasının da olduğu parçalarda (yük taşıyan braket, destek gövdesi gibi) düşünülür; bu sınıf sitedeki konfigüratörde seçilemez ve sitede bulunmayan bir malzeme sınıfı için özel üretim açılmaz.</li>
 </ul>
-<p>Duvar kalınlığı ve iç yapı da malzeme kadar önemlidir; aynı malzemeden üretilen ince bir kapak ile kalın bir braket, aynı gaz ortamında farklı ömür gösterir. Parçanın taşıdığı yükü ve montaj şeklini bilirsek duvar kalınlığını da buna göre öneririz — sadece malzeme adı yeterli değildir.</p>
-<p>Farklı renk seçenekleri sunuyoruz; hangi renklerin üretimde bulunduğunu sipariş öncesi birlikte netleştiririz. Genel kimyasal/yağ maruziyeti olan ama ozon/klor'a özgü olmayan parçalarınız için <a href="/yaga-ve-kimyasala-dayanikli-plastik-parca-uretimi/">yağa ve kimyasala dayanıklı plastik parça</a> sayfasına da bakabilirsiniz — malzeme mantığı örtüşür.</p>
+<p>Duvar kalınlığı ve iç yapı da malzeme kadar önemlidir; aynı malzemeden üretilen ince bir kapak ile kalın bir braket, aynı gaz ortamında farklı ömür gösterir. Taşınan yük ve montaj şekli duvar kalınlığını belirler; sadece malzeme adı yeterli değildir. Farklı renk seçenekleri sunuyoruz, hangi renklerin üretimde bulunduğu ürün sayfasında yazılıdır. Genel kimyasal ya da yağ maruziyeti olan ama ozon ve klora özgü olmayan parçalarınız için <a href="/yaga-ve-kimyasala-dayanikli-plastik-parca-uretimi/">yağa ve kimyasala dayanıklı plastik parça</a> sayfasına da bakabilirsiniz; malzeme mantığı örtüşür.</p>
 <h2>Dürüst sınır</h2>
-<p>Ozon ve klor gazı agresif oksitleyicidir; hiçbir plastiğin bu ortamda sınırsız ömrü yoktur, biz de böyle bir vaatte bulunmayız. Sürekli yüksek konsantrasyonlu klor gazına doğrudan maruz kalan ana hat borusu, ana tank gövdesi ya da basınçlı gaz bağlantı elemanı gibi parçalar bizim alanımız değildir; bu tip uygulamalar için o işe özel endüstriyel malzemeyle çalışan bir tedarikçiye yönlendiririz. Bizim ürettiğimiz parçalar bu sistemlerin çevresindeki kapak, braket, sensör yuvası, destek ve bağlantı elemanı gibi orta düzey maruziyetli bileşenlerdir.</p>
-<p>Ayrıca netleştirmek isteriz: metal işleme, CNC talaşlı imalat ya da kalıplı seri üretim de yapmıyoruz; ihtiyacınız bu yöndeyse en baştan söyleriz, zaman kaybettirmeyiz.</p>
-<p>Parçanın çalışacağı yeri ve gaz maruziyetinin şiddetini bize doğru anlatmanız, doğru malzemeyi önermemiz için önemlidir; emin değilseniz WhatsApp'tan sormanız daha sağlıklı sonuç verir.</p>
+<p>Ozon ve klor gazı agresif oksitleyicidir; hiçbir plastiğin bu ortamda sınırsız ömrü yoktur, biz de böyle bir vaatte bulunmuyoruz. Sürekli yüksek konsantrasyonlu klor gazına doğrudan maruz kalan ana hat borusu, ana tank gövdesi ya da basınçlı gaz bağlantı elemanı gibi parçalar bizim alanımız değildir; bu tip uygulamalar için endüstriyel malzemeyle çalışan bir üretici gerekir. Bizim ürettiğimiz parçalar bu sistemlerin çevresindeki kapak, braket, sensör yuvası, destek ve bağlantı elemanı gibi orta düzey maruziyetli bileşenlerdir.</p>
+<p>Ayrıca netleştirmek isteriz: metal işleme, CNC talaşlı imalat ya da kalıplı seri üretim de yapmıyoruz. Sitede satılmayan bir parça için özel üretim açılmaz; katalogdaki seçeneklerle ilerlemek gerekir.</p>
 <h2>Sipariş</h2>
-<p>Siparişi site üzerinden veya WhatsApp'tan başlatabilirsiniz. Parçanın çalıştığı ortamı (gaz yoğunluğu, kapalı/açık alan, ıslaklık) ve ölçüyü ya da örnek parçayı iletmeniz yeterli; malzeme önerisini birlikte netleştirir, onayınızdan sonra üretime alırız. Site üzerinden kartla ödeme yapılabilir.</p>
-<p>Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur — ücretsiz onarım, yenisiyle değişim, bedel indirimi ya da bedel iadesi seçenekleri saklıdır. Sorularınız için WhatsApp: <strong>+90 545 138 6526</strong>.</p>""")
+<p>Siparişi site üzerinden başlatabilirsiniz: parçanın çalıştığı ortamı ve ölçüyü siz yazarsınız, malzeme ve rengi seçersiniz, sepete eklersiniz ve kartla online ödersiniz. Hazır parça basılıp kargolanır. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; """
+        + AYIP_HAKLARI_CUMLESI
+        + u""" Sorularınız için WhatsApp: <a href="https://wa.me/905451386526" target="_blank" rel="noopener"><strong>+90 545 138 6526</strong></a>.</p>
+"""
+    )
+
 
 
 def _vida_dis_adimi_pitch_nasil_belirlenir():
@@ -16228,7 +16224,7 @@ def _vida_dis_adimi_pitch_nasil_belirlenir():
         "<h2>Doğru malzeme</h2>"
         "<p>Adım doğru tespit edilse bile malzeme seçimi parçanın ömrünü belirler. Hafif yük taşıyan, iç mekanda kalan bir somun ya da kör tapa için orta seviye bir malzeme yeterlidir. Dış mekanda, güneş ve nem altında kalacak kalemlerde UV ve ısıya dayanıklı seçenekler tercih edilir. Sık sökülüp takılan, tork altında çalışan ya da mekanik yük taşıyan dişli bağlantılarda karbon ya da cam elyaf takviyeli yüksek mukavemetli malzeme kullanılır; bu, dişin zamanla yuvarlanıp gevşemesini engeller. Somun ve kör tapa gibi tekrar sökülüp takılacak parçalarda diş toleransı biraz daha geniş bırakılır, böylece diş ilk takıştan itibaren rahat döner ve zamanla sıkışmaz. Malzeme seçimi parçanın kullanım yerine göre birkaç renk seçeneğiyle birlikte öneri olarak sunulur.</p>"
         "<h2>Dürüst sınır</h2>"
-        "<p>Diş adımı ölçümü, elle yapılan bir işlemdir ve belli sınırları vardır. Çok ince adımlı, hassas alet dişlerinde elle sayma yöntemi güvenilir sonuç vermez; bu tür kalemler katalogdaki doğrudan seçilebilir ürünlerden karşılanır. Tamamen aşınmış ya da kırılıp kaybolmuş dişlerde tahmine dayalı bir üretim yapılmaz. Yüksek tork ya da tekrarlanan yüksek çekme yükü altında çalışacak kritik bağlantılarda plastik diş metal dişin yerini almaz; bu tür yerlerde metal bağlantı elemanı önerilir. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur.</p>"
+        "<p>Diş adımı ölçümü, elle yapılan bir işlemdir ve belli sınırları vardır. Çok ince adımlı, hassas alet dişlerinde elle sayma yöntemi güvenilir sonuç vermez; bu tür kalemler katalogdaki doğrudan seçilebilir ürünlerden karşılanır. Tamamen aşınmış ya da kırılıp kaybolmuş dişlerde tahmine dayalı bir üretim yapılmaz. Yüksek tork ya da tekrarlanan yüksek çekme yükü altında çalışacak kritik bağlantılarda plastik diş metal dişin yerini almaz; bu tür yerlerde metal bağlantı elemanı önerilir. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Adımı tanımladıysanız ya da emin değilseniz, ilgili ürün sayfasındaki seçim alanlarını doldurup siparişi tamamlayabilirsiniz. Diş profili özel ya da standart seriye oturmayan durumlarda WhatsApp üzerinden +90 545 138 6526 numarasından yazabilirsiniz; ekip, uygun adım ve malzemeyi birlikte netleştirir.</p>"
     )
@@ -16252,7 +16248,7 @@ def _metrik_inch_olcu_farki_parca_nasil_uyarlanir():
         "<h2>Doğru malzeme</h2>"
         "<p>Ölçü doğru çıksa da malzeme yanlışsa parça yine kısa ömürlü olur. Sıradan kullanım için, yani dekoratif kapak ya da düşük yük taşıyan yuvalar için temel bir plastik yeterlidir. Isıya, güneşe ya da nemli dış ortama maruz kalan parçada PETG veya ASA gibi dış koşula dayanıklı malzemeye geçilir. İthal makinelerde sık karşılaşılan yük taşıyan dişli, kasnak ve mil yuvası gibi parçalarda ise karbon veya cam elyaf takviyeli naylon tercih edilir; bu malzeme sıradan plastiğe göre çok daha az esner ve aşınmaya dayanır. Parçanın makinedeki görevini, yani sürekli dönüyor mu sabit mi duruyor ya da sıcaklığa yakın mı, siz yazarsınız; renk seçenekleri de mevcuttur, ama malzeme seçimi renkten önce gelir.</p>"
         "<h2>Dürüst sınır</h2>"
-        "<p>İnç ölçüsündeki bir parçanın plastik muadilini almak, her inç parçanın plastikten yapılabileceği anlamına gelmez. Fan ve havalandırma çarkı ile pompa çarkı ister metrik ister inç ölçülü olsun basılabilir; ölçüyü ve kullanım koşulunu sitedeki seçim alanlarından siz yazarsınız. Yüksek basınç tutan gövde, valf ve hidrolik bağlantı elemanı da kapsam dışıdır; bunların çevresindeki kapak, tutucu ve muhafazayı basarız, basıncı taşıyan parçanın kendisini değil. Yük taşıyan profil ve konstrüksiyon elemanlarında hafif, yük dışı işlerle sınırlı kalırız; conta basımında da yalnızca düşük ve orta basınçta, sızdırmazlık taahhüdü vermeden ilerleriz. Parça kod ya da isim bilmeden geldiyse önce <a href=\"/yedek-parca-kodu-bilinmiyorsa-ne-yapilir/\">yedek parça kodu bilinmiyorsa ne yapılır</a> sayfasına bakmanızı öneririz. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur.</p>"
+        "<p>İnç ölçüsündeki bir parçanın plastik muadilini almak, her inç parçanın plastikten yapılabileceği anlamına gelmez. Fan ve havalandırma çarkı ile pompa çarkı ister metrik ister inç ölçülü olsun basılabilir; ölçüyü ve kullanım koşulunu sitedeki seçim alanlarından siz yazarsınız. Yüksek basınç tutan gövde, valf ve hidrolik bağlantı elemanı da kapsam dışıdır; bunların çevresindeki kapak, tutucu ve muhafazayı basarız, basıncı taşıyan parçanın kendisini değil. Yük taşıyan profil ve konstrüksiyon elemanlarında hafif, yük dışı işlerle sınırlı kalırız; conta basımında da yalnızca düşük ve orta basınçta, sızdırmazlık taahhüdü vermeden ilerleriz. Parça kod ya da isim bilmeden geldiyse önce <a href=\"/yedek-parca-kodu-bilinmiyorsa-ne-yapilir/\">yedek parça kodu bilinmiyorsa ne yapılır</a> sayfasına bakmanızı öneririz. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Uyumlu kalemi sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup siparişi tamamlarsınız. Diş varsa hangi yönde döndüğünü ve yaklaşık kaç tur girdiğini belirtmeniz işi hızlandırır. Sorularınız ve özel durumlar için WhatsApp hattımız açık: +90 545 138 6526. İthal bir makine parkının tamamında bu karışıklığı yaşıyorsanız <a href=\"/ithal-parca-beklemeden-yerli-uretim/\">ithal parça beklemeden yerli kalemler</a> sayfası size daha geniş bir çerçeve sunar.</p>"
     )
@@ -16278,7 +16274,7 @@ def _moduler_saklama_kabi_pod_sistemi_uretimi():
         "<h2>Siteden ölçüsü seçilen parçalar</h2>"
         "<p>Modül seçimi doğrudan sitede yapılır: <a href=\"/urun/olcuye-ozel-kutu-organizer/\">ölçüsü siteden seçilen kutu ve organizer</a> bu ailenin merkezindedir. Yanına <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüsü siteden seçilen montaj braketi</a>, <a href=\"/urun/olcuye-ozel-cetvel/\">ölçüsü siteden seçilen cetvel</a> ve <a href=\"/urun/olcuye-ozel-vidali-kavanoz-tapa/\">ölçüsü siteden seçilen vidalı kavanoz kapağı</a> eklenebilir. Ölçüyü sitedeki seçim alanlarından siz belirlersiniz. Parça gönderip fiziksel ölçüm alıp yeniden hazırlama işi yapmıyoruz; çekmece iç genişliği, derinliği ve kullanılabilir yüksekliği sitede yazarsınız, ızgara adımı sitede tanımlıdır.</p>"
         "<h2>Dürüst sınır</h2>"
-        "<p>Modüler pod sistemi kilitli bir kasa ya da tamamen hava ve su geçirmez bir saklama çözümü değildir; podlar arası kilitleme rayı toz ve serpinti seviyesinde tutar, kimyasal sızdırmazlık gerekiyorsa o iş ayrı contalı kapak gerektirir. Aynı şekilde sistemin kendisi ağır sanayi rafının ya da çelik raf sisteminin yerini almaz; podlar elle taşınabilir malzeme ve el aletleri için tasarlanır, bir modülün üstüne kişinin ağırlığını bindirecek şekilde basamak olarak kullanılmaz. Duvara asılan montaj ayağının kendi taşıma sınırı vardır, çok ağır yükte metal raf sistemi gerekir. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur.</p>"
+        "<p>Modüler pod sistemi kilitli bir kasa ya da tamamen hava ve su geçirmez bir saklama çözümü değildir; podlar arası kilitleme rayı toz ve serpinti seviyesinde tutar, kimyasal sızdırmazlık gerekiyorsa o iş ayrı contalı kapak gerektirir. Aynı şekilde sistemin kendisi ağır sanayi rafının ya da çelik raf sisteminin yerini almaz; podlar elle taşınabilir malzeme ve el aletleri için tasarlanır, bir modülün üstüne kişinin ağırlığını bindirecek şekilde basamak olarak kullanılmaz. Duvara asılan montaj ayağının kendi taşıma sınırı vardır, çok ağır yükte metal raf sistemi gerekir. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Ölçüyü sitede girdikten sonra kaç modül istediğinizi belirtmeniz yeterli. Emin değilseniz WhatsApp hattımız <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a> üzerinden yazın; ızgara adımı sitede tanımlıdır; kaç modülün sığacağını kendiniz hesaplayabilirsiniz.</p>"
     )
@@ -16330,7 +16326,7 @@ def _tekne_lumbuz_sinekligi_ve_perde_kaseti_plastik_parcasi_ozel_uretim():
         "<h2>Siteden ölçüsü seçilen parçalar</h2>"
         "<p>Ölçüsü sitede seçilen çerçeve ve tutma kalemleri katalogda hazırdır: <a href=\"/urun/olcuye-ozel-cerceve/\">ölçüsü siteden seçilen çerçeve</a>, <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüsü siteden seçilen montaj braketi</a> ve <a href=\"/urun/olcuye-ozel-toka/\">ölçüsü siteden seçilen toka</a> bu aileden örneklerdir. Ölçüyü sitedeki seçim alanlarından siz belirlersiniz. Elinizdeki parçayı bize gönderip ondan fiziksel ölçüm alıp yeniden hazırlama hizmeti vermiyoruz; çerçeve profil ölçüsünü sitede yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
-        "<p>Sinekliğin teli ya da kumaşı, lumbuzun sızdırmazlığını sağlayan ana conta ve alüminyum profilden yapılmış bir çerçevenin birebir plastik karşılığı üretilmez. Sızdırmazlık ayrı bir konudur ve parçanın çalışacağı basınç bilinmeden söz verilmez. Teklende aynı sineklik grubu farklı ölçülerde lumbuzlarda kullanılır; kırılan kalemin hangi lumbuzdan çıktığı önemlidir, çünkü çerçeve profili aynı, ölçüsü farklıdır. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur.</p>"
+        "<p>Sinekliğin teli ya da kumaşı, lumbuzun sızdırmazlığını sağlayan ana conta ve alüminyum profilden yapılmış bir çerçevenin birebir plastik karşılığı üretilmez. Sızdırmazlık ayrı bir konudur ve parçanın çalışacağı basınç bilinmeden söz verilmez. Teklende aynı sineklik grubu farklı ölçülerde lumbuzlarda kullanılır; kırılan kalemin hangi lumbuzdan çıktığı önemlidir, çünkü çerçeve profili aynı, ölçüsü farklıdır. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçayı sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup siparişi tamamlarsınız. Hangi kalemin gittiğinden emin değilseniz WhatsApp hattımız <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a> üzerinden yazın; fotoğraftan hangi kalemi seçmemiz gerektiğini söyleriz.</p>"
     )
@@ -16357,7 +16353,7 @@ def _tekne_tuvaleti_ve_lavabo_tesisati_plastik_parcasi_ozel_uretim():
         "<h2>Siteden ölçüsü seçilen parçalar</h2>"
         "<p>Ölçüsü sitede seçilen tesisat kalemleri katalogda hazırdır: <a href=\"/urun/olcuye-ozel-hortum-adaptoru/\">ölçüsü siteden seçilen hortum adaptörü</a>, <a href=\"/urun/olcuye-ozel-oring-conta/\">ölçüsü siteden seçilen conta</a> ve <a href=\"/urun/olcuye-ozel-vidali-kavanoz-tapa/\">ölçüsü siteden seçilen vidalı kavanoz kapağı</a> bu aileden örneklerdir. Ölçüyü sitedeki seçim alanlarından siz belirlersiniz. Elinizdeki parçayı bize gönderip ondan fiziksel ölçüm alıp yeniden hazırlama hizmeti vermiyoruz; rakor ölçüsü ve ağız çapı gibi değerleri sitede girersiniz.</p>"
         "<h2>Dürüst sınır</h2>"
-        "<p>Tuvalet pompası, sintine pompası ya da sirkülasyon pompasının çarkı kısmı ile pompanın dışındaki kol, kol yatağı, kapak, gövde kelepçesi ve bağlantı parçaları basılabilir; ölçüyü ve kullanım koşulunu sitedeki seçim alanlarından siz yazarsınız. Aynı şekilde basınç altında çalışan ana tesisat bağlantılarında, sızdırmazlığın canlı yükle sınandığı noktalarda söz vermeyiz; oradaki kalem için doğru çözüm orijinal donanımdır. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur.</p>"
+        "<p>Tuvalet pompası, sintine pompası ya da sirkülasyon pompasının çarkı kısmı ile pompanın dışındaki kol, kol yatağı, kapak, gövde kelepçesi ve bağlantı parçaları basılabilir; ölçüyü ve kullanım koşulunu sitedeki seçim alanlarından siz yazarsınız. Aynı şekilde basınç altında çalışan ana tesisat bağlantılarında, sızdırmazlığın canlı yükle sınandığı noktalarda söz vermeyiz; oradaki kalem için doğru çözüm orijinal donanımdır. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçayı sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup siparişi tamamlarsınız. Hangi kalemin gittiğinden emin değilseniz WhatsApp hattımız <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a> üzerinden yazın; parçanın adını yazın, katalogdaki karşılığını yazıyla bildirelim. Kışın kuruyan plastik parçalar ilk kullanımda kırılır; yazın bir kez elden geçirmek sonrasında sürpriz yaşatmaz.</p>"
     )
@@ -16383,7 +16379,7 @@ def _oto_kapi_su_kanali_fitil_tutucusu_ve_oluk_parcasi_yaptirma():
         "<h2>Siteden ölçüsü seçilen parçalar</h2>"
         "<p>Ölçüsü sitede seçilen kanal ve tutucu kalemleri katalogda hazırdır: <a href=\"/urun/olcuye-ozel-hortum-adaptoru/\">ölçüsü siteden seçilen hortum adaptörü</a>, <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüsü siteden seçilen montaj braketi</a> ve <a href=\"/urun/olcuye-ozel-kutu-organizer/\">ölçüsü siteden seçilen kutu ve organizer</a> bu aileden örneklerdir. Ölçüyü sitedeki seçim alanlarından siz belirlersiniz. Elinizdeki parçayı bize gönderip ondan fiziksel ölçüm alıp yeniden hazırlama hizmeti vermiyoruz; kanal kesiti ve tutucu genişliği gibi değerleri sitede girersiniz.</p>"
         "<h2>Dürüst sınır</h2>"
-        "<p>Kapı fitilinin kendisi üretilmez. Fitil, kesiti boyunca sızdırmazlık yapan sürekli bir elemandır ve doğru çözümü kendi malzemesidir; biz fitili yerinde tutan plastik tutucuyu, oluğu ve tahliye kalemini basarız. Kapı sacına kaynayan ya da sacın kendisi olan hiçbir kalem de bu kapsamda değildir. Kapı içine su alıyorsa sorun her zaman plastik kalem olmayabilir: fitil sertleşmiş, sac deforme olmuş ya da tahliye kanalı çamurla dolmuş olabilir. Böyle bir durumda size işe yaramayacak bir kalem satmayız, bunu baştan söyleriz. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur.</p>"
+        "<p>Kapı fitilinin kendisi üretilmez. Fitil, kesiti boyunca sızdırmazlık yapan sürekli bir elemandır ve doğru çözümü kendi malzemesidir; biz fitili yerinde tutan plastik tutucuyu, oluğu ve tahliye kalemini basarız. Kapı sacına kaynayan ya da sacın kendisi olan hiçbir kalem de bu kapsamda değildir. Kapı içine su alıyorsa sorun her zaman plastik kalem olmayabilir: fitil sertleşmiş, sac deforme olmuş ya da tahliye kanalı çamurla dolmuş olabilir. Böyle bir durumda size işe yaramayacak bir kalem satmayız, bunu baştan söyleriz. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçayı sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup siparişi tamamlarsınız. Hangi kalemin gittiğinden emin değilseniz parçanın adını ve aracın marka-modelini WhatsApp hattımızdan yazın: +90 545 138 6526. Dört kapıda aynı kalem kullanılıyorsa hepsini tek seferde sipariş etmek daha derli topludur.</p>"
     )
@@ -16409,7 +16405,7 @@ def _oto_koltuk_kizagi_kapagi_ve_ray_takozu_yaptirma():
         "<h2>Siteden ölçüsü seçilen parçalar</h2>"
         "<p>Ölçüsü sitede seçilen takoz ve tutucu kalemleri katalogda hazırdır: <a href=\"/urun/olcuye-ozel-ramp-sim-takoz/\">ölçüsü siteden seçilen rampa simi takozu</a>, <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüsü siteden seçilen montaj braketi</a> ve <a href=\"/urun/olcuye-ozel-toka/\">ölçüsü siteden seçilen toka</a> bu aileden örneklerdir. Ölçüyü sitedeki seçim alanlarından siz belirlersiniz. Elinizdeki parçayı bize gönderip ondan fiziksel ölçüm alıp yeniden hazırlama hizmeti vermiyoruz; ray arası boşluk ve takoz kalınlığı gibi değerleri sitede girersiniz.</p>"
         "<h2>Dürüst sınır</h2>"
-        "<p>Burada net olalım: koltuğun ana taşıyıcı rayını, kilit dilinin metal gövdesini ve kaza anında yük taşıyan hiçbir yapısal elemanı plastikten basmıyoruz. Bunlar can güvenliğiyle doğrudan ilgilidir ve doğru malzemesi çeliktir; o kalemler orijinaliyle değiştirilmelidir. Ürettiğimiz kalemler kapak, takoz, bilezik, tapa ve yuva gibi yardımcı parçalardır: koltuğu tutan değil, koltuğun düzgün çalışmasını sağlayan parçalardır. Koltukta oynama varsa ve sebep plastik takoz değil rayın kendisinin deformasyonu ise bunu size söyleriz; işe yaramayacak bir kalem basmayız. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur.</p>"
+        "<p>Burada net olalım: koltuğun ana taşıyıcı rayını, kilit dilinin metal gövdesini ve kaza anında yük taşıyan hiçbir yapısal elemanı plastikten basmıyoruz. Bunlar can güvenliğiyle doğrudan ilgilidir ve doğru malzemesi çeliktir; o kalemler orijinaliyle değiştirilmelidir. Ürettiğimiz kalemler kapak, takoz, bilezik, tapa ve yuva gibi yardımcı parçalardır: koltuğu tutan değil, koltuğun düzgün çalışmasını sağlayan parçalardır. Koltukta oynama varsa ve sebep plastik takoz değil rayın kendisinin deformasyonu ise bunu size söyleriz; işe yaramayacak bir kalem basmayız. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Kalemi sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup siparişi tamamlarsınız. Emin değilseniz koltuğun altından çektiğiniz fotoğrafı WhatsApp hattımızdan yollayın: +90 545 138 6526. İki ön koltukta aynı kalem kullanılıyorsa ikisini birden sipariş etmek, koltukların aynı hissi vermesini sağlar.</p>"
     )
@@ -16432,7 +16428,7 @@ def _dis_klinigi_ve_dental_laboratuvar_ekipmani_plastik_parca_uretimi():
         "<p>Klinikler ve laboratuvarlar genelde tek kalem değil aynı kalemden birkaç adet ister. Kurumsal siparişin nasıl yürüdüğü <a href=\"/kurumsal-ve-isletme-musterileri-icin-ozel-parca-uretimi/\">kurumsal ve işletme müşterileri</a> sayfasında anlatılır.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Sertifikalı tıbbi cihaz üreticisi değiliz. Hastanın ağzına giren, hasta dokusuyla doğrudan temas eden ya da tıbbi işlev taşıyan parçalar kapsam dışıdır. İkinci sınır ısıdır ve burada net bir tavan var: pratik ısı tavanımız 90-100 santigrat derecedir. Buhar ve otoklav sterilizasyonu bu sıcaklığın çok üstüne çıktığı için otoklavla sterilize edilecek parçalar bu kapsamda değildir.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur. Ayrıntı <a href=\"/ozel-uretim-parca-iadesi-ve-geri-odemesi-nasil-isler/\">iade ve geri ödeme süreci</a> sayfasındadır. <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">Hangi parçalar hazırlanamaz</a> sayfası kapsam dışı listesini toplar.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + " Ayrıntı <a href=\"/ozel-uretim-parca-iadesi-ve-geri-odemesi-nasil-isler/\">iade ve geri ödeme süreci</a> sayfasındadır. <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">Hangi parçalar hazırlanamaz</a> sayfası kapsam dışı listesini toplar.</p>"
         "<p>Sizin elinizdeki kırık parçayı temel alıp ona özel bir gövde hazırlamıyoruz; bu sayfadaki kalemler katalogdaki hazır ürünler ve sitede ölçüsü seçilen aileyle sınırlıdır.</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Hazır katalog ürünlerini siteden kartla online sipariş verebilirsiniz. Cihazın markası, modeli, kırılan kalemin adı ve kaç ünitte aynı parçanın bulunduğu bilgisiyle WhatsApp hattımıza yazın: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>. <strong>Sitede var mı</strong> diye sorabilirsiniz; katalogu kendiniz arayın.</p>"
@@ -16459,7 +16455,7 @@ def _kumes_ve_tavukculuk_ekipmani_plastik_parca_uretimi():
         "<h2>Siteden ölçüsü seçilen parçalar</h2>"
         "<p>Ölçüsü sitede seçilen klips, kapak ve bağlantı kalemleri katalogda hazırdır: <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüsü siteden seçilen montaj braketi</a>, <a href=\"/urun/olcuye-ozel-toka/\">ölçüsü siteden seçilen toka</a> ve <a href=\"/urun/olcuye-ozel-hortum-adaptoru/\">ölçüsü siteden seçilen hortum adaptörü</a> bu aileden örneklerdir. Ölçüyü sitedeki seçim alanlarından siz belirlersiniz. Elinizdeki parçayı bize gönderip ondan fiziksel ölçüm alıp yeniden hazırlama hizmeti vermiyoruz; boru çapı gibi hat ölçüsünü sitede yazarsınız. Hat boyunca aynı kalemin yüzlerce adedi gerekiyorsa toplu sipariş sayfasındaki akışa bakın.</p>"
         "<h2>Dürüst sınır</h2>"
-        "<p>Hayvanın doğrudan ağzıyla temas eden ve yem ya da suyla sürekli teması olan kalemlerde malzeme seçimi ayrı bir konudur; bunu sipariş öncesinde konuşmak isteriz. Böyle bir kalem söz konusuysa WhatsApp hattımızdan yazın, parçanın nerede çalıştığını sorup ona göre malzeme öneririz. İkinci sınır mekaniktir: hattın yükünü taşıyan ana askı demirleri ve motorlu yem taşıyıcının tahrik elemanları üretilmez. Basılan taraf, hattın çevresindeki klips, askı, halka, kapak, kanal ve mafsal kalemleridir. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur.</p>"
+        "<p>Hayvanın doğrudan ağzıyla temas eden ve yem ya da suyla sürekli teması olan kalemlerde malzeme seçimi ayrı bir konudur; bunu sipariş öncesinde konuşmak isteriz. Böyle bir kalem söz konusuysa WhatsApp hattımızdan yazın, parçanın nerede çalıştığını sorup ona göre malzeme öneririz. İkinci sınır mekaniktir: hattın yükünü taşıyan ana askı demirleri ve motorlu yem taşıyıcının tahrik elemanları üretilmez. Basılan taraf, hattın çevresindeki klips, askı, halka, kapak, kanal ve mafsal kalemleridir. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Kalemi sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup siparişi tamamlarsınız. Hangi kalemin gittiğinden emin değilseniz hattın ve kırık bölgenin fotoğrafını WhatsApp hattımızdan yollayın: +90 545 138 6526. Kümes ekipmanında kalem değişimi genelde hayvanlar içerideyken yapılır; montaj kolaylığı ölçü kadar önemlidir, o yüzden ilk partide birkaç adet üretip yerine denemenizi öneririz.</p>"
     )
@@ -16485,7 +16481,7 @@ def _akaryakit_istasyonu_ekipmani_plastik_parca_uretimi():
         "<p>Güneş gören dış kapak, çerçeve ve rozetlerde UV dayanımlı sınıf doğru seçimdir; rengini ve mukavemetini uzun süre korur. Kapalı yerde kalan parçalarda dengeli bir sınıf yeterli olur. Sürekli zorlanan mandal ve kilit dillerinde ise sert, boyut kararlı sınıflar tercih edilir. Sınıfların karşılaştırması <a href=\"/malzeme-rehberi/\">malzeme rehberi</a> sayfasındadır; renk tarafında kurumsal rengine yakın tonlar seçilebilir.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Burada sınır net çünkü ortam yanıcıdır. Basınç altındaki yakıt hattı, enjeksiyon hattı ve rampası, yakıt deposunun gövdesi ve yakıt pompasının içindeki çark kapsam dışıdır. LPG ve CNG ekipmanının tamamı ile sertifikalı yakıt donanımı belgeli ekipmanın alanıdır; yerine muadil takılmaz. Patlayıcı ortam sertifikası gerektiren bölgelerdeki muhafaza ya da elektrik parçaları için de söz vermeyiz.</p>"
-        "<p>Üretilen kalemler cihazın dışındaki panel, çerçeve, kapak, mandal ve tutucu gibi yardımcı parçalardır. Kapsam dışı kalanların topluca listesi <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasında anlatılır. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur.</p>"
+        "<p>Üretilen kalemler cihazın dışındaki panel, çerçeve, kapak, mandal ve tutucu gibi yardımcı parçalardır. Kapsam dışı kalanların topluca listesi <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasında anlatılır. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Hazır katalog ürünlerini siteden kartla online sipariş verebilirsiniz. İstasyon ekipmanınızın markası, modeli ve aradığınız kalemin adıyla WhatsApp hattımıza yazın: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\">"
         "<strong>+90 545 138 6526</strong></a>. <strong>Sitede var mı</strong> diye sormak yeterli; sitede varsa ilgili sayfanın adresini, yoksa sitede bulunmadığını söyleriz.</p>"
@@ -16514,7 +16510,7 @@ def _havalimani_yer_hizmetleri_ekipmani_plastik_parca_uretimi():
         "<h2>Vardiya durmadan kalem yenileme</h2>"
         "<p>Yer hizmetlerinde ekipmanın beklemesi doğrudan operasyonu etkiler; bu yüzden çalışma düzenini buna göre kurarız. En pratik yol, sık kırılan kalemleri önceden belirleyip ölçülerini kayda almaktır: bir kez sipariş edilen kalemin ölçüsü kayıtlarımızda durur, ikinci kez istediğinizde ölçüm adımı tekrarlanmaz. İlk turda sahada en çok kırılan üç beş kalemi listeleyin, hepsini tek siparişte değerlendirin. Filoda aynı ekipmandan çok sayıda varsa önce birkaç adet alıp sahada denemeniz işe yarar: apron koşulunda kalem beklenenden farklı davranabilir, özellikle soğukta ve sürekli titreşim altında.</p>"
         "<h2>Dürüst sınır</h2>"
-        "<p>Burada sınırımız çok net: uçağın kendi üzerindeki hiçbir kalemi basmıyoruz. Kabin içi, gövde, motor ya da iniş takımı ile ilgili hiçbir kalem, ne kadar küçük görünürse görünsün kapsam dışıdır; havacılık kalemleri kendi sertifikasyon zincirine tabidir ve yalnız yetkili tedarik hattından temin edilir. İkinci sınır yüktür: yolcu ya da personel güvenliğini doğrudan taşıyan yapısal elemanları, yani merdivenin taşıyıcı gövdesi, korkuluğun kendisi ve kaldırma mekanizmasının yük taşıyan kalemleri plastikten basmıyoruz; o yapıların kapaklarını, takozlarını, tutucularını ve kılavuzlarını basarız. Jet blast ve egzoz akışına doğrudan maruz kalan konumlara plastik kalem önermeyiz. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur.</p>"
+        "<p>Burada sınırımız çok net: uçağın kendi üzerindeki hiçbir kalemi basmıyoruz. Kabin içi, gövde, motor ya da iniş takımı ile ilgili hiçbir kalem, ne kadar küçük görünürse görünsün kapsam dışıdır; havacılık kalemleri kendi sertifikasyon zincirine tabidir ve yalnız yetkili tedarik hattından temin edilir. İkinci sınır yüktür: yolcu ya da personel güvenliğini doğrudan taşıyan yapısal elemanları, yani merdivenin taşıyıcı gövdesi, korkuluğun kendisi ve kaldırma mekanizmasının yük taşıyan kalemleri plastikten basmıyoruz; o yapıların kapaklarını, takozlarını, tutucularını ve kılavuzlarını basarız. Jet blast ve egzoz akışına doğrudan maruz kalan konumlara plastik kalem önermeyiz. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Kalemi sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup siparişi tamamlarsınız. Emin değilseniz ekipmanın ve kırık bölgenin fotoğrafını WhatsApp hattımızdan yollayın: +90 545 138 6526. Üretilen kalem orijinalinin yerine geçer; üzerinde ekipman üreticisinin markası ya da parça kodu bulunmaz ve bu ayrım siparişten önce yazılı olarak paylaşılır.</p>"
     )
@@ -16540,7 +16536,7 @@ def _toprak_altina_gomulen_plastik_parca_uretimi():
         "<h2>Siteden ölçüsü seçilen parçalar</h2>"
         "<p>Ölçüsü sitede seçilen kutu, kapak ve bağlantı kalemleri katalogda hazırdır: <a href=\"/urun/olcuye-ozel-kutu-organizer/\">ölçüsü siteden seçilen kutu ve organizer</a>, <a href=\"/urun/olcuye-ozel-hortum-adaptoru/\">ölçüsü siteden seçilen hortum adaptörü</a> ve <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüsü siteden seçilen montaj braketi</a> bu aileden örneklerdir. Ölçüyü sitedeki seçim alanlarından siz belirlersiniz. Elinizdeki parçayı bize gönderip ondan fiziksel ölçüm alıp yeniden hazırlama hizmeti vermiyoruz; boru çapı ve kutu ağız ölçüsünü sitede yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
-        "<p>Basınç altında su ya da gaz taşıyan hiçbir gömülü hattı basmıyoruz. Ana su borusu, gaz hattı, basınçlı sulama ana kolektörü ve bunların sızdırmazlık elemanları bizim işimiz değildir; oradaki bir sızıntının bedeli yüksektir ve doğru çözüm o hattın kendi sertifikalı kalemidir. Basılan taraf, hattın çevresindeki kutu, kapak, askı, bilezik, tutucu ve yuva kalemleridir; taşıyan değil, düzenleyen kalemler. İkinci sınır zemin yüküdür: üzerinden araç geçen bir kapak ya da ağır zemin yükü taşıyan bir muhafaza için plastikten söz vermeyiz. Toprak altında yıllarca kalacak bir kalemin ne kadar dayanacağı toprağın kendisine de bağlıdır; sizi gerçekçi olmayan bir süre beklentisine sokmayız. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur.</p>"
+        "<p>Basınç altında su ya da gaz taşıyan hiçbir gömülü hattı basmıyoruz. Ana su borusu, gaz hattı, basınçlı sulama ana kolektörü ve bunların sızdırmazlık elemanları bizim işimiz değildir; oradaki bir sızıntının bedeli yüksektir ve doğru çözüm o hattın kendi sertifikalı kalemidir. Basılan taraf, hattın çevresindeki kutu, kapak, askı, bilezik, tutucu ve yuva kalemleridir; taşıyan değil, düzenleyen kalemler. İkinci sınır zemin yüküdür: üzerinden araç geçen bir kapak ya da ağır zemin yükü taşıyan bir muhafaza için plastikten söz vermeyiz. Toprak altında yıllarca kalacak bir kalemin ne kadar dayanacağı toprağın kendisine de bağlıdır; sizi gerçekçi olmayan bir süre beklentisine sokmayız. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Kalemi sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup siparişi tamamlarsınız. Kalemin toprakla nasıl temas ettiğini ve üstünden ne geçtiğini yazarsanız malzemeyi ona göre seçeriz. Emin değilseniz kazdığınız yerin ve kalemin fotoğrafını WhatsApp hattımızdan yollayın: +90 545 138 6526.</p>"
     )
@@ -16564,7 +16560,7 @@ def _ozel_uretim_parca_renk_solar_mi_sararir_mi():
         "<h2>Siteden ölçüsü seçilen parçalar</h2>"
         "<p>Ölçüsü sitede seçilen kalemlerde de renk sınıfı aynı mantıkla belirlenir: <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüsü siteden seçilen montaj braketi</a>, <a href=\"/urun/olcuye-ozel-kutu-organizer/\">ölçüsü siteden seçilen kutu ve organizer</a> ve <a href=\"/urun/olcuye-ozel-damga-kase/\">ölçüsü siteden seçilen damga kase</a> bu aileden örneklerdir. Ölçüyü sitedeki seçim alanlarından siz belirlersiniz. Elinizdeki kalemden fiziksel ölçüm alıp yeniden hazırlama hizmeti vermiyoruz; kalemin çalışacağı yeri yazar, uygun sınıfı siteden seçersiniz.</p>"
         "<h2>Dürüst sınır</h2>"
-        "<p>Hiçbir plastiğin rengi sonsuza kadar aynı kalmaz; size \"hiç solmaz\" demeyiz. Doğru malzemeyle solma çok yavaşlar, ama on yıl güneş altında duran bir kalemde gözle görülür bir ton farkı oluşabilir. Üretilen kalemin rengi, eski kalemin bugünkü renginden farklı görünebilir; çünkü o kalem yıllardır güneş altındadır ve zaten solmuştur. Bu konu <a href=\"/ozel-uretim-parca-orijinaliyle-ayni-renkte-olur-mu/\">özel üretim parça orijinaliyle aynı renkte olur mu</a> sayfasında ayrıntılı anlatılıyor. Yüzeye sonradan uygulanan bir kaplama ya da boya ile solmayı tamamen durdurma sözü de verilmez; kaplama kendi başına yıpranan bir katmandır. Yaklaşımımız rengi malzemenin içinde taşımak ve kalemin çalışacağı yere uygun sınıfı baştan seçmektir. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur.</p>"
+        "<p>Hiçbir plastiğin rengi sonsuza kadar aynı kalmaz; size \"hiç solmaz\" demeyiz. Doğru malzemeyle solma çok yavaşlar, ama on yıl güneş altında duran bir kalemde gözle görülür bir ton farkı oluşabilir. Üretilen kalemin rengi, eski kalemin bugünkü renginden farklı görünebilir; çünkü o kalem yıllardır güneş altındadır ve zaten solmuştur. Bu konu <a href=\"/ozel-uretim-parca-orijinaliyle-ayni-renkte-olur-mu/\">özel üretim parça orijinaliyle aynı renkte olur mu</a> sayfasında ayrıntılı anlatılıyor. Yüzeye sonradan uygulanan bir kaplama ya da boya ile solmayı tamamen durdurma sözü de verilmez; kaplama kendi başına yıpranan bir katmandır. Yaklaşımımız rengi malzemenin içinde taşımak ve kalemin çalışacağı yere uygun sınıfı baştan seçmektir. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Sipariş verirken kalemin nerede çalışacağını yazmanız yeterlidir: kapalı alanda mı, gölgede mi, doğrudan güneş altında mı? Bu tek cümle malzeme sınıfını belirler. Rengi ve tonu da sitedeki seçim alanından belirlersiniz. Kalemi teslim aldığınızda rengini not edip saklayın; ilk günkü haliyle sonraki karşılaştırmak net sonuç verir.</p>"
     )
@@ -16572,7 +16568,7 @@ def _ozel_uretim_parca_renk_solar_mi_sararir_mi():
 
 def _antika_ve_eski_cihaz_parcasi_ozel_uretim():
     return (
-        "<h1>Antika ve Eski Cihaz Parçası: Sitedeki Hazır Seçenekler</h1>"
+        "<h1>Antika ve Eski Cihaz Parçası: Katalogda Yoksa Ne Yapılır?</h1>"
         "<p class=\"lead\">Elinizde çalışan ama tek bir küçük parçası eksik eski bir cihaz varsa doğru sayfadasınız. Lambalı radyonun kopmuş ayar düğmesi, gramofonun kol yatağı, eski dikiş makinesinin mekik kapağı, daktilonun tuş başlığı, duvar saatinin sarkaç askısı ve kadran ayağı — bunların hiçbiri artık üretilmiyor. PRUVO kataloğunda 41.000'den fazla hazır parça var; eski model kalemler için katalogda bir karşılık bulunabilir.</p>"
         "<h2>Eski cihaz parçasında ölçü nasıl bulunur?</h2>"
         "<p>Elinizdeki parçayı fiziksel olarak alıp ölçerek yeni bir gövde çıkarmak işi yapmıyoruz. Eski cihaz parçası için ihtiyacınız olan ölçüyü siz yazarsınız: sitedeki ölçüye özel kalemlerin ürün sayfasında çap, boy ve kesit alanları bulunur. Cihazın ön panelinde eski parçanın bıraktığı iz ya da cihaz üzerinde kalan sağlam eş parça, sizin için referans olur; o referanstan okuduğunuz değerleri forma yazarsınız.</p>"
@@ -16593,7 +16589,7 @@ def _antika_ve_eski_cihaz_parcasi_ozel_uretim():
         "<h2>Dürüst sınır</h2>"
         "<p>Biz yalnız plastik parça hazırlarız. Cihazın ahşap gövdesini, metal aksamını, elektrik ve elektronik parçalarını üretmeyiz; onlar başka ustaların alanıdır. Bir antikanın restorasyonunu üstlenmeyiz; yaptığımız iş, eksik ya da kırılmış bir plastik kalemin ölçüsüne özel yeniden hazırlanmasıdır.</p>"
         "<p>İkinci ve önemli nokta: koleksiyon değeri taşıyan bir cihazda orijinal parçanın yerine yeni hazırlanmış bir parça takmak cihazın orijinalliği açısından bir tercihtir ve bu karar sizindir. Ürettiğimiz parçayı orijinal parça diye tanımlamayız ve bunu belgeye de yansıtmıyoruz. Üzerinde başka bir markanın adı, logosu ya da kodu bulunan bir parça o işaretlerle birlikte çoğaltılmaz.</p>"
-        "<p>Marka ve logo işleme konusunda <a href=\"/ozel-parcaya-logo-ve-yazi-isleme/\">logo ve yazı işleme rehberi</a> sayfası bilgi verir. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur.</p>"
+        "<p>Marka ve logo işleme konusunda <a href=\"/ozel-parcaya-logo-ve-yazi-isleme/\">logo ve yazı işleme rehberi</a> sayfası bilgi verir. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Hazır katalog ürünlerini siteden kartla online sipariş verebilirsiniz. Cihazın adını ve aradığınız kalemi WhatsApp hattımıza yazın: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\">"
         "<strong>+90 545 138 6526</strong></a>. <strong>Sitede var mı</strong> diye sormak yeterli; sitede varsa ilgili sayfanın adresini, yoksa sitede bulunmadığını söyleriz.</p>"
@@ -16614,7 +16610,7 @@ def _olcuye_ozel_plastik_emniyet_pimi_ve_kesme_pimi_uretimi():
         "<h2>Yerine cıvata takılırsa ne olur</h2>"
         "<p>Sahada en sık görülen çözüm, kopan pimin yerine elde ne varsa onu takmaktır. Uygun çaptaki bir cıvata deliğe girer, makine çalışır ve mesele çözülmüş görünür. Oysa o cıvata koparak koruma yapmak için tasarlanmamıştır; sıkışma anında kopmaz, yükü olduğu gibi arkadaki dişli kutusuna ve mile aktarır. İkinci arıza artık ucuz bir pim değil, pahalı bir grup olur. İkinci sık hata kopmayan sert bir muadil takıp \"bu daha sağlam\" diye düşünmektir: kurban pimmde amaç sağlamlık değil, öngörülebilir bir noktada teslim olmaktır. Üçüncüsü çapı büyütmektir; bir milimetre büyük bir pim deliği zorlar, yatağı ovalleştirir ve zamanla asıl kalemi bozar.</p>"
         "<h2>Dürüst sınır</h2>"
-        "<p>İnsan güvenliğine ya da yük kaldırmaya bağlı hiçbir kurban elemanı basmıyoruz. Vinç, caraskal, kaldırma platformu, halat gerdirme donanımı ve benzeri sistemlerin koparak koruma yapan kalemleri kapsamımızın dışındadır; oradaki bir hata doğrudan can güvenliği demektir. Yüksek hızda dönen ve dengelenmiş millerin pimleri, motor içindeki zaman ayarlı elemanlar ve fren sisteminin hiçbir kalemi de bu sayfanın kapsamı dışındadır. Isı tarafında pratik tavan malzeme sınıfına göre 90-100 santigrat derecedir; sıcak bölgede çalışan bir pim söz konusuysa bizi baştan uyarın. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur.</p>"
+        "<p>İnsan güvenliğine ya da yük kaldırmaya bağlı hiçbir kurban elemanı basmıyoruz. Vinç, caraskal, kaldırma platformu, halat gerdirme donanımı ve benzeri sistemlerin koparak koruma yapan kalemleri kapsamımızın dışındadır; oradaki bir hata doğrudan can güvenliği demektir. Yüksek hızda dönen ve dengelenmiş millerin pimleri, motor içindeki zaman ayarlı elemanlar ve fren sisteminin hiçbir kalemi de bu sayfanın kapsamı dışındadır. Isı tarafında pratik tavan malzeme sınıfına göre 90-100 santigrat derecedir; sıcak bölgede çalışan bir pim söz konusuysa bizi baştan uyarın. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Kalemi sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup siparişi tamamlarsınız. Makinenin markası ve pimin hangi noktada durduğu bilgisi de işimize yarar. Emin değilseniz makinenin markası, modeli ve pimin konumunu WhatsApp hattımıza yazın: +90 545 138 6526. Kurban pimler tanımı gereği tükenen kalemlerdir; ilk siparişte uyduğunu gördükten sonra yedeklik birkaç adedin birlikte alınması mantıklıdır.</p>"
     )
@@ -16622,7 +16618,7 @@ def _olcuye_ozel_plastik_emniyet_pimi_ve_kesme_pimi_uretimi():
 
 def _olcuye_ozel_plastik_sevk_olugu_ve_urun_kilavuzu_uretimi():
     return (
-        "<h1>Ölçüye Özel Sevk Oluğu ve Ürün Kılavuzu Üretimi</h1>"
+        "<h1>Sevk Oluğu ve Ürün Kılavuzu: Sitede Ölçüsü Seçilen Seçenekler</h1>"
         "<p class=\"lead\">Paketleme hattının en sık şikâyet edilen konusu ürünün bir noktada takılması, yan yatması ya da çizilmesidir. Kusur çoğu zaman bantta değil, bandın kenarındaki yönlendiricidedir: aşınmış bir kılavuz çıtası, kırık bir sevk oluğu, kaymış bir daraltma parçası. Bunlar hattın en ucuz elemanlarıdır, ama biri bozulduğunda hat durur.</p>"
         "<p>PRUVO kataloğunda 41 binden fazla hazır 3D baskı parça var. Üretim hattında işe yarayan sevk oluğu, kılavuz çıtası ve yönlendirici kalemleri için önce katalogda arama yolu vardır. Bizim yaptığımız iş, elinizdeki eski parçayı fiziksel olarak alıp yeniden hazırlamak değil; katalogdaki ve sitede ölçüsü seçilen kalemlerden doğru parçayı birlikte bulmaktır.</p>"
         "<h2>Ne zaman bozulur</h2>"
@@ -16636,7 +16632,7 @@ def _olcuye_ozel_plastik_sevk_olugu_ve_urun_kilavuzu_uretimi():
         "<p>Sitede ölçüsü seçilen kalemler doğrudan ürün sayfasından sipariş verilebilir: <a href=\"/urun/olcuye-ozel-hortum-adaptoru/\">ölçüye özel hortum adaptörü</a>, <a href=\"/urun/olcuye-ozel-izgara-menfez-kapak/\">ölçüye özel ızgara ve menfez kapağı</a> ve <a href=\"/urun/olcuye-ozel-kutu-organizer/\">ölçüye özel kutu ve organizer</a> bu aileden örneklerdir. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Bant gerdirme mekanizmasının kuvvet taşıyan parçalarını, tahrik gruplarını ve operatörü koruyan muhafaza kapaklarının yerine geçecek bir parçayı bu kapsamda saymıyoruz. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçanın hangi hatta, hangi ürün için ve ne kadar yük taşıdığını yazmanız yeterlidir. Sitede olup olmadığını WhatsApp hattından <strong>sitede var mı</strong> diye sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>. Sitede varsa adresini paylaşırız.</p>"
     )
@@ -16660,7 +16656,7 @@ def _ruzgar_turbini_ve_yenilenebilir_enerji_ekipmani_plastik_parca_uretimi():
         "<h2>Dürüst sınır</h2>"
         "<p>Türbin kanadı üretmiyoruz. Ne küçük ev tipi türbinin kanadını ne de büyüğünü; kanat aerodinamik yükü taşıyan, dengelenmiş ve yorulmaya göre hesaplanmış bir parçadır. Aynı şekilde kuyruk dümeni, göbek bağlantısı, mil grubu ve fren mekanizması da kapsamımızın dışındadır.</p>"
         "<p>Elektrik tarafında akım taşıyan hiçbir elemanı üretmiyoruz: baraya, klemens kontağına, sigortaya ve konnektör iç metaline dokunmuyoruz. Ürettiğimiz parçalar bunların çevresindeki kapak, yuva, tutucu ve muhafazalardır. Yıldırım koruma ve topraklama donanımının hiçbir parçası da bu kapsamda değildir. Sahada yüksekte çalışan, düşmesi hâlinde risk doğuran bir parçada plastik muadil önermiyoruz; belirleyici etken malzeme değil, erişimdir.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçanın sahada nerede durduğunu, güneş görüp görmediğini ve titreşim altında olup olmadığını yazarsanız malzemeyi ona göre seçeriz. Sitede olup olmadığını WhatsApp hattından <strong>sitede var mı</strong> diye sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -16682,7 +16678,7 @@ def _yuruyen_merdiven_ve_yuruyen_bant_plastik_parca_uretimi():
         "<p>Bant ve zincir tarafındaki yönlendirici parçaların ölçü mantığı sanayi bantlarıyla aynıdır; onu <a href=\"/konveyor-bant-plastik-parca-yaptirma/\">konveyör bant plastik parça yaptırma</a> sayfasında ayrıntılı anlattık.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Yolcunun ağırlığını taşıyan, hareketi ileten ya da güvenlik fonksiyonu gören hiçbir elemanı üretmiyoruz; bu sayfadaki iş, o sistemin çevresindeki kaplama, kapak, çerçeve ve tutucu parçalardır. Emniyet freni, tutamak taşıma elemanı ve merdiven basamağı gibi kalemler kapsam dışıdır. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçanın nerede durduğunu ve ne kadar darbe aldığını yazmanız yeterlidir. Sitede olup olmadığını WhatsApp hattından <strong>sitede var mı</strong> diye sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -16704,7 +16700,7 @@ def _plaj_ve_sahil_isletmesi_ekipmani_plastik_parca_uretimi():
         "<p>Marka sayfalarından <a href=\"/marka/ikea/\">IKEA</a> ve <a href=\"/marka/quechua/\">Quechua</a> gibi sayfalara geçebilirsiniz. Sitede olup olmadığını WhatsApp hattından sorun; sitede varsa adresini paylaşırız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Can kurtarma halatının kendisini, can yeleğini ve deniz güvenliği ekipmanının yük taşıyan bölümlerini üretmiyoruz; bunlar sertifikalı ve deneme raporlu üretimlerdir. Tekne gövdesi, tekne altı ve direk metal kısımları da kapsam dışıdır. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçanın hangi mevsimde, güneşte mi gölgede mi kaldığını ve kumla temas edip etmediğini yazmanız yeterlidir. Sitede olup olmadığını WhatsApp hattından <strong>sitede var mı</strong> diye sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -16726,7 +16722,7 @@ def _geri_donusum_tesisi_ve_atik_ayristirma_ekipmani_plastik_parca_uretimi():
         "<p>Sitede ölçüsü seçilen kalemler: <a href=\"/urun/olcuye-ozel-hortum-adaptoru/\">ölçüye özel hortum adaptörü</a>, <a href=\"/urun/olcuye-ozel-petek-delikli-panel/\">ölçüye özel petek ve delikli panel</a> ve <a href=\"/urun/olcuye-ozel-izgara-menfez-kapak/\">ölçüye özel ızgara ve menfez kapağı</a>.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kesici bıçaklar, konveyör tamburu, rulman yatakları, redüktör ve motor gövdesi üretimimiz dışındadır. Bunlar metal, sert kaplama ve hassas işleme gerektiren kalemlerdir. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçanın hangi hatta, ne kadar toz ve nem altında çalıştığını yazmanız yeterlidir. Sitede olup olmadığını WhatsApp hattından <strong>sitede var mı</strong> diye sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -16734,7 +16730,7 @@ def _geri_donusum_tesisi_ve_atik_ayristirma_ekipmani_plastik_parca_uretimi():
 
 def _tekne_radar_direk_ve_anten_baglantisi_ozel_uretim():
     return (
-        "<h1>Tekne Radar Direği ve Anten Bağlantısı Özel Üretim</h1>"
+        "<h1>Tekne Radar Direği ve Anten Bağlantısı: Katalogdaki Hazır Seçenekler</h1>"
         "<p class=\"lead\">Tekne üzerindeki radar direği ve anten bağlantıları, işin görünmeyen ama en çok zorlanan parçalarıdır. Direğin üst kapağı, anten kaidesi kelepçesi, kablo geçiş rakoru ve seyyar üst bağlantı parçası; hepsi tuzlu havada, sürekli titreşimde ve güneşin altında çalışır. Direk metal olduğu için kırılan taraf genellikle plastiğin montaj oturumları ve kablo geçişleridir.</p>"
         "<p>PRUVO kataloğunda 41 binden fazla hazır 3D baskı parça var; marin ve elektronik rafları bu iş için en yoğun raftır. Elinizdeki eski parçayı fiziksel olarak alıp yeniden hazırlama hizmeti vermiyoruz; sitede ölçüsü seçilen kalemlerde ölçüyü siz yazarsınız.</p>"
         "<h2>Deniz ortamı neyi yıpratır</h2>"
@@ -16748,7 +16744,7 @@ def _tekne_radar_direk_ve_anten_baglantisi_ozel_uretim():
         "<p>Sitede olup olmadığını WhatsApp hattından <strong>sitede var mı</strong> diye sorun; sitede varsa adresini paylaşırız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Direğin metal kısmını, radar cihazını, antenin kendisini ve kablo demetini üretmiyoruz. Aktarım gücü taşıyan hiçbir eleman bizim kapsamımızda değildir; ürettiğimiz iş, direğin çevresindeki kapak, kaide, kelepçe ve geçiş parçalarıdır. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Teknenin boyunu, direk çapını ve antenin ağırlığını yazmanız yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -16756,7 +16752,7 @@ def _tekne_radar_direk_ve_anten_baglantisi_ozel_uretim():
 
 def _oto_cakmaklik_ve_usb_yuvasi_cercevesi_yaptirma():
     return (
-        "<h1>Oto Çakmaklık ve USB Yuvası Çerçevesi Yaptırma</h1>"
+        "<h1>Oto Çakmaklık ve USB Yuvası Çerçevesi: Katalogdaki Seçenekler</h1>"
         "<p class=\"lead\">Araba konsolundaki çakmaklık yuvası ve USB yuvası çerçevesi, günlük kullanımda en çok elle uğraşılan kalemlerdendir. Cep telefonu kabloyu her çıkarmada çerçevenin kenarına sürtür, kalem ve anahtar yuvasının kenarına çarpar, sıcak havalarda dövme plastik yumuşar. Çerçeve kırıldığında ise yalnız kapak değil, içindeki tutucu halka da kaybolur ve kablo yuvasına yaslanır.</p>"
         "<p>PRUVO kataloğunda 41 binden fazla hazır 3D baskı parça var; otomobil rafı 24 binden fazla kalemle en yoğun raftır. Model ve yıl biliniyorsa marka-model sayfasından doğrudan parçaya ulaşabilirsiniz. Elinizdeki eski parçayı fiziksel olarak alıp yeniden hazırlama hizmeti vermiyoruz; sitede ölçüsü seçilen kalemlerde ölçüyü siz yazarsınız.</p>"
         "<h2>Çerçeve neden kırılır</h2>"
@@ -16770,7 +16766,7 @@ def _oto_cakmaklik_ve_usb_yuvasi_cercevesi_yaptirma():
         "<p>Sitede ölçüsü seçilen kalemler de bu işe uygundur: <a href=\"/urun/olcuye-ozel-cerceve/\">ölçüye özel çerçeve</a>, <a href=\"/urun/olcuye-ozel-kutu-organizer/\">ölçüye özel kutu ve organizer</a> ve <a href=\"/urun/olcuye-ozel-vidali-kavanoz-tapa/\">ölçüye özel vidalı kavanoz kapağı</a>.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>USB yuvasının metal gövdesini, kontaklarını, kablo demetini ve elektrik devresini üretmiyoruz; bunlar elektronikçinin işidir. Sigorta, şalter ve akü ile ilgili her kalem kapsam dışıdır. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Aracınızın markası, modeli, yılı ve yuvanın konumu bilgisi yeterlidir. Sitede olup olmadığını WhatsApp hattından <strong>sitede var mı</strong> diye sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -16814,7 +16810,7 @@ def _kirik_parcanin_eksik_kalan_bolumu_tamamlanir_mi():
         "<p>Bir parçanın kataloğumuzdaki karşılığına uygunluğu dört başlıkta anlaşılır: dış ölçüler, montaj deliklerinin merkez mesafesi, geçme ve oturma biçimi, malzeme sınıfı. İlk üçü parçanın oturduğu yerde görünür; dördüncüsü ise çalışma koşuluna göre seçilir. Bu dört başlığın tamamı tutmasa parça takılmaz, o yüzden ilk iki kalemde emin olmak gerekir. Ölçü standardı farkları için <a href=\"/metrik-inch-olcu-farki-parca-nasil-uyarlanir/\">metrik ve inç ölçü farkı</a> sayfasına bakın.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Onarım, dolgu veya eksik parçayı birleştirme işi yapmıyoruz; kırık bir parçaya yapıştırılan ya da vida ile eklenen ek parçalar yük altında ilk yerde ayrılır. Parçayı katalogdaki hazır bir kalemle değiştirmek, ek parça yapmaya göre hem daha güvenilir hem de daha hızlıdır. Üretimi durmuş cihazlar için <a href=\"/ureticisi-iflas-etmis-cihaz-icin-yedek-parca-yeniden-uretim/\">üreticisi iflas etmiş cihaz için yedek parça</a> sayfası ayrı bir yol gösterir.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Cihazın adı, markası ve varsa modeli bilgisi yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -16834,7 +16830,7 @@ def _makinenin_tum_plastik_parcalarini_yenileme():
         "<p>Renk ve malzeme tutarlılığı da önemlidir. Farklı yıllarda alınmış kalemler aynı makinede görünüm olarak ayrışır; üstelik eski bir parçayı yeni malzemeyle değiştirmek montaj uyumunu bozabilir. Malzeme seçiminin bağlamı için <a href=\"/iki-farkli-malzeme-tek-parcada-birlestirilir-mi/\">iki farklı malzeme tek parçada birleştirilir mi</a> ve <a href=\"/olcuye-ozel-huni-uretimi/\">huni</a> sayfaları örnek verir.</p>"
         "<h2>Ne yapmıyoruz</h2>"
         "<p>Elinizdeki eski parçaları fiziksel olarak alıp yeniden hazırlama işi kapsamımızın dışındadır. Katalogdaki hazır parçalar ve sitede ölçüsü seçilen kalemler üzerinden ilerleyen bir alışveriş yapılır. Kalem sayısı çok büyükse <a href=\"/kurumsal-ve-isletme-musterileri-icin-ozel-parca-uretimi/\">kurumsal ve işletme müşterileri için sipariş rehberi</a> sayfasına bakın.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<h2>Yenileme için pratik bir yol haritası</h2>"
         "<p>En iyi sonuç, kalemleri tek tek tekrar etmek yerine tek bir turda toplamak ve çalışma sırasına göre gruplamaktır. Her makinede önce en çok hareket eden ve en çok darbe alan bölge gözden geçirilir: kapağın menteşe ucu, tutamak bağlantısı, kablo çıkışı ve ayar düğmesi. Bu dört kalem, arıza kayıtlarının büyük bölümünü oluşturur ve çoğu makinede hazır katalog karşılığı bulunur.</p>"
@@ -16888,7 +16884,7 @@ def _en_ince_detay_ve_minimum_et_kalinligi():
         "<p>Detayın ne kadar keskin çıkacağı yüzey yönüne de bağlıdır; aynı ince çizgi bir yüzeyde net, diğerinde yumuşak görünür. <a href=\"/ozel-uretim-parcanin-yuzey-kalitesi-nasil-olur/\">Özel üretim parçanın yüzey kalitesi nasıl olur</a> sayfası bu beklentiyi baştan konuşur. Ölçü toleransı konusunda da abartılı bir iddiada bulunulmaz: hedef parçanın yerine oturması ve görevini yapmasıdır. <a href=\"/plastik-parcada-gecme-toleransi-nasil-belirlenir/\">Geçme toleransı</a> ve <a href=\"/ozel-uretimde-parca-boyut-siniri-nedir/\">parça boyut sınırı</a> sayfaları bu iki konunun sınırlarını çizer.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Saç teli inceliğinde, ışık geçiren film benzeri yapılar ve mikron mertebesinde hassasiyet isteyen işler bu alanın dışındadır; o iş başka bir üretim yönteminin konusudur. Sıvı sızdırmazlık yalnız kalın duvarlı kapaklarda anlamlıdır ve conta desteği gerektirir.</p>"
-        "<p>Mikron seviyesinde tekrarlanabilirlik isteyen işler de kapsam dışıdır. Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur: <a href=\"/ozel-uretim-parca-iadesi-ve-geri-odemesi-nasil-isler/\">iade ve geri ödeme süreci</a>.</p>"
+        "<p>Mikron seviyesinde tekrarlanabilirlik isteyen işler de kapsam dışıdır. Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + ": <a href=\"/ozel-uretim-parca-iadesi-ve-geri-odemesi-nasil-isler/\">iade ve geri ödeme süreci</a>.</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Hazır katalog ürünlerini siteden kartla online sipariş verebilirsiniz. Sitede ölçüsü seçilen ürün ailesinde kalemlerin seçilebilir ölçü aralıkları vardır. Emin olmadığınız noktalar için WhatsApp hattımıza yazın: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>. <strong>Sitede var mı</strong> diye sorabilirsiniz; katalogu kendiniz arayın.</p>"
     )
@@ -16911,7 +16907,7 @@ def _fuar_standi_ve_sergileme_ekipmani_plastik_parca_uretimi():
         "<h2>Stand kalıcılığı</h2>"
         "<p>Fuar standları birkaç günlük montajlık ömürle değil, birçok fuar boyunca taşınan kalemlerdir. Kalem, taşıma çantasına ve arabaya konduğu için darbeye; açık stantta durduğu sürece güneş ve yağmura maruz kalır. Bu ikisini birlikte düşünen parçalar en çok zorlanan kalemlerdir; montaj noktalarının sayısını artırmak, tek noktada toplanan darbeyi dağıtır.</p>"
         "<h2>Dürüst sınır</h2>"
-        "<p>Alüminyum profili, kumaş branda baskıyı, camlı vitrin kasasını ve tablayı üretmiyoruz. Fuar müşterilerinin bir kısmı ürün tanıtımı için kendi logosunu taşıyan tabela ve ambalaj kalemlerini arar; <a href=\"/ozel-parcaya-logo-ve-yazi-isleme/\">logo ve yazı işleme rehberi</a> sayfası bu yönü anlatır. Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Alüminyum profili, kumaş branda baskıyı, camlı vitrin kasasını ve tablayı üretmiyoruz. Fuar müşterilerinin bir kısmı ürün tanıtımı için kendi logosunu taşıyan tabela ve ambalaj kalemlerini arar; <a href=\"/ozel-parcaya-logo-ve-yazi-isleme/\">logo ve yazı işleme rehberi</a> sayfası bu yönü anlatır. Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Standın ölçüsü, taşınacak yük ve montaj sırasındaki kullanım yazmanız yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -16958,7 +16954,7 @@ def _kuyumcu_ve_saatci_atolyesi_plastik_parca_uretimi():
         "<p>Atölye parçaları genelde iki farklı çalışma bölgesinde bulunur: masanın üstündeki hassas iş alanı ve tezgâhın altındaki tozlu, yağlı alan. Üst bölgedeki parçalar görünür ve elle tutulur; alt bölgedekiler toz, talaş ve yağ biriktirir. Bu yüzden aynı atölyede iki farklı malzeme tercih edilmesi normaldir. Görünür yüzeylerde PETG, kirli ve sürtünmeli bölgelerde sert sınıf daha doğru sonuç verir.</p>"
         "<p>Saatçilik tarafında ek bir ayrıntı vardır: hareketli parçalar küçük ve hafiftir, bu yüzden toleransları da küçüktür. Elde tutulan bir saatin kadran kadranını taşıyan bir parça, günlük kullanımda düşebilecek bir zemine düşmeye dayanmalıdır. Dayanım gerektiren bu kalemlerde <a href=\"/asinmaya-dayanikli-surtunme-parcasi-uretimi/\">aşınmaya dayanıklı sürtünme parçası</a> sınıfı daha uzun ömür verir.</p>"
         "<h2>Dürüst sınır</h2>"
-        "<p>Altın, gümüş, kuvars ve diğer değerli metalleri işlemiyoruz; metal işleri kuyumcu ve saatçinin alanında kalır. Hassas işleme gerektiren saat mekanizması parçalarını, yay ve zırh takımlarını, ölçü aletlerini de üretmiyoruz. Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Altın, gümüş, kuvars ve diğer değerli metalleri işlemiyoruz; metal işleri kuyumcu ve saatçinin alanında kalır. Hassas işleme gerektiren saat mekanizması parçalarını, yay ve zırh takımlarını, ölçü aletlerini de üretmiyoruz. Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçanın atölyedeki konumu ve hangi aletle kullanıldığı yazmanız yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -16979,7 +16975,7 @@ def _sehir_mobilyasi_ve_otobus_duragi_plastik_parca_uretimi():
         "<p>Marka sayfalarından <a href=\"/marka/ikea/\">IKEA</a>, <a href=\"/marka/siemens/\">Siemens</a> ve <a href=\"/marka/bosch/\">Bosch</a> gibi sayfalara geçebilirsiniz. Sitede olup olmadığını WhatsApp hattından sorun; sitede varsa adresini paylaşırız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Metal direkleri, boyalı sac levhaları, trafik işaretlerinin yazı ve grafik tarafını, camlı panelleri üretmiyoruz. Trafik güvenliğiyle ilgili her kalem sertifikalı ve standa uygun ekipman alanındadır. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçanın konumu, güneş görüp görmediği ve kalabalık ölçeği yazmanız yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -17000,7 +16996,7 @@ def _surekli_suya_batik_calisan_plastik_parca_uretimi():
         "<p>Ana giriş noktaları <a href=\"/kategori/marin/\">marin</a> ve <a href=\"/kategori/bahce/\">bahçe</a> kategorileridir. Hazır örnekler: <a href=\"/urun/marin-guverte-kablo-gecis-rakoru/\">marin güverte kablo geçiş rakoru</a>, <a href=\"/urun/tekne-kablo-gecis-rakoru-splashwell/\">tekne kablo geçiş rakoru</a> ve <a href=\"/urun/ktm-690-sm-hava-kutusu-snorkeli/\">KTM 690 SM hava kutusu snorkeli</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-oring-conta/\">ölçüye özel O-ring ve conta</a> ile <a href=\"/urun/olcuye-ozel-hortum-adaptoru/\">ölçüye özel hortum adaptörü</a> uygundur.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Basınç altında çalışan kapakları ve mühürlü gövdeleri bu kapsama almıyoruz; <a href=\"/basinc-altinda-calisan-plastik-parca-uretilir-mi/\">basınç altında çalışan plastik parça üretilir mi</a> sayfasında sınırlar açıkça yazılıdır. Contaları, valfleri ve metal aparatları da üretmiyoruz. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Suyun tuzlu olup olmadığı, sıcaklık ve derinlik bilgisi yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -17008,7 +17004,7 @@ def _surekli_suya_batik_calisan_plastik_parca_uretimi():
 
 def _olcuye_ozel_plastik_baglanti_kolu_ve_link_cubugu_uretimi():
     return (
-        "<h1>Bağlantı Kolu ve Link Çubuğu: Sitede Ölçüsü Seçilen Parçalar</h1>"
+        "<h1>Plastik Bağlantı Kolu ve Link Çubuğu: Sitede Ölçüsü Seçilen Seçenekler</h1>"
         "<p class=\"lead\">Bağlantı kolu ve link çubuğu, modüler kurulumların temel taşıdır: birbirine eklenen kol parçaları, robot kolları, eğitim setleri, makine bağlantıları ve aydınlatma direkleri hep bu mantıkla kurulur. Her kol, uzunluğu ve geçme çapı bellidir; birbirine eklenen kol sayısı arttıkça toplam hata birikir. Bu yüzden ölçü seçimi bu kalemde işin kendisidir.</p>"
         "<p>PRUVO kataloğunda 41 binden fazla hazır 3D baskı parça var; bağlantı ve profil ailesi <a href=\"/kategori/olcuye-ozel-uretim/\">sitede ölçüsü seçilen ürün kategorisi</a> kategorisi katalogdadır. Elinizdeki eski parçayı fiziksel olarak alıp yeniden hazırlama hizmeti vermiyoruz; ölçüyü siz yazarsınız.</p>"
         "<h2>Ölçüyü siz yazarsınız</h2>"
@@ -17022,7 +17018,7 @@ def _olcuye_ozel_plastik_baglanti_kolu_ve_link_cubugu_uretimi():
         "<p>İkinci ayrıntı sökülebilirlik. Vida ile bağlanan birleşimler ayrılabilir; yapıştırılan ya da sıkıştırılan birleşimler kırıldığında parça kalıcı olarak zarar görür ve onarımı zorlaşır. Bir sistemi ileride değiştirmek istiyorsanız tasarımın baştan sökülebilir kurulması gerekir. Kurulumun hangi ortamda yapılacağı da belirleyicidir: tozlu bir ortamda geçmeli bağlantı biriken toz nedeniyle zor açılır, vida bağlantısı ise buna rağmen temizlenmesi kolaydır.</p>"
         "<p>Malzeme seçiminde tek kural vardır: parçanın taşıyacağı yük kadar güçlü, kullanım sırasındaki darbe kadar dayanıklı olmak. <a href=\"/iki-farkli-malzeme-tek-parcada-birlestirilir-mi/\">iki farklı malzeme tek parçada birleştirilir mi</a> sayfası bu seçimin nasıl yapıldığını anlatır.</p>"
         "<h2>Dürüst sınır</h2>"
-        "<p>İnsan yükünü taşıyan, kaldırma yapan, güvenlik sınırlarını gören ya da kırılma anında güvenli kalan hiçbir elemanı bu ailede üretmiyoruz. Vida ile sıkılan bağlantılar sökülebilir; yapıştırılan ya da sıkıştırılan birleşimler kırıldığında parça kalıcı olarak zarar görür. Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>İnsan yükünü taşıyan, kaldırma yapan, güvenlik sınırlarını gören ya da kırılma anında güvenli kalan hiçbir elemanı bu ailede üretmiyoruz. Vida ile sıkılan bağlantılar sökülebilir; yapıştırılan ya da sıkıştırılan birleşimler kırıldığında parça kalıcı olarak zarar görür. Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Kol sayısı, toplam uzunluk ve bağlanacak yük bilgisi yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -17030,7 +17026,7 @@ def _olcuye_ozel_plastik_baglanti_kolu_ve_link_cubugu_uretimi():
 
 def _olcuye_ozel_plastik_elevator_kovasi_ve_tasima_paleti_uretimi():
     return (
-        "<h1>Elevator Kovası ve Taşıma Paleti: Sitede Ölçüsü Seçilen Parçalar</h1>"
+        "<h1>Plastik Elevator Kovası ve Taşıma Paleti: Sitede Ölçüsü Seçilen Seçenekler</h1>"
         "<p class=\"lead\">Kova ve palet, bir işletmede en çok yükü taşıyan plastik kalemlerdendir. Üzerine binen yük, parçanın tabanına ve köşelerine aynı anda biner. Bu nedenle kovanın kırılması genellikle tabanın değil, taban ile duvarın birleştiği köşenin işidir: köşe yuvarlatılmadan sert geçiş yapılırsa ilk çatla orada başlar.</p>"
         "<p>PRUVO kataloğunda 41 binden fazla hazır 3D baskı parça var; taşıma ve istif kalemleri <a href=\"/kategori/olcuye-ozel-uretim/\">sitede ölçüsü seçilen ürünler</a> kategorisi katalogdadır. Elinizdeki eski parçayı fiziksel olarak alıp yeniden hazırlama hizmeti vermiyoruz; ölçüyü siz yazarsınız.</p>"
         "<h2>Yükün parçaya nasıl bindiği</h2>"
@@ -17044,7 +17040,7 @@ def _olcuye_ozel_plastik_elevator_kovasi_ve_tasima_paleti_uretimi():
         "<p>Taşıma ekipmanı tarafını <a href=\"/is-makinesi-forklift-plastik-parca-ozel-uretim/\">iş makinesi ve forklift plastik parça</a> sayfasında topladık. Asansör kabinindeki kalemler için <a href=\"/asansor-kabin-plastik-parca-uretimi/\">asansör kabin plastik parça üretimi</a> sayfasına bakın.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>İnsanın üstünde kaldığı forklift çatalı, vinç kancası ve platform kalemlerini üretmiyoruz; bunlar sertifikalı ve yük testinden geçmiş ekipmandır. Depo rafı, konveyör tamburu ve taşıma zinciri de kapsam dışıdır. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Kovanın iç ve dış ölçüsü ile taşınacak yük bilgisi yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -17052,7 +17048,7 @@ def _olcuye_ozel_plastik_elevator_kovasi_ve_tasima_paleti_uretimi():
 
 def _olcuye_ozel_plastik_yildiz_tekerlek_ve_sise_kilavuzu_uretimi():
     return (
-        "<h1>Ölçüye Özel Plastik Yıldız Tekerlek ve Şişe Kılavuzu Üretimi</h1>"
+        "<h1>Plastik Yıldız Tekerlek ve Şişe Kılavuzu: Katalogdaki Seçenekler</h1>"
         "<p>Nasıl çalışır: PRUVO kataloğunda satılan hazır kalemleri marka, model ve kategori sayfalarından bulursunuz; seçtiğiniz ürünü kartla ödeyerek sipariş verirsiniz. Sitede ölçüsü seçilen ürün ailesinde ölçüyü siz yazarsınız, parça o ölçüde hazırlanır. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Şişe ve kutu hatlarının en tanınmış yardımcı parçası yıldız tekerlektir: dönerek ürünü tek tek boşluğa sokar. Diş uçları sürekli ürünle temas halindedir ve mil yuvası her devirde yük taşır. Teşhis edilen arızanın büyük kısmı üç kalemde toplanır: diş ucunun aşınması, mil yuvasının genişlemesi ve gövde ile diş arasındaki köşede oluşan çatlak.</p>"
         "<p>PRUVO kataloğunda 41 binden fazla hazır 3D baskı parça var. Hat ekipmanı kalemlerinin ölçü mantığını <a href=\"/konveyor-bant-plastik-parca-yaptirma/\">konveyör bant plastik parça yaptırma</a> sayfasında anlattık. Elinizdeki eski parçayı fiziksel olarak alıp yeniden hazırlama hizmeti vermiyoruz; sitede ölçüsü seçilen kalemlerde ölçüyü siz yazarsınız.</p>"
@@ -17066,7 +17062,7 @@ def _olcuye_ozel_plastik_yildiz_tekerlek_ve_sise_kilavuzu_uretimi():
         "<p>Ana giriş noktaları <a href=\"/kategori/tamirat/\">tamirat</a> ve <a href=\"/kategori/ev/\">ev</a> kategorileridir. Sitede ölçüsü seçilen seçenekler: <a href=\"/urun/olcuye-ozel-rulman/\">ölçüye özel rulman</a>, <a href=\"/urun/olcuye-ozel-pervane-fan-cark/\">ölçüye özel pervane, fan ve çark</a> ve <a href=\"/urun/olcuye-ozel-izgara-menfez-kapak/\">ölçüye özel ızgara ve menfez kapağı</a>. Benzer tekerlek ve makara kalemleri için <a href=\"/olcuye-ozel-tekerlek-makara-uretimi/\">ölçüye özel plastik tekerlek ve makara üretimi</a> sayfasına bakın.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Konveyör bandın kendisini, tahrik motorunu, rulman yatağını ve redüktörü üretmiyoruz. Titreşim altında gevşemeyen parçaların seçimi için <a href=\"/surekli-titresimli-makinede-gevsemeyen-plastik-parca-uretimi/\">sürekli titreşimli makinede gevşemeyen plastik parça üretimi</a> sayfası ayrıntılı. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Ürünün çapı, hat hızı ve tekerlek sayısı bilgisi yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -17074,7 +17070,7 @@ def _olcuye_ozel_plastik_yildiz_tekerlek_ve_sise_kilavuzu_uretimi():
 
 def _motosiklet_grenaj_klipsi_ve_sele_kilidi_yaptirma():
     return (
-        "<h1>Motosiklet Grenaj Klipsi ve Sele Kilidi Yaptırma</h1>"
+        "<h1>Motosiklet Grenaj Klipsi ve Sele Kilidi: Hazır Yedek Rehberi</h1>"
         "<p class=\"lead\">Motosiklette küçük görünen iki parça ağır sonuçlar doğurur. Zinciri arka dişliye bağlayan klips koparsa zincir yolda düşer ve hasar büyüktür; sele kilidi kırılırsa selenin üstte kalmadığı görülür ama sürüş güvenliği için sorun çıkar. Bu yüzden iki kalem de kırıldığı anda değiştirilir, ikinci kullanım denenmez.</p>"
         "<p>PRUVO kataloğunda 41 binden fazla hazır 3D baskı parça var; motosiklet rafı 5 binden fazla kalemle oldukça doludur. Elinizdeki eski parçayı fiziksel olarak alıp yeniden hazırlama hizmeti vermiyoruz; sitede ölçüsü seçilen kalemlerde ölçüyü siz yazarsınız.</p>"
         "<h2>Klips neden kırılır</h2>"
@@ -17091,7 +17087,7 @@ def _motosiklet_grenaj_klipsi_ve_sele_kilidi_yaptirma():
         "<p>Sele kilidinde ise arıza çoğu zaman aşınmadan gelir. Kilit dili, kancaya girerken her açılışta aynı kenardan sürtünür ve zamanla ucu yuvarlanır. Bu durumda yeni bir kilit aynı şekilde takılırsa sorun bir süre sonra yeniden belirir. Bu ayrımı tanımak, parça seçiminden önce gelir: kırık parça değişimi kolay, aşınmış parça ise montaj düzeltmesi gerektirir. Ayrıca sele üzerindeki aşınma izleri, parçanın oturma yüzeyinin hangi yönde hareket ettiğini gösterir; bu bilgi montaj yönünü doğru kurmak için yardımcı olur.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Zinciri, dişliyi, fren diskini ve kilitleme mekanizmasının gövdesini üretmiyoruz. Fren ve debriyaj işlevi gören, güvenlik zinciri gören hiçbir eleman bu kapsamda değildir. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Motorsikletin markası, modeli ve yılı ile zincir ölçüsü bilgisi yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -17099,7 +17095,7 @@ def _motosiklet_grenaj_klipsi_ve_sele_kilidi_yaptirma():
 
 _JSONLD_olcuye_ozel_plastik_firca_gobegi_ve_firca_tutucusu_uretimi = '<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Ölçüye Özel Fırça Göbeği ve Fırça Tutucusu","description":"Fırça göbeği, kıl yuvası, kapak bileziği ve makineye bağlanan tutucu: belirleyici ölçüler, doğru malzeme ve dürüst sınır.","url":"https://pruvo3d.com/olcuye-ozel-plastik-firca-gobegi-ve-firca-tutucusu-uretimi/","mainEntityOfPage":"https://pruvo3d.com/olcuye-ozel-plastik-firca-gobegi-ve-firca-tutucusu-uretimi/","inLanguage":"tr","publisher":{"@type":"Organization","name":"PRUVO","url":"https://pruvo3d.com/"}}</script>'
 def _olcuye_ozel_plastik_firca_gobegi_ve_firca_tutucusu_uretimi():
-    return _seo_md_to_html(u"""# Ölçüye Özel Fırça Göbeği ve Fırça Tutucusu
+    return _seo_md_to_html(u"""# Fırça Göbeği ve Fırça Tutucusu: Sitede Ölçüsü Seçilen Seçenekler
 
 Bu sayfa dönen ya da sabit bir fırçanın plastik taşıyıcı parçalarını karşılar: mile geçen fırça göbeği, kıl demetini yerinde tutan yuva, kapak bileziği ve fırçayı makineye bağlayan tutucu. Kılın kendisini üretmiyoruz; kılı taşıyan, mili merkezleyen ve fırçayı yerinde kilitleyen plastik parça sitede ölçüsü seçilen kalemler arasında hazırlanır. Elinizdeki parçadan, çizimden ya da fotoğraftan özel üretim yapmıyoruz. Sınır da baştan bellidir: buradaki yük hafif temas yüküdür, kişi güvenliğine ya da yük kaldırmaya bağlı hiçbir tutucu bu kapsama girmez.
 
@@ -17150,7 +17146,7 @@ Sitede ölçüsü seçilen fırça göbeği ve tutucu kalemlerinde ölçü alanl
 
 _JSONLD_olcuye_ozel_plastik_kilit_karsiligi_ve_dil_yuvasi_uretimi = '<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Ölçüye Özel Kilit Karşılığı ve Dil Yuvası","description":"Kilidin sabit tarafındaki karşılık plakası ve dil yuvası: ölçüler, dil payı, doğru malzeme ve güvenlik sınırı.","url":"https://pruvo3d.com/olcuye-ozel-plastik-kilit-karsiligi-ve-dil-yuvasi-uretimi/","mainEntityOfPage":"https://pruvo3d.com/olcuye-ozel-plastik-kilit-karsiligi-ve-dil-yuvasi-uretimi/","inLanguage":"tr","publisher":{"@type":"Organization","name":"PRUVO","url":"https://pruvo3d.com/"}}</script>'
 def _olcuye_ozel_plastik_kilit_karsiligi_ve_dil_yuvasi_uretimi():
-    return _seo_md_to_html(u"""# Ölçüye Özel Kilit Karşılığı ve Dil Yuvası
+    return _seo_md_to_html(u"""# Kilit Karşılığı ve Dil Yuvası: Sitede Ölçüsü Seçilen Seçenekler
 
 Bu sayfa kilidin hareketli tarafını değil, sabit tarafını karşılar: iç kapı kasasına, dolap gövdesine ya da makine paneline vidalanan karşılık plakası, dilin girdiği yuva, mandal karşılığı ve tırnağın oturduğu kertik. Kilit dilinin kendisi ayrı bir kalemdir; burada dilin çarptığı, tuttuğu ve boşluğunu belirleyen parça sitede ölçüsü seçilen kalemler arasında hazırlanır. Doğru çıkarılmış bir karşılık, kilidi hiç değiştirmeden kapağın oynamasını ve zorlanmasını bitirir. Bina dış kapısı, daire kapısı ve çelik kapı karşılıkları bu sayfanın dışındadır.
 
@@ -17245,7 +17241,7 @@ Levhanın ağırlığını taşıyan hiçbir askı, kanca, kelepçe ya da taşı
 
 Kesici takımlar, elmas testere ve zımpara aşındırıcıları bizim kalemlerimiz değildir; onların tutucusunu, siperliğini ve kızağını katalogdan bulabilirsiniz. Kişi güvenliğine bağlı koruma kapakları, tezgâhı durduran güvenlik şalterine bağlı elemanlar ve basınçlı hattın sızdırmazlık parçaları da üretilmez. Tam liste <a href="/hangi-parcalar-ozel-uretimle-yapilamaz/">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.
 
-Reçine kürleme fırınının içine giren ya da ağzında duran hiçbir parçayı hazırlamıyoruz; burada belirleyici etken malzeme sınıfı değil, sıcaklığın plastiğin tavanını aşmasıdır. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur.
+Reçine kürleme fırınının içine giren ya da ağzında duran hiçbir parçayı hazırlamıyoruz; burada belirleyici etken malzeme sınıfı değil, sıcaklığın plastiğin tavanını aşmasıdır. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; """ + AYIP_HAKLARI_CUMLESI + """
 
 ## Sipariş
 
@@ -17299,7 +17295,7 @@ Boks kapısını kapalı tutan ana kilit dilini ve emniyet mandalını da üretm
 
 Veteriner tarafında belgeli ve onaylı cihazların hiçbir parçası kapsam dışıdır; ilaç ve aşı temaslı elemanlar da kapsam dışıdır. Isı tarafında pratik tavan malzeme sınıfına göre 90-100 santigrat derecedir. Kapsam dışı kalanların tam listesi <a href="/hangi-parcalar-ozel-uretimle-yapilamaz/">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.
 
-Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.
+Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; """ + AYIP_HAKLARI_CUMLESI + """
 
 ## Sipariş ve iletişim
 
@@ -17468,7 +17464,7 @@ Gidon çevresi motosikletin en çok hasar alan bölgesidir. Park hâlinde devril
 
 Önce parçanın işini ayırmak gerekir: yalnız kapatıyor mu, bir düğmeyi mi konumlandırıyor, yoksa bir kabloyu mu yönlendiriyor? Kapsam bu ayrımla belirlenir.
 
-Sonra belirleyici ölçüler gelir. Kumanda kutusu muhafazasında gidon borusunun dış çapı, kabuk kalınlığı, iki yarımın birleşme yüzeyi, vida kulaklarının konumu ve düğme deliklerinin çapı ile konumu ölçülür. Gidon ucu kapağında iç çap, geçme payı, boy ve varsa sıkma konisi ölçülür. Kelepçe kapaklarında kavis yarıçapı ve vida delikleri arası mesafe belirleyicidir. Kırık parçanın bütün çapaklarını saklamak gerekir; iki yarımın birleşme çizgisini çoğu zaman yalnız onlar verir.
+Sonra belirleyici ölçüler gelir: kumanda kutusu muhafazasında gidon borusunun dış çapı, kabuk kalınlığı, iki yarımın birleşme yüzeyi, vida kulaklarının konumu ve düğme deliklerinin çapı ile konumu; gidon ucu kapağında iç çap, geçme payı, boy ve varsa sıkma konisi; kelepçe kapaklarında kavis yarıçapı ve vida delikleri arası mesafe. Bu değerleri siz ölçerek ölçü alanına yazarsınız. Kırık parçanın çapaklarını saklamanız gerekmez; numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz.
 
 Düğme ve tuş tarafındaki ölçü mantığı <a href="/olcuye-ozel-plastik-buton-kapagi-ve-tus-uretimi/">ölçüye özel plastik buton kapağı ve tuş</a> sayfasındakiyle aynıdır. Motosikletin diğer plastik kalemleri için <a href="/motosiklet-plastik-parca-ozel-uretim/">motosiklet plastik parça özel üretim</a> sayfasına bakabilirsiniz. Arka çanta ve üst kutunun kilit dili, mandalı ve taşıma kolu ayrı bir başlıktır; <a href="/motosiklet-arka-canta-ve-kutu-kilit-parcasi-ozel-uretim/">motosiklet arka çanta ve kutu kilit parçası</a> sayfasında yazılı.
 
@@ -17563,7 +17559,7 @@ Belirli bir vakum seviyesini tutacağını, kaçak yapmayacağını ya da bir s�
 
 _JSONLD_ozel_uretim_parca_sertifikali_mi_belgeli_mi = '<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Özel Üretim Parça Sertifikalı mı, Belgeli mi?","acceptedAnswer":{"@type":"Answer","text":"Kısa cevap şu: ölçüye özel hazırladığımız parçalar sertifikalı ya da belgelendirilmiş parçalar değildir. Hangi malzeme sınıfından üretildiğini, hangi ölçülerle çıkarıldığını ve ne zaman üretildiğini yazılı olarak bildiririz; ancak akredite bir test raporu, uygunluk belgesi ya da sertifikalı bir muadil beyanı vermeyiz. Sertifikaya tabi bir ekipmanda çalışacak parça arıyorsanız doğru sıra şudur: önce ekipmanın üreticisine ya da yetkili kuruluşa sorun, sonra bize gelin."}}]}</script>'
 def _ozel_uretim_parca_sertifikali_mi_belgeli_mi():
-    return _seo_md_to_html(u"""# Özel Üretim Parça Sertifikalı mı, Belgeli mi?
+    return _seo_md_to_html(u"""# Hazırlanan Parça Sertifikalı mı, Belgeli mi?
 
 Kısa cevap şu: ölçüye özel hazırladığımız parçalar sertifikalı ya da belgelendirilmiş parçalar değildir. Hangi malzeme sınıfından üretildiğini, hangi ölçülerle çıkarıldığını ve ne zaman üretildiğini yazılı olarak bildiririz; ancak akredite bir test raporu, uygunluk belgesi ya da sertifikalı bir muadil beyanı vermeyiz. Sertifikaya tabi bir ekipmanda çalışacak parça arıyorsanız doğru sıra şudur: önce ekipmanın üreticisine ya da yetkili kuruluşa sorun, sonra bize gelin.
 
@@ -17672,7 +17668,7 @@ Referans yoksa yol kapanmaz: ölçü çoğu zaman parçanın oturduğu yuvadan, 
 
 _JSONLD_olcuye_ozel_sertifika_diploma_ve_tablo_cercevesi_uretimi = '<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Sertifika, Diploma ve Tablo Çerçevesi Özel Ölçü Üretimi","description":"Sertifika, diploma ve tablo çerçevesini standart ölçüde bulamıyorsanız iç açıklık, profil genişliği ve derinliğe göre hazırlanır.","url":"https://pruvo3d.com/olcuye-ozel-sertifika-diploma-ve-tablo-cercevesi-uretimi/","mainEntityOfPage":"https://pruvo3d.com/olcuye-ozel-sertifika-diploma-ve-tablo-cercevesi-uretimi/","inLanguage":"tr","publisher":{"@type":"Organization","name":"PRUVO","url":"https://pruvo3d.com/"}}</script>'
 def _olcuye_ozel_sertifika_diploma_ve_tablo_cercevesi_uretimi():
-    return _seo_md_to_html(u"""# Sertifika, Diploma ve Tablo Çerçevesi Özel Ölçü Üretimi
+    return _seo_md_to_html(u"""# Sertifika ve Tablo Çerçevesi: Standart Ölçüde Bulma
 
 Standart mağaza çerçevesi elinizdeki sertifikanın, diplomanın ya da tablonun ölçüsünü tutmuyorsa, iç açıklığı, profil genişliğini ve derinliğini sizin belgenize göre ölçüye özel hazırlarız. Çerçevenin gövdesi kapsamdadır; içine konacak fotoğrafı, sertifikayı ya da tabloyu siz temin edersiniz. Yalnız iç mekân kullanımı içindir; dış cephede güneşe maruz kalacak bir çerçeve arıyorsanız malzeme sınıfı baştan değişir.
 
@@ -17738,7 +17734,7 @@ Sitede ölçüsü seçilen seçeneklerden <a href="/urun/olcuye-ozel-kutu-organi
 
 Ürünün, yani parfümün, kremin ya da losyonun doğrudan ve sürekli temas ettiği dozaj ucu, pompa içi conta ve dolum nozulunun hassas iç geometrisi kapsam dışıdır; bu parçalarda kimyasal uyumluluk ve hassasiyet üretici onayı gerektirir. Yüksek basınçla çalışan dolum sisteminin basınç taşıyan iç aksamı da kapsam dışıdır; kapsam yalnız hattın çevresindeki taşıyıcı, tutucu ve muhafaza niteliğindeki parçalardır. Hattın elektronik kartı, motor sürücüsü ya da yazılımıyla ilgilenilmez. Ürünle temas eden bir parça gıda ya da kozmetik temasına uygunluk gerektiriyorsa <a href="/gida-temasina-uygun-plastik-parca-uretimi/">gıda temasına uygun plastik parça</a> sayfasındaki mantıkla birlikte değerlendirilir.
 
-Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.
+Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; """ + AYIP_HAKLARI_CUMLESI + """
 
 ## Sipariş ve iletişim
 
@@ -17776,7 +17772,7 @@ Sitede ölçüsü seçilen seçeneklerden <a href="/urun/olcuye-ozel-kutu-organi
 
 Pin dizme makinesinin yük taşıyan ana mekanizması, motor gücünü ileten dişli kutusu ve hareketli kaldırma kolu kapsam dışıdır; bu, üreticisinin kendi servis kapsamındadır. Oyuncu güvenliğine doğrudan bağlı hiçbir taşıyıcı ya da tutucu eleman hazırlanmaz. Skor ekranının elektronik kartı, ödeme sistemi ve yazılımıyla ilgilenilmez; yalnızca dış kapak ve mekanik çevre parçaları kapsam içindedir. Sürekli yüksek darbe alan bir parçanın hiç kırılmayacağı söylenmez; darbeyi karşılayacak sınıf belirtilir, sonsuz dayanım vaadi verilmez.
 
-Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.
+Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; """ + AYIP_HAKLARI_CUMLESI + """
 
 ## Sipariş ve iletişim
 
@@ -17828,37 +17824,27 @@ Kod işlenebilecek düz yüzeyli kalemler ölçüye özel ailede yoğunlaşıyor
 
 _JSONLD_kargoda_hasar_goren_ozel_uretim_parcada_ne_yapilir = '<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Kargoda Hasar Gören Özel Üretim Parçada Ne Yapılır?","description":"Kargoda hasar gören özel üretim parçada ne yapılır? Üretim hatasıyla taşıma hasarını nasıl ayırt ettiğimizi, bildirim ve yeniden üretim sürecini anlattık.","url":"https://pruvo3d.com/kargoda-hasar-goren-ozel-uretim-parcada-ne-yapilir/","mainEntityOfPage":"https://pruvo3d.com/kargoda-hasar-goren-ozel-uretim-parcada-ne-yapilir/","inLanguage":"tr","publisher":{"@type":"Organization","name":"PRUVO","url":"https://pruvo3d.com/"}}</script>'
 def _kargoda_hasar_goren_ozel_uretim_parcada_ne_yapilir():
-    return _seo_md_to_html(u"""# Kargoda Hasar Gören Özel Üretim Parçada Ne Yapılır?
+    return (
+        u"""<h1>Kargoda Hasar Gören Parçada Ne Yapılır?</h1>
+<p class="lead">Paketi açtığınız haliyle fotoğraflayın ve aynı gün bildirin; taşıma hasarı ile üretim hatası ayrı ayrı değerlendirilir.</p>
+<p>Nasıl çalışır: sitede satılan bir ürünü seçersiniz, ölçüsü sitede seçilen kalemlerde ölçüyü siz yazarsınız, sepete eklersiniz ve kartla online ödersiniz. Parça basılıp kargolanır. Kargoda hasar görürseniz ilk iki adım şunlardır: paketi açtığınız haliyle fotoğraflamak ve hasarı aynı gün bize bildirmek. Parçanın sipariş kaydı bizde durduğu için aynı kalemin yeniden basımı sıfırdan sipariş almaktan çok daha hızlıdır; ölçüyü yeniden istemek gerekmez.</p>
+<h2>Nerede karşılaşılıyor</h2>
+<p>En sık gördüğümüz durumlar şunlar: kutu dıştan sağlam görünür ama içindeki dolgu yetersiz kalmış ve parça kutunun içinde serbestçe hareket ederek bir köşesine çarpmıştır; birden fazla parçanın aynı kutuda üst üste konması ve alttaki parçanın üsttekinin ağırlığı altında ezilmesi; soğuk havada taşınan bir parçanın araç içinde donma noktasına yakın bir sıcaklıkta beklemesi ve bu sırada normalden daha kırılgan hale gelmesi. Daha nadir görülen bir dördüncü senaryo paketin kendisinin ıslanması ve kartonun yumuşayıp iç dolgunun görevini yerine getirememesidir; bu durumda hasarın nedeni kutunun dış koşullara maruz kalmasıdır, parçanın kendisinde bir sorun yoktur. Hasarın şeklini görmek, hangi önlemi değiştireceğimizi söyler.</p>
+<h2>Hasar mı, üretim hatası mı</h2>
+<p>Bildirim geldiğinde önce fotoğraflara bakarız: paketin dış hali, iç dolgu malzemesi ve parçanın kırık yüzeyi. Kırığın yeri ve şekli çoğu zaman taşıma sırasında oluşan bir darbeyi üretim hatasından ayırır. İnce bir kenarın köşesinden kopan bir parça genelde çarpma izlidir; parçanın ortasından düz bir çizgi boyunca ayrılan bir kırık ise üretim sırasında oluşmuş bir zayıflığa işaret edebilir. Ayrımı yaparken elimizdeki sipariş kaydına ve üretim notlarına bakarız, aynı kalemin ölçüsü bizde durduğu için yeniden basım ölçü alınarak değil kayıttan yapılır.</p>
+<p>Hasarın taşımadan kaynaklandığı anlaşılırsa bunu açıkça söyleriz; kararı gizli tutmayız. Genellikle parça yeniden basılır ve bu kez paketleme gözden geçirilir: hangi köşe darbeye açık kaldıysa ek dolgu ya da farklı bir kutu boyutu kullanılır. Montaj sırasında oluşan bir kırılmayla kargo hasarını karıştırmayın; ikisi farklı süreçlerdir ve <a href="/montaj-sirasinda-parca-kirilirsa-ne-olur/">montaj sırasında parça kırılırsa ne olur</a> sayfasında ayrı ayrı anlatılmıştır.</p>
+<p>Bazı durumlarda parça kırılmamış ama ölçüsü hafifçe kaymış olabilir; bu nakliye kaynaklı değil ölçü ya da tolerans kaynaklı bir konudur ve <a href="/olcu-tutmazsa-ne-olur-uyum-garantisi/">ölçü tutmazsa ne olur, uyum garantisi</a> sayfasında ayrı bir başlık olarak ele alınmıştır. Hasar bildirimini geciktirmeden yapmanızı öneririz; paket ve dolgu malzemesi elinizde kaldığı sürece değerlendirme daha nettir.</p>
+<h2>Doğru malzeme</h2>
+<p>Taşıdaya dayanıklılık aslında bir malzeme seçimi meselesidir. İnce ve keskin köşeli bir geometri hangi malzemede yapılırsa yapılsın darbeye karşı kırılgan kalır; bu yüzden taşıma riski yüksek parçalarda köşe yarıçapını büyütür, cidarı biraz kalınlaştırırız. Darbeye açık ve sık taşınan parçalarda darbe dayanımı yüksek naylon sınıfı önerilir; sıradan sınıf düşük sıcaklıkta, yani soğuk depo ya da kış nakliyesinde daha kırılgan davranır. Parçanın hangi mevsimde ve hangi mesafede taşınacağını bilmek malzeme kararını doğrudan etkiler. Uzun mesafeye ve birden çok aktarma noktasından geçecek bir gönderide taşıma süresi de uzadığı için köşe payını standarttan biraz daha geniş tutarız; kısa mesafeli, tek aktarmalı bir teslimatta bu pay standart kalır.</p>
+<h2>Dürüst sınır</h2>
+<p>Taşıma hasarının nedenini tespit eder ve durumu açıkça bildiririz, sonra uygun çözümü uygularız: yeniden basım, onarım ya da bedel iadesi. Geri ödeme seçeneğinin hangi durumlarda devreye girdiği <a href="/ozel-uretim-parca-iadesi-ve-geri-odemesi-nasil-isler/">iade ve geri ödeme süreci</a> sayfasında yazılıdır. Paketi açmadan önce hasarı fark etmemiz mümkün değildir; bu yüzden bildirimi mümkün olan en kısa sürede yapmanızı isteriz, geç bildirilen hasarlarda değerlendirme zorlaşır. Kırılma şekli açıkça bir üretim zayıflığına işaret etmiyorsa bunu da söyleriz; her hasarı otomatik olarak üretim hatası saymayız. Ayrıca """
+        + AYIP_HAKLARI_CUMLESI
+        + u"""</p>
+<h2>Sipariş</h2>
+<p>Hasar bildirimini fotoğrafla birlikte aynı gün WhatsApp hattımıza gönderin: <a href="https://wa.me/905451386526" target="_blank" rel="noopener"><strong>+90 545 138 6526</strong></a>. Kayıtlı ölçü ve üretim notlarına bakarak durumu değerlendirir, gerekiyorsa parçayı yeniden basarız ve paketleme değişikliğini de sizinle paylaşırız; böylece ikinci teslimatta aynı sorun tekrar yaşanmaz. Aynı gönderide birden fazla parça varsa ve yalnızca biri hasar gördüyse hangisinin hasar gördüğünü net belirtmeniz değerlendirmeyi hızlandırır. Parça acil kullanılacaksa bunu ilk mesajda belirtin; yeniden basım sırasını buna göre önceliklendiririz. Süreç boyunca parçanın hangi aşamada olduğunu sormadan durumu paylaşırız.</p>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Kargoda Hasar Gören Parçada Ne Yapılır?","description":"Kargoda hasar gören parçada hasar bildirimi ve iade akışı; taşıma hasarı ile üretim hatası nasıl ayırt edilir.","url":"https://pruvo3d.com/kargoda-hasar-goren-ozel-uretim-parcada-ne-yapilir/","mainEntityOfPage":"https://pruvo3d.com/kargoda-hasar-goren-ozel-uretim-parcada-ne-yapilir/","inLanguage":"tr","publisher":{"@type":"Organization","name":"PRUVO","url":"https://pruvo3d.com/"}}</script>"""
+    )
 
-Kargoda hasar gören özel üretim bir parçayı teslim aldıysanız, önce paketi açtığınız haliyle fotoğraflayın ve bize aynı gün bildirin. Taşıma sırasında oluşan bir kırılma ile üretim hatasından kaynaklanan bir kusuru ayırt ederiz; hasarın nereden geldiği belliyse çözüm de ona göre nettir. Elimizdeki ölçü kaydı sayesinde aynı parçayı yeniden üretmek, sıfırdan sipariş almaktan çok daha hızlıdır.
-
-## Nerede karşılaşılıyor
-
-En sık gördüğümüz durumlar şunlar: kutu dıştan sağlam görünür ama içindeki dolgu yetersiz kalmış ve parça kutunun içinde serbestçe hareket ederek bir köşesini kutuya vurmuştur; birden fazla parçanın aynı kutuda üst üste konması ve alttaki parçanın üsttekinin ağırlığı altında ezilmesi; soğuk havada taşınan bir parçanın araç içinde donma noktasına yakın bir sıcaklıkta beklemesi ve bu sırada normalden daha kırılgan hale gelmesi. Bu üç senaryonun her biri farklı bir önlemle azaltılır, bu yüzden hasarın şeklini görmek bize hangi önlemi değiştireceğimizi söyler. Daha nadir ama gördüğümüz bir dördüncü senaryo da paketin kendisinin ıslanması ve kartonun yumuşayıp iç dolgunun görevini yerine getirememesidir; bu durumda hasarın nedeni kutunun dış koşullara maruz kalmasıdır, parçanın kendisinde bir sorun yoktur; yine de fotoğrafla birlikte bildirmenizi rica ederiz.
-
-## Nasıl ölçülür ve üretilir
-
-Hasar bildirimi geldiğinde önce fotoğrafları isteriz: paketin dış hali, iç dolgu malzemesi ve parçanın kırık yüzeyi. Kırığın yeri ve şekli çoğu zaman taşıma sırasında oluşan bir darbeyi üretim hatasından ayırır — örneğin ince bir kenarın köşesinden kopan bir parça genelde çarpma izlidir, buna karşın parçanın ortasından düz bir çizgide ayrılan bir kırık üretim sırasında oluşmuş bir zayıflığa işaret edebilir. Bu ayrımı yaparken elimizdeki orijinal ölçü listesine ve üretim notlarına bakarız; aynı parçanın kaydı bizde durduğu için yeniden üretim ölçü almadan başlar.
-
-Uygun çözümü uygularız, genellikle parçayı yeniden üretiriz ve bu sefer paketleme şeklini gözden geçiririz; hangi köşenin darbeye açık kaldığını görürsek ek dolgu ya da farklı bir kutu boyutuyla göndeririz. Parçanın kırılma şekli üretim hatasına değil taşımaya işaret ediyorsa bunu açıkça söyleriz, kararı gizli tutmayız. Montaj sırasında oluşan bir kırılmayla kargo hasarını karıştırmayın; ikisi farklı süreçlerdir ve <a href="/montaj-sirasinda-parca-kirilirsa-ne-olur/">montaj sırasında parça kırılırsa ne olur</a> sayfasında ayrı ayrı anlattık.
-
-Bazı durumlarda parça kırılmamış ama ölçüsü hafifçe kaymış olabilir; bu nakliye kaynaklı değil ölçü ya da tolerans kaynaklı bir konudur ve <a href="/olcu-tutmazsa-ne-olur-uyum-garantisi/">ölçü tutmazsa ne olur, uyum garantisi</a> sayfasında ayrı bir başlık olarak ele alınmıştır. Hasar bildirimini geciktirmeden yapmanızı öneririz; paket ve dolgu malzemesi elinizde kaldığı sürece değerlendirme daha nettir.
-
-## Doğru malzeme
-
-Taşımaya dayanıklılık aslında bir malzeme seçimi meselesidir. İnce ve keskin köşeli bir geometri hangi malzemeden yapılırsa yapılsın darbeye karşı kırılgan kalır; bu yüzden taşıma riski yüksek parçalarda köşe yarıçapını büyütür, cidarı biraz kalınlaştırırız. Darbeye açık ve sık taşınan parçalarda darbe dayanımı yüksek naylon sınıfını öneririz; sıradan sınıf düşük sıcaklıkta (soğuk depo, kış nakliyesi) daha kırılgan davranır. Parçanın hangi mevsimde ve hangi mesafede taşınacağını bilmek malzeme kararını doğrudan etkiler, bunu sorarız. Uzun mesafeye, birden fazla aktarma noktasından geçerek gidecek bir gönderide taşıma süresi de uzadığı için köşe payını standarttan biraz daha geniş tutarız; kısa mesafeli, tek aktarmalı bir teslimatta bu payı standart bırakırız.
-
-## Dürüst sınır
-
-Taşıma sırasında oluşan hasarın nedenini birlikte değerlendiririz; üretim hatasıyla taşıma hasarını ayırt eder ve durumu açıkça bildiririz, ardından size en uygun çözümde (yeniden üretim, onarım ya da başka bir yol) birlikte karar veririz. Geri ödeme seçeneğinin hangi durumlarda devreye girdiğini <a href=\"/ozel-uretim-parca-iadesi-ve-geri-odemesi-nasil-isler/\">iade ve geri ödeme süreci</a> sayfasında ayrıca anlattık. Paketi açmadan önce hasarı fark etmemiz mümkün değildir; bu yüzden bildirimi mümkün olan en kısa sürede yapmanızı isteriz, geç bildirilen hasarlarda değerlendirme zorlaşır. Kırılma şekli açıkça bir üretim zayıflığına işaret etmiyorsa bunu söyleriz, her hasarı otomatik olarak üretim hatası saymayız. Hasarlı parçayı elden çıkarmadan önce bizimle paylaşmanızı isteriz; bazı durumlarda kırık parça bize geri gönderilir ve incelemeyi kolaylaştırır, ama bu her zaman zorunlu değildir, fotoğraf çoğu durumda yeterlidir.
-
-## Sipariş
-
-Hasar bildirimini fotoğrafla birlikte aynı gün WhatsApp hattımıza gönderin: +90 545 138 6526. Kayıtlı ölçü ve üretim notlarına bakarak durumu değerlendirir, gerekiyorsa parçayı yeniden üretiriz; onayınız olmadan tekrar üretime girmeyiz. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur — ücretsiz onarım, yenisiyle değişim, bedel indirimi ya da bedel iadesi seçenekleri saklıdır. Sitede ölçüye özel siparişler dahil kartla online ödeme yapılabilir.
-
-Servisiniz aynı parçayı bulamıyor ve elinizde yalnızca hasarlı örnek kaldıysa, o örnekten de ölçü çıkarabiliriz; bu konuyu <a href="/servis-parca-bulamiyor-ne-yapilir/">servis parça bulamıyor, ne yapılır</a> sayfasında ayrıca anlattık. Sipariş sonrası ölçü değişikliği gerekiyorsa <a href="/siparis-sonrasi-olcu-degisikligi-iptal-politikasi/">sipariş sonrası ölçü değişikliği ve iptal</a> sayfasındaki politika burada da geçerlidir.
-
-Aynı gönderide birden fazla parça varsa ve yalnız biri hasar gördüyse, hangi parçanın hangisi olduğunu net belirtmenizi rica ederiz; karışıklık değerlendirmeyi yavaşlatır. Tekrar gönderim öncesi paketleme değişikliğini de sizinle paylaşırız, böylece ikinci teslimatta aynı sorunu tekrar yaşamazsınız. Parça acil kullanılacaksa (bir makine durduysa) bunu ilk mesajda belirtin; yeniden üretim sırasını buna göre önceliklendiririz, gerekirse üretim notlarımızdan hızlıca ölçüyü teyit edip başlarız. Bu süreç boyunca sizi bilgilendiririz; parçanın hangi aşamada olduğunu sormanıza gerek kalmadan durumu paylaşırız.""") + _JSONLD_kargoda_hasar_goren_ozel_uretim_parcada_ne_yapilir
 
 
 _JSONLD_temiz_oda_ortaminda_kullanilan_plastik_parca_uretimi = '<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Temiz Oda Ortamı İçin Plastik Parça","description":"Temiz oda ortamında kılavuz, tutucu ve sensör muhafazası için düşük partikül salan malzeme, yüzey yaklaşımı ve sertifikasyon sınırı anlatılıyor.","url":"https://pruvo3d.com/temiz-oda-ortaminda-kullanilan-plastik-parca-uretimi/","mainEntityOfPage":"https://pruvo3d.com/temiz-oda-ortaminda-kullanilan-plastik-parca-uretimi/","inLanguage":"tr","publisher":{"@type":"Organization","name":"PRUVO","url":"https://pruvo3d.com/"}}</script>'
@@ -17976,7 +17962,7 @@ Sitede ölçüsü seçilen seçeneklerden <a href="/urun/olcuye-ozel-montaj-brak
 
 Forklift, palet transpaleti ya da ağır sanayi tipi yüksek yük taşıyan teker gövdesi kapsam dışıdır; bu yükte tekerin taşıdığı kuvvet çok yüksektir. Frenin kilitleme kuvveti için belirli bir değer verilmez. Tekerin kendi dış bandı hazırlanmaz; yalnızca onu taşıyan plastik gövde kapsam içindedir. Kişi güvenliğine doğrudan bağlı bir taşıma ya da sabitleme senaryosunda — sağlık ve bakım ortamı, hasta ya da yaşlı bakım ekipmanı gibi — bu ürün önerilmez; bu tür ihtiyaçlarda sertifikalı tıbbi ekipman gerekir.
 
-Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.
+Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; """ + AYIP_HAKLARI_CUMLESI + """
 
 ## Sipariş ve iletişim
 
@@ -18017,7 +18003,7 @@ Sitede ölçüsü seçilen rulman ve conta kalemleri <a href="/urun/olcuye-ozel-
 
 _JSONLD_olcuye_ozel_surtunmeli_mentese_uretimi = '<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Sürtünmeli (Konumda Sabit Kalan) Menteşe Özel Üretimi","description":"Kapağı bırakıldığı açıda tutan sürtünmeli menteşe: mil çapı, dönüş açısı, malzeme ve güvenliğe bağlı kullanım sınırı.","url":"https://pruvo3d.com/olcuye-ozel-surtunmeli-mentese-uretimi/","mainEntityOfPage":"https://pruvo3d.com/olcuye-ozel-surtunmeli-mentese-uretimi/","inLanguage":"tr","publisher":{"@type":"Organization","name":"PRUVO","url":"https://pruvo3d.com/"}}</script>'
 def _olcuye_ozel_surtunmeli_mentese_uretimi():
-    return _seo_md_to_html(u"""# Sürtünmeli (Konumda Sabit Kalan) Menteşe Özel Üretimi
+    return _seo_md_to_html(u"""# Sürtünmeli Menteşe: Sitede Ölçüsü Seçilen Seçenekler
 
 Bir kapağın ya da panelin, bırakıldığı açıda kendiliğinden düşmeden durmasını sağlayan sürtünmeli (torklu) menteşeyi mil çapı, sürtünme yüzeyi ve dönüş açısına göre ölçüye özel hazırlarız. Bu, yayla ya da sabit bir eksenle çalışan olağan menteşeden farklıdır; burada görev sabit bir dönüş direnci üretmektir. Ağır ve güvenliğe bağlı kapaklarda bu ürünü önermeyiz, sınırı aşağıda yazdık.
 
@@ -18052,7 +18038,7 @@ Sitede ölçüsü seçilen menteşe ve bağlantı kalemleri <a href="/kategori/o
 
 _JSONLD_olcuye_ozel_plastik_vantuz_tutucu_govdesi_uretimi = '<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Ölçüye Özel Plastik Vantuz Tutucu Gövdesi Üretimi","description":"Vantuzun üstüne oturan plastik tutucu ve montaj gövdesi: sap ölçüsü, yuva biçimi, malzeme ve dürüst sınır sayfada.","url":"https://pruvo3d.com/olcuye-ozel-plastik-vantuz-tutucu-govdesi-uretimi/","mainEntityOfPage":"https://pruvo3d.com/olcuye-ozel-plastik-vantuz-tutucu-govdesi-uretimi/","inLanguage":"tr","publisher":{"@type":"Organization","name":"PRUVO","url":"https://pruvo3d.com/"}}</script>'
 def _olcuye_ozel_plastik_vantuz_tutucu_govdesi_uretimi():
-    return _seo_md_to_html(u"""# Ölçüye Özel Plastik Vantuz Tutucu Gövdesi Üretimi
+    return _seo_md_to_html(u"""# Vantuz Tutucu Gövdesi: Katalogdaki Seçenekler
 
 Bir vantuzun (kauçuk emme parçasının) üstüne oturan, onu bir kola, askıya ya da montaj plakasına bağlayan plastik gövdeyi ölçüye özel hazırlarız. Vantuzun kendi kauçuk emme yüzeyini biz üretmeyiz; yalnızca üzerine oturan tutucu, kilit kolu ya da montaj gövdesi kapsamdadır. Ağır ve güvenliğe bağlı bir yükü (örneğin bir aynayı ya da bir raf sistemini) taşıyan bir vantuz düzeneği için bu ürünü tek başına yeterli görmeyiz, sınırı aşağıda yazdık.
 
@@ -18129,7 +18115,7 @@ Ana giriş noktaları <a href="/kategori/tamirat/">tamirat</a> ve <a href="/kate
 
 Çarpma enerjisi yutan hiçbir eleman hazırlamıyoruz. Otokorkuluk parçası, darbe emici bariyer bileşeni, araç yönlendiren çarpma elemanı ve benzeri kalemler onaylı ürün grubudur; bunları yapmaz, isteyeni de yönlendiririz. Aynı şekilde kişi güvenliğine bağlı tutucular ve kaldırma elemanları kapsam dışıdır. Kapsam dışı kalanların topluca yazılı hâli <a href="/hangi-parcalar-ozel-uretimle-yapilamaz/">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.
 
-Reflektif ve fosforlu performans taahhüdü vermeyiz. Bir levhanın geri yansıtma değeri kaplama filminin işidir; biz o filmi taşıyan plastik parçayı hazırlarız. Isı tarafında pratik tavan malzeme sınıfına göre 90-100 santigrat derecedir, yol yüzeyindeki koyu parçaların yaz öğlesinde bu banda yaklaştığını da hesaba katarız. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur.
+Reflektif ve fosforlu performans taahhüdü vermeyiz. Bir levhanın geri yansıtma değeri kaplama filminin işidir; biz o filmi taşıyan plastik parçayı hazırlarız. Isı tarafında pratik tavan malzeme sınıfına göre 90-100 santigrat derecedir, yol yüzeyindeki koyu parçaların yaz öğlesinde bu banda yaklaştığını da hesaba katarız. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; """ + AYIP_HAKLARI_CUMLESI + """
 
 ## Sipariş
 
@@ -18181,7 +18167,7 @@ Taşıyıcı cephe elemanı kapsam dışıdır. Panel ağırlığını tutan, d�
 
 Isı yalıtım bariyeri ve yangın dayanımı beyanı olan hiçbir bileşen için taahhüt verilmez. Sızdırmazlıkta da sınır bellidir: conta ve fitil tarafında düşük-orta basınç konuşulur; su ve rüzgâr geçirmezlik sınıfı belgeli bir performanstır, onu vaat etmeyiz.
 
-Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.
+Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; """ + AYIP_HAKLARI_CUMLESI + """
 
 ## Sipariş ve iletişim
 
@@ -18231,16 +18217,16 @@ Gaz taşıyan hiçbir parça hazırlanmaz. Rakor, dirsek, vana gövdesi, conta, 
 
 Yasal metroloji parçalarına dokunulmaz: mühür, mühür teli yuvası, damga taşıyan hiçbir eleman hazırlanmaz. Sayacın kendisini açan, sökülmesini kolaylaştıran bir parça da yapılmaz. Kapsam dışı kalanların topluca yazılı hâli <a href="/hangi-parcalar-ozel-uretimle-yapilamaz/">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır. Isı tarafında pratik tavan malzeme sınıfına göre 90-100 santigrat derecedir.
 
-Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.
+Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; """ + AYIP_HAKLARI_CUMLESI + """
 
 ## Sipariş ve iletişim
 
 Parçayı sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup siparişi tamamlarsınız. Bulamazsanız WhatsApp hattımız <a href="https://wa.me/905451386526" target="_blank" rel="noopener"><strong>+90 545 138 6526</strong></a> üzerinden yalnız sitede var mı diye yazın; kutunun markası, duvara gömülü mü yoksa dışarıdan monte mi olduğu ve kapağın hangi yöne açıldığı eşleştirmeyi hızlandırır.""") + _JSONLD_dogalgaz_ve_su_sayaci_kutusu_plastik_parca_uretimi
 
-_JSONLD_utu_ve_buhar_kazani_plastik_parcasi_yaptirma = '<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Ütü ve Buhar Kazanı Plastik Parçası Yaptırma","description":"Ütünün kırılan su haznesi kapağı, tutamağı, düğmesi ve kablo koruma körüğü ölçüye özel üretilir. Taban ve buhar hattı parçaları ise kapsam dışında kalır.","url":"https://pruvo3d.com/utu-ve-buhar-kazani-plastik-parcasi-yaptirma/","mainEntityOfPage":"https://pruvo3d.com/utu-ve-buhar-kazani-plastik-parcasi-yaptirma/","inLanguage":"tr","publisher":{"@type":"Organization","name":"PRUVO","url":"https://pruvo3d.com/"}}</script>'
+_JSONLD_utu_ve_buhar_kazani_plastik_parcasi_yaptirma = '<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Ütü ve Buhar Kazanı Plastik Parçası: Katalogdaki Seçenekler","description":"Ütünün su haznesi kapağı, tutamağı, düğmesi ve kablo koruma körüğü için katalogdaki hazır seçenekler. Taban ve buhar hattı parçaları kapsam dışında kalır.","url":"https://pruvo3d.com/utu-ve-buhar-kazani-plastik-parcasi-yaptirma/","mainEntityOfPage":"https://pruvo3d.com/utu-ve-buhar-kazani-plastik-parcasi-yaptirma/","inLanguage":"tr","publisher":{"@type":"Organization","name":"PRUVO","url":"https://pruvo3d.com/"}}</script>'
 def _utu_ve_buhar_kazani_plastik_parcasi_yaptirma():
     return (
-        "<h1>Ütü ve Buhar Kazanı Plastik Parçası Yaptırma</h1>"
+        "<h1>Ütü ve Buhar Kazanı Plastik Parçası: Katalogdaki Seçenekler</h1>"
         "<p class=\"lead\">Ütü ve buhar kazanında plastik kalemler bulunur, ancak hepsi eşit koşullarda çalışmaz. Su deposu kapağı, su ölçer göstergesi, ısı düğmesi, tutamak kapağı, kabloyu tutan klips ve buhar düğmesi çevresindeki çerçeve; bunların hepsi cihazın içindeki sıcaklıktan uzakta durur. Buna karşılık taban plakası, su yolu ve buhar manifoldu metalten yapılır ve bizim alanımızın dışındadır.</p>"
         "<p>PRUVO kataloğunda 41 binden fazla hazır 3D baskı parça var; ev kategorisi bu iş için ana raftır. Elinizdeki eski parçayı fiziksel olarak alıp yeniden hazırlama hizmeti vermiyoruz; sitede ölçüsü seçilen kalemlerde ölçüyü siz yazarsınız.</p>"
         "<h2>Sıcaklık sınırları</h2>"
@@ -18256,15 +18242,15 @@ def _utu_ve_buhar_kazani_plastik_parcasi_yaptirma():
         "<p>Bu ayrımlar pratikte işe yarar, çünkü hangi kalemin değişeceğini belirler. Kapak ve conta kalemleri katalogdaki hazır seçeneklerde bulunur; gösterge ve düğme kalemleri için düğme ailesine bakılır. Tutamağın ısınması ise parçanın kendisiyle değil montajla ilgili olabilir; bu durumda parça değişimi çözüm değildir, gövde tasarımı gözden geçirilmelidir. Isı tarafında pratik tavanımız 90-100 santigrat derece bandındadır; bu sınırın ötesinde kalan konumlarda plastik parça önerilmez.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Su ve buhar yolunu taşıyan parçaları, ısıtıcı elemanları, termostatları ve taban plakasını üretmiyoruz. Elektrik devresine ve buhar odasına temas eden bir kalem için plastik önerilmez. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Cihazın markası, modeli ve parçanın konumu bilgisi yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
-    )
+    ) + _JSONLD_utu_ve_buhar_kazani_plastik_parcasi_yaptirma
 
 
 _JSONLD_oto_kalorifer_klape_kolu_ve_kanat_parcasi_yaptirma = '<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Oto Kalorifer Klape Kolu ve Kanat Parçası","description":"Kalorifer klape kolu, kanat mili ve dişli sektörü: belirtiye göre teşhis, ölçüler, doğru malzeme ve katalogdaki seçenekler.","url":"https://pruvo3d.com/oto-kalorifer-klape-kolu-ve-kanat-parcasi-yaptirma/","mainEntityOfPage":"https://pruvo3d.com/oto-kalorifer-klape-kolu-ve-kanat-parcasi-yaptirma/","inLanguage":"tr","publisher":{"@type":"Organization","name":"PRUVO","url":"https://pruvo3d.com/"}}</script>'
 def _oto_kalorifer_klape_kolu_ve_kanat_parcasi_yaptirma():
-    return _seo_md_to_html(u"""# Oto Kalorifer Klape Kolu ve Kanat Parçası
+    return _seo_md_to_html(u"""# Oto Kalorifer Klape Kolu ve Kanat Parçası: Katalogdaki Seçenekler
 
 Aracın kalorifer ve klima kutusunda havayı ayağa, yüze ya da cama yönlendiren klapeler vardır; bunları çeviren kol, mil ucu ve dişli sektörü plastiktir ve yıllar içinde kırılır. Belirtisi hep aynıdır: düğme dönüyor ama üfleme yönü değişmiyor, ya da kutunun içinden tık tık bir ses geliyor. Klape kolları, kanatlar ve sektör dişlileri araç modeline özel kalıplardan çıkar; sitede bu cihaza özel bir kalem adıyla satılmadığı için elinizdeki parçadan, çizimden ya da fotoğraftan özel üretim yapmıyoruz. Yedeği tek başına satılmaz, kutu komple gelir ve söküm işçiliği parçanın kendisinden kat kat pahalıya çıkar.
 
@@ -18272,11 +18258,11 @@ Aracın kalorifer ve klima kutusunda havayı ayağa, yüze ya da cama yönlendir
 
 Önce hangi klapenin arızalı olduğunu ayırmak gerekir. Sıcak-soğuk karışım klapesi, yön dağıtım klapesi ve iç-dış hava klapesi ayrı kollarla çalışır; birinin kolu diğerine uymaz.
 
-Sonra belirleyici ölçüler gelir: kolun boyu ve kalınlığı, mil ucundaki kesitin biçimi (yassı, tırtıllı ya da yıldız), dişli sektörlerde diş sayısı, modül ve dişli yayının açısı, kolun ucundaki pim çapı ile mafsal deliği, motorun kola bağlandığı yuvanın kesiti. Dişli tarafının ölçü mantığı <a href="/olcuye-ozel-plastik-disli-uretimi/">ölçüye özel plastik dişli üretimi</a> sayfasında ayrıntılı yazılıdır; kırılan dişte modülü nasıl bulduğumuzu ise <a href="/kirik-dislinin-modulu-nasil-bulunur/">kırık dişlinin modülü nasıl bulunur</a> sayfası anlatıyor.
+Sonra belirleyici ölçüler gelir: kolun boyu ve kalınlığı, mil ucundaki kesitin biçimi (yassı, tırtıllı ya da yıldız), dişli sektörlerde diş sayısı, modül ve dişli yayının açısı, kolun ucundaki pim çapı ile mafsal deliği. Bu değerleri siz ölçerek ölçü alanına yazarsınız. Dişli tarafının ölçü mantığı <a href="/olcuye-ozel-plastik-disli-uretimi/">ölçüye özel plastik dişli üretimi</a> sayfasında ayrıntılı yazılıdır; modülü okuma yöntemi ise <a href="/kirik-dislinin-modulu-nasil-bulunur/">kırık dişlinin modülü nasıl bulunur</a> sayfası anlatıyor.
 
-Parça kutunun içinde kırıldıysa çoğu zaman iki üç parçası aşağıya düşmüştür. Eksik kalan bölümü karşı parçadan ve milin kendi kesitinden geri hesaplamak gerekir; yöntemi <a href="/kirik-parcanin-eksik-kalan-bolumu-tamamlanir-mi/">kırık parçanın eksik bölümü tamamlanır mı</a> sayfasında yazdık.
+Parça kutunun içinde kırıldıysa çoğu zaman iki üç parçası aşağıya düşmüştür. Eksik kalan bölümü kendiniz tamamlayamıyorsanız katalogdaki hazır kalemler arasında arayın; sitede ölçüsü seçilen kalemlerde ölçüyü siz yazarsınız. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; yöntemi <a href="/kirik-parcanin-eksik-kalan-bolumu-tamamlanir-mi/">kırık parçanın eksik bölümü tamamlanır mı</a> sayfasında anlatıyoruz.
 
-Klape kolu tek başına ölçülür ama gerçek soru, kolun hangi mile ve kaç dişli sektöre oturduğudur; o eşleşme yanlışsa doğru ölçüde bir parça bile yerine takılmaz. Servisten çıkan eski parçayı atmayın; kırık hâliyle bile en güvenilir referans odur. Kutu sökülmeden fotoğraf çekebiliyorsanız kolun boştaki ve son konumundaki hâlini iki ayrı kare olarak görmek strok mesafesini doğrulamaya yarar.
+Klape kolunun tek başına ölçüsü yetmez; asıl soru, kolun hangi mile ve kaç dişli sektöre oturduğudur. Kolun boyunu, kesitini ve mafsal deliğini kendiniz ölçerek ölçü alanına yazarsınız; kutu sökülmeden ölçüyü alamıyorsanız servise başvurun.
 
 ## Doğru malzeme
 
@@ -18358,7 +18344,7 @@ Motosiklet kalemleri <a href="/kategori/motosiklet/">motosiklet</a> kategorisind
 
 _JSONLD_olcuye_ozel_plastik_firdondu_ve_doner_baglanti_uretimi = '<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Ölçüye Özel Plastik Fırdöndü ve Döner Bağlantı","description":"Halatın, tentenin ve askının burulmasını çözen fırdöndü ve döner bağlantı: uç biçimi, boşluk, malzeme ve yük sınırı.","url":"https://pruvo3d.com/olcuye-ozel-plastik-firdondu-ve-doner-baglanti-uretimi/","mainEntityOfPage":"https://pruvo3d.com/olcuye-ozel-plastik-firdondu-ve-doner-baglanti-uretimi/","inLanguage":"tr","publisher":{"@type":"Organization","name":"PRUVO","url":"https://pruvo3d.com/"}}</script>'
 def _olcuye_ozel_plastik_firdondu_ve_doner_baglanti_uretimi():
-    return _seo_md_to_html(u"""# Ölçüye Özel Plastik Fırdöndü ve Döner Bağlantı
+    return _seo_md_to_html(u"""# Plastik Fırdöndü ve Döner Bağlantı: Sitede Ölçüsü Seçilen Seçenekler
 
 Fırdöndü, iki ucu birbirinden bağımsız dönebilen küçük bir bağlantıdır; işi ipin, halatın ya da askının burulmasını çözmektir. Tente kayışının ucunda, bayrak direğinde, olta takımında, kablo çekme hattında ve dönen askı düzeneklerinde karşımıza çıkar. Bu kalemler yalnız hafif, yük kaldırmayan uygulamalar içindir.
 
@@ -18405,7 +18391,7 @@ Bağlanacağı ipin, kayışın veya halkanın ölçüsünü sipariş notuna yaz
 
 _JSONLD_olcuye_ozel_plastik_merdane_gobegi_ve_rulo_ucu_uretimi = '<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Ölçüye Özel Merdane Göbeği ve Rulo Ucu","description":"Rulo ve merdanenin uç tapası, göbek burcu, mil adaptörü ve sarım göbeği: belirleyici ölçüler, malzeme ve sınır.","url":"https://pruvo3d.com/olcuye-ozel-plastik-merdane-gobegi-ve-rulo-ucu-uretimi/","mainEntityOfPage":"https://pruvo3d.com/olcuye-ozel-plastik-merdane-gobegi-ve-rulo-ucu-uretimi/","inLanguage":"tr","publisher":{"@type":"Organization","name":"PRUVO","url":"https://pruvo3d.com/"}}</script>'
 def _olcuye_ozel_plastik_merdane_gobegi_ve_rulo_ucu_uretimi():
-    return _seo_md_to_html(u"""# Ölçüye Özel Merdane Göbeği ve Rulo Ucu
+    return _seo_md_to_html(u"""# Merdane Göbeği ve Rulo Ucu: Sitede Ölçüsü Seçilen Seçenekler
 
 Film, kâğıt, folyo ve kumaş rulolarının iki ucunda, ruloyu makinenin miline oturtan plastik parçalar bulunur: uç tapası, göbek burcu, mil adaptörü ve sarım göbeği. Ruloyu tutan bu küçük parça kırıldığında koca merdane kullanılamaz hâle gelir. Bu kalemler sitede adıyla satılan bir aile değildir; elinizdeki parçadan, çizimden ya da fotoğraftan özel üretim yapmıyoruz. Yuvaya oturan ve mil adaptörü yapan kalemler <a href="/urun/olcuye-ozel-rulman/">ölçüye özel rulman ve bilyalı yatak</a> ile <a href="/urun/olcuye-ozel-baglanti-konektor/">ölçüye özel birleştirme konektörü</a> ailelerinde yakın çözümler sunar.
 
@@ -18501,7 +18487,7 @@ Tıbbi cihaz hazırlanmaz. Vücut içine giren, yaraya değen, steril kullanıla
 
 Bebek ve çocuk ürünlerinde ağza girebilecek küçük parçalar hazırlanmaz. Kişi güvenliğine bağlı kalemler, kask kabuğu, emniyet kemeri bileşeni ve benzeri koruyucu ekipman da kapsam dışıdır. Kapsam dışı kalanların topluca yazılı hâli <a href="/hangi-parcalar-ozel-uretimle-yapilamaz/">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır. Isı tarafında pratik tavan malzeme sınıfına göre 90-100 santigrat derecedir; kaynar suyla ya da otoklavla sterilize edilen kalemler bu bandın üstündedir.
 
-Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.
+Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; """ + AYIP_HAKLARI_CUMLESI + """
 
 ## Sipariş ve iletişim
 
@@ -18509,7 +18495,7 @@ Parçayı sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup 
 
 _JSONLD_ozel_uretim_parca_sonradan_delinir_kesilir_mi = '<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Özel Üretim Parça Sonradan Delinir, Kesilir mi?","acceptedAnswer":{"@type":"Answer","text":"Kısa cevap evet: ölçüye özel hazırladığımız plastik parça sonradan delinebilir, kesilebilir, zımparalanabilir ve kısaltılabilir. Doğru yol ise farklıdır — deliği, kanalı ya da kesiti üretimden önce söylemenizdir; parça o ölçüye göre çıktığında hem daha sağlam olur hem yüzeyi bozulmaz. Sonradan işlem, unutulmuş bir detayı kurtarmak için iyi bir çözümdür; ilk tercih olarak iyi bir yol değildir."}}]}</script>'
 def _ozel_uretim_parca_sonradan_delinir_kesilir_mi():
-    return _seo_md_to_html(u"""# Özel Üretim Parça Sonradan Delinir, Kesilir mi?
+    return _seo_md_to_html(u"""# Hazırlanan Parça Sonradan Delinir, Kesilir mi?
 
 Kısa cevap evet: ölçüye özel hazırladığımız plastik parça sonradan delinebilir, kesilebilir, zımparalanabilir ve kısaltılabilir. Doğru yol ise farklıdır — deliği, kanalı ya da kesiti sipariş verirken belirtmek; parça o ölçüye göre çıktığında hem daha sağlam olur hem yüzeyi bozulmaz. Sonradan işlem, unutulmuş bir detayı kurtarmak için iyi bir çözümdür; ilk tercih olarak iyi bir yol değildir.
 
@@ -18558,53 +18544,34 @@ Deleceğiniz yeri baştan yazın; çoğu zaman biz koyduğumuzda hem daha sağla
 
 _JSONLD_plastik_parcada_vida_ne_kadar_sikilmali = '<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Plastik Parçada Vida Ne Kadar Sıkılmalı?","acceptedAnswer":{"@type":"Answer","text":"Plastikte vida, metaldeki gibi \\"sıkabildiğin kadar\\" sıkılmaz. Pratik ölçümüz şudur: vida başı yüzeye tam oturduğu anda durun, sonra en fazla çeyrek tur daha çevirin. Bu noktadan sonra her ek çeyrek tur, tutuşu artırmaz; dişi plastiğin içinde sıyırmaya başlar. Elektrikli tornavida kullanıyorsanız kavrama ayarını en düşük kademede deneyip yukarı çıkın, tersini yapmayın."}}]}</script>'
 def _plastik_parcada_vida_ne_kadar_sikilmali():
-    return _seo_md_to_html(u"""# Plastik Parçada Vida Ne Kadar Sıkılmalı?
+    return (
+        u"""<h1>Plastik Parçada Vida Ne Kadar Sıkılmalı?</h1>
+<p class="lead">Pratik kural: vida başı yüzeye tam oturduğu anda durun, sonra en fazla çeyrek tur daha çevirin.</p>
+<p>Plastikte vida, metaldeki gibi sıkabildiğiniz kadar sıkılmaz. Bu noktadan sonra her ek çeyrek tur, tutuşu artırmaz; dişi plastiğin içinde sıyırmaya başlar. Elektrikli tornavida kullanıyorsanız kavrama ayarını en düşük kademede deneyip yukarı çıkın, tersini yapmayın. Bu kural kulağa basit gelir ama parçaların büyük bölümü tam da burada kırılır: sizin girdiğiniz değerlere uyan bir parça, montajda fazla sıkıldığı için ilk gün çatlar ve suç haksız yere parçaya kalır.</p>
+<h2>Nasıl belirleniyor</h2>
+<p>Doğru sıkma üç şeye bağlıdır: dişin plastikte ne kadar uzunlukta tuttuğu, vidanın çapı ve parçanın o bölgedeki kesiti.</p>
+<p>Diş boyu en belirleyici olanıdır. Kısa bir kulakta iki üç diş tutuyorsa, aynı vidayı uzun bir kolonda sekiz diş tuttuğu kadar sıkayamazsınız. Vida çapı büyüdükçe uygulanan tork da hızla artar; küçük vidada elin hissettiği kuvvetin çok az bir kısmı yeterlidir.</p>
+<p>Kesit üçüncü belirleyicidir. Deliğin kenarında ince bir et kaldıysa vida sıkıldıkça o eti yırtar. Delik ile kenar arasında en az delik çapı kadar et bırakmak, pratikte en çok işe yarayan kuraldır. Hangi ölçünün kritik sayıldığını <a href="/parcanin-hangi-olcusu-kritik-hangisi-degil/">parçanın hangi ölçüsü kritik</a> sayfasında, ince kesitteki alt sınırlarımızı ise <a href="/en-ince-detay-ve-minimum-et-kalinligi/">en ince detay ve minimum et kalınlığı</a> sayfasında yazdık. Vida başı ile yüzey arasına konan düz pul, yükü daha geniş alana yayarak bu kenar yırtılma riskini de azaltır; yükü geniş alana yayan pulun ayrıntısını <a href="/olcuye-ozel-plastik-duz-rondela-uretimi/">ölçüye özel plastik düz rondela üretimi</a> sayfasında anlattık.</p>
+<p>Pilot deliğin çapı da sonucu değiştirir. Delik büyükse diş hiç tutmaz, küçükse parça sıkma anında çatlar. Bu dengeyi <a href="/plastik-parcaya-vida-disi-acilir-mi/">plastik parçaya vida dişi açılır mı</a> ve <a href="/olcuye-ozel-plastik-gecme-dubel-vida-yuvasi-uretimi/">ölçüye özel plastik dübel ve vida yuvası</a> sayfalarında ayrıntılı anlattık; geçme sıkılığının genel mantığı ise <a href="/plastik-parcada-gecme-toleransi-nasil-belirlenir/">plastik parçada geçme toleransı</a> sayfasındadır.</p>
+<p>Vidanın tipi de sonucu değiştirir. Plastik için tasarlanmış, dişleri seyrek ve keskin olan vidalar malzemeyi yarmadan diş açar; aynı delikte kullanılan bir sac vidası çok daha erken sıyırır. Aynı deliğe ikinci kez vida takarken de dikkat gerekir: vidayı önce ters yöne çevirip ilk açılan dişin yerine oturduğunu hissetmek, yeni bir diş açılmasını önler. Bunu yapmadan zorlanarak takılan her vida kolonun içinde ikinci bir diş açar ve tutuş belirgin biçimde düşer. Sökülüp takılan bağlantılarda en sık karşılaştığımız arıza nedeni budur.</p>
+<h2>Doğru malzeme</h2>
+<p>Malzeme seçimi sıkma davranışını doğrudan değiştirir; aynı vida her sınıfta aynı hissi vermez.</p>
+<p>PETG ve ABS bağışlayıcıdır: diş açılırken malzeme bir miktar akar, sıyırma sınırına gelmeden önce el ucunda uyarı hissedilir. Naylon sınıfı yumuşaktır ve tutuşu iyidir, ancak zamanla gevşeme eğilimi gösterir; titreşimli yerlerde bunu hesaba katarız.</p>
+<p>Karbon ve cam elyaf takviyeli naylon (PA-CF / PA-GF) rijittir ve yüksek yükte üstündür, ama uyarı vermeden kırılır: sıkma sınırında el hiçbir şey hissetmez, parça birden çatlar. Bu yüzden takviyeli sınıfta ve sık sökülüp takılan bağlantılarda doğrudan gömme somun öneririz; ayrıntısı <a href="/parcaya-gomme-somun-insert-eklenir-mi/">parçaya gömme somun eklenir mi</a> sayfasındadır. Sürekli sökülüp takılan kalemlerin genel mantığı <a href="/sikca-sokulup-takilan-plastik-parca-uretimi/">sıkça sökülüp takılan plastik parça</a> sayfasında yazılıdır. Farklı renk seçenekleri mevcuttur; renk sıkma davranışını değiştirmez.</p>
+<p>Bir de zaman etkisi vardır. Plastikte sıkılan bir vida ilk günlerde bir miktar gevşer; malzeme yük altında yavaşça yerleşir ve ilk uygulanan sıkma kuvveti düşer. Bu yüzden kritik bir bağlantıyı montajdan bir hafta sonra bir kez daha kontrol etmenizi öneririz. Sürekli yük altındaki davranışı <a href="/surekli-yuk-altinda-plastik-parca-deforme-olur-mu/">sürekli yük altında plastik parça deforme olur mu</a> sayfasında anlattık.</p>
+<h2>Diş sıyırdıysa ne yapılır</h2>
+<p>Vida boşta dönüyorsa iş bitmiş değildir. Üç pratik yol vardır.</p>
+<p>Birincisi bir numara büyük vida: en hızlı çözümdür, kesit izin veriyorsa işe yarar. İkincisi gömme somun: deliğe ısıyla ya da geçmeyle oturan metal bir yuva takılır, vida artık plastiğe değil somuna tutunur; kalıcı çözüm budur. Üçüncüsü aynı kalemi yeniden sipariş etmektir; bu kez kolon değerlerini ve kesiti daha güvenli sınırlarda siz yazarsınız. Vida, somun ve pul ailesi için doğrudan ürün sayfası: <a href="/urun/olcuye-ozel-vida-civata-somun-pul/">ölçüye özel vida, cıvata, somun ve pul</a>. Montaj sırasında kırılan parçalarda izlediğimiz yol ise <a href="/montaj-sirasinda-parca-kirilirsa-ne-olur/">montaj sırasında parça kırılırsa ne olur</a> sayfasındadır; genel montaj notları <a href="/ozel-uretim-plastik-parca-nasil-monte-edilir/">plastik parça nasıl monte edilir</a> sayfasında toplandı.</p>
+<h2>Dürüst sınır</h2>
+<p>Sayısal bir tork değeri vermeyiz. Plastikte doğru tork; malzemeye, diş boyuna, vida tipine, deliğin ölçüsüne ve parçanın kesitine birlikte bağlıdır. Tek bir sayı yazmak, yanlış uygulandığında parçayı kırar; bu yüzden kural yerine yöntem veririz. Kritik bir bağlantıda tork anahtarıyla çalışacaksanız uygun değeri deneyerek belirlemeniz gerekir ve bu sizin sorumluluğunuzdadır.</p>
+<p>Fazla sıkmadan doğan kırıkları uyum garantisi kapsamında değerlendiremeyiz; ölçü doğruysa parçanın görevini yaptığını kabul ederiz. Bu, yasal haklarınızı ortadan kaldırmaz: ölçüye özel hazırlanan üründe cayma hakkı bulunmaz, ancak """
+        + AYIP_HAKLARI_CUMLESI
+        + u""" Isı tarafında pratik tavan malzeme sınıfına göre 90-100 santigrat derecedir; sıcak bölgelerde sıkma değerleri ayrıca düşer.</p>
+<h2>Sipariş</h2>
+<p>Sipariş verirken vidanın çapını, boyunu ve tipini siz yazarsınız; kolon değerlerini de ürün sayfasındaki alanlara siz yazarsınız. Bağlantı sık sökülüp takılacaksa gömme somunlu çözüm daha uygundur. Doğrudan ürün sayfası: <a href="/urun/olcuye-ozel-vida-civata-somun-pul/">ölçüye özel vida, cıvata, somun ve pul</a>. Sepete ekleyip kartla online ödersiniz; sitedeki tüm siparişlerde kartla online ödeme yapılabilir. Değerleri ürün sayfasına yazdığınız için aynı parçadan ikinci tur gerektiğinde kolon ölçüsü zaten bilirsiniz. Başlamak için WhatsApp hattımıza yazın: <a href="https://wa.me/905451386526" target="_blank" rel="noopener"><strong>+90 545 138 6526</strong></a>.</p>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Plastik Parçada Vida Ne Kadar Sıkılmalı?","acceptedAnswer":{"@type":"Answer","text":"Plastikte vida, metaldeki gibi sıkabildiğin kadar sıkılmaz. Pratik ölçümümüz şudur: vida başı yüzeye tam oturduğu anda durun, sonra en fazla çeyrek tur daha çevirin. Bu noktadan sonra her ek çeyrek tur, tutuşu artırmaz; dişi plastiğin içinde sıyırmaya başlar. Elektrikli tornavida kullanıyorsanız kavrama ayarını en düşük kademede deneyip yukarı çıkın, tersini yapmayın."}}]}</script>"""
+    )
 
-Plastikte vida, metaldeki gibi "sıkabildiğin kadar" sıkılmaz. Pratik ölçümüz şudur: vida başı yüzeye tam oturduğu anda durun, sonra en fazla çeyrek tur daha çevirin. Bu noktadan sonra her ek çeyrek tur, tutuşu artırmaz; dişi plastiğin içinde sıyırmaya başlar. Elektrikli tornavida kullanıyorsanız kavrama ayarını en düşük kademede deneyip yukarı çıkın, tersini yapmayın.
-
-Bu kural kulağa basit gelir ama parçaların büyük bölümü tam da burada kırılır. Ölçüsü doğru çıkan bir parça, montajda fazla sıkıldığı için ilk gün çatlar ve suç haksız yere parçaya kalır.
-
-## Nasıl belirleniyor
-
-Doğru sıkma üç şeye bağlıdır: dişin plastikte ne kadar uzunlukta tuttuğu, vidanın çapı ve parçanın o bölgedeki kesiti.
-
-Diş boyu en belirleyici olanıdır. Kısa bir kulakta iki üç diş tutuyorsa, aynı vidayı uzun bir kolonda sekiz diş tuttuğu kadar sıkamazsınız. Vida çapı büyüdükçe uygulanan tork da hızla artar; küçük vidada elin hissettiği kuvvetin çok az bir kısmı yeterlidir.
-
-Kesit üçüncü belirleyicidir. Deliğin kenarında ince bir et kaldıysa vida sıkıldıkça o eti yarar. Delik ile kenar arasında en az delik çapı kadar et bırakmak, pratikte en çok işe yarayan kuraldır. Kritik ölçüleri ayırma mantığını <a href="/parcanin-hangi-olcusu-kritik-hangisi-degil/">parçanın hangi ölçüsü kritik</a> sayfasında, ince kesitteki alt sınırlarımızı ise <a href="/en-ince-detay-ve-minimum-et-kalinligi/">en ince detay ve minimum et kalınlığı</a> sayfasında yazdık. Vida başı ile yüzey arasına konan düz pul, yükü daha geniş alana yayarak bu kenar yırtılma riskini de azaltır; ölçü mantığını <a href="/olcuye-ozel-plastik-duz-rondela-uretimi/">ölçüye özel plastik düz rondela üretimi</a> sayfasında ayrıca anlattık.
-
-Pilot delik ölçüsü de sonucu değiştirir. Delik büyükse diş hiç tutmaz, küçükse parça sıkma anında çatlar. Bu dengeyi <a href="/plastik-parcaya-vida-disi-acilir-mi/">plastik parçaya vida dişi açılır mı</a> ve <a href="/olcuye-ozel-plastik-gecme-dubel-vida-yuvasi-uretimi/">ölçüye özel plastik dübel ve vida yuvası</a> sayfalarında ayrıntılı anlattık; geçme sıkılığının genel mantığı ise <a href="/plastik-parcada-gecme-toleransi-nasil-belirlenir/">plastik parçada geçme toleransı</a> sayfasındadır.
-
-Vidanın tipi de sonucu değiştirir. Plastik için tasarlanmış, dişleri seyrek ve keskin olan vidalar malzemeyi yarmadan diş açar; aynı delikte kullanılan bir sac vidası çok daha erken sıyırır. Aynı deliğe ikinci kez vida takarken de dikkat gerekir: vidayı önce ters yöne çevirip ilk açılan dişin yerine oturduğunu hissetmek, yeni bir diş açılmasını önler. Bunu yapmadan zorlanarak takılan her vida kolonun içinde ikinci bir diş açar ve tutuş belirgin biçimde düşer. Sökülüp takılan bağlantılarda en sık karşılaştığımız arıza nedeni budur.
-
-## Doğru malzeme
-
-Malzeme seçimi sıkma davranışını doğrudan değiştirir; aynı vida her sınıfta aynı hissi vermez.
-
-PETG ve ABS bağışlayıcıdır: diş açılırken malzeme bir miktar akar, sıyırma sınırına gelmeden önce el ucunda uyarı hissedilir. Naylon sınıfı yumuşaktır ve tutuşu iyidir, ancak zamanla gevşeme eğilimi gösterir; titreşimli yerlerde bunu hesaba katarız.
-
-Karbon ve cam elyaf takviyeli naylon (PA-CF / PA-GF) rijittir ve yüksek yükte üstündür, ama uyarı vermeden kırılır: sıkma sınırında el hiçbir şey hissetmez, parça birden çatlar. Bu yüzden takviyeli sınıfta ve sık sökülüp takılan bağlantılarda doğrudan gömme somun öneririz; ayrıntısı <a href="/parcaya-gomme-somun-insert-eklenir-mi/">parçaya gömme somun eklenir mi</a> sayfasındadır. Sürekli sökülüp takılan kalemlerin genel mantığı <a href="/sikca-sokulup-takilan-plastik-parca-uretimi/">sıkça sökülüp takılan plastik parça</a> sayfasında yazılıdır. Farklı renk seçenekleri mevcuttur; renk sıkma davranışını değiştirmez.
-
-Bir de zaman etkisi vardır. Plastikte sıkılan bir vida ilk günlerde bir miktar gevşer; malzeme yük altında yavaşça yerleşir ve ilk uygulanan sıkma kuvveti düşer. Bu yüzden kritik bir bağlantıyı montajdan bir hafta sonra bir kez daha kontrol etmenizi öneririz. Sürekli yük altındaki davranışı <a href="/surekli-yuk-altinda-plastik-parca-deforme-olur-mu/">sürekli yük altında plastik parça deforme olur mu</a> sayfasında anlattık.
-
-## Diş sıyırdıysa ne yapılır
-
-Vida boşta dönüyorsa iş bitmiş değildir. Üç pratik yol vardır.
-
-Birincisi bir numara büyük vida: en hızlı çözümdür, kesit izin veriyorsa işe yarar. İkincisi gömme somun: deliğe ısıyla ya da geçmeyle oturan metal bir yuva takılır, vida artık plastiğe değil somuna tutunur; kalıcı çözüm budur. Üçüncüsü parçanın yeniden üretilmesidir; kolon ölçüsünü ve kesitini bu kez daha güvenli değerlerle çıkarırız.
-
-Kolonu kırılmış bir parçayı da atmayın: eksik bölümün nasıl tamamlandığını <a href="/kirik-parcanin-eksik-kalan-bolumu-tamamlanir-mi/">kırık parçanın eksik bölümü tamamlanır mı</a> sayfasında yazdık. Montaj sırasında kırılan parçalarda izlediğimiz yol ise <a href="/montaj-sirasinda-parca-kirilirsa-ne-olur/">montaj sırasında parça kırılırsa ne olur</a> sayfasındadır; genel montaj notları <a href="/ozel-uretim-plastik-parca-nasil-monte-edilir/">özel üretim plastik parça nasıl monte edilir</a> sayfasında toplandı.
-
-## Dürüst sınır
-
-Sayısal bir tork değeri vermeyiz. Plastikte doğru tork; malzemeye, diş boyuna, vida tipine, deliğin ölçüsüne ve parçanın kesitine birlikte bağlıdır. Tek bir sayı yazmak, yanlış uygulandığında parçayı kırar; bu yüzden kural yerine yöntem veririz. Kritik bir bağlantıda tork anahtarıyla çalışacaksanız uygun değeri deneyerek belirlemeniz gerekir ve bu sizin sorumluluğunuzdadır.
-
-Fazla sıkmadan doğan kırıkları uyum garantisi kapsamında değerlendiremeyiz; ölçü doğruysa parçanın görevini yaptığını kabul ederiz. Bu, yasal haklarınızı ortadan kaldırmaz: ölçüye özel hazırlanan üründe cayma hakkı bulunmaz, ancak ayıplı üründe 6502 sayılı Kanun'dan doğan haklarınız aynen durur — ücretsiz onarım, yenisiyle değişim, bedel indirimi ya da bedel iadesi seçenekleri saklıdır. Isı tarafında pratik tavan malzeme sınıfına göre 90-100 santigrat derecedir; sıcak bölgelerde sıkma değerleri ayrıca düşer.
-
-## Sipariş
-
-Kırılan kolonu ya da sıyrılan parçayı getirin veya gönderin; tarayıp ölçüsünü çıkaralım. Kullandığınız vidanın çapını, boyunu ve tipini de yazın; kolon ölçüsünü ona göre belirleriz. Bağlantının sık sökülüp takılacağını baştan söylerseniz gömme somunlu bir çözüm öneririz. Başlamak için WhatsApp hattımıza yazın: +90 545 138 6526. Sitede ölçüye özel siparişler dahil kartla online ödeme yapılabilir.
-
-Ölçü kaydınızı saklarız; aynı parçadan ikinci tur gerektiğinde kolon ölçüsü zaten belirlenmiş olur.""") + _JSONLD_plastik_parcada_vida_ne_kadar_sikilmali
 
 
 
@@ -18656,7 +18623,7 @@ Adedi siz belirtin: tek bir braket de olur, sancak-iskele takımı da. Aynı tek
 
 _JSONLD_mutfak_robotu_ve_blender_plastik_parcasi_yaptirma = '<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Mutfak Robotu ve Blender Plastik Parçası Yaptırma","description":"Blender kavanoz tırnağı, kaplin göbeği ve kapak mandalı: kırılma nedenleri, malzeme, katalogdaki seçenekler ve sipariş yolu.","url":"https://pruvo3d.com/mutfak-robotu-ve-blender-plastik-parcasi-yaptirma/","mainEntityOfPage":"https://pruvo3d.com/mutfak-robotu-ve-blender-plastik-parcasi-yaptirma/","inLanguage":"tr","publisher":{"@type":"Organization","name":"PRUVO","url":"https://pruvo3d.com/"}}</script>'
 def _mutfak_robotu_ve_blender_plastik_parcasi_yaptirma():
-    return _seo_md_to_html(u"""# Mutfak Robotu ve Blender Plastik Parçası Yaptırma
+    return _seo_md_to_html(u"""# Mutfak Robotu ve Blender Plastik Parçası: Katalogdaki Seçenekler
 
 Blender kavanozunun kilit tırnağı, mutfak robotunun kaplin göbeği, kapak mandalı ya da hız düğmesi kırıldığında cihazı elden çıkarmak gerekmez. Ancak bu cihazlara özel bir kalem sitede satılmadığı için elinizdeki parçadan, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay adımı yoktur. Sitede satılan hazır kalemler arasında cihazın çalışma ilkesine yakın seçenekler var; motoru, elektronik kartı ve metal bıçağı ise kapsamımızın dışında.
 
@@ -18668,7 +18635,7 @@ Bu cihazlarda arıza çoğu zaman motorda değil, tek bir küçük plastikte ba�
 
 İkincisi kilitleyen kalemlerdir: kavanoz tırnağı, kapak mandalı, emniyet pimi. Burada kritik olan tırnağın kalınlığı değil, esneme payı ve kilitlenme derinliğidir; bir tık fazla sıkı yapılan tırnak ikinci kullanımda kırılır. Üçüncüsü ele gelen kalemlerdir: düğme, kapak, ölçek kabı. Bunların ölçü mantığı <a href="/olcuye-ozel-plastik-buton-kapagi-ve-tus-uretimi/">buton kapağı ve tuş üretimi</a> sayfasındakiyle aynıdır.
 
-Belirleyici değerler şunlardır: dış hat, cidar kalınlığı, vida deliği çapı ve merkez mesafesi, sızdırmazlık halkasının oturduğu kanal ve varsa dönme yönü işareti. Kırık parçanın eksik bölümü varsa ölçü değerleri simetrik yarıdan ve karşı yüzeydeki izden okunur. Marka ve model bilgisini yazmak işi kolaylaştırır, ancak parça model adına göre değil ölçüsüne göre hazırlanır.
+Belirleyici değerler şunlardır: dış hat, cidar kalınlığı, vida deliği çapı ve merkez mesafesi, sızdırmazlık halkasının oturduğu kanal ve varsa dönme yönü işareti. Bu değerleri siz ölçerek sitedeki ölçü alanına yazarsınız; parça model adına göre değil ölçüsüne göre hazırlanır. Sitede ölçüsü seçilen kalemlerin tümü <a href="/kategori/olcuye-ozel-uretim/">ölçüye özel üretim kategorisinde</a> listelenir.
 
 Bu cihazlarda bir ayrıntı daha vardır: parçanın hangi yönde zorlandığı. Kavanoz tırnağı kilitlenirken çekmeye, kaplin göbeği dönerken burulmaya çalışır; ikisi bambaşka geometri ister. Kırığın yüzeyine bakmak bu ayrımı kolaylaştırır: temiz ve düz bir kırık tek seferlik bir darbeyi, kademeli ilerlemiş çizgili bir yüzey ise yorulmayı anlatır. İkincisinde et kalınlığı ve köşe yarıçapı gözden geçirilir.
 
@@ -18693,7 +18660,7 @@ Sitede ölçüsü seçilen kalemler <a href="/kategori/olcuye-ozel-uretim/">Öl�
 
 _JSONLD_priz_ve_anahtar_cercevesi_plastik_parcasi_yaptirma = '<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Priz ve Anahtar Çerçevesi Plastik Parçası Yaptırma","description":"Priz-anahtar çerçevesi, kapağı ve montaj ringi için katalog yolu, malzeme seçimi ve akım taşıyan iç mekanizmanın kapsam dışı olduğu anlatılıyor.","url":"https://pruvo3d.com/priz-ve-anahtar-cercevesi-plastik-parcasi-yaptirma/","mainEntityOfPage":"https://pruvo3d.com/priz-ve-anahtar-cercevesi-plastik-parcasi-yaptirma/","inLanguage":"tr","publisher":{"@type":"Organization","name":"PRUVO","url":"https://pruvo3d.com/"}}</script>'
 def _priz_ve_anahtar_cercevesi_plastik_parcasi_yaptirma():
-    return _seo_md_to_html(u"""# Priz ve Anahtar Çerçevesi Plastik Parçası Yaptırma
+    return _seo_md_to_html(u"""# Priz ve Anahtar Çerçevesi: Katalogdaki Hazır Seçenekler
 
 Seri üretimden kalkmış bir priz-anahtar serisinde tek bir çerçeve kırılır ve aynısı hiçbir yerde bulunamaz. Duvarı açmadan, seriyi baştan sona değiştirmeden çözüm aranır. Burada durup netleştirmek gerekir: kırık çerçevenin geometrisini çıkarıp ona göre bir kalem hazırlamıyoruz. Sitede bu iş, hazır katalogda var olan çerçeve ve kapak kalemlerini seçerek yapılır.
 
@@ -18779,7 +18746,7 @@ Gaz pistonu, amortisör, yay ve metal makas kolu kapsam dışıdır; bunlar meka
 
 Mekanizmanın tamamı yeniden tasarlanmaz. Çalışan bir düzenekteki kırık plastik kalemin katalogdaki muadili seçilir; düzeneğin kinematiğini değiştiren, kapak açısını ya da piston bağlantı noktasını kaydıran bir çözüm sunulmaz. Bazanın açılma kuvvetini artıran bir çözüm de önerilmez; mekanizma zorlanıyorsa sorun çoğu zaman plastikte değil, ayarda ya da pistonun ömrünü doldurmasındadır. Isı sınırı malzeme sınıfına göre sürekli 90-100 santigrat derece bandındadır; bu uygulamada belirleyici olan sıcaklık değil süreklilik ve boşluktur.
 
-Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.
+Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; """ + AYIP_HAKLARI_CUMLESI + """
 
 ## Sipariş ve iletişim
 
@@ -18787,7 +18754,7 @@ Parçayı sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup 
 
 _JSONLD_olcuye_ozel_sineklik_cercevesi_ve_kose_parcasi_uretimi = '<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Ölçüye Özel Sineklik Köşe Parçası Üretimi","description":"Sineklik köşe parçası, kelebek kilidi, menteşe pimi ve fitil tutucusu: profil kesiti, açı, güneşe dayanıklı malzeme ve sınır.","url":"https://pruvo3d.com/olcuye-ozel-sineklik-cercevesi-ve-kose-parcasi-uretimi/","mainEntityOfPage":"https://pruvo3d.com/olcuye-ozel-sineklik-cercevesi-ve-kose-parcasi-uretimi/","inLanguage":"tr","publisher":{"@type":"Organization","name":"PRUVO","url":"https://pruvo3d.com/"}}</script>'
 def _olcuye_ozel_sineklik_cercevesi_ve_kose_parcasi_uretimi():
-    return _seo_md_to_html(u"""# Ölçüye Özel Sineklik Köşe Parçası Üretimi
+    return _seo_md_to_html(u"""# Sineklik Köşe Parçası: Sitede Ölçüsü Seçilen Seçenekler
 
 Sinekliğin köşe parçası, kelebek kilidi, menteşe pimi ya da tel gergi fitilini tutan aparat kırıldığında sinekliği baştan yaptırmak gerekmez. Ancak bu kalemler profilin kesitine oturan, markadan markaya değişen parçalardır; sitede sineklik köşe parçası adıyla satılan bir ürün yoktur, elinizdeki parçadan, çizimden ya da fotoğraftan özel üretim yapmıyoruz. Alüminyum profilin ve telin kendisini üretmeyiz; kapsamımız profili birleştiren ve kilitleyen plastik parçalardır. Bir kanat için iki köşe de, bir binanın tüm kanatları için tekrarlanan set de aynı ölçü mantığıyla hazırlanır.
 
@@ -18864,7 +18831,7 @@ Sitede ölçüsü seçilen seçeneklerden <a href="/urun/olcuye-ozel-pervane-fan
 
 Hattın metal şasisi, mil ve rulmanları, tahrik motoru ile elektrik panosunun içindekiler kapsam dışıdır. Hattın hızını artıracak ya da kapasitesini yükseltecek bir mühendislik çalışması da üstlenilmez; hat tasarımını değiştiren konular makine üreticisinin alanıdır. Gıda güvenliği için sertifika, hijyen belgesi ya da uygunluk beyanı verilmez; denetime giren, belge şartı olan bir tesis için doğru adres değildir. Isı sınırı malzeme sınıfına göre sürekli 90-100 santigrat derece bandındadır; buharlı sterilizasyon hattı bu sınırın dışındadır. Kesici bıçak, testere ve keskin ağızlı ayırıcı elemanlar kapsam dışıdır.
 
-Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.
+Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; """ + AYIP_HAKLARI_CUMLESI + """
 
 ## Sipariş ve iletişim
 
@@ -18882,7 +18849,7 @@ Bu makineler zorlu kullanılır ve çoğu zaman uzak arazide çalışır. Kırı
 
 Önce parçanın görevini ayırmak gerekir: örten ve kapatan bir kapak mı, ele gelen bir tutamak mı, yoksa titreşim ve yük taşıyan bir yuva mı. Örten parçalarda tırnak konumu, esneme payı ve cidar kalınlığı; tutamaklarda kavrama ölçüsü ve yüzey; yük taşıyan yuvalarda delik çapı, merkez mesafesi ve oturma yüzeyi belirleyicidir.
 
-Belirleyici değerler şunlardır: dış hat ve yarıçaplar, vida deliği çapı ile merkez mesafesi, geçmeli kapaklarda tırnak adımı ve esneme payı, contanın oturduğu kanal ve varsa uyarı simgesi alanı. Kırık parçanın eksik bölümü karşı yüzeydeki izden ve simetrik yarısından geri hesaplanır. Makineden sökülemeyen bir kalemde yerinde ölçülü fotoğraf gerekir. Marka ve model bilgisi işi kolaylaştırır ama belirleyici olan parçanın kendi geometrisidir.
+Belirleyici değerler şunlardır: dış hat ve yarıçaplar, vida deliği çapı ile merkez mesafesi, geçmeli kapaklarda tırnağın adımı ve esneme payı, contanın oturduğu kanal ve varsa uyarı simgesi alanı. Bu değerleri siz ölçerek sitedeki ölçü alanına yazarsınız; parça o ölçüde hazırlanır. Sökülemeyen bir kalemde ölçüyü alamıyorsanız servise başvurun. Marka ve model bilgisi işi kolaylaştırır.
 
 Bu makinelerde bir ayrıntı sık gözden kaçar: kapak ve muhafazaların çoğu titreşim taşır. Motor çalışırken gövde sürekli titrer ve kapağı tutan tırnak her saniye küçük bir hareket yapar. Bu yüzden tırnağın kalınlığını artırmak çözüm değildir; kalınlaşan tırnak esnemez, esnemeyen tırnak kırılır. Doğru çözüm esneme payını korumak ve tırnağın dibindeki köşe yarıçapını büyütmektir. Kırığın tam olarak nerede başladığına bakmak bu ayrıntıyı ölçü listesinde ayrıca yazmamızı sağlar.
 
@@ -18909,7 +18876,7 @@ Ekipte aynı modelden birden çok makine varsa hepsini tek listede toplamanız i
 
 _JSONLD_telefon_tutucu_ve_tablet_standi_plastik_parcasi_yaptirma = '<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Telefon Tutucu ve Tablet Standı Parçası Yaptırma","description":"Telefon tutucusu mafsal başı, kelepçe kolu ve tablet standı parçalarının katalog yolu, araç içi sıcaklıkta malzeme seçimi ve kapsam sınırı anlatılıyor.","url":"https://pruvo3d.com/telefon-tutucu-ve-tablet-standi-plastik-parcasi-yaptirma/","mainEntityOfPage":"https://pruvo3d.com/telefon-tutucu-ve-tablet-standi-plastik-parcasi-yaptirma/","inLanguage":"tr","publisher":{"@type":"Organization","name":"PRUVO","url":"https://pruvo3d.com/"}}</script>'
 def _telefon_tutucu_ve_tablet_standi_plastik_parcasi_yaptirma():
-    return _seo_md_to_html(u"""# Telefon Tutucu ve Tablet Standı Parçası Yaptırma
+    return _seo_md_to_html(u"""# Telefon Tutucu ve Tablet Standı: Katalogdaki Hazır Seçenekler
 
 Telefon tutucusu, tablet standı ve araç içi tutucuların kırılan yeri neredeyse her zaman aynıdır: mafsalın küresel başı ya da kelepçenin ince kolu. Gövde ve mıknatıs sağlam kalır, tutucu kullanılamaz hâle gelir; yedeği ise ayrı satılmaz. Aracın konsoluna sabitlenmiş bir tabanla birlikte gelen tutucularda durum daha da can sıkıcıdır: taban yerinde dururken üstteki kol kırılır ve yeni bir ürün almak tabanı da değiştirmeyi gerektirir.
 
@@ -19091,12 +19058,12 @@ def _tost_makinesi_parcasi_nereden_bulunur():
         "<p>Adım adım ilerleyin. Birincisi marka-model sayfası: <a href=\"/marka/\">marka sayfası</a> bütün markaları listeler, üreticinin tost makinesi kalemleri model bazında gruplanır. İkincisi katalog taraması: arama kutusuna yazdığınız kelime çıplak parça adına en yakın olmalıdır; \"tost makinesi kapağı\" yazmak yerine \"kilit kapağı\", \"mandal\" ya da \"kulp\" denemek sonuç getirir. Üçüncüsü ölçü seçimi: <a href=\"/kategori/olcuye-ozel-uretim/\">ölçüye özel üretim</a> kategorisinde kalemler ölçü alanlarıyla sipariş verilebilir.</p>"
         "<p>Üretimi durmuş cihazlar için <a href=\"/ureticisi-iflas-etmis-cihaz-icin-yedek-parca-yeniden-uretim/\">üreticisi iflas etmiş cihaz için yedek parça</a> ve <a href=\"/internet-pazarinda-bulunamayan-plastik-parca-yeniden-uretim/\">internet pazarında bulunamayan plastik parça</a> sayfaları ayrı bir yol gösterir.</p>"
         "<h2>Doğru malzeme</h2>"
-        "<p>Mandal, ağırlık taşıyan ve darbe gören kalemlerde tok davranış istenir; PETG bu dengeyi iyi kurar. Taban ayağı gibi sürekli ısıya yakın duran parçalarda ısıya dayanıklı sınıf tercih edilir; sınırlar <a href=\"/isiya-dayanikli-plastik-parca-uretimi/\">ısıya dayanıklı plastik parça üretimi</a> sayfasında yazılıdır. Kapak yüzeyinde gıda teması yoktur; yalnız kırıntı tutuşu açısından pürüzsüz bir yüzey tercih edilir.</p>"
+        "<p>Mandal, ağırlık taşıyan ve darbe gören kalemlerde tok davranış istenir; PETG bu dengeyi iyi kurar. Taban ayağı gibi sürekli ısıya yakın duran parçalarda ısıya dayanıklı sınıf tercih edilir; sınırlar <a href=\"/isiya-dayanikli-plastik-parca-uretimi/\">ısıya dayanıklı plastik parça üretimi</a> sayfasında yazılıdır. Kapak yüzeyinde gıda teması yoktur; yalnız kırıntı tutuşu açısından pürüzsüz bir yüzey tercih edilir. Ekmeğe doğrudan değen plaka ve ızgara yüzeyleri ise kapsam dışıdır.</p>"
         "<h2>Katalogda nasıl bulunur</h2>"
         "<p>Ana giriş noktası <a href=\"/kategori/ev/\">ev</a> kategorisidir. Hazır örnekler: <a href=\"/urun/th3971083-lavazza-8-ons-kahve-kutusu-kapagi/\">Lavazza kahve kutusu dişli bilezik ve kapağı</a>, <a href=\"/urun/banyo-vidali-kapakli-izgara-tabanli-kati-sampuan-ve-sabun-kutusu-pr59293/\">vidali kapaklı ızgara tabanlı kutu</a> ve <a href=\"/urun/c3d-tost-makinesi-bicimli-sd-kart-tutucu/\">tost makinesi biçimli SD kart tutucu</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-vidali-kavanoz-tapa/\">ölçüye özel vidalı kavanoz kapağı</a> ve <a href=\"/olcuye-ozel-plastik-buton-kapagi-ve-tus-uretimi/\">buton kapağı ve tuş</a> uygundur.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Isıtıcı plakaları, termostatları, kabloları ve elektrik devresini üretmiyoruz. Eski cihazların onarımı, başka bir alanın işidir; <a href=\"/antika-ve-eski-cihaz-parcasi-ozel-uretim/\">antika ve eski cihaz parçası</a> sayfası bu ayrımı ayrıntılı anlatır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Cihazın markası, modeli ve kırılan parçanın adı yeterlidir. Sitede olup olmadığını WhatsApp hattından <strong>sitede var mı</strong> diye sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -19119,7 +19086,7 @@ def _sac_kurutma_makinesi_parcasi_kirilinca_ne_yapilir():
         "<p>Arıza elektrik devresindeyse parça değişimi işe yaramaz. Cihazın fişini çekip parçanın hareket edip etmediğini ve ses çıkarıp çıkarmadığını kontrol etmek, ilk adımda zaman kazandırır. Cihaz ısınıp kokluyorsa ya da yanık kokusu varsa kullanımı bırakmak ve cihazı servise götürmek gerekir.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Isıtıcı elemanı, termostat, motor ve kablo demetini üretmiyoruz. Elektrikle temas eden hiçbir kalem bu kapsamda değildir. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Cihazın markası, modeli ve kırılan parçanın adı yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -19169,7 +19136,7 @@ def _termos_matara_kapagi_kayip_nereden_yaptirilir():
         "<p>Kapağı kaybolan şişe için, şişenin ağzına uyan bir kapağı kataloğdan bulmak çoğu zaman tek adetlik bir ürünle çözülür. Ağzı standart olmayan şişelerde ise ölçü seçilen kapak aileleri devreye girer; ağız çapını yazıp iletmek yeterlidir.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Şişenin metal gövdesini, sızdırmazlık valfini ve basınç yapısını üretmiyoruz. Kapak, valf olmayan bir modelde sızdırmazlığın tek adıdır; valfli modellerde ise valfin kendisi başka bir kalemdir. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Şişenin hacmi, ağzının dış çapı ve kapağın oturma biçimi yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -19190,7 +19157,7 @@ def _kahve_degirmeni_parcasi_uretimi_durmus_ne_yapilir():
         "<p>Üretimi durmuş cihazlar için <a href=\"/ureticisi-iflas-etmis-cihaz-icin-yedek-parca-yeniden-uretim/\">üreticisi iflas etmiş cihaz için yedek parça</a> sayfasına bakın. Eski cihazlar için <a href=\"/antika-el-yapimi-ev-aleti-kirik-parca-yeniden-uretim/\">antika ve el yapımı ev aleti</a> sayfası uygundur.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Değirmenin bıçağını, motorunu, kahve çekirdeği kırma dişlerini ve metal gövdesini üretmiyoruz. Bunlar mekanik ve metal işidir. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Cihazın markası, modeli ve kırılan parçanın adı yeterlidir. Sitede olup olmadığını WhatsApp hattından <strong>sitede var mı</strong> diye sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -19224,7 +19191,7 @@ def _arduino_raspberry_pi_proje_kutusu_uretimi():
 
 def _tirmanma_duvari_tutamagi_ozel_uretim():
     return (
-        "<h1>Tırmanma Duvarı Tutamağı Özel Üretim</h1>"
+        "<h1>Tırmanma Duvarı Tutamağı: Katalogdaki Hazır Seçenekler</h1>"
         "<p>Nasıl çalışır: PRUVO kataloğunda satılan hazır kalemleri marka, model ve kategori sayfalarından bulursunuz; seçtiğiniz ürünü kartla ödeyerek sipariş verirsiniz. Sitede ölçüsü seçilen ürün ailesinde ölçüyü siz yazarsınız, parça o ölçüde hazırlanır. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Tırmanma duvarı ve kaya duvarı tutamaklarının tasarımı üç şeye dayanır: parmakların tutunacağı kenarların keskinliği ve derinliği, avuç içinin rahatça oturduğu genişlik, ve parmağa binen yükün dağıldığı yüzey. Aynı tutamak farklı parmak kalınlığı için rahat ya da zor olabilir; bu yüzden ölçü seçimi bu işte belirleyicidir.</p>"
         "<p>PRUVO kataloğunda 41 binden fazla hazır 3D baskı parça var; oyun-hobi rafı bu iş için ana raftır. Elinizdeki eski parçayı fiziksel olarak alıp yeniden hazırlama hizmeti vermiyoruz; sitede ölçüsü seçilen kalemlerde ölçüyü siz yazarsınız.</p>"
@@ -19238,7 +19205,7 @@ def _tirmanma_duvari_tutamagi_ozel_uretim():
         "<p>Ana giriş noktası <a href=\"/kategori/oyun-hobi/\">oyun/hobi</a> kategorisidir. Hazır örnekler: <a href=\"/urun/pr275044-gopro-kayak-sopasi-montaji/\">GoPro kayak sopası montajı</a>, <a href=\"/urun/th7430184-yamaha-fz6r-tutamak-boslugu-kapatma-plakasi/\">Yamaha FZ6R tutamak boşluğu kapatma plakası</a> ve <a href=\"/urun/pr1857428-triumph-tiger-1200-gps-tutucu-tutamak/\">Triumph Tiger 1200 GPS tutucu ve tutamak</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüye özel montaj braketi</a> ile <a href=\"/urun/olcuye-ozel-kutu-organizer/\">ölçüye özel kutu ve organizer</a> uygundur.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Tırmanma duvarının panelini, vida ve dübel sistemini, emniyet halatını ve ankraj noktalarını üretmiyoruz. Bir tutamağın güvenliği, tek başına parçaya değil duvar sistemine bağlıdır; üreticinin belirttiği montaj şartları esas alınır. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Duvarın malzemesi, panel aralığı ve kaç parça gerektiği yazmanız yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -19246,7 +19213,7 @@ def _tirmanma_duvari_tutamagi_ozel_uretim():
 
 def _kisiye_ozel_evcil_hayvan_kunyesi_yaptirma():
     return (
-        "<h1>Kişiye Özel Evcil Hayvan Künyesi Yaptırma</h1>"
+        "<h1>Evcil Hayvan Künyesi ve Etiketi: Katalogdaki Seçenekler</h1>"
         "<p class=\"lead\">Evcil hayvan künyesi aslında işlevsel bir etikettir: kaybolan bir hayvanın size geri dönmesi için üzerinde iletişim bilgisi bulunur. Bu yüzden künyenin okunabilirliği, bağlantı halkasının sağlamlığı ve forma dayanıklılığı tasarımın ilk üç kuralıdır. Fotoğraf, isim ve telefon numarası tek bir parçada toplanır; hayvanın tüyü ya da derisiyle temas eden kısımlarda ise malzeme seçimi ayrıca düşünülür.</p>"
         "<p>PRUVO kataloğunda 41 binden fazla hazır 3D baskı parça var; ev kategorisi bu iş için uygundur. Kişiye özel işaretleme kalemleri için <a href=\"/kisiye-ozel-logolu-kase-yaptirma/\">kişiye özel logolu kase</a> sayfası örnek verir. Elinizdeki eski parçayı fiziksel olarak alıp yeniden hazırlama hizmeti vermiyoruz; sitede ölçüsü seçilen kalemlerde ölçüyü siz yazarsınız.</p>"
         "<h2>Künyede hangi bilgiler olmalı</h2>"
@@ -19261,7 +19228,7 @@ def _kisiye_ozel_evcil_hayvan_kunyesi_yaptirma():
         "<p>Künye, hayvanın hareketiyle sürekli sallanır ve tasma halkasına büyük kuvvet bindirir. Bu nedenle halka takılma noktasının gövdeye tam oturması, gövdenin ise tek bir noktada değil geniş bir alana dağıtılması gerekir. İlk sürümden sonra gevşeme olacaksa en zayıf nokta genellikle halka geçişidir.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kimlik kartı, pasaport ve veteriner kimlik belgeleri kapsamımızın dışındadır; bunlar resmî kurumların işidir. Bizim ürettiğimiz kalem, kimlik değil etikettir. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Hayvanın adı, iki iletişim numarası ve istenen takımın boyu yazmanız yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -19282,7 +19249,7 @@ def _yaga_ve_benzine_dayanikli_atolye_alet_tutucusu_ve_duvar_panosu_uretimi():
         "<p>Ana giriş noktaları <a href=\"/kategori/ofis/\">ofis</a>, <a href=\"/kategori/tamirat/\">tamirat</a> ve <a href=\"/kategori/ev/\">ev</a> kategorileridir. Hazır örnekler: <a href=\"/urun/canon-lp-e6-duvar-panosu-pil-tutucu-4lu/\">Canon LP-E6 pil tutucu duvar panosu</a>, <a href=\"/urun/th6417451-kawasaki-ninja-650-gosterge-panosu-dugme-kapagi/\">Kawasaki Ninja 650 gösterge panosu düğme kapağı</a> ve <a href=\"/urun/masaustu-mengene-kelepceli/\">masaya kelepçeli mini mengene</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-petek-delikli-panel/\">ölçüye özel petek ve delikli panel</a> ile <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüye özel montaj braketi</a> yararlıdır.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Aletlerin kendisini, tezgâhı, raf metalini ve duvar tesisatını üretmiyoruz. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Panelin genişliği, duvarın malzemesi ve kaç alet sığacağı yazmanız yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -19306,7 +19273,7 @@ def _dis_mekanda_catlamayan_bahce_saksisi_tekerlekli_taban_plakasi_uretimi():
 <p>Sitede ölçüsü seçilen seçeneklerden <a href="/urun/olcuye-ozel-saksi-vazo/">saksi ve vazo</a>, <a href="/urun/olcuye-ozel-kutu-organizer/">kutu ve organizer</a> ve <a href="/urun/olcuye-ozel-montaj-braketi/">montaj braketi</a> bu aileden örneklerdir. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>
 <h2>Dürüst sınır</h2>
 <p>Taban plakası ve tekerlekli taban, saksıyı zeminden yalıtan ve kolay taşınmasını sağlayan bir destek parçasıdır; ağır beton ya da büyük taş saksılar için sürekli yük taşıyan endüstriyel tekerlek sisteminin yerini almaz. Çok ağır ve neredeyse hiç kalkmayacak büyük saksılarda tekerlek yerine sabit ayaklı bir taban daha uygundur. Sürekli sürtünen, ağır yük altında dönen tekerlek göbeğinin zamanla aşınacağı da baştan söylenir; bu bir üretim kusuru değil, hareketli mekanik parçaların doğal ömrüdür.</p>
-<p>Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>
+<p>Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; """ + AYIP_HAKLARI_CUMLESI + """</p>
 <h2>Sipariş ve iletişim</h2>
 <p>Parçayı sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup malzeme ve renk seçimini yaparak siparişi tamamlarsınız. Bulamazsanız WhatsApp hattımız <a href="https://wa.me/905451386526" target="_blank" rel="noopener"><strong>+90 545 138 6526</strong></a> üzerinden yalnız sitede var mı diye yazın; saksının konumu ve taşınma sıklığı malzeme sınıfının seçiminde belirleyicidir.</p>""")
 
@@ -19314,7 +19281,7 @@ def _dis_mekanda_catlamayan_bahce_saksisi_tekerlekli_taban_plakasi_uretimi():
 
 def _olcuye_ozel_vida_basi_gizleme_kapagi_uretimi():
     return (
-        "<h1>Ölçüye Özel Vida Başı Gizleme Kapakları Üretimi</h1>"
+        "<h1>Vida Başı Gizleme Kapakları: Sitede Ölçüsü Seçilen Seçenekler</h1>"
         "<p>Nasıl çalışır: PRUVO kataloğunda satılan hazır kalemleri marka, model ve kategori sayfalarından bulursunuz; seçtiğiniz ürünü kartla ödeyerek sipariş verirsiniz. Sitede ölçüsü seçilen ürün ailesinde ölçüyü siz yazarsınız, parça o ölçüde hazırlanır. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Vida başı gizleme kapağı, vida başının görünür yüzeyleri kapatır ve bir yüzeyin temiz görünmesini sağlar. Taban mobilya, kaplama, elektrik tesisatı ve aksesuar montajlarında kullanılır. Kapağın görevi basit görünür ama üç ayrı koşulu aynı anda sağlaması gerekir: vida başına tam oturması, çıkarılabilir olması ve çevresinde kalan yüzeyle aynı seviyede bitmesi.</p>"
         "<p>PRUVO kataloğunda 41 binden fazla hazır 3D baskı parça var; vida ve bağlantı elemanları ailesi için <a href=\"/kategori/olcuye-ozel-uretim/\">ölçüye özel üretim</a> kategorisi ayrılmıştır. Elinizdeki eski parçayı fiziksel olarak alıp yeniden hazırlama hizmeti vermiyoruz; ölçüyü siz yazarsınız.</p>"
@@ -19330,7 +19297,7 @@ def _olcuye_ozel_vida_basi_gizleme_kapagi_uretimi():
         "<p>Görünür yüzeylerde kapağın rengi, çevresindeki yüzeyle uyumlu seçilir; koyu tonlar çoğu mobilya ve kaplamada daha az dikkat çeker. Parlak yüzeyli kapaklarda mat kapağın, mat yüzeylerde hafif parlak kapağın tercih edilmesi de yaygın bir uygulamadır.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Vidanın kendisini ve bağlantı elemanlarını üretmiyoruz; kapağın işi yalnız bitirmeli görünüm ve montaj kolaylığı sağlamaktır. Yük taşıyan bağlantı noktalarında kapağa güvenilmez; kapağın altındaki vida taşıyıcıdır. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Vida başının çapı ve yüksekliği ile kaç adet gerektiği yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -19338,7 +19305,7 @@ def _olcuye_ozel_vida_basi_gizleme_kapagi_uretimi():
 
 def _olcuye_ozel_plastik_kablo_giris_rakoru_uretimi():
     return (
-        "<h1>Ölçüye Özel Plastik Kablo Giriş Rakoru Üretimi</h1>"
+        "<h1>Plastik Kablo Giriş Rakoru: Sitede Ölçüsü Seçilen Seçenekler</h1>"
         "<p>Nasıl çalışır: PRUVO kataloğunda satılan hazır kalemleri marka, model ve kategori sayfalarından bulursunuz; seçtiğiniz ürünü kartla ödeyerek sipariş verirsiniz. Sitede ölçüsü seçilen ürün ailesinde ölçüyü siz yazarsınız, parça o ölçüde hazırlanır. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Kablo giriş rakoru, bir kablonun bir duvardan, bir kabinden ya da bir cihaz gövdesinden geçerken açılan deliği kapatır. Buradaki kalem küçük görünür ama üç şeyi bir arada tutar: kablonun hareketini sınırlar, deliğin kenarına bastığı yerde su ve toz geçmez, ve çekme kuvvetinde kabloyu bırakmaz. Bu yüzden parçanın iç çapı ile kablonun çapı arasındaki uyum kritiktir.</p>"
         "<p>PRUVO kataloğunda 41 binden fazla hazır 3D baskı parça var; donanım ve tesisat kalemleri için <a href=\"/kategori/olcuye-ozel-uretim/\">ölçüye özel üretim</a> kategorisi ayrılmıştır. Elinizdeki eski parçayı fiziksel olarak alıp yeniden hazırlama hizmeti vermiyoruz; ölçüyü siz yazarsınız.</p>"
@@ -19355,7 +19322,7 @@ def _olcuye_ozel_plastik_kablo_giris_rakoru_uretimi():
         "<p>İkinci ayrıntı, kablo hareketi. Rakor kablonun titreşimle hareket ettiği noktalarda kullanılır; hareketin olduğu yerde kablonun gövdeye temas etmemesi gerekir, aksi halde zamanla yalıtkan örtü aşınır. Bu yüzden kısa ve esnek kablo bölümü bırakmak, uzun ve sabit kablo bırakmaktan daha doğrudur. Sızdırmazlık sınıfı belirtilen bir uygulamada dış mekân sınıfının seçilmesi gerekir; <a href=\"/uv-gunes-dayanikli-dis-mekan-plastik-parca-uretimi/\">UV ve güneşe dayanıklı dış mekân plastik parça üretimi</a> sayfası bu seçimi gerekçelendirir.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kabloyu, klemensi ve elektrik devresini üretmiyoruz. Rakorun taşıdığı yük sadece kablonun kendi ağırlığı ve hareketidir; yüksek gerilim ya da güvenlik sınırlarıyla ilgili her kalem kapsam dışıdır. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Kablonun dış çapı, geçiş deliğinin çapı ve montaj biçimi yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -19363,7 +19330,7 @@ def _olcuye_ozel_plastik_kablo_giris_rakoru_uretimi():
 
 def _olcuye_ozel_plastik_amortisor_pistonu_uretimi():
     return (
-        "<h1>Amortisör Çevresi Plastik Parçaları: Sitede Ölçüsü Seçilen Seçenekler</h1>"
+        "<h1>Plastik Amortisör Pistonu ve Aksam: Sitede Ölçüsü Seçilen Seçenekler</h1>"
         "<p class=\"lead\">Amortisörün hidrolik pistonu, hareket sırasında yağ basıncını taşıyan ve aşınmaya dirençli olması gereken bir parçadır. Bu kalem plastikten hazırlanmış bir gövdeyle değiştirilemez; hidrolik yükü ve aşınmayı taşıyacak bir malzeme ve sızdırmaz bir işleme gerekir. Bu yüzden bizim ürettiğimiz kalem amortisörün kendisi değil, onun çevresindeki plastiktir.</p>"
         "<p>PRUVO kataloğunda 41 binden fazla hazır 3D baskı parça var; otomobil ve motosiklet rafları bu kalemler için doludur. Eski parçayı fiziksel olarak alıp yeniden hazırlama işi yapmıyoruz; sitede ölçüsü seçilen kalemlerde ölçüyü siz yazarsınız.</p>"
         "<h2>Amortisörün çevresindeki plastik kalemler</h2>"
@@ -19379,7 +19346,7 @@ def _olcuye_ozel_plastik_amortisor_pistonu_uretimi():
         "<p>Pratik ayrım şudur: yükü başka bir elemana aktaran kalemler plastik olabilir, yükü kendisi taşıyan kalemler olamaz. Araçta en sık değişen kalem toz kapağıdır; kapağın aşınması görsel bir sorun değil, su ve çamurun amortisör miline ulaşmasının başlangıcıdır. Kapağın çapı ve geçme derinliği doğru seçilmezse kısa sürede yine arıza verir. Genel süspansiyon yaklaşımını <a href=\"/olcuye-ozel-plastik-amortisor-baglanti-parcasi-uretimi/\">amortisör bağlantı parçası</a> sayfasında anlattık.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Amortisörün hidrolik pistonunu, silindir gövdesini, yayını ve conta setini üretmiyoruz. Bunlar hidrolik ve metal işidir. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Araç markası, modeli ve hangi kalemin değişeceği yazmanız yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -19387,7 +19354,7 @@ def _olcuye_ozel_plastik_amortisor_pistonu_uretimi():
 
 def _olcuye_ozel_plastik_yatak_blogu_uretimi():
     return (
-        "<h1>Ölçüye Özel Plastik Yatak Bloğu Üretimi</h1>"
+        "<h1>Plastik Yatak Bloğu ve Kızak: Sitede Ölçüsü Seçilen Seçenekler</h1>"
         "<p>Nasıl çalışır: PRUVO kataloğunda satılan hazır kalemleri marka, model ve kategori sayfalarından bulursunuz; seçtiğiniz ürünü kartla ödeyerek sipariş verirsiniz. Sitede ölçüsü seçilen ürün ailesinde ölçüyü siz yazarsınız, parça o ölçüde hazırlanır. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Yatak bloğu, doğrusal bir hareketin taşıyıcı ray üzerinde kaldığı parçadır. Kırılan ya da aşınan blok, hareketin hem pürüzlü hem de eksik olması demektir: eksik yönde bir kayma, aşınan yönde ise sürtünme ve titreşim. Blokların görevi ağırlık taşımaktan çok hareketi düzgün tutmaktır; bu yüzden tasarımda dayanımdan önce uyum ve sürtünme önem taşır.</p>"
         "<p>PRUVO kataloğunda 41 binden fazla hazır 3D baskı parça var; robotik ve eğitim setleri için <a href=\"/kategori/olcuye-ozel-uretim/\">ölçüye özel üretim</a> kategorisi ayrılmıştır. Elinizdeki eski parçayı fiziksel olarak alıp yeniden hazırlama hizmeti vermiyoruz; ölçüyü siz yazarsınız.</p>"
@@ -19401,7 +19368,7 @@ def _olcuye_ozel_plastik_yatak_blogu_uretimi():
         "<p>Ana giriş noktaları <a href=\"/kategori/elektronik/\">elektronik</a>, <a href=\"/kategori/oyun-hobi/\">oyun/hobi</a> ve <a href=\"/kategori/ofis/\">ofis</a> kategorileridir. Hazır örnekler: <a href=\"/urun/pr642775-anycubic-kobra-2-pro-yatak-hizalama-kapagi/\">Anycubic Kobra 2 Pro yatak hizalama kapağı</a>, <a href=\"/urun/th3145976-anycubic-i3-mega-yatak-ayar-dugmesi/\">Anycubic i3 Mega yatak ayar düğmesi</a> ve <a href=\"/urun/oyun-donen-tekerlekli-zar-rulmanli-miknatisli-pr68835/\">dönen tekerlekli rulmanlı mıknatıslı zar</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-rulman/\">ölçüye özel rulman</a>, <a href=\"/urun/olcuye-ozel-profil-beam/\">ölçüye özel profil ve kiriş</a> ile <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüye özel montaj braketi</a> uygundur.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Rayı, lineer kızak yatağını, kuvveti taşıyan metal parçaları ve tahrik mekanizmasını üretmiyoruz. Hassas hareket gerektiren uygulamalarda plastik bloğun toleransı belirleyicidir; bu yüzden ölçü toleransı yüksek istenen yerlerde doğru sınıf seçilir, ancak metal bir bloğun yerine plastik bir blok önermeyiz. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Ray genişliği, hareket yükü ve bloğun bağlandığı parça bilgisi yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -19409,7 +19376,7 @@ def _olcuye_ozel_plastik_yatak_blogu_uretimi():
 
 def _olcuye_ozel_plastik_boru_kayis_baglantisi_uretimi():
     return (
-        "<h1>Boru Kayış Bağlantısı: Sitede Ölçüsü Seçilen Parçalar</h1>"
+        "<h1>Plastik Boru Kayış Bağlantısı: Sitede Ölçüsü Seçilen Seçenekler</h1>"
         "<p class=\"lead\">Boru kelepçesi, bir boruyu bir yere bağlamanın en sık kullanılan yoludur ve iki işi bir arada yapar: boruyu tutmak ve bir yükü dağıtmak. Kayışlı tipi ise ek olarak bağlantıyı sökmeden ayırma imkânı verir. Bu tip bağlantılarda kritik nokta, kelepçenin iç açıklığının boru çapıyla uyumu ve kayışın sıkılık ayarının doğru yapılmasıdır; fazla sıkılan kayış boruyu ovalleştirip kırılabilir.</p>"
         "<p>PRUVO kataloğunda 41 binden fazla hazır 3D baskı parça var; kelepçe ve bağlantı ailesi <a href=\"/kategori/olcuye-ozel-uretim/\">sitede ölçüsü seçilen ürünler</a> kategorisi katalogdadır. Elinizdeki eski parçayı fiziksel olarak alıp yeniden hazırlama hizmeti vermiyoruz; ölçüyü siz yazarsınız.</p>"
         "<h2>Ölçü ve uyum</h2>"
@@ -19424,7 +19391,7 @@ def _olcuye_ozel_plastik_boru_kayis_baglantisi_uretimi():
         "<p>Kelepçe montajı sonrası borunun içinde sıkma payı bırakılmalıdır. Aşırı sıkılan kelepçe, borunun iç çapını daraltarak akışı ve basıncı değiştirebilir; özellikle esnek borularda ovalleşme en sık görülen hasardır. Sıkılık, boruya dokunulduğunda hafifçe içeri gömülecek kadar olmalıdır.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kelepçenin taşıyacağı yükü taşıyan boruyu, duvar braketini ve ankraj elemanlarını üretmiyoruz. Boru kelepçesi boruyu tutar, borunun kendi ağırlığını taşıyan asıl destek başka bir yerdedir; bu ayrım montaj planında net olmalıdır. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parcalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Borunun dış çapı, et kalınlığı ve taşınacak yük bilgisi yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -19471,7 +19438,7 @@ def _akilli_tarim_ve_dikey_ciftlik_ekipmani_plastik_parca_uretimi():
         "<li>Hobi ve küçük ölçekli üretim: <a href=\"/kategori/oyun-hobi/\">oyun ve hobi kategorisi</a>.</li>"
         "<li>Sitede ölçüsü seçilen parçalar: <a href=\"/kategori/olcuye-ozel-uretim/\">ölçüye özel üretim kategorisi</a>.</li></ul><h2>Doğru malzeme</h2>"
         "<p>Kapalı ortam tarımı plastik elemanları için nem direnci yüksek malzeme önerilir. Hafif ve nem almayan düşük yoğunluklu poliamid (PA) hidroponik kanal bağlantıları için uygundur; daha yüksek mekanik dayanım istendiğinde cam fiber takviyeli PA-GF sınıfına çıkılır. Dış mekan etkisi olan seralarda UV stabilize çeşitler tercih edilir; renk solmasını ve yüzey çatlamasını geciktirir. Nemli ortamda boyut kararlılığı önemli olduğunda düşük nem alan PA sınıfları seçilir; ayrıntı <a href=\"/nemli-ortamda-boyut-kararli-plastik-parca-uretimi/\">nemli ortamda boyut kararlı parça</a> sayfasındadır.</p>"
-        "<p>Gıda teması olan besleme hatlarında <a href=\"/gida-temasina-uygun-plastik-parca-uretimi/\">gıda temasına uygun plastik parça</a> bilgisi temel alınır. Akım taşıyan parça üretilmez; sensör muhafazası yalıtkan gövde olarak kalır. Kapalı ortam tarımı genelde 18-28 santigrat derece arasında çalışır; bu aralıkta standart plastikler yeterlidir.</p>"
+        "<p>Gıda teması olan besleme hatlarında <a href=\"/gida-temasina-uygun-plastik-parca-uretimi/\">gıda temasına uygun plastik parça</a> bilgisi temel alınır; gıda sertifikası gerektiren parça kapsam dışıdır. Akım taşıyan parça üretilmez; sensör muhafazası yalıtkan gövde olarak kalır. Kapalı ortam tarımı genelde 18-28 santigrat derece arasında çalışır; bu aralıkta standart plastikler yeterlidir.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Sürekli güneş altında kalan bir sensör muhafazasının ömrü malzemeye göre değişir; UV stabilize ASA için birkaç yıllık dış mekan ömrü beklenir, daha uzun süre için metal muhafaza düşünülmelidir. Yüksek basınçlı hidroponik hatlarda plastik bağlantı elemanının ömrü kısalır; bu koşullarda metal bağlantı önerilir. Çok yüksek klor ya da dezenfektan teması olan ortamlarda malzeme seçimi sıkılaşır.</p>"
         "<p>İkinci sınır: yüksek yoğunluklu bitki aydınlatma sistemlerinin yakınında plastik parça ısınabilir; bu durumda ısı dayanımı yüksek sınıf ya da metal gövde gerekir. Üçüncü sınır: açık tarla koşullarında çalışan sensör muhafazasında koruma sınıfı en az IP65 olmalıdır; daha düşük sınıf yağmur ve toz geçirir. Topraksız tarımda kullanılan asidik ya da bazik çözeltilerin temas ettiği parçalarda uygunluk ayrıca değerlendirilir.</p>"
@@ -19501,7 +19468,7 @@ def _plastik_parca_siparisinin_ilk_adimi_nedir():
         "<p>Sık yapılan hatalar genellikle ölçü biriminde ve kapsam belirtmemektedir. Ölçüyü milimetre cinsinden yazmak, ürününüzü katalogdaki kalemle eşleştirmenizi kolaylaştırır. Parçanın yük taşıyıp taşımadığını belirtmek de önemlidir; kapsam dışı bir istek ilk adımda tespit edilirse iş beklemeden durur. Ayrıntılı liste için <a href=\"/ozel-uretim-parca-siparisinde-en-cok-yapilan-hatalar/\">özel üretim parça siparişinde en çok yapılan hatalar</a> sayfasına bakabilirsiniz.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Hazır kalemlerde katalog fiyatı geçerlidir; parça başına ayrı bir fiyat hazırlanmaz. Sitede ölçüsü seçilen ailedeki kalemlerin fiyatı malzeme ve hacme göre hesaplanır; <a href=\"/ozel-parca-uretimi-fiyati-nasil-belirlenir/\">özel üretim parça fiyatı nasıl belirlenir</a> sayfasında bu düzen açıklanır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Kararsız kaldığınız noktalarda WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>. Sitede olup olmadığını <strong>sitede var mı</strong> diye sormak yeterli; sitede varsa adresini paylaşırız.</p>"
     )
@@ -19509,7 +19476,7 @@ def _plastik_parca_siparisinin_ilk_adimi_nedir():
 
 def _yurt_disina_ozel_plastik_parca_gonderiyor_musunuz():
     return (
-        "<h1>Yurt Dışına Özel Plastik Parça Gönderiyor musunuz?</h1>"
+        "<h1>Yurt Dışına Plastik Parça Gönderiyor musunuz?</h1>"
         "<p>Nasıl çalışır: PRUVO kataloğunda satılan hazır kalemleri marka, model ve kategori sayfalarından bulursunuz; seçtiğiniz ürünü kartla ödeyerek sipariş verirsiniz. Sitede ölçüsü seçilen ürün ailesinde ölçüyü siz yazarsınız, parça o ölçüde hazırlanır. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Evet, uluslararası kargo seçenekleriyle gönderim yapılabiliyor. Ancak yurt dışı siparişlerde sorulan soru genellikle asıl meseleyi gizler: parça neden ithal edilmek zorunda? Yurt dışından gelen bir parça haftalar sürer, gümrük ve taşıma belirsizlik yaratır, eski bir seride ise hiç bulunamaz. PRUVO kataloğunda 41 binden fazla hazır 3D baskı parça var ve bunların büyük bölümü yerinde hazırlanıp yola çıkar.</p>"
         "<p>Yani çoğu durumda bekleme sorusunun cevabı ithal parça beklemek değil, katalogdaki hazır eşleşmeyi bulmaktır.</p>"
@@ -19528,7 +19495,7 @@ def _yurt_disina_ozel_plastik_parca_gonderiyor_musunuz():
         "<h2>Gönderim öncesi kontrol</h2>"
         "<p>Sipariş öncesinde üç şey netleşmiş olmalıdır: hedef ülkeye gönderim yapılabiliyor mu, ürünün kargo firmasının kabul ettiği boyut ve ağırlık sınırları içinde mi, ve gümrük evrakı için faturada ürün tanımı doğru yazılıyor mu. Bu üçü sorulmadan verilen siparişlerde gecikmeler çıkabilir. Acil durumlarda hızlı teslim seçenekleri için <a href=\"/ozel-uretim-siparisinde-hizli-acil-teslim-mumkun-mu/\">hızlı acil teslim</a> sayfasındaki yönlendirme geçerlidir.</p>"
         "<h2>Dürüst sınır</h2>"
-        "<p>Yurt dışı gönderim, yurt içi sürecin aynısıdır; ek olarak kargo ve gümrük aşaması vardır. Gümrük evrakı, ithalat vergisi ve hedef ülkenin kendi mevzuatı alıcının sorumluluğundadır. Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Yurt dışı gönderim, yurt içi sürecin aynısıdır; ek olarak kargo ve gümrük aşaması vardır. Gümrük evrakı, ithalat vergisi ve hedef ülkenin kendi mevzuatı alıcının sorumluluğundadır. Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçanın adı, hedef ülke ve şehir bilgisi yeterlidir. Sitede olup olmadığını WhatsApp hattından <strong>sitede var mı</strong> diye sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -19552,7 +19519,7 @@ def _plastik_parca_otoklav_sterilizasyonuna_dayanir_mi():
         "<p>İki ayrımı daha netleştirmek işe yarar. Birincisi, sterilizasyon ile dezenfeksiyon farklıdır: biri kalıntı bırakmaz, diğeri bırakabilir; bu yüzden sizin uygulamanızın hangisini gerektirdiği baştan belirlenir. İkincisi, tek kullanımlık malzeme ile yeniden kullanılan malzeme arasındaki farktır; yeniden kullanılacak kalemlerin yüzey durumu döngü sayısıyla birlikte değerlendirilir. Isı tavanının kaynağı ve sınırları <a href=\"/plastik-parca-kac-dereceye-dayanir/\">plastik parça kaç dereceye dayanır</a> sayfasında yazılıdır.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Sertifikalı tıbbi cihaz üreticisi değiliz. Hastanın ağzına giren, dokuya doğrudan temas eden, invaziv işlev gören ya da sertifikalı bir sınıfa giren hiçbir bileşen kapsamımızın dışındadır. Otoklav uyumlu bir parça için sertifika beyanı verilmez ve üretim önermeyiz. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçanın kullanılacağı ortam, temizlik yöntemi ve sıcaklık bilgisi yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -19575,7 +19542,7 @@ def _plastik_parca_elektrik_arkina_dayanikli_mi():
         "<p>Elektrik tesisatında güvenliğin yolu, ark riskini tasarımla azaltmaktır: yalıtkanlığı değil, ark oluşmayacak mesafeyi ve doğru yüzey malzemesini doğru seçmektir. Bu, elektrik projesinin konusudur; bizim rolümüz ise çevresindeki kablo düzeni parçalarını doğru malzemeyle hazırlamaktır.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Pano kutusu, klemens, sigorta yuvası ve şalter gövdesi gibi ark riski taşıyan kalemleri üretmiyoruz. Yalıtkan bir parçanın güvenlik sınıfı belgesi verilmez; üretilen parça tasarımın bir parçasıdır, sertifikasyonun değil. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçanın tesisattaki yeri ve çalışma gerilimi bilgisi yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -19583,7 +19550,7 @@ def _plastik_parca_elektrik_arkina_dayanikli_mi():
 
 def _olcuye_ozel_plastik_basinc_rolesi_muhafazasi_uretimi():
     return (
-        "<h1>Basınç Rölesi Muhafazası: Sitede Ölçüsü Seçilen Seçenekler</h1>"
+        "<h1>Plastik Basınç Rölesi Muhafazası: Sitede Ölçüsü Seçilen Seçenekler</h1>"
         "<p class=\"lead\">Basınç rölesi, bir sistemdeki basıncı algılayan ve eşik değere göre kontak açıp kapatan bir cihazdır. Cihazın kendisi metal gövdeli, contalı ve diyaframlı bir üründür; bizim hazırlayacağımız kalem onun dışında kalan muhafaza, tutucu ve bağlantı parçalarıdır. Kapalı bir basınç gövdesi yapmak ise kapsamımızın dışındadır ve bunu açıkça söyleriz.</p>"
         "<p>Piyasadaki hazır muhafazalar sınırlı çap ve bağlantı ölçüsünde gelir; kendi sisteminize uyan bir parçayı bulmak zor olabilir. Elinizdeki rölesi fiziksel olarak alıp yeni bir muhafaza hazırlama işi yapmıyoruz; yol katalogdaki hazır parçalardan ve sitede ölçüsü seçilen kalemlerden geçiyor. Ölçüye özel muhafaza, kablonun çıkışına, montaj deliğine ve cihazın oturduğu yüzeye uyacak biçimde hazırlanır.</p>"
         "<h2>Ölçü olarak neler gerekir</h2>"
@@ -19599,7 +19566,7 @@ def _olcuye_ozel_plastik_basinc_rolesi_muhafazasi_uretimi():
         "<p>Muhafaza, rölesin üzerine oturduğu yüzeye tam oturmalı; aralarda kalan boşluk, titreşim zamanında rölesin yuvada oynamasına ve kablo çıkışının gerilmesine yol açar. Montaj sonrası kablonun kendi ağırlığıyla asılı kalması, kablo çıkışının doğru yönde olduğunun pratik bir göstergesidir.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Rölesin metal gövdesini, diyaframını, contasını ve elektrik anahtarını üretmiyoruz. Basınç hattına dâhil olan her kalem metalten ve sertifikalı ekipmandan gelmelidir. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Rölesin çapı, kablo çıkış ölçüsü ve montaj biçimi bilgisi yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -19680,7 +19647,7 @@ Sitede ölçüsü seçilen seçeneklerden <a href="/urun/olcuye-ozel-kulp-tutama
 
 Ahşap parçanın tamamen plastik muadili isteniyorsa dayanım ve esneklik farkı beklentinin önüne geçer: plastik ahşap kadar esnek değildir, yük altında farklı davranır ve yüksek darbe beklenen uygulamalarda çatlayabilir. Bu sınır değerleri <a href="/darbeye-dayanikli-plastik-parca-yaptirma/">darbeye dayanıklı parça</a> sayfasında yazılıdır. Taşıyıcı mobilya ağacı ve yapısal bağlantı kapsam dışıdır. Kapalı iç mekân için sıfır ile kırk santigrat derece aralığı yeterlidir; pencere kenarında duran mobilyalarda ultraviyole ışığa dayanıklı sınıf gerekir.
 
-Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.
+Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; """ + AYIP_HAKLARI_CUMLESI + """
 
 ## Sipariş ve iletişim
 
@@ -19711,7 +19678,7 @@ Sitede ölçüsü seçilen seçeneklerden <a href="/urun/olcuye-ozel-montaj-brak
 
 Yüksek basınç altında çalışan parçalarda ve patlayıcı ortamlarda plastik gövde tek başına yetmez; güvenlik kritik kalemlerde sertifikalı orijinal parça kullanılmalıdır. Yüksek hassasiyet gerektiren ölçüler kapsam dışıdır.
 
-Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.
+Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; """ + AYIP_HAKLARI_CUMLESI + """
 
 ## Sipariş ve iletişim
 
@@ -19798,7 +19765,7 @@ Sitede ölçüsü seçilen seçeneklerden <a href="/urun/olcuye-ozel-rulman/">ru
 
 Yüksek basınç altında çalışan hidrolik ya da pnömatik parçalarda plastik gövde tek başına yetmez; metal ya da metal-polimer hibrit bir çözüm gerekir. Patlayıcı ortam ve güvenlik kritik parçalar kapsam dışıdır. Yüksek devirde dönen parçaların plastikten hazırlanması sınırlıdır. Çok eski bir makinede kırılan parçanın yanında çevresindeki parçalar da yıpranmış olabilir; makinenin genel durumu sipariş öncesinde değerlendirilir.
 
-Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.
+Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; """ + AYIP_HAKLARI_CUMLESI + """
 
 ## Sipariş ve iletişim
 
@@ -19835,7 +19802,7 @@ Sitede ölçüsü seçilen seçeneklerden <a href="/urun/olcuye-ozel-kulp-tutama
 
 Yüksek sıcaklık teması olan bölgelerde, ütü tabanı çevresinde olduğu gibi, plastik parçanın ömrü kısalır; bu koşulda doğru çözüm metal bir parçadır. Elektriksel bağlantı yapan modüllerde yalıtım mesafesi hesabı bu işin kapsamı dışındadır. Gıda teması olan haznelerde uygun polimer sınıfı gerekir; bu tür kalemler <a href="/gida-temasina-uygun-plastik-parca-uretimi/">gıda temasına uygun parça</a> sayfasında anlatılır.
 
-Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.
+Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; """ + AYIP_HAKLARI_CUMLESI + """
 
 ## Sipariş ve iletişim
 
@@ -19844,7 +19811,7 @@ Parçayı sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup 
 
 
 def _ureticisi_iflas_etmis_cihaz_icin_yedek_parca_yeniden_uretim():
-    return _seo_md_to_html(u"""# Üreticisi iflas etmiş cihaz için yedek parça yeniden üretimi
+    return _seo_md_to_html(u"""# Üreticisi İflas Etmiş Cihaz İçin Yedek Parça
 
 Cihazınız çalışıyor olabilir; ama markası yıllar önce iflas etmiş, tasfiye olmuş ya da faaliyetini durdurmuş olabilir. Yedek parça stoğu tükenmiş, yetkili servis artık hizmet vermiyor. Bu durumda en çok sorulan soru şu: "Marka ortadan kalktıysa bu parça nasıl bulunur?"
 
@@ -19876,7 +19843,7 @@ Malzeme seçimi çalışma koşuluna göre yapılır. Standart iç mekân parça
 
 ## Katalogda nasıl bulunur
 
-Ana giriş noktaları <a href="/kategori/tamirat/">tamirat</a>, <a href="/kategori/elektronik/">elektronik</a> ve <a href="/kategori/ev/">ev</a> kategorileridir. Marka tarafında <a href="/marka/">marka sayfası</a> bütün markaları listeler; <a href="/marka/bosch/">Bosch</a>, <a href="/marka/philips/">Philips</a>, <a href="/marka/miele/">Miele</a>, <a href="/marka/panasonic/">Panasonic</a>, <a href="/marka/kenwood/">Kenwood</a> ve <a href="/marka/motorola/">Motorola</a> sayfaları cihaz eşleşmesinde işe yarar. Hazır örnekler: <a href="/urun/th969784-miele-bulasik-makinesi-sepet-tekerlegi/">Miele bulaşık makinesi sepet tekerleği</a>, <a href="/urun/respiratortip-210-filtre-kapak/">filtre kapağı</a> ve <a href="/urun/sac-kurutma-makinesi-fan-pervanesi-60mm-7-kanat/">saç kurutma makinesi fan pervanesi</a>. Ölçüye özel ailede <a href="/kategori/olcuye-ozel-uretim/">Ölçüye Özel Üretim</a> kategorisi altında <a href="/olcuye-ozel-koruma-kapagi-muhafaza-uretimi/">koruma kapağı ve muhafaza</a>, <a href="/olcuye-ozel-plastik-kilit-karsiligi-ve-dil-yuvasi-uretimi/">kilit karşılığı ve dil yuvası</a> ve <a href="/olcuye-ozel-mentese-uretimi/">menteşe</a> yer alır.
+Ana giriş noktaları <a href="/kategori/tamirat/">tamirat</a>, <a href="/kategori/elektronik/">elektronik</a> ve <a href="/kategori/ev/">ev</a> kategorileridir. Marka tarafında <a href="/marka/">marka sayfası</a> bütün markaları listeler; <a href="/marka/bosch/">Bosch</a>, <a href="/marka/philips/">Philips</a>, <a href="/marka/miele/">Miele</a>, <a href="/marka/panasonic/">Panasonic</a>, <a href="/marka/kenwood/">Kenwood</a> ve <a href="/marka/motorola/">Motorola</a> sayfaları cihaz eşleşmesinde işe yarar. Hazır örnekler: <a href="/urun/respiratortip-210-filtre-kapak/">filtre kapağı</a> ve <a href="/urun/sac-kurutma-makinesi-fan-pervanesi-60mm-7-kanat/">saç kurutma makinesi fan pervanesi</a>. Ölçüye özel ailede <a href="/kategori/olcuye-ozel-uretim/">Ölçüye Özel Üretim</a> kategorisi altında <a href="/olcuye-ozel-koruma-kapagi-muhafaza-uretimi/">koruma kapağı ve muhafaza</a>, <a href="/olcuye-ozel-plastik-kilit-karsiligi-ve-dil-yuvasi-uretimi/">kilit karşılığı ve dil yuvası</a> ve <a href="/olcuye-ozel-mentese-uretimi/">menteşe</a> yer alır.
 
 ## Dürüst sınır
 
@@ -19918,7 +19885,7 @@ Sitede ölçüsü seçilen seçeneklerden <a href="/urun/olcuye-ozel-kulp-tutama
 
 Tüplü televizyon arka paneli gibi yüksek sıcaklık bölgelerinde plastik parçanın ömrü kısalır; doğru çözüm metal ya da metal-polimer hibrit bir parçadır. Eski cihazlarda bağlantı toleransları yıllar içinde esnemiş olabilir; katalogdaki standart kalem eski mekanik aksamla birebir uyum sağlamayabilir. Akım taşıyan parça hazırlanmaz; cihaz parçaları yalıtkan gövde, düğme ya da mekanik destek elemanı olarak kalır. Isı tarafında pratik tavan malzeme sınıfına göre 90-100 santigrat derecedir.
 
-Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.
+Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; """ + AYIP_HAKLARI_CUMLESI + """
 
 ## Sipariş ve iletişim
 
@@ -19927,7 +19894,7 @@ Parçayı sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup 
 
 
 def _internet_pazarinda_bulunamayan_plastik_parca_yeniden_uretim():
-    return _seo_md_to_html(u"""# İnternet Pazarında Bulunamayan Plastik Parça
+    return _seo_md_to_html(u"""# Pazaryerde Bulunamayan Parçalar: Katalog Yolu
 
 Nasıl çalışır: PRUVO kataloğunda satılan hazır kalemleri marka, model ve kategori sayfalarından bulursunuz; seçtiğiniz ürünü kartla ödeyerek sipariş verirsiniz. Sitede ölçüsü seçilen ürün ailesinde ölçüyü siz yazarsınız, parça o ölçüde hazırlanır.
 
@@ -19955,7 +19922,7 @@ Sitede ölçüsü seçilen seçeneklerden <a href="/urun/olcuye-ozel-montaj-brak
 
 Yüksek basınç altında çalışan parçalarda, elektriksel bağlantı yapan modüllerde ve patlayıcı ortamlarda plastik gövde tek başına yetmez. Güvenlik kritik kalemlerde sertifikalı orijinal parça kullanılmalıdır. Yüksek hassasiyet gerektiren ölçüler kapsam dışıdır.
 
-Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.
+Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; """ + AYIP_HAKLARI_CUMLESI + """
 
 ## Sipariş ve iletişim
 
@@ -19996,7 +19963,7 @@ Sık sorulan bir soru: Oyuncak parçası çocuğum için hazırlanabilir mi? Par
 
 Nostaljik oyuncak ve koleksiyon parçalarında renk eşleştirme özellikle önemlidir. Eski parçanın rengi yıllar içinde solmuş olabilir; tam eşleşme mümkün olmayabilir. Bu durumda ya mevcut parçanın solmuş rengine yakın bir ton seçilir ya da orijinal üretim rengine yakın bir ton tercih edilir.
 
-Oyun ve figür kalemleri <a href="/kategori/oyun-hobi/">oyun ve hobby</a> ile <a href="/kategori/figur/">figür</a> kategorilerinde toplanır; oyun taşı ve madalyon gibi özel işler için <a href="/urun/kisiye-ozel-jeton-cip-madalyon/">kişiye özel jeton ve oyun çipi</a> ürününe geçebilirsiniz. Aradığınız kalem sitede var mı diye sormak isterseniz WhatsApp hattımız <a href="https://wa.me/905451386526" target="_blank" rel="noopener"><strong>+90 545 138 6526</strong></a> üzerinden yalnız sitede var mı diye yazın; varsa adresini paylaşırız, yoksa sitede bulunmadığını açıkça söyleriz. Sitede ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.""")
+Oyun ve figür kalemleri <a href="/kategori/oyun-hobi/">oyun ve hobby</a> ile <a href="/kategori/figur/">figür</a> kategorilerinde toplanır; oyun taşı ve madalyon gibi özel işler için <a href="/urun/kisiye-ozel-jeton-cip-madalyon/">kişiye özel jeton ve oyun çipi</a> ürününe geçebilirsiniz. Aradığınız kalem sitede var mı diye sormak isterseniz WhatsApp hattımız <a href="https://wa.me/905451386526" target="_blank" rel="noopener"><strong>+90 545 138 6526</strong></a> üzerinden yalnız sitede var mı diye yazın; varsa adresini paylaşırız, yoksa sitede bulunmadığını açıkça söyleriz. Sitede ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; """ + AYIP_HAKLARI_CUMLESI + """""")
 
 
 
@@ -20029,7 +19996,7 @@ Sitede ölçüsü seçilen seçeneklerden <a href="/urun/olcuye-ozel-kutu-organi
 
 Yüksek basınç altında çalışan hidrolik parçalarda plastik gövde tek başına yetmez; metal ya da metal-polimer hibrit bir çözüm gerekir. Patlayıcı ya da yanıcı atmosferde çalışılan ortamlarda plastik parça uygun değildir. Traktörün ya da makinenin ağırlığını taşıyan kaldırma kolu, çalışma yayı, PTO muhafazası gibi elemanlar kapsam dışıdır. Uzun süre açık alanda kalacak parçalarda metal muhafaza daha ekonomik olabilir.
 
-Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.
+Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; """ + AYIP_HAKLARI_CUMLESI + """
 
 ## Sipariş ve iletişim
 
@@ -20063,7 +20030,7 @@ def _olcuye_ozel_plastik_vida_kovani_uretimi():
 
 def _olcuye_ozel_plastik_led_difuzor_halkasi_uretimi():
     return (
-        "<h1>Ölçüye özel plastik LED difüzör halkası üretimi</h1>"
+        "<h1>Plastik LED Difüzör Halkası: Sitede Ölçüsü Seçilen Seçenekler</h1>"
         "<p>Nasıl çalışır: PRUVO kataloğunda satılan hazır kalemleri marka, model ve kategori sayfalarından bulursunuz; seçtiğiniz ürünü kartla ödeyerek sipariş verirsiniz. Sitede ölçüsü seçilen ürün ailesinde ölçüyü siz yazarsınız, parça o ölçüde hazırlanır. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">LED armatürlerinde ışık kaynağının çevresine oturan halka biçimli plastik eleman, tek noktalı sert ışığı yumuşatır, renk karışımını düzenler ve göze gelen parlamayı dağıtır. Net cevap: siz modül çapını ve yuva derinliğini yazarsınız, parça o değerlere göre hazırlanır. Elinizdeki parçayı bize göndermeniz gerekmiyor.</p>"
         "<p>Optik tasarımda dört ölçü belirleyicidir: iç çap LED modülünün çıkış çapına oturur, dış çap armatür yuvasının çapına sığmalıdır, yükseklik ışık yönündeki optik kalınlığı belirler, yüzey dokusu ise mat, saten ya da buzlu seçeneklerle dağılımı değiştirir. Dördü birlikte verilmeden kararlı bir halka geometrisi kurulmaz; aynı dış çap, farklı yükseklikte bambaşka bir optik sonuç verir.</p>"
@@ -20075,7 +20042,7 @@ def _olcuye_ozel_plastik_led_difuzor_halkasi_uretimi():
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz; difüzör halkası sizin yazdığınız değerlerden çıkar. Difüzör halkası LED'i soğutmaz; yüksek güçlü modüllerde ısı yönetimi metal soğutucu veya termal tasarımla çözülür, plastik halka bu görevi üstlenmez.</p>"
         "<p>Sahne ışığı, müze aydınlatması ve stüdyo gibi profesyonel optik uygulamalarda halkanın homojen dağılım yeteneği kritiktir; bu segmentte armatürü ışık mühendisiyle birlikte ölçmek gerekir. Dış mekân difüzörlerinde yıllık sararma kaçınılmazdır; UV stabilize sınıf bunu yavaşlatır, ancak tamamen durdurmaz. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>LED modülünüzün iç ve dış çapı, montaj yuvasının derinliği ve istenen yüzey dokusu yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -20124,7 +20091,7 @@ def _oto_yikama_ekipmani_plastik_parca_uretimi():
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Yüksek basınçlı su püskürtme memelerinde basınç dayanımı belirleyicidir; plastik gövde tek başına çok yüksek basınçlarda yeterli olmaz, bu noktada metal meme ya da hibrit çözüm gerekir. Dönen fırça bağlantılarında üretim kaynaklı kütle dengesizliği titreşime yol açabilir, dönüş hızı beklentisi sipariş öncesi konuşulur.</p>"
         "<p>Aseton ya da toluen gibi güçlü solvent içeren özel yıkama kimyasallarında standart polimerlerin ömrü belirgin biçimde kısalır; bu tür uygulamalarda solvent dayanımlı sınıf önerilir. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçanın ekipmandaki görevi, bağlantı çapı ve çalışma sıcaklığı yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -20140,17 +20107,17 @@ def _ozel_plastik_parca_minimum_siparis_adedi_nedir():
         "<p>Minimum adet uygulaması malzemeden bağımsızdır; PETG, ASA, cam elyaf takviyeli poliamid ve karbon elyaf takviyeli sınıfların hepsinde tek adet üretim yapılabilir. Bazı takviyeli sınıflar aşındırıcı etkileri nedeniyle özel bakım gerektirir ve hazırlık süresi bir miktar uzar; renk değişikliği de aynı şekilde hazırlık süresine yansır. Sınıfların karşılaştırması <a href=\"/malzeme-rehberi/\">malzeme rehberi</a> sayfasında toplandı.</p>"
         "<p>Akım taşıyan parça hazırlanmıyor; ölçüye özel kalemler yalıtkan gövde ya da mekanik destek elemanı olarak kalır. Standart siyah, gri ve beyaz tonları stoklarda bulunur; farklı bir renk tonu sitedeki standart seçeneklerde yoktur.</p>"
         "<h2>Katalogda nasıl bulunur</h2>"
-        "<p>Ana giriş noktaları <a href=\"/kategori/tamirat/\">tamirat</a>, <a href=\"/kategori/elektronik/\">elektronik</a>, <a href=\"/kategori/ofis/\">ofis</a> ve <a href=\"/kategori/otomobil/\">otomobil</a> kategorileridir. Hazır örnekler: <a href=\"/urun/th3283775-makita-bant-zimpara-toz-emis-adaptoru/\">Makita bant zımpara toz emiş adaptörü</a>, <a href=\"/urun/pr102139-ryobi-gonye-testeresi-elektrikli-supurge-adaptoru/\">Ryobi elektrikli süpürge adaptörü</a> ve <a href=\"/urun/c3dlexus-rx300-ic-kapi-paneli-vida-kapagi/\">Lexus RX300 iç kapı paneli vida kapağı</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüye özel montaj braketi</a>, <a href=\"/urun/olcuye-ozel-kutu-organizer/\">ölçüye özel kutu ve organizer</a> ile <a href=\"/urun/olcuye-ozel-vida-civata-somun-pul/\">ölçüye özel vida, cıvata, somun ve pul</a> uygundur. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
+        "<p>Ana giriş noktaları <a href=\"/kategori/tamirat/\">tamirat</a>, <a href=\"/kategori/elektronik/\">elektronik</a>, <a href=\"/kategori/ofis/\">ofis</a> ve <a href=\"/kategori/otomobil/\">otomobil</a> kategorileridir. Hazır örnekler: <a href=\"/urun/th3283775-makita-bant-zimpara-toz-emis-adaptoru/\">Makita bant zımpara toz emiş adaptörü</a> ve <a href=\"/urun/c3dlexus-rx300-ic-kapi-paneli-vida-kapagi/\">Lexus RX300 iç kapı paneli vida kapağı</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüye özel montaj braketi</a>, <a href=\"/urun/olcuye-ozel-kutu-organizer/\">ölçüye özel kutu ve organizer</a> ile <a href=\"/urun/olcuye-ozel-vida-civata-somun-pul/\">ölçüye özel vida, cıvata, somun ve pul</a> uygundur. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Adet konusundaki tek sınır üretilebilirlik sınırıdır: birkaç milimetre boyutunda ince dişli yapılarda tek parça teknik olarak mümkün olsa da tolerans ve mukavemet beklentisi zorlanır. Bu tür kalemlerde ölçü ve tolerans sınırları standart tolerans tablosunda yazılıdır.</p>"
         "<p>Tek parça siparişte hazırlık maliyeti tek parçaya yüklendiği için adet başına fiyat yüksek kalır; bu durum ürün sayfasındaki fiyat bilgisinde görünür. Akım taşıma, yüksek basınç ve emniyet kritik kalemlerde sertifikalı seri ekipman gerekir; bu segmentte metal alternatif gerekir. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>İstediğiniz adet ve parçanın ölçüleri yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
 def _plastik_parca_siparisinde_revizyon_ve_degisiklik_yapilabilir_mi():
     return u"""
-<h1>Plastik parça siparişinde revizyon ve değişiklik yapılabilir mi?</h1>
+<h1>Plastik Parça Siparişinde Değişiklik Yapılabilir mi?</h1>
 <p class="lead">Nasıl çalışır: PRUVO kataloğunda satılan hazır kalemleri marka, model ve kategori sayfalarından bulursunuz; seçtiğiniz ürünü kartla ödeyerek sipariş verirsiniz. Sitede ölçüsü seçilen ürün ailesinde ölçüyü siz yazarsınız, parça o ölçüde hazırlanır. Elinizdeki parçadan, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay adımı yoktur.</p>
 <p>Bu sorunun cevabı tek cümleyle özetlenebilir: <strong>üretim başlamadan önce ölçüyü değiştirebilirsiniz, üretim başladıktan sonra değişiklik yeni bir üretim demektir.</strong> Bu iki aşamanın arasındaki fark, ölçüyü neden yazdığınızı ve hangi değerlerin kritik olduğunu bilmekten gelir. Siparişin ilk adımını <a href="/plastik-parca-siparisinin-ilk-adimi-nedir/">plastik parça siparişinin ilk adımı nedir</a> sayfasında anlattık.</p>
 <h2>Nasıl çalışır?</h2>
@@ -20238,7 +20205,7 @@ def _surgulu_dolap_ray_plastik_makara_oem_parca_uretimi():
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Ayna kaplama gibi ağır sürgülü kapaklarda makara yükü beş kiloyu aşabilir; bu durumda plastik makara tek başına yeterli olmaz, metal rulmanlı hibrit çözüm gerekir ve metal kısmı bizim kapsamımızda değildir.</p>"
         "<p>Ray sisteminde mevcut deformasyon varsa yeni makara da tam oturmaz; rayın düzgünlüğü ve hizası kontrol edilmelidir. Otomatik açılıp kapanan sistemlerde plastik makaranın ömrü hızla kısalır, bu segmentte metal makara gerekir. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Ray açıklığı, mil çapı ve kapak ağırlığı yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -20249,13 +20216,13 @@ def _hvac_termostat_kadran_ve_dugme_plastik_oem_parca_uretimi():
         "<p>Kadran ve düğmeler yıpranmasının sebebi genellikle mekanik değil, yüzeydir. Günde onlarca kez çevrilen bir düğmenin kenarı zamanla yuvarlanır ve kayar; parmak yağı ve toz yüzeyde matlık yapar; iç mekânda bile pencere kenarından gelen ultraviyole, açık renkli plastiği zamanla sarartır. Bunların hiçbiri termostatın ölçümünü etkilemez, ama kullanım rahatlığını bozar.</p>"
         "<p>Ölçü tarafında belirleyici olanlar şunlardır: kadran milinin gövdeye oturan D biçimli çapı ve uzunluğu, düğmenin ön çapı, kadranın çevirme mesafesi ve gösterge işaretinin açısal konumu. Termostatın arka gövdesi ölçüleri hazır olduğu için bu elemanlar sitede ölçüsü seçilen kalemlerden karşılanır.</p>"
         "<h2>Malzeme seçimi</h2>"
-        "<p>Gösterge halkası ve saydam pencere için PMMA, çizilmeye karşı iyi bir yüzey verir ve uzun süre sararmaz. Düğme ve kadran gövdesinde ABS ya da ASA, günlük temas ve hafif darbeye karşı dengeli bir seçimdir; dış duvarda montajlı cihazlarda ASA'nın UV dayanımı belirleyici olur. Arka planda dönen mekanizma parçasında, örneğin kadran kamında, POM iyi bir aşınma davranışı gösterir.</p>"
+        "<p>Gösterge halkası ve saydam pencere için PETG, çizilmeye karşı iyi bir yüzey verir ve uzun süre sararmaz. Düğme ve kadran gövdesinde ABS ya da ASA, günlük temas ve hafif darbeye karşı dengeli bir seçimdir; dış duvarda montajlı cihazlarda ASA'nın UV dayanımı belirleyici olur. Arka planda dönen mekanizma parçasında, örneğin kadran kamında, PA iyi bir aşınma davranışı gösterir.</p>"
         "<p>Klima ve havalandırma gövde çözümleri için <a href=\"/olcuye-ozel-plastik-disli-kutusu-govdesi-ve-kapagi-uretimi/\">plastik dişli kutusu gövdesi ve kapağı</a>, vida detayları için <a href=\"/olcuye-ozel-vida-basi-gizleme-kapagi-uretimi/\">vida başı gizleme kapağı</a> sayfaları ilgili kalemleri taşır.</p>"
         "<h2>Katalogda nasıl bulunur</h2>"
         "<p>Ana giriş noktaları <a href=\"/kategori/elektronik/\">elektronik</a>, <a href=\"/kategori/tamirat/\">tamirat</a> ve <a href=\"/kategori/ofis/\">ofis</a> kategorileridir. Hazır örnekler: <a href=\"/urun/mazda-bt50-termostat-hava-akis-dugmesi/\">Mazda BT-50 termostat ve hava akış düğmesi</a>, <a href=\"/urun/pr129397-wyze-cam-v3-odak-dugmesi/\">Wyze Cam odak düğmesi</a>, <a href=\"/urun/th623902-philips-livingcolor-hue-kumanda-tutucusu-ii/\">Philips kumanda tutucusu</a> ve <a href=\"/urun/th2808434-delonghi-dedica-680-685-portafiltre-standi/\">DeLonghi portafiltre standı</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-vida-civata-somun-pul/\">ölçüye özel vida, cıvata, somun ve pul</a> ile <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüye özel montaj braketi</a> uygundur. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Termostatın elektronik kartı, ekranı, sensörü, röle kontağı ve arka taşıyıcısı kapsam dışıdır; bunlar sertifikalı yedek parça olarak alınmalıdır. Ölçüm ve güvenlik sınıfı beyanı verilmez. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Termostatın markası ve modeli, kadran çapı ve mil ölçüsü yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -20278,24 +20245,24 @@ def _otomotiv_cam_kaldirma_regulator_plastik_oem_parca_uretimi():
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Cam kaldırma mekanizması güvenlik açısından dikkatle değerlendirilmesi gereken bir düzenektir; cam beklenmedik biçimde boşalırsa yolcu güvenliğini ilgilendirir. Bu yüzden taşınan cam ağırlığını ve günlük kullanım sıklığını sipariş notuna yazmanız yeterlidir; mekanizmanın emniyetli çalışacağına dair bir garanti verilmez.</p>"
         "<p>Taksi ve filo gibi yüksek kullanım sıklığı olan araçlarda plastik dişin ömrü kısalır; bu segmentte metal dişli gerekir ve metal işleyen tedarikçiye yönlendirme yapılır. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Araç markası, modeli ve aradığınız kalemin adı yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
 def _olcuye_ozel_plastik_boru_mansonu_uretimi():
     return (
-        "<h1>Plastik Boru Manşonu Ölçüye Özel Parçaları</h1>"
+        "<h1>Plastik Boru Manşonu: Sitede Ölçüsü Seçilen Seçenekler</h1>"
         "<p class=\"lead\">İki boruyu aynı hizada ve eksenel olarak düz birleştirmek için kullanılan iç-dış geçme manşon, tesisat ve makine hatlarında sık ihtiyaç duyulan bir bağlantı elemanıdır. Net cevap: dış çap, iç çap, boy ve duvar kalınlığı belirleyicidir; çözüm katalogdaki hazır seçeneklerden ve sitede ölçüsü seçilen kalemlerden bulunur.</p>"
         "<p>Manşon bağlantısının çalışma mantığı basittir: manşonun iç çapı, geçeceği borunun dış çapından bir miktar büyük olur ve iki boru manşonun içine itilir. Tutma, sürtünme ve yapıştırma ile sağlanır. Bu nedenle geçme payı kritik bir değerdir; çok sıkı bir geçme, borunun iç yüzeyinde kalıcı gerilme bırakır ve boru uzun vadede çatlar. Çok gevşek bir geçme ise sızdırma ve çıkma sorunu yaratır.</p>"
         "<p>Uzunluğun belirlenmesinde iki etken var. Birincisi yük: boru askıları arasındaki mesafe arttıkça manşonun uzunluğu da artmalıdır, çünkü boru kendi ağırlığıyla aşağı doğru eğilir ve manşonun içindeki geçme buna dayanmak zorundadır. İkincisi sıcaklık: ısınan bir hatta boy uzatma payı bırakılır, çünkü metal borular genleşir.</p>"
         "<h2>Malzeme</h2>"
-        "<p>Manşonun malzemesi, içinden geçen boruyla uyumlu olmalıdır. PVC boru üzerine çalışan bir manşonda PVC-U sınıfı kullanılır; bu, sıcak su hatlarında da tercih edilir. Polietilen hatlarda PE, poli propilen hatlarda PP kullanılır. Baskı ile üretilen manşonlarda PETG ve ABS, soğuk su ve drenaj uygulamalarında yeterlidir. Sıcak su hattında sürekli 70 santigrat dereceyi aşan bir uygulama varsa malzeme sınıfı buna göre seçilir.</p>"
+        "<p>Manşonun malzemesi, içinden geçen boruyla uyumlu olmalıdır. Boru üzerine çalışan bir manşonda boru malzemesiyle uyumlu sert plastik sınıf kullanılır. Baskı ile üretilen manşonlarda PETG ve ABS, soğuk su ve drenaj uygulamalarında yeterlidir. Sıcak su hattında sürekli 70 santigrat dereceyi aşan bir uygulama varsa malzeme sınıfı buna göre seçilir.</p>"
         "<p>Boru bağlantı elemanlarının kurgusu için <a href=\"/olcuye-ozel-hortum-rakoru-dirsek-uretimi/\">hortum rakoru dirsek</a>, <a href=\"/olcuye-ozel-plastik-boru-kelepcesi-ve-aski-uretimi/\">plastik boru kelepçesi ve askı</a> ve <a href=\"/olcuye-ozel-plastik-gecme-dubel-vida-yuvasi-uretimi/\">plastik geçme dübel vida yuvası</a> sayfaları uygundur. Geçme payının nasıl belirlendiği <a href=\"/plastik-parcada-gecme-toleransi-nasil-belirlenir/\">plastik parçada geçme toleransı nasıl belirlenir</a> sayfasında anlatılır.</p>"
         "<h2>Katalogda nasıl bulunur</h2>"
         "<p>Ana giriş noktaları <a href=\"/kategori/tamirat/\">tamirat</a>, <a href=\"/kategori/ev/\">ev</a>, <a href=\"/kategori/elektronik/\">elektronik</a> ve <a href=\"/kategori/otomobil/\">otomobil</a> kategorileridir. Hazır örnekler: <a href=\"/urun/opel-astra-h-aks-borusu-baglanti-parcasi/\">Opel Astra aks borusu bağlantı parçası</a>, <a href=\"/urun/th6494801-suzuki-xf650-koruk-tutucusu/\">Suzuki XF650 körük tutucusu</a> ve <a href=\"/urun/th6494812-suzuki-xf650-catal-koruyucu/\">Suzuki XF650 çatal koruyucu</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-hortum-adaptoru/\">ölçüye özel hortum adaptörü</a>, <a href=\"/urun/olcuye-ozel-baglanti-konektor/\">ölçüye özel birleştirme konektörü</a> ve <a href=\"/urun/olcuye-ozel-profil-beam/\">ölçüye özel profil bağlantı elemanı</a> uygundur. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Basınçlı gaz hattı, basınçlı su hattı ve yüksek sıcaklıkta çalışan buhar hattı bağlantıları kapsam dışıdır; bunlar sertifikalı boru ve bağlantı elemanı gerektirir. Sızdırmazlık ve basınç testi yapılmış bir ürün değildir. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Boruların dış ve iç çapı ile bağlantının yapılacağı malzeme yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -20303,19 +20270,19 @@ def _olcuye_ozel_plastik_boru_mansonu_uretimi():
 
 def _olcuye_ozel_plastik_kanal_ici_splitter_uretimi():
     return (
-        "<h1>Kanal İçi Splitter Ölçüye Özel Üretimi</h1>"
+        "<h1>Kanal İçi Splitter: Sitede Ölçüsü Seçilen Seçenekler</h1>"
         "<p>Nasıl çalışır: PRUVO kataloğunda satılan hazır kalemleri marka, model ve kategori sayfalarından bulursunuz; seçtiğiniz ürünü kartla ödeyerek sipariş verirsiniz. Sitede ölçüsü seçilen ürün ailesinde ölçüyü siz yazarsınız, parça o ölçüde hazırlanır. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Elektrik tesisatında kanal içinden geçen farklı gerilim, farklı sinyal ya da farklı işlev gruplarındaki kabloların birbirinden ayrılması gerekir. Net cevap: kanal içi splitter, mevcut kanalın içine yerleşen ve kablo gruplarını fiziksel bölmelere ayıran yardımcı plastik elemandır; kanalın iç genişliği, derinliği ve istenen bölme sayısı belirleyicidir.</p>"
         "<p>Bu ayrımın üç gerekçesi vardır. Güvenlik: düşük gerilimli sinyal kablosu ile şebeke gerilimi taşıyan kablo aynı yerde yürürse izolasyon kusuru felaketle sonuçlanabilir. Elektromanyetik uyumluluk: şebeke kablosunun alanı, zayıf akımlı kabloya gürültü bindirir ve veri hatlarında hatalı okumalara yol açar. Bakım: hangi kablonun nerede olduğu bilinmediğinde müdahale süresi uzar ve yanlış kablo kesilir.</p>"
         "<p>Tasarımda dikkat edilecek nokta, bölmelerin kanal tabanında tam oturması ve kabloların bölmeler arasında sıkışmamasıdır. Çok dar bölme, kabloyu ezebilir; kablonun içinden geçeceği serbestlik bırakılmalıdır. Kanalın iç genişliğinin tamamı kullanılıyorsa splitter yüksekliğinin kanalın iç derinliğini aşmaması gerekir, aksi hâlde kanal kapağı kapanmaz.</p>"
         "<h2>Malzeme</h2>"
-        "<p>Standart iç mekân uygulamalarında PETG yeterlidir. Dış mekân ya da doğrudan güneş alan kanallarda ASA'nın UV dayanımı belirleyicidir. Şeffaf splitter, kabloların hangi bölmede olduğunu görmek için kullanılır ve PC ile PMMA uygundur. Kanal içinde sıcaklık 40 santigrat dereceyi aşan yerlerde yüksek sıcaklığa dayanıklı bir sınıf seçilmelidir.</p>"
+        "<p>Standart iç mekân uygulamalarında PETG yeterlidir. Dış mekân ya da doğrudan güneş alan kanallarda ASA'nın UV dayanımı belirleyicidir. Şeffaf splitter, kabloların hangi bölmede olduğunu görmek için kullanılır ve PETG uygundur. Kanal içinde sıcaklık 40 santigrat dereceyi aşan yerlerde yüksek sıcaklığa dayanıklı bir sınıf seçilmelidir.</p>"
         "<p>Kanal düzeni ve taşıma çözümleri <a href=\"/olcuye-ozel-kablo-kanali-organizer-uretimi/\">ölçüye özel kablo kanalı organizer üretimi</a>, <a href=\"/olcuye-ozel-plastik-kanal-ek-parcasi-uretimi/\">ölçüye özel plastik kanal ek parçası üretimi</a> ve <a href=\"/olcuye-ozel-plastik-boru-kelepcesi-ve-aski-uretimi/\">ölçüye özel plastik boru kelepçesi ve askı üretimi</a> sayfalarında anlatılır.</p>"
         "<h2>Katalogda nasıl bulunur</h2>"
         "<p>Ana giriş noktaları <a href=\"/kategori/elektronik/\">elektronik</a>, <a href=\"/kategori/ofis/\">ofis</a> ve <a href=\"/kategori/tamirat/\">tamirat</a> kategorileridir. Hazır örnekler: <a href=\"/urun/dekor-led-isik-zinciri-kanali-duvara-bantlanir-pr757196/\">LED ışık zinciri kanalı</a>, <a href=\"/urun/land-rover-havalandirma-kanali-baglanti-parcasi/\">Land Rover havalandırma kanalı bağlantı parçası</a> ve <a href=\"/urun/mutfak-davlumbazi-havalandirma-kanali-burcu/\">mutfak davlumbazı havalandırma kanalı burcu</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-kutu-organizer/\">ölçüye özel kutu ve organizer</a>, <a href=\"/urun/olcuye-ozel-vidali-kavanoz-tapa/\">ölçüye özel vida delikli kavanoz kapağı</a> ile <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüye özel montaj braketi</a> uygundur. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Yangın yükü taşıyan kanallarda kullanılan splitter için yanma testi yapılmış bir ürün değildir ve yanma performansı beyanı verilmez. Elektrik yalıtımı, koruma sınıfı ve kaçak akım gibi konular tesisat projesinin alanındadır; splitter bu konuların yerine geçmez. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Kanalın iç ölçüsü, derinliği ve bölme sayısı yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -20338,7 +20305,7 @@ def _olcuye_ozel_plastik_klemens_din_ray_adaptoru_uretimi():
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Adaptör ray kilitleme görevini üstlenmez; ray klipsi metal olan panolarda metal klips zorunludur ve plastik adaptör tek başına emniyet kritik uygulamalarda kullanılmaz. Adaptör alev geciktirici sertifikası taşımaz; bu konudaki sorumluluk panonun tüm elemanlarının sertifikasyonuyla birlikte size aittir.</p>"
         "<p>Ray üreticisinin toleransı ile adaptörün oturma toleransı uyuşmazsa adaptör kayabilir ya da takılamaz; bu yüzden ray markası ve tipi sipariş öncesi yazılı olarak paylaşılır. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Ray tipi, taşınacak elemanın bağlantı delik çapı ve aralığı yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -20385,7 +20352,7 @@ def _rc_arac_plastik_suspansiyon_parcasi_uretimi():
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Profesyonel yarışma seviyesinde araçlarda tek parça plastik süspansiyon elemanı aşırı yük altında yeterli olmaz; bu noktada alüminyum ya da karbon elyaf kompozit gerekir ve yarışma performansı garantisi verilmez. Aynı şekilde yüksek devirde dönen parçalarda üretim kaynaklı kütle dengesizliği titreşime yol açabilir, dönüş hızı beklentisi sipariş öncesinde netleştirilir.</p>"
         "<p>Nemli ortamda uzun süre depolanan cam elyaf takviyeli parçalarda nem çekme kaynaklı boyut değişimi olabilir; kuru ortamda saklama önerilir. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Pivot mil çapı, salıncak kol boyu ve bağlantı delik çapı yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -20399,13 +20366,13 @@ def _plastik_parca_numunesi_nasil_paketlenir_ve_gonderilir():
         "<p>Paketleme üç katmanlıdır. İç katmanda parça, çizilme ve darbe yüzeylerine karşı korunur; orta katmanda parça kutu içinde oynamaz, boşluklar dolgu malzemesiyle sabitlenir; dış katmanda sağlam bir kargo kutusu kullanılır. Küçük ve hafif kalemlerde zarf tipi ambalaj yeterli olur, ağır ya da düşük hacimli ürünlerde çift duvar kutu tercih edilir.</p>"
         "<p>Ambalajın nefes alması gereken durumlar vardır. Yeni üretilmiş bir parça ilk günlerde hafif bir plastik kokusu yayar; havalandırılmış bir ortamda bekletme bu kokuyu belirgin biçimde azaltır. Bu yüzden kapalı kutuda uzun süre bekletmek yerine, ürünü açtıktan sonra serin ve havalandırılmış bir yerde bekletmeniz önerilir.</p>"
         "<h2>Gönderim ve takip</h2>"
-        "<p>Gönderim, parça hazır olduğunda size yazılı olarak bildirilir. Bildirimde gönderim yöntemi ve takip bilgisi yer alır; paketiniz elinize ulaşana kadar WhatsApp hattından durum sorabilirsiniz. Kargo firması, teslimat süresi ve ücreti gönderim adresine göre belirlenir; ağır ve hacimli gönderilerde ek ücret oluşabilir.</p>"
+        "<p>Gönderim, parça hazır olduğunda size yazılı olarak bildirilir. Bildirimde gönderim yöntemi ve takip bilgisi yer alır; paketiniz elinize ulaşana kadar WhatsApp hattından durum sorabilirsiniz. Kargo koşulları ve gönderim bilgileri <a href=\"/teslimat-iade/\">teslimat ve iade</a> sayfasında yazılıdır.</p>"
         "<p>Siparişin hangi aşamada olduğunu öğrenmek için <a href=\"/ozel-uretim-parca-siparisi-nasil-takip-edilir/\">özel üretim parça siparişi nasıl takip edilir</a> sayfasındaki aşamalar geçerlidir. Hazır katalog ürünlerinde sipariş onayından sonra parça doğrudan kargoya verilir.</p>"
         "<h2>Katalogda nasıl bulunur</h2>"
         "<p>Ana giriş noktaları <a href=\"/kategori/tamirat/\">tamirat</a>, <a href=\"/kategori/elektronik/\">elektronik</a>, <a href=\"/kategori/ev/\">ev</a> ve <a href=\"/kategori/otomobil/\">otomobil</a> kategorileridir. Hazır örnekler: <a href=\"/urun/th623902-philips-livingcolor-hue-kumanda-tutucusu-ii/\">Philips kumanda tutucusu</a>, <a href=\"/urun/pr81031-miele-supurge-nozulu/\">Miele süpürge nozulu</a> ve <a href=\"/urun/th4563292-magic-bullet-bicak-contasi/\">Magic Bullet blender bıçak contası</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüye özel montaj braketi</a>, <a href=\"/urun/olcuye-ozel-kutu-organizer/\">ölçüye özel kutu ve organizer</a> ile <a href=\"/urun/olcuye-ozel-vida-civata-somun-pul/\">ölçüye özel vida, cıvata, somun ve pul</a> uygundur. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz; bu sayfadaki gönderim siparişin bize giden değil, sizden size giden ayağıdır. Kargo sırasında oluşan hasarı önceden garanti etmek mümkün değildir; sağlam ambalaj riski belirgin biçimde azaltır, pahalı ya da kırılgan kalemlerde sigortalı gönderim seçeneği değerlendirilmelidir.</p>"
-        "<p>Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır. Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır. Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Ürün sayfasındaki ölçü alanlarını doldurmanız ve adedi belirtmeniz yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -20426,7 +20393,7 @@ def _plastik_parca_icin_hangi_cad_programlari_kullanilir():
         "<p>Ana giriş noktası <a href=\"/kategori/olcuye-ozel-uretim/\">sitede ölçüsü seçilen ürün kategorisi</a> sayfasıdır. Sitede ölçüsü seçilen ürünlerde dosya hazırlama gerekmez; ölçü alanları ürün sayfasında hazırdır. Kalem seçimi ve fiyat için aynı kategori sayfasına bakabilirsiniz.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz; dosya gönderilmesi, dosyanızın incelenmesi ya da dosyanızdan üretime hazır model hazırlanması da kapsam dışıdır. Ücretsiz sürümdeki dışa aktarım sınırı ya da kayıp doku gibi sorunlar önceden kontrol edilmelidir.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Ölçü değerleri ve adet yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -20449,7 +20416,7 @@ def _plastik_parcada_fire_payi_nasil_hesaplanir():
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Fire oranı tek bir kesin sayı olarak verilmez; ortam sıcaklığı, malzeme lotu, makine kalibrasyonu ve geometrik detaylar oranı etkilediği için aralık olarak paylaşılır. Üretim sırasında beklenenin üzerinde fire oluşursa bu durum yazılı olarak bildirilir.</p>"
         "<p>Çok karmaşık geometrili parçalarda fire oranı yüzde onun üzerine çıkabilir; bu durumda tasarım sadeleştirme önerilir, aksi hâlde maliyet ve süre artar. Akım taşıyan parça hazırlanmıyor. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçanın ölçüleri, adedi ve yüzey beklentisi yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -20494,7 +20461,7 @@ def _kaynak_sicramasina_dayanikli_plastik_parca_uretimi():
         "<p>Ana giriş noktaları <a href=\"/kategori/tamirat/\">tamirat</a>, <a href=\"/kategori/elektronik/\">elektronik</a> ve <a href=\"/kategori/ofis/\">ofis</a> kategorileridir. Hazır örnekler: <a href=\"/urun/pr81031-miele-supurge-nozulu/\">Miele süpürge nozulu</a>, <a href=\"/urun/th3283775-makita-bant-zimpara-toz-emis-adaptoru/\">Makita bant zımpara toz emiş adaptörü</a> ve <a href=\"/urun/th2808434-delonghi-dedica-680-685-portafiltre-standi/\">DeLonghi portafiltre standı</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-kutu-organizer/\">ölçüye özel kutu ve organizer</a>, <a href=\"/urun/olcuye-ozel-izgara-menfez-kapak/\">ölçüye özel ızgara ve menfez kapağı</a> ile <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüye özel montaj braketi</a> uygundur. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Kaynak sıçrama perdesi, spatter koruma yüzeyi, kaynak tutucu ve taşıyıcı kapsam dışıdır; bunlar paslanmaz ya da alüminyumdan olmalıdır. Isıl şoka dayanım sınıfı beyanı verilmez. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>İstasyonun yerleşimi ve parçanın istasyona uzaklığı yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -20516,7 +20483,7 @@ def _termometre_prob_tutucu_klips_plastik_oem_parca_uretimi():
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Bu klips tıbbi ölçüm ya da teşhis cihazı kapsamına girmez; endüstriyel ve gıda termometresi çerçevesinde kalır. Klips probu düşürmeme ve yönlendirme işlevini görür, probun doğru konumda olduğunu garanti etmez.</p>"
         "<p>Gıda uygulamalarında standart üretim yüzeyi orta pürüzlülüktedir; çok düşük pürüzlülük istenen hijyenik yüzeyler için ek yüzey işlemi gerekir. Yüksek çevrimsel sıcaklık altında termal yorulma riski artar ve takviyeli sınıf daha dayanıklı olsa da daha rijit davranır. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Prob dış çapı, taşıyıcı bağlantı deliği ve çalışma sıcaklığı yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -20602,7 +20569,7 @@ def _tersane_gemi_bakim_atolyesi_plastik_parca_uretimi():
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Gemi blok krikoları ve kule vinç altı mesnetler gibi emniyet kritik kaldırma uygulamalarında plastik parça tek başına yeterli değildir; metal mesnet ya da sertifikalı yük ekipmanı gerekir. Gemi omurgası onarımı, yapısal çelik kaynağı ve gemi sınıfı onarımlar bu sayfanın konusu değildir.</p>"
         "<p>Sürekli vibrasyon altındaki parçalarda plastik elemanın yorulma ömrü metalden kısadır; bu tür uygulamalarda metal alternatif tercih edilir. Uzun süreli tuzlu nem temasında standart polimerlerin yüzeyinde bozunma görülebilir; UV stabilize sınıf ve düzenli yüzey temizliği önerilir. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçanın görevi, taşıdığı yük ve çalışma ortamı yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -20625,7 +20592,7 @@ def _cikolata_uretim_hatti_plastik_parca_uretimi():
 <h2>Dürüst sınır</h2>
 <p>Gıda teması olan yüzeylerde malzeme seçimi resmi gıda güvenliği düzenlemelerine tabidir; hazırlanan parçalar bu düzenlemelerin tüm gereksinimlerini karşılamayabilir. Ek test ya da sertifikasyon verilmez. Parçanın kendi gıda güvenlik politikasına uygunluğu işletmenin sorumluluğundadır.</p>
 <p>Çikolata hattı parçaları kalıp ya da kesici olarak kullanılmaz. Kalıp tasarımı, kesici geometrisi ve yüksek hassasiyetli tolerans gerektiren uygulamalar farklı bir üretim süreci ister; bu sayfadaki kalemler yardımcı aksam kapsamındadır. Hattaki temizlik kimyasalı ile uyumsuz malzeme seçilirse parçanın ömrü kısalır; temizlik döngüsü bilgisi sitede malzeme sınıfının seçiminde belirleyicidir.</p>
-<p>Doğrudan çikolata kütlesiyle temas eden yüzeyde iz riski tamamen sıfır değildir; doğru malzeme seçimi ve düzgün yüzey dokusu bu riski düşürür. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>
+<p>Doğrudan çikolata kütlesiyle temas eden yüzeyde iz riski tamamen sıfır değildir; doğru malzeme seçimi ve düzgün yüzey dokusu bu riski düşürür. Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; """ + AYIP_HAKLARI_CUMLESI + """</p>
 <h2>Sipariş ve iletişim</h2>
 <p>Parçayı sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup siparişi tamamlarsınız. Bulamazsanız WhatsApp hattımız <a href="https://wa.me/905451386526" target="_blank" rel="noopener"><strong>+90 545 138 6526</strong></a> üzerinden yalnız sitede var mı diye yazın; hattın aşaması, gıda temas durumu ve çalışma sıcaklığı eşleştirmeyi hızlandırır.</p>""")
 
@@ -20651,7 +20618,7 @@ def _manyetik_separator_plastik_parca_uretimi():
 <p>Ürün akışı içindeki metal partikül ayırma işleminin etkinliği manyetik çubuğun kendisine bağlıdır; plastik gövde ya da kapak manyetik performansı artırmaz ve azaltmaz. Manyetik alan gücü, çubuk sayısı ve çubuk yerleşimi üreticinin kendi tasarımıdır.</p>
 <p>Yüksek basınç altında çalışan separatörlerde basınç dayanımı belirleyicidir; plastik gövde tek başına çok yüksek basınçlarda yetmez, o noktada metal gövde ya da hibrit çözüm gerekir. Dayanılabilecek basınç parçanın geometrisine ve malzemesine göre değişir; sayısal bir basınç sınırı verilmez.</p>
 <p>Gıda ve ilaç hatlarında resmi hijyen düzenlemeleri geçerlidir; hazırlanan plastik aksamın bu düzenlemelerin tüm gereksinimlerini karşıladığı garanti edilmez. Ek test ya da sertifikasyon verilmez; parçanın kendi hijyen politikasına uygunluğu işletmenin sorumluluğundadır. Sürekli kimyasal temas eden parçalarda yanlış sınıf seçimi erken bozunmaya yol açar.</p>
-<p>Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>
+<p>Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; """ + AYIP_HAKLARI_CUMLESI + """</p>
 <h2>Sipariş ve iletişim</h2>
 <p>Parçayı sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup siparişi tamamlarsınız. Bulamazsanız WhatsApp hattımız <a href="https://wa.me/905451386526" target="_blank" rel="noopener"><strong>+90 545 138 6526</strong></a> üzerinden yalnız sitede var mı diye yazın; separatörün çalışma ortamı, ürün teması durumu ve bağlantı ölçüleri eşleştirmeyi hızlandırır.</p>""")
 
@@ -20672,30 +20639,35 @@ def _plastik_parca_siparisinde_boya_veya_kaplama_dahil_mi():
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Üzerine boya, lake veya kaplama uygulamıyoruz; bu konu üretim kapsamımızın dışındadır ve sipariş öncesinde netleştirilmesi gerekir. Uygun bir boyahane ya da kaplama tedarikçisi arayışında yönlendirme yapılabilir, ancak tedarikçinin iş kalitesi ve süresi kendi sorumluluğundadır.</p>"
         "<p>İkinci sınır: işlem sonrası tolerans beklentisi. Kaplama kalınlığına bağlı olarak ölçü payı bırakılması gerekip gerekmediği sipariş öncesinde yazılı olarak konuşulur. Akım taşıma, ısı iletimi ya da yüksek titreşim ortamlarında yüzey işleminin performansı değişir; parçanın ömrü ile kaplamanın ömrü farklı ölçeklerdedir. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçanın ölçüleri ve istediğiniz stok renk tonu yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
 def _plastik_parca_olcusu_kucultulunce_fiyat_duser_mi():
-    return (u"""<h1>Plastik parça ölçüsü küçültülünce fiyat düşer mi?</h1>
-<p class="lead">Özel plastik parça siparişinde ölçü, malzeme ve geometri birlikte fiyatı belirler. Genel kanı ölçü küçüldükçe fiyat düşer yönünde olsa da bu her zaman doğru değildir; parçanın toplam maliyeti hazırlık süresi, malzeme sarfiyatı, modelleme süresi ve üretim süresi kalemlerinin toplamıdır. Bu sayfadaki yanıtımız ölçü küçülmesinin fiyata etkisini açıkça ortaya koymak ve sipariş öncesi beklentiyi netleştirmek içindir. Mevcut <a href="/ozel-parca-uretimi-fiyati-nasil-belirlenir/">özel parça üretimi fiyatı nasıl belirlenir</a> sayfasındaki fiyat oluşumu genel bilgisi burada farklı bir niyete, yani ÖLÇÜ → FİYAT İLİŞKİSİNE yanıt verir. Kesin yüzde veya oran vermek doğru olmaz; her parçanın maliyeti kendi koşullarına göre hesaplanır.</p>
-<h2>Nasıl çalışırız?</h2>
-<p>Ölçü küçültmenin fiyata etkisi konusunda izlediğimiz yol bellidir: önce parçanın referans ölçüsü veya referans parçası bize ulaşır, sonra biz küçültülmüş ölçü için dijital modeli çıkarır, malzeme ve geometri değişikliğinin fiyata etkisini yazılı olarak paylaşırız. Fiyat, malzeme sarfiyatı, modelleme süresi ve üretim süresi kalemlerinin toplamıdır; küçültme her kalemi aynı oranda değiştirmez. Bu tutum sipariş öncesi beklentinin netleşmesini sağlar.</p>
-<p>Ölçü küçüldüğünde malzeme sarfiyatı genelde azalır, çünkü daha az ham madde kullanılır. Ancak modelleme süresi ve üretim hazırlığı neredeyse aynı kalır; bu kalemler parçanın boyutundan bağımsız olarak sabit bir hazırlık maliyeti oluşturur. Toplam fiyata etki bu iki kalemin oranına göre değişir. Küçük parçalarda hazırlık maliyeti toplam fiyatın büyük kısmını oluşturur ve malzeme tasarrufu sınırlı kalır; büyük parçalarda malzeme kalemi daha belirgin rol oynar ve küçültme daha belirgin tasarruf sağlar.</p>
-<p>Sipariş akışımız referans parça, teknik çizim veya ölçü bilgisinin bize ulaşmasıyla başlar. Dijital model hazırlanır; ardından yazılı malzeme ve ölçü önerisi paylaşılır. Müşteri onayı sonrası üretime geçilir. Tek parça veya çok parça sipariş arasındaki fiyat farkı için <a href="/tek-adet-ozel-parca-uretimi/">tek adet özel parça üretimi</a> sayfasındaki tek parça senaryosu referans alınır.</p>
+    return (
+        u"""<h1>Plastik parça ölçüsü küçültülünce fiyat düşer mi?</h1>
+<p class="lead">Ölçü, malzeme ve geometri birlikte fiyatı belirler. Küçültme fiyatı düşürür ama oran sabit değildir.</p>
+<p>Özel plastik parça siparişinde ölçü küçüldükçe fiyat düşer yönünde genel bir eğilim vardır; ancak bu her zaman doğru değildir. Parçanın toplam maliyeti hazırlık süresi, malzeme sarfiyatı, modelleme süresi ve üretim süresi kalemlerinin toplamıdır. Bu sayfada ölçü küçültmenin fiyata etkisini açıkça ortaya koyuyoruz. Mevcut <a href="/ozel-parca-uretimi-fiyati-nasil-belirlenir/">özel parça üretimi fiyatı nasıl belirlenir</a> sayfasındaki fiyat oluşumu genel bilgiyi verir; buradaki yanıt ölçü ile fiyat arasındaki ilişkiye odaklanır. Kesin yüzde ya da oran vermek doğru olmaz, her parçanın maliyeti kendi koşullarına göre hesaplanır.</p>
+<h2>Nasıl çalışır?</h2>
+<p>Ölçüye özel ürünlerde ölçüyü siz yazarsınız: ürün sayfasındaki alana değeri girersiniz, malzeme ve rengi seçersiniz, sepete eklersiniz ve kartla online ödersiniz. Fiyat bu seçimlerden hesaplanır. Küçültmenin etkisi, malzeme sarfiyatı ile hazırlık süresinin toplam içindeki payına bağlıdır.</p>
+<p>Ölçü küçüldüğünde malzeme sarfiyatı genelde azalır, çünkü daha az ham madde kullanılır. Ancak modelleme ve üretim hazırlığı neredeyse aynı kalır; bu kalemler parçanın boyutundan bağımsız olarak sabit bir hazırlık maliyeti oluşturur. Küçük parçalarda hazırlık maliyeti toplam fiyatın büyük kısmını oluşturur ve malzeme tasarrufu sınırlı kalır; büyük parçalarda malzeme kalemi daha belirgin rol oynar ve küçültme daha belirgin tasarruf sağlar.</p>
+<p>Tek parça ile çok parça sipariş arasındaki fark, adet başına maliyetin nasıl değiştiğinden doğar; aşağıdaki Sipariş bölümünde bu ayrım sayısal olarak anlatılır.</p>
 <h2>Doğru malzeme</h2>
-<p>Ölçü küçültme konusu malzeme seçiminden bağımsızdır; PETG, ASA, PA-GF, PA-CF gibi tüm polimer sınıflarında ölçüye özel üretim yapılır. Ancak çok küçük parçalarda ince detay ve tolerans sınırları zorlanır; bu durumda üretilebilir minimum boyut hakkında sipariş öncesi yazılı bilgi paylaşılır. Malzeme seçimi sipariş öncesi bizimle konuşulur ve hazırlık süresi bu seçime göre belirlenir. Malzeme karşılaştırması için <a href="/malzeme-rehberi/">malzeme rehberi</a> sayfasındaki genel bilgi kullanılır.</p>
-<p>Akım taşıyan parça üretmiyoruz; ölçü küçültme konusu bu konudan bağımsızdır. Yalıtkan plastik gövde veya mekanik destek elemanı olarak kalan parçalarda standart teslim kapsamı geçerlidir. Renk seçimi tarafında standart siyah, gri ve beyaz stoklarımızda vardır; özel renk tonu sipariş öncesi konuşulur.</p>
+<p>Ölçü küçültme konusu malzeme seçiminden bağımsızdır; PETG, ASA ve PLA gibi sitede seçilebilen tüm sınıflarda ölçüye özel üretim yapılır. Ancak çok küçük parçalarda ince detay ve tolerans sınırları zorlanır; sitedeki üretilebilir minimum boyut bilgisi ürün sayfasında yazılıdır. Malzeme karşılaştırması için <a href="/malzeme-rehberi/">malzeme rehberi</a> sayfasındaki genel bilgiyi kullanın.</p>
+<p>Akım taşıyan parça üretmiyoruz; ölçü küçültme konusu bu konudan bağımsızdır. Yalıtkan plastik gövde ya da mekanik destek elemanı olarak kalan parçalarda standart teslim kapsamı geçerlidir. Renk seçimi tarafında standart siyah, gri ve beyaz stoklarımızda vardır.</p>
 <p>Çalışma sıcaklığı açısından malzeme sınıfı doğru seçildiği sürece ölçü küçültme ek bir sınırlama getirmez; malzeme özellikleri parçanın boyutundan bağımsızdır. Ancak çok küçük parçalarda ince detay toleransı kritik olduğu için malzeme seçimi daha özenli yapılır.</p>
 <h2>Dürüst sınır</h2>
-<p>Ölçü küçültmenin fiyata etkisi konusunda dürüst sınır açıkça konuşmamız gerekir. Kesin bir yüzde veya oran vermek doğru olmaz; her parçanın maliyeti kendi koşullarına göre hesaplanır. Ölçü yarıya düşerse fiyat yarıya düşer gibi genel bir kural geçerli değildir; hazırlık maliyetinin payı parçadan parçaya değişir. Sipariş öncesi yazılı teklif almanız, gerçek fiyatı öğrenmenin tek yoludur.</p>
-<p>Bir diğer dürüst sınır: çok küçük parçalarda üretilebilir minimum boyut vardır. Bu boyutun altına inildiğinde ince detay kaybolur, tolerans tutulmaz veya mukavemet düşer. Sipariş öncesi parçanın kritik boyutları yazılı olarak paylaşılırsa üretilebilir aralık hakkında yazılı bilgi veriyoruz. Mevcut <a href="/bulunamayan-yedek-parca-ozel-uretim/">bulunamayan yedek parça özel üretim</a> sayfasındaki küçük kritik parça senaryoları referans alınır.</p>
-<p>Akım taşıma, yüksek basınç veya emniyet kritik parçalarda ölçü küçültme güvenlik gereksinimini ihlal edebilir. Bu tür parçalarda küçültme önerilmez; mevcut ölçüde üretim veya metal alternatif değerlendirilir. Sipariş öncesi parçanın emniyet kritik olup olmadığı yazılı olarak paylaşılmalıdır. Kesin fiyat, malzeme sarfiyatı, modelleme süresi ve üretim süresi kalemlerinin yazılı hesabıyla belirlenir; bu hesabın dışında sabit oran vaadi vermiyoruz.</p>
+<p>Kesin bir yüzde ya da oran vermek doğru olmaz. Ölçü yarıya düşerse fiyat yarıya düşer gibi genel bir kural geçerli değildir; hazırlık maliyetinin payı parçadan parçaya değişir. Gerçek fiyatı ürün sayfasındaki fiyat alanından görürsünüz; fiyat ölçü, malzeme ve adet seçimlerinizle birlikte hesaplanır.</p>
+<p>Bir diğer dürüst sınır: çok küçük parçalarda üretilebilir minimum boyut vardır. Bu boyutun altına inildiğinde ince detay kaybolur, tolerans tutulmaz ya da mukavemet düşer. Sitede bu sınır ürün sayfasında görünür. Katalogda aradığınız kalem yoksa sitede var mı diye WhatsApp hattımıza yazabilirsiniz; sitede olmayan bir kalem için özel üretim açılmaz.</p>
+<p>Akım taşıma, yüksek basınç ya da emniyet kritik parçalarda ölçü küçültme güvenlik gereksinimini ihlal edebilir. Bu tür parçalarda küçültme önerilmez; mevcut ölçüde üretim ya da metal alternatif değerlendirilir. Bu hesabın dışında sabit bir oran vaadi vermiyoruz. Ayrıca """
+        + AYIP_HAKLARI_CUMLESI
+        + u"""</p>
 <h2>Sipariş</h2>
-<p>Ölçü küçültmenin fiyata etkisi konusunda sipariş öncesi izlenen yol bellidir: önce referans ölçü veya referans parça bize ulaşır, biz dijital model hazırlar ve yazılı fiyat teklifi paylaşırız. Teklif geçerlilik süresi ve kapsamı teklifte yazılıdır. Onay sonrası üretim başlar; tek parça veya çok parça fark etmez, fiyat aynı kalemlere göre belirlenir.</p>
-<p>Sık sorulan bir soru: Ölçüyü yarıya indirsem fiyat yarıya düşer mi? Bu genel bir kural değildir. Hazırlık maliyeti parçanın boyutundan bağımsız olduğu için küçük parçalarda malzeme tasarrufu oransal olarak daha küçük kalır. Yazılı teklif almadan kesin fiyatı söylemek doğru olmaz.</p>
-<p>İkinci sık soru: Adedi artırırsam fiyat oransal olarak düşer mi? Adet artışı hazırlık maliyetini adet sayısına yaydığı için adet başına fiyatı düşürür. Ancak bu düşüş de doğrusal değildir; belirli bir adetten sonra marjinal düşüş azalır. Toplu sipariş için ayrıca görüşülür.</p>
-<p>Plastik parça ölçüsü küçültülünce fiyat düşer mi sorusuna yanıt olarak: genel eğilim ölçü küçülünce toplam maliyetin düşmesidir, ancak kesin oran vermek doğru olmaz; malzeme, geometri ve hazırlık süresine göre değişir. Sipariş sürecinde referans parça veya ölçü bilgisini paylaşmanız gerekir; fotoğraf veya kısa açıklama ile gelen talepleri de aynı kapıdan alıyoruz, ama fotoğraf yalnız ön-teyit için kullanılır. Sipariş sonrası yazılı teklif paylaşıyoruz; onayınızı aldıktan sonra üretime geçiyoruz. Detay için <strong>+90 545 138 6526</strong> numaramızdan bize ulaşabilirsiniz.</p>""")
+<p>Yanıt kısaca: genel eğilim ölçü küçülünce toplam maliyetin düşmesidir, ancak kesin oran vermek doğru olmaz. İkinci sık soru: adedi artırırsanız fiyat oransal olarak düşer mi? Adet artışı hazırlık maliyetini adet sayısına yaydığı için adet başına fiyatı düşürür; ancak bu düşüş doğrusal değildir, belirli bir adetten sonra marjinal düşüş azalır. Toplu siparişlerde adet başına fiyat ürün sayfasında görünür.</p>
+<p>Ölçüyü küçültme niyetiyle sipariş verirken ölçüyü ürün sayfasına yazmanız yeterlidir; parça o ölçüde basılır. Hazır parça kargolanır, teslim süresi <a href="/ozel-parca-kac-gunde-hazir-olur/">özel parça kaç günde hazır olur</a> sayfasında yazılıdır. Sitede bulunmayan bir kalem için WhatsApp hattımız: <a href="https://wa.me/905451386526" target="_blank" rel="noopener"><strong>+90 545 138 6526</strong></a>.</p>
+"""
+    )
+
 
 
 
@@ -20740,7 +20712,7 @@ def _tuz_spreyi_astm_b117_dayanimli_plastik_parca_uretimi():
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. ASTM B117 laboratuvar testi koşturulmaz, test raporu veya sertifika verilmez. Sertifikalı bir rapor gerekiyorsa bu konu sipariş öncesinde yazılı olarak paylaşılır ve uygun laboratuvara yönlendirme yapılır.</p>"
         "<p>İkinci sınır: belirli bir saat dilimine dayanım sözü verilmez. Sürekli daldırma altında kalan parçalarda şişme ve yorulma riski artar; uygulama detayı paylaşıldığında uygun sınıf önerilir. Yüksek titreşim ya da ısı iletimi gerektiren ortamlarda metal hibrit çözüm gerekir. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçanın kullanım ortamı, tuz maruziyeti ve ölçüleri yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -20816,7 +20788,7 @@ Halat veya zincir çapı, oturak genişliği ve bağlantı biçimi bilgilerini �
 """)
 
 def _w53_olcuye_ozel_plastik_yay_sapi_ve_yay_tutucu_uretimi():
-    return _seo_md_to_html(u"""# Ölçüye özel plastik yay sapı ve yay tutucu üretimi
+    return _seo_md_to_html(u"""# Plastik Yay Sapı ve Yay Tutucu: Sitede Ölçüsü Seçilen Seçenekler
 
 Yayın uç noktası çoğu zaman ihmal edilen ama işlevsel olarak kritik bir parçadır. Yayın gövdesi metalden yapılır, ucundaki bağlantı elemanı ise genelde plastik, lastik veya metal bir kapakla sonlanır. Hazır yay tutucular standart ölçülerde gelir ve ihtiyacınız olan helisel yay çapıyla her zaman uyuşmaz.
 
@@ -20858,7 +20830,7 @@ Yay çapı beş milimetre ile elli milimetre arasında yaygındır; bu ölçüy�
 """)
 
 def _w53_olcuye_ozel_plastik_mil_ayagi_ve_mil_blok_uretimi():
-    return _seo_md_to_html(u"""# Ölçüye özel plastik mil ayağı ve mil bloğu üretimi
+    return _seo_md_to_html(u"""# Plastik Mil Ayağı ve Mil Bloğu: Sitede Ölçüsü Seçilen Seçenekler
 
 Dönen bir milin ara desteği genelde metalden yapılır; bununla birlikte hafif ve orta yüklü uygulamalarda plastik mil ayağı ve mil bloğu kullanmak hem maliyeti düşürür hem de titreşim ve darbe sönümlemesi sağlar. Hazır yatak blokları standart mil çaplarında üretilir; ölçü uyuşmazlığı ya da özel geometri ihtiyacı sık yaşanır.
 
@@ -20901,7 +20873,7 @@ Mil çapı dört milimetre ile kırk milimetre arasında yaygındır; bu ölçü
 
 def _w53_universite_ve_arastirma_laboratuvari_plastik_parca_uretimi():
     return (
-        "<h1>Üniversite ve araştırma laboratuvarı plastik parça üretimi</h1>"
+        "<h1>Üniversite ve Araştırma Laboratuvarı Plastik Parça</h1>"
         "<p>Nasıl çalışır: PRUVO kataloğunda satılan hazır kalemleri marka, model ve kategori sayfalarından bulursunuz; seçtiğiniz ürünü kartla ödeyerek sipariş verirsiniz. Sitede ölçüsü seçilen ürün ailesinde ölçüyü siz yazarsınız, parça o ölçüde hazırlanır. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Araştırma laboratuvarlarının ihtiyacı standart sanayi uygulamalarından farklıdır: deney düzeneği aparatlarının, ölçüm tutucularının ve tez prototiplerinin katalogda hazır karşılığı yoktur. Net cevap: bu parçalar sitede ölçüsü seçilen seçeneklerden karşılanır; ölçüyü siz yazarsınız.</p>"
         "<p>Laboratuvar parçasında tasarımı belirleyen şey genellikle tekrarlanabilirliktir. Ölçüm tutucularında her parçanın aynı konumda durması, deney düzeneği aparatlarında montaj deliklerinin standart laboratuvar ekipmanıyla uyumu şarttır. Bu iki gereklilik, katalogda bulunan genel amaçlı parçalarla nadiren karşılanır.</p>"
@@ -20916,7 +20888,7 @@ def _w53_universite_ve_arastirma_laboratuvari_plastik_parca_uretimi():
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz; çizim ya da ölçü listesi gönderilip model hazırlanması da kapsam dışıdır. Tıbbi cihaz, invaziv uygulama veya insan vücudunda temas eden parça hazırlanmıyor; biyouyumluluk testi ya da sterilizasyon gerektiren uygulamalar tıbbi cihaz üreticilerinin alanındadır.</p>"
         "<p>İkinci sınır: otoklav, yüksek basınç ve yüksek vakum. Otoklav çevrimi yüz yirmi santigrat derecenin üzerinde sıcaklık ve basıncı birlikte uygular; bu ısı tavanımızın üzerindedir. Yüksek sıcaklık, alev ya da yangın riski olan deneylerde plastik parça uygun değildir. Tasarım gizliliği konusunda <a href=\"/ozel-uretim-parca-olcu-ve-tasarim-gizliligi/\">ölçüye özel parça ölçü ve tasarım gizliliği</a> sayfasındaki politika geçerlidir; yayın ve patent öncesi gizlilik talebi yazılı olarak kabul edilir. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Kullanılacak kimyasal, sıcaklık aralığı ve ölçü değerleri yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -21006,7 +20978,7 @@ Kalemi katalogdan seçip Sepete Ekle düğmesiyle sepetinize alın, kartla onlin
 
 def _w53_plastik_parca_numune_onayi_ve_prototip_sureci_nasil_isler():
     return (
-        "<h1>Plastik Parça Siparişi Nasıl İşler?</h1>"
+        "<h1>Ölçü Teyidi Adımı: Katalogda Gerçekte Ne Var?</h1>"
         "<p>Nasıl çalışır: PRUVO kataloğunda satılan hazır kalemleri marka, model ve kategori sayfalarından bulursunuz; seçtiğiniz ürünü kartla ödeyerek sipariş verirsiniz. Sitede ölçüsü seçilen ürün ailesinde ölçüyü siz yazarsınız, parça o ölçüde hazırlanır. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Bu sayfanın adı ölçü teyidi, onay görseli ve prototip başlıklarını taşır; gerçek akışta bu adımların hiçbiri yok. Sipariş tek satırlık bir akıştır: kalemi katalogda bulursunuz, ölçüyü siz yazarsınız, kartla ödersiniz, parça hazırlanıp kargolanır.</p>"
         "<p>İlk adım kalemi bulmaktır. Parçanın adını, ait olduğu cihazı ve marka-modelini yazarsınız; ana sayfadaki arama kutusundan ya da <a href=\"/marka/\">marka sayfasından</a> ilerlersiniz. İkinci adım ölçüyü yazmaktır: sitede ölçüsü seçilen kalemlerde ürün sayfasındaki alanlara ihtiyacınız olan çap, boy ya da kesiti siz yazarsınız. Üçüncü adım ödemedir; kartla online ödeme yaparsınız. Dördüncü adım hazırlık ve gönderimdir: parça basılır, paketlenir ve kargo takip bilgisi size iletilir.</p>"
@@ -21020,46 +20992,34 @@ def _w53_plastik_parca_numune_onayi_ve_prototip_sureci_nasil_isler():
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz; ölçü sizin yazdığınız değerler üzerinden işe alınır. Kalibrasyonlu ölçüm cihazıyla üretilmiş bir rapor ya da metrolojik sertifika kapsamımızda değildir. Çekme, basma veya darbe testi sonucu raporu da verilmez; mekanik sertifika gereken parçalarda test laboratuvarlarına yönelmeniz beklenir.</p>"
         "<p>İkinci sınır: ticari marka ve patentli geometri birebir kopyalanmaz, işlevsel eşdeğerlik hedeflenir. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Ölçü değerleri ve adet yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
 
 
 def _w53_plastik_parca_tolerans_degerini_kim_belirler_uretici_mi_musteri_mi():
-    return _seo_md_to_html(u"""# Plastik parça tolerans değerini kim belirler, üretici mi müşteri mi?
+    return (
+        u"""<h1>Plastik parça tolerans değerini kim belirler, üretici mi müşteri mi?</h1>
+<p class="lead">Kısa yanıt: tolerans değerini fonksiyon ihtiyacınıza göre siz belirlersiniz; üretilebilirlik, maliyet ve fire etkisi tarafını biz açıklarız.</p>
+<p>Nasıl çalışır: sitede ölçüsü seçilen ürünlerde ölçüyü, malzemeyi ve rengi siz seçersiniz; parça o değerlerde basılır. Tolerans, bu seçimlerin sonucunda oluşan bir üretim gerçeğidir: üretim yöntemi belli bir sapma payı bırakır ve o payın ne kadar olacağı parçanın ölçüsüne, malzemesine ve geometrisine bağlıdır. Tolerans değerini biz tek başımıza belirlemeyiz; fonksiyon ihtiyacı sizindir.</p>
+<h2>Karar nasıl verilir</h2>
+<p>Önce parçanın kullanım amacını ve çalışacağı ortamı siz belirlersiniz. Bu ikisi, hangi ölçünün kritik olduğunu ve hangisinin biraz daha gevşek kalabileceğini gösterir. Kritik ölçü, iki parçanın birbirine tam oturmasını sağlayan geçme ölçüsüdür; hesabı <a href="/plastik-parcada-gecme-toleransi-nasil-belirlenir/">plastik parçada geçme toleransı nasıl belirlenir</a> sayfasında ayrıntılıdır. Ölçü mastar ve şablon parçalarında tolerans daha sıkı olabilir; yöntem <a href="/olcuye-ozel-cetvel-mastar-sablon-uretimi/">ölçüye özel cetvel mastar şablon üretimi</a> sayfasında anlatılır.</p>
+<p>Toleransın belirleyicileri dört kalemdir: fonksiyon ihtiyacı, ölçü büyüklüğü, malzeme sınıfı ve geometri karmaşıklığı. Büyük ölçülü parçalarda aynı mutlak sapma oransal olarak daha küçük kalır; karmaşık geometrilerde ise baskı katmanlarının ve desteklerin etkisi payı büyütür. Sıkı tolerans maliyeti yükseltir ve fire oranını artırır; gevşek tolerans maliyeti düşürür ve üretim süresini kısaltır. Tek adetlik siparişlerde tolerans payının oranı daha görünür olur; <a href="/tek-adet-ozel-parca-uretimi/">tek adet özel parça üretimi</a> sayfasındaki senaryoya bakabilirsiniz.</p>
+<p>Tolerans aralığı ürün sayfasındaki alanlardan ve sizin seçtiğiniz ölçülerden hesaplanır; ayrıca bir tolerans dosyası ya da revizyon turu yoktur. Bir kalemin fiyatına toleransın ne kadar yansıdığı <a href="/ozel-parca-uretimi-fiyati-nasil-belirlenir/">özel parça üretimi fiyatı nasıl belirlenir</a> sayfasındaki maliyet kalemleriyle açıklanır.</p>
+<p>Tolerans ile ölçü arasındaki ilişki pratikte şöyledir: aynı geometri, aynı malzeme ve aynı iş yükünde iki farklı tolerans değeri genellikle aynı fiyatı üretir; fark yalnızca çok sıkı tolerans istenen durumlarda belirginleşir. Sıkı toleransın maliyet ve süre tarafındaki etkisi <a href="/ozel-parca-uretimi-fiyati-nasil-belirlenir/">özel parça üretimi fiyatı nasıl belirlenir</a> sayfasındaki kalemlerde açıklanır.</p>
+<h2>Doğru malzeme</h2>
+<p>Malzeme seçimi tolerans aralığını doğrudan etkiler. İç mekân uygulamalarında PETG iyi sonuç verir; boyut kararlılığı yüksektir ve darbe direnci yeterlidir. Yüksek sıcaklık veya kimyasal temas olan ortamlar için ASA ya da cam fiber takviyeli (PA-GF) sınıf daha kararlıdır. Yüksek yorulma ve tekrarlı yük altında karbon fiber takviyeli sınıf (PA-CF) düşünülür; bu sınıf sitede seçilemez ve sitede bulunmayan bir malzeme sınıfı için özel üretim açılmaz. Genel karşılaştırma için <a href="/malzeme-rehberi/">malzeme rehberi</a> sayfası.</p>
+<p>Sıcaklık da toleransla birlikte düşünülür: sıcaklık arttıkça malzeme genleşir ve boyut değişir. Standart iç mekân uygulamalarında 0-60 santigrat derece bandı yeterlidir; dış mekân ya da motor bölgesi gibi sıcak ortamlarda PA-GF sınıfına geçilir. Soğuk depolarda darbe direnci önemlidir; standart PETG soğuk havada daha kırılgan davranabilir. Sıcaklık aralığını ürün sayfasına yazdığınızda malzeme ve tolerans birlikte değerlendirilir.</p>
+<h2>Dürüst sınır</h2>
+<p>Birinci sınır: birebir aynı tolerans garantisi vermeyiz. Üretim yönteminin doğası gereği parçadan parçaya küçük sapmalar olabilir. İkinci sınır: kalibrasyonlu ölçüm raporu ya da metrolojik sertifika kapsamımızda değildir. Üçüncü sınır: üretim sonrası ölçü değişikliği, yani başka bir tolerans değeriyle yeniden basım, bu sayfadaki çerçevenin dışındadır; sitedeki ürünlerde ölçüyü sipariş anında siz yazarsınız, sonradan değişiklik yapılmaz. Dördüncü sınır: ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; """
+        + AYIP_HAKLARI_CUMLESI
+        + u"""</p>
+<h2>Sipariş</h2>
+<p>Ölçüye özel ürünlerde tolerans değerini siz seçersiniz: ölçüyü, malzemeyi ve rengi yazarsınız, sepete eklersiniz, kartla online ödersiniz. Hazır parça basılıp kargolanır. Toleransla ilgili bir sorunuz olursa WhatsApp hattımız: <a href="https://wa.me/905451386526" target="_blank" rel="noopener"><strong>+90 545 138 6526</strong></a>.</p>
+"""
+    )
 
-Tolerans, ölçüye özel plastik parça siparişlerinin en sık tartışılan kalemlerinden biridir. Müşteri çoğu zaman mümkün olan en sıkı toleransı ister; üretici tarafında ise sıkı tolerans hem maliyeti hem de fire oranını yükseltir. Peki toleransı kim belirler? Sorunun kısa yanıtı şudur: tolerans değerini fonksiyon ihtiyacına göre müşteri belirler, üretilebilirlik ve maliyet etkisini üretici yazar. Ticari/süreç karar sahipliği bu iki taraf arasında yazılı olarak kilitlenir. Toleransın teknik hesap tarafı, yani geçme toleransı nasıl belirlenir sorusu ayrı bir sayfanın konusudur; <a href="/plastik-parcada-gecme-toleransi-nasil-belirlenir/">plastik parçada geçme toleransı nasıl belirlenir</a> sayfasındaki teknik formülü referans alırız. Bu sayfa ticari/süreç karar sahipliğini anlatır, rakam ya da formül uydurmaz.
-
-## Nasıl çalışırız?
-
-Tolerans karar sürecinde izlediğimiz yol bellidir. Önce parçanın kullanım amacını, çalışacağı ortamı ve komşu parçalarla olan oturma biçimini yazılı olarak paylaşırsınız. Sonrasında hangi ölçünün kritik, hangisinin daha gevşek olabileceğini konuşuruz. Üretilebilirlik tarafında üretim kabiliyetimizin hangi tolerans aralığında rahat çalıştığını, hangi aralıkta ise fire riskinin arttığını yazılı paylaşırız. Tasarımı onayladıktan sonra üretime hazır model hazırlanır. Bu akış parçanın iş başında tam oturması ve sonradan revizyon maliyeti çıkmaması için zorunludur.
-
-Tolerans belirlenirken fonksiyon ihtiyacı, ölçü büyüklüğü, malzeme sınıfı ve geometri karmaşıklığı birlikte değerlendirilir. Geçme toleransı, yani iki parçanın birbirine tam oturması için gereken sıkılık, kritik ölçü kategorisindedir. Bu konu için <a href="/plastik-parcada-gecme-toleransi-nasil-belirlenir/">plastik parçada geçme toleransı nasıl belirlenir</a> sayfasındaki hesap yöntemi referans alınır; burada üretilebilirlik ve maliyet tarafı konuşulur. Ölçü mastar ve şablon parçalarında tolerans daha sıkı olabilir; genel yöntem <a href="/olcuye-ozel-cetvel-mastar-sablon-uretimi/">ölçüye özel cetvel mastar şablon üretimi</a> sayfasında anlatılır.
-
-Sipariş öncesi tolerans aralıkları yazılı paylaşılır. Detay ve ödeme için **+90 545 138 6526** numaramızdan bize ulaşabilir, sitede kartla online ödeme ile de siparişinizi tamamlayabilirsiniz. Ölçü nasıl alınır ve bize nasıl iletilir sorusunun yanıtı <a href="/parca-olcusu-nasil-alinir-ve-gonderilir/">parça ölçüsü nasıl alınır ve gönderilir</a> sayfasında ayrıntılıdır. Üretim öncesi onay görseli verilip verilmediği konusu için <a href="/uretim-oncesi-olcu-teyidi-ve-onay-gorseli-verilir-mi/">üretim öncesi ölçü teyidi ve onay görseli verilir mi</a> sayfasını inceleyebilirsiniz. Tek adet üretim senaryosunda tolerans aralığı için <a href="/tek-adet-ozel-parca-uretimi/">tek adet özel parça üretimi</a> sayfasındaki bilgiyi referans alırız.
-
-## Doğru malzeme
-
-Tolerans karar sürecinde malzeme seçimi doğrudan tolerans aralığını etkiler. Standart iç mekân uygulamalarında PETG iyi sonuç verir; boyut kararlılığı yüksektir ve darbe direnci yeterlidir. Yüksek sıcaklık veya kimyasal temas olan ortamlar için ASA veya PA cam-fiber takviyeli (PA-GF) sınıf öneriyoruz; bu sınıflar nem emme ve boyut değişimi açısından daha kararlıdır. Yüksek yorulma veya tekrarlı yük altında ise karbon-fiber takviyeli sınıf (PA-CF) önerilebilir. PA-CF ve PA-GF sınıfı sitede doğrudan seçilemez; bu malzeme için WhatsApp hattından **+90 545 138 6526** numarasına yazıp özel talep oluşturursunuz, bu sınıfta sipariş online tamamlanmaz. Genel malzeme karşılaştırması için <a href="/malzeme-rehberi/">malzeme rehberi</a> sayfasındaki tabloyu kullanırız.
-
-Renk seçimi konusunda standart siyah, gri ve beyaz stoklarımızda vardır; özel renk tonu sipariş öncesi konuşulur. Akım taşıma, ısı iletimi veya yapısal yük taşıma bizim kapsamımıza girmez; tolerans değerlendirmesi bu üç kategori dışındaki fonksiyon ihtiyaçlarına göre yapılır.
-
-Çalışma sıcaklığı açısından tolerans aralığı çalışma sıcaklığı ile doğrudan ilişkilidir: sıcaklık arttıkça malzeme genleşir ve boyut değişir. Standart iç mekân uygulamalarında sıfır ile altmış santigrat derece arası yeterlidir; dış mekân veya motor bölmesi gibi sıcak ortamlarda PA-GF sınıfına geçilir. Soğuk hava deposu veya düşük sıcaklık ortamlarında darbe direnci önemlidir; standart PETG soğuk havalarda daha kırılgan davranabilir. Sipariş öncesi sıcaklık aralığı yazılı paylaşılırsa tolerans ve malzeme birlikte değerlendirilir.
-
-## Dürüst sınır
-
-Tolerans karar sürecinde dürüst sınır açıkça konuşmamız gerekir. Üretici tarafında tolerans değerini tek başına biz belirlemeyiz. Tolerans kararı fonksiyon ihtiyacına göre müşteri tarafından gelir; üretici yalnızca üretilebilirlik, maliyet ve fire oranı tarafını yazılı paylaşır. Bu, müşterinin fonksiyon ihtiyacını netleştirmeden tolerans aralığı veremeyeceğimiz anlamına gelir. Sipariş öncesi yazılı onay olmadan üretim başlamaz.
-
-Bir diğer dürüst sınır: tolerans garanti vermeyiz. Tolerans aralığı yazılı olarak paylaşılır, ancak üretilen her parça için birebir aynı tolerans garantisi vermeyiz. Üretim yöntemimizin doğası gereği parçadan parçaya küçük sapmalar olabilir; bu sapmalar yazılı tolerans aralığı içinde kalır. Kalibrasyonlu ölçüm raporu veya metrolojik sertifika kapsamımızda değildir.
-
-Sıkı tolerans talebi maliyeti yükseltir ve fire oranını artırır. Sipariş öncesi maliyet etkisi yazılı paylaşılır; müşteri sıkı toleransta ısrar ederse ek maliyet kabul edilir ve süreç uzar. Tolerans aralığının gevşetilmesi maliyeti düşürür ve üretim süresini kısaltır. Müşteri ile üretici arasındaki denge yazılı olarak kilitlenir.
-
-Tolerans değişimi revizyon senaryolarında ayrı bir değerlendirme yapılır. Sipariş öncesi belirlenen tolerans aralığı, üretim aşamasında değiştirilmek istenirse yeni bir yazılı onay süreci başlar; bu süreç toleransın sıkılaştırılması yönünde ise ek maliyet taşır. Tolerans kayıtlarımız sipariş öncesi yazılı olarak arşivlenir ve aynı parçadan tekrar sipariş senaryosunda referans alınır. Tolerans onay sürecinde müşteri ile üretici arasındaki denge yazılı olarak kilitlenir; bu denge sipariş öncesi net olarak belirlenir.
-
-## Sipariş
-
-Tolerans ve prototip süreci siparişinde parçanın kullanım amacı, çalışacağı ortam ve komşu parçalarla oturma biçimi bilgileri gerekir. Tolerans aralığı yazılı paylaşılır; bu onay üretim başlangıcı için zorunludur. Detay ve ödeme için **+90 545 138 6526** numaramızdan bize ulaşabilir, sitede kartla online ödeme ile de siparişinizi tamamlayabilirsiniz. Sipariş onayı sonrası dijital modelin ekran görüntüsünü onayınız için paylaşıyoruz; tolerans aralığı veya geometride revizyon talepleri için ayrı değerlendirme yapılır. Aynı parçadan tekrar sipariş senaryosunda önceki ölçü kaydımız referans alınır ve tolerans onayı hızlanır.""")
 
 def _w53_termal_sok_ve_ani_sicaklik_degisimine_dayanikli_plastik_parca_uretimi():
     return _seo_md_to_html(u"""# Termal şok ve ani sıcaklık değişimine dayanıklı plastik parça üretimi
@@ -21120,12 +21080,12 @@ def _w53_radyasyona_dayanikli_plastik_parca_uretimi():
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Radyasyon testi yapılmaz, rapor ya da sertifika düzenlenmez. Tıbbi görüntüleme veya nükleer zırhlama gibi sertifikalı uygulamalar iddia edilmez; bu segmentte tıbbi cihaz üreticilerine ve test laboratuvarlarına yönelmeniz gerekir.</p>"
         "<p>İkinci sınır: parçanın radyasyon altındaki ömrü garanti edilmez. Doz, süre ve beklenen kullanım süresi birlikte değerlendirilir; doz birikim eğrisi parça geometrisine göre değişir. Yüksek sıcaklık radyasyon etkisiyle birleştiğinde bozunma hızlanır. Sertifikalı test gereken durumlarda bağımsız bir test laboratuvarına yönelmeniz beklenir; biz üretim tarafında kalırız. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Radyasyon türü, toplam doz, maruz kalma süresi ve parça ölçüleri yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
 def _w53_pos_terminali_ve_satis_noktasi_plastik_oem_parca_uretimi():
-    return _seo_md_to_html(u"""# POS terminali ve satış noktası plastik OEM parça üretimi
+    return _seo_md_to_html(u"""# POS Terminali ve Satış Noktası Plastik OEM Parçası: Katalogdaki Seçenekler
 
 POS terminali yani satış noktası cihazları; perakende mağaza, restoran, kafe, market ve hizmet sektöründe ödeme alımını yapan cihazlardır. Bu cihazların gövde, kapak, tutucu, bağlantı braketi ve çevre birim parçaları zamanla aşınır, kırılır ya da revizyon gerektirir.
 
@@ -21170,7 +21130,7 @@ Cihazın markası, modeli ve parçanın cihaz içindeki konumu bilgileriyle kata
 
 def _olcuye_ozel_plastik_miknatis_mandal_govdesi_uretimi():
     return (
-        "<h1>Ölçüye özel plastik mıknatıs mandal gövdesi üretimi</h1>"
+        "<h1>Plastik Mıknatıs Mandal Gövdesi: Sitede Ölçüsü Seçilen Seçenekler</h1>"
         "<p>Nasıl çalışır: PRUVO kataloğunda satılan hazır kalemleri marka, model ve kategori sayfalarından bulursunuz; seçtiğiniz ürünü kartla ödeyerek sipariş verirsiniz. Sitede ölçüsü seçilen ürün ailesinde ölçüyü siz yazarsınız, parça o ölçüde hazırlanır. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Çekmeceli dolap, banyo dolabı, ofis masası çekmecesi ve gömme dolap kapağı için manyetik mandallar kullanılır. Net cevap: mandal gövdesi ve karşılık plakası, mıknatısın çapı ve kalınlığı ile kapak kenarının ölçüsüne göre hazırlanır; mıknatısın kendisi tedarik kalemi olarak size aittir.</p>"
         "<p>Hazır mandal setleri belirli bir mıknatıs çapı ve belirli bir kapak kalınlığı varsayar. Gerçek projede çekmece kenarı kalınlığı, dolap kapağı arası boşluk ve mıknatıs yuvası derinliği proje proje değişir. Bu üç değer uyuşmadığında ya yuva gevşek kalır ya da kapak kapanmaz.</p>"
@@ -21184,13 +21144,13 @@ def _olcuye_ozel_plastik_miknatis_mandal_govdesi_uretimi():
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Mıknatısı biz hazırlamıyoruz; bu sayfada anlatılan iş, mıknatısı taşıyan ve karşılayan plastik gövde, yuva ve karşılık plakasıdır. Neodyum ya da ferrit mıknatıs seçimi ve boyutlandırması ayrı bir tedarik kalemidir; tutunma kuvveti ölçümü de size aittir.</p>"
         "<p>İkinci sınır: emniyet kritik bağlantı. Mıknatıs mandalı genelde dolap kapağı ya da çekmece kapatma içindir; çocuk güvenliği gerektiren kapılarda ve yük taşıyan yapısal bağlantılarda plastik mandal gövdesi tek başına yeterli değildir, metal mandal ya da mekanik kilit gerekir. Vidalama yapılıyorsa vida delikleri sipariş öncesinde açılır ve toleransı yazılı paylaşılır. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Mıknatıs çapı, mıknatıs kalınlığı, kapak kenarı kalınlığı ve karşılık plakası derinliği yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
 def _olcuye_ozel_plastik_yumusak_kapanma_tamponu_uretimi():
     return (
-        "<h1>Ölçüye özel plastik yumuşak kapanma tamponu üretimi</h1>"
+        "<h1>Plastik Yumuşak Kapanma Tamponu: Sitede Ölçüsü Seçilen Seçenekler</h1>"
         "<p class=\"lead\">Kapı, çekmece ya da dolap kapağı sert biçimde çarptığında parçanın kendisi, çerçeve ve menteşe zamanla yıpranır. Yumuşak kapanma tamponu bu son darbeyi sönümleyen küçük bir elemandır. Net cevap: tampon, monte edileceği yüzey ve kapakla arasındaki strok mesafesine göre hazırlanır; siz bu ölçüleri yazarsınız, biz tamponu o değerlere göre hazırlarız. Elinizdeki parçayı bize göndermeniz gerekmiyor.</p>"
         "<p>Hazır damper setleri belirli bir vuruş ağırlığı ve belirli bir sönümleme kuvveti için tasarlanır. Gerçek projede kapak ağırlığı, kapanma hızı ve kullanıcı beklentisi değişir; bu yüzden hazır bir tampon çoğu projede ya çok sert ya çok yumuşak kalır.</p>"
         "<p>Tamponun tasarımında üç geometrik ölçü belirleyicidir: montaj yüzeyi, tamponun yüksekliği ve temas yüzeyinin genişliği. Temas genişliği küçükse kuvvet tek bir noktaya biner ve çerçeve iz bırakabilir; genişliği büyükse sönümleme etkisi yumuşar ve kapak daha yavaş kapanır.</p>"
@@ -21204,7 +21164,7 @@ def _olcuye_ozel_plastik_yumusak_kapanma_tamponu_uretimi():
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Sönümleme kuvveti için kesin bir değer garantisi verilmez; kuvvet geometri ve malzemeye göre yazılı olarak paylaşılır, üretim yönteminin doğası gereği parçadan parçaya küçük sapmalar olabilir ve bu sapmalar yazılı tolerans aralığı içinde kalır.</p>"
         "<p>İkinci sınır: kapak ağırlığı. Plastik yumuşak kapanma tamponu hafif ve orta ağırlıktaki kapak ve çekmeceler için uygundur. Ağır kapak, ticari soğuk oda kapağı ya da endüstriyel kepenk gibi uygulamalarda metal menteşe ve amortisör sistemi gerekir ve bu tür taleplerde metal işleyen tedarikçiye yönlendirme yapılır. Yumuşak kapanma etkisi zamanla değişebilir; tekrarlı yük altında sönümleme azalır, bu nedenle periyodik kontrol önerilir. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Montaj yüzeyi, strok mesafesi ve beklenen sönümleme kuvveti yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -21215,13 +21175,13 @@ def _olcuye_ozel_plastik_cam_tutucu_lastik_conta_cercevesi_uretimi():
         "<p>Conta profilinin şekli, uygulamanın kendisine göre değişir. Kanal profil, panelin içine doğru oturur ve toz sızdırmazlığı için sıkışma sağlar. D profil, camın kenarına yaslanır ve tek taraflı tutuş sağlar. Kutu profil ise panelin her iki yüzünü birden kavrar ve en çok yalıtımı verir; buna karşılık montaj payı daha fazladır.</p>"
         "<p>İkinci belirleyici etken sıkma basıncıdır. Contanın görevi, panelin kenarını sürtünmeye karşı yastıklamaktır; ancak aşırı sıkma, cam kenarında gerilme bırakır ve cam kırılabilir. Cam malzemelerin kenar hassasiyeti yüksektir, özellikle ısıtılmış ve sertleştirilmiş olmayan camda. Bu nedenle conta sertliği, panel kalınlığı ve sıkma miktarı birlikte değerlendirilir.</p>"
         "<h2>Malzeme</h2>"
-        "<p>Elastomer conta için TPU ya da TPE, sertlik değerleri panel kenarına göre seçilir; yumuşak sınıflar cam kenarında iz bırakmaz, sert sınıflar ise daha uzun ömürlü olur. Sert plastik çerçeve gövdesi için ASA, PC veya PETG uygundur. Camekan gibi UV'ye maruz kalan uygulamalarda ASA'nın UV dayanımı belirleyici olur. Şeffaf görünüm gerekiyorsa PMMA tercih edilir.</p>"
+        "<p>Elastomer conta için TPU, sertlik değerleri panel kenarına göre seçilir; yumuşak sınıflar cam kenarında iz bırakmaz, sert sınıflar ise daha uzun ömürlü olur. Sert plastik çerçeve gövdesi için ASA veya PETG uygundur. Camekan gibi UV'ye maruz kalan uygulamalarda ASA'nın UV dayanımı belirleyici olur. Şeffaf görünüm gerekiyorsa PETG tercih edilir.</p>"
         "<p>Genel conta çözümleri <a href=\"/olcuye-ozel-conta-uretimi/\">ölçüye özel conta üretimi</a>, çerçeve ve plaka çözümleri <a href=\"/olcuye-ozel-plastik-etiket-tutucu-ve-plaka-cercevesi-uretimi/\">ölçüye özel plastik etiket tutucu ve plaka çerçevesi üretimi</a> sayfalarında anlatılır.</p>"
         "<h2>Katalogda nasıl bulunur</h2>"
         "<p>Ana giriş noktaları <a href=\"/kategori/dekorasyon/\">dekorasyon</a>, <a href=\"/kategori/ev/\">ev</a> ve <a href=\"/kategori/ofis/\">ofis</a> kategorileridir. Hazır örnekler: <a href=\"/urun/th4563292-magic-bullet-bicak-contasi/\">Magic Bullet blender bıçak contası</a>, <a href=\"/urun/pr817355-pioneer-6x9-hoparlor-contasi/\">Pioneer hoparlör contası</a>, <a href=\"/urun/mg-mgb-kardan-aksi-conta-halkasi/\">MG MGB kardan aksı conta halkası</a> ve <a href=\"/urun/pr1396678-quechua-termos-sise-kapak-contasi/\">Quechua termos şişe kapağını tutan conta</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-cerceve/\">ölçüye özel çerçeve</a>, <a href=\"/urun/olcuye-ozel-kutu-organizer/\">ölçüye özel kutu ve organizer</a> ile <a href=\"/urun/olcuye-ozel-toka/\">ölçüye özel toka</a> uygundur. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Camı, paneli taşıyan ve düşmeyi önleyen yapısal profil, güvenlik camı ve taşıma bantları kapsam dışıdır; bir camın düşerek kırılması halinde üretim kaynaklı bir kusur iddiası karşılanmaz. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Panelin kalınlığı, çerçeve profili ve dış genişliği yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -21242,7 +21202,7 @@ def _tibbi_goruntuleme_cihazi_plastik_muhafaza_uretimi():
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz; cihaz markası, modeli ve parçanın cihaz içindeki konumu bilgisi üzerinden çalışılır. Cihazın orijinal ticari markası ya da patentli geometrisi birebir kopyalanmaz; işlevsel eşdeğerlik hedeflenir ve marka ile patent tarafı size aittir.</p>"
         "<p>İkinci sınır: cihazın garanti kapsamı ya da yetkili servis statüsü bu konunun dışındadır; garanti kapsamındaki bir parçanın değişimi için yetkili servisle görüşülmesi gerekir. Cihazın iç ısı dağılımı nedeniyle muhafaza yüzeyinde lokal sıcaklık artışı olabilir; bu detay malzeme seçimini doğrudan etkiler. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Cihazın markası, modeli ve parçanın cihaz içindeki konumu yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -21272,7 +21232,7 @@ def _bira_fabrikasi_brewery_ekipmani_plastik_parca_uretimi():
 
 def _plastik_parca_olcusunu_kendim_veremiyorsam_olcu_hizmeti_var_mi():
     return (
-        "<h1>Plastik parça ölçüsünü kendin veremiyorsan ölçü hizmeti var mı?</h1>"
+        "<h1>Ölçüyü kendin veremiyorsan ölçü hizmeti var mı</h1>"
         "<p>Nasıl çalışır: PRUVO kataloğunda satılan hazır kalemleri marka, model ve kategori sayfalarından bulursunuz; seçtiğiniz ürünü kartla ödeyerek sipariş verirsiniz. Sitede ölçüsü seçilen ürün ailesinde ölçüyü siz yazarsınız, parça o ölçüde hazırlanır. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Net cevap: ücretli bir ölçü hizmeti ya da sabit bir ölçü ücreti sunmuyoruz. Yapılan iş basit: ölçüyü siz yazarsınız, biz o ölçüde hazırlarız. İhtiyacınız olan kalem katalogda ise ürün sayfasındaki ölçü alanları hazırdır; katalogda yoksa sitede var mı diye tek soru yeterlidir.</p>"
         "<p>Ölçüyü kendiniz belirleyememenizin en sık nedeni, parçanın üzerinde ölçülebilir düz bir yüzey bulunmamasıdır. Bu durumda iki pratik yol vardır. Birincisi, parçanın takıldığı yeri ya da komşu parçaları referans almak: vida çapı, kanal genişliği, ray ölçüsü gibi sabit değerler parçanın ölçüsünü belirler. İkincisi, katalogda aynı işlevi gören bir kalemin hazır ölçülerini referans almak.</p>"
@@ -21283,16 +21243,16 @@ def _plastik_parca_olcusunu_kendim_veremiyorsam_olcu_hizmeti_var_mi():
         "<p>Malzeme seçimi ölçüyle birlikte düşünülür. İç mekân uygulamalarında PETG, dış mekân ve UV altında ASA, yüksek sıcaklık ya da kimyasal temasta ise takviyeli sınıflar tercih edilir. Sınıfların karşılaştırması <a href=\"/malzeme-rehberi/\">malzeme rehberi</a> sayfasında toplandı.</p>"
         "<p>Akım taşıma, ısı iletimi ya da yapısal yük taşıma kapsam dışıdır. Standart siyah, gri ve beyaz tonları stoklarda bulunur.</p>"
         "<h2>Katalogda nasıl bulunur</h2>"
-        "<p>Ana giriş noktaları <a href=\"/kategori/tamirat/\">tamirat</a>, <a href=\"/kategori/elektronik/\">elektronik</a>, <a href=\"/kategori/ev/\">ev</a>, <a href=\"/kategori/otomobil/\">otomobil</a> ve <a href=\"/kategori/ofis/\">ofis</a> kategorileridir. Hazır örnekler: <a href=\"/urun/th3283775-makita-bant-zimpara-toz-emis-adaptoru/\">Makita bant zımpara toz emiş adaptörü</a>, <a href=\"/urun/pr102139-ryobi-gonye-testeresi-elektrikli-supurge-adaptoru/\">Ryobi elektrikli süpürge adaptörü</a> ve <a href=\"/urun/pr129397-wyze-cam-v3-odak-dugmesi/\">Wyze Cam odak düğmesi</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüye özel montaj braketi</a>, <a href=\"/urun/olcuye-ozel-vida-civata-somun-pul/\">ölçüye özel vida, cıvata, somun ve pul</a> ile <a href=\"/urun/olcuye-ozel-toka/\">ölçüye özel toka</a> uygundur. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
+        "<p>Ana giriş noktaları <a href=\"/kategori/tamirat/\">tamirat</a>, <a href=\"/kategori/elektronik/\">elektronik</a>, <a href=\"/kategori/ev/\">ev</a>, <a href=\"/kategori/otomobil/\">otomobil</a> ve <a href=\"/kategori/ofis/\">ofis</a> kategorileridir. Hazır örnekler: <a href=\"/urun/th3283775-makita-bant-zimpara-toz-emis-adaptoru/\">Makita bant zımpara toz emiş adaptörü</a> ve <a href=\"/urun/pr129397-wyze-cam-v3-odak-dugmesi/\">Wyze Cam odak düğmesi</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüye özel montaj braketi</a>, <a href=\"/urun/olcuye-ozel-vida-civata-somun-pul/\">ölçüye özel vida, cıvata, somun ve pul</a> ile <a href=\"/urun/olcuye-ozel-toka/\">ölçüye özel toka</a> uygundur. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz; aradığımız şey sizin yazdığınız ölçü değerleridir. Kalibrasyonlu bir ölçüm cihazıyla üretilmiş rapor ya da metrolojik sertifika kapsamımızda değildir. Ölçü değerleri sipariş notuna yazılır ve parça o değerlere göre hazırlanır.</p>"
-        "<p>İkinci sınır: ölçüsü tam olarak bulunamayan bir kalemde, parçanın işlevini yerine getirmeyeceği açık bir durum varsa bu durum sipariş öncesinde yazılı olarak belirtilir. Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
+        "<p>İkinci sınır: ölçüsü tam olarak bulunamayan bir kalemde, parçanın işlevini yerine getirmeyeceği açık bir durum varsa bu durum sipariş öncesinde yazılı olarak belirtilir. Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + " Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçanın adı ve ölçü değerleri yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
 def _plastik_parca_siparisinde_revizyon_kac_kez_yapilabilir():
     return (
-        "<h1>Plastik parça siparişinde revizyon kaç kez yapılabilir</h1>"
+        "<h1>Siparişte Değişiklik Kaç Kez Yapılabilir?</h1>"
         "<p>Nasıl çalışır: PRUVO kataloğunda satılan hazır kalemleri marka, model ve kategori sayfalarından bulursunuz; seçtiğiniz ürünü kartla ödeyerek sipariş verirsiniz. Sitede ölçüsü seçilen ürün ailesinde ölçüyü siz yazarsınız, parça o ölçüde hazırlanır. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Net cevap: revizyon turu yoktur, çünkü tasarım turu da yoktur. Ölçüyü siz yazarsınız, parça o ölçüde hazırlanır; sonradan değişiklik isterseniz yeni bir sipariş verirsiniz. Ayıplı üründe ise iade ve geri ödeme süreci devreye girer.</p>"
         "<p>Sipariş akışında değiştirilebilen tek şey, sipariş vermeden önce yazdığınız ölçü değerleridir. Ürün sayfasındaki alana doğru değeri yazarsınız ve o değer işe alınır. Parça hazırlandıktan sonra aynı sipariş üzerinde ölçü değişikliği yapılmaz; değişiklik gerekiyorsa yeni bir sipariş açılır ve yeni kalem yeni parça olarak hazırlanır.</p>"
@@ -21304,7 +21264,7 @@ def _plastik_parca_siparisinde_revizyon_kac_kez_yapilabilir():
         "<p>Ana giriş noktaları <a href=\"/kategori/olcuye-ozel-uretim/\">sitede ölçüsü seçilen ürün kategorisi</a>, <a href=\"/kategori/tamirat/\">tamirat</a>, <a href=\"/kategori/elektronik/\">elektronik</a> ve <a href=\"/kategori/ofis/\">ofis</a> kategorileridir. Hazır örnekler: <a href=\"/urun/th2808434-delonghi-dedica-680-685-portafiltre-standi/\">DeLonghi portafiltre standı</a>, <a href=\"/urun/th1057635-samsung-beyaz-kulaklik-kablo-tutucusu/\">Samsung kulaklık kablo tutucusu</a> ve <a href=\"/urun/pr81031-miele-supurge-nozulu/\">Miele süpürge nozulu</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-kutu-organizer/\">ölçüye özel kutu ve organizer</a>, <a href=\"/urun/olcuye-ozel-cerceve/\">ölçüye özel çerçeve</a> ile <a href=\"/urun/olcuye-ozel-vida-civata-somun-pul/\">ölçüye özel vida, cıvata, somun ve pul</a> uygundur. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Belirli bir revizyon adedinin ücretsiz ya da garantili olduğu bir limit verilmiyor; çünkü revizyon adedi diye bir şey yok. Tamamen farklı bir parça tasarımına geçiş yeni bir sipariştir. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Sipariş referansınız ve ölçü değerleri yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -21351,7 +21311,7 @@ def _radyolusent_rontgen_goruntuleme_uyumlu_plastik_parca_uretimi():
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. PRUVO radyolusentlik ya da görüntü kalitesi için akredite bir test laboratuvarı değildir; tanısal görüntüleme standardına uygunluk ya da hastane onayı iddiası verilmez. Parçanın belirli bir cihaz ve protokol altındaki artefakt performansı bu anlatının dışındadır.</p>"
         "<p>İkinci sınır: hasta tarafında konumlanan, hasta cildi ya da vücut sıvısı ile temas eden veya kalibrasyonu etkileyen hassas bileşenler kapsam dışıdır. Akredite test ya da klinik onay gereken durumlarda bağımsız bir test laboratuvarına yönelmeniz beklenir. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Görüntüleme modalitesi, parçanın konumu ve ölçüleri yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -21398,33 +21358,33 @@ def _termos_sise_kapak_contasi_plastik_oem_parca_uretimi():
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Kesinlikle sızdırmaz ya da sızdırmazlık garantisi gibi mutlak bir iddia kurulmaz. Doğru ölçü ve malzeme seçimiyle birlikte kullanıldığında sızdırmazlık sağlanır; ancak kullanım sırasındaki aşınma, vida gevşemesi ya da conta eskimesi performansı zamanla değiştirebilir.</p>"
         "<p>İkinci sınır: gıda temas yüzeyi iddiası. Üretim sonrası belirli bir gıda temas belgesi verilmez; uygunluk yalnız üretici belgeleriyle doğrulanabilir. Orijinal termos markasının ticari markası, logosu ya da patentli conta geometrisi birebir kopyalanmaz, işlevsel eşdeğerlik hedeflenir. Conta ile birlikte kullanılan metal kapak, vida ya da yay mekanizması kapsam dışıdır. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Kapak iç çapı, vida adımı ve conta yuvası derinliği yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
 def _olcuye_ozel_plastik_kalici_gerilim_giderici_cengel_uretimi():
     return (
-        "<h1>Plastik Kalıcı Gerilim Giderici Çengel Ölçüye Özel Üretimi</h1>"
+        "<h1>Kalıcı Gerilim Giderici Çengel: Sitede Ölçüsü Seçilen Seçenekler</h1>"
         "<p>Nasıl çalışır: PRUVO kataloğunda satılan hazır kalemleri marka, model ve kategori sayfalarından bulursunuz; seçtiğiniz ürünü kartla ödeyerek sipariş verirsiniz. Sitede ölçüsü seçilen ürün ailesinde ölçüyü siz yazarsınız, parça o ölçüde hazırlanır. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Kablo çıkış noktasında bükülme yükünü karşılayan plastik çengel, hareketli cihazlarda ve sabit tesisat noktalarında sık karşılaşılan bir tamamlayıcıdır. Net cevap: kablo çapı, çıkış açısı ve beklenen bükülme yarıçapı belirleyicidir; çengel, kablonun keskin bir açıyla kırılmasını engelleyecek biçimde tasarlanır.</p>"
         "<p>Problem basit görünür ama sonucu ağır olur. Bir kablo, cihaz gövdesinden çıkarken sert bir kenarın üzerinden geçiyorsa, o noktada sürekli bükülme yükü oluşur. İç teller bu yükün bir kısmını karşılayamaz ve kopmaya başlar; kopma genellikle cihazın gövdesinin içinde, görülmeyen bir noktada olur. Çengel, kablonun yumuşak bir yay çizerek çıkmasını sağlayarak yükü dağıtır.</p>"
         "<p>Bükülme yarıçapı burada sayısal bir kurala bağlanır: kablo çapının en az beş katı kadar bir yarıçap korunmalıdır. Bu değerin altına inildiğinde kablo içindeki teller kalıcı olarak eğrilir ve ilk yıllarda sorun görülmese bile zamanla kopma başlar. Çengel, kabloyu yönlendirerek bu yarıçapın korunmasını sağlar.</p>"
-        "<p>İkinci etken çıkış açısıdır. Kablo, gövdeye dik çıkıyorsa bükülme yükü doğrudan gövdeye aktarılır; 30-45 dereyelik bir açıyla çıkması yükü yönlendirir. Üçüncü etken hareketliliktir: elektrikli süpürge ve el aletlerinde kablo sürekli hareket eder ve çengelin buna dayanması gerekir.</p>"
+        "<p>İkinci etken çıkış açısıdır. Kablo, gövdeye dik çıkıyorsa bükülme yükü doğrudan gövdeye aktarılır; 30-45 dereyelik bir açıyla çıkması yükü yönlendirir. Üçüncü etken hareketliliktir: süpürge ve el aletlerinde kablo sürekli hareket eder ve çengelin buna dayanması gerekir.</p>"
         "<h2>Doğru malzeme</h2>"
         "<p>Çengel, kabloyu aşındırmamalı ve aynı zamanda onu sıkı tutmalıdır. TPU, hem esneyip kabloya uyum sağlar hem de aşındırmaz; bu yüzden ilk tercihtir. PETG, daha sert bir geçiş elemanı için uygundur. Kablo çıkışı sürekli hareket eden bir cihazdaysa, çengelin kırılmaması için geçiş yarıçapının geniş bırakılması gerekir.</p>"
         "<p>Kablo geçiş ve strain relief çözümleri <a href=\"/kablo-gecis-burcu-gerilim-alici-yaptirma/\">kablo geçiş burcu gerilim alıcı yaptırma</a> ve <a href=\"/olcuye-ozel-plastik-kablo-giris-rakoru-uretimi/\">ölçüye özel plastik kablo giriş rakoru üretimi</a> sayfalarında anlatılır.</p>"
         "<h2>Katalogda nasıl bulunur</h2>"
-        "<p>Ana giriş noktaları <a href=\"/kategori/elektronik/\">elektronik</a> ve <a href=\"/kategori/ofis/\">ofis</a> kategorileridir. Hazır örnekler: <a href=\"/urun/th3283775-makita-bant-zimpara-toz-emis-adaptoru/\">Makita bant zımpara toz emiş adaptörü</a>, <a href=\"/urun/pr102139-ryobi-gonye-testeresi-elektrikli-supurge-adaptoru/\">Ryobi elektrikli süpürge adaptörü</a> ve <a href=\"/urun/th1057635-samsung-beyaz-kulaklik-kablo-tutucusu/\">Samsung kulaklık kablo tutucusu</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-hortum-adaptoru/\">ölçüye özel hortum adaptörü</a>, <a href=\"/urun/olcuye-ozel-baglanti-konektor/\">ölçüye özel birleştirme konektörü</a> ve <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüye özel montaj braketi</a> uygundur. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
+        "<p>Ana giriş noktaları <a href=\"/kategori/elektronik/\">elektronik</a> ve <a href=\"/kategori/ofis/\">ofis</a> kategorileridir. Hazır örnekler: <a href=\"/urun/th3283775-makita-bant-zimpara-toz-emis-adaptoru/\">Makita bant zımpara toz emiş adaptörü</a> ve <a href=\"/urun/th1057635-samsung-beyaz-kulaklik-kablo-tutucusu/\">Samsung kulaklık kablo tutucusu</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-hortum-adaptoru/\">ölçüye özel hortum adaptörü</a>, <a href=\"/urun/olcuye-ozel-baglanti-konektor/\">ölçüye özel birleştirme konektörü</a> ve <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüye özel montaj braketi</a> uygundur. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Çengel, kabloyu koruyan bir geçiş elemanıdır; kablo kopmasının nedeni olan iç iletken yorgunluğunu ortadan kaldırmaz. Enerji taşıyan yüksek akım kabloları için iletken çapı ve yalıtım sınıfı ayrıca hesaplanır ve bu kapsam dışıdır. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Kablo çapı, çıkış açısı ve cihazın hareketliliği yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
 
 def _olcuye_ozel_plastik_sikistirma_kamasi_uretimi():
     return (
-        "<h1>Ölçüye özel plastik sıkıştırma kaması üretimi</h1>"
+        "<h1>Plastik Sıkıştırma Kaması: Sitede Ölçüsü Seçilen Seçenekler</h1>"
         "<p>Nasıl çalışır: PRUVO kataloğunda satılan hazır kalemleri marka, model ve kategori sayfalarından bulursunuz; seçtiğiniz ürünü kartla ödeyerek sipariş verirsiniz. Sitede ölçüsü seçilen ürün ailesinde ölçüyü siz yazarsınız, parça o ölçüde hazırlanır. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">İki yüzeyi sıkıştırarak bağlayan plastik kama; tabla kelepçesi, geçme bağlantı parçası ya da montaj aparatı elemanı olarak kullanılan küçük boyutlu bir bağlantı parçasıdır. Net cevap: kama, sıkıştırılacak yüzeylerin arası ve binen yük bilgisiyle hazırlanır; siz bu değerleri yazarsınız, biz kama geometrisini o değerlere göre kurarız. Elinizdeki parçayı bize göndermeniz gerekmiyor.</p>"
         "<p>Hazır kama setleri belirli bir açı ve belirli bir uzunluk varsayar. Gerçek projede sıkıştırma açısı, kama uzunluğu ve yüzey temas genişliği değişir; bu üçü birbirine bağlıdır. Uzun bir kama dar bir açıyla çalışıyorsa kuvvet dağılımı bozulur, kama yüzeye tam oturmaz.</p>"
@@ -21439,13 +21399,13 @@ def _olcuye_ozel_plastik_sikistirma_kamasi_uretimi():
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Plastik kama, yüksek sıkıştırma yükü, titreşimli bağlantı ya da emniyet kritik uygulamalar için uygun değildir; plastik malzeme tekrarlı yük altında yorulur ve kalıcı deformasyon gösterebilir. Bu tür parçalarda metal kama ya da mekanik kelepçe tercih edilmelidir ve metal işleyen tedarikçiye yönlendirme yapılır.</p>"
         "<p>İkinci sınır: kama açısı toleransı. Plastik üretim yöntemiyle elde edilen açı belirli bir tolerans aralığı içinde kalır; milimetrenin altında kesin tolerans verilmez. Vida ya da yapıştırma ile yapılan montaj noktalarında yapıştırıcık ve vida seçimi size aittir. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Yüzeyler arası mesafe, binen yük, kama uzunluğu ve açısı yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
 def _olcuye_ozel_plastik_akis_yonlendirici_kanatciki_uretimi():
     return (
-        "<h1>Plastik Hava Yönlendirme Kanatçığı Ölçüye Özel Üretimi</h1>"
+        "<h1>Plastik Hava Yönlendirme Kanatçığı: Sitede Ölçüsü Seçilen Seçenekler</h1>"
         "<p class=\"lead\">Kanal, oluk ya da menfez içinde hava akışını yönlendiren plastik kanatçık, havalandırma ve endüstriyel hava yönlendirme uygulamalarında sık kullanılan tamamlayıcı bir elemandır. Net cevap: bu kanatçık yalnızca hava amaçlıdır; su, gaz, buhar ya da toz taşıma uygulamalarında kullanılmaz.</p>"
         "<p>Kanatçığın görevi akışı yönlendirmek ve basınç kaybını sınırlı tutmaktır. Bir kanatçık ne kadar dik açıyla yerleştirilirse o kadar çok yönlendirme yapar, ama basınç kaybı da artar. Tersi de doğrudur: yumuşak bir açı hava hızını düşürür ve kanalın uç noktalarında hız farkı oluşur. Bu yüzden kanal kesitiyle kanat açısı birlikte düşünülür.</p>"
         "<p>Malzeme seçiminde hız belirleyicidir. Kanallarda tipik hava hızı 4-10 metre/saniye bandındadır; bu hızda PETG ve ASA yeterlidir. Daha yüksek hızlarda, özellikle titreşim ve gürültü şikâyeti olan tesislerde, kanat yüzeyinin pürüzsüz olması ve kanat ucunun yuvarlatılması gerekir. Kanatçık kanalın iç yüzeyine tam temas ediyorsa sürtünme birikir ve toplanır.</p>"
@@ -21454,7 +21414,7 @@ def _olcuye_ozel_plastik_akis_yonlendirici_kanatciki_uretimi():
         "<p>Ana giriş noktaları <a href=\"/kategori/elektronik/\">elektronik</a>, <a href=\"/kategori/ofis/\">ofis</a>, <a href=\"/kategori/tamirat/\">tamirat</a> ve <a href=\"/kategori/otomobil/\">otomobil</a> kategorileridir. Hazır örnekler: <a href=\"/urun/mutfak-davlumbazi-havalandirma-kanali-burcu/\">mutfak davlumbazı havalandırma kanalı burcu</a>, <a href=\"/urun/land-rover-havalandirma-kanali-baglanti-parcasi/\">Land Rover havalandırma kanalı bağlantı parçası</a> ve <a href=\"/urun/nissan-qashqai-on-tampon-sag-hava-kanali-yonlendirici/\">Nissan Qashqai hava kanalı yönlendirici</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-izgara-menfez-kapak/\">ölçüye özel ızgara ve menfez kapağı</a>, <a href=\"/urun/olcuye-ozel-kutu-organizer/\">ölçüye özel kutu ve organizer</a> ile <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüye özel montaj braketi</a> uygundur. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Yanıcı gaz, buhar, toz taşıma, yangın güvenliği ve statik-elektrik yükseltmesi gereken uygulamalar kapsam dışıdır. Havalandırma hesabı, basınç kaybı hesabı ve hava kalitesi ölçümü bize ait değildir; bu konular proje mühendisinin alanındadır. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Kanalın kesiti, uzunluğu ve beklenen hava hızı yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -21462,17 +21422,17 @@ def _olcuye_ozel_plastik_akis_yonlendirici_kanatciki_uretimi():
 def _hidroponik_topraksiz_tarim_ekipmani_plastik_parca_uretimi():
     return (
         "<h1>Hidroponik ve Topraksız Tarım Ekipmanı Plastik Parça Üretimi</h1>"
-        "<p class=\"lead\">Topraksız tarım sistemlerinde plastik ekipman, besin çözeltisiyle sürekli temas halinde çalışır. Net cevap: besin çözeltisine temas eden kalemlerde PETG ve PA12 uygundur; sıcak ortamda dış mekâna çıkan taşıyıcı ve kanal parçalarında ASA kullanılır. Besin tankının kendisi ve basınçlı hat kalemleri kapsam dışıdır.</p>"
+        "<p class=\"lead\">Topraksız tarım sistemlerinde plastik ekipman, besin çözeltisiyle sürekli temas halinde çalışır. Net cevap: besin çözeltisine temas eden kalemlerde PETG ve PA uygundur; sıcak ortamda dış mekâna çıkan taşıyıcı ve kanal parçalarında ASA kullanılır. Besin tankının kendisi ve basınçlı hat kalemleri kapsam dışıdır.</p>"
         "<p>Besin çözeltisi, saf su düşündüğümüzden daha agresiftir. Normalde hafif asidik olan çözelti, üst üste eklendiğinde pH yükselir ve kireç benzeri tortu bırakır. Bu tortu, plastik yüzeyin pürüzlü kısımlarında tutunur ve zamanla biyofilm tabakasının ilk adımı olur. Yüzeyin pürüzsüz, köşesiz ve temizlenebilir olması bu yüzden bir tercih değil, zorunluluktur.</p>"
         "<p>İkinci etken ışıktır. Serada örtü altında kalan kanallarda fotosentez sıcaklığı 30 santigrat dereceyi aşabilir ve nem yüksektir; kapalı üretim odasında ise UV ışık altında yüzey parlar. Kanal ve taşıyıcı gövdelerde UV'ye dayanıklı bir sınıf kullanılması, ilk sezonun sonunda fark edilir.</p>"
         "<h2>Malzeme seçimi</h2>"
-        "<p>Çözeltiyle doğrudan temas eden saksı taşıyıcı ve bağlantı parçalarında PETG, kimyasal direnci ve baskı kalitesi dengesi nedeniyle iyi bir tercihtir. Uzun süreli ıslaklıkta kalacak parçalarda PA12 daha iyi yaşlanır. Dış mekâna çıkan ve güneş gören taşıyıcı, kanal kapağı ve klipslerde ASA, UV ve sıcaklığa birlikte dayanır. Alüminyum ya da galvaniz yüzeylerle temas eden parçalarda ise plastik yine de uygundur; asıl sorun bağlantı elemanının metalle temas ettiği noktadır.</p>"
+        "<p>Çözeltiyle doğrudan temas eden saksı taşıyıcı ve bağlantı parçalarında PETG, kimyasal direnci ve baskı kalitesi dengesi nedeniyle iyi bir tercihtir. Uzun süreli ıslaklıkta kalacak parçalarda PA daha iyi yaşlanır. Dış mekâna çıkan ve güneş gören taşıyıcı, kanal kapağı ve klipslerde ASA, UV ve sıcaklığa birlikte dayanır. Alüminyum ya da galvaniz yüzeylerle temas eden parçalarda ise plastik yine de uygundur; asıl sorun bağlantı elemanının metalle temas ettiği noktadır.</p>"
         "<p>Sulama ve su aritma tarafındaki kalemler <a href=\"/atik-su-aritma-kanalizasyon-ekipmani-plastik-parca-uretimi/\">atık su arıtma kanalizasyon ekipmanı plastik parça üretimi</a> ve <a href=\"/su-aritma-filtre-cihazi-plastik-parca-uretimi/\">su arıtma filtre cihazı plastik parça üretimi</a> sayfalarında ele alınıyor.</p>"
         "<h2>Katalogda nasıl bulunur</h2>"
         "<p>Ana giriş noktaları <a href=\"/kategori/bahce/\">bahçe</a>, <a href=\"/kategori/ev/\">ev</a> ve <a href=\"/kategori/dekorasyon/\">dekorasyon</a> kategorileridir. Hazır örnekler: <a href=\"/urun/bahce-sisili-damla-sulama-kazigi-uc-boy-pr893500/\">şişeli damla sulama kazığı</a>, <a href=\"/urun/bahce-arac-yikama-hortum-kilavuzu-tekerlege-yaslanan-makarali-pr387063/\">araç yıkama hortum kılavuzu</a> ve <a href=\"/urun/bahce-konik-catili-kus-yemligi-tabakli-iki-parcali-pr99299/\">konik çatılı kuş yemliği</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-huni/\">huni</a>, <a href=\"/urun/olcuye-ozel-kutu-organizer/\">kutu ve organizer</a> ve <a href=\"/urun/olcuye-ozel-hortum-adaptoru/\">hortum adaptörü</a> uygundur. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Gıdayla temas eden ve doğrudan içme suyu taşıyan kalemler, basınçlı besin hatları ve tank gövdesi kapsam dışıdır; gıda teması için sertifika beyanı verilmez. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Sistemin kanal ölçüsü, taşıyıcı sayısı ve çalışma sıcaklığı yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -21503,11 +21463,30 @@ def _atik_su_aritma_kanalizasyon_ekipmani_plastik_parca_uretimi():
     )
 
 def _plastik_parca_icin_hangi_cad_cizim_formati_kabul_edilir():
-    return (u"""<h1>Plastik parça hangi CAD formatıyla üretilir</h1><p>Plastik parça siparişinde en sık sorulan sorulardan biri, elimizdeki teknik çizim veya dijital model dosyasının kabul edilip edilmediğidir. Müşterilerimizin bir kısmı profesyonel CAD yazılımıyla çalışır ve parametrik model sunar; bir kısmı yalnız iki boyutlu teknik çizim PDF'i gönderir; bir kısmı ise basit bir STL veya OBJ ihraç eder. Hangi formatların sorunsuz işlediği ve hangi durumlarda ek bilgiye ihtiyaç duyulduğu, sipariş sürecinin başında netleştirilmesi gereken bir konudur.</p><h2>Nasıl çalışırız?</h2><p>Format kabulü konusunda izlediğimiz yol birkaç aşamalıdır. İlk adımda elinizdeki teknik çizimi veya dijital model dosyasını paylaşırsınız. Bu paylaşım ön-teyit içindir; dosya bizim tarafımıza ulaştığında geometri kaba olarak incelenir. Sonrasında dosya formatına göre farklı bir ön değerlendirme yapılır. Parametrik dosyalarda ölçü doğrudan ölçülür; STL/mesh dosyalarında yüzey topolojisi kontrol edilir; iki boyutlu teknik çizimde eksik derinlik bilgisi sorulur. Bu ön değerlendirme sonrasında üretilebilirlik kararı verilir ve malzeme önerimiz yazılı paylaşılır. Detay ve ödeme için <strong>+90 545 138 6526</strong> numaramızdan bize ulaşabilir, sitede kartla online ödeme ile de siparişinizi tamamlayabilirsiniz.</p><p>Format konusunda yazılı paylaştığımız bilgi sınırlı ve net olmalıdır; kabul edilen ve edilmeyen formatlar için kesin liste vermek yerine, her dosyanın bizim tarafımıza ulaştığında ayrı değerlendirildiğini söyleriz. Bazı formatlar bazı geometriler için uygundur, bazıları için değildir; bu sebeple tek tek değerlendirme yapılır. CAD programı seçimi konusunda ayrı bir sayfamız vardır: <a href="/plastik-parca-icin-hangi-cad-programlari-kullanilir/">plastik parça için hangi CAD programları kullanılır</a> sayfası yazılım tercihi konusunu anlatır. Genel teknik çizim süreci için <a href="/teknik-cizim-veya-stl-ile-parca-urettirme/">teknik çizim veya STL ile parça ürettirme</a> sayfasındaki yöntem referans alınır. Ölçü nasıl alınır ve bize nasıl iletilir sorusunun yanıtı <a href="/parca-olcusu-nasil-alinir-ve-gonderilir/">parça ölçüsü nasıl alınır ve gönderilir</a> sayfasında ayrıntılıdır.</p><p>Sipariş öncesi malzeme sınıfı önerimiz dosya formatına göre değil, parçanın kullanım yeri ve mekanik beklentisine göre yapılır. Genel malzeme karşılaştırması için <a href="/malzeme-rehberi/">malzeme rehberi</a> sayfasındaki tabloyu kullanırız. Siparişin ilk adımı ve üretim öncesi onay görseli için <a href="/plastik-parca-siparisinin-ilk-adimi-nedir/">plastik parça siparişinin ilk adımı nedir</a> ve <a href="/uretim-oncesi-olcu-teyidi-ve-onay-gorseli-verilir-mi/">üretim öncesi ölçü teyidi ve onay görseli verilir mi</a> sayfaları referans olarak kullanılır.</p><p>Belirsiz format veya dönüştürülmesi gereken dosya söz konusuysa WhatsApp hattımız üzerinden yazılı görüşme öneriyoruz. Format dönüşümü müşteri tarafından yapılabileceği gibi biz de bazı durumlarda yardımcı oluruz; hangi tarafın dönüştüreceği sipariş öncesi yazılı olarak netleştirilir.</p><h2>Doğru malzeme</h2><p>Format kabul sürecinde malzeme önerisi, parçanın kullanım yerine ve mekanik beklentisine göre yapılır; dosya formatı malzeme seçimini doğrudan etkilemez. Standart iç mekân uygulamalarında PETG yaygın tercihimizdir; işlenmesi kolay ve darbe direnci yeterlidir. Yüksek sıcaklık ve UV altındaki dış mekân uygulamalarında ASA sınıfı öneriyoruz. Tekrarlı yük ve yorulma altında karbon-fiber takviyeli sınıf (PA-CF) önerilebilir. PA-CF ve PA-GF sınıfı sitede doğrudan seçilemez; bu malzeme için WhatsApp hattından <strong>+90 545 138 6526</strong> numarasına yazıp özel talep oluşturursunuz, bu sınıfta sipariş online tamamlanmaz. Genel malzeme karşılaştırması için <a href="/malzeme-rehberi/">malzeme rehberi</a> sayfasındaki tabloyu kullanırız.</p><p>Renk seçimi konusunda standart siyah, gri ve beyaz stoklarımızda vardır; özel renk tonu sipariş öncesi konuşulur. Akım taşıma, ısı iletimi veya yapısal yük taşıma bizim kapsamımıza girmez; dosya formatı kabul süreciyle ürettiğimiz parçalar bu üç kategoriden hiçbirine göre tasarlanmaz.</p><h2>Dürüst sınır</h2><p>Format kabulü konusunda dürüst sınır açıkça konuşmamız gerekir. Kesin ve kapalı bir kabul/ret listesi vermeyiz. Elimize ulaşan her dosya kendi başına değerlendirilir; bazı formatlar bazı geometriler için uygundur, başka geometriler için ek bilgi gerekir. Bu sebeple tek bir "şu format kabul edilir, bu format edilmez" listesi yanıltıcı olur. Sipariş öncesi dosyanız elimize ulaştığında yazılı olarak kabul edilebilirlik ve gerektiğinde ek bilgi talepleri paylaşılır.</p><p>Bir diğer dürüst sınır: format dönüşümü hatası. STL veya mesh formatlarında dönüşüm sırasında geometrik hata oluşabilir; bu durum üretilen parçanın ölçü sapması göstermesine yol açabilir. Bu risk sipariş öncesi yazılı olarak paylaşılır. Parametrik CAD formatları genelde daha kararlıdır ancak yine de yazılımdan yazılıma küçük farklar olabilir.</p><p>Belirsiz durumlarda WhatsApp hattımız üzerinden yazılı görüşme öneriyoruz. Dosyanız ulaştığında açılıp incelenir ve kabul edilebilirlik kararı yazılı olarak paylaşılır. İnceleme sonrası ek bilgiye ihtiyaç duyulursa bu bilgi yazılı olarak talep edilir; eksik bilgi ile üretim başlatılmaz.</p><h2>Sipariş</h2><p>Format kabul süreci siparişin ilk adımıdır. Dosyanız bize ulaştığında açılır, geometri kaba olarak incelenir ve kabul edilebilirlik yazılı olarak paylaşılır. Kabul sonrası malzeme önerimiz, tolerans aralığı ve üretim öncesi onay görseli sizinle paylaşılır. Detay ve ödeme için <strong>+90 545 138 6526</strong> numaramızdan bize ulaşabilir, sitede kartla online ödeme ile de siparişinizi tamamlayabilirsiniz. Sipariş tamamlandığında üretim öncesi dijital modelin ekran görüntüsünü onayınız için paylaşıyoruz; bu onay üretim başlangıcı için zorunludur. Sonradan değişiklik talepleri için ayrı bir değerlendirme süreci işler. Format seviyesinde bir değişiklik (örneğin yeni versiyon dosyası gönderimi) sipariş öncesi yazılı olarak değerlendirilir; onay süreci tamamlandıktan sonra üretim başlatılır.</p>""")
+    return (
+        u"""<h1>Plastik Parça için Çizim ve CAD Dosyası Gönderilir mi?</h1>
+<p class="lead">Kısa cevap: gönderilmiyor. Çizim, CAD dosyası, numune ya da fotoğraftan özel üretim yapmıyoruz.</p>
+<p>Nasıl çalışır: müşterinin parçasını, çizimini ya da model dosyasını alıp ölçen, kopyalayan veya eksik bölümünü yeniden kuran bir iş akışımız yok. Sitede satılan ürünler hazırdır; ölçüsü sitede seçilen ürün ailesinde ölçüyü siz yazarsınız, parça o ölçüde basılır. Dosya kabul listesi, dosya dönüştürme, üretilebilirlik değerlendirmesi ve ön değerlendirme yazısı gibi bir ön süreç bulunmuyor.</p>
+<h2>Ölçüyü siz yazıyorsunuz</h2>
+<p>Ürün sayfasındaki alanlar boş bırakılmaz; her kalem için gereken ölçü siz tarafınızdan yazılır. Ölçüye özel ailenin birkaç örneği: <a href="/urun/olcuye-ozel-cerceve/">ölçüye özel çerçeve</a>, <a href="/urun/olcuye-ozel-profil-beam/">ölçüye özel profil</a>, <a href="/urun/olcuye-ozel-petek-delikli-panel/">ölçüye özel delikli panel</a>, <a href="/urun/olcuye-ozel-kutu-organizer/">ölçüye özel kutu ve organizer</a> ile <a href="/urun/olcuye-ozel-montaj-braketi/">ölçüye özel montaj braketi</a>. Tüm aile <a href="/kategori/olcuye-ozel-uretim/">ölçüye özel üretim kategorisinde</a> listelenir.</p>
+<p>Ölçüyü yazarken iki şeye dikkat edin. Birincisi, ürün sayfasındaki alanlar belirli bir geometriye göre tanımlanmıştır; bir uzunluk, bir genişlik, bir yükseklik ve gerekiyorsa bir duvar kalınlığı yazarsınız. İkincisi, ölçünün parçanın oturacağı yuvaya göre verilmesi gerekir: vida deliği çapı, geçme payı ya da oturma mesafesi gibi değerler ölçüye göre değişir. Bu tür kalemlerde kritik ölçü mantığını <a href="/parcanin-hangi-olcusu-kritik-hangisi-degil/">parçanın hangi ölçüsü kritik</a> sayfasında, ince kesitlerdeki alt sınırları ise <a href="/en-ince-detay-ve-minimum-et-kalinligi/">en ince detay ve minimum et kalınlığı</a> sayfasında anlatıyoruz.</p>
+<p>Sitede bulunmayan bir kalem için özel üretim açılmaz. Aradığınız parça katalogda yoksa WhatsApp hattımıza yalnız sitede var mı diye yazın: <a href="https://wa.me/905451386526" target="_blank" rel="noopener"><strong>+90 545 138 6526</strong></a>. Varsa adresini paylaşırız; yoksa sitede bulunmadığını açıkça söyleriz.</p>
+<h2>Doğru malzeme</h2>
+<p>Malzeme seçimi dosya formatıyla ilgili değildir; parçanın kullanım yerine ve mekanik beklentisine göre belirlenir. İç mekân uygulamalarında PETG yaygın tercihtir: işlenmesi kolay, darbe direnci yeterlidir. Yüksek sıcaklık ve güneş altındaki dış mekân uygulamalarında ASA sınıfı önerilir. Tekrarlı yük ve yorulma altında karbon ya da cam fiber takviyeli naylon düşünülür; bu sınıf sitede seçilemez ve sitede bulunmayan bir malzeme sınıfı için özel üretim açılmaz. Genel karşılaştırma için <a href="/malzeme-rehberi/">malzeme rehberi</a> sayfasındaki tabloya bakın.</p>
+<p>Renk seçimi de ürün sayfasındaki alanlardan yapılır; standart siyah, gri ve beyaz stoklarımızda vardır. Akım taşıma, ısı iletimi ve yapısal yük taşıma kapsam dışıdır.</p>
+<h2>Dürüst sınır</h2>
+<p>Birinci sınır: dosya kabul eden bir iş akışımız olmadığı için kapalı bir format listesi de vermiyoruz; "şu format olur, şu format olmaz" diye bir tablo sunmak, ortada böyle bir tablo olmadığı anlamına gelirdi. İkinci sınır: eksik bir parçayı tamamlamak, kırılan bir parçanın yerine geçecek yeni bir gövde hazırlamak gibi işler numuneden çalışmaz; kırık bir kalem için <a href="/olcu-tutmazsa-ne-olur-uyum-garantisi/">ölçü tutmazsa ne olur</a> sayfasındaki uyum yaklaşımı geçerlidir. Üçüncü sınır: ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; """
+        + AYIP_HAKLARI_CUMLESI
+        + u"""</p>
+<h2>Sipariş</h2>
+<p>Doğru yol ürün sayfasından geçer: ölçüyü ve malzemeyi siz seçersiniz, sepete eklersiniz, kartla online ödersiniz. Hazır parça basılıp kargolanır. Onaylanan ürünler 3-5 iş gününde kargoya verilir; süreye etki eden adımlar <a href="/ozel-parca-kac-gunde-hazir-olur/">özel parça kaç günde hazır olur</a> sayfasında yazılıdır.</p>
+"""
+    )
+
 
 def _ayni_parcanin_farkli_renk_varyasyonlari_uretilebilir_mi():
     return (
-        "<h1>Aynı Parçanın Farklı Renkleri Üretilebilir mi?</h1>"
+        "<h1>Parça Renkleri: Stok Seçenekler ve Sınırlar</h1>"
         "<p class=\"lead\">Plastik parça siparişinde en sık sorulan sorulardan biri, aynı kalıp ve tasarımdan farklı renklerde hazırlama yapılıp yapılamadığıdır. Müşterilerimizin bir kısmı cihaz içinde birden fazla varyasyon ister; bir kısmı estetik tercih olarak belirli bir renk tonu arar; bir kısmı da özgün parçayla aynı tonda bir sonuç ister. Bu senaryoların her biri kendi başına ayrı bir konudur; sitedeki seçenekler bunları tek tek karşılamaz.</p>"
         "<h2>Renk varyasyonu nasıl planlanır?</h2>"
         "<p>Parçanın kullanım yeri ve ölçüsü sitede belirlenir. Renk tarafında sitede standart stok renkler listelenir; referansınızla eşleşen bir ton varsa o seçilir. Eşleşen bir stok tonu yoksa o rengi üretmiyoruz.</p>"
@@ -21560,13 +21539,13 @@ def _kuru_buz_kati_co2_temas_plastik_parca_uretimi():
         "<p>Isıl şok, iki nokta arasındaki sıcaklık farkının yarattığı geçidir. Parça 20 santigrat derecedeyken üzerine kuru buz değdiğinde yüzey anında eksi 78'e iner ve iç bölge hâlâ sıcaktır. Bu gradyan yüzeyte çekme gerilmesi yaratır ve PLA ile ABS gibi gevrek sınıflarda doğrudan çatlağa yol açar. Sürekli temas ve tekrar eden çevrimlerde hasar birikir.</p>"
         "<p>İkinci etken gazdır. Kuru buz süblimleşirken karbondioksit gazı açığa çıkar; bu gaz yüzeyde yoğunlaşan su buharıyla birleşerek ince bir buz tabakası oluşturur. İkinci sıcaklık çevrimi bu tabaka üzerinden gerçekleşir ve ilk çevrimde zarar görülmeyen parça ikinci çevrimde çatlayabilir.</p>"
         "<h2>Doğru malzeme</h2>"
-        "<p>Bu ortamda PC, PA12 ve POM gibi sınıflar daha iyi davranır; cam elyaf takviyeli PA ısıl şoka karşı en dengeli seçeneklerden biridir. PETG orta bir noktada durur. PLA ve ABS ise kuru buz temasında kırılgan kalır ve önerilmez. Sürekli temas bekleniyorsa, ısı yalıtımı yapan bir metal veya köpük katman kullanmak, malzeme seçiminden daha etkilidir.</p>"
+        "<p>Bu ortamda PETG ve PA gibi sınıflar daha iyi davranır; cam elyaf takviyeli PA ısıl şoka karşı en dengeli seçeneklerden biridir. PETG orta bir noktada durur. PLA ve ABS ise kuru buz temasında kırılgan kalır ve önerilmez. Sürekli temas bekleniyorsa, ısı yalıtımı yapan bir metal veya köpük katman kullanmak, malzeme seçiminden daha etkilidir.</p>"
         "<p>Daha genel soğuk koşullar için <a href=\"/sogukta-dondurucuda-dayanikli-plastik-parca-yaptirma/\">soğukta dondurucuda dayanıklı plastik parça yaptırma</a> sayfası, genel ısı sınırları için <a href=\"/plastik-parca-kac-dereceye-dayanir/\">plastik parça kaç dereceye dayanır</a> sayfası incelenmelidir.</p>"
         "<h2>Katalogda nasıl bulunur</h2>"
         "<p>Ana giriş noktaları <a href=\"/kategori/ev/\">ev</a>, <a href=\"/kategori/tamirat/\">tamirat</a> ve <a href=\"/kategori/ofis/\">ofis</a> kategorileridir. Hazır örnekler: <a href=\"/urun/pr1396678-quechua-termos-sise-kapak-contasi/\">Quechua termos şişe kapağını tutan conta</a>, <a href=\"/urun/pr81031-miele-supurge-nozulu/\">Miele süpürge nozulu</a> ve <a href=\"/urun/olcuye-ozel-vidali-kavanoz-tapa/\">ölçüye özel vida delikli kavanoz kapağı</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-kutu-organizer/\">ölçüye özel kutu ve organizer</a>, <a href=\"/urun/olcuye-ozel-vidali-kavanoz-tapa/\">ölçüye özel vida delikli kavanoz kapağı</a> ile <a href=\"/urun/olcuye-ozel-hortum-adaptoru/\">ölçüye özel hortum adaptörü</a> uygundur. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Patlama odası, ürün şekillendirme aparatı, kuru buz üretim ve dolum tesisi kapsam dışıdır. Isıl şok sınıfı beyanı verilmez; parça tasarımın bir parçasıdır, sertifikasyonun değil. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Temas süresi, sıcaklık farkı ve parçanın konumu yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -21606,14 +21585,14 @@ def _fan_pervanesi_gobek_pulu_plastik_oem_parca_uretimi():
         "<p>Ana giriş noktaları <a href=\"/kategori/elektronik/\">elektronik</a>, <a href=\"/kategori/tamirat/\">tamirat</a> ve <a href=\"/kategori/ofis/\">ofis</a> kategorileridir. Hazır örnekler: <a href=\"/urun/pr44218-raspberry-pi-7-dokunmatik-ekran-kasa/\">Raspberry Pi 7 inç dokunmatik ekran kasası ve fan yuvası</a>, <a href=\"/urun/th2763692-dji-spark-pervane-kutusu/\">DJI Spark pervane kutusu</a> ve <a href=\"/urun/mutfak-davlumbazi-havalandirma-kanali-burcu/\">mutfak davlumbazı havalandırma kanalı burcu</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-izgara-menfez-kapak/\">ölçüye özel ızgara ve menfez kapağı</a>, <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüye özel montaj braketi</a> ile <a href=\"/urun/olcuye-ozel-kutu-organizer/\">ölçüye özel kutu ve organizer</a> uygundur. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Dönen pervaneler, mil bağlantı pulları, rotor göbekleri ve fan muhafazası taşıyan yüksek devirli plastik parçalar kapsam dışıdır; bunlar metalten veya sertifikalı yedek parça olarak alınmalıdır. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Hangi pervanenin hangi bölgesinde hangi plastik elemanın gerektiği yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
 
 
 def _olcuye_ozel_plastik_hizli_degistirme_plakasi_uretimi():
-    return _seo_md_to_html(u"""# Plastik hızlı değiştirme plakası ölçüye özel
+    return _seo_md_to_html(u"""# Plastik Hızlı Değiştirme Plakası: Sitede Ölçüsü Seçilen Seçenekler
 
 İşleme tezgahı ve bağlama aparatında kullanılan hızlı değiştirme plakası, iş parçasını veya aparatı vidaları tek tek sökmeden hızlıca değiştirmeye yarayan ara bağlantı elemanıdır. Quick-release plakası tezgah bağlama yüzeyi, konumlama pimi geometrisi ve kam kilidi boşluğu üzerinden çalışır. Standart plakalar belirli tezgah ve belirli bağlama sistemi varsayımıyla üretilir; gerçek projede tezgah yüzey düzlüğü, konumlama pimi yerleşimi ve kam kilidi geometrisi her zaman aynı olmaz. Ölçüye özel plastik hızlı değiştirme plakası üretimi; tam olarak bu noktada devreye girer. Sizin tezgah bağlama ölçülerinize, konumlama pimi yerleşiminize ve kam kilidi geometrisine göre plastikten quick-release plakası hazırlanır. Genel montaj braketi için ayrı bir sayfamız vardır: <a href="/urun/olcuye-ozel-montaj-braketi/">ölçüye özel montaj braketi</a> ürünü braket gövdesini anlatır. Bu sayfa quick-release plakasının hızlı bağlama mekanizmasına özel ara elemanına odaklanır.
 
@@ -21644,7 +21623,7 @@ Vidalamaya bırakılan montaj noktalarında vida çapı ve sıkma torku seçimi 
 Hızlı değiştirme plakası siparişinde tezgah bağlama yüzeyi ölçüsü, konumlama pimi çapı ve yerleşimi, kam kilidi geometrisi bilgileri gerekir. Plaka boyutları sipariş notunda netleştirilir. İç çap, dış çap ve toplam boy üretim öncesi sipariş notunda belirtilir. Detay ve ödeme için **+90 545 138 6526** numaramızdan bize ulaşabilir, sitede kartla online ödeme ile de siparişinizi tamamlayabilirsiniz. Aynı tezgahtan birden fazla plaka sipariş edilebilir; her biri kendi konumuna göre ayrı ölçülendirilir. Montaj braketi ve bağlantı elemanları <a href="/urun/olcuye-ozel-montaj-braketi/">ölçüye özel montaj braketi</a> ürününde yer alır; tezgah ve aparat kalemleri <a href="/kategori/ofis/">ofis</a> ile <a href="/kategori/tamirat/">tamirat</a> kategorilerinde toplanır.""")
 
 def _olcuye_ozel_plastik_motor_arka_kapak_contasi_uretimi():
-    return _seo_md_to_html(u"""# Motor arka kapak contası ölçüye özel
+    return _seo_md_to_html(u"""# Motor Arka Kapak Contası: Sitede Ölçüsü Seçilen Seçenekler
 
 Küçük DC motor, step motor ve servo motor gibi elektrik motorlarının arka kapağı ile ana gövde arasında sızdırmazlık contası bulunur. Conta, motorun iç kısmına toz ve nem girişini engellerken mile ve yatak yüzeyine gelen yağ sızıntısını da tutar. Hazır conta setleri belirli motor çapı ve belirli kapak geometrisi varsayar; gerçek projede motor markası, kapak bağlantı geometrisi ve mil çevresi açıklığı her zaman aynı olmaz. Ölçüye özel motor arka kapak contası üretimi; tam olarak bu noktada devreye girer. Sizin motor ölçülerinize, kapak bağlantı geometrisine ve çalışma koşulunuza göre plastikten sızdırmazlık contası hazırlanır. Genel conta üretim sayfası <a href="/olcuye-ozel-conta-uretimi/">ölçüye özel conta üretimi</a> ayrı bir konu; bu sayfa motor bağlantı contasına odaklanır.
 
@@ -21715,7 +21694,7 @@ Kozmetik ürün güvenlik sertifikası verilmez. Bu sayfada anlatılan iş, hatt
 
 Dolum makinesinin kendisi kapsam dışıdır; anlatılan iş, dolum hattındaki mevcut makinenin plastik yardımcı parçalarıdır. Nozül, pompa ve valf grubu kapsam dışıdır. Parçanın hattaki konumu, şişe veya kapak çapı, taşıma hızı ve ürün viskozitesi bilgileri sitede tanımlı ölçü alanlarına yazılır.
 
-Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.
+Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; """ + AYIP_HAKLARI_CUMLESI + """
 
 ## Sipariş ve iletişim
 
@@ -21756,81 +21735,59 @@ Sitede ölçüsü seçilen seçeneklerden <a href="/urun/olcuye-ozel-kutu-organi
 
 Mantar hasadıyla doğrudan temas eden hasat kabı ve kesme yüzeyi kapsam dışıdır. Gıda güvenliği sertifikası gerektiren doğrudan temas yüzeyleri kapsam dışıdır; kapsam, tesisin yardımcı tesis elemanlarıdır. İnkübasyon odasının iklimlendirme sistemi kapsam dışıdır; nem, sıcaklık ve havalandırma kontrolü başka bir alandır. Tesis çadırı, raf sistemi ve inkübasyon odası paneli de kapsam dışıdır.
 
-Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.
+Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; """ + AYIP_HAKLARI_CUMLESI + """
 
 ## Sipariş ve iletişim
 
 Parçayı sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup siparişi tamamlarsınız. Bulamazsanız WhatsApp hattımız <a href="https://wa.me/905451386526" target="_blank" rel="noopener"><strong>+90 545 138 6526</strong></a> üzerinden yalnız sitede var mı diye yazın; tesisin nem ve sıcaklık profili ile parçanın bulunduğu aşama eşleştirmeyi hızlandırır.""")
 
 def _plastik_parca_siparisinde_garanti_suresi_ne_kadardir():
-    return _seo_md_to_html(u"""# Plastik parça siparişinde garanti süresi ne kadardır
+    return (
+        u"""<h1>Plastik Parça Siparişinde Garanti Süresi</h1>
+<p class="lead">Garanti süresi, parçanın teslim edildiği tarihten itibaren işler ve yalnız imalat ile malzeme hatası için geçerlidir.</p>
+<p>Nasıl çalışır: ürün sayfasındaki alanları doldurup kartla online ödeme yaptıktan sonra parça basılır, kargolanır ve teslim tarihi başlar. Üretim öncesinde ayrı bir onay adımı, yazılı fiyat görüşmesi ya da ön izleme görüntüsü bulunmaz. Garanti kapsamının hangi durumları içerdiği <a href="/plastik-parca-siparisinde-garanti-kapsami-nedir/">plastik parça siparişinde garanti kapsamı</a> sayfasında anlatılır.</p>
+<h2>Süre nasıl işler</h2>
+<p>Garanti süresinin başlangıcı üretim tarihi değil, parçanın size teslim edildiği tarihtir. O tarihten itibaren imalat hatası veya malzeme hatası taşıdığı tespit edilen parçalar için değerlendirme yapılır: hata üretimden kaynaklanıyorsa parça yeniden basılır ya da eşdeğer bir çözüm sunulur, tercihinize göre bedel iadesi de uygulanabilir. İade ve geri ödeme adımları <a href="/ozel-uretim-parca-iadesi-ve-geri-odemesi-nasil-isler/">iade ve geri ödeme süreci</a> sayfasında yazılıdır.</p>
+<p>Süre boyunca ortaya çıkan bir durumun üretim hatası mı yoksa kullanım kaynaklı bir durum mu olduğu, parçanın fotoğrafı ve kırık yüzeyin görünümü üzerinden değerlendirilir. Montaj sırasında oluşan kırıklar kargo hasarından ayrı tutulur; <a href="/montaj-sirasinda-parca-kirilirsa-ne-olur/">montaj sırasında parça kırılırsa ne olur</a> sayfasında bu ayrım yazılıdır.</p>
+<p>Sürenin uzunluğu parçanın kullanımına bağlı değildir: aynı malzeme sınıfı ve aynı iş yükü altında, üretim tarihinden bağımsız olarak aynı süre işler. Buna karşılık parçanın çalışma ortamı değişirse süre değişmez, kapsam değişebilir; örneğin tasarlandığı sıcaklık sınırının üzerinde kullanılan bir parça kapsam dışına düşer.</p>
+<p>Güvenliğin ilk adımı ölçüyü ve malzemeyi doğru girmektir. Yanlış girilen bir ölçü ya da çalışma koşullarına uymayan bir malzeme, süreçte ilk günden itibaren kapsam dışı bir sonuç doğurur. Bu yüzden ürün sayfasındaki alanlar tahmini doldurulmamalı, ölçülerek yazılmalıdır.</p>
+<p>Garanti süresi ile parçanın beklenen ömrü aynı şey değildir. Süre, bir hatanın karşılanacağı zaman dilimidir; beklenen ömür ise malzeme ve geometriye dayalı bir tahmindir ve sürekli yük, sıcaklık ya da kimyasal temas beklenen bir parçada belirgin biçimde kısalır. İkisi arasındaki fark, <a href="/ozel-uretim-plastik-parca-kac-yil-dayanir/">özel üretim plastik parça kaç yıl dayanır</a> sayfasında örneklerle anlatılır.</p>
+<h2>Doğru malzeme</h2>
+<p>Garanti süresi içinde malzeme kaynaklı sorun yaşanmaması için doğru malzeme seçimi gerekir. İç mekân uygulamalarında PETG yaygın tercihtir; işlenmesi kolay, darbe direnci yeterlidir. Yüksek sıcaklık ve güneş altındaki dış mekân uygulamalarında ASA sınıfı önerilir. Tekrarlı yük ve yorulma altında karbon ya da cam fiber takviyeli naylon düşünülür; bu sınıf sitede seçilemez ve sitede bulunmayan bir malzeme sınıfı için özel üretim açılmaz. Genel karşılaştırma için <a href="/malzeme-rehberi/">malzeme rehberi</a> sayfasındaki tabloya bakın.</p>
+<p>Malzeme sınıfına göre çalışma sıcaklığı da değişir; pratik üst sınır malzeme sınıfına göre 90-100 santigrat derece bandındadır. Yanlış kullanım ya da ölçü dışı koşullar garanti kapsamında değerlendirilmez.</p>
+<h2>Dürüst sınır</h2>
+<p>Garanti süresi yalnız imalat hatası ve malzeme hatası içindir. Yanlış girilen ölçü, belirtilen çalışma koşulları dışında kullanım, mekanik hasar, aşınma ve montaj hatası bu sürenin dışındadır. Doğal aşınma da kapsam dışıdır: plastik malzemeler tekrarlı yük altında yorulur, sürtünme ve darbe beklenen parçalarda periyodik kontrol ve gerektiğinde değişim önerilir. Parçanın beklenen ömrü malzeme ve geometri bilgisine dayalı bir tahmindir, garanti taahhüdü değildir. Süre sonunda ortaya çıkan bir durum aynı çerçevede değerlendirilmez. Ayrıca """
+        + AYIP_HAKLARI_CUMLESI
+        + u"""</p>
+<h2>Sipariş</h2>
+<p>Garanti süresi teslim tarihinden itibaren işler ve her sipariş için aynı çerçevede geçerlidir; aynı projede birden çok parça sipariş edebilirsiniz, her biri kendi teslim tarihinden başlar. Kullanım yeri, sıcaklık ve malzeme alanlarını doğru doldurmanız sürenin sağlam kalmasının koşuludur. Sorularınız için WhatsApp hattımız: <a href="https://wa.me/905451386526" target="_blank" rel="noopener"><strong>+90 545 138 6526</strong></a>.</p>
+"""
+    )
 
-Ölçüye özel üretilen plastik parçada garanti süresi, parçanın imalat hatası veya malzeme hatası taşıyıp taşımadığına göre değişir. Garanti süresinin sayısı sipariş onayında yazılı olarak paylaşılır; müşteri bu süreyi sipariş onayı aşamasında görür ve üretim başlangıcından önce yazılı olarak kabul eder. Müşterilerimizin en sık sorduğu sorulardan biri garanti süresinin kaç ay veya kaç yıl olduğudur; bu bilgi net bir sayı olarak sipariş onayında yer alır ve bu sayfada anlatılan çerçeveyle uyumludur.
-
-## Nasıl çalışırız?
-
-Garanti süresinin işleyişi sipariş onayı aşamasında başlar. Sipariş onayında parçanın garanti süresi, kapsamı ve kapsam dışı durumlar yazılı olarak paylaşılır. Üretim başlangıcı bu yazılı onaya bağlıdır. Genel sipariş adımları için <a href="/ozel-parca-uretimi-fiyati-nasil-belirlenir/">özel parça üretimi fiyatı nasıl belirlenir</a> sayfasındaki süreç takip edilir. Üretim öncesi dijital modelin ekran görüntüsü onay için paylaşılır; onay sürecinin nasıl işlediği <a href="/uretim-oncesi-olcu-teyidi-ve-onay-gorseli-verilir-mi/">üretim öncesi ölçü teyidi ve onay görseli verilir mi</a> sayfasında ayrıntılıdır.
-
-Garanti süresinin başlangıcı üretim tarihi değil, parçanın size teslim edildiği tarihtir. Teslim tarihi sipariş onayında yazılı olarak belirlenir ve garanti süresi bu tarihten itibaren işler. Garanti süresinin bitişi yazılı olarak paylaşılır; bu tarihten sonra imalat hatası iddiası aynı çerçevede değerlendirilmez.
-
-Garanti süresi boyunca üretim hatası veya malzeme hatası taşıdığı tespit edilen parçalar için değerlendirme süreci işler. Müşteri, parçayı bize getirir veya fotoğrafla durumu yazılı olarak paylaşır; değerlendirme sonucunda üretim hatası teyit edilirse aynı parça yeniden üretilir veya eşdeğer çözüm önerilir. Genel revizyon politikasının ayrıntıları <a href="/plastik-parca-siparisinde-revizyon-ve-degisiklik-yapilabilir-mi/">plastik parça siparişinde revizyon ve değişiklik yapılabilir mi</a> sayfasında yer alır.
-
-Sipariş öncesi malzeme sınıfı önerimiz kullanım yeri, çalışma sıcaklığı ve mekanik beklenti kriterine göre yapılır. Detay ve ödeme için **+90 545 138 6526** numaramızdan bize ulaşabilir, sitede kartla online ödeme ile de siparişinizi tamamlayabilirsiniz. Garanti süresi sipariş onayında görülür; bu süre zarfında üretim hatası tazmini kapsamında kalırız.
-
-## Doğru malzeme
-
-Garanti süresi içinde malzeme kaynaklı sorun yaşanmaması için doğru malzeme seçimi sipariş öncesi yapılır. Standart iç mekân uygulamalarında PETG yaygın tercihimizdir; işlenmesi kolay ve darbe direnci yeterlidir. Yüksek sıcaklık ve UV altındaki dış mekân uygulamalarında ASA sınıfı öneriyoruz. Tekrarlı yük ve yorulma altında karbon-fiber takviyeli sınıf (PA-CF) önerilebilir. PA-CF ve PA-GF sınıfı sitede doğrudan seçilemez; bu malzeme için WhatsApp hattından **+90 545 138 6526** numarasına yazıp özel talep oluşturursunuz, bu sınıfta sipariş online tamamlanmaz. Genel malzeme karşılaştırması için <a href="/malzeme-rehberi/">malzeme rehberi</a> sayfasındaki tabloyu kullanırız.
-
-Renk seçimi konusunda standart siyah, gri ve beyaz stoklarımızda vardır; özel renk tonu sipariş öncesi konuşulur. Akım taşıma, ısı iletimi veya yapısal yük taşıma bizim kapsamımıza girmez; garanti süresi içinde üretilen parçalar bu üç kategoriden hiçbirine göre tasarlanmaz.
-
-Çalışma sıcaklığı açısından sipariş öncesi kullanım ortamı yazılı paylaşılır; uygun sınıf önerilir. Doğru malzeme seçimi garanti süresi içinde üretim hatası riskini azaltır; ancak yanlış kullanım veya ölçü dışı koşullar garanti kapsamında değerlendirilmez.
-
-## Dürüst sınır
-
-Garanti süresi konusunda dürüst sınır açıkça konuşmamız gerekir. Garanti süresi yalnız üretim hatası ve malzeme hatası içindir. Müşterinin verdiği ölçünün hatalı olması, parçanın belirtilen çalışma koşulları dışında kullanılması, mekanik hasar veya aşınma gibi kullanıcı kaynaklı durumlar garanti süresinden bağımsız değerlendirilir. Yanlış ölçü verisi, yanlış montaj veya parçanın tasarlandığı çalışma ortamı dışında kullanılması garanti kapsamına girmez.
-
-Bir diğer dürüst sınır: doğal aşınma. Plastik malzemeler tekrarlı yük altında yorulur; sönümleme, sürtünme veya darbe beklentisi olan parçalarda doğal aşınma beklenir. Bu aşınma garanti kapsamında değerlendirilmez; periyodik kontrol ve gerektiğinde değişim önerilir.
-
-Belirsiz durumlarda WhatsApp hattımız üzerinden yazılı görüşme öneriyoruz. Garanti süresi içinde ortaya çıkan bir durumun üretim hatası mı yoksa kullanıcı kaynaklı bir durum mu olduğu sipariş öncesi yazılı olarak değerlendirilir. Bu değerlendirme parçanın fiziksel olarak bize ulaşması veya fotoğrafla durumun paylaşılması ile yapılır.
-
-## Sipariş
-
-Garanti süresi sipariş onayında yazılı olarak paylaşılır; garanti süresi teslim tarihinden itibaren başlar. Sipariş öncesi parçanın kullanım yeri, çalışma sıcaklığı ve mekanik beklentisi yazılı olarak netleştirilir; bu bilgiler garanti kapsamının belirlenmesinde kullanılır. Detay ve ödeme için **+90 545 138 6526** numaramızdan bize ulaşabilir, sitede kartla online ödeme ile de siparişinizi tamamlayabilirsiniz. Garanti süresi içinde üretim hatası tespit edilirse parça yeniden üretilir veya eşdeğer çözüm önerilir. Garanti süresi sonrası üretim hatası iddiası aynı çerçevede değerlendirilmez; ancak üretim hatası tazmini müşteri ile yazılı görüşme içinde ayrıca ele alınabilir. Aynı projede birden fazla parça sipariş edilebilir; her biri kendi garanti süresi ve kapsamına göre ayrı değerlendirilir. Önceki siparişten ölçü ve tolerans kaydı saklanır; yeni siparişte bu kayıt referans alınarak süreç kısalır. Garanti süresi boyunca üretim hatası veya malzeme hatası tespit edilirse müşteri parçayı bize getirir veya fotoğrafla durumu yazılı olarak paylaşır; değerlendirme sonucunda üretim hatası teyit edilirse aynı parça yeniden üretilir veya eşdeğer çözüm önerilir. Garanti süresi sonrası üretim hatası iddiası aynı çerçevede değerlendirilmez; ancak üretim hatası tazmini müşteri ile yazılı görüşme içinde ayrıca ele alınabilir. Aynı projede birden fazla parça sipariş edilebilir; her biri kendi garanti süresi ve mekanik beklentisine göre ayrı değerlendirilir. Önceki siparişten ölçü ve tolerans kaydı saklanır; yeni siparişte bu kayıt referans alınarak süreç kısalır ve yazılı teyit yapılır. Ölçü nasıl alınır ve bize nasıl iletilir sorusunun yanıtı ilgili sayfada ayrıntılıdır.""")
 
 def _plastik_parca_siparisinde_garanti_kapsami_nedir():
-    return _seo_md_to_html(u"""# Plastik parça siparişinde garanti kapsamı nedir
+    return (
+        u"""<h1>Plastik parça siparişinde garanti kapsamı nedir</h1>
+<p class="lead">Garanti kapsamı, parçanın imalat ya da malzeme hatası taşıyıp taşımadığına göre belirlenir. Yanlış kullanım ve doğal aşınma kapsam dışıdır.</p>
+<p>Nasıl çalışır: ürün sayfasındaki alanları doldurup kartla online ödeme yaptıktan sonra parça basılır ve kargolanır. Garanti, sipariş sonrası yürürlüğe girer; üretim öncesinde ayrı bir onay adımı, yazılı fiyat görüşmesi ya da ön izleme görüntüsü yoktur. Kapsamın ne olduğu bu sayfada, sürenin kaç ay olduğu <a href="/plastik-parca-siparisinde-garanti-suresi-ne-kadardir/">plastik parça siparişinde garanti süresi</a> sayfasında anlatılır.</p>
+<h2>Kapsama giren durumlar</h2>
+<p>Parçanın imalat hatası taşıması kapsamdadır: baskı hatası, katman ayrışması, kırık noktası ya da yüzey kusuru. Malzeme hatası da kapsamdadır; seçilen sınıf beklenen dayanımı vermiyorsa bu bir malzeme hatası sayılır. Ölçü sapması ve yüzey özelliği, ürün sayfasında belirttiğiniz değerlerin dışına çıkıldığında kapsama girer. Bu durumlardan biri tespit edilirse parça yeniden basılır ya da eşdeğer bir çözüm sunulur; yeniden basım yerine bedel iadesi tercih ederseniz izlenen adımlar <a href="/ozel-uretim-parca-iadesi-ve-geri-odemesi-nasil-isler/">iade ve geri ödeme süreci</a> sayfasındadır.</p>
+<p>Parçanın beklenen ömrü malzeme ve geometriye dayalı bir tahmindir; garanti taahhüdü değildir. Genel ömür çerçevesi <a href="/ozel-uretim-plastik-parca-kac-yil-dayanir/">özel üretim plastik parça kaç yıl dayanır</a> sayfasında yazılıdır.</p>
+<h2>Kapsam dışı durumlar</h2>
+<p>Ölçüye özel ürünlerde ölçüyü siz yazarsınız; yanlış girilen ölçü kapsam dışıdır. Parçanın tasarlandığı çalışma koşulları dışında kullanılması (sıcaklık, kimyasal temas, sürekli yük sınırının aşılması), mekanik hasar, aşınma, kullanıcı kaynaklı montaj hatası ve çocuk güvenliği için tasarlanmamış uygulamalar kapsam dışıdır. Parçanın ömrü, sitede ilan edilen kullanım ve sıcaklık sınırlarına uyulduğu sürece geçerlidir.</p>
+<p>Ölçüye özel ürünlerde malzeme seçimi de sizin girdiğiniz alanlardan yapılır; PETG, ASA, PLA ve ABS sınıflarının farkları <a href="/malzeme-rehberi/">malzeme rehberi</a> sayfasında yan yana durur. Yanlış malzeme seçimi kapsam dışıdır, çünkü doğru malzeme bilgisi sizin girdiğiniz alandan gelir. Aynı şekilde parçanın ölçüsü, malzemesi ve kullanım yeri sizin girdiğiniz değerlerdir; biz bunları kendi tarafımızdan yeniden belirlemeyiz.</p>
+<p>Bir olay ilk bakışta üretim hatası gibi görünse de kırık yüzeyin görünümü belirleyicidir: temiz ve düz bir kırık tek seferlik bir darbeyi, kademeli ilerlemiş çizgili bir yüzey ise yorulmayı gösterir. İkinci durum doğal aşınma sayılır ve kapsam dışıdır.</p>
+<p>Kapsam içinde kalan bir durumda izlenen yol nettir: durumu fotoğrafla bildirirsiniz, değerlendirme yapılır ve üretim hatası doğrulanırsa parça yeniden basılır ya da eşdeğer bir çözüm sunulur. Tercihinize göre bedel iadesi de uygulanabilir. Parçanın ölçüsü zaten sizin girdiğiniz değerlerden geldiği için yeni bir ölçü istemeye gerek kalmaz.</p>
+<p>Montaj sırasında oluşan kırılmalar kargo hasarından ayrı tutulur ve kendi sürecinde değerlendirilir; <a href="/montaj-sirasinda-parca-kirilirsa-ne-olur/">montaj sırasında parça kırılırsa ne olur</a> sayfasında bu ayrım yazılıdır.</p>
+<h2>Dürüst sınır</h2>
+<p>Üretilebilirliği sınırlı parça sınıfları vardır; bazı kalemler ölçüye özel üretimle yapılamaz ya da belirli sınırlarla yapılabilir, o sınıfların listesi <a href="/hangi-parcalar-ozel-uretimle-yapilamaz/">hangi parçalar özel üretimle yapılamaz</a> sayfasında durur. Bir başka sınır doğal aşınma: plastik malzemeler tekrarlı yük altında yorulur, sürtünme ve darbe beklenen parçalarda doğal aşınma olur ve bu kapsam dışıdır; periyodik kontrol ve gerektiğinde değişim önerilir. Bir başka sınır ölçüm belgesi: kalibrasyonlu ölçüm raporu ya da metrolojik sertifika kapsamımızda değildir. Bir başka sınır uyum garantisi: ölçüsü doğru çıkan parçanın işlevini yerine getirmesi beklenir, montaj hatasından doğan kırıklar uyum kapsamına girmez. Ayrıca """
+        + AYIP_HAKLARI_CUMLESI
+        + u"""</p>
+<h2>Sipariş</h2>
+<p>Garanti kapsamı siparişin teslim tarihiyle yürürlüğe girer ve her parça için aynı çerçevede geçerlidir. Ürün sayfasında kullanım yeri, sıcaklık ve malzeme alanlarını doğru doldurmanız kapsamın sağlam kalmasının koşuludur. Siparişle ilgili bir sorunuz olursa WhatsApp hattımız: <a href="https://wa.me/905451386526" target="_blank" rel="noopener"><strong>+90 545 138 6526</strong></a>.</p>
+"""
+    )
 
-Plastik parça siparişinde garanti kapsamı, parçanın imalat hatası veya malzeme hatası taşıyıp taşımadığına göre belirlenir. Garanti kapsamı sipariş onayında yazılı olarak paylaşılır; müşteri bu kapsamı sipariş onayı aşamasında görür ve üretim başlangıcından önce yazılı olarak kabul eder. Garanti kapsamına giren ve girmeyen durumlar yazılı olarak net biçimde belirlenir; bu ayrım müşteri beklentisi ile üretim çerçevesinin uyumlu olması için zorunludur.
-
-## Nasıl çalışırız?
-
-Garanti kapsamının işleyişi sipariş onayı aşamasında başlar. Sipariş onayında parçanın garanti süresi, kapsamı ve kapsam dışı durumlar yazılı olarak paylaşılır. Üretim başlangıcı bu yazılı onaya bağlıdır. Garanti süresinin ne kadar olduğu sipariş onayında yazılı olarak paylaşılır; garanti süresinin tam değeri ayrı bir sayfada anlatılır; bu sayfa yalnızca neyin garanti kapsamına girip girmediğini açıklar.
-
-Garanti kapsamına giren durumlar yazılı olarak belirlenir. Üretim hatası, malzeme hatası, sipariş onayında yazılı tolerans dışına çıkan ölçü sapması ve sipariş onayında yazılı yüzey özelliğinin sağlanmaması garanti kapsamında değerlendirilir. Bu durumlardan herhangi biri tespit edilirse aynı parça yeniden üretilir veya eşdeğer çözüm önerilir. Yeniden üretim yerine geri ödeme tercih edilirse izlenen adımlar <a href=\"/ozel-uretim-parca-iadesi-ve-geri-odemesi-nasil-isler/\">iade ve geri ödeme süreci</a> sayfasındadır. Parçanın beklenen ömrü sipariş öncesinde yazılı olarak paylaşılır; bu ömür bilgisi <a href="/ozel-uretim-plastik-parca-kac-yil-dayanir/">özel üretim plastik parça kaç yıl dayanır</a> sayfasındaki genel ömür çerçevesiyle uyumludur.
-
-Garanti kapsamı dışındaki durumlar yazılı olarak belirlenir. Müşterinin verdiği ölçünün hatalı olması, parçanın sipariş onayında belirtilen çalışma koşulları dışında kullanılması, mekanik hasar veya aşınma, kullanıcı kaynaklı montaj hatası, parçanın tasarlandığı çalışma ortamı dışında kullanılması garanti kapsamı dışındadır. Bu ayrım sipariş öncesi yazılı olarak paylaşılır.
-
-Sipariş öncesi malzeme sınıfı önerimiz kullanım yeri, çalışma sıcaklığı ve mekanik beklenti kriterine göre yapılır. Detay ve ödeme için **+90 545 138 6526** numaramızdan bize ulaşabilir, sitede kartla online ödeme ile de siparişinizi tamamlayabilirsiniz. Garanti kapsamı sipariş onayında görülür; üretim hatası ve malzeme hatası tazmin kapsamında kalırız.
-
-## Doğru malzeme
-
-Garanti kapsamında malzeme kaynaklı sorun yaşanmaması için doğru malzeme seçimi sipariş öncesi yapılır. Standart iç mekân uygulamalarında PETG yaygın tercihimizdir; işlenmesi kolay ve darbe direnci yeterlidir. Yüksek sıcaklık ve UV altındaki dış mekân uygulamalarında ASA sınıfı öneriyoruz. Tekrarlı yük ve yorulma altında karbon-fiber takviyeli sınıf (PA-CF) önerilebilir. PA-CF ve PA-GF sınıfı sitede doğrudan seçilemez; bu malzeme için WhatsApp hattından **+90 545 138 6526** numarasına yazıp özel talep oluşturursunuz, bu sınıfta sipariş online tamamlanmaz. Genel malzeme karşılaştırması için <a href="/malzeme-rehberi/">malzeme rehberi</a> sayfasındaki tabloyu kullanırız.
-
-Renk seçimi konusunda standart siyah, gri ve beyaz stoklarımızda vardır; özel renk tonu sipariş öncesi konuşulur. Akım taşıma, ısı iletimi veya yapısal yük taşıma bizim kapsamımıza girmez; garanti kapsamı içinde üretilen parçalar bu üç kategoriden hiçbirine göre tasarlanmaz.
-
-Doğru malzeme seçimi garanti kapsamı içinde üretim hatası riskini azaltır; ancak yanlış kullanım veya ölçü dışı koşullar garanti kapsamında değerlendirilmez.
-
-## Dürüst sınır
-
-Garanti kapsamı konusunda dürüst sınır açıkça konuşmamız gerekir. Üretilebilirliği sınırlı parçalar için garanti kapsamı farklı değerlendirilir. Bazı parça sınıfları ölçüye özel üretimle yapılamaz veya belirli sınırlarla yapılabilir; bu sınıflar için garanti kapsamı sınırlıdır. Yapılamayan parçalar listesi <a href="/hangi-parcalar-ozel-uretimle-yapilamaz/">hangi parçalar özel üretimle yapılamaz</a> sayfasında ayrıntılıdır.
-
-Bir diğer dürüst sınır: doğal aşınma. Plastik malzemeler tekrarlı yük altında yorulur; sürtünme, darbe veya yorulma beklentisi olan parçalarda doğal aşınma beklenir. Bu aşınma garanti kapsamında değerlendirilmez; periyodik kontrol ve gerektiğinde değişim önerilir. Parçanın beklenen ömrü sipariş onayında yazılı olarak belirtilir; bu ömür bir garanti taahhüdü değildir, malzeme ve geometri bilgisine dayalı bir tahmindir.
-
-Belirsiz durumlarda WhatsApp hattımız üzerinden yazılı görüşme öneriyoruz. Garanti kapsamı içinde ortaya çıkan bir durumun üretim hatası mı yoksa kullanıcı kaynaklı bir durum mu olduğu sipariş öncesi yazılı olarak değerlendirilir. Bu değerlendirme parçanın fiziksel olarak bize ulaşması veya fotoğrafla durumun paylaşılması ile yapılır.
-
-## Sipariş
-
-Garanti kapsamı sipariş onayında yazılı olarak paylaşılır; garanti kapsamı teslim tarihinden itibaren başlar. Sipariş öncesi parçanın kullanım yeri, çalışma sıcaklığı ve mekanik beklentisi yazılı olarak netleştirilir; bu bilgiler garanti kapsamının belirlenmesinde kullanılır. Detay ve ödeme için **+90 545 138 6526** numaramızdan bize ulaşabilir, sitede kartla online ödeme ile de siparişinizi tamamlayabilirsiniz. Garanti kapsamı içinde üretim hatası tespit edilirse parça yeniden üretilir veya eşdeğer çözüm önerilir. Garanti kapsamı dışındaki durumlar için ayrı bir değerlendirme süreci işler; yazılı görüşme sonucunda maliyet ayrıca belirlenir. Aynı projede birden fazla parça sipariş edilebilir; her biri kendi garanti kapsamına göre ayrı değerlendirilir. Önceki siparişten ölçü ve tolerans kaydı saklanır; yeni siparişte bu kayıt referans alınarak süreç kısalır. Ölçü nasıl alınır ve bize nasıl iletilir sorusunun yanıtı <a href="/parca-olcusu-nasil-alinir-ve-gonderilir/">parça ölçüsü nasıl alınır ve gönderilir</a> sayfasında ayrıntılıdır. Garanti kapsamı ile garanti süresi farklı kavramlardır; garanti süresi sayısal bir zaman dilimini, garanti kapsamı ise hangi durumların tazmin kapsamında olduğunu belirler. Sipariş öncesi yazılı paylaşılan her kalem (ölçü, malzeme, tolerans, yüzey, kullanım ortamı) garanti kapsamını doğrudan etkiler; bu bilgilerin eksik veya yanlış paylaşılması kapsamı daraltır. Garanti kapsamı içinde üretim hatası tespit edilirse parça yeniden üretilir veya eşdeğer çözüm önerilir; bu süreç yazılı olarak kayıt altına alınır. Garanti kapsamı dışındaki durumlar için ayrı bir değerlendirme süreci işler; yazılı görüşme sonucunda maliyet ayrıca belirlenir ve müşteri onayı alınır. Aynı projede birden fazla parça sipariş edilebilir; her biri kendi garanti kapsamına göre ayrı değerlendirilir ve tolerans yazılı paylaşılır.""")
 
 def _plastik_parca_siparisinde_siparis_iptali_yapilabilir_mi():
     return _seo_md_to_html(u"""# Plastik parça siparişinde sipariş iptali yapılabilir mi
@@ -21909,7 +21866,7 @@ Koşulsuz dayanıklılık iddiası kurmuyoruz. Doğru malzeme seçimi direnci ar
 
 Amonyak üretim tesisi, kompresör ya da soğutma sistemi kapsam dışıdır; bu sayfada anlatılan iş, mevcut tesisin plastik yardımcı parçalarıdır. Basınçlı amonyak devrelerinde kullanılacak bağlantı elemanları da kapsam dışıdır; burada söz konusu olan düşük-orta basınçlı yardımcı bağlantı ve muhafaza elemanlarıdır.
 
-Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.
+Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; """ + AYIP_HAKLARI_CUMLESI + """
 
 ## Sipariş ve iletişim
 
@@ -21950,14 +21907,14 @@ Koşulsuz dayanıklılık iddiası kurulmaz. Plastik malzeme hidrojen peroksit t
 
 Medikal cihaz üreticisi değiliz. Bu sayfada anlatılan iş, medikal cihazın plastik yardımcı parçalarıdır; tıbbi cihazın kendisi, CE-MDR onayı ya da hastane onayı kapsam dışıdır. Medikal cihaz sertifikası iddiası verilmez.
 
-Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.
+Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; """ + AYIP_HAKLARI_CUMLESI + """
 
 ## Sipariş ve iletişim
 
 Parçayı sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup siparişi tamamlarsınız. Bulamazsanız WhatsApp hattımız <a href="https://wa.me/905451386526" target="_blank" rel="noopener"><strong>+90 545 138 6526</strong></a> üzerinden yalnız sitede var mı diye yazın; konsantrasyon, sıcaklık aralığı ve temas süresi bilgileri malzeme sınıfının seçiminde belirleyicidir.""")
 
 def _e_kitap_okuyucu_kilif_mentesesi_plastik_oem_parca_uretimi():
-    return _seo_md_to_html(u"""# E-kitap Okuyucu Kılıfı Menteşesi Plastik Parçası
+    return _seo_md_to_html(u"""# E-kitap Okuyucu Kılıfı Menteşesi: Sitede Ölçüsü Seçilen Seçenekler
 
 Nasıl çalışır: PRUVO kataloğunda satılan hazır kalemleri marka, model ve kategori sayfalarından bulursunuz; seçtiğiniz ürünü kartla ödeyerek sipariş verirsiniz. Sitede ölçüsü seçilen ürün ailesinde ölçüyü siz yazarsınız, parça o ölçüde hazırlanır. Elinizdeki parçadan, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay adımı yoktur.
 
@@ -21994,7 +21951,7 @@ Cihaz marka ve model adı taşımaz; bu sayfada jenerik bir e-kitap okuyucu kıl
 
 Cihazın kendisi, kılıfın kendisi ve montaj işlemi kapsam dışıdır. Menteşe montajı için uygun yapıştırıcı ya da vida çapı sitede tanımlıdır; yapıştırma ya da vidalamaya bırakılan montaj noktalarında seçim sizin sorumluluğunuzdadır.
 
-Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.
+Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; """ + AYIP_HAKLARI_CUMLESI + """
 
 ## Sipariş ve iletişim
 
@@ -22033,7 +21990,7 @@ Sitede ölçüsü seçilen seçeneklerden <a href="/urun/olcuye-ozel-izgara-menf
 
 Cihaz marka ve model adı taşımaz; bu sayfada jenerik bir hoparlör gövde kapağı anlatılır. Üreticinin orijinal kapak geometrisi, marka logosu ya da patentli biçim birebir aktarılmaz. Cihazın kendisi, montaj işlemi ve montaj sonrası işler kapsam dışıdır; kapak montajındaki vida ve klips seçimi sizin sorumluluğunuzdadır. Akım taşıma, ısı iletimi ve yapısal yük taşıma bu parçada aranmaz.
 
-Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.
+Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; """ + AYIP_HAKLARI_CUMLESI + """
 
 ## Sipariş ve iletişim
 
@@ -22041,7 +21998,7 @@ Parçayı sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup 
 
 def _olcuye_ozel_plastik_gecme_percin_uretimi():
     return (
-        "<h1>Plastik Geçme Perçin Parçaları: Ölçü ve Malzeme</h1>"
+        "<h1>Plastik Geçme Perçin: Sitede Ölçüsü Seçilen Seçenekler</h1>"
         "<p class=\"lead\">Bir panelin üzerine tespit elemanı olarak çakılan plastik geçme perçin, piyasada seri halde sunulan sınırlı bir ölçü skalasıyla gelir. Net cevap: delik çapı, panel kalınlığı ve kaba ebadı belirleyicidir; katalogdaki hazır perçinlerde ölçü aralığı sınırlıdır; bu üçü uyuştuğunda perçin, çakıldıktan sonra kendi kendine açılmayan bir tutuş sağlar.</p>"
         "<p>Geçme perçinin çalışma mantığı şudur: gövde, delikten geçirildikten sonra iki kola ayrılır ve arkalarındaki kanatlar panelin arkasına yayılır. Kanatların açılma miktarı, perçinin çıkışa karşı direncini belirler; fazla açılma deliği taşır, az açılma perçini gevşek bırakır. Kanatların açılması için gövdenin bükülme dayanımı yeterli olmalıdır; aksi hâlde perçin yerine oturmaz.</p>"
         "<p>İkinci ölçü grubu panel kalınlığıyla ilgilidir. Kanatların panelin arkasında oturacağı mesafe, perçin boyunun belirlenmesinde etkilidir; çok uzun bir gövde, ince panellerde kanatların panelin dışına çıkmasına yol açar. Üçüncü ölçü ise kaba ebadıdır: kafa çapı, perçinin görünümünü ve bastırma kuvvetinin dağılımını belirler.</p>"
@@ -22052,7 +22009,7 @@ def _olcuye_ozel_plastik_gecme_percin_uretimi():
         "<p>Ana giriş noktaları <a href=\"/kategori/elektronik/\">elektronik</a>, <a href=\"/kategori/otomobil/\">otomobil</a> ve <a href=\"/kategori/tamirat/\">tamirat</a> kategorileridir. Hazır örnekler: <a href=\"/urun/subaru-itme-percini/\">Subaru itme perçini</a>, <a href=\"/urun/nissan-8mm-push-pin-percin/\">Nissan çıtçıt tipi perçin</a>, <a href=\"/urun/th5748546-kaporta-percini-6-5mm/\">motosiklet kaporta perçini</a> ve <a href=\"/urun/toyota-hoparlor-percin-ara-parcasi-tamiri/\">Toyota hoparlör perçin ara parçası</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-vida-civata-somun-pul/\">ölçüye özel vida, cıvata, somun ve pul</a>, <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüye özel montaj braketi</a> ile <a href=\"/urun/olcuye-ozel-kutu-organizer/\">ölçüye özel kutu ve organizer</a> uygundur. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Tavan yükü taşıyan tespit, yapısal bağlama ve emniyet amaçlı perçin kapsam dışıdır. Bir perçin sökülemez bir bağlantı elemanıdır; yük taşıma kapasitesiyle ilgili bir sınıf beyanı verilmez. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Delik çapı, panel kalınlığı ve istenen kaba ebadı yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -22061,18 +22018,18 @@ def _olcuye_ozel_plastik_gecme_percin_uretimi():
 
 def _olcuye_ozel_plastik_kapi_alti_firca_fitil_tutucusu_uretimi():
     return (
-        "<h1>Kapı Altı Fırça Fitil Tutucusu Ölçüye Özel Üretimi</h1>"
+        "<h1>Kapı Altı Fırça ve Fitil Tutucusu: Sitede Ölçüsü Seçilen Seçenekler</h1>"
         "<p class=\"lead\">Kapı altından geçen hava, toz ve böceği kesmenin en temiz yolu zemine süpürülen bir fırça ya da fitil profilidir. Net cevap: kapı genişliği, eşik boşluğu ve fırça yüksekliği belirleyicidir; hazır tutucu bu üçü karşılamadığında ölçüye özel hazırlanır.</p>"
         "<p>Bu kalem beklenmedik biçimde bozulur. Fırça, kapı her açılıp kapandığında yere sürtünür ve telleri aşınır; tutucu ise sürekli temas ve sürtünmeyle birlikte yavaşça eğilir. Eşik düz değilse, mesafesi düzensiz bir kapıda tutucu bir uçta boşluk bırakır ve oradan hava geçer. Bu nedenle fırça ile tutucunun birim olarak tasarlanması, iki parçayı ayrı ayrı seçmekten daha iyi sonuç verir.</p>"
         "<p>Zeminle temas eden kısımda su birikmesi de önemlidir. Süpürülen fırça, zeminde kalan tozu ve nemi dışarı taşır; fırça tabanı düz değilse su birikintisi oluşur ve ahşap eşik çürür. Bu yüzden tutucunun alt kenarında suyu yönlendiren bir pah veya eğim bulunması, kapı altı nem sorununu azaltır.</p>"
         "<h2>Malzeme</h2>"
-        "<p>Fırça kısmında suyu emen ve yıkama sonrası sertleşmeyen bir malzeme gerekir; naylon ve polipropilen teller bu iş için uygundur. Tutucu gövdesi ise sert plastik olmalıdır; PETG ve ABS bu gövde için dengeli seçimlerdir. Kapı dışarıda ve güneş alıyorsa ASA'nın UV dayanımı belirleyici olur. Fitil tipi uygulamalarda conta, lastik ya da yumuşak PVC'den seçilir.</p>"
+        "<p>Fırça kısmında suyu emen ve yıkama sonrası sertleşmeyen bir malzeme gerekir; naylon teller bu iş için uygundur. Tutucu gövdesi ise sert plastik olmalıdır; PETG ve ABS bu gövde için dengeli seçimlerdir. Kapı dışarıda ve güneş alıyorsa ASA'nın UV dayanımı belirleyici olur. Fitil tipi uygulamalarda conta, lastik ya da yumuşak TPU'dan seçilir.</p>"
         "<p>Kapı altı ve kapı kenarı çözümleri <a href=\"/oto-kapi-su-kanali-fitil-tutucusu-ve-oluk-parcasi-yaptirma/\">oto kapı su kanalı fitil tutucusu ve oluk parçası yaptırma</a> sayfasında anlatılır.</p>"
         "<h2>Katalogda nasıl bulunur</h2>"
         "<p>Ana giriş noktaları <a href=\"/kategori/ev/\">ev</a>, <a href=\"/kategori/dekorasyon/\">dekorasyon</a> ve <a href=\"/kategori/tamirat/\">tamirat</a> kategorileridir. Hazır örnekler: <a href=\"/urun/ofis-masa-yukselticisi-ayak-44-mm-kaydirmaz-pedli-pr333033/\">kaydırmaz masa ayağı</a>, <a href=\"/urun/volkswagen-kap-fitili-trim-klipsi/\">Volkswagen kapı fitili trim klipsi</a>, <a href=\"/urun/alfa-romeo-916-b-diregi-fitil-tutucusu/\">Alfa Romeo fitil tutucusu</a> ve <a href=\"/urun/mg-midget-1500-alt-camurluk-bosluk-kapaklari/\">MG Midget alt camurluk boşluk kapakları</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-cerceve/\">ölçüye özel çerçeve</a>, <a href=\"/urun/olcuye-ozel-vidali-kavanoz-tapa/\">ölçüye özel vida delikli kavanoz kapağı</a> ve <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüye özel montaj braketi</a> uygundur. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Su geçirmez bir banyo kapısı contası, yangın kapısı keçesi ve otomatik kapı kapanma sistemi kapsam dışıdır. Fitil tutucusu hava sızdırmazlığı ölçülmüş bir ürün değildir; sızdırmazlık sınıfı beyanı verilmez. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Kapı genişliği, eşik boşluğu ve istenen fırça yüksekliği yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -22081,20 +22038,20 @@ def _olcuye_ozel_plastik_kapi_alti_firca_fitil_tutucusu_uretimi():
 
 def _olcuye_ozel_plastik_havalandirma_bacasi_sapkasi_uretimi():
     return (
-        "<h1>Havalandırma Bacası Şapkası Ölçüye Özel Üretimi</h1>"
+        "<h1>Havalandırma Bacası Şapkası: Sitede Ölçüsü Seçilen Seçenekler</h1>"
         "<p>Nasıl çalışır: PRUVO kataloğunda satılan hazır kalemleri marka, model ve kategori sayfalarından bulursunuz; seçtiğiniz ürünü kartla ödeyerek sipariş verirsiniz. Sitede ölçüsü seçilen ürün ailesinde ölçüyü siz yazarsınız, parça o ölçüde hazırlanır. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Bir havalandırma bacasının ucuna takılan şapka, yağmurun ve kuşun içeri girmesini engelleyen, rüzgârın içeri itmesini sınırlayan bir parçadır. Net cevap: hazır piyasada belirli çaplar için baca şapkası bulunur; sitede ölçüsü seçilen kalemlerde dış çapı ve açıklığı siz yazarsınız, parça o değerlerde hazırlanır. Rüzgâr yönüne bağımsız çalışan özel bir model için üretim yapılmaz.</p>"
         "<p>Şapka tasarımında iki çatışan beklenti vardır. Yağmurun içeri girmemesi için üst yüzeyin eğimli olması ve üzerinde biriken suyun dışarı akması gerekir. Rüzgârın içeri girmemesi için ise şapka, rüzgârın yatay bileşenine karşı bir yüzey sunmalıdır. Bu iki yüzeyin birleşimi, rüzgârdan bağımsız çalışan iki kanatlı ya da dairesel tipleri doğurur.</p>"
         "<p>Pratikte en sık görülen hata, şapka açıklığının bacadan küçük kalmasıdır. Açıklık küçük olduğunda baca çekişi düşer ve tesisat yetersiz havalandırma yapar. Buna karşılık aşırı büyük açıklık, rüzgârda şapkaya yük bindirir; hafif yapıda bir şapka yerinden oynayabilir. Bu yüzden şapka, büyüklüğü ve sabitleme yöntemi birlikte düşünülmelidir.</p>"
         "<p>Isıtma ve klima tesisatında ayrı bir konu vardır: şapka, baca bacasının soğuk hava sızıntısını da engelleyen bir elemandır. Isı geri kazanımlı sistemlerde bu işlev önem taşır; ancak ısı yalıtımı performansı bu tür yardımcı elemanlarla sağlanmaz, baca yalıtımıyla sağlanır.</p>"
         "<h2>Doğru malzeme</h2>"
-        "<p>Şapka sürekli güneş, yağmur ve rüzgâr altındadır. ASA'nın UV dayanımı bu yüzden ilk tercihtir; PC saydam şapkalarda kullanılır. PETG, iç mekân ya da kapalı çatı altı uygulamalarda yeterlidir. Şapka darbeye de maruz kalır; kırılgan sınıflar yerine ASA ve PC tercih edilir. Metal olmayan bir şapka için ateşe dayanım sınıfı verilmez.</p>"
+        "<p>Şapka sürekli güneş, yağmur ve rüzgâr altındadır. ASA'nın UV dayanımı bu yüzden ilk tercihtir; PETG saydam şapkalarda kullanılır. PETG, iç mekân ya da kapalı çatı altı uygulamalarda yeterlidir. Şapka darbeye de maruz kalır; kırılgan sınıflar yerine ASA ve ABS tercih edilir. Metal olmayan bir şapka için ateşe dayanım sınıfı verilmez.</p>"
         "<p>Kanal bağlantı elemanları <a href=\"/olcuye-ozel-plastik-kanal-ek-parcasi-uretimi/\">ölçüye özel plastik kanal ek parçası üretimi</a>, çatı ve yağmur suyu elemanları <a href=\"/cati-olugu-ve-yagmur-inis-borusu-plastik-parca-uretimi/\">çatı oluğu ve yağmur iniş borusu plastik parça üretimi</a> ve dış mekân sınıfı <a href=\"/uv-gunes-dayanikli-dis-mekan-plastik-parca-uretimi/\">UV ve güneşe dayanıklı dış mekân plastik parça üretimi</a> sayfalarında anlatılır.</p>"
         "<h2>Katalogda nasıl bulunur</h2>"
         "<p>Ana giriş noktaları <a href=\"/kategori/ev/\">ev</a>, <a href=\"/kategori/tamirat/\">tamirat</a> ve <a href=\"/kategori/elektronik/\">elektronik</a> kategorileridir. Hazır örnekler: <a href=\"/urun/mutfak-davlumbazi-havalandirma-kanali-burcu/\">mutfak davlumbazı havalandırma kanalı burcu</a> ve <a href=\"/urun/land-rover-havalandirma-kanali-baglanti-parcasi/\">Land Rover havalandırma kanalı bağlantı parçası</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-izgara-menfez-kapak/\">ölçüye özel ızgara ve menfez kapağı</a>, <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüye özel montaj braketi</a> ile <a href=\"/urun/olcuye-ozel-kutu-organizer/\">ölçüye özel kutu ve organizer</a> uygundur. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Yangın güvenliği, kıvılcım tutma, kanal yangın dampersi ve baca taşıyıcı bağlantı elemanları kapsam dışıdır. Ateşe dayanım sınıfı beyanı verilmez. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Bacanın dış çapı, açıklık beklentisi ve montaj yüksekliği yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -22149,26 +22106,39 @@ def _cam_atolyesi_ve_cam_isleme_ekipmani_plastik_parca_uretimi():
 
 
 def _ozel_parca_siparisinde_odeme_nasil_yapilir():
-    return (u"""<h1>Özel parça siparişinde ödeme nasıl yapılır</h1>
-<p>Özel üretim parça siparişinde ödeme adımı, müşterinin en çok sorduğu konulardan biridir. Sipariş sepette kartla online ödemeyle verilir; ödeme sipariş anında alınır. Ödemeden sonra ölçü teyidi ve üretim öncesi onay görseli paylaşılır, onayınız gelmeden üretime başlamayız. Sitemizde kartla online ödeme yöntemi açıktır ve ölçüye özel işler dahil tüm özel üretim siparişlerinde kullanılır. Banka havalesi veya başka bir yönteme gerek kalmadan, sepette ödeme adımına geldiğinizde kart bilgilerinizle ödemeyi tamamlarsınız.</p>
-<p>Bu sayfada özel üretim parça siparişinde ödeme nasıl yapılır sorusunun ayrıntılı cevabını veriyoruz. Ödeme yöntemi, hangi aşamada ödendiği, ölçüye özel siparişlerde ne değiştiği ve ödeme sonrası sürecin nasıl ilerlediği bu yazının konusudur.</p>
-<h2>Nasıl çalışır</h2>
-<p>Özel parça siparişinde ödeme dört temel adımda ilerler. Adımların sırası sabittir; hangi aşamada ödeme yapılacağı da bu sıraya bağlıdır.</p>
-<p>İlk adım ürün veya parça seçimidir. Ölçüye özel üretim için <a href="/plastik-parca-siparisinin-ilk-adimi-nedir/">plastik parça siparişinin ilk adımı nedir</a> sayfasındaki yordamı izlersiniz: parçayı tanımlar, temel ölçüleri iletirsiniz. Standart bir ürün sayfasından da sipariş başlatılabilir; her iki yolda da süreç aynı kapıdan girer.</p>
-<p>İkinci adım sepette ödeme adımıdır. Siparişi sepete ekleyip ödeme adımına geldiğinizde kredi kartı veya banka kartı bilgilerinizle ödemeyi güvenli biçimde tamamlarsınız; sipariş bu adımda kurulur. Sitemizde kartla online ödeme yöntemi açıktır ve ölçüye özel siparişlerde de aynı yöntem kullanılır; süreç farklı bir ödeme kanalına yönlendirmez.</p>
-<p>Üçüncü adım üretim öncesi ölçü teyidi ve onay görselidir. Siparişiniz alındıktan sonra ölçüler netleştirilir ve küçük bir onay görseli paylaşılır; bu görselde parçanın biçimi, kritik ölçüleri ve malzeme tercihi görünür. Onayınız gelmeden üretime başlamayız; onay öncesinde vazgeçmek isterseniz iptal penceresi açıktır. Üretim başladıktan sonra bu pencere kapanır; ayıplı üretim durumunda izlenen <a href=\"/ozel-uretim-parca-iadesi-ve-geri-odemesi-nasil-isler/\">iade ve geri ödeme süreci</a> ayrı bir sayfada anlatılır. Bu onay sürecinin ayrıntısı <a href="/uretim-oncesi-olcu-teyidi-ve-onay-gorseli-verilir-mi/">üretim öncesi ölçü teyidi ve onay görseli verilir mi</a> sayfasında durur.</p>
-<p>Dördüncü adım üretim ve teslimat başlangıcıdır. Ödemeniz onaylandıktan ve onay görselini teyit ettikten sonra üretim başlar; parça hazır olduğunda gönderime verilir. Sipariş fiyatının nasıl belirlendiği <a href="/ozel-parca-uretimi-fiyati-nasil-belirlenir/">özel parça üretimi fiyatı nasıl belirlenir</a> sayfasında ayrıntılı durur; ödeme tutarı bu fiyatlandırmanın sonucudur. Ödemeden sonra siparişin hangi aşamada olduğunu nereden öğrenebileceğiniz <a href="/ozel-uretim-parca-siparisi-nasil-takip-edilir/">özel üretim parça siparişi nasıl takip edilir</a> sayfasında adım adım yazılıdır.</p>
+    return (
+        u"""<h1>Siparişte Ödeme Nasıl Yapılır?</h1>
+<p class="lead">Ödeme adımı siparişin tek ödeme adımıdır: ürünü seçer, sepete eklersiniz ve kartla online ödersiniz.</p>
+<p>Nasıl çalışır: sitede satılan bir ürünü açarsınız, ürün sayfasındaki alanları doldurursunuz, sepete eklersiniz ve kartla online ödeme yaparsınız. Ölçüsü sitede seçilen ürün ailesinde ölçüyü siz yazarsınız; parça o ölçüde hazırlanır. Banka havalesi, kapıda ödeme ya da öncesinde yürütülen ayrı bir fiyat turu yoktur.</p>
+<h2>Ödeme nasıl tamamlanır</h2>
+<ul>
+<li><strong>Ürünü seçin:</strong> katalogdaki hazır kalemlerden birini ya da ölçüsü sitede seçilen aileden birini açın. Açtığınız sayfada ölçü, malzeme, renk ve adet alanlarını doldurursunuz.</li>
+<li><strong>Sepete ekleyin:</strong> seçtiğiniz değerler ürün sayfasında özetlenir; Sepete Ekle düğmesiyle sepetinize alınır.</li>
+<li><strong>Kartla ödeyin:</strong> sepette adedi ve tutarı kontrol edip Ödemeye Geç düğmesine basarsınız. Karşınıza iyzico ödeme sayfası açılır; kart bilgilerinizi girip ödemeyi onaylarsınız.</li>
+<li><strong>Üretime girin:</strong> ödeme onayı sonrası sipariş basım kuyruğuna alınır, parça hazır olduğunda kargolanır.</li>
+</ul>
+<p>Ödeme, sitede ölçüsü seçilen ürünlerde de aynı yoldan geçer; ölçüye özel işler için ayrı bir ödeme kanalı yoktur. Tutar, ürün sayfasında seçtiğiniz malzeme ve adet üzerinden hesaplanır; fiyatın hangi kalemlerden oluştuğu <a href="/ozel-parca-uretimi-fiyati-nasil-belirlenir/">özel parça üretimi fiyatı nasıl belirlenir</a> sayfasında yazılıdır.</p>
+<h2>Hangi ödeme yöntemi var</h2>
+<p>Tek yöntem kartla online ödemedir; ödeme sayfası iyzico altyapısı üzerinden açılır. Kart bilgileriniz bize değil bu ödeme altyapısına iletilir ve sitemizde saklanmaz. Bankanızın ek doğrulama adımı (3D Secure) isteyebilir; böyle bir durumda doğrulama kodunu ödeme sayfasında girersiniz, sipariş ödemesiz tamamlanmaz. Havale, kapıda ödeme ya da ödeme sonrası ödeme seçeneği yoktur; ödeme adımı siparişten önce ve tek seferde tamamlanır.</p>
+<h2>Sık karşılaşılan ödeme durumları</h2>
+<ul>
+<li><strong>Banka onayı gelmedi:</strong> bankanızın ek onay ekranında bekleyen işlemi tamamlayın; ek onay tamamlanmadan sipariş oluşmaz ve ücret çekilmez.</li>
+<li><strong>Ödeme denemesi başarısız oldu:</strong> sepetiniz korunur; Ödemeye Geç düğmesine yeniden basıp kart bilgilerinizi tekrar girebilirsiniz.</li>
+<li><strong>Tutar beklediğinizden farklı görünüyor:</strong> tutar, ürün sayfasında seçtiğiniz adet ve malzemeden hesaplanır. Adet alanını değiştirip sepeti yenileyin.</li>
+<li><strong>Hesabımdan iki işlem görünüyor:</strong> ikinci işlem genellikle başarısız denemenin tutar bloke kaydıdır; bankanızla ilgili kaydınız üzerinden iade edilir.</li>
+</ul>
 <h2>Doğru malzeme</h2>
-<p>Bu sayfada anlatılan süreç tüm özel üretim siparişleri için geçerli. Ödeme yöntemi ve ödeme adımı parçanın malzemesinden veya ölçüsünden bağımsızdır; ölçüye özel üretim veya standart ürün fark etmez. Kartla online ödeme sitemizde tüm sipariş türleri için açıktır. Üretim sonrası teslim süresi parçanın boyutuna ve karmaşıklığına göre değişir; üretim onayı öncesi ve üretim başladıktan sonraki iptal koşulları <a href="/plastik-parca-siparisinde-siparis-iptali-yapilabilir-mi/">sipariş iptali</a> sayfasında ayrı ayrı yazılıdır.</p>
-<p>Renk veya yüzey seçenekleri ödeme tutarını etkiler. Ödeme ve onay tamamlandıktan sonra üretim başlar; ölçüye özel hazırlanan üründe standart ürünlerden farklı olarak cayma hakkı kullanılamaz. Cayma hakkının istisnası mesafeli satış sözleşmesinin ilgili maddesinde tek tek yazılır.</p>
+<p>Ödeme yöntemi malzeme seçiminden bağımsızdır. PETG, ASA, PLA ya da ABS seçiminiz tutarı doğrudan etkiler, ödeme adımı değişmez. Ürün sayfasında malzeme seçeneği yoksa o kalem sitede tek bir malzemeyle üretiliyordur. Karbon ya da cam fiber takviyeli naylon sitede seçilemez; sitede bulunmayan bir malzeme sınıfı için özel üretim açılmaz.</p>
 <h2>Dürüst sınır</h2>
-<p>Burada da her şeyi vaat etmiyoruz. Özel üretimde cayma hakkı yoktur; ürün sipariş sonrası ölçünüze veya tasarımınıza özel hazırlandığı için geri alınmaz. """ + AYIP_HAKLARI_CUMLESI + u""" Bu istisna 6502 sayılı kanun ve Mesafeli Sözleşmeler Yönetmeliği'nde bellidir; cayma hakkı bölümünün istisna listesinde yer alır. İade ve geri ödeme politikasının ayrıntısı <a href="/plastik-parca-siparisinde-siparis-iptali-yapilabilir-mi/">sipariş iptali</a> sayfasında durur.</p>
-<p>İkinci sınır: ödeme alınmış olsa da onay görseli teyit edilmeden üretime başlamayız. Üretim onayı öncesi iptal talebinde ek maliyet oluşmaz ve sipariş süreci sonlandırılır; üretim başladıktan sonra gelen iptal talebi yazılı olarak değerlendirilir, üretim durumu ve maliyet yazılı paylaşılır.</p>
-<p>Üçüncü sınır: teslimat süreci ödeme yönteminden bağımsızdır; parça üretildikten sonra gönderilir ve teslim süresi parçanın boyutuna, malzemesine ve iş yoğunluğuna göre değişir. Ödeme adımında kesin teslim günü taahhüdü vermiyoruz.</p>
+<p>Birinci sınır: ödeme onayı siparişin alındığı anlamına gelir. Üretim öncesinde ayrı bir onay adımı, yazılı fiyat görüşmesi ya da ön izleme görüntüsü paylaşımı yoktur. İkinci sınır: ölçüye özel hazırlanan üründe cayma hakkı kullanılamaz; ölçüye özel olmayan standart ürünlerde mesafeli satış sözleşmesi hükümleri geçerlidir. Üçüncü sınır: teslim süresi parçanın boyutuna ve iş yoğunluğuna göre değişir, ödeme adımında kesin teslim günü verilmez. Dördüncü sınır: """
+        + AYIP_HAKLARI_CUMLESI
+        + u""" İade ve geri ödeme akışının ayrıntısı <a href="/ozel-uretim-parca-iadesi-ve-geri-odemesi-nasil-isler/">iade ve geri ödeme süreci</a> sayfasında anlatılır.</p>
+<p>Teslim süresinin nasıl hesaplandığını <a href="/ozel-parca-kac-gunde-hazir-olur/">özel parça kaç günde hazır olur</a> sayfasında bulabilirsiniz.</p>
 <h2>Sipariş</h2>
-<p>Özel parça siparişinde ödeme nasıl yapılır sorusunun pratik cevabı kısaca: sitemizden kartla online ödeme yöntemiyle ödeme yapılır. Ödeme onaylandıktan sonra ölçü teyidi ve onay görseli adımı işler, onayınızla üretim başlar ve ürün hazır olduğunda gönderime verilir.</p>
-<p>Ölçüye özel siparişlerinizde de aynı ödeme yöntemi kullanılır. Ölçü teyidi ve onay görseli ödeme sonrasında, üretim öncesinde tamamlanır; onay gelmeden üretime başlamayız. Siparişinizi sitemizden kartla online başlatabilirsiniz. Ödeme adımında veya parça tanımında soru varsa WhatsApp'tan yazın: <a href="https://wa.me/905451386526" target="_blank" rel="noopener"><strong>+90 545 138 6526</strong></a>.</p>
-""")
+<p>Ödeme adımıyla ilgili bir sorunuz varsa WhatsApp hattımıza yazın: <a href="https://wa.me/905451386526" target="_blank" rel="noopener"><strong>+90 545 138 6526</strong></a>. Aradığınız kalem sitede var mı diye sormak için aynı hat yeterlidir; varsa adresini paylaşırız, yoksa sitede bulunmadığını açıkça söyleriz.</p>
+"""
+    )
+
 
 
 
@@ -22189,24 +22159,24 @@ def _ozel_uretim_parca_orijinaliyle_ayni_agirlikta_mi():
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz; ağırlık hedefi yazdığınız ölçü ve malzeme bilgisi üzerinden konuşulur. Orijinaliyle birebir aynı ağırlıkta olacağına dair garanti verilmez; malzeme yoğunluğu ve iç yapı belirli bir sapma ile çalışır. Sapmanın yönü genelde öngörülebilir: malzeme değişikliği yapıldıysa ağırlık ya artar ya azalır, iç yapı boşsa bir miktar düşer.</p>"
         "<p>İkinci sınır: dönen parçada balans. Yüksek devirde dönen parça sınıfına giren uygulamalarda balans testi talep edilmeli ve gerekirse deneme parçasıyla başlanmalıdır. Üçüncü sınır: ağırlığı tek parametre olarak değerlendirmiyoruz; çalışma şartları, yorulma ve boyutsal toleranslar da en az ağırlık kadar önemlidir. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçanın kullanım amacı, dönüp dönmediği ve malzeme beklentisi yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
 def _glikol_antifriz_temasli_plastik_parca_uretimi():
     return (
         "<h1>Antifriz (Glikol) Temaslı Plastik Parça: Malzeme Seçimi</h1>"
-        "<p class=\"lead\">Antifriz, yani glikol bazlı soğutma sıvısı, uzun süreli temas altında bazı plastikleri yumuşatır ve yüzey özelliğini bozar. Doğru cevap: PETG, ASA ve PA sınıfları glikol temasında iyi davranır; PVC türevleri ve sert PVC borular uzun süreli temas için uygun değildir. Plastik, soğutma devresinin basınçlı parçası olarak kullanılmaz; devre dışı aksesuar kalemleriyle sınırlıdır.</p>"
+        "<p class=\"lead\">Antifriz, yani glikol bazlı soğutma sıvısı, uzun süreli temas altında bazı plastikleri yumuşatır ve yüzey özelliğini bozar. Doğru cevap: PETG, ASA ve PA sınıfları glikol temasında iyi davranır; plastik türevler ve sert plastik borular uzun süreli temas için uygun değildir. Plastik, soğutma devresinin basınçlı parçası olarak kullanılmaz; devre dışı aksesuar kalemleriyle sınırlıdır.</p>"
         "<p>Glikolün plastiğe etkisi zamanla birikir. Su ve glikol karışımı, polimerin içindeki yumuşatıcı bileşenleri yavaşça çeker; parça ilk haftalarda normal görünürken altı ay sonra yüzey matlaşır ve esnekliğini kaybeder. Bu yüzden dönüşüm motorlarında yıllarca takılı kalan bir glikol temaslı parçayla, arada bir değişen bir parça arasında fark olur.</p>"
         "<p>İkinci etken sıcaklıktır. Motor bölgesindeki bir hortum rakoru veya sensör yuvası, çalışma sırasında 90 santigrat dereceyi aşabilir; bu bandın üzerinde PLA yumuşar ve geçme bağlantısı gevşer. Aynı nedenle bu sayfadaki kalemlerin tamamı soğutma devresinin basınçlı bölümünde değil, devrenin çevresindeki yardımcı elemanlarda konumlanır.</p>"
         "<h2>Malzeme seçimi</h2>"
-        "<p>Glikol teması için PETG iyi bir genel tercihtir: kimyasal direnci yeterli, ısı sınırı motor bölgesi için uygundur ve baskı kalitesi stabildir. ASA, dış mekânda ve yüksek ısıda çalışan bir parçada PETG'den önce gelir. Konnektör ve klemens yuvası gibi sürekli ısı altında olmayan yerlerde PA-GF sınıfı daha uzun ömürlüdür. PVC boru ve hortumlar uzun süreli glikol teması için tercih edilmez.</p>"
+        "<p>Glikol teması için PETG iyi bir genel tercihtir: kimyasal direnci yeterli, ısı sınırı motor bölgesi için uygundur ve baskı kalitesi stabildir. ASA, dış mekânda ve yüksek ısıda çalışan bir parçada PETG'den önce gelir. Konnektör ve klemens yuvası gibi sürekli ısı altında olmayan yerlerde PA-GF sınıfı daha uzun ömürlüdür. Sert plastik boru ve hortumlar uzun süreli glikol teması için tercih edilmez.</p>"
         "<p>Isı tavanının genel çerçevesi <a href=\"/plastik-parca-kac-dereceye-dayanir/\">plastik parça kaç dereceye dayanır</a> sayfasında, kimyasal temasın ayrıntısı <a href=\"/yaga-ve-kimyasala-dayanikli-plastik-parca-uretimi/\">yağ ve kimyasala dayanıklı plastik parça üretimi</a> sayfasında anlatılır. Boru bağlantı elemanları için <a href=\"/olcuye-ozel-plastik-boru-kelepcesi-ve-aski-uretimi/\">plastik boru kelepçesi ve askı</a> sayfası kullanılabilir.</p>"
         "<h2>Katalogda nasıl bulunur</h2>"
         "<p>Ana giriş noktaları <a href=\"/kategori/otomobil/\">otomobil</a>, <a href=\"/kategori/marin/\">marin</a>, <a href=\"/kategori/motosiklet/\">motosiklet</a> ve <a href=\"/kategori/elektronik/\">elektronik</a> kategorileridir. Hazır örnekler: <a href=\"/urun/honda-bf9-9-bf15-termostat-kapagi/\">Honda BF9.9/BF15 termostat kapağı</a>, <a href=\"/urun/ford-traktor-termostat-yuvasi/\">Ford traktör termostat yuvası</a> ve <a href=\"/urun/th4601545-kawasaki-versys-x-300-yardimci-anahtar-plakasi/\">Kawasaki yardımcı anahtar plakası</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-hortum-adaptoru/\">hortum adaptörü</a>, <a href=\"/urun/olcuye-ozel-baglanti-konektor/\">birleştirme konektörü</a> ve <a href=\"/urun/olcuye-ozel-vida-civata-somun-pul/\">vida, cıvata, somun ve pul</a> uygundur. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Genleşme kabı, hortum, rakor ve soğutma devresinin basınçlı parçası kapsam dışıdır; bunlar metal veya sertifikalı ekipmandan gelmelidir. <a href=\"/basinc-altinda-calisan-plastik-parca-uretilir-mi/\">basınç altında çalışan plastik parça üretilir mi</a> sayfasında bu sınırın gerekçesi yer alır. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçanın devredeki konumu, glikol ömrü ve çalışma sıcaklığı bilgisi yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -22278,13 +22248,13 @@ def _tansiyon_aleti_manset_baglanti_klipsi_plastik_oem_parca_uretimi():
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz; cihazın markası, modeli ve klipsin kritik ölçüleri yeterlidir. Üretilen parça mekanik bir bağlantı klipsidir; tıbbi cihaz sertifikası ya da ölçüm doğruluğu vaadi verilmez. Cihaz ölçüm sonuçlarının tıbbi karar için doğruluğu üreticinin sorumluluğundadır; ölçüm hassasiyeti, kalibrasyon periyodu ve tıbbi cihaz belgelendirmesi kapsamımızın dışındadır.</p>"
         "<p>İkinci sınır: cihazın elektronik devresinin tamiri ya da modifikasyonu yapılmaz. Klipsi sökerken cihaza müdahale etmemek kullanıcı tarafında sorumluluktur. Üçüncü sınır: belirli bir marka adına özel üretim anlaşması sunulmaz; parça işlevsel olarak eşdeğer olur, ancak üzerinde üreticinin markası ya da logosu bulunmaz. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Cihazın markası, modeli ve parçanın türü yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
 def _olcuye_ozel_plastik_kardan_mafsali_ve_u_eklem_uretimi():
     return (
-        "<h1>Ölçüye özel plastik kardan mafsalı ve U eklem üretimi</h1>"
+        "<h1>Kardan Mafsalı ve U Eklem: Sitede Ölçüsü Seçilen Seçenekler</h1>"
         "<p>Nasıl çalışır: PRUVO kataloğunda satılan hazır kalemleri marka, model ve kategori sayfalarından bulursunuz; seçtiğiniz ürünü kartla ödeyerek sipariş verirsiniz. Sitede ölçüsü seçilen ürün ailesinde ölçüyü siz yazarsınız, parça o ölçüde hazırlanır. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">İki mili belirli bir açıda birbirine bağlayan ve dönme hareketini karşıya aktaran plastik mafsal, piyasada standart mil çaplarında ve belirli çatal açıklıklarında sunulur. Net cevap: dört ölçü mafsalın geometrisini belirler; siz bunları yazarsınız, biz mafsalı o değerlere göre hazırlarız. Elinizdeki parçayı bize göndermeniz gerekmiyor.</p>"
         "<p>Dört ölçü şunlardır: her iki milin çapı, mil arasındaki nominal açı ve çatal açıklığı, yani pimin oturduğu iç çap. Açı sabit bir pozisyonda olabilir ya da bir salınım aralığında çalışabilir; salınımlı kullanımda mafsal boyu buna göre belirlenir ve çatallar arasındaki boşluk ile pin toleransı ayarlanır.</p>"
@@ -22298,13 +22268,13 @@ def _olcuye_ozel_plastik_kardan_mafsali_ve_u_eklem_uretimi():
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Plastik kardan mafsalı yüksek tork taşıyan yapısal bir eleman değildir; el aletleri, kumanda kolları, ayar milleri ve hafif mekanizmalar için uygundur. Ana güç aktarım hattında ya da emniyet kritik bir bağlantıda kullanılmamalıdır; bu tür kullanımlarda metal mafsal gerekir ve metal tarafında farklı bir dayanım sınıfı vardır.</p>"
         "<p>Döngü ömrü konusunda mutlak bir rakam verilmez. Yüksek devir, tekrarlayan salınım ya da eksen kaçıklığı mafsalın ömrünü belirler. Mil çapı ve pim çapı toleransları salınımın serbestliğini doğrudan etkiler: çok sıkı tolerans mafsalı zorlar, çok gevşek tolerans oynama yaratır. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Her iki milin çapı, mil arasındaki açı ve çatal açıklığı yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
 def _olcuye_ozel_plastik_supurgelik_ve_kose_birlestirme_parcasi_uretimi():
     return (
-        "<h1>Ölçüye özel plastik süpürgelik ve köşe birleştirme parçası</h1>"
+        "<h1>Süpürgelik ve Köşe Birleştirme Parçası: Sitede Ölçüsü Seçilen Seçenekler</h1>"
         "<p class=\"lead\">Süpürgelik profili metreyle satılır ama iç köşe, dış köşe ve uç kapağı gibi bağlantı parçaları modele göre değişir. Net cevap: köşe parçası, süpürgelik profilinin ölçüleriyle uyumlu olacak biçimde hazırlanır; siz yükseklik, et kalınlığı ve köşe açısını yazarsınız, biz parçayı o değerlere göre hazırlarız. Elinizdeki parçayı bize göndermeniz gerekmiyor.</p>"
         "<p>Hazır köşe parçası belirli bir süpürgelik yüksekliği ve et kalınlığı için tasarlanır. Süpürgelik yüksekliği atipik olduğunda, et kalınlığı farklı olduğunda ya da duvar açısı doksan derece dışında kaldığında hazır parça oturmaz. Tadilat sırasında eldeki profil ile yeni alınan profilin yüksekliği farklı olduğunda bu sorun sık görülür.</p>"
         "<p>İç köşe ile dış köşe farklı geometriler gerektirir. İç köşede parça iki profilin birleştiği açıyı doldurur; dış köşede ise profillerin dışa taşan kenarını sarar. Aynı odada her iki tip kullanılacaksa siparişte ayrı ayrı belirtilmelidir.</p>"
@@ -22317,13 +22287,13 @@ def _olcuye_ozel_plastik_supurgelik_ve_kose_birlestirme_parcasi_uretimi():
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Süpürgelik köşe parçası ana taşıyıcı ya da yapısal bağlantı elemanı değildir; profil mobilyaya ya da duvara yük bindirmez. Yapısal bağlantı ihtiyacı varsa süpürgelik profilinin kendisiyle birlikte değerlendirilmesi gerekir ve bu konuda farklı bir tedarik kanalına yönlendirme yapılır.</p>"
         "<p>Yüksek darbe ya da yoğun sürtünme beklenen ortamlarda köşe parçasının ömrü sınırlıdır; ağır forklift ya da tekerlekli yük trafiği olan depo zeminlerinde süpürgelik köşesi doğru çözüm değildir, zemin süpürgeliği önerilir. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Süpürgelik yüksekliği, et kalınlığı ve köşe açısı yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
 def _olcuye_ozel_plastik_kablo_bagi_tabani_ve_kaide_uretimi():
     return (
-        "<h1>Ölçüye Özel Plastik Kablo Bağı Tabanı ve Kaide Üretimi</h1>"
+        "<h1>Plastik Kablo Bağı Tabanı ve Kaide: Sitede Ölçüsü Seçilen Seçenekler</h1>"
         "<p>Nasıl çalışır: PRUVO kataloğunda satılan hazır kalemleri marka, model ve kategori sayfalarından bulursunuz; seçtiğiniz ürünü kartla ödeyerek sipariş verirsiniz. Sitede ölçüsü seçilen ürün ailesinde ölçüyü siz yazarsınız, parça o ölçüde hazırlanır. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Kablo bağı tabanı, bağın geçtiği yiv ya da delik ile bunu taşıyıcı yüzeye bağlayan kaideden oluşur. Net cevap: bağın genişliği, vida deliklerinin merkezleri ve montaj yüzeyinin durumu belirleyicidir; standart dışı kalan bu üçü için sitede ölçüsü seçilen aileye geçersiniz; ölçüyü siz yazarsınız.</p>"
         "<p>Hazır tabanlar belirli bağ genişlikleri ve standart vida delik düzenleri varsayar. Bağ genişliği 3, 5, 8, 10, 13, 16 ve 20 milimetre bandında standarttır; 25 milimetre ve üzeri bağlarda hazır taban bulmak zorlaşır. Vida delikleri ise genelde orta eksende tek çift hâlinde ve standart aralıktadır. Kullanılan bağ standart dışıysa ya da vida delikleri farklı bir düzende kurulacaksa taban oturmaz.</p>"
@@ -22335,7 +22305,7 @@ def _olcuye_ozel_plastik_kablo_bagi_tabani_ve_kaide_uretimi():
         "<p>Ana giriş noktaları <a href=\"/kategori/elektronik/\">elektronik</a>, <a href=\"/kategori/ofis/\">ofis</a> ve <a href=\"/kategori/tamirat/\">tamirat</a> kategorileridir. Hazır örnekler: <a href=\"/urun/pr1037156-gopro-basparmak-vidasi-gridfinity-kutusu/\">GoPro başparmak vidası tutucusu</a>, <a href=\"/urun/volkswagen-kap-fitili-trim-klipsi/\">Volkswagen kapı fitili trim klipsi</a> ve <a href=\"/urun/c3dlexus-rx300-ic-kapi-paneli-vida-kapagi/\">Lexus RX300 iç kapı paneli vida kapağı</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüye özel montaj braketi</a>, <a href=\"/urun/olcuye-ozel-vida-civata-somun-pul/\">ölçüye özel vida, cıvata, somun ve pul</a> ile <a href=\"/urun/olcuye-ozel-kutu-organizer/\">ölçüye özel kutu ve organizer</a> uygundur. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Enerji taşıyan kablo demeti kanalda taşıyan veya tavan altı yükünü karşılayan taban ve kaide kapsam dışıdır; yük taşıma kapasitesiyle ilgili bir sınıf beyanı verilmez. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Bağ genişliği, vida delik merkezleri ve montaj yüzeyinin durumu yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -22352,7 +22322,7 @@ def _meteoroloji_ve_cevre_olcum_istasyonu_plastik_parca_uretimi():
         "<p>Muafaza ve ölçüm donanımı tarafındaki çözümler <a href=\"/olcuye-ozel-plastik-sensor-yuvasi-ve-tutucusu-uretimi/\">plastik sensör yuvası ve tutucusu</a>, <a href=\"/olcuye-ozel-plastik-vantuz-tutucu-govdesi-uretimi/\">plastik vantuz tutucu gövdesi</a>, <a href=\"/olcuye-ozel-plastik-etiket-tutucu-ve-plaka-cercevesi-uretimi/\">plastik etiket tutucu ve plaka çerçevesi</a> ve <a href=\"/uv-gunes-dayanikli-dis-mekan-plastik-parca-uretimi/\">UV ve güneşe dayanıklı dış mekân plastik parça üretimi</a> sayfalarında anlatılır.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Ölçüm doğruluğundan sorumlu adaptörler, sensör gövdesi, kalibrasyon düzeneği ve ölçüm yapan her tür aktif eleman kapsam dışıdır. Plastik bir parçanın ölçüm değerine etkisi konusunda bir güvence verilmez. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>İstasyonun konumu, direk çapı ve parçanın görevi yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -22364,20 +22334,20 @@ def _kagit_ve_karton_ambalaj_fabrikasi_plastik_parca_uretimi():
         "<p>Hatta en çok yıpranan yüzeyler kâğıdın sürtündüğü yüzeylerdir. Sevk kılavuzları, merdane uçları ve kesim yatakları sürekli aşındırıcı bir malzemeyle temas halindedir; kâğıt tüyleri nemle birlikte yüzeye yapışarak sürtünmeyi artırır. Kutu makinesi tarafında ise aşınma daha çok hareketli parçaların birbirine sürtünmesinden gelir ve yatak yüzeylerinde oyuk birikmesi şeklinde görünür.</p>"
         "<p>Nem, kâğıt fabrikasını farklı bir ortam yapar. Şeker ve nem içeren kâğıt, taşıma bandlarında ve rulo çevresinde nem alır; bu, plastik parçanın yüzeyini yumuşatır ve yavaş yavaş şişirir. Sürekli ıslak kalan bir parça, kuru kalan muadilinden çok daha çabuk yorulur. Bu yüzden hat başı elemanlarında nem alan yüzeylerden kaçınılır.</p>"
         "<h2>Doğru malzeme</h2>"
-        "<p>Sürtünme altında çalışan kılavuz ve takozlarda aşınma direnci belirleyicidir. UHMW-PE ve cam elyaf takviyeli PA sınıfı, kâğıt ve karton yüzeyine karşı iyi davranır ve kuru çalışan hatlarda tercih edilir. Islak bölgelerde PETG ve PA12 daha iyi yaşlar. Sürekli yük altında kayan ve sıkma yapılan taşıyıcı elemanlarda ise plastiğin aşınma sınırı devreye girer; bu noktada metal muadil gerekir.</p>"
+        "<p>Sürtünme altında çalışan kılavuz ve takozlarda aşınma direnci belirleyicidir. PA sınıfı, kâğıt ve karton yüzeyine karşı iyi davranır ve kuru çalışan hatlarda tercih edilir. Islak bölgelerde PETG ve PA daha iyi yaşlar. Sürekli yük altında kayan ve sıkma yapılan taşıyıcı elemanlarda ise plastiğin aşınma sınırı devreye girer; bu noktada metal muadil gerekir.</p>"
         "<p>Aşınma sınıflarının karşılaştırması <a href=\"/asinmaya-dayanikli-surtunme-parcasi-uretimi/\">aşınmaya dayanıklı sürtünme parçası üretimi</a> sayfasında, rulo ve merdane uçları için <a href=\"/olcuye-ozel-plastik-merdane-gobegi-ve-rulo-ucu-uretimi/\">ölçüye özel plastik merdane göbeği ve rulo ucu üretimi</a> sayfasında anlatılır.</p>"
         "<h2>Katalogda nasıl bulunur</h2>"
         "<p>Ana giriş noktaları <a href=\"/kategori/tamirat/\">tamirat</a>, <a href=\"/kategori/ofis/\">ofis</a> ve <a href=\"/kategori/elektronik/\">elektronik</a> kategorileridir. Hazır örnekler: <a href=\"/urun/olcuye-ozel-profil-beam/\">ölçüye özel profil bağlantı elemanı</a>, <a href=\"/urun/pr81031-miele-supurge-nozulu/\">Miele süpürge nozulu</a> ve <a href=\"/urun/th3283775-makita-bant-zimpara-toz-emis-adaptoru/\">Makita bant zımpara toz emiş adaptörü</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-rulman/\">ölçüye özel rulman</a>, <a href=\"/urun/olcuye-ozel-vida-civata-somun-pul/\">ölçüye özel vida, cıvata, somun ve pul</a> ile <a href=\"/urun/olcuye-ozel-toka/\">ölçüye özel toka</a> uygundur. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Rulo taşıyıcıları, bant kasnakları, makine gövdesi ve germe üniteleri, sürekli yük altında kayan taşıyıcı elemanlar kapsam dışıdır; bunlar metal ve sertifikalı ekipmandan gelmelidir. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Hattın bölümü, elemanın görevi ve ölçüleri yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
 
 def _ozel_uretim_parca_siparisi_nasil_takip_edilir():
     return (
-        "<h1>Özel üretim parça siparişi nasıl takip edilir</h1>"
+        "<h1>Sipariş Nasıl Takip Edilir?</h1>"
         "<p>Nasıl çalışır: PRUVO kataloğunda satılan hazır kalemleri marka, model ve kategori sayfalarından bulursunuz; seçtiğiniz ürünü kartla ödeyerek sipariş verirsiniz. Sitede ölçüsü seçilen ürün ailesinde ölçüyü siz yazarsınız, parça o ölçüde hazırlanır. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Sipariş verildikten sonra en sık sorulan soru, siparişin hangi aşamada olduğudur. Net cevap: otomatik takip paneli ya da SMS bildirim gibi bir altyapımız yok; her aşama yazılı iletişimle ilerler ve durum sorulabilir. Bu sayfada aşamaların ne olduğu ve hangi bilginin nerede yazılı olduğu anlatılıyor.</p>"
         "<p>Süreç üç temel aşamadan oluşur. Birinci aşama siparişin açılmasıdır: parçanın adını, ölçü değerlerini ve adedi siz yazarsınız, kartla ödersiniz. İkinci aşama hazırlıktır: parça basılır ve boyutsal kontrol yapılır. Üçüncü aşama gönderimdir: parça paketlenir ve gönderim bildirimi iletilir. Onay görseli ya da ayrı bir teyit turu bu akışta yoktur.</p>"
@@ -22392,7 +22362,7 @@ def _ozel_uretim_parca_siparisi_nasil_takip_edilir():
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Otomatik takip paneli, SMS bildirim ya da anlık konum güncellemesi gibi bir altyapımız yoktur; durum sormak için WhatsApp hattı her aşamada açıktır. Cevap süresi iş yoğunluğuna göre değişir, sabit bir dönüş süresi vaat edilmez.</p>"
         "<p>İkinci sınır: özel üretimde cayma hakkı uygulanmaz. Parça sizin için tek tek hazırlandığı için sipariş onayından sonra üretim aşamasına geçildiğinde iptal mümkün olmaz; bu kural siparişin başlangıcında teyit edilir. Ayıplı üretim durumunda iade ve geri ödeme süreci <a href=\"/ozel-uretim-parca-iadesi-ve-geri-odemesi-nasil-isler/\">özel üretim parça iade ve geri ödeme</a> sayfasında adım adım anlatılır. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Sipariş referansınız yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -22409,7 +22379,7 @@ def _iki_ayni_parcadan_biri_kirildi_digerini_de_yenilemeli_miyim():
         "<p>Ana giriş noktaları <a href=\"/kategori/ev/\">ev</a>, <a href=\"/kategori/otomobil/\">otomobil</a>, <a href=\"/kategori/ofis/\">ofis</a> ve <a href=\"/kategori/tamirat/\">tamirat</a> kategorileridir. Hazır örnekler: <a href=\"/urun/th6774937-kawasaki-concours-1400-sakos-kilit-kapagi/\">Kawasaki kilit kapağı</a>, <a href=\"/urun/c3dlexus-rx300-emniyet-kemeri-kilavuz-klipsi/\">Lexus RX300 emniyet kemeri kılavuz klipsi</a> ve <a href=\"/urun/iveco-on-sol-cam-regulator-kaydirici-klip/\">IVECO cam regülatör kaydırıcı klipsi</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüye özel montaj braketi</a>, <a href=\"/urun/olcuye-ozel-toka/\">ölçüye özel toka</a> ile <a href=\"/urun/olcuye-ozel-vida-civata-somun-pul/\">ölçüye özel vida, cıvata, somun ve pul</a> uygundur. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Kararı siz verirsiniz; çözüm katalogdaki hazır parçada ya da sitede ölçüsü seçilen kalemde bulunur. Güvenlik elemanı olan bir ikiliden yalnız birini yenilemek önerilmez; emniyet, fren ve taşıma yükü taşıyan bağlantı parçaları kapsam dışıdır. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçanın cihazdaki yeri ve ölçüleri yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -22418,17 +22388,17 @@ def _iki_ayni_parcadan_biri_kirildi_digerini_de_yenilemeli_miyim():
 def _etanol_ve_izopropil_alkol_temasli_plastik_parca_uretimi():
     return (
         "<h1>Etanol ve İzopropil Alkol Temaslı Plastik Parça Üretimi</h1>"
-        "<p class=\"lead\">Etanol ve izopropil teması, dezenfeksiyon yapan her yerde sorulan bir konu. Net cevap: bu iki çözücüye en dayanıklı sınıflar PMMA ve ASA'dır; PETG ise kısa ve orta süreli temas için uygundur. PLA ise gerilme çatlağı riski nedeniyle sürekli temas altında önerilmez.</p>"
+        "<p class=\"lead\">Etanol ve izopropil teması, dezenfeksiyon yapan her yerde sorulan bir konu. Net cevap: bu iki çözücüye en dayanıklı sınıflar PETG ve ASA'dır. PLA ise gerilme çatlağı riski nedeniyle sürekli temas altında önerilmez.</p>"
         "<p>Alkolün yaptığı hasar iki ayrı mekanizmadan gelir. Birincisi kimyasal yumuşama: yüzey hafifçe şişer, parlaklık düşer ve zamanla bulanıklaşır. İkincisi gerilme çatlağı: parça üzerinde sürekli bir klips baskısı, vida sıkma ya da montaj gerilimi varsa, çözücü o bölgedeki gerilimi taşıyamaz ve ince çatlaklar büyür. Aynı parça serbest durumda sorunsuz görünürken montajlı hâlde çatlayabilir; yüzdeyi değil, bağlantıyı kontrol etmek gerekir.</p>"
-        "<p>İki çözücü arasında da fark var. İzopropil, etanolün biraz daha güçlü bir çözücüdür ve polikarbonat ile ABS üzerinde gerilme çatlağını daha hızlı başlatır; bu yüzden PC ve ABS gövdeli aletler temizlikten sonra gözle kontrol edilmelidir. Etanolün kaynama noktası 78 santigrat derece, izopropilinki 82 santigrat derecedir; bu iki sıcaklığın altında kaldığınız sürece ısı kaynaklı bir bozulma beklememek gerekir.</p>"
+        "<p>İki çözücü arasında da fark var. İzopropil, etanolün biraz daha güçlü bir çözücüdür ve sert plastik sınıflar ile ABS üzerinde gerilme çatlağını daha hızlı başlatır; bu yüzden ABS ve PETG gövdeli aletler temizlikten sonra gözle kontrol edilmelidir. Etanolün kaynama noktası 78 santigrat derece, izopropilinki 82 santigrat derecedir; bu iki sıcaklığın altında kaldığınız sürece ısı kaynaklı bir bozulma beklememek gerekir.</p>"
         "<h2>Malzeme seçimi</h2>"
-        "<p>PMMA, yani akrilik, etanol ve izopropil karşısında en güvenli sınıflardan biridir; saydam yüzey isteyen alet tutucu, analiz kabı çerçevesi ve şeffaf kapak için doğal tercihtir. ASA, dış mekân ve nemli ortamda dayanıklıdır; sprey dezenfektan sıçrayan tezgâh ve ekipman yüzeylerinde iyi çalışır. PETG, gerilme altında kontrollü kullanımda dengeli bir tercihtir ve darbe dayanımı sayesinde kırılgan değildir.</p>"
-        "<p>Kaçınılması gerekenler de net: PLA, uzun süreli alkol temasında yüzey bozulması ve çatlama gösterir; akrilik dışı polikarbonat, izopropilde zorlanır. Polipropilen ve polietilen alkole karşı çok dirençlidir, ancak baskı hâlinde işlenmeleri zordur; bu iki sınıfı katalogdaki hazır parçalar arasından seçmek daha pratiktir. Sınıf seçiminin genel çerçevesi <a href=\"/malzeme-rehberi/\">malzeme rehberi</a> sayfasında, kimyasal temasın ayrıntısı <a href=\"/yaga-ve-kimyasala-dayanikli-plastik-parca-uretimi/\">yağ ve kimyasala dayanıklı plastik parça üretimi</a> sayfasında yer alır.</p>"
+        "<p>PETG, etanol ve izopropil karşısında en güvenli sınıflardan biridir; saydam yüzey isteyen alet tutucu, analiz kabı çerçevesi ve şeffaf kapak için doğal tercihtir. ASA, dış mekân ve nemli ortamda dayanıklıdır; sprey dezenfektan sıçrayan tezgâh ve ekipman yüzeylerinde iyi çalışır. PETG, gerilme altında kontrollü kullanımda dengeli bir tercihtir ve darbe dayanımı sayesinde kırılgan değildir.</p>"
+        "<p>Kaçınılması gerekenler de net: PLA, uzun süreli alkol temasında yüzey bozulması ve çatlama gösterir; sert plastik sınıflar, izopropilde zorlanır. Bu nedenle alkol teması olan parçalarda katalogdaki PETG ve ASA sınıfları tercih edilir. Sınıf seçiminin genel çerçevesi <a href=\"/malzeme-rehberi/\">malzeme rehberi</a> sayfasında, kimyasal temasın ayrıntısı <a href=\"/yaga-ve-kimyasala-dayanikli-plastik-parca-uretimi/\">yağ ve kimyasala dayanıklı plastik parça üretimi</a> sayfasında yer alır.</p>"
         "<h2>Katalogda nasıl bulunur</h2>"
         "<p>Ana giriş noktaları <a href=\"/kategori/elektronik/\">elektronik</a>, <a href=\"/kategori/ofis/\">ofis</a>, <a href=\"/kategori/tamirat/\">tamirat</a> ve <a href=\"/kategori/ev/\">ev</a> kategorileridir. Temizlenebilir yüzey isteyen hazır örnekler: <a href=\"/urun/th4563292-magic-bullet-bicak-contasi/\">Magic Bullet blender bıçak contası</a>, <a href=\"/urun/pr1396678-quechua-termos-sise-kapak-contasi/\">Quechua termos şişe kapağını tutan conta</a> ve <a href=\"/urun/pr522293-bunn-kahve-filtresi-dagitici-kutu/\">Bunn kahve filtresi dağıtıcı kutusu</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-huni/\">ölçüye özel huni</a>, <a href=\"/urun/olcuye-ozel-kutu-organizer/\">ölçüye özel kutu ve organizer</a> ile <a href=\"/urun/olcuye-ozel-vidali-kavanoz-tapa/\">ölçüye özel vida delikli kavanoz kapağı</a> uygundur. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz; temas edeceği çözücüyü ve süreyi siz belirlersiniz; uygun sınıf ve ölçü sitedeki seçim alanlarından gelir. Sterilizasyon sertifikası beyanı verilmez. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçanın hangi çözücüyle, ne kadar süre ve hangi sıcaklıkta temas edeceği yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -22463,13 +22433,13 @@ def _mikrofon_standi_mandali_ve_klips_yuvasi_plastik_oem_parca_uretimi():
         "<p>Bu parçalar neden kırılır? Mandal sürekli sıkılıp gevşetilen bir vida mekanizmasıdır ve diş duvarında yorulma birikir; mandal kırıldığında eğim ayarı sabitlenir. Klips yuvası ise mikrofonun ağırlığını taşıyan ve zaman zaman mikrofonla birlikte düşen bir elemandır; düşme anındaki darbe, yuvanın köşesinden başlayarak çatlağa yol açar. Baskıda kullanılan PLA, darbeye karşı en zayıf sınıflardan biridir.</p>"
         "<p>Ölçü tarafında üç kalem belirleyicidir. Standın teleskopik borusunun dış çapı, klipsin iç çapı ve mandalın geçtiği boru çapıdır. Standların çoğunda 5/8 inç ve 3/8 inç olmak üzere iki standart boru ölçüsü kullanılır; bunun metrik karşılığı 15,9 ve 9,5 milimetredir. Vida tarafında ise çap ve diş adımı birlikte önemlidir; mandal vidası çoğu standda 1/4 inçtir, yani 6,35 milimetredir.</p>"
         "<h2>Doğru malzeme</h2>"
-        "<p>Klips yuvası, mikrofonun ağırlığını taşıyan bir parça olduğu için darbe dayanımı önceliklidir; PC ve PETG bu iş için uygundur. Mandal ve sıkma kolunda aşınma direnci belirleyici olduğundan POM tercih edilir. Dış mekânda kullanılan bir standda UV'ye dayanıklı dış mekân sınıfı gerekir. Vida dişi takılacaksa, dişin kendisinin sökülmeyecek şekilde güçlendirilmesi gerekir.</p>"
+        "<p>Klips yuvası, mikrofonun ağırlığını taşıyan bir parça olduğu için darbe dayanımı önceliklidir; ABS ve PETG bu iş için uygundur. Mandal ve sıkma kolunda aşınma direnci belirleyici olduğundan PA tercih edilir. Dış mekânda kullanılan bir standda UV'ye dayanıklı dış mekân sınıfı gerekir. Vida dişi takılacaksa, dişin kendisinin sökülmeyecek şekilde güçlendirilmesi gerekir.</p>"
         "<p>Diş adımı ve vida ölçüsü için <a href=\"/vida-dis-adimi-pitch-nasil-belirlenir/\">vida diş adımı nasıl belirlenir</a> ve <a href=\"/vida-basi-yuvasi-ve-havsa-olcusu-nasil-belirlenir/\">vida başı yuvası ve hava sa ölçüsü nasıl belirlenir</a> sayfaları yardımcı olur. Mekanizma çözümleri için <a href=\"/olcuye-ozel-mentese-uretimi/\">mentişe</a> ve <a href=\"/olcuye-ozel-plastik-vidali-seviye-ayar-ayagi-uretimi/\">plastik vida delikli seviye ayar ayağı</a> sayfalarına bakabilirsiniz.</p>"
         "<h2>Katalogda nasıl bulunur</h2>"
         "<p>Ana giriş noktaları <a href=\"/kategori/elektronik/\">elektronik</a>, <a href=\"/kategori/kamera/\">kamera</a> ve <a href=\"/kategori/ofis/\">ofis</a> kategorileridir. Hazır örnekler: <a href=\"/urun/th462758-yaesu-mh-36-mikrofon-kablo-giris-parcasi/\">Yaesu MH-36 mikrofon kablo giriş parçası</a>, <a href=\"/urun/th6921547-yaesu-ft-60-masa-standi/\">Yaesu FT-60 masa standı</a>, <a href=\"/urun/pr133072-sony-fs5-mikrofon-sok-tutucusu/\">Sony FS5 mikrofon şok tutucusu</a> ve <a href=\"/urun/pr403198-dji-mic-cok-amacli-tutucu/\">DJI Mic çok amaçlı tutucu</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-vida-civata-somun-pul/\">ölçüye özel vida, cıvata, somun ve pul</a> ile <a href=\"/urun/olcuye-ozel-toka/\">ölçüye özel toka</a> uygundur. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Teleskopik boru, taban, metal sıkma kolu ve yay kapsam dışıdır. Klips, mikrofonu tutan bir elemandır; düşme anında mikrofonu yere bırakacak güvenlik sınıfı taşıyan bir parça için sertifikalı orijinal kullanılmalıdır. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Ürün sayfasındaki ölçü alanlarını doldurmanız yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -22484,12 +22454,12 @@ def _klavye_tus_ayagi_ve_egim_mandali_plastik_oem_parca_uretimi():
         "<p>Dört ölçü belirleyicidir. Menteşe piminin çapı ve gövdeye gömülme derinliği, ayakla aradaki geçme mesafesi. Ayağın uzunluğu ve açık konumdaki yükseklik açısı, klavyenin verdiği yazım eğimini belirler. Kilitleme açısı ve kilit dişinin sayısı ya da derinliği, mandalın geçip geçmediğini etkiler. Vida deliği çapı ve delik merkezleri, gövdeye bağlantıyı kurar.</p>"
         "<p>Bu tür mekanizmalar için <a href=\"/olcuye-ozel-mentese-uretimi/\">mentişe</a>, <a href=\"/olcuye-ozel-konik-disli-uretimi/\">plastik konik dişli</a> ve <a href=\"/olcuye-ozel-plastik-vidali-seviye-ayar-ayagi-uretimi/\">plastik vida delikli seviye ayar ayağı</a> sayfaları ilgili kalemleri taşır.</p>"
         "<h2>Doğru malzeme</h2>"
-        "<p>Ayak gövdesinde darbe dayanımı önceliklidir; PC ve PETG bu iş için uygundur. PLA, kırılan ayakların en sık görülen malzemesidir ve tekrarlanan darbede kırılma sınırına daha erken gelir. Dişli mandalda POM, düşük sürtünmesi sayesinde kaymayı geciktirir. Dışarıda kullanılan bir klavye ayakında ise ASA'nın UV dayanımı eklenir.</p>"
+        "<p>Ayak gövdesinde darbe dayanımı önceliklidir; ABS ve PETG bu iş için uygundur. PLA, kırılan ayakların en sık görülen malzemesidir ve tekrarlanan darbede kırılma sınırına daha erken gelir. Dişli mandalda PA, düşük sürtünmesi sayesinde kaymayı geciktirir. Dışarıda kullanılan bir klavye ayakında ise ASA'nın UV dayanımı eklenir.</p>"
         "<h2>Katalogda nasıl bulunur</h2>"
         "<p>Ana giriş noktaları <a href=\"/kategori/elektronik/\">elektronik</a> ve <a href=\"/kategori/ofis/\">ofis</a> kategorileridir. Hazır örnekler: <a href=\"/urun/kyocera-ecosys-m2040-mandal-dislisi/\">Kyocera ECOSYS M2040 mandal dişlisi</a>, <a href=\"/urun/pr864000-bafang-ekran-govde-tutucusu/\">Bafang ekran gövde tutucusu</a> ve <a href=\"/urun/th623902-philips-livingcolor-hue-kumanda-tutucusu-ii/\">Philips kumanda tutucusu</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-vida-civata-somun-pul/\">ölçüye özel vida, cıvata, somun ve pul</a>, <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüye özel montaj braketi</a> ve <a href=\"/urun/olcuye-ozel-toka/\">ölçüye özel toka</a> uygundur. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Klavye devre kartı, membran, tuş takımı üst kapağı ve gövde taşıyıcı kaburgaları kapsam dışıdır. Plastik ayak, metal yayın yerine geçmez. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Klavyenin markası, modeli ve parçanın konumu yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -22502,13 +22472,13 @@ def _olcuye_ozel_plastik_hava_filtresi_cercevesi_ve_kaseti_uretimi():
         "<p>Filtre kasetinin görevi yalnızca kağıdı tutmak değildir. Hava, kasetin çevresinden kaçarsa filtrelenmeden geçer ve kazanılan verim boşa gider. Bu yüzden kasetin iki kritik özelliği vardır: conta yuvasının derinliği ve genişliği, contanın sıkışma miktarı. Yuva çok sığsa conta tutunmaz, çok derinse gereksiz direnç yaratır ve kaset yerine oturmaz.</p>"
         "<p>Sıcaklık da kaset malzemesini belirler. Endüstriyel uygulamalarda filtrenin önündeki hava 60-80 santigrat dereceye çıkabilir; bu bandın üzerinde PLA yumuşar ve yuva genişler. Islak filtre kasetlerinde ise kondens suyu birikir; suyu tahliye eden bir kanal ya da eğim tasarımı gerekir. Aksi hâlde yatay yüzeylerde biriken su, filtrenin ilk kullanımda ıslanmasına yol açar.</p>"
         "<h2>Doğru malzeme</h2>"
-        "<p>Kaset gövdesinde PETG ve ASA dengeli bir seçimdir; ASA dış mekân ve yüksek sıcaklık uygulamalarında öne çıkar. Şeffaf kontrol penceresi isteniyorsa PMMA kullanılır. Contalar ayrı bir elemandır ve elastomer ya da yumuşak PVC olarak seçilir. Sıcak gaz hattındaki kasetlerde metal gövde tercih edilir.</p>"
+        "<p>Kaset gövdesinde PETG ve ASA dengeli bir seçimdir; ASA dış mekân ve yüksek sıcaklık uygulamalarında öne çıkar. Şeffaf kontrol penceresi isteniyorsa PETG kullanılır. Contalar ayrı bir elemandır ve elastomer ya da yumuşak TPU olarak seçilir. Sıcak gaz hattındaki kasetlerde metal gövde tercih edilir.</p>"
         "<p>Filtre ve süzgeç çözümleri <a href=\"/olcuye-ozel-plastik-suzgec-ve-filtre-sepeti-uretimi/\">ölçüye özel plastik süzgeç ve filtre sepeti üretimi</a>, conta çözümleri <a href=\"/olcuye-ozel-conta-uretimi/\">ölçüye özel conta üretimi</a> sayfalarında anlatılır. Su arıtma tarafındaki kasetler <a href=\"/su-aritma-filtre-cihazi-plastik-parca-uretimi/\">su arıtma filtre cihazı plastik parça üretimi</a> sayfasında ele alınıyor.</p>"
         "<h2>Katalogda nasıl bulunur</h2>"
         "<p>Ana giriş noktaları <a href=\"/kategori/elektronik/\">elektronik</a>, <a href=\"/kategori/ofis/\">ofis</a> ve <a href=\"/kategori/tamirat/\">tamirat</a> kategorileridir. Hazır örnekler: <a href=\"/urun/skoda-yeti-tsi-hava-filtre-kutusu-ve-kapagi/\">Skoda Yeti hava filtre kutusu ve kapağı</a>, <a href=\"/urun/respiratortip-210-filtre-kapak/\">Tip 210 filtreli respiratör filtre kapağı</a>, <a href=\"/urun/pr522293-bunn-kahve-filtresi-dagitici-kutu/\">Bunn kahve filtresi dağıtıcı kutusu</a> ve <a href=\"/urun/th3402220-dji-osmo-pocket-filtre-saklama-kutusu/\">DJI Osmo Pocket filtre saklama kutusu</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-kutu-organizer/\">ölçüye özel kutu ve organizer</a>, <a href=\"/urun/olcuye-ozel-cerceve/\">ölçüye özel çerçeve</a> ve <a href=\"/urun/olcuye-ozel-vidali-kavanoz-tapa/\">ölçüye özel vida delikli kavanoz kapağı</a> uygundur. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. HEPA, sınıflandırma, filtre kağıdı, gaz adsorpsiyon malzemesi ve yangın söndürücü sistemler kapsam dışıdır. Hava sızdırmazlığı ölçülmüş bir ürün değildir ve sızdırmazlık sınıfı beyanı verilmez. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Filtre ölçüsü, kaset dış ölçüsü ve çalışma sıcaklığı yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -22521,13 +22491,13 @@ def _olcuye_ozel_plastik_catal_klevis_baglanti_ucu_uretimi():
         "<p>Klevis ucunun görevi, bir pimi çatallı bir ağızla kavramak ve yükü iki kulak üzerinden dağıtmaktır. Dağıtım sayesinde tek bir noktaya yük düşmez ve pim yuvası ezilmez. Belirleyici olan kulakların iç açıklığı ile pim çapı arasındaki ilişkidir: açıklık fazla ise klevis yanal yük karşısında açılır ve bağlantı gevşer; açıklık az ise pim takılamaz.</p>"
         "<p>Yıpranma burada tipik olarak aşınma şeklinde görünür. Pim yuvanın iki yanında parlar ve kulak kalınlığı azalır; bağlantı bir süre sonra ekseni etrafında oynamaya başlar. Kumanda kolu gibi sürekli hareket eden uygulamalarda bu oynama çabuk fark edilir. Aşınmanın hızını, pim malzemesi ile klevis malzemesinin uyumu belirler.</p>"
         "<h2>Doğru malzeme</h2>"
-        "<p>Hafif yük ve hareketli uygulamalarda PA ve POM iyi davranır; POM'un düşük sürtünmesi pimin serbest dönmesini sağlar. Darbe gelebilecek kollarda PC ve PETG tercih edilir. Dış mekânda kalan kollarda ASA'nın UV dayanımı belirleyicidir. Pim yuvasının metal olduğu durumlarda klevisin aşınma davranışı, yumuşak malzemelerin metal yüzeye göre daha iyi çalıştığı yönde değerlendirilir.</p>"
+        "<p>Hafif yük ve hareketli uygulamalarda PA iyi davranır; düşük sürtünmesi pimin serbest dönmesini sağlar. Darbe gelebilecek kollarda ABS ve PETG tercih edilir. Dış mekânda kalan kollarda ASA'nın UV dayanımı belirleyicidir. Pim yuvasının metal olduğu durumlarda klevisin aşınma davranışı, yumuşak malzemelerin metal yüzeye göre daha iyi çalıştığı yönde değerlendirilir.</p>"
         "<p>Bağlantı kolları ve mekanizmalar için <a href=\"/olcuye-ozel-plastik-baglanti-kolu-ve-link-cubugu-uretimi/\">plastik bağlantı kolu ve link çubuğu</a>, <a href=\"/olcuye-ozel-mentese-uretimi/\">mentişe</a> ve <a href=\"/olcuye-ozel-helisel-disli-uretimi/\">plastik helisel dişli</a> sayfaları ilgili kalemleri taşır.</p>"
         "<h2>Katalogda nasıl bulunur</h2>"
         "<p>Ana giriş noktaları <a href=\"/kategori/elektronik/\">elektronik</a>, <a href=\"/kategori/tamirat/\">tamirat</a> ve <a href=\"/kategori/otomobil/\">otomobil</a> kategorileridir. Hazır örnekler: <a href=\"/urun/th6494812-suzuki-xf650-catal-koruyucu/\">Suzuki XF650 çatal koruyucu</a>, <a href=\"/urun/th5878448-ducati-desert-x-on-catal-kir-kapagi/\">Ducati ön çatal kir kapağı</a> ve <a href=\"/urun/th6016497-kawasaki-z900-aksiyon-kamera-tutucusu/\">Kawasaki Z900 aksiyon kamera tutucusu</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-vida-civata-somun-pul/\">ölçüye özel vida, cıvata, somun ve pul</a>, <a href=\"/urun/olcuye-ozel-toka/\">ölçüye özel toka</a> ile <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüye özel montaj braketi</a> uygundur. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Kaldırma noktası, emniyet klevisi, kırılma mağdeni ve insan ağırlığını taşıyan bağlantı uçları kapsam dışıdır; bu sınıfta sertifikalı metal parça gerekir. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Pim çapı, kulak kalınlığı ve bağlanacak parçanın yuva ölçüsü yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -22563,9 +22533,9 @@ def _buz_pisti_ve_kis_sporlari_ekipmani_plastik_parca_uretimi():
 def _hidroelektrik_santral_ve_baraj_ekipmani_plastik_parca_uretimi():
     return (
         "<h1>Hidroelektrik Santral ve Baraj Ekipmanı Plastik Parça Üretimi</h1>"
-        "<p class=\"lead\">Hidroelektrik santral ve baraj tesisleri, plastik malzemeye en zorlu ortamı sunan yerlerden biridir: sürekli nem, soğuk hava, aralıklı güneş, değişken sıcaklık ve sürekli titreşim. Net cevap: dış mekân sınıfı ASA ve ASA cam elyaf takviyeli, gerektiğinde PC şeffaf gövde kullanılır. Yapısal ve yük taşıyan hidroelektrik parçalar kapsam dışıdır.</p>"
+        "<p class=\"lead\">Hidroelektrik santral ve baraj tesisleri, plastik malzemeye en zorlu ortamı sunan yerlerden biridir: sürekli nem, soğuk hava, aralıklı güneş, değişken sıcaklık ve sürekli titreşim. Net cevap: dış mekân sınıfı ASA ve ASA cam elyaf takviyeli, gerektiğinde PETG şeffaf gövde kullanılır. Yapısal ve yük taşıyan hidroelektrik parçalar kapsam dışıdır.</p>"
         "<p>Bu ortamdaki asıl yıpranma mekanizması UV değil, nem ve ısıl döngüdür. Gündüz ısınıp gece soğuyan dış yüzeylerde nem, gövde içine yavaşça geçer ve uzun vadede bağlantı yüzeylerinde korozyon benzeri bozulmalara yol açar. Titreşim ise vida bağlantılarında yavaş yavaş gevşeme yapar; bu yüzden sıkı vida kullanılan muhafazalarda montaj aralığı kısa tutulmalıdır.</p>"
-        "<p>Baraj ve su yapılarında ek olarak iki koşul daha var. Su altında kalan bölümlerde sürekli ıslaklık ve suyun kimyasal içeriği söz konusudur; burada PA12 ve PETG iyi çalışır. Suyun temas ettiği ve su basıncının olduğu bölümlerde ise plastik kullanılmaz; bunlar metal veya beton yapı elemanlarıdır.</p>"
+        "<p>Baraj ve su yapılarında ek olarak iki koşul daha var. Su altında kalan bölümlerde sürekli ıslaklık ve suyun kimyasal içeriği söz konusudur; burada PA ve PETG iyi çalışır. Suyun temas ettiği ve su basıncının olduğu bölümlerde ise plastik kullanılmaz; bunlar metal veya beton yapı elemanlarıdır.</p>"
         "<h2>Hazırlayabildiğimiz kalemler</h2>"
         "<p>Saha ekipmanının çevresinde kalan, yük taşımayan plastik elemanlar bu kapsamdadır: sensör ve transmitter muhafazası, seviye ölçer yuvası, kablo kutusu ve kanal kapağı, pano klemens yuvası, montaj braketi, kablo çıkış rakoru ve etiket taşıyıcı. Hepsi sabit konumludur ve katalogdaki kalemlerle ya da sitede ölçüsü seçilen seçeneklerle karşılanabilir.</p>"
         "<p>Dış mekân sınıfının seçim ayrıntısı <a href=\"/uv-gunes-dayanikli-dis-mekan-plastik-parca-uretimi/\">UV ve güneşe dayanıklı dış mekân plastik parça üretimi</a> sayfasında, muhafaza ve kutu çözümleri <a href=\"/olcuye-ozel-plastik-sensor-yuvasi-ve-tutucusu-uretimi/\">ölçüye özel plastik sensör yuvası ve tutucusu üretimi</a> ile <a href=\"/olcuye-ozel-plastik-etiket-tutucu-ve-plaka-cercevesi-uretimi/\">ölçüye özel plastik etiket tutucu ve plaka çerçevesi üretimi</a> sayfalarında anlatılır.</p>"
@@ -22573,7 +22543,7 @@ def _hidroelektrik_santral_ve_baraj_ekipmani_plastik_parca_uretimi():
         "<p>Ana giriş noktaları <a href=\"/kategori/elektronik/\">elektronik</a>, <a href=\"/kategori/tamirat/\">tamirat</a> ve <a href=\"/kategori/ofis/\">ofis</a> kategorileridir. Hazır örnekler: <a href=\"/urun/pr44218-raspberry-pi-7-dokunmatik-ekran-kasa/\">Raspberry Pi dokunmatik ekran kasası</a>, <a href=\"/urun/mercury-mercruiser-termostat-kovan/\">Mercury-Mercruiser termostat conta kovanı</a> ve <a href=\"/urun/skoda-yeti-tsi-hava-filtre-kutusu-ve-kapagi/\">Skoda Yeti hava filtre kutusu ve kapağı</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-kutu-organizer/\">ölçüye özel kutu ve organizer</a>, <a href=\"/urun/olcuye-ozel-izgara-menfez-kapak/\">ölçüye özel ızgara ve menfez kapağı</a> ile <a href=\"/urun/olcuye-ozel-baglanti-konektor/\">ölçüye özel birleştirme konektörü</a> uygundur. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Su geçirmezliği sağlanması gereken gövde, kapak üstü sızdırmazlık contası taşıyan muhafaza, hidrostatik yük altındaki parça ve mekanik sürgülü kapak sistemi kapsam dışıdır; sızdırmazlık sınıfı beyanı verilmez. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Tesisin konumu, parçanın görevi ve montaj yüzeyinin durumu yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -22581,7 +22551,7 @@ def _hidroelektrik_santral_ve_baraj_ekipmani_plastik_parca_uretimi():
 
 def _ozel_uretim_plastik_parca_tavlanir_mi_isil_islem_gorur_mu():
     return (
-        "<h1>Özel üretim parça ısıl işlem görür mü?</h1>"
+        "<h1>Hazırlanan Parça Isıl İşlem Görür mü?</h1>"
         "<p>Nasıl çalışır: PRUVO kataloğunda satılan hazır kalemleri marka, model ve kategori sayfalarından bulursunuz; seçtiğiniz ürünü kartla ödeyerek sipariş verirsiniz. Sitede ölçüsü seçilen ürün ailesinde ölçüyü siz yazarsınız, parça o ölçüde hazırlanır. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Net cevap: standart siparişte parça ek bir ısıl işlem görmez; tavlama, sertleştirme ve yeniden kristalleştirme gibi işlemler yapılmaz.</p>"
         "<p>Önce bir terim ayrımı gerekiyor. Metalürjide tavlama, sertleştirme, menevişleme ve su verme işlemleri vardır; bunlar plastiğe uygulanmaz. Plastikte kullanılan ısıl işlem farklı bir amaç taşır: iç gerilimi gidermek, kristalleşme oranını ayarlamak ya da parçayı belirli bir sıcaklıkta stabilize etmek. Bu yüzden plastik parça için tavlama dendiğinde kastedilen şey genellikle gerilim gidermedir.</p>"
@@ -22596,7 +22566,7 @@ def _ozel_uretim_plastik_parca_tavlanir_mi_isil_islem_gorur_mu():
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Plastik parçalara metalürjideki anlamıyla tavlama, sertleştirme, menevişleme ya da su verme uygulanmaz; bu işlemler metal alanına aittir. Ayrıca bu tür işlemler parçanın yüzeyinde ve iç yapısında geri dönüşü olmayan değişiklikler yaratabilir.</p>"
         "<p>Isıl işlem talebi doksan santigrat derecenin üzerindeki sıcaklıklara çıkıyorsa malzeme sınıfı değişir ve farklı bir termoplastik sınıf öne çıkar. Isıl işlem sonrası ölçü beklentisi metal parçayla aynı düşünülmemelidir; termoplastiklerde izin verilen tolerans daha geniştir. Isıl işlem ek adımıyla toplam süre birkaç gün uzayabilir ve bu etki sipariş öncesinde yazılı olarak paylaşılır. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Çalışma sıcaklığı, tolerans beklentisi ve kullanım amacı yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -22615,7 +22585,7 @@ def _ozel_uretim_parcada_koku_olur_mu():
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Koku termoplastik malzemelerin doğal bir özelliğidir ve tamamen yok edilemez, yalnızca şiddeti azaltılabilir. Bu nedenle kokusuz parça gibi mutlak bir taahhüt vermek mümkün değildir; düşük koku seviyeli sınıflar sitede tanımlıdır.</p>"
         "<p>İkinci sınır: koku gidermek amacıyla ısıl işlem ya da kimyasal yıkama önerilmez; bu tür uygulamalar plastik yapıya zarar verebilir. Kişisel bakım, kozmetik ya da gıda ile doğrudan temas eden uygulamalarda malzeme seçimi daha dikkatli yapılır. Sertifikalı gıda temas raporu gereken durumlarda bağımsız bir test laboratuvarına yönelmeniz beklenir. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçanın kullanım ortamı ve koku beklentiniz yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -22690,7 +22660,7 @@ def _ultrasonik_temizleme_banyosunda_kullanilan_plastik_parca_uretimi():
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Ultrasonik banyo parçaları sepet, aparat ve tutucudur; temizlenen asıl parçanın kendisi bu sayfanın konusu değildir. Aşırı konsantre asit ya da baz içeren banyo çözeltilerinde malzeme sınırı belirginleşir ve bu tür taleplerde yönlendirme yapılır.</p>"
         "<p>İkinci sınır: sürekli çalışma sıcaklığı doksan santigrat derecenin üzerine çıkan ultrasonik banyo parçaları kapsam dışıdır. Sıcaklık, deterjan ve frekans bilgisi, parçanın kullanım ömrünü belirler; düşük konsantrasyon ve düşük frekansta parça uzun yıllar kullanılabilir, yüksek frekans ve yoğun deterjan daha kısa ömür verir. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçanın banyo içindeki konumu, deterjan cinsi, çalışma sıcaklığı ve ölçüleri yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -22701,13 +22671,13 @@ def _modem_ve_router_anten_mentesesi_plastik_oem_parca_uretimi():
         "<p>Bu parçalar sık kırılır çünkü iki yük aynı anda biner. Biri ayar hareketi: her yön değişiminde menteşe ekseni üzerinde bir sürtünme döngüsü oluşur ve yuva aşınır. Diğeri ise darbe: cihaz taşınırken, kablo çekilirken ya da cihaz yere düşerken anten menteşesi ilk temas noktasıdır. Gövde tasarımında menteşe çoğu zaman ince duvarlı bir parçadır ve bu iki etkenin birleşimi kırılmayı kolaylaştırır.</p>"
         "<p>Ölçü olarak mil çapı, milin gövdeye gömülme derinliği, menteşenin iç açıklığı ve ayar tırnaklarının sayısı ve açısı belirleyicidir. Antenin kendisi cihazın gövdesinden ayrılan bir parçadır; menteşe yalnızca anteni taşır ve konumunu korur.</p>"
         "<h2>Doğru malzeme</h2>"
-        "<p>Darbe dayanımı ve yüksek devirli olmayan bir mekanizma için PC ve PETG uygundur. Tırnaklı ayar mekanizmasında diş ve tırnak teması vardır; burada POM ve PA-GF daha iyi yaşlar. Cihaz masaüstünde ve kapalı bir ortamda kalıyorsa ABS de kullanılabilir; ancak PLA, darbe sonrası kırılgan kalır ve bu sınıfta tercih edilmez.</p>"
+        "<p>Darbe dayanımı ve yüksek devirli olmayan bir mekanizma için ABS ve PETG uygundur. Tırnaklı ayar mekanizmasında diş ve tırnak teması vardır; burada PA daha iyi yaşlar. Cihaz masaüstünde ve kapalı bir ortamda kalıyorsa ABS de kullanılabilir; ancak PLA, darbe sonrası kırılgan kalır ve bu sınıfta tercih edilmez.</p>"
         "<p>Bağlantı ve montaj detayları için <a href=\"/olcuye-ozel-mentese-uretimi/\">mentişe</a> ve <a href=\"/katlanabilen-esnek-menteseli-plastik-parca-uretimi/\">katlanabilen esnek menteşeli plastik parça</a> sayfaları uygundur.</p>"
         "<h2>Katalogda nasıl bulunur</h2>"
         "<p>Ana giriş noktaları <a href=\"/kategori/elektronik/\">elektronik</a> ve <a href=\"/kategori/ofis/\">ofis</a> kategorileridir. Hazır örnekler: <a href=\"/urun/th623902-philips-livingcolor-hue-kumanda-tutucusu-ii/\">Philips kumanda tutucusu</a>, <a href=\"/urun/th5894373-motorola-telsiz-tutucusu/\">Motorola telsiz tutucusu</a>, <a href=\"/urun/pr129397-wyze-cam-v3-odak-dugmesi/\">Wyze Cam odak düğmesi</a> ve <a href=\"/urun/th1057635-samsung-beyaz-kulaklik-kablo-tutucusu/\">Samsung kulaklık kablo tutucusu</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-vida-civata-somun-pul/\">ölçüye özel vida, cıvata, somun ve pul</a>, <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüye özel montaj braketi</a> ve <a href=\"/urun/olcuye-ozel-toka/\">ölçüye özel toka</a> uygundur. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Antenin kendisi, anten kablosu, devre kartı ve cihaz gövdesi kapsam dışıdır. Radyo frekansıyla çalışan bir cihazda parça değişikliği yapılması durumunda uyumluluk beyanı verilmez; bu tür cihazlarda üreticinin onaylı yedek parçası tercih edilmelidir. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Cihazın markası, modeli ve anten milinin ölçüsü yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -22716,7 +22686,7 @@ def _modem_ve_router_anten_mentesesi_plastik_oem_parca_uretimi():
 # --- wave-60 (11 landing) ---
 def _olcuye_ozel_plastik_krank_kolu_ve_manivela_uretimi():
     return (
-        "<h1>Ölçüye özel plastik krank kolu ve manivela</h1>"
+        "<h1>Plastik Krank Kolu ve Manivela: Sitede Ölçüsü Seçilen Seçenekler</h1>"
         "<p>Nasıl çalışır: PRUVO kataloğunda satılan hazır kalemleri marka, model ve kategori sayfalarından bulursunuz; seçtiğiniz ürünü kartla ödeyerek sipariş verirsiniz. Sitede ölçüsü seçilen ürün ailesinde ölçüyü siz yazarsınız, parça o ölçüde hazırlanır. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Mekanizmalarda elle uygulanan torku aktarmak için kullanılan krank kolu, manivela ve eksantrik tutamak parçaları piyasada seri ölçülerle gelir. Net cevap: mil çapı, kol uzunluğu ve tutamak açısı sizin verdiğiniz ölçülerle belirlenir; bu değerleri yazarsınız, biz tek parça hâlinde hazırlarız. Elinizdeki parçayı bize göndermeniz gerekmiyor.</p>"
         "<p>Bu sayfa, elle çevrilen, düşük devirde ve düşük yükte çalışan krank ve manivela türevi tutamak ya da kol parçaları içindir. Motor gücüyle sürekli dönen, yüksek tork taşıyan krank milleri kapsam dışıdır; bu uygulamalar <a href=\"/yuksek-tork-ve-burulma-tasiyan-plastik-parca-uretimi/\">yüksek tork ve burulma taşıyan plastik parça</a> sayfasında ele alınır.</p>"
@@ -22731,13 +22701,13 @@ def _olcuye_ozel_plastik_krank_kolu_ve_manivela_uretimi():
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Krank kolu mekanizma parçasıdır, yapısal profil değildir; çekme ya da eğilme yükü taşımaz. Motor gücüyle sürekli dönen ve yüksek tork taşıyan krank milleri ile biyel kolu gibi içten yanmalı motor parçaları kapsam dışıdır.</p>"
         "<p>Mil bağlantısında çatlak ya da deformasyon bekleniyorsa ince kesitli plastik kol yerine metal burç ve plastik kaplama hibrit çözüm değerlendirilebilir. <a href=\"/iki-farkli-malzeme-tek-parcada-birlestirilir-mi/\">İki farklı malzemenin tek parçada birleştirilmesi</a> sayfası bu seçeneği anlatır; hibrit bağlantılar sitede standart seçenek olarak yoktur. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Mil çapı, kol uzunluğu ve tutamak açısı yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
 def _olcuye_ozel_plastik_kapi_kilidi_rozeti_ve_aynasi_uretimi():
     return (
-        "<h1>Ölçüye özel plastik kapı kilidi rozeti ve aynası</h1>"
+        "<h1>Plastik Kapı Kilidi Rozeti ve Aynası: Sitede Ölçüsü Seçilen Seçenekler</h1>"
         "<p>Nasıl çalışır: PRUVO kataloğunda satılan hazır kalemleri marka, model ve kategori sayfalarından bulursunuz; seçtiğiniz ürünü kartla ödeyerek sipariş verirsiniz. Sitede ölçüsü seçilen ürün ailesinde ölçüyü siz yazarsınız, parça o ölçüde hazırlanır. Numuneden, çizimden ya da fotoğraftan özel üretim yapmıyoruz; teklif, üretim planı, prototip ya da onay görseli süreci yoktur.</p>"
         "<p class=\"lead\">Bina ve daire kapılarında kullanılan plastik rozet, anahtar aynası ve vidalama tablası türü parçalar piyasada sınırlı ölçüde bulunur. Net cevap: mevcut kilit mekanizmanızın delik eksenleri, vida çapı ve et kalınlığı sitede ölçü alanlarına yazılır; rozet bu değerlere göre hazırlanır. Elinizdeki parçayı bize göndermeniz gerekmiyor.</p>"
         "<p>Bu sayfa, kapı kanadının iç ve dış yüzünde anahtar ya da kol boşluğunu çevreleyen dekoratif ve işlevsel plastik rozet ve ayna parçaları içindir. Akıllı kilit ya da elektronik güvenlik cihazı kapsamı buraya girmez; o konuda <a href=\"/akilli-kapi-kilidi-govde-kapagi-plastik-oem-parca-uretimi/\">akıllı kapı kilidi gövde kapağı</a> sayfası daha uygundur.</p>"
@@ -22751,7 +22721,7 @@ def _olcuye_ozel_plastik_kapi_kilidi_rozeti_ve_aynasi_uretimi():
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Kilit rozeti ve aynası dekoratif ve mekanik koruyucu bir elemandır; güvenlik ya da kilitleme işlevinin kendisini üstlenmez. Anahtar silindirinin doğru hizalanması, mandalın tutulması veya kilit güvenlik belgesi sağlanması bu sayfanın kapsamı dışındadır; bunlar kilit üreticisinin kendi parçasıdır ve mekanik güvenlik sertifikası gerektirir.</p>"
         "<p>İkinci sınır: dolu demir ya da çelik içermeyen plastik rozetin yüzey darbe dayanımı sınırlıdır; çok sert darbelerde çatlama riski vardır. İç metal burçlu çözümler <a href=\"/iki-farkli-malzeme-tek-parcada-birlestirilir-mi/\">iki farklı malzemenin tek parçada birleştirilmesi</a> sayfasında anlatılır; metal burçlu çözüm ek maliyet getirir ve yalnız darbe riski yüksek uygulamalarda tercih edilir. Elektronik kilit ya da parmak izi okuyucu yuvası bu kapsamda değildir. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Anahtar deliği ekseni, mandal çapı ve vida deliklerinin mesafesi yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -22793,7 +22763,7 @@ def _kahve_kavurma_tesisi_plastik_parca_uretimi():
         "<p>Ana giriş noktaları <a href=\"/kategori/ev/\">ev</a>, <a href=\"/kategori/ofis/\">ofis</a> ve <a href=\"/kategori/tamirat/\">tamirat</a> kategorileridir. Hazır örnekler: <a href=\"/urun/pr522293-bunn-kahve-filtresi-dagitici-kutu/\">Bunn kahve filtresi dağıtıcı kutusu</a>, <a href=\"/urun/pr34336-hario-v60-kagit-filtre-kutusu/\">Hario V60 kâğıt filtre kutusu</a>, <a href=\"/urun/pr274949-gaggia-classic-tamping-istasyonu/\">Gaggia portafiltre tamping istasyonu</a> ve <a href=\"/urun/pr81031-miele-supurge-nozulu/\">Miele süpürge nozulu</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-huni/\">ölçüye özel huni</a>, <a href=\"/urun/olcuye-ozel-kutu-organizer/\">ölçüye özel kutu ve organizer</a> ile <a href=\"/urun/olcuye-ozel-hortum-adaptoru/\">ölçüye özel hortum adaptörü</a> uygundur. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Kavrulma tamburu, gaz tertik, patlama diskli kazan ve sıcak gaz hattı kapsam dışıdır; bunlar metal ve sertifikalı ekipmandan gelmelidir. Gıda teması sertifikası beyanı verilmez. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Tesisin hat ölçüsü, parçanın konumu ve sıcaklık bandı yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -22851,7 +22821,7 @@ def _kirilan_parcayi_gecici_olarak_nasil_idare_ederim():
     return (
         "<h1>Kırılan Parçayı Geçici Olarak İdare Etme Yolları</h1>"
         "<p class=\"lead\">Yeni parça gelene kadar geçen sürede kırılan parçayı güvenli ve işlevsel tutmak mümkündür. Net cevap: geçici çözümü siz uygularsınız, kalıcı olanı katalogdan seçersiniz. Yapıştırma, mekanik bağlama ve kullanım sınırı üç seçenek; hiçbiri kalıcı onarım sayılmaz.</p>"
-        "<p>En sık kullanılan yöntem yapıştırmadır. Epoksi reçine, metal yüzeyde güçlü bir bağlanma sağlar ve sertleşene kadar açılmaz; ABS, ASA ve PC gibi yüzeylerde iyi tutar. Polietilen ve polipropilen yüzeylerde yapıştırma zayıftır, çünkü bu polimerlerin yüzey enerjisi düşüktür; zımparalama bile tek başına yeterli olmaz. Yapıştırma öncesi yüzey yağdan arındırılmalı ve zımparalanmalıdır.</p>"
+        "<p>En sık kullanılan yöntem yapıştırmadır. Epoksi reçine, metal yüzeyde güçlü bir bağlanma sağlar ve sertleşene kadar açılmaz; ABS ve ASA gibi yüzeylerde iyi tutar. Düşük yüzey enerjili plastik yüzeylerde yapıştırma zayıftır; zımparalama bile tek başına yeterli olmaz. Yapıştırma öncesi yüzey yağdan arındırılmalı ve zımparalanmalıdır.</p>"
         "<p>Mekanik bağlama daha güvenilir bir yol olabilir. Kırılan parça iki parçaya ayrılmışsa, iki delik açıp kelepçe veya cıvata ile bağlamak, yükü dağıttığı için yapıştırmadan daha uzun ömürlüdür. Delik kırılmışın kendisi çatlak yüzeyinde kaldıysa, kenarına kanatlı vida ya da kendinden kilitli vida takmak hızlı bir çözümdür; vida, çatlak boyunca açılmayı da engeller.</p>"
         "<p>Üçüncü seçenek kullanım sınırıdır ve çoğu zaman ihmal edilir. Parçayı takılı bırakmak yerine yükü azaltmak, hızı düşürmek veya kullanımı durdurmak, parçanın ömrünü belirgin biçimde uzatır. Bağlantı elemanlarından biri gevşekse, geçici bağlamadan önce önce sıkma sorununu gidermek daha doğru olur.</p>"
         "<h2>Katalogdaki kalıcı çözüm</h2>"
@@ -22860,7 +22830,7 @@ def _kirilan_parcayi_gecici_olarak_nasil_idare_ederim():
         "<p>Ana giriş noktaları <a href=\"/kategori/tamirat/\">tamirat</a>, <a href=\"/kategori/ev/\">ev</a> ve <a href=\"/kategori/otomobil/\">otomobil</a> kategorileridir. Hazır örnekler: <a href=\"/urun/subaru-itme-percini/\">Subaru itme perçini</a>, <a href=\"/urun/nissan-8mm-push-pin-percin/\">Nissan çıtçıt tipi perçin</a> ve <a href=\"/urun/toyota-hoparlor-percin-ara-parcasi-tamiri/\">Toyota hoparlör perçin ara parçası</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-vida-civata-somun-pul/\">ölçüye özel vida, cıvata, somun ve pul</a>, <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüye özel montaj braketi</a> ile <a href=\"/urun/olcuye-ozel-toka/\">ölçüye özel toka</a> uygundur. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Yapıştırma ve mekanik bağlama kalıcı onarım değildir ve güvenlik yükü taşıyan bağlantılarda önerilmez; fren, emniyet, taşıma yükü ve basınç taşıyan elemanlarda geçici çözüm kullanılmaz. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Parçanın cihazdaki konumu ve ölçüleri yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -22902,7 +22872,7 @@ def _kufe_ve_mikrobiyal_buyumeye_direncli_plastik_parca_uretimi():
         "<p>Ana giriş noktaları <a href=\"/kategori/ev/\">ev</a>, <a href=\"/kategori/tamirat/\">tamirat</a>, <a href=\"/kategori/bahce/\">bahçe</a> ve <a href=\"/kategori/elektronik/\">elektronik</a> kategorileridir. Hazır örnekler: <a href=\"/urun/bahce-konik-catili-kus-yemligi-tabakli-iki-parcali-pr99299/\">konik çatılı kuş yemliği</a>, <a href=\"/urun/respiratortip-210-filtre-kapak/\">Tip 210 filtreli respiratör filtre kapağı</a> ve <a href=\"/urun/mutfak-davlumbazi-havalandirma-kanali-burcu/\">mutfak davlumbazı havalandırma kanalı burcu</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-kutu-organizer/\">ölçüye özel kutu ve organizer</a>, <a href=\"/urun/olcuye-ozel-huni/\">ölçüye özel huni</a> ve <a href=\"/urun/olcuye-ozel-vidali-kavanoz-tapa/\">ölçüye özel vida delikli kavanoz kapağı</a> uygundur. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Antimikrobiyal sınıf beyanı, hijyen sertifikası ve sterilizasyon iddiası verilmez; gıda ve hasta teması olan kalemler kapsam dışıdır. <a href=\"/plastik-parca-otoklav-sterilizasyonuna-dayanir-mi/\">plastik parça otoklav sterilizasyonuna dayanır mı</a> sayfasında ısı sınırı ayrıntılı anlatılır. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Ortamın nemi, sıcaklığı ve parçanın konumu yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -22915,13 +22885,13 @@ def _nem_alma_cihazi_su_haznesi_kapagi_plastik_oem_parca_uretimi():
         "<p>Kapağın atılmasının klasik nedeni zorlanmış kilit dilidir. Cihaz taşınırken ya da temizlenirken kapak kaldırılır, kilit dili kırılır ve kapak artık oturmaz. Bu durumda cihaz çalışırken su sızar; nem alma cihazının tabanı suya batarsa motor kısa devre yapar ve cihaz zarar görür. Bu nedenle kapak seçiminde kilit dili, kapak ağırlığını karşılayacak kadar güçlü olmalıdır.</p>"
         "<p>Şamandıra yuvası ise su seviyesini okuyan bir yüzdürme elemanıdır ve suyla sürekli temas halindedir. Girintili tabanlarda kir birikir ve seviye okuması kayabilir.</p>"
         "<h2>Malzeme</h2>"
-        "<p>Suya temas eden kapak ve yuva için PETG, temizlenebilir yüzey ve yeterli darbe dayanımı nedeniyle iyi bir tercihtir. Sürekli ıslak kalan bölgelerde PA12 daha iyi yaşlar. Kapak ve yuva arasında bir conta varsa conta teması düz ve kesintisiz olmalıdır; yüzeydeki küçük bir pürüzlülük bile sızıntı noktası yaratabilir.</p>"
+        "<p>Suya temas eden kapak ve yuva için PETG, temizlenebilir yüzey ve yeterli darbe dayanımı nedeniyle iyi bir tercihtir. Sürekli ıslak kalan bölgelerde PA daha iyi yaşlar. Kapak ve yuva arasında bir conta varsa conta teması düz ve kesintisiz olmalıdır; yüzeydeki küçük bir pürüzlülük bile sızıntı noktası yaratabilir.</p>"
         "<p>Kapak ve conta çözümleri için <a href=\"/olcuye-ozel-tapa-kapak-uretimi/\">tapa ve kapak</a> ile <a href=\"/olcuye-ozel-conta-uretimi/\">contа üretimi</a> sayfaları ilgili kalemleri taşır.</p>"
         "<h2>Katalogda nasıl bulunur</h2>"
         "<p>Ana giriş noktaları <a href=\"/kategori/ev/\">ev</a>, <a href=\"/kategori/elektronik/\">elektronik</a> ve <a href=\"/kategori/tamirat/\">tamirat</a> kategorileridir. Hazır örnekler: <a href=\"/urun/olcuye-ozel-vidali-kavanoz-tapa/\">ölçüye özel vida delikli kavanoz kapağı</a>, <a href=\"/urun/pr1396678-quechua-termos-sise-kapak-contasi/\">Quechua termos şişe kapağını tutan conta</a> ve <a href=\"/urun/pr81031-miele-supurge-nozulu/\">Miele süpürge nozulu</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-hortum-adaptoru/\">ölçüye özel hortum adaptörü</a>, <a href=\"/urun/olcuye-ozel-kutu-organizer/\">ölçüye özel kutu ve organizer</a> ile <a href=\"/urun/olcuye-ozel-toka/\">ölçüye özel toka</a> uygundur. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Cihazın iç pompası, şamandıranın kendisi, sensör ve elektronik kısım kapsam dışıdır. Su tutan kaideye yapılan bir kapak, sızdırmazlık testi yapılmış bir ürün değildir; bu yüzden sızdırmazlık sınıfı beyanı verilmez. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Cihazın markası, modeli ve hazne çapı yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -22940,7 +22910,7 @@ def _misina_kafasi_kapagi_ve_bobini_plastik_oem_parca_uretimi():
         "<p>Ana giriş noktaları <a href=\"/kategori/bahce/\">bahçe</a>, <a href=\"/kategori/elektronik/\">elektronik</a> ve <a href=\"/kategori/tamirat/\">tamirat</a> kategorileridir. Hazır örnekler: <a href=\"/urun/pr972316-briggs-stratton-ratchet-pawl/\">Briggs & Stratton çim biçme makinesi ratchet pawl yedek parçası</a>, <a href=\"/urun/pr923611-polaris-sportsman-atv-kargo-kutusu-kapak-mandali/\">Polaris Sportsman kargo kutusu kapak mandalı</a> ve <a href=\"/urun/pr248231-stihl-imow-kablo-sabitleme-civisi/\">Stihl iMOW kablo sabitleme çivisi</a>. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-montaj-braketi/\">ölçüye özel montaj braketi</a>, <a href=\"/urun/olcuye-ozel-toka/\">ölçüye özel toka</a> ve <a href=\"/urun/olcuye-ozel-vida-civata-somun-pul/\">ölçüye özel vida, cıvata, somun ve pul</a> uygundur. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Misina kafası, kafa muhafazası, bıçak, bobin ve sarma mekanizması kapsam dışıdır. Dönen bir makinede kırılan plastik eleman güvenlik riski yaratır; bu nedenle metal muadil gereken parçaları üretmiyoruz. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Makinenin markası, modeli ve ihtiyaç duyulan yardımcı eleman yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -22996,7 +22966,7 @@ def _arabanin_kirilan_klima_izgarasi_nereden_bulunur():
 <h2>Dürüst sınır</h2>
 <p>Klima ızgarası yön veren, hava geçiren ve konsolda yerinde duran bir parçadır; yük taşımaz. Torpido altındaki klape mekanizması ayrı bir konudur ve <a href="/oto-kalorifer-klape-kolu-ve-kanat-parcasi-yaptirma/">kalorifer klape kolu</a> sayfasında ele alınır. Klima gazının dolaştığı basınçlı hat elemanları, kompresör ve evaporatör parçaları kapsam dışıdır.</p>
 <p>Yolcu hava yastığı kapağı ve çevresindeki panel, emniyet kemeri elemanları gibi güvenlikle ilgili parçalar kapsam dışıdır; ızgara hava yastığı bölgesine komşuysa yalnız ızgaranın kendisi değerlendirilir. Isı tarafında sınır nettir: malzeme sınıfına göre sürekli 90-100 santigrat derece bandına kadar çıkılabilir, üzeri kapsam dışıdır.</p>
-<p>Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>
+<p>Ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; """ + AYIP_HAKLARI_CUMLESI + """</p>
 <h2>Sipariş ve iletişim</h2>
 <p>Parçayı sitede bulduğunuzda ölçü alanlarını ürün sayfasında doldurup siparişi tamamlarsınız. Bulamazsanız WhatsApp hattımız <a href="https://wa.me/905451386526" target="_blank" rel="noopener"><strong>+90 545 138 6526</strong></a> üzerinden yalnız sitede var mı diye yazın; aracın marka, model ve yılını belirtmeniz eşleştirmeyi hızlandırır.</p>""")
 
@@ -23205,7 +23175,7 @@ def _bmw_uyumlu_jant_gobek_kapagi_yaptirma():
 
 def _mercedes_uyumlu_jant_gobek_kapagi_yaptirma():
     return (
-        "<h1>Mercedes Uyumlu Jant Göbek Kapağı Yaptırma</h1>"
+        "<h1>Mercedes Uyumlu Jant Göbek Kapağı: Hazır Yedeğini Bulma Rehberi</h1>"
         "<p class=\"lead\">Mercedes jantında göbek kapağı yalnız bir kapak değil, aracın görünüşünü tamamlayan bir ayrıntıdır; biri kaybolduğunda dört jantın birinde boşluk kalır ve fark hemen görülür. Net cevap: doğru çap ve jant tipine göre katalogdan hazır kapak seçilir; ölçü aralık dışındaysa sitede ölçüsü seçilen statik kapak kalemlerine bakılır.</p>"
         "<p>Mercedes'te jant tipine göre göbek kapağı değişir. Çelik jantlarda kapak genelde lastikli bir geçmeli parçadır ve kayıp olduğunda yalnız görünür bir delik kalır. Alaşım jantlarda ise kapak göbek deliğinin içine oturur ve tırnaklarla tutunur; bu tipte kapağın tırnaklı olması gerekir. W123 gibi klasik modellerde orijinal kapak artık bulunmayabilir, çünkü üretimi çoktan durmuştur.</p>"
         "<p>Katalogdaki göbek kapağı aralığı 57 ile 75 milimetre arasındadır. Mercedes modellerinde en sık karşılaşılan oturma çapı bu bandın alt ucunda, 57 milimetre civarındadır; ancak jant çapı ve tipi değiştikçe bu değer değişebilir. Bu yüzden karar, marka ve model bilgisiyle birlikte jant üzerindeki ölçüye bakılarak verilir.</p>"
@@ -23216,7 +23186,7 @@ def _mercedes_uyumlu_jant_gobek_kapagi_yaptirma():
         "<p>Ana giriş noktası <a href=\"/kategori/otomobil/\">otomobil</a> kategorisidir. Hazır örnekler: <a href=\"/urun/pr669621-rial-mesh-jant-gobek-kapagi/\">Rial Mesh jant göbek kapağı</a>, <a href=\"/urun/pr1000273-daewoo-matiz-jant-gobek-kapagi/\">Daewoo Matiz jant göbek kapağı</a>, <a href=\"/urun/jeep-grand-cherokee-wj-jant-gobek-kapagi/\">Jeep Grand Cherokee jant göbek kapağı</a>, <a href=\"/urun/land-rover-freelander-1-jant-gobek-kapagi/\">Land Rover Freelander jant göbek kapağı</a> ve <a href=\"/urun/mini-cooper-jant-merkez-kapak/\">MINI Cooper jant merkez kapağı</a>. Genel kapak çözümleri için <a href=\"/olcuye-ozel-tapa-kapak-uretimi/\">tapa ve kapak</a> ve <a href=\"/olcuye-ozel-plastik-bayonet-kilit-ve-ceyrek-tur-gecme-uretimi/\">plastik bayonet kilit ve çeyrek tur geçme</a> sayfaları ilgili kalemleri taşır. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Plastik göbek kapağı estetik ve toz koruma elemanıdır; merkez deliğini kapatır. Jantın göbek yuvasını taşıyan, fren discini tutan veya göbek kapağının metal muadilinin gerektiği uygulamalarda metal parça gerekir ve bu kapsam dışıdır. Kapak, aracın parçası değil, değiştirilebilir bir aksesuar olduğu için uyumluluk beyanı verilmez. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Aracın modeli, jant tipi ve kapağın tırnaklı olup olmadığı yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -23236,7 +23206,7 @@ def _jant_gobek_kapagi_kac_mm_cap_nasil_olculur():
         "<p>Ana giriş noktası <a href=\"/kategori/otomobil/\">otomobil</a>, <a href=\"/kategori/motosiklet/\">motosiklet</a> ve <a href=\"/kategori/marin/\">marin</a> kategorileridir. Hazır örnekler: <a href=\"/urun/pr669621-rial-mesh-jant-gobek-kapagi/\">Rial Mesh alüminyum jant göbek kapağı</a>, <a href=\"/urun/pr1000273-daewoo-matiz-jant-gobek-kapagi/\">Daewoo Matiz jant göbek kapağı</a>, <a href=\"/urun/jeep-grand-cherokee-wj-jant-gobek-kapagi/\">Jeep Grand Cherokee jant göbek kapağı</a>, <a href=\"/urun/land-rover-freelander-1-jant-gobek-kapagi/\">Land Rover Freelander jant göbek kapağı</a> ve <a href=\"/urun/mini-cooper-jant-merkez-kapak/\">MINI Cooper jant merkez kapağı</a>. Genel kapak çözümleri için <a href=\"/olcuye-ozel-tapa-kapak-uretimi/\">tapa ve kapak</a> sayfası ilgili kalemleri taşır. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz. Plastik bir göbek kapağı estetik ve toz koruma elemanıdır; jantın göbek deliğini kapatır, toz ve suyun içeri girmesini azaltır. Jantın göbek yuvasını taşıyan, fren discini tutan ya da göbek kapağının metal bir muadiline ihtiyaç duyulan uygulamalarda metal parça gerekir ve o kapsam dışıdır. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Aracın markası, modeli ve jant tipi yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -23255,7 +23225,7 @@ def _jant_gobek_kapagi_tirnagi_kirildi_ne_yapilir():
         "<p>Ana giriş noktası <a href=\"/kategori/otomobil/\">otomobil</a> ve <a href=\"/kategori/motosiklet/\">motosiklet</a> kategorileridir. Hazır örnekler: <a href=\"/urun/pr669621-rial-mesh-jant-gobek-kapagi/\">Rial Mesh jant göbek kapağı</a>, <a href=\"/urun/pr1000273-daewoo-matiz-jant-gobek-kapagi/\">Daewoo Matiz jant göbek kapağı</a>, <a href=\"/urun/land-rover-freelander-1-jant-gobek-kapagi/\">Land Rover Freelander jant göbek kapağı</a>, <a href=\"/urun/jeep-grand-cherokee-wj-jant-gobek-kapagi/\">Jeep Grand Cherokee jant göbek kapağı</a> ve <a href=\"/urun/mini-cooper-jant-merkez-kapak/\">MINI Cooper jant merkez kapağı</a>. Genel kapak ve tutucu çözümleri için <a href=\"/olcuye-ozel-tapa-kapak-uretimi/\">ölçüye özel tapa ve kapak üretimi</a>, <a href=\"/olcuye-ozel-vida-somun-civata-uretimi/\">ölçüye özel vida somun cıvata üretimi</a> ve <a href=\"/olcuye-ozel-klips-kelepce-uretimi/\">ölçüye özel plastik klips ve kelepçe üretimi</a> sayfaları ilgili kalemleri taşır. Sitede ölçüsü seçilen seçeneklerden <a href=\"/urun/olcuye-ozel-vida-civata-somun-pul/\">ölçüye özel vida, cıvata, somun ve pul</a> ile <a href=\"/urun/olcuye-ozel-toka/\">ölçüye özel toka</a> uygundur. Ölçüyü ürün sayfasındaki alanlara siz yazarsınız.</p>"
         "<h2>Dürüst sınır</h2>"
         "<p>Kendi parçanızı fiziksel olarak alıp yeniden hazırlamıyoruz; kırılan tırnağın yerine geçecek parçayı katalogdaki hazır seçenekten ya da siteden seçersiniz. Bir göbek kapağı estetik ve toz koruma elemanıdır; jantın göbek yuvasını taşıyan, fren discini tutan veya göbek kapağının metal muadilinin gerektiği uygulamalar kapsam dışıdır. Plastik kapak, metal göbek muadilinin güvenlik sınıfını karşılamaz. Kapsam dışı kalanların topluca yazılı hâli <a href=\"/hangi-parcalar-ozel-uretimle-yapilamaz/\">hangi parçalar özel üretimle yapılamaz</a> sayfasındadır.</p>"
-        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanundan doğan haklarınız aynen durur.</p>"
+        "<p>Ölçüye göre hazırlanan üründe cayma hakkı bulunmaz; " + AYIP_HAKLARI_CUMLESI + "</p>"
         "<h2>Sipariş ve iletişim</h2>"
         "<p>Aracın markası, modeli ve yuvanın durumu yeterlidir. Sitede olup olmadığını WhatsApp hattından sorun: <a href=\"https://wa.me/905451386526\" target=\"_blank\" rel=\"noopener\"><strong>+90 545 138 6526</strong></a>.</p>"
     )
@@ -23273,12 +23243,12 @@ CONTENT_PAGES = [
     ("seat-ibiza-jant-gobek-kapagi-nereden-alinir", "Seat Ibiza Jant Göbek Kapağı Nereden Alınır?", "Seat Ibiza jantında kaybolan göbek kapağı: göbek kapağı ile bijon kapağı farkı, katalogdaki dört Seat uyumlu kapak, çap ve oturma ölçüsünü okuma, dış mekân malzemesi ve sipariş yolu.", _seat_ibiza_jant_gobek_kapagi_nereden_alinir),
     ("vw-skoda-audi-uyumlu-jant-gobek-kapagi-yaptirma", "VW, Skoda ve Audi Uyumlu Jant Göbek Kapağı", "Volkswagen, Skoda ve Audi jant göbek kapaklarında ortak parça numarası ve çap karşılaştırması, katalogdaki uyumlu kapaklar, dış mekân malzemesi ve sipariş yolu.", _vw_skoda_audi_uyumlu_jant_gobek_kapagi_yaptirma),
     ("bmw-uyumlu-jant-gobek-kapagi-yaptirma", "BMW Uyumlu Jant Göbek Kapağı", "BMW jant göbek kapağı: katalogdaki çap aralığı, adaptörler, ölçüsü sitede seçilen aile ve dürüst sınır.", _bmw_uyumlu_jant_gobek_kapagi_yaptirma),
-    ("mercedes-uyumlu-jant-gobek-kapagi-yaptirma", "Mercedes Uyumlu Jant Göbek Kapağı Yaptırma", "Mercedes jantında kayıp göbek kapağı için katalogdaki hazır kapaklar, W123 ve klasik jant tipleri; ölçü uymazsa sitede ölçüsü seçilen statik kapak yolu.", _mercedes_uyumlu_jant_gobek_kapagi_yaptirma),
+    ("mercedes-uyumlu-jant-gobek-kapagi-yaptirma", "Mercedes Uyumlu Jant Göbek Kapağı: Hazır Yedeğini Bulma Rehberi", "Kaybolan Mercedes jant göbek kapağı için katalogdaki hazır kapaklar, çap ve jant tipi karşılaştırması, ölçü uymazsa izlenecek yol.", _mercedes_uyumlu_jant_gobek_kapagi_yaptirma),
     ("jant-gobek-kapagi-kac-mm-cap-nasil-olculur", "Jant Göbek Kapağı Kaç mm? Çap Nasıl Ölçülür?", "Göbek kapağında dış çap, oturma çapı, tırnak sayısı ve yuva derinliğinin nasıl alındığı; kumpas olmadan ölçme ve ölçü uymazsa izlenecek yol.", _jant_gobek_kapagi_kac_mm_cap_nasil_olculur),
     ("jant-gobek-kapagi-tirnagi-kirildi-ne-yapilir", "Jant Göbek Kapağı Tırnağı Kırıldı, Ne Yapılır?", "Göbek kapağının tırnağı kırıldığında ya da kapak gevşeyip düştüğünde: onarım eki, tutucu klips, sıkılaştırma halkası ve sitede ölçüsü seçilen yeni kapak yolu.", _jant_gobek_kapagi_tirnagi_kirildi_ne_yapilir),
 # --- wave-60 (11 landing) ---
-    ("olcuye-ozel-plastik-krank-kolu-ve-manivela-uretimi", "Ölçüye özel plastik krank kolu ve manivela", "Elle çevrilen düşük devirli krank ve manivela parçaları: mil çapı, kol boyu, tutamak açısı ve doğru malzeme.", _olcuye_ozel_plastik_krank_kolu_ve_manivela_uretimi),
-    ("olcuye-ozel-plastik-kapi-kilidi-rozeti-ve-aynasi-uretimi", "Ölçüye özel plastik kapı kilidi rozeti ve aynası", "Kapı kanadındaki rozet, anahtar aynası ve vidalama tablası: delik ekseni, vida çapı ve dekoratif yüzey; güvenlik işlevi kapsam dışıdır.", _olcuye_ozel_plastik_kapi_kilidi_rozeti_ve_aynasi_uretimi),
+    ("olcuye-ozel-plastik-krank-kolu-ve-manivela-uretimi", "Plastik Krank Kolu ve Manivela: Sitede Ölçüsü Seçilen Seçenekler", "Katalogdaki krank kolu ve manivela seçenekleri: mil çapı, kol boyu ve tutamak açısı ürün sayfasında siz yazarsınız; numuneden üretim yapılmaz.", _olcuye_ozel_plastik_krank_kolu_ve_manivela_uretimi),
+    ("olcuye-ozel-plastik-kapi-kilidi-rozeti-ve-aynasi-uretimi", "Plastik Kapı Kilidi Rozeti ve Aynası: Sitede Ölçüsü Seçilen Seçenekler", "Katalogdaki rozet, anahtar aynası ve vidalama tablası: delik ekseni, vida çapı ve et kalınlığı ürün sayfasında belirlenir.", _olcuye_ozel_plastik_kapi_kilidi_rozeti_ve_aynasi_uretimi),
     ("seramik-ve-cini-atolyesi-plastik-parca-uretimi", "Seramik ve Çini Atölyesi için Plastik Parçalar", "Çini ve seramik atölyesinde kırılan kalıp tutucu, kurutma rafı ayağı, sırlama ve çamur hattı parçaları: neden yıpranır, hangi malzeme seçilir, katalogdaki hazır seçenekler ve sipariş yolu.", _seramik_ve_cini_atolyesi_plastik_parca_uretimi),
     ("kahve-kavurma-tesisi-plastik-parca-uretimi", "Kahve Kavurma Tesisi Plastik Parça Üretimi", "Kahve kavurma tesislerinin soğuk hat ve taşıma bandı parçaları: huni ağzı, sevk kılavuzu, şamandıra yuvası ve toz toplama bağlantı elemanı.", _kahve_kavurma_tesisi_plastik_parca_uretimi),
     ("cay-fabrikasi-ve-kuru-gida-isleme-plastik-parca-uretimi", "Çay Fabrikası ve Kuru Gıda İşleme Parçası", "Kuru yaprak, tane ve toz taşıma hattı kalemleri: sevk oluğu, kılavuz takozu, şamandıra yuvası, malzeme ve sınır.", _cay_fabrikasi_ve_kuru_gida_isleme_plastik_parca_uretimi),
@@ -23289,24 +23259,24 @@ CONTENT_PAGES = [
     ("nem-alma-cihazi-su-haznesi-kapagi-plastik-oem-parca-uretimi", "Nem Alma Cihazı Su Haznesi Kapağı Üretimi", "Ev tipi nem alma cihazlarının su haznesi kapağı, şamandıra yuvası ve mandal elemanları: sızıntı riski, doğru malzeme ve katalog yolu.", _nem_alma_cihazi_su_haznesi_kapagi_plastik_oem_parca_uretimi),
     ("misina-kafasi-kapagi-ve-bobini-plastik-oem-parca-uretimi", "Misina Kafası Kapağı ve Bobini Yedek Parça", "Tırpan ve çim biçme makinelerinin misina kafası kapağı ile bobin elemanları: kırılma nedenleri, doğru malzeme ve güvenlik sınırı.", _misina_kafasi_kapagi_ve_bobini_plastik_oem_parca_uretimi),
 # --- wave-58 (11 landing) ---
-    ("olcuye-ozel-plastik-kardan-mafsali-ve-u-eklem-uretimi", "Ölçüye özel plastik kardan mafsalı ve U eklem", "İki mili belirli bir açıda bağlayan U eklem: mil çapı, çalışma açısı ve çatal açıklığı; yüksek tork sınırı.", _olcuye_ozel_plastik_kardan_mafsali_ve_u_eklem_uretimi),
-    ("olcuye-ozel-plastik-supurgelik-ve-kose-birlestirme-parcasi-uretimi", "Ölçüye özel plastik süpürgelik ve köşe birleştirme parçası", "Süpürgelik profilinin iç köşe, dış köşe ve uç kapağı bağlantı parçaları: yükseklik, et kalınlığı ve köşe açısı.", _olcuye_ozel_plastik_supurgelik_ve_kose_birlestirme_parcasi_uretimi),
-    ("olcuye-ozel-plastik-kablo-bagi-tabani-ve-kaide-uretimi", "Ölçüye Özel Plastik Kablo Bağı Tabanı ve Kaide Üretimi", "Kablo bağı yivini taşıyan taban ve kaide: bağ genişliği, vida delik merkezleri ve montaj yüzeyinin eğriliğine göre hazırlanır.", _olcuye_ozel_plastik_kablo_bagi_tabani_ve_kaide_uretimi),
+    ("olcuye-ozel-plastik-kardan-mafsali-ve-u-eklem-uretimi", "Kardan Mafsalı ve U Eklem: Sitede Ölçüsü Seçilen Seçenekler", "İki mili belirli açıda bağlayan U eklem: mil çapı, çalışma açısı ve çatal açıklığı ürün sayfasında siz yazarsınız; yüksek tork sınırı.", _olcuye_ozel_plastik_kardan_mafsali_ve_u_eklem_uretimi),
+    ("olcuye-ozel-plastik-supurgelik-ve-kose-birlestirme-parcasi-uretimi", "Süpürgelik ve Köşe Birleştirme Parçası: Sitede Ölçüsü Seçilen Seçenekler", "Katalogdaki iç köşe, dış köşe ve uç kapağı bağlantı parçaları: yükseklik, et kalınlığı ve köşe açısı ürün sayfasında seçilir.", _olcuye_ozel_plastik_supurgelik_ve_kose_birlestirme_parcasi_uretimi),
+    ("olcuye-ozel-plastik-kablo-bagi-tabani-ve-kaide-uretimi", "Plastik Kablo Bağı Tabanı ve Kaide: Sitede Ölçüsü Seçilen Seçenekler", "Bağ genişliği, vida delik merkezleri ve montaj yüzeyi ürün sayfasında belirlenir; parça numuneden ya da çizimden hazırlanmaz.", _olcuye_ozel_plastik_kablo_bagi_tabani_ve_kaide_uretimi),
     ("meteoroloji-ve-cevre-olcum-istasyonu-plastik-parca-uretimi", "Meteoroloji ve Çevre Ölçüm İstasyonu Plastik Parçaları", "Saha tipi meteoroloji ve çevre ölçüm istasyonları için direk kelepçesi, sensör muhafazası ve kalkan katmanı: UV dayanımı ve dış mekân sınıfı.", _meteoroloji_ve_cevre_olcum_istasyonu_plastik_parca_uretimi),
     ("kagit-ve-karton-ambalaj-fabrikasi-plastik-parca-uretimi", "Kağıt ve Karton Ambalaj Fabrikası Plastik Parça Üretimi", "Oluklu mukavva, kutu makinesi ve kâğıt sevk hatlarında aşınma parçaları: merdane ucu kovanı, sevk kılavuzu takozu, kesim yatağı takozu ve vakum tutucu ağzı.", _kagit_ve_karton_ambalaj_fabrikasi_plastik_parca_uretimi),
-    ("ozel-uretim-parca-siparisi-nasil-takip-edilir", "Özel üretim parça siparişi nasıl takip edilir", "Siparişin baştan sona geçtiği aşamalar: ölçü teyidi, üretim öncesi onay görseli, üretim ve gönderim; otomatik takip paneli yoktur.", _ozel_uretim_parca_siparisi_nasil_takip_edilir),
+    ("ozel-uretim-parca-siparisi-nasil-takip-edilir", "Sipariş Nasıl Takip Edilir?", "Katalogdaki ürünü seçer, ölçüsü sitede seçilen kalemlerde ölçüyü siz yazarsınız ve kartla ödersiniz; durum yazılı sorulur, takip paneli yoktur.", _ozel_uretim_parca_siparisi_nasil_takip_edilir),
     ("iki-ayni-parcadan-biri-kirildi-digerini-de-yenilemeli-miyim", "İki Aynı Parçadan Biri Kırıldı, Diğeri de Yenilenmeli mi?", "Simetrik çift parçalardan biri kırıldığında diğerini de yenilemenin mantıklı olup olmadığı: yorulma yaşı, görünür çatlak ve montaj maliyeti üzerinden bir karar çerçevesi.", _iki_ayni_parcadan_biri_kirildi_digerini_de_yenilemeli_miyim),
-    ("etanol-ve-izopropil-alkol-temasli-plastik-parca-uretimi", "Etanol ve İzopropil Alkol Temaslı Plastik Parça", "Etanol ve izopropil temasına dayanıklı plastik parçalar: PMMA, ASA ve PETG sınıflarının davranışı, PLA'nın sınırı ve katalogdaki hazır seçenekler.", _etanol_ve_izopropil_alkol_temasli_plastik_parca_uretimi),
+    ("etanol-ve-izopropil-alkol-temasli-plastik-parca-uretimi", "Etanol ve İzopropil Alkol Temaslı Plastik Parça", "Etanol ve izopropil temasına dayanıklı plastik parçalar: PETG ve ASA sınıflarının davranışı, PLA'nın sınırı ve katalogdaki hazır seçenekler.", _etanol_ve_izopropil_alkol_temasli_plastik_parca_uretimi),
     ("biyodizel-temasli-plastik-parca-uretimi", "Biyodizel temaslı plastik parça", "Yakıt dolum ağzı, kapak ve seviye yuvası gibi biyodizel temaslı plastik kalemler: malzeme seçimi, ısı sınırı ve üretim kapsamı.", _biyodizel_temasli_plastik_parca_uretimi),
     ("mikrofon-standi-mandali-ve-klips-yuvasi-plastik-oem-parca-uretimi", "Mikrofon Standı Mandalı ve Klips Yuvası", "Mikrofon standı mandalı ve klips yuvası: boru çapı, klips iç çapı ve vida çapı; katalogdaki hazır seçenekler ve malzeme sınıfları.", _mikrofon_standi_mandali_ve_klips_yuvasi_plastik_oem_parca_uretimi),
     ("klavye-tus-ayagi-ve-egim-mandali-plastik-oem-parca-uretimi", "Klavye Tuş Ayağı ve Eğim Mandalı Üretimi", "Klavye katlanır arka ayak ve eğim mandalı: ayak yüksekliği, menteşe pimi çapı ve kilitleme açısı; katalogdaki hazır seçenekler ve malzeme sınıfları.", _klavye_tus_ayagi_ve_egim_mandali_plastik_oem_parca_uretimi),
 # --- wave-57 (11 landing) ---
-    ("olcuye-ozel-plastik-gecme-percin-uretimi", "Ölçüye Özel Plastik Geçme Perçin Üretimi", "Panel üzerine tespit elemanı olarak çakılan plastik geçme perçin: delik çapı, panel kalınlığı ve kaba ebadı; katalogdaki hazır seçenekler.", _olcuye_ozel_plastik_gecme_percin_uretimi),
-    ("olcuye-ozel-plastik-kapi-alti-firca-fitil-tutucusu-uretimi", "Kapı Altı Fırça Fitil Tutucusu Ölçüye Özel Üretimi", "Kapı altından geçen hava, toz ve böceği kesen fırça ya da fitil tutucusu: kapı genişliği, eşik boşluğu ve fırça yüksekliği belirleyicidir.", _olcuye_ozel_plastik_kapi_alti_firca_fitil_tutucusu_uretimi),
-    ("olcuye-ozel-plastik-havalandirma-bacasi-sapkasi-uretimi", "Havalandırma Bacası Şapkası Ölçüye Özel Üretimi", "Bacanın ucuna takılan yağmur ve kuş engelleyici şapka: dış çap, açıklık ve rüzgâr yönüne bağımsız çalışma.", _olcuye_ozel_plastik_havalandirma_bacasi_sapkasi_uretimi),
+    ("olcuye-ozel-plastik-gecme-percin-uretimi", "Plastik Geçme Perçin: Sitede Ölçüsü Seçilen Seçenekler", "Delik çapı, panel kalınlığı ve kaba ebadı ürün sayfasında siz yazarsınız; perçin numuneden hazırlanmaz.", _olcuye_ozel_plastik_gecme_percin_uretimi),
+    ("olcuye-ozel-plastik-kapi-alti-firca-fitil-tutucusu-uretimi", "Kapı Altı Fırça ve Fitil Tutucusu: Sitede Ölçüsü Seçilen Seçenekler", "Kapı genişliği, eşik boşluğu ve fırça yüksekliği ürün sayfasında siz yazarsınız; tutucu numuneden hazırlanmaz, katalogdan seçilir.", _olcuye_ozel_plastik_kapi_alti_firca_fitil_tutucusu_uretimi),
+    ("olcuye-ozel-plastik-havalandirma-bacasi-sapkasi-uretimi", "Havalandırma Bacası Şapkası: Sitede Ölçüsü Seçilen Seçenekler", "Dış çap ve açıklık ürün sayfasında belirlenir; yağmur ve kuş engelleyici şapka katalogdaki hazır seçeneklerden seçilir.", _olcuye_ozel_plastik_havalandirma_bacasi_sapkasi_uretimi),
     ("soyunma-odasi-dolabi-ve-locker-plastik-parca-uretimi", "Soyunma Dolabı ve Locker Plastik Parçası", "Soyunma dolabı ve locker için mandal, kilit dili, numara plakası ve ayak pabucu kalemlerinin katalog yolu ve malzeme seçimi anlatılıyor.", _soyunma_odasi_dolabi_ve_locker_plastik_parca_uretimi),
     ("cam-atolyesi-ve-cam-isleme-ekipmani-plastik-parca-uretimi", "Cam Atölyesi ve Cam İşleme Ekipmanı Plastik Parçası", "Cam kesim, rodaj ve taşıma hattı ekipmanının plastik aksamı: aşınma, sıcaklık, katalogda arama yolu ve üretim sınırı.", _cam_atolyesi_ve_cam_isleme_ekipmani_plastik_parca_uretimi),
-    ("ozel-parca-siparisinde-odeme-nasil-yapilir", "Özel parça siparişinde ödeme nasıl yapılır", "Özel üretim parça siparişinde ödeme nasıl yapılır: sitemizden kartla online ödeme alınır; ölçüye özel işlerde de online ödeme kullanılır. Sürecin adımları.", _ozel_parca_siparisinde_odeme_nasil_yapilir),
+    ("ozel-parca-siparisinde-odeme-nasil-yapilir", "Siparişte Ödeme Nasıl Yapılır?", "Ödeme sitede kartla online alınır; ölçüsü sitede seçilen kalemlerde de aynı ödeme adımı geçerlidir, fiyat turu ve peşin teyit yoktur.", _ozel_parca_siparisinde_odeme_nasil_yapilir),
     ("ozel-uretim-parca-orijinaliyle-ayni-agirlikta-mi", "Özel üretim parça orijinaliyle aynı ağırlıkta mı", "Ağırlık farkının iki kaynağı: malzeme yoğunluğu ve parçanın iç yapısı; dönen parçalarda balans neden ayrı bir konu.", _ozel_uretim_parca_orijinaliyle_ayni_agirlikta_mi),
     ("glikol-antifriz-temasli-plastik-parca-uretimi", "Antifriz (Glikol) Temaslı Plastik Parça", "Soğutma devresi aksesuarları için glikol temasına dayanıklı plastik parçalar: malzeme sınıfı seçimi, ısı bandı ve katalogdaki hazır seçenekler.", _glikol_antifriz_temasli_plastik_parca_uretimi),
     ("adblue-ure-cozeltisi-temasli-plastik-parca-uretimi", "AdBlue (Üre Çözeltisi) Temaslı Plastik Parça: Malzeme Seçimi ve Yedek Bulma",
@@ -23319,12 +23289,12 @@ CONTENT_PAGES = [
     ("antika-el-yapimi-mobilya-kirik-parca-yeniden-uretim", "Antika veya El Yapımı Mobilya Kırık Parça", "Eski sandık, sehpa ya da vitrin kırık parçaları: bu iş neden kapsam dışı, yerine geçen kalem katalogda nasıl bulunur.", _antika_el_yapimi_mobilya_kirik_parca_yeniden_uretim),
     ("markasi-ve-modeli-bilinmeyen-kirik-plastik-parca-yeniden-uretim", "Markası ve Modeli Bilinmeyen Kırık Plastik Parça", "Markası, modeli ve kodu bilinmeyen kırık parça için özel üretim açılmaz; aynı işlevi gören katalog seçenekleri ve arama yolu.", _markasi_ve_modeli_bilinmeyen_kirik_plastik_parca_yeniden_uretim),
     ("uretimden-kalkmis-klasik-otomobil-plastik-aksam-parcasi-yeniden-uretim", "Üretimi Durmuş Klasik Otomobil Plastik Aksam Parçası", "Üretimi yıllar önce bitmiş klasik otomobil plastik aksamı için katalog yolu, malzeme seçimi ve güvenlik sınırı anlatılıyor.", _uretimden_kalkmis_klasik_otomobil_plastik_aksam_parcasi_yeniden_uretim),
-    ("katalog-kodu-silinmis-endustriyel-makine-parcasi-yeniden-uretim", "Katalog Kodu Silinmiş Endüstriyel Makine Parçası", "Kodu okunmayan eski endüstriyel makine parçası: neden yeniden hazırlanmıyor, yerine geçen katalog kalemi nasıl bulunur.", _katalog_kodu_silinmis_endustriyel_makine_parcasi_yeniden_uretim),
+    ("katalog-kodu-silinmis-endustriyel-makine-parcasi-yeniden-uretim", "Katalog Kodu Silinmiş Endüstriyel Makine Parçası", "Kodu okunmayan eski makine parçası: yeniden hazırlanmıyor; yerine geçen katalog kalemi marka ve işlev üzerinden bulunur.", _katalog_kodu_silinmis_endustriyel_makine_parcasi_yeniden_uretim),
     ("antika-el-yapimi-ev-aleti-kirik-parca-yeniden-uretim", "Antika El Yapımı Ev Aleti Kırık Parça", "Eski dikiş makinesi, blender veya ütü gibi antika ev aleti kırık parçaları: bu iş neden kapsam dışı ve yerine geçen kalem nasıl bulunur.", _antika_el_yapimi_ev_aleti_kirik_parca_yeniden_uretim),
-    ("ureticisi-iflas-etmis-cihaz-icin-yedek-parca-yeniden-uretim", "Üreticisi İflas Etmiş Cihaz İçin Yedek Parça", "Üretimi durmuş ya da tasfiye olmuş cihazların yedek parçası nereden bulunur? Katalog yolu, ölçü mantığı ve kapsam sınırı anlatılıyor.", _ureticisi_iflas_etmis_cihaz_icin_yedek_parca_yeniden_uretim),
+    ("ureticisi-iflas-etmis-cihaz-icin-yedek-parca-yeniden-uretim", "Üreticisi İflas Etmiş Cihaz İçin Yedek Parça", "Üretimi durmuş ya da tasfiye olmuş cihazların yedek parçası nereden bulunur? Katalog yolu, ölçü mantığı ve kapsam sınırı.", _ureticisi_iflas_etmis_cihaz_icin_yedek_parca_yeniden_uretim),
     ("eski-radyo-televizyon-muzik-seti-kirik-parca-yeniden-uretim", "Eski Radyo, Televizyon ve Müzik Seti Kırık Parçası", "Eski hoparlör, müzik seti ya da televizyonun kırık düğmesi ve kadranı: bu iş neden kapsam dışı ve katalog yolu.", _eski_radyo_televizyon_muzik_seti_kirik_parca_yeniden_uretim),
-    ("internet-pazarinda-bulunamayan-plastik-parca-yeniden-uretim", "İnternet Pazarında Bulunamayan Plastik Parça", "Pazaryerde bulunmayan bir kalem için özel üretim açılmaz; aynı işlevi gören katalog seçenekleri ve işlev bazlı arama yolu.", _internet_pazarinda_bulunamayan_plastik_parca_yeniden_uretim),
-                    ("oyuncak-koleksiyon-model-uretimden-kalkmis-parca-yeniden-uretim", "Üretimi Durmuş Oyuncak Koleksiyon Model Parçası", "Üretimi durmuş nostaljik oyuncak ve koleksiyon modelinin kırık parçası için kapsam sınırı, malzeme ve katalogdaki seçenekler.", _oyuncak_koleksiyon_model_uretimden_kalkmis_parca_yeniden_uretim),
+    ("internet-pazarinda-bulunamayan-plastik-parca-yeniden-uretim", "Pazaryerde Bulunamayan Parçalar: Katalog Yolu", "Aynı işlevi gören katalog seçenekleri ve işlev bazlı arama yolu; pazaryerde bulunmayan kalem için özel üretim açılmaz.", _internet_pazarinda_bulunamayan_plastik_parca_yeniden_uretim),
+                    ("oyuncak-koleksiyon-model-uretimden-kalkmis-parca-yeniden-uretim", "Üretimi Durmuş Oyuncak Koleksiyon Model Parçası", "Nostaljik oyuncak ve koleksiyon modelinin kırık parçası: kapsam sınırı, malzeme ve katalogdaki hazır seçenekler.", _oyuncak_koleksiyon_model_uretimden_kalkmis_parca_yeniden_uretim),
     ("eski-model-tarim-ekipmani-kirik-parca-yeniden-uretim", "Eski Model Tarım Ekipmanı Kırık Parça", "Üretimden kalkmış tarım ekipmanının kırık muhafazası: bu iş neden kapsam dışı ve yerine geçen kalem nasıl bulunur.", _eski_model_tarim_ekipmani_kirik_parca_yeniden_uretim),
     # --- wave-47 (11 landing) ---
     ("tost-makinesi-parcasi-nereden-bulunur", "Tost Makinesi Parçası Nereden Bulunur?", "Tost makinesi kapağı, mandalı, kulpu ve taban ayağı için arama yolu: katalog, marka-model sayfası ve ölçü seçilen seçenekler.", _tost_makinesi_parcasi_nereden_bulunur),
@@ -23334,36 +23304,36 @@ CONTENT_PAGES = [
     ("kahve-degirmeni-parcasi-uretimi-durmus-ne-yapilir", "Kahve Değirmeni Parçası Üretimi Durmuş Ne Yapılır?", "Kahve değirmeninde üretim durduğunda: arızanın hangi kalemde olduğu, katalogda arama yolu, değirmen kalemleri ve doğru malzeme.", _kahve_degirmeni_parcasi_uretimi_durmus_ne_yapilir),
     ("arduino-raspberry-pi-proje-kutusu-uretimi", "Arduino ve Raspberry Pi Proje Kutusu: Kartınıza Oturan Muhafaza",
      "Arduino ve Raspberry Pi proje kutusu: gövde ölçüsü, havalandırma ve yükseklik payı; katalogdaki hazır seçenekler ve 220 V, su geçirmezlik sınırları.", _arduino_raspberry_pi_proje_kutusu_uretimi),
-    ("tirmanma-duvari-tutamagi-ozel-uretim", "Tırmanma Duvarı Tutamağı Özel Üretim", "Tırmanma duvarı tutamakları: tutuş yüzeyi, malzeme, aşınma ve sitede ölçü seçilen parçalar ile katalog yolu.", _tirmanma_duvari_tutamagi_ozel_uretim),
-    ("kisiye-ozel-evcil-hayvan-kunyesi-yaptirma", "Kişiye Özel Evcil Hayvan Künyesi Yaptırma", "Evcil hayvan künyesi ve etiketi: isim, fotoğraf ve bilgi alanları, malzeme, montaj ve katalogdaki hazır kalemler.", _kisiye_ozel_evcil_hayvan_kunyesi_yaptirma),
+    ("tirmanma-duvari-tutamagi-ozel-uretim", "Tırmanma Duvarı Tutamağı: Katalogdaki Hazır Seçenekler", "Tutuş yüzeyi, malzeme ve aşınma konuları; katalogdaki tırmanma tutamağı seçenekleri ile sitede ölçüsü seçilen parçalar.", _tirmanma_duvari_tutamagi_ozel_uretim),
+    ("kisiye-ozel-evcil-hayvan-kunyesi-yaptirma", "Evcil Hayvan Künyesi ve Etiketi: Katalogdaki Seçenekler", "İsim ve bilgi alanları, malzeme, montaj adımları; katalogdaki hazır künye ve etiket seçenekleri ile kişiye özel logolu işaretleme sınırı.", _kisiye_ozel_evcil_hayvan_kunyesi_yaptirma),
     ("yaga-ve-benzine-dayanikli-atolye-alet-tutucusu-ve-duvar-panosu-uretimi", "Yağ ve Benzine Dayanıklı Atölye Alet Tutucusu ve Duvar Panosu Üretimi", "Atölye duvar panosu ve alet tutucusu: yağ ve benzine dayanıklı yüzey, malzeme seçimi, montaj ve katalogdaki hazır seçenekler.", _yaga_ve_benzine_dayanikli_atolye_alet_tutucusu_ve_duvar_panosu_uretimi),
-    ("dis-mekanda-catlamayan-bahce-saksisi-tekerlekli-taban-plakasi-uretimi", "Dış Mekanda Kolay Çatlamayan Saksı Taban Plakası", "Güneşte çatlayan saksı ve tekerlekli taban plakaları: ultraviyole etkisi, doğru malzeme ve sitedeki ölçü alanları.", _dis_mekanda_catlamayan_bahce_saksisi_tekerlekli_taban_plakasi_uretimi),
-    ("olcuye-ozel-vida-basi-gizleme-kapagi-uretimi", "Ölçüye Özel Vida Başı Gizleme Kapakları Üretimi", "Vida başı gizleme kapakları: çap seçimi, tutuş ve montaj, malzeme ile siteden ölçü seçilen vida ve kapak seçenekleri.", _olcuye_ozel_vida_basi_gizleme_kapagi_uretimi),
-    ("olcuye-ozel-plastik-kablo-giris-rakoru-uretimi", "Ölçüye Özel Plastik Kablo Giriş Rakoru Üretimi", "Kablo geçiş rakoru: kablo çapına göre sızdırmazlık, montaj biçimi, malzeme ve siteden ölçü seçilen rakor seçenekleri.", _olcuye_ozel_plastik_kablo_giris_rakoru_uretimi),
-    ("olcuye-ozel-plastik-amortisor-pistonu-uretimi", "Ölçüye Özel Plastik Amortisör Pistonu Üretimi", "Amortisör pistonu ve çevresindeki plastik aksam: hidrolik yük taşıyan parçalarda sınır, doğru malzeme ve katalogdaki hazır seçenekler.", _olcuye_ozel_plastik_amortisor_pistonu_uretimi),
-    ("olcuye-ozel-plastik-yatak-blogu-uretimi", "Ölçüye Özel Plastik Yatak Bloğu Üretimi", "Doğrusal hareket yatak bloğu ve kızak: malzeme, montaj boşluğu, siteden ölçü seçilen kalemler ve katalog yolu.", _olcuye_ozel_plastik_yatak_blogu_uretimi),
-    ("olcuye-ozel-plastik-boru-kayis-baglantisi-uretimi", "Ölçüye Özel Plastik Boru Kayış Bağlantısı Üretimi", "Boru kelepçesi ve kayışlı bağlantı: çap uyumu, montaj sıkılığı, malzeme ve siteden ölçü seçilen bağlantı seçenekleri.", _olcuye_ozel_plastik_boru_kayis_baglantisi_uretimi),
+    ("dis-mekanda-catlamayan-bahce-saksisi-tekerlekli-taban-plakasi-uretimi", "Dış Mekanda Kolay Çatlamayan Saksı Taban Plakası", "Güneşte çatlayan saksı ve tekerlekli taban plakaları: ultraviyole etkisi, doğru malzeme sınıfı ve katalogdaki hazır seçenekler.", _dis_mekanda_catlamayan_bahce_saksisi_tekerlekli_taban_plakasi_uretimi),
+    ("olcuye-ozel-vida-basi-gizleme-kapagi-uretimi", "Vida Başı Gizleme Kapakları: Sitede Ölçüsü Seçilen Seçenekler", "Çap seçimi, tutuş ve montaj, malzeme ile sitede ölçüsü seçilen vida ve kapak seçenekleri; kapak numuneden hazırlanmaz.", _olcuye_ozel_vida_basi_gizleme_kapagi_uretimi),
+    ("olcuye-ozel-plastik-kablo-giris-rakoru-uretimi", "Plastik Kablo Giriş Rakoru: Sitede Ölçüsü Seçilen Seçenekler", "Kablo çapına göre sızdırmazlık, montaj biçimi ve malzeme; kablo çapı ürün sayfasında siz yazarsınız, rakor numuneden hazırlanmaz.", _olcuye_ozel_plastik_kablo_giris_rakoru_uretimi),
+    ("olcuye-ozel-plastik-amortisor-pistonu-uretimi", "Plastik Amortisör Pistonu ve Aksam: Sitede Ölçüsü Seçilen Seçenekler", "Hidrolik yük taşıyan parçalarda sınır, doğru malzeme ve katalogdaki hazır seçenekler; ölçüyü ürün sayfasında siz yazarsınız.", _olcuye_ozel_plastik_amortisor_pistonu_uretimi),
+    ("olcuye-ozel-plastik-yatak-blogu-uretimi", "Plastik Yatak Bloğu ve Kızak: Sitede Ölçüsü Seçilen Seçenekler", "Malzeme, montaj boşluğu ve hareket hatası; ölçüyü ürün sayfasında siz yazarsınız, katalogdaki hazır seçeneklerden seçilir.", _olcuye_ozel_plastik_yatak_blogu_uretimi),
+    ("olcuye-ozel-plastik-boru-kayis-baglantisi-uretimi", "Plastik Boru Kayış Bağlantısı: Sitede Ölçüsü Seçilen Seçenekler", "Çap uyumu, montaj sıkılığı ve malzeme; kelepçe çapı ürün sayfasında belirlenir, bağlantı numuneden hazırlanmaz.", _olcuye_ozel_plastik_boru_kayis_baglantisi_uretimi),
     ("egitim-stem-ve-robotik-seti-plastik-parca-uretimi", "Eğitim STEM ve Robotik Seti Plastik Parçası", "Modüler gövde, kılavuz ve tutucu kalemleri: 8/16/32 mm modül ölçüsü, malzeme, okul güvenliği ve sınır.", _egitim_stem_ve_robotik_seti_plastik_parca_uretimi),
     ("akilli-tarim-ve-dikey-ciftlik-ekipmani-plastik-parca-uretimi", "Akıllı Tarım ve Dikey Çiftlik Ekipmanı Plastik Parça: Katalogda Arama ve Malzeme",
      "Sensör muhafazası, kanal bağlantısı ve dozaj kabı gibi kalemler için tipik ölçüler, nem ve UV koşullarına uygun malzeme seçimi anlatılıyor; 41.000'den fazla hazır parça katalogda aranır.", _akilli_tarim_ve_dikey_ciftlik_ekipmani_plastik_parca_uretimi),
     ("plastik-parca-siparisinin-ilk-adimi-nedir", "Plastik Parça Siparişinin İlk Adımı Nedir?", "Siparişin ilk adımı ne: katalogda arama, marka-model sayfası, sitede ölçüyü siz yazma ve malzeme sınıfının koşula göre seçilmesi.", _plastik_parca_siparisinin_ilk_adimi_nedir),
-    ("yurt-disina-ozel-plastik-parca-gonderiyor-musunuz", "Yurt Dışına Özel Plastik Parça Gönderiyor musunuz?", "Yurt dışı gönderim: uluslararası kargo seçenekleri, ödeme, gümrük sorumluluğu ve beklemeden çözülecek parça arama yolu.", _yurt_disina_ozel_plastik_parca_gonderiyor_musunuz),
+    ("yurt-disina-ozel-plastik-parca-gonderiyor-musunuz", "Yurt Dışına Plastik Parça Gönderiyor musunuz?", "Uluslararası kargo seçenekleriyle gönderim yapılabiliyor; ödeme, gümrük sorumluluğu ve parçayı nereden bulacağınız anlatılıyor.", _yurt_disina_ozel_plastik_parca_gonderiyor_musunuz),
     ("plastik-parca-otoklav-sterilizasyonuna-dayanir-mi", "Plastik Parça Otoklav Sterilizasyonuna Dayanır mı?", "Net cevap: otoklav döngüsüne girecek parça hazırlanmıyor. Pratik ısı tavanı, alternatif dezenfeksiyon yöntemleri ve doğru malzeme seçimi.", _plastik_parca_otoklav_sterilizasyonuna_dayanir_mi),
     ("plastik-parca-elektrik-arkina-dayanikli-mi", "Plastik Parça Elektrik Arkına Dayanıklı mı?", "Net cevap: elektrik arkına dayanıklı plastik parça hazırlanmıyor. Ark dayanımı ile yalıtım arasındaki fark ve doğru çözüm yolu.", _plastik_parca_elektrik_arkina_dayanikli_mi),
-    ("olcuye-ozel-plastik-basinc-rolesi-muhafazasi-uretimi", "Ölçüye Özel Plastik Basınç Rölesi Muhafazası Üretimi", "Basınç rölesi dış muhafazası: ölçü seçimi, sızdırmazlık sınırı, malzeme ve siteden ölçü seçilen bağlantı kalemleri.", _olcuye_ozel_plastik_basinc_rolesi_muhafazasi_uretimi),
+    ("olcuye-ozel-plastik-basinc-rolesi-muhafazasi-uretimi", "Plastik Basınç Rölesi Muhafazası: Sitede Ölçüsü Seçilen Seçenekler", "Sızdırmazlık sınırı, doğru malzeme ve katalogdaki hazır bağlantı kalemleri; ölçüyü ürün sayfasında siz yazarsınız.", _olcuye_ozel_plastik_basinc_rolesi_muhafazasi_uretimi),
     # --- wave-43 (11 landing) ---
     ("daha-saglam-malzeme-komsu-parcayi-kirar-mi", "Daha Sağlam Malzeme Komşu Parçayı Kırar mı?", "Malzeme yükseltirken komşu parçaya zarar verilir mi: parçanın görevi, kırık yüzeyin okunması ve komşuluk haritası.", _daha_saglam_malzeme_komsu_parcayi_kirar_mi),
     ("en-ince-detay-ve-minimum-et-kalinligi", "En İnce Detay ve Minimum Et Kalınlığı", "Hangi duvar kalınlığı ve detay ulaşılabilir: taşıyıcı duvar 2-3 mm, görsel çizgi 0,4 mm, kademelendirme ve malzeme seçimi.", _en_ince_detay_ve_minimum_et_kalinligi),
     ("fuar-standi-ve-sergileme-ekipmani-plastik-parca-uretimi", "Fuar Standı ve Sergileme Ekipmanı Plastik Parça Üretimi", "Fuar standı ve sergileme ekipmanındaki raf kenarı, ürün tutucu, tabela çerçevesi ve kutu kapağı: malzeme seçimi ve katalogdaki hazır seçenekler.", _fuar_standi_ve_sergileme_ekipmani_plastik_parca_uretimi),
     ("atm-ve-banka-subesi-ekipmani-plastik-parca-uretimi", "ATM ve Banka Şubesi Ekipmanı Plastik Parça: Yedek Parça Bulma",
-     "Tuş takımı çerçevesi, ekran çerçevesi tırnağı ve tutucular için ölçü mantığı, temizlik kimyasalına uygun malzeme ve kapsam dışı güvenlik elemanları anlatılıyor.", _atm_ve_banka_subesi_ekipmani_plastik_parca_uretimi),
+     "Tuş takımı çerçevesi, ekran çerçevesi tırnağı ve tutucular: temizlik kimyasalına uygun malzeme ve kapsam dışı güvenlik elemanları.", _atm_ve_banka_subesi_ekipmani_plastik_parca_uretimi),
     ("kuyumcu-ve-saatci-atolyesi-plastik-parca-uretimi", "Kuyumcu ve Saatçi Atölyesi Plastik Parça Üretimi", "Kuyumcu ve saatçi atölyesinde tezgâh tutucu, mengene tabanı, saat standı ve kasa kapağı: malzeme seçimi ve katalogdaki hazır parçalar.", _kuyumcu_ve_saatci_atolyesi_plastik_parca_uretimi),
     ("sehir-mobilyasi-ve-otobus-duragi-plastik-parca-uretimi", "Şehir Mobilyası ve Otobüs Durağı Plastik Parça Üretimi", "Otobüs durağı, bekleme bankı, çöp kutusu ve bilgi panosundaki plastik aksam: dış mekân zorluğu, doğru malzeme ve katalogdaki hazır seçenekler.", _sehir_mobilyasi_ve_otobus_duragi_plastik_parca_uretimi),
     ("surekli-suya-batik-calisan-plastik-parca-uretimi", "Sürekli Suya Batık Çalışan Plastik Parça Üretimi", "Denizaltı, bot, havuz ekipmanı ve su deposunda sürekli suya batık çalışan plastik parçalar: nem çekme, biyobirikim ve doğru malzeme.", _surekli_suya_batik_calisan_plastik_parca_uretimi),
-    ("olcuye-ozel-plastik-baglanti-kolu-ve-link-cubugu-uretimi", "Ölçüye Özel Plastik Bağlantı Kolu ve Link Çubuğu Üretimi", "Modüler bağlantı kolu ve link çubuğu: ölçüyü sitedeki alanlara siz yazarsınız. Malzeme, uygulama alanları ve dürüst sınır.", _olcuye_ozel_plastik_baglanti_kolu_ve_link_cubugu_uretimi),
-    ("olcuye-ozel-plastik-elevator-kovasi-ve-tasima-paleti-uretimi", "Ölçüye Özel Plastik Elevator Kovası ve Taşıma Paleti Üretimi", "Yük taşıma kovası ve palet: kırılma nedenleri, kaymaz taban, doğru malzeme ve siteden ölçü seçilen parçalar.", _olcuye_ozel_plastik_elevator_kovasi_ve_tasima_paleti_uretimi),
-    ("olcuye-ozel-plastik-yildiz-tekerlek-ve-sise-kilavuzu-uretimi", "Ölçüye Özel Plastik Yıldız Tekerlek ve Şişe Kılavuzu Üretimi", "Paketleme hattında şişeyi düzenli geçiren yıldız tekerlek ve kılavuz: aşınma, malzeme ve siteden ölçü seçilen kalemler.", _olcuye_ozel_plastik_yildiz_tekerlek_ve_sise_kilavuzu_uretimi),
-    ("motosiklet-grenaj-klipsi-ve-sele-kilidi-yaptirma", "Motosiklet Grenaj Klipsi ve Sele Kilidi Yaptırma", "Motosiklet zincir klipsi ve sele kilidi: kırılmanın sonuçları, doğru malzeme ve motosiklet kategorisinden arama yolu.", _motosiklet_grenaj_klipsi_ve_sele_kilidi_yaptirma),
+    ("olcuye-ozel-plastik-baglanti-kolu-ve-link-cubugu-uretimi", "Plastik Bağlantı Kolu ve Link Çubuğu: Sitede Ölçüsü Seçilen Seçenekler", "Ölçüyü ürün sayfasındaki alanlara siz yazarsınız; malzeme, uygulama alanları ve numuneden üretim yapılmadığı açıkça yazıldı.", _olcuye_ozel_plastik_baglanti_kolu_ve_link_cubugu_uretimi),
+    ("olcuye-ozel-plastik-elevator-kovasi-ve-tasima-paleti-uretimi", "Plastik Elevator Kovası ve Taşıma Paleti: Sitede Ölçüsü Seçilen Seçenekler", "Kırılma nedenleri, kaymaz taban ve doğru malzeme; ölçüyü ürün sayfasında siz yazarsınız, hazır seçenekler katalogdadır.", _olcuye_ozel_plastik_elevator_kovasi_ve_tasima_paleti_uretimi),
+    ("olcuye-ozel-plastik-yildiz-tekerlek-ve-sise-kilavuzu-uretimi", "Plastik Yıldız Tekerlek ve Şişe Kılavuzu: Katalogdaki Seçenekler", "Paketleme hattında şişeyi düzenli geçiren yıldız tekerlek ve kılavuz: aşınma, malzeme ve sitede ölçüsü seçilen kalemler.", _olcuye_ozel_plastik_yildiz_tekerlek_ve_sise_kilavuzu_uretimi),
+    ("motosiklet-grenaj-klipsi-ve-sele-kilidi-yaptirma", "Motosiklet Grenaj Klipsi ve Sele Kilidi: Hazır Yedek Rehberi", "Kırılmanın sonuçları, doğru malzeme ve motosiklet kategorisinden arama yolu; numuneden özel üretim yapılmaz, katalog yolu gösterilir.", _motosiklet_grenaj_klipsi_ve_sele_kilidi_yaptirma),
     # --- wave-40 (11 landing) ---
     ("tekne-lumbuz-sinekligi-ve-perde-kaseti-plastik-parcasi-ozel-uretim", "Tekne Lumbuz Sinekliği ve Perde Kaseti Parçası", "Lumbuz sinekliği çerçevesi, perde kaseti tırnağı, rulo mili yatağı ve kilit dili: kırılma nedeni, dış mekân malzemesi ve marin katalog yolu.", _tekne_lumbuz_sinekligi_ve_perde_kaseti_plastik_parcasi_ozel_uretim),
     ("tekne-tuvaleti-ve-lavabo-tesisati-plastik-parcasi-ozel-uretim", "Tekne Tuvaleti ve Lavabo Tesisatı Parçası", "Tekne tuvaletinde kırılan oturak menteşesi, pompa kolu, havalandırma rakoru ve gider süzgeci: malzeme, korozyon ve katalog yolu.", _tekne_tuvaleti_ve_lavabo_tesisati_plastik_parcasi_ozel_uretim),
@@ -23373,11 +23343,11 @@ CONTENT_PAGES = [
     ("kumes-ve-tavukculuk-ekipmani-plastik-parca-uretimi", "Kümes ve Tavukçuluk Ekipmanı Parçası", "Kümes yemlik, suluk, folluk ve havalandırma ekipmanının klips, askı, halka ve mandal kalemleri: ortam koşulu, malzeme ve katalog yolu.", _kumes_ve_tavukculuk_ekipmani_plastik_parca_uretimi),
     ("akaryakit-istasyonu-ekipmani-plastik-parca-uretimi", "Akaryakıt İstasyonu Ekipmanı Plastik Parça: Yedek Parça Nereden Bulunur?",
      "Pompa paneli, fiyat göstergesi çerçevesi, kapak menteşesi ve pano tutucuları gibi kalemler 41.000'den fazla hazır parçalık katalogda aranır; malzeme seçimi ve güvenlik sınırı anlatılıyor.", _akaryakit_istasyonu_ekipmani_plastik_parca_uretimi),
-    ("havalimani-yer-hizmetleri-ekipmani-plastik-parca-uretimi", "Havalimanı Yer Hizmetleri Ekipmanı Parçası", "Bagaj arabası, konveyör, merdiven aracı ve terminal ekipmanının kırılan kapak, takoz ve kılavuz kalemleri: malzeme, deneme adımı ve katalog yolu.", _havalimani_yer_hizmetleri_ekipmani_plastik_parca_uretimi),
+    ("havalimani-yer-hizmetleri-ekipmani-plastik-parca-uretimi", "Havalimanı Yer Hizmetleri Ekipmanı Parçası", "Bagaj arabası, konveyör ve terminal ekipmanının kırılan kapak, takoz ve kılavuz kalemleri: doğru malzeme ve katalogdaki hazır seçenekler.", _havalimani_yer_hizmetleri_ekipmani_plastik_parca_uretimi),
     ("toprak-altina-gomulen-plastik-parca-uretimi", "Toprak Altına Gömülen Plastik Parça", "Toprağa gömülü çalışan kutu, kapak, boru tutucu ve sensör yuvası: nem, kök ve zemin yükü koşulunda doğru malzeme ile katalog yolu.", _toprak_altina_gomulen_plastik_parca_uretimi),
     ("ozel-uretim-parca-renk-solar-mi-sararir-mi", "Parça Rengi Solar mı, Sararır mı?", "Güneşte renk değişimi ve malzemenin dayanımı: hangi sınıf ne kadar dayanır, solmayı yavaşlatan önlemler ve katalog yolu.", _ozel_uretim_parca_renk_solar_mi_sararir_mi),
     ("antika-ve-eski-cihaz-parcasi-ozel-uretim", "Antika ve Eski Cihaz Parçası: Katalogda Yoksa Ne Yapılır?",
-     "Eski radyo, dikiş makinesi ve daktilo parçaları için ölçünün nereden çıkarılacağı, malzeme seçimi ve restorasyon sınırı anlatılıyor.", _antika_ve_eski_cihaz_parcasi_ozel_uretim),
+     "Eski cihaz parçası için ölçüyü siz yazarsınız: sitedeki ölçülü kalemlerin sayfasında çap, boy ve kesit alanları bulunur; parça gönderilmez.", _antika_ve_eski_cihaz_parcasi_ozel_uretim),
     # --- wave-39 (11 landing) ---
     ("medikal-cihaz-ve-fizyoterapi-ekipmani-plastik-parca-ozel-uretim", "Medikal Cihaz ve Fizyoterapi Ekipmanı Parçası", "Fizyoterapi cihazı ve medikal ekipmanın gövde, kapak ve tutucu parçaları: malzeme seçimi, sınır hatları ve katalogda arama yolu.", _medikal_cihaz_ve_fizyoterapi_ekipmani_plastik_parca_ozel_uretim),
     ("itfaiye-ve-afet-mudahale-ekipmani-plastik-parca-ozel-uretim", "İtfaiye ve Afet Müdahale Ekipmanı Parçası", "İtfaiye ve afet ekiplerinin sandık kapağı, klips, menteşe ve organizeri: saha koşulu, malzeme ve katalogda arama yolu.", _itfaiye_ve_afet_mudahale_ekipmani_plastik_parca_ozel_uretim),
@@ -23385,7 +23355,7 @@ CONTENT_PAGES = [
     ("veteriner-klinik-ve-hayvan-hastanesi-ekipmani-plastik-parca-ozel-uretim", "Veteriner Klinik ve Hayvan Hastanesi Ekipmanı Parçası", "Muayene masası, kafes, taşıma kutusu ve tartı ekipmanının kırılan gövde, klips ve mandal parçaları: malzeme, hijyen koşulu ve katalog yolu.", _veteriner_klinik_ve_hayvan_hastanesi_ekipmani_plastik_parca_ozel_uretim),
     ("kum-ve-toz-asindirici-ortamda-plastik-parca-uretimi", "Kum ve Toz Aşındırıcı Ortamda Plastik Parça", "Aşındırıcı toz ve kumun aşındırdığı parçalar: doğru malzeme sınıfı, sürtünme yüzeyleri ve katalogda arama yolu.", _kum_ve_toz_asindirici_ortamda_plastik_parca_uretimi),
     ("surekli-titresimli-makinede-gevsemeyen-plastik-parca-uretimi", "Sürekli Titreşimli Makinelerde Gevşemeyen Parça", "Titreşim altında gevşeyen ve çatlayan montaj parçaları: zorlanan noktalar, vida yuvası tasarımı, malzeme ve katalog yolu.", _surekli_titresimli_makinede_gevsemeyen_plastik_parca_uretimi),
-    ("ozon-ve-klor-gazina-dayanikli-plastik-parca-uretimi", "Ozon ve Klor Gazına Dayanıklı Plastik Parça Üretimi", "Havuz, su arıtma ve dezenfeksiyon sistemlerinde ozon/klor gazına maruz kalan kapak, braket, sensör yuvası parçaları ölçünüze göre doğru malzemeden özel üretilir.", _ozon_ve_klor_gazina_dayanikli_plastik_parca_uretimi),
+    ("ozon-ve-klor-gazina-dayanikli-plastik-parca-uretimi", "Ozon ve Klor Gazına Dayanıklı Plastik Parça: Malzeme Rehberi", "Havuz, su arıtma ve dezenfeksiyon sistemlerinde kapak, braket ve sensör yuvası: doğru malzeme ve katalogdaki hazır seçenekler.", _ozon_ve_klor_gazina_dayanikli_plastik_parca_uretimi),
     ("vida-dis-adimi-pitch-nasil-belirlenir", "Vida Diş Adımı (Pitch) Nasıl Belirlenir?", "Metrik ve inç diş arasındaki fark, elle adım tespiti yöntemleri ve katalogdaki vida, somun ve pul kalemleri.", _vida_dis_adimi_pitch_nasil_belirlenir),
     ("metrik-inch-olcu-farki-parca-nasil-uyarlanir", "İnç Ölçüsündeki Parça Metriğe Nasıl Uyarlanır?", "İthal makinedeki inç ölçüsünü gerçek değeriyle karşılaştırma, inç-metrik ayrımı ve katalogdaki hazır kalemler.", _metrik_inch_olcu_farki_parca_nasil_uyarlanir),
     ("moduler-saklama-kabi-pod-sistemi-uretimi", "Modüler Saklama Kabı ve Pod Sistemi", "Çekmeceye veya rafa tam oturmayan kutular mı? İstiflenebilir, birbirine kilitlenen modüler pod sistemi: ızgara adımı, malzeme ve sınırlar.", _moduler_saklama_kabi_pod_sistemi_uretimi),
@@ -23401,7 +23371,7 @@ CONTENT_PAGES = [
     ("degirmen-yem-ve-un-fabrikasi-ekipmani-plastik-parca-uretimi", "Değirmen, Yem ve Un Fabrikası Ekipmanı Parçası", "Elek çerçevesi, germe takozu, helezon ucu ve kova klipsi: aşınma yükü, malzeme ve üretim sınırı.", _degirmen_yem_ve_un_fabrikasi_ekipmani_plastik_parca_uretimi),
     ("olcuye-ozel-plastik-surgu-ve-kayar-kapak-mekanizmasi-uretimi", "Sürgü ve Kayar Kapak Mekanizması", "Kayar kapak takozu, kızak profili, sürgü dili ve uç durdurucusu: aşınma zinciri, doğru malzeme ve katalogda arama yolu.", _olcuye_ozel_plastik_surgu_ve_kayar_kapak_mekanizmasi_uretimi),
     ("kurumsal-ve-isletme-musterileri-icin-ozel-parca-uretimi", "Kurumsal ve İşletme Müşterileri İçin Parça Üretimi", "İşletme, atölye ve tesis için toplu parça ihtiyacı: katalogdaki hazır parçalar, adet planlaması, ölçü kaydı ve faturalı satış.", _kurumsal_ve_isletme_musterileri_icin_ozel_parca_uretimi),
-    ("ozel-uretim-parca-stoklanir-mi-raf-omru-nedir", "Yedek Parça Stoklanır mı, Raf Ömrü Nedir?", "Alınan parça depoda beklerken bozulur mu? Rafa etki eden yedi etken, doğru saklama koşulu ve katalogdan yedek alma yolu.", _ozel_uretim_parca_stoklanir_mi_raf_omru_nedir),
+    ("ozel-uretim-parca-stoklanir-mi-raf-omru-nedir", "Yedek Parça ve Raf Ömrü", "Parçanın ömrünü belirleyen yedi etken, doğru koşullar ve katalogdan yeniden alma yolu; parça gönderilmez.", _ozel_uretim_parca_stoklanir_mi_raf_omru_nedir),
     # --- wave-37 (11 landing) ---
     ("tekne-kokpit-masasi-ayagi-ve-katlanir-masa-mandali-ozel-uretim", "Tekne Kokpit Masası Ayağı ve Katlanır Masa Mandalı", "Tekne kokpit masasının ayağı, klik-kilit mandalı ve taban pabucu: kırılma nedeni, dış mekân malzemesi ve marin katalogda arama yolu.", _tekne_kokpit_masasi_ayagi_ve_katlanir_masa_mandali_ozel_uretim),
     ("tekne-fenderi-usturmaca-tutucu-kancasi-ozel-uretim", "Tekne Fenderi (Usturmaça) Tutucu Kancası", "Tekne fenderini korkuluğa asan tutucu kancası, ip klipsi ve bağlantı pabucu: kırılma nedeni, dış mekân malzemesi ve katalog yolu.", _tekne_fenderi_usturmaca_tutucu_kancasi_ozel_uretim),
@@ -23420,19 +23390,19 @@ CONTENT_PAGES = [
     ("oto-direksiyon-kolonu-ve-sinyal-kolu-kapagi-yaptirma", "Oto Direksiyon Kolonu ve Sinyal Kolu Kapağı", "Direksiyon kolonu üst ve alt kabuğu, sinyal kolu kılıfı, kontak rozeti ve kopan tırnaklar: güneş, titreşim ve çarpma koşulunda doğru malzeme, katalog yolu ve kapsam sınırları.", _oto_direksiyon_kolonu_ve_sinyal_kolu_kapagi_yaptirma),
     ("oto-aku-kutusu-kapagi-ve-baglanti-kelepcesi-yaptirma", "Oto Akü Kutusu Kapağı ve Bağlantı Kelepçesi", "Akü kutusu koruma kapağı, sıkma çubuğu kelepçesi, taban pabucu ve kablo tutucusu: sıcaklık, koroziyon ve titreşim koşulunda doğru malzeme ile kapsam sınırları.", _oto_aku_kutusu_kapagi_ve_baglanti_kelepcesi_yaptirma),
     ("oto-tavan-tutamagi-ve-tavan-doseme-klipsi-yaptirma", "Oto Tavan Tutamağı ve Tavan Döşeme Klipsi", "Tavan tutamağı, damper kapağı, menteşe pimi, vida kapakçığı ve döşeme klipsi: tavan içi sıcaklık, kavrama yükü ve klips sıkılığı koşulunda doğru malzeme.", _oto_tavan_tutamagi_ve_tavan_doseme_klipsi_yaptirma),
-    ("olcuye-ozel-plastik-doner-tabla-ve-donus-halkasi-uretimi", "Ölçüye Özel Plastik Döner Tabla ve Dönüş Halkası", "Aşınan dönüş halkası, bilya yuvalı bilezik, göbek burcu, kaide plakası ve durdurucu tırnağı: dönme yükü, aşınma ve malzeme seçimi ile kapsam sınırları.", _olcuye_ozel_plastik_doner_tabla_ve_donus_halkasi_uretimi),
-    ("olcuye-ozel-plastik-disli-kutusu-govdesi-ve-kapagi-uretimi", "Ölçüye Özel Plastik Dişli Kutusu Gövdesi ve Kapağı", "Dişli kutusu gövdesi, montaj kulağı, mil yatağı yuvası, motor bağlantı flanşı ve redüktör kapağı: yağlama, sıcaklık ve kapısal kaçak koşulunda doğru malzeme.", _olcuye_ozel_plastik_disli_kutusu_govdesi_ve_kapagi_uretimi),
+    ("olcuye-ozel-plastik-doner-tabla-ve-donus-halkasi-uretimi", "Plastik Döner Tabla ve Dönüş Halkası: Sitede Ölçüsü Seçilen Seçenekler", "Aşınan dönüş halkası, bilya yuvası, kaide plakası ve durdurucu tırnağı: yük yarıçapı, aşınma ve malzeme seçimiyle kapsam sınırları.", _olcuye_ozel_plastik_doner_tabla_ve_donus_halkasi_uretimi),
+    ("olcuye-ozel-plastik-disli-kutusu-govdesi-ve-kapagi-uretimi", "Plastik Dişli Kutusu Gövdesi ve Kapağı: Sitede Ölçüsü Seçilen Seçenekler", "Gövde, montaj kulağı, mil yatağı yuvası ve redüktör kapağı: yağlama, sıcaklık ve kapısal kaçak koşulunda doğru malzeme.", _olcuye_ozel_plastik_disli_kutusu_govdesi_ve_kapagi_uretimi),
     ("otobus-ve-minibus-ic-ekipman-plastik-parca-uretimi", "Otobüs ve Minibüs İç Ekipmanı Plastik Parçası", "Mandal, kolçak kapağı, menfez kanadı ve tavan rafı klipsi: yoğun kullanım, sık temizlik ve güneş koşulunda doğru malzeme ile katalog yolu.", _otobus_ve_minibus_ic_ekipman_plastik_parca_uretimi),
     ("traktor-ve-bicerdover-kabin-plastik-parca-uretimi", "Traktör ve Biçerdöver Kabin Plastik Parçası", "Konsol kapağı, düğme yuvası, menfez kanadı ve kolçak kaidesi: titreşim, toz ve sıcak-soğuk çevrim koşulunda doğru malzeme ile kapsam sınırları.", _traktor_ve_bicerdover_kabin_plastik_parca_uretimi),
-    ("ozel-uretim-parca-garantiyi-bozar-mi", "Özel Üretim Parça Garantiyi Bozar mı?", "Garanti kararını garanti belgesini veren taraf verir: hangi durumda servise gidilmeli, hangi durumda yedek parça üretilmeli ve özel üretim parçasının riskleri neler?", _ozel_uretim_parca_garantiyi_bozar_mi),
+    ("ozel-uretim-parca-garantiyi-bozar-mi", "Hazırlanan Parça Garantiyi Bozar mı?", "Garanti kararını belgeyi veren taraf verir: hangi durumda servise gidilmeli, hangi durumda yedek parça alınmalı ve riskler neler?", _ozel_uretim_parca_garantiyi_bozar_mi),
     ("sik-dezenfekte-edilen-plastik-parca-uretimi", "Sık Dezenfekte Edilen Plastik Parça Üretimi", "Alkol, çamaşır suyu ve sanayi temizleyicisiyle günde defalarca silinen parçada çatlak ve solma nasıl önlenir: koşula göre malzeme seçimi ve bakım.", _sik_dezenfekte_edilen_plastik_parca_uretimi),
     # --- wave-35 (11 landing) ---
     ("tekne-guverte-dolum-agzi-ve-havalandirma-mantari-ozel-uretim", "Tekne Güverte Dolum Ağzı ve Havalandırma Parçası", "Güverte dolum ağzı kapağı, kilit tırnağı, conta yuvası halkası ve havalandırma kepi: deniz koşulunda doğru malzeme, katalogdaki hazır parçalar ve dürüst sınırlar.", _tekne_guverte_dolum_agzi_ve_havalandirma_mantari_ozel_uretim),
     ("sisme-bot-ve-zodyak-plastik-parcasi-ozel-uretim", "Şişme Bot ve Zodyak Plastik Parçası Üretimi", "Tutamak pabucu, ayna takozu, dip tahtası klipsi ve ıskarmoz parçaları: UV, salınım ve şişme basıncı koşulunda doğru malzeme ve kapsam sınırları.", _sisme_bot_ve_zodyak_plastik_parcasi_ozel_uretim),
-    ("oto-multimedya-ve-radyo-panel-plastik-parcasi-yaptirma", "Oto Multimedya ve Radyo Paneli Parçası Yaptırma", "Radyo paneli çerçevesi, ekran çerçevesi, ayar düğmesi ve montaj tırnağı: sıcaklık, titreşim ve düğme aşınması koşulunda doğru malzeme, katalogdaki hazır parçalar.", _oto_multimedya_ve_radyo_panel_plastik_parcasi_yaptirma),
+    ("oto-multimedya-ve-radyo-panel-plastik-parcasi-yaptirma", "Oto Multimedya ve Radyo Paneli Parçası: Katalogdaki Seçenekler", "Radyo paneli çerçevesi, ekran çerçevesi, ayar düğmesi ve montaj tırnağı: sıcaklık, titreşim ve aşınma koşulunda doğru malzeme.", _oto_multimedya_ve_radyo_panel_plastik_parcasi_yaptirma),
     ("oto-motor-alt-koruma-ve-karter-muhafazasi-klipsi-yaptirma", "Oto Motor Alt Koruma Klipsi ve Dübeli", "Geçme dübeli, klips somunu, tırnaklı klips ve titreşim takozu: motor altı sıcaklığı, yol taşı ve titreşim koşulunda doğru malzeme ve kapsam sınırları.", _oto_motor_alt_koruma_ve_karter_muhafazasi_klipsi_yaptirma),
-    ("olcuye-ozel-plastik-sensor-yuvasi-ve-tutucusu-uretimi", "Ölçüye Özel Sensör Yuvası ve Tutucu Üretimi", "Sensörü yerinde ve doğru açıda tutan kelepçe, kovan, braket ve ara plaka: titreşim, sıcaklık ve montaj yüzeyi koşulunda doğru malzeme ile kapsam sınırları.", _olcuye_ozel_plastik_sensor_yuvasi_ve_tutucusu_uretimi),
-    ("olcuye-ozel-plastik-kart-kizagi-ve-pcb-kilavuzu-uretimi", "Ölçüye Özel Kart Kızağı ve PCB Kılavuzu", "Kutu ve pano içinde kartı tutan kızak, uç durdurucu, ayırıcı bölmeler ve yükseltme takozu: açıklık, kenar desteği ve titreşim koşulunda doğru malzeme.", _olcuye_ozel_plastik_kart_kizagi_ve_pcb_kilavuzu_uretimi),
+    ("olcuye-ozel-plastik-sensor-yuvasi-ve-tutucusu-uretimi", "Sensör Yuvası ve Tutucu: Sitede Ölçüsü Seçilen Seçenekler", "Sensörü yerinde ve doğru açıda tutan kelepçe, kovan ve braket: titreşim, sıcaklık ve montaj yüzeyi koşulunda doğru malzeme.", _olcuye_ozel_plastik_sensor_yuvasi_ve_tutucusu_uretimi),
+    ("olcuye-ozel-plastik-kart-kizagi-ve-pcb-kilavuzu-uretimi", "Kart Kızağı ve PCB Kılavuzu: Sitede Ölçüsü Seçilen Seçenekler", "Kutu ve pano içinde kartı tutan kızak, uç durdurucu ve ayırıcı bölmeler: açıklık, kenar desteği ve titreşim koşulunda malzeme.", _olcuye_ozel_plastik_kart_kizagi_ve_pcb_kilavuzu_uretimi),
     ("insaat-santiyesi-ve-iskele-ekipmani-plastik-parca-uretimi", "Şantiye ve İskele Ekipmanı Plastik Parça Üretimi", "İskele borusu tapası, donatı başlığı, paspayı, tij deliği tapası ve şablon mastarı: inşaat tozu, su ve güneş koşulunda doğru malzeme ve kapsam sınırları.", _insaat_santiyesi_ve_iskele_ekipmani_plastik_parca_uretimi),
     ("spa-sauna-ve-hamam-ekipmani-plastik-parca-uretimi", "Spa, Sauna ve Hamam Ekipmanı Parça Üretimi", "Menfez kanadı, musluk kolu, dolap mandalı ve kaymaz takoz: sıcak-soğuk çevrim, nem ve dezenfektan koşulunda doğru malzeme ile kapsam sınırları.", _spa_sauna_ve_hamam_ekipmani_plastik_parca_uretimi),
     ("basinc-altinda-calisan-plastik-parca-uretilir-mi", "Basınç Altında Çalışan Plastik Parça Üretilir mi? Sınır Net",
@@ -23444,13 +23414,13 @@ CONTENT_PAGES = [
     ("tekne-kamis-tutucu-ve-olta-aparati-ozel-uretim", "Tekne Kamış Tutucu ve Olta Aparatı Üretimi", "Kamış tutucunun bilezik, kovan ve dip tapası ile olta aparatı: katalogdaki hazır parçalar, ölçüsü siteden seçilen seçenekler, deniz ortamında doğru malzeme.", _tekne_kamis_tutucu_ve_olta_aparati_ozel_uretim),
     ("oto-anahtar-kabugu-ve-kumanda-yuvasi-yaptirma", "Oto Anahtar Kabuğu ve Kumanda Yuvası", "Anahtar kabuğu, buton ve pil kapağı, menteşe pimi ile torpido içi kumanda yuvası: hazır yedekler, siteden ölçüsü seçilen seçenekler ve doğru malzeme.", _oto_anahtar_kabugu_ve_kumanda_yuvasi_yaptirma),
     ("oto-bijon-kapagi-ve-sibop-tapasi-yaptirma", "Oto Bijon Kapağı ve Sibop Tapası", "Kaybolan bijon kapağı ya da sibop tapası için komple takım almak gerekmez; katalogdaki hazır yedekler, ölçüsü siteden seçilen seçenekler ve doğru malzeme seçimi.", _oto_bijon_kapagi_ve_sibop_tapasi_yaptirma),
-    ("olcuye-ozel-plastik-bayonet-kilit-ve-ceyrek-tur-gecme-uretimi", "Ölçüye Özel Bayonet Kilit ve Çeyrek Tur Geçme", "Bayonet (süngü) kilidi ve çeyrek tur geçen kapak: pim sayısı, kilitleme açısı ve conta yüzeyi nasıl belirlenir, katalogda nerede aranır, malzeme sınırları nedir.", _olcuye_ozel_plastik_bayonet_kilit_ve_ceyrek_tur_gecme_uretimi),
-    ("olcuye-ozel-plastik-gosterge-kadrani-ve-skala-halkasi-uretimi", "Ölçüye Özel Gösterge Kadranı ve Skala Halkası", "Silinmiş kadran, çatlamış skala halkası: bölüntü aralığı, açı yayı, mil deliği ve okunabilirlik nasıl belirlenir, hangi malzeme ve hangi sınır geçerli.", _olcuye_ozel_plastik_gosterge_kadrani_ve_skala_halkasi_uretimi),
+    ("olcuye-ozel-plastik-bayonet-kilit-ve-ceyrek-tur-gecme-uretimi", "Bayonet Kilit ve Çeyrek Tur Geçme: Sitede Ölçüsü Seçilen Seçenekler", "Pim sayısı, kilitleme açısı ve conta yüzeyi ürün sayfasında siz yazarsınız; kapak numuneden hazırlanmaz, katalogdan seçilir.", _olcuye_ozel_plastik_bayonet_kilit_ve_ceyrek_tur_gecme_uretimi),
+    ("olcuye-ozel-plastik-gosterge-kadrani-ve-skala-halkasi-uretimi", "Gösterge Kadranı ve Skala Halkası: Sitede Ölçüsü Seçilen Seçenekler", "Bölüntü aralığı, açı yayı ve mil deliği ürün sayfasında siz yazarsınız; hangi malzemenin hangi yüzeyde geçerli olduğu açıkça yazıldı.", _olcuye_ozel_plastik_gosterge_kadrani_ve_skala_halkasi_uretimi),
     ("alcipan-ve-asma-tavan-montaj-plastik-parcasi-uretimi", "Alçıpan ve Asma Tavan Montaj Plastik Parçası: Yedeği Bulma Rehberi",
      "Klips, T profil uç kapağı, spot armatür halkası ve kablo tutucusu için dört belirleyici ölçü, malzeme seçimi ve yapısal eleman sınırı anlatılıyor.", _alcipan_ve_asma_tavan_montaj_plastik_parcasi_uretimi),
     ("kasap-ve-et-isleme-ekipmani-plastik-parca-uretimi", "Kasap ve Et İşleme Ekipmanı Plastik Parçası", "Kıyma makinesi, dilimleme, vitrin rafı, huni ve taşıma arabaları: gıda teması ve dezenfektan koşulunda doğru malzeme, katalogdaki hazır parçalar ve dürüst sınırlar.", _kasap_ve_et_isleme_ekipmani_plastik_parca_uretimi),
     ("yakit-ve-benzin-temasli-plastik-parca-uretimi", "Yakıt ve Benzin Temaslı Plastik Parça Üretimi", "Yakıt bidonu ağzı, depo kapağı, dolum hunisi ve motor bölmesi tutucusu: ikincil parçalarda malzeme seçimi ve basınçlı yakıt hattının neden kapsam dışı olduğu.", _yakit_ve_benzin_temasli_plastik_parca_uretimi),
-    ("ozel-uretim-parca-orijinaliyle-ayni-renkte-olur-mu", "Özel Üretim Parça Aynı Renkte Olur mu?", "Yakın ton tutturulur, birebir renk taahhüt edilmez: ışık, yüzey ve malzeme farkının gözle nasıl göründüğü, beklentiyi nasıl netleştireceğiniz ve renk seçenekleri.", _ozel_uretim_parca_orijinaliyle_ayni_renkte_olur_mu),
+    ("ozel-uretim-parca-orijinaliyle-ayni-renkte-olur-mu", "Parça Orijinaliyle Aynı Renkte Olur mu?", "Yakın ton tutturulur, birebir renk taahhüt edilmez: ışık, yüzey ve malzeme farkı, beklentiyi netleştirme ve renk seçenekleri.", _ozel_uretim_parca_orijinaliyle_ayni_renkte_olur_mu),
     ("parcanin-calisma-kosulunu-nasil-tarif-ederim", "Parçanın Çalışma Koşulu Nasıl Tarif Edilir?", "Doğru malzeme ölçüden değil koşuldan çıkar: sıcaklık, yük, hareket, ortam, montaj ve aşınma başlıklarını nasıl yazacağınız, örnek cümlelerle anlatıldı.", _parcanin_calisma_kosulunu_nasil_tarif_ederim),
     # --- wave-33 (11 landing) ---
     ("tekne-guverte-mazgali-ve-tahliye-agzi-ozel-uretim", "Tekne Güverte Mazgalı ve Tahliye Ağzı: Marin Kataloğu", "Güverte ızgarası, kokpit tahliye ağzı ve süzgeç sepeti için katalogdaki ızgara, menfez kapağı ve hortum adaptörü aileleri. Arama yolu ve sınırlar içeride.", _tekne_guverte_mazgali_ve_tahliye_agzi_ozel_uretim),
@@ -23463,7 +23433,7 @@ CONTENT_PAGES = [
     ("firin-ve-pastane-ekipmani-plastik-parca-uretimi", "Fırın ve Pastane Ekipmanı Parçası: Katalogdaki Mutfak ve Taşıma Ürünleri", "Hamur makinesi mandalı, tekerlek burcu, raf tutucusu ve kulp için katalogdaki kutu, tekerlek, raf ve ayak aileleri. Arama yolu ve sınırlar içeride.", _firin_ve_pastane_ekipmani_plastik_parca_uretimi),
     ("okul-ve-kres-mobilyasi-plastik-parca-uretimi", "Okul ve Kreş Mobilyası Parçası: Katalogdaki Mobilya ve Düzen Ürünleri", "Sıra pabucu, boru tapası, dolap kilit dili ve raf tutucusu için katalogdaki kutu, kapak, bağlantı ve raf aileleri. Arama yolu ve sınırlar içeride.", _okul_ve_kres_mobilyasi_plastik_parca_uretimi),
     ("sikca-sokulup-takilan-plastik-parca-uretimi", "Sıkça Sökülüp Takılan Plastik Parça: Katalogdaki Kapak ve Tırnak Aileleri", "Filtre kapağı, servis kapağı ve panel çerçevesi gibi tekrarlı sökülen kalemler için katalogdaki kapak, toka ve bağlantı aileleri. Malzeme ve sınırlar içeride.", _sikca_sokulup_takilan_plastik_parca_uretimi),
-    ("ozel-uretim-parca-siparisinde-en-cok-yapilan-hatalar", "Özel Üretim Siparişinde En Çok Yapılan Hatalar", "Yanlış ölçü, karıştırılan birim, atlanan çalışma koşulu ve katalogda zaten duran parçayı görmemek: sık sipariş hataları ve her birinin önlenme yolu.", _ozel_uretim_parca_siparisinde_en_cok_yapilan_hatalar),
+    ("ozel-uretim-parca-siparisinde-en-cok-yapilan-hatalar", "Siparişte En Çok Yapılan Hatalar", "Yanlış ölçü, karıştırılan birim, atlanan çalışma koşulu ve katalogda zaten duran parçayı görmemek: sık hatalar ve önlenme yolu.", _ozel_uretim_parca_siparisinde_en_cok_yapilan_hatalar),
     # --- wave-32 (11 landing) ---
     ("olcuye-ozel-plastik-etiket-tutucu-ve-plaka-cercevesi-uretimi", "Etiket Tutucu ve Plaka Çerçevesi: Katalogdaki Tutucu Aileleri", "Raf etiketi tutucusu, bilgi plakası çerçevesi ve arşiv kart cebi için katalogdaki çerçeve, kutu ve ayarlanabilir ayak aileleri. Arama yolu içeride.", _olcuye_ozel_plastik_etiket_tutucu_ve_plaka_cercevesi_uretimi),
     ("olcuye-ozel-plastik-pedal-ve-ayak-kolu-uretimi", "Plastik Pedal ve Ayak Kolu: Katalogdaki Tutturma ve Kılavuz Ürünleri", "Çöp kovası pedalı, dikiş makinesi pedal kapağı ve ayakla çalışan kol için katalogdaki toka, klips, yönlendirici ve bağlantı aileleri. Sınırlar içeride.", _olcuye_ozel_plastik_pedal_ve_ayak_kolu_uretimi),
@@ -23475,7 +23445,7 @@ CONTENT_PAGES = [
     ("sicak-soguk-cevrimine-dayanikli-plastik-parca-uretimi", "Sıcak-Soğuk Çevrimine Dayanıklı Plastik Parça: Isıl Genleşme ve Katalog", "Isınıp soğuyan parçalarda ölçü kayar, vidalı bağlantı gevşer. Isıl genleşme nasıl hesaba katılır, katalogda hangi aileler var, pratik ısı tavanı nerede? İçeride.", _sicak_soguk_cevrimine_dayanikli_plastik_parca_uretimi),
     ("ozel-uretim-plastik-parca-yapistirilir-mi", "Plastik Parça Yapıştırılır mı? Yapıştırma Koşulları ve Katalog", "Yapıştırma bir bağlantı yöntemidir, kırılmanın nedenini ortadan kaldırmaz. Hangi durumda yeter, hangi yapıştırıcı tutar, katalog ürünlerinde ne öneriyoruz? İçeride.", _ozel_uretim_plastik_parca_yapistirilir_mi),
     ("parca-olcusu-buyutulup-kucultulerek-uretilir-mi", "Parça Büyütülüp Küçültülerek Hazırlanır mı? Katalogdaki Ölçü Aralıkları", "Katalogda ölçü bir oranla büyütülmez; ürün sayfasındaki aralıktan seçilir. Hangi değerler serbest, hangileri sabit kalır, hangi ailelerde tam boy seçilir? İçeride.", _parca_olcusu_buyutulup_kucultulerek_uretilir_mi),
-    ("uretim-oncesi-olcu-teyidi-ve-onay-gorseli-verilir-mi", "Üretim Öncesi Ölçü Teyidi ve Onay Görseli: Katalogda Nasıl İşliyor", "Katalog akışında ayrı bir teyit turu yok: ölçüyü ürün sayfasında siz seçersiniz. Seçenekler, aralık dışı talepler ve ölçü kaydı nasıl işliyor? İçeride.", _uretim_oncesi_olcu_teyidi_ve_onay_gorseli_verilir_mi),
+    ("uretim-oncesi-olcu-teyidi-ve-onay-gorseli-verilir-mi", "Ölçüyü Siz Yazıyorsunuz: Teyit Turu Var mı?", "Katalog akışında ayrı bir teyit turu yok: ölçüyü ürün sayfasında siz seçersiniz, parça o ölçüde hazırlanır.", _uretim_oncesi_olcu_teyidi_ve_onay_gorseli_verilir_mi),
     ("oto-cekme-kancasi-kapagi-ve-tampon-tapasi-yaptirma", "Oto Çekme Kancası Kapağı ve Tampon Tapası: Araç Kataloğu", "Tampondaki küçük kapaklar, fıskiye tapası ve kör tapalar katalogda araç ve model sayfalarında. İkinci yol, katalogdaki model eşleşmesi ve sınırlar içeride.", _oto_cekme_kancasi_kapagi_ve_tampon_tapasi_yaptirma),
     # --- wave-31 (11 landing) ---
     ("olcuye-ozel-plastik-olcek-kabi-ve-dozaj-kasigi-uretimi", "Plastik Ölçek Kabı ve Dozaj Kaşığı: Katalogdaki Kaplar", "Ölçek kabı, dozaj kaşığı ve karışım kabı ihtiyacında katalogdaki huni, kapalı kavanoz ve kutu organizatörü aileleri. Malzeme ve gıda teması sınırları içeride.", _olcuye_ozel_plastik_olcek_kabi_ve_dozaj_kasigi_uretimi),
@@ -23491,9 +23461,9 @@ CONTENT_PAGES = [
     ("yuksek-tork-ve-burulma-tasiyan-plastik-parca-uretimi", "Yüksek Tork ve Burulma Taşıyan Plastik Parça: Katalogdaki Dişli ve Bağlantı", "Burulma, plastik parçanın en sessiz düşmanıdır. Katalogdaki dişli, rulman, kayış ve bağlantı konektörü ailelerinde tork sınırı nerede? Malzeme ve kapsam içeride.", _yuksek_tork_ve_burulma_tasiyan_plastik_parca_uretimi),
     ("oto-motor-kapagi-ve-hava-filtresi-kutusu-parcasi-yaptirma", "Oto Motor Kapağı ve Hava Filtresi Kutusu Parçası: Araç Kataloğu", "Kaput altındaki kapağın takozu, hava filtresi kutusunun mandalı ve kanal bileziği katalogda araç ve model sayfalarında. Isı sınırı ve güvenlik elemanları içeride.", _oto_motor_kapagi_ve_hava_filtresi_kutusu_parcasi_yaptirma),
     # --- wave-30 (11 landing) ---
-("olcuye-ozel-plastik-rulman-kafesi-uretimi", "Ölçüye Özel Plastik Rulman Kafesi", "Bilyeleri eşit aralıkta tutan kafes katalogda hangi aileyle bulunur? Ölçü alanları, malzeme ve sınır burada.", _olcuye_ozel_plastik_rulman_kafesi_uretimi),
-("olcuye-ozel-plastik-siyirici-ve-kazima-agzi-uretimi", "Ölçüye Özel Plastik Sıyırıcı ve Kazıma Ağzı", "Bant sıyırıcı ağzı, kazıma pabucu ve tutucu dili katalogda hangi aileyle bulunur? Ölçü alanları ve sınır burada.", _olcuye_ozel_plastik_siyirici_ve_kazima_agzi_uretimi),
-("olcuye-ozel-plastik-circir-mandal-disli-uretimi", "Ölçüye Özel Plastik Cırcır ve Mandal Dişlisi", "Cırcır dişlisi ve mandal dili katalogda hangi aileyle bulunur, diş açısı neden kritiktir? Malzeme ve sınır burada.", _olcuye_ozel_plastik_circir_mandal_disli_uretimi),
+("olcuye-ozel-plastik-rulman-kafesi-uretimi", "Plastik Rulman Kafesi: Sitede Ölçüsü Seçilen Seçenekler", "Bilyeleri eşit aralıkta tutan kafes hangi aileyle bulunur? Bilye adımı, iç ve dış çap, cep derinliği alanlarına siz yazarsınız.", _olcuye_ozel_plastik_rulman_kafesi_uretimi),
+("olcuye-ozel-plastik-siyirici-ve-kazima-agzi-uretimi", "Plastik Sıyırıcı ve Kazıma Ağzı: Sitede Ölçüsü Seçilen Seçenekler", "Bant sıyırıcı ağzı, kazıma pabucu ve tutucu dil hangi aileyle karşılık bulur? Ölçü alanları ürün sayfasında siz yazarsınız.", _olcuye_ozel_plastik_siyirici_ve_kazima_agzi_uretimi),
+("olcuye-ozel-plastik-circir-mandal-disli-uretimi", "Plastik Cırcır ve Mandal Dişlisi: Sitede Ölçüsü Seçilen Seçenekler", "Cırcır dişlisi ve mandal dili hangi aileyle bulunur, diş açısı neden kritiktir? Ölçü alanları ürün sayfasında siz yazarsınız.", _olcuye_ozel_plastik_circir_mandal_disli_uretimi),
 ("sahne-isik-ve-ses-ekipmani-plastik-parca-uretimi", "Sahne Işık ve Ses Ekipmanı Parçası", "Hoparlör kabin köşesi, kulp yuvası, mikrofon klipsi ve ışık cihazı braketi katalogda nasıl bulunur? Sınır burada.", _sahne_isik_ve_ses_ekipmani_plastik_parca_uretimi),
     ("boya-ve-badana-ekipmani-plastik-parca-yaptirma", "Boya ve Badana Ekipmanı Plastik Parça", "Rulo, fırça, teleskopik sap ve boya tavası parçaları: hangi kalemler kırılır, katalogda nasıl bulunur, solvent dayanımı ve sınır.", _boya_ve_badana_ekipmani_plastik_parca_yaptirma),
 ("interkom-diafon-ve-kapi-zili-plastik-parca-uretimi", "İnterkom, Diafon ve Kapı Zili Plastik Parçası", "Zil buton kapağı, isimlik çerçevesi, diafon ahize askısı ve duvar kaidesi katalogda nasıl bulunur? Malzeme ve sınır burada.", _interkom_diafon_ve_kapi_zili_plastik_parca_uretimi),
@@ -23502,8 +23472,8 @@ CONTENT_PAGES = [
     ("parcaya-gomme-somun-insert-eklenir-mi", "Parçaya Gömme Somun Eklenir mi? Katalogdaki Vida, Somun ve Pul Ailesi", "Metal gömme somun, sitede ölçüsü seçilen vida, somun, pul ve dişli mil ailesinde zaten var. Hangi bağlantıda doğrudan dişin yettiği, katalogda hangi seçeneklerin bulunduğu içeride.", _parcaya_gomme_somun_insert_eklenir_mi),
     ("katlanabilen-esnek-menteseli-plastik-parca-uretimi", "Katlanabilen Esnek Menteşeli Parça: Katalogdaki Kapaklı ve Yaylı Ürünler", "İnce bir bölgeden katlanan menteşe, katalogda kapaklı kutu organizatörü ve yaylı toka aileleriyle karşılık bulunur. Katlanma ömrü, malzeme seçimi ve alternatifler içeride.", _katlanabilen_esnek_menteseli_plastik_parca_uretimi),
     ("oto-bardaklik-ve-konsol-kapagi-yaptirma", "Oto Bardaklık ve Konsol Kapağı: Araç Parçasını Katalogdan Bulma", "Bardaklık göbeği, kayar kapak lameli, konsol kapağı menteşesi ve kol dayama kilidi katalogda araç ve model sayfalarında. Arama yolu, malzeme ve sınırlar içeride.", _oto_bardaklik_ve_konsol_kapagi_yaptirma),
-("olcuye-ozel-plastik-vidali-seviye-ayar-ayagi-uretimi", "Ölçüye Özel Vidalı Seviye Ayar Ayağı", "Dolap, raf ve cihaz altındaki vidalı seviye ayağı katalogda hangi aileyle karşılık bulur? Ölçü alanları, malzeme ve sınır burada.", _olcuye_ozel_plastik_vidali_seviye_ayar_ayagi_uretimi),
-("olcuye-ozel-plastik-buton-kapagi-ve-tus-uretimi", "Ölçüye Özel Plastik Buton Kapağı ve Tuş", "Panel tuşu, düğme kapağı ve geçme tırnaklı tuş katalogda hangi aileyle karşılık bulur? Ölçü alanları ve sınır burada.", _olcuye_ozel_plastik_buton_kapagi_ve_tus_uretimi),
+("olcuye-ozel-plastik-vidali-seviye-ayar-ayagi-uretimi", "Vidalı Seviye Ayar Ayağı: Sitede Ölçüsü Seçilen Seçenekler", "Dolap, raf ve cihaz altı seviye ayağı hangi aileyle karşılık bulur? Ölçü alanlarına siz yazarsınız, malzeme ve sınır burada.", _olcuye_ozel_plastik_vidali_seviye_ayar_ayagi_uretimi),
+("olcuye-ozel-plastik-buton-kapagi-ve-tus-uretimi", "Plastik Buton Kapağı ve Tuş: Sitede Ölçüsü Seçilen Seçenekler", "Panel tuşu, düğme kapağı ve geçme tırnaklı tuş katalogdaki hangi aileyle karşılık bulur? Ölçüyü ürün sayfasında siz yazarsınız.", _olcuye_ozel_plastik_buton_kapagi_ve_tus_uretimi),
     ("davlumbaz-ve-aspirator-plastik-parca-yaptirma", "Davlumbaz ve Aspiratör Plastik Parçası", "Yağ filtresi çerçevesi, lamba kapağı, kanal ağzı ve mandal kalemleri: ısı ve yağ buharı koşulu, malzeme ve üretim sınırı.", _davlumbaz_ve_aspirator_plastik_parca_yaptirma),
 ("yuksek-basincli-yikama-makinesi-plastik-parca-yaptirma", "Yüksek Basınçlı Yıkama Makinesi Parçası", "Hortum makarası kolu, aksesuar tutucusu, tekerlek ve hazne kapağı katalogda nasıl bulunur? Basınç hattının sınırı burada.", _yuksek_basincli_yikama_makinesi_plastik_parca_yaptirma),
     ("dalis-ve-snorkel-ekipmani-plastik-parca-uretimi", "Dalış ve Şnorkel Ekipmanı Plastik Parçası", "Maske kayış klipsi, palet tokası, çanta ve braket kalemleri: tuz ve nem koşulu, malzeme ve can güvenliği sınırı.", _dalis_ve_snorkel_ekipmani_plastik_parca_uretimi),
@@ -23513,8 +23483,8 @@ CONTENT_PAGES = [
 ("hafif-olmasi-gereken-plastik-parca-uretimi", "Hafif Olması Gereken Plastik Parça", "Ağırlığı kritik olan parçalarda hafiflik nasıl kurulur, cidardan mı kaburgadan mı kazanılır? Neyi vaat ediyoruz, nerede duruyoruz?", _hafif_olmasi_gereken_plastik_parca_uretimi),
 ("oto-on-panjur-ve-radyator-izgarasi-parcasi-yaptirma", "Oto Ön Panjur ve Radyatör Izgarası Parçası", "Panjur tespit tırnağı, ızgara peteği ve amblem yuvası katalogda nasıl bulunur? Malzeme ve dürüst sınır burada.", _oto_on_panjur_ve_radyator_izgarasi_parcasi_yaptirma),
 ("oto-marspiye-ve-kapi-esigi-kaplamasi-yaptirma", "Oto Marşpiyel ve Kapı Eşiği Kaplaması", "Eşik kaplamasının tırnağı, marşpiyel ucu ve vida yuvası katalogda nasıl bulunur? Malzeme ve dürüst sınır burada.", _oto_marspiye_ve_kapi_esigi_kaplamasi_yaptirma),
-("olcuye-ozel-plastik-mil-ve-saft-uretimi", "Ölçüye Özel Plastik Mil ve Şaft", "Tahrik mili, şaft, makara mili ve kademeli miller katalogda hangi ailelerle karşılık bulur? Ölçü alanları ve sınır burada.", _olcuye_ozel_plastik_mil_ve_saft_uretimi),
-("olcuye-ozel-plastik-toka-ve-kayis-kilidi-uretimi", "Ölçüye Özel Plastik Toka ve Kayış Kilidi", "Geçmeli toka, ayar tokası ve kayış kilidi katalogda nasıl bulunur, hangi ölçü alanları seçilir? Malzeme ve sınır burada.", _olcuye_ozel_plastik_toka_ve_kayis_kilidi_uretimi),
+("olcuye-ozel-plastik-mil-ve-saft-uretimi", "Plastik Mil ve Şaft: Sitede Ölçüsü Seçilen Seçenekler", "Tahrik mili, şaft, makara mili ve kademeli miller katalogdaki ailelerle karşılık bulur; mil çapı ve boy alanlarına siz yazarsınız.", _olcuye_ozel_plastik_mil_ve_saft_uretimi),
+("olcuye-ozel-plastik-toka-ve-kayis-kilidi-uretimi", "Plastik Toka ve Kayış Kilidi: Sitede Ölçüsü Seçilen Seçenekler", "Geçmeli toka, ayar tokası ve kayış kilidi hangi aileyle bulunur? Ölçü alanlarını ürün sayfasında siz yazarsınız.", _olcuye_ozel_plastik_toka_ve_kayis_kilidi_uretimi),
 ("televizyon-ayagi-kapagi-ve-stand-plastik-parcasi-yaptirma", "Televizyon Ayağı Kapağı ve Stand Parçası", "TV ayağı kapağı, rozet, kaymaz pabuç, arka kapak klipsi ve kablo kanalı kapağı katalogda nasıl bulunur? Arama yolu burada.", _televizyon_ayagi_kapagi_ve_stand_plastik_parcasi_yaptirma),
 ("oto-silecek-kolu-kapagi-ve-fiskiye-agzi-yaptirma", "Oto Silecek Kolu Kapağı ve Fıskiye Ağzı", "Silecek somun kapağı, mafsal kapağı ve fıskiye memesinin gövdesi katalogda nasıl bulunur? Malzeme ve sınır burada.", _oto_silecek_kolu_kapagi_ve_fiskiye_agzi_yaptirma),
 ("oto-yakit-kapagi-kapakcigi-ve-mentesesi-yaptirma", "Oto Yakıt Kapağı Kapakçığı ve Menteşesi", "Yakıt kapakçığı, menteşe kolu, yay yuvası ve kilit dili katalogda nasıl bulunur? Araç dış koşuluna hangi malzeme uyar?", _oto_yakit_kapagi_kapakcigi_ve_mentesesi_yaptirma),
@@ -23534,8 +23504,8 @@ CONTENT_PAGES = [
 ("oto-sunroof-kizagi-ve-kayar-takozu-yaptirma", "Oto Sunroof Kızağı ve Kayar Takozu", "Açılır tavan mekanizmasının kayar takozu, pabucu ve kılavuzu katalogda nasıl bulunur? Malzeme ve sınır burada.", _oto_sunroof_kizagi_ve_kayar_takozu_yaptirma),
 ("lavabo-gideri-ve-sifon-plastik-parcasi-yaptirma", "Lavabo Gideri ve Sifon Plastik Parçası", "Gider kapağı, klik-klak düğmesi, sıkma bileziği ve taşma kapağı katalogda nasıl bulunur? Malzeme, sızdırmazlık ve sınır burada.", _lavabo_gideri_ve_sifon_plastik_parcasi_yaptirma),
 ("yuksek-devirde-donen-plastik-parca-uretimi", "Yüksek Devirde Dönen Plastik Parça", "Hızlı dönen parçalarda devir, denge, göbek sıkılığı ve ısınma nasıl belirlenir? Katalogdaki aileler ve dürüst sınır burada.", _yuksek_devirde_donen_plastik_parca_uretimi),
-("ozel-uretimde-parca-boyut-siniri-nedir", "Ölçüye Özel Üretimde Parça Boyut Sınırı Nedir?", "Katalogdaki ölçüye özel ürünlerde hangi boyutlar seçilebilir, büyük parça nasıl modüllere ayrılır? Sınırı dürüstçe yazdık.", _ozel_uretimde_parca_boyut_siniri_nedir),
-("ozel-uretim-parcanin-ici-dolu-mu", "Ölçüye Özel Parçanın İçi Dolu mu?", "Katalogdaki parçalarda iç yapı nasıl kurulur, dolu mu boşluklu mu hangi durumda? Cidar, ağırlık ve dürüst sınır burada.", _ozel_uretim_parcanin_ici_dolu_mu),
+("ozel-uretimde-parca-boyut-siniri-nedir", "Ölçülü Ürünlerde Parça Boyut Sınırı Nedir?", "Katalogdaki ölçülü ürünlerde hangi boyutlar seçilebilir, büyük parça nasıl modüllere ayrılır? Sınırı açıkça yazdık.", _ozel_uretimde_parca_boyut_siniri_nedir),
+("ozel-uretim-parcanin-ici-dolu-mu", "Parçanın İçi Dolu mu, Boşluklu mu?", "Katalogdaki parçalarda iç yapı nasıl kurulur, cidar kalınlığı ve ağırlık nasıl etkilenir? Dürüst sınır burada.", _ozel_uretim_parcanin_ici_dolu_mu),
     ('asinmis-numuneden-olcu-alinir-mi', "Aşınmış Bir Parçadan Ölçü Almıyoruz: Doğru Yedek Nasıl Bulunur?",
      "Aşınmış parçadan yeniden üretim yapmıyoruz; doğru yedek katalogda nasıl bulunur, aşınma neden olur ve malzeme nasıl seçilir anlatılıyor.", _asinmis_numuneden_olcu_alinir_mi),
 ("robot-supurge-plastik-parca-yaptirma", "Robot Süpürge Plastik Parçası: Katalogda Arama", "Tampon klipsi, tekerlek kapağı, hazne mandalı ve fırça çerçevesi katalogda nasıl bulunur? Malzeme ve sınır burada.", _robot_supurge_plastik_parca_yaptirma),
@@ -23544,11 +23514,11 @@ CONTENT_PAGES = [
     ("olcuye-ozel-v-kayis-kasnagi-uretimi", "V Kayış Kasnağı: Genişlik ve Çap Seçimi",
      "V kayış kasnağında çap, genişlik, göbek genişliği ve mil bağlantısı nasıl belirlenir; hazır kasnak aileleri ve ölçüyü sitede girdiğiniz seçenekler.", _olcuye_ozel_v_kayis_kasnagi_uretimi),
     ("olcuye-ozel-kam-eksantrik-parca-uretimi", "Kam Eksantrik Parçası: Dönüş ve Malzeme Seçimi",
-     "Kam eksentrik parçasında eksen mesafesi, genişlik, döner kanal çapı ve malzeme nasıl seçilir; hazır eksantrik aileleri ve ölçüye özel seçenekler.", _olcuye_ozel_kam_eksantrik_parca_uretimi),
+     "Eksen mesafesi, genişlik, döner kanal çapı ve malzeme seçimi; eksantrik aileleri katalogda hazır, ölçü alanlarına siz yazarsınız.", _olcuye_ozel_kam_eksantrik_parca_uretimi),
     ("olcuye-ozel-kablo-tasima-zinciri-baklasi-uretimi", "Kablo Taşıma Zinciri Baklası: Genişlik ve Ölçü",
-     "Enerji zincirinde kablo baklasının genişliği, yarıçapı ve adımı nasıl belirlenir; hazır zincir aksesuarları ve ölçüye özel seçenekler.", _olcuye_ozel_kablo_tasima_zinciri_baklasi_uretimi),
-    ("olcuye-ozel-plastik-gecme-dubel-vida-yuvasi-uretimi", "Geçme, Dübel ve Vida Yuvası: Ölçü Seçimi",
-     "Geçme payı, dübel çapı ve vida yuvası derinliği nasıl belirlenir; montaj elemanlarının katalogdaki hazır seçenekleri ve ölçüye özel alternatifler.", _olcuye_ozel_plastik_gecme_dubel_vida_yuvasi_uretimi),
+     "Baklanın genişliği, iç yarıçapı ve adımı nasıl belirlenir; hazır zincir aksesuarları ve sitede ölçüsü seçilen seçenekler.", _olcuye_ozel_kablo_tasima_zinciri_baklasi_uretimi),
+    ("olcuye-ozel-plastik-gecme-dubel-vida-yuvasi-uretimi", "Geçme, Dübel ve Vida Yuvası: Sitede Ölçüsü Seçilen Seçenekler",
+     "Geçme payı, dübel çapı ve vida yuvası derinliği ürün sayfasında siz yazarsınız; montaj elemanları katalogdaki hazır seçeneklerden seçilir.", _olcuye_ozel_plastik_gecme_dubel_vida_yuvasi_uretimi),
     ("el-aleti-matkap-taslama-plastik-parca-uretimi", "Matkap ve Taşlama El Aleti Parçası: Yedek Rehberi",
      "Matkap, taşlama ve delme makinesi parçalarının katalogdaki hazır yedekleri; tutma, toz ve darbe koşullarında malzeme seçimi.", _el_aleti_matkap_taslama_plastik_parca_uretimi),
     ("is-makinesi-forklift-plastik-parca-ozel-uretim", "İş Makinesi ve Forklift Parçası: Yedek Rehberi",
@@ -23558,83 +23528,81 @@ CONTENT_PAGES = [
     ("otomat-vending-makinesi-plastik-parca-uretimi", "Otomat ve Vending Makinesi Parçası: Yedek Rehberi",
      "Satış otomatlarında spiral tutucu, kanal, düğme, kapak ve para üstü modülü gibi parçaların hazır yedekleri ve sitede ölçüsü seçilen seçenekler.", _otomat_vending_makinesi_plastik_parca_uretimi),
     ("olcuye-ozel-plastik-mil-durdurucu-yaka-bilezik-uretimi", "Mil Durdurucu Yaka: Sıkma ve Geçme Seçimi",
-     "Eksenel kaymayı durduran mil durdurucu yakada çap, genişlik, sıkma tipi ve malzeme nasıl seçilir; hazır ve ölçüye özel seçenekler.", _olcuye_ozel_plastik_mil_durdurucu_yaka_bilezik_uretimi),
+     "Çap, genişlik, sıkma tipi ve malzeme nasıl seçilir; hazır bilezik aileleri ve sitede ölçüsü seçilen seçenekler.", _olcuye_ozel_plastik_mil_durdurucu_yaka_bilezik_uretimi),
     ("deniz-suyuna-ve-tuza-dayanikli-plastik-parca-uretimi", "Deniz Suyuna ve Tuza Dayanıklı Parça: Malzeme Rehberi",
-     "Marina ve teknede tuzlu suya, korozyona ve güneşe dayanıklı yedek plastik parça: doğru malzeme, hazır katalog ve ölçüye özel seçenekler.", _deniz_suyuna_ve_tuza_dayanikli_plastik_parca_uretimi),
+     "Marina ve teknede tuzlu suya, korozyona ve güneşe dayanıklı yedek parça: doğru malzeme, hazır katalog ve sitede ölçüsü seçilen seçenekler.", _deniz_suyuna_ve_tuza_dayanikli_plastik_parca_uretimi),
     ("teslimat-iade", "Teslimat ve İade", "PRUVO teslimat, kargo ve iade/cayma hakkı koşulları.", _teslimat_iade),
     ("mesafeli-satis", "Mesafeli Satış Sözleşmesi", "PRUVO mesafeli satış sözleşmesi.", _mesafeli_satis),
     ("malzeme-rehberi", "Malzeme Rehberi",
-     "PLA, PETG, ASA, ABS ve TPU malzemelerinin karşılaştırması: ısı, güneş (UV), su ve "
-     "darbe dayanımı; hangi parçada hangi malzeme önerilir. Karbon katkılı mühendislik "
-     "malzemesi WhatsApp özel talebiyle.", _malzeme_rehberi),
+     "PLA, PETG, ASA, ABS ve TPU malzemelerinin karşılaştırması: ısı, güneş (UV), su ve darbe dayanımı; hangi parçada hangi malzeme önerilir.", _malzeme_rehberi),
     ("numuneye-gore-plastik-parca-uretimi", "Kırık ya da Bulunamayan Plastik Parça: Hazır Yedeğini Bulma Rehberi",
      "PRUVO'da 41.000'den fazla hazır parça var. Kırılan ya da kaybolan bir parçanın karşılığı katalogda çoğu zaman hazır; doğru marka, model ve kategori sayfasından bulunur.", _numuneye_gore_plastik_parca_uretimi),
     ("bulunamayan-yedek-parca-ozel-uretim", "Bulunamayan Yedek Parça: Servis \"Parça Yok\" Dedikten Sonra",
      "Cihaz sağlam, tek parça yok. Katalogdaki 41.000'den fazla hazır parçadan doğru marka ve model sayfasıyla yedek bulmanın yolu.", _bulunamayan_yedek_parca_ozel_uretim),
     ("oto-ic-trim-klips-parca-uretimi", "Oto İç Trim ve Klips Parçaları: Hazır Yedeği Bulma Rehberi",
      "Torpido klipsi, kapak kolu, döşeme braketi için 24.000'i aşkın otomobil yedek parçası; marka sayfasından doğrudan bulunur.", _oto_ic_trim_klips_parca_uretimi),
-    ("makine-parcasi-olcuye-ozel-uretim", "Makine Parçası: Katalogdaki Hazır Yedek ve Ölçüye Özel Seçenekler",
-     "Dişli, kasnak, burç ve rulman yatağı için katalog hazır yedekleri ve ölçüyü siz girdiğiniz ölçüye özel ürün ailesi.", _makine_parcasi_olcuye_ozel_uretim),
+    ("makine-parcasi-olcuye-ozel-uretim", "Makine Parçası: Katalogdaki Hazır Yedek Seçenekleri",
+     "Dişli, kasnak, burç ve rulman yatağı için katalogdaki hazır yedekler; ölçüyü siz girdiğiniz ölçülü ürün ailesi ayrı bir rafta.", _makine_parcasi_olcuye_ozel_uretim),
     ("tekne-plastik-parca-ozel-uretim-gocek-fethiye", "Tekne ve Marina Plastik Parçaları: Deniz Koşuluna Dayanıklı Çözümler",
      "Göcek ve Fethiye'de teknenin parçası için 1.900'den fazla hazır marin ürünü; PETG ve ASA ile deniz koşuluna uygun malzeme.", _tekne_plastik_parca_ozel_uretim_gocek_fethiye),
-    ("kisiye-ozel-logolu-kase-yaptirma", "Kişiye Özel Logolu Kaşe: Yazı, Logo ve İkon İşleme",
-     "İçerik, biçim, çerçeve ve sap seçimini siz yaparsınız; işlenmiş kaşe hazır parça olarak kargolanır.", _kisiye_ozel_logolu_kase_yaptirma),
-    ("olcuye-ozel-conta-uretimi", "Ölçüye Özel Conta ve O-Ring: İç Çap ve Kesiti Siz Girin",
-     "AS568 kodu ya da iç çap ve kesit kalınlığını siz yazarsınız; yuvarlak, kare ve pahlı profil ile uygun malzeme.", _olcuye_ozel_conta_uretimi),
-    ("olcuye-ozel-plastik-disli-uretimi", "Ölçüye Özel Plastik Dişli ve Kramayer Üretimi",
-     "Diş sayısı, modül, dış çap ve mil çapını siz girersiniz; düz, helis, konik, sonsuz ve kramayer formları.", _olcuye_ozel_plastik_disli_uretimi),
+    ("kisiye-ozel-logolu-kase-yaptirma", "Logolu Kaşe: Yazı, Logo ve İkon İşleme",
+     "İçerik, biçim, çerçeve ve sap seçimi sitedeki alanlardan siz yaparsınız; işlenmiş kaşe hazır parça olarak kargolanır.", _kisiye_ozel_logolu_kase_yaptirma),
+    ("olcuye-ozel-conta-uretimi", "Conta ve O-Ring: Sitede Ölçüsü Seçilen Seçenekler",
+     "İç çap ve kesit kalınlığını ürün sayfasına siz yazarsınız; profil, malzeme ve renk seçenekleri sayfada listelenir.", _olcuye_ozel_conta_uretimi),
+    ("olcuye-ozel-plastik-disli-uretimi", "Plastik Dişli ve Kramayer: Sitede Ölçüsü Seçilen Seçenekler",
+     "Diş sayısı, modül, dış çap ve mil çapını ürün sayfasında siz yazarsınız; düz, helis, konik, sonsuz ve kramayer formları seçilir.", _olcuye_ozel_plastik_disli_uretimi),
     ("numuneye-gore-triger-kasnagi-uretimi", "Triger Kasnağı ve Kayışı: Profil, Diş Sayısı ve Mil Seçimi",
      "GT2, HTD, T5/T10, MXL profilleri; diş sayısı, genişlik, mil bağlantısı ve yan flanş seçimi sizde.", _numuneye_gore_triger_kasnagi_uretimi),
-    ("numuneden-plastik-burc-rulman-uretimi", "Plastik Burç ve Rulman Yatağı: İç/Dış Çap ve Genişliğe Göre",
-     "Standart rulman kodu ya da özel iç çap, dış çap ve genişlik; flanşlı seçenek ve kullanım koşuluna uygun malzeme.", _numuneden_plastik_burc_rulman_uretimi),
+    ("numuneden-plastik-burc-rulman-uretimi", "Plastik Burç ve Rulman Yatağı: Sitede Ölçüsü Seçilen Seçenekler",
+     "Standart rulman kodu ya da iç çap, dış çap ve genişlik: ölçüyü ürün sayfasında siz yazarsınız, malzeme kullanım koşuluna göre seçilir.", _numuneden_plastik_burc_rulman_uretimi),
     ("piyasada-bulunmayan-yedek-parca-uretimi", "Piyasada Bulunmayan Yedek Parça: Katalogda Karşılığını Arama",
      "Muadili çıkmayan parça için arama motoru değil katalog çalışır: marka sayfası, kategori ve ölçüye özel aile.", _piyasada_bulunmayan_yedek_parca_uretimi),
     ("kirik-plastik-parca-yaptirma", "Kırık Plastik Parça: Tamir mi, Yeni Parça mı?",
      "Kırılan, çatlayan ya da kaybolan parçanın yenisini marka, model ve kategori sayfalarından bulmanın yolu.", _kirik_plastik_parca_yaptirma),
     ("tek-adet-ozel-parca-uretimi", "Tek Adet Parça: Minimum Sipariş Yok",
-     "Kalıp masrafı ve minimum adet şartı yok; ölçüyü siz girip tek parçayı siteden sipariş edebilirsiniz.", _tek_adet_ozel_parca_uretimi),
-    ("olcuye-ozel-baglanti-konektor", "Ölçüye Özel Bağlantı ve Konektör: Çap, Kol Sayısı ve Açı",
-     "2-4 kol, yuvarlak/kare/sekizgen kesit, geçecek çap ve kollar arası açı sizin belirlediğiniz gibi.", _olcuye_ozel_baglanti_konektor),
-    ("olcuye-ozel-montaj-braketi", "Ölçüye Özel Montaj Braketi: Delik Düzeninden İç Açıya",
-     "Açılı, köşe, düz, T, L ve Y formunda braket; iç açı, vida deliği düzeni ve takviye seçenekleri.", _olcuye_ozel_montaj_braketi),
-    ("olcuye-ozel-profil-beam", "Ölçüye Özel Profil, Kızak ve Kiriş: Kesit ve Ölçü Sizin",
-     "I, T, L, U, kutu, çokgen ve sigma kesit; yükseklik, genişlik, et kalınlığı ve boy sizden.", _olcuye_ozel_profil_beam),
-    ("kasnak-olcuye-ozel-uretim", "Ölçüye Özel Kasnak: Kanal Sayısı, Dış Çap ve Mil Bağlantısı",
-     "Triger ve zamanlama kasnağı için profil, diş sayısı, genişlik, dış çap ve mil bağlantısı.", _kasnak_olcuye_ozel_uretim),
-    ("olcuye-ozel-vida-somun-civata-uretimi", "Ölçüye Özel Vida, Somun ve Cıvata: Çap, Diş Adımı ve Kafa Tipi",
-     "Metrik ya da inç diş; ürün tipi, kafa biçimi, tornavida ağzı ve boy sizin ölçünüze göre.", _olcuye_ozel_vida_somun_civata_uretimi),
-    ("olcuye-ozel-yay-uretimi", "Ölçüye Özel Plastik Yay: Serbest Boy, Çap ve Sarım",
-     "Spiral bası yayı ve dalga (wave spring) formu; serbest boy, dış çap, tel çapı ve sertlik seçilir.", _olcuye_ozel_yay_uretimi),
+     "Kalıp masrafı ve minimum adet şartı yok; sitede ölçüsü seçilen kalemlerde adet seçeneğini 1 yapıp tek parçayı sipariş edersiniz.", _tek_adet_ozel_parca_uretimi),
+    ("olcuye-ozel-baglanti-konektor", "Bağlantı ve Konektör: Sitede Ölçüsü Seçilen Katalog Ürünleri",
+     "Katalogdaki bağlantı ve konektör seçenekleri: 2-4 kol, kesit biçimi, geçecek çap ve kollar arası açı ürün sayfasında seçilir.", _olcuye_ozel_baglanti_konektor),
+    ("olcuye-ozel-montaj-braketi", "Montaj Braketi: Delik Düzeninden İç Açıya",
+     "Açılı, köşe, düz, T, L ve Y formunda braket; iç açı, vida deliği düzeni ve takviye seçenekleri ürün sayfasında belirlenir.", _olcuye_ozel_montaj_braketi),
+    ("olcuye-ozel-profil-beam", "Profil, Kızak ve Kiriş: Kesit ve Ölçü Sizin",
+     "I, T, L, U, kutu, çokgen ve sigma kesit; yükseklik, genişlik, et kalınlığı ve boy alanlarına siz yazarsınız.", _olcuye_ozel_profil_beam),
+    ("kasnak-olcuye-ozel-uretim", "Kasnak: Kanal Sayısı, Dış Çap ve Mil Bağlantısı",
+     "Triger ve zamanlama kasnağı için profil, diş sayısı, genişlik, dış çap ve mil bağlantısı ürün sayfasında seçilir.", _kasnak_olcuye_ozel_uretim),
+    ("olcuye-ozel-vida-somun-civata-uretimi", "Vida, Somun ve Cıvata: Çap, Diş Adımı ve Kafa Tipi",
+     "Metrik ya da inç diş; ürün tipi, kafa biçimi, tornavida ağzı ve boy ürün sayfasındaki alanlardan siz seçersiniz.", _olcuye_ozel_vida_somun_civata_uretimi),
+    ("olcuye-ozel-yay-uretimi", "Plastik Yay: Serbest Boy, Çap ve Sarım",
+     "Spiral bası yayı ve dalga (wave spring) formu: serbest boy, dış çap, tel çapı ve sertlik ürün sayfasında siz yazarsınız.", _olcuye_ozel_yay_uretimi),
     ("elektronik-cihaz-plastik-parca-uretimi", "Elektronik Cihazın Parçası: Katalogdaki Hazır Yedekler",
      "Kumanda kapağı, hoparlör kapağı, gövde klipsi gibi kalemler 800'i aşkın elektronik ürünü içinde marka sayfasından bulunur.", _elektronik_cihaz_plastik_parca_uretimi),
     ("motosiklet-plastik-parca-ozel-uretim", "Motosikletin Parçası: Marka ve Model Bazında Hazır Yedek",
      "Grenaj klipsi, ayna kapağı, muhafaza ve braket için 5.000'i aşkın motosiklet ürünü; marka ve model sayfalarından.", _motosiklet_plastik_parca_ozel_uretim),
-    ("olcuye-ozel-huni-uretimi", "Ölçüye Özel Huni: Ağız ve Akıtma Ucunun Ölçüsü",
-     "Ağız çapı, koni yüksekliği, akıtma ucu, açılı uç kesimi ve hava kanalı seçenekleri sizde.", _olcuye_ozel_huni_uretimi),
-    ("olcuye-ozel-izgara-petek-uretimi", "Ölçüye Özel Izgara, Menfez ve Petek Panel",
-     "En, boy, derinlik, göz şekli ve montaj biçimi sizin boşluğunuza göre; panjur, delikli ve kör seçenekleri.", _olcuye_ozel_izgara_petek_uretimi),
-    ("olcuye-ozel-klips-kelepce-uretimi", "Ölçüye Özel Klips ve Kelepçe: Tuttuğu Parçanın Gerçek Çapı",
-     "Çap, kelepçe tipi, genişlik, et kalınlığı ve geçme sıkılığı sizin belirlediğiniz gibi.", _olcuye_ozel_klips_kelepce_uretimi),
-    ("olcuye-ozel-kablo-kanali-organizer-uretimi", "Ölçüye Özel Kablo Kanalı ve Organizer: Boşluğunuza Göre",
-     "Uzunluk, genişlik, yükseklik, kanal sayısı, kapak ve montaj biçimi sizin çalışma alanınıza uygun.", _olcuye_ozel_kablo_kanali_organizer_uretimi),
-    ("olcuye-ozel-mentese-uretimi", "Ölçüye Özel Plastik Menteşe: Kanat Boyu, Pim Çapı ve Delik Düzeni",
-     "Menteşe türü, kanat ölçüsü, pim çapı, delik aralığı ve açılım açısı; sürtünmeli menteşe seçeneği dâhil.", _olcuye_ozel_mentese_uretimi),
-    ("olcuye-ozel-kulp-tutamak-uretimi", "Ölçüye Özel Kulp ve Tutamak: Delik Aralığı ve Form",
-     "Vida delikleri arası mesafe, form, boy, tutuş kalınlığı ve yüzey dokusu sizin ölçünüze göre.", _olcuye_ozel_kulp_tutamak_uretimi),
-    ("olcuye-ozel-tapa-kapak-uretimi", "Ölçüye Özel Tapa ve Kapak: İç/Dış Çap ve Geçme Sıkılığı",
-     "İç ya da dış çap, derinlik, geçme tipi ve sıkılığı siz belirlersiniz; vidalı kör tapa dâhil.", _olcuye_ozel_tapa_kapak_uretimi),
+    ("olcuye-ozel-huni-uretimi", "Plastik Huni: Ağız ve Akıtma Ucunun Ölçüsü",
+     "Ağız çapı, koni yüksekliği ve akıtma ucu ürün sayfasında siz yazarsınız; huni numuneden hazırlanmaz, katalogdan seçilir.", _olcuye_ozel_huni_uretimi),
+    ("olcuye-ozel-izgara-petek-uretimi", "Izgara, Menfez ve Petek Panel: Sitede Ölçüsü Seçilen Seçenekler",
+     "En, boy, derinlik, göz şekli ve montaj biçimi ürün sayfasında belirlenir; panjur, delikli ve kör seçenekleri katalogdadır.", _olcuye_ozel_izgara_petek_uretimi),
+    ("olcuye-ozel-klips-kelepce-uretimi", "Klips ve Kelepçe: Tuttuğu Parçanın Gerçek Çapı",
+     "Çap, kelepçe tipi, genişlik, et kalınlığı ve geçme sıkılığı ürün sayfasındaki alanlarda seçilir; numuneden özel üretim yapılmaz.", _olcuye_ozel_klips_kelepce_uretimi),
+    ("olcuye-ozel-kablo-kanali-organizer-uretimi", "Kablo Kanalı ve Organizer: Boşluğunuza Göre",
+     "Uzunluk, genişlik, yükseklik, kanal sayısı, kapak ve montaj biçimi ürün sayfasında belirlenir; kanal numuneden hazırlanmaz.", _olcuye_ozel_kablo_kanali_organizer_uretimi),
+    ("olcuye-ozel-mentese-uretimi", "Plastik Menteşe: Kanat Boyu, Pim Çapı ve Delik Düzeni",
+     "Menteşe türü, kanat ölçüsü, pim çapı, delik aralığı ve açılım açısı ürün sayfasındaki alanlarda belirlenir.", _olcuye_ozel_mentese_uretimi),
+    ("olcuye-ozel-kulp-tutamak-uretimi", "Kulp ve Tutamak: Delik Aralığı ve Form",
+     "Vida delikleri arası mesafe, form, boy, tutuş kalınlığı ve yüzey dokusu ürün sayfasında siz yazarsınız.", _olcuye_ozel_kulp_tutamak_uretimi),
+    ("olcuye-ozel-tapa-kapak-uretimi", "Tapa ve Kapak: İç ve Dış Çap ile Geçme Sıkılığı",
+     "İç ya da dış çap, derinlik, geçme tipi ve sıkılık ürün sayfasında belirlenir; vidalı kör tapa seçeneği de katalogdadır.", _olcuye_ozel_tapa_kapak_uretimi),
     ("tarim-makinesi-plastik-parca-uretimi", "Tarım ve Bahçe Makinesi Parçaları: Marka Bazında Hazır Yedek",
      "Stihl, John Deere, Honda ve Makita sayfalarından tarım makinesi parçası; 300'den fazla bahçe ürünü.", _tarim_makinesi_plastik_parca_uretimi),
     ("mobilya-plastik-baglanti-ayak-parca-uretimi", "Mobilya Bağlantı, Ayak ve Kayar Pabuç Parçaları",
      "Çekmece kulpu, bağlantı elemanı, ayak ve kayar pabuç için 900'den fazla ev ürünü ve IKEA marka sayfası.", _mobilya_plastik_baglanti_ayak_parca_uretimi),
     ("drone-rc-model-plastik-parca-uretimi", "Drone ve RC Model Parçaları: Marka Bazında Hazır Yedek",
      "DJI, GoPro, Insta360 sayfalarından gövde kolu, iniş takımı ve braket; karbon takviyeli hafif çözümler.", _drone_rc_model_plastik_parca_uretimi),
-    ('ev-aleti-plastik-disli-parca-uretimi', 'Ev Aleti Plastik Dişli ve Parça Üretimi', 'Mutfak robotu, blender ve kıyma makinesi gibi ev aletlerindeki plastik dişli ve çevre parçaları: doğru malzeme sınıfı, katalogdaki hazır seçenekler ve sitede ölçüsü seçilen kalemler.', _ev_aleti_plastik_disli_parca_uretimi),
+    ('ev-aleti-plastik-disli-parca-uretimi', 'Ev Aleti Plastik Dişli ve Parçası: Katalogdaki Seçenekler', 'Mutfak robotu, blender ve kıyma makinesi parçaları: doğru malzeme sınıfı, katalogdaki hazır seçenekler ve sitede ölçüsü seçilen kalemler.', _ev_aleti_plastik_disli_parca_uretimi),
     ("olcuye-ozel-cetvel-mastar-sablon-uretimi", "Ölçüye Özel Cetvel, Gönye ve Mastar: Boy ve Taksimat Sizin",
      "Düz cetvel, üçgen veya L gönye; boy, ölçü sistemi, işaret stili ve üzerine yazı seçilir.", _olcuye_ozel_cetvel_mastar_sablon_uretimi),
-    ('olcuye-ozel-koruma-kapagi-muhafaza-uretimi', 'Ölçüye Özel Koruma Kapağı ve Muhafaza Üretimi', 'Açıkta kalan dişli, kayış, terminal ya da sensörü toz ve darbeden koruyan kapak ve muhafaza: yük taşımayan koruma elemanı.', _olcuye_ozel_koruma_kapagi_muhafaza_uretimi),
-    ("olcuye-ozel-adaptor-reduksiyon-gecis-uretimi", "Ölçüye Özel Adaptör, Redüksiyon ve Geçiş Parçası",
-     "Giriş ve çıkış çapı, geçiş biçimi ve bağlantı tipini siz yazarsınız; hortum adaptörü ve redüksiyon seçenekleri.", _olcuye_ozel_adaptor_reduksiyon_gecis_uretimi),
+    ('olcuye-ozel-koruma-kapagi-muhafaza-uretimi', 'Koruma Kapağı ve Muhafaza: Sitede Ölçüsü Seçilen Seçenekler', 'Açıkta kalan dişli, kayış, terminal ya da sensörü toz ve darbeden koruyan kapak: yük taşımayan koruma elemanı.', _olcuye_ozel_koruma_kapagi_muhafaza_uretimi),
+    ("olcuye-ozel-adaptor-reduksiyon-gecis-uretimi", "Adaptör, Redüksiyon ve Geçiş Parçası: Sitede Ölçüsü Seçilen Seçenekler",
+     "Giriş ve çıkış çapı, geçiş biçimi ve bağlantı tipi ürün sayfasında belirlenir; hortum adaptörü ve redüksiyon seçenekleri katalogdadır.", _olcuye_ozel_adaptor_reduksiyon_gecis_uretimi),
     ("bisiklet-plastik-parca-ozel-uretim", "Bisiklet Parçaları: Marka ve Model Bazında Hazır Yedek",
      "Çamurluk bağlantısı, bidon kafesi ve kablo yönlendirici için 4.000'i aşkın bisiklet ürünü; marka ve model sayfalarından.", _bisiklet_plastik_parca_ozel_uretim),
     ("kamera-optik-aksesuar-plastik-parca-uretimi", "Kamera, Tripod ve Optik Aksesuar Parçaları",
@@ -23656,7 +23624,7 @@ CONTENT_PAGES = [
     ('uv-gunes-dayanikli-dis-mekan-plastik-parca-uretimi', 'Dış Mekan Plastik Parçası: UV Dayanımlı Malzeme ve Doğru Seçim', 'Balkon, bahçe ve çatı parçaları: ASA sınıfı dış mekan ürünleri ve sitede ölçüsü seçilen seçenekler.', _uv_gunes_dayanikli_dis_mekan_plastik_parca_uretimi),
     ('parca-olcusu-nasil-alinir-ve-gonderilir', "Parça Ölçüsü Nasıl Bulunur? Katalog ve Sitedeki Ölçü Alanları", "Ölçüyü bize gönderip ölçtürmek yerine katalogdaki ölçüyü kendi parçanızla karşılaştırmanız gerekiyor. Doğru kaydı bulma yolu ve sitedeki ölçü alanları anlatılıyor.", _parca_olcusu_nasil_alinir_ve_gonderilir),
     ('ozel-parca-uretimi-fiyati-nasil-belirlenir', "Fiyatı Ne Belirler? Ölçü, Malzeme ve Adet", "Katalog fiyatı sitede açıktır; ölçüye özel ürünlerde fiyat sizin girdiğiniz ölçüye ve malzemeye göre sitede hesaplanır. Fiyatı etkileyen kalemler anlatılıyor.", _ozel_parca_uretimi_fiyati_nasil_belirlenir),
-    ('olcuye-ozel-distans-ara-pul-uretimi', 'Ara Pul, Distans ve Rondela: Üç Ölçü', 'İç çap, dış çap ve kalınlık: ölçüye özel ürün ailesinde siz girdiğiniz üç sayı belirleyici.', _olcuye_ozel_distans_ara_pul_uretimi),
+    ('olcuye-ozel-distans-ara-pul-uretimi', 'Ara Pul, Distans ve Rondela: Üç Ölçü', 'İç çap, dış çap ve kalınlık ürün sayfasındaki alanlara siz yazarsınız; parça numuneden hazırlanmaz.', _olcuye_ozel_distans_ara_pul_uretimi),
     ('olcuye-ozel-raf-pimi-tutucu-uretimi', 'Raf Pimi ve Raf Tutucusu: Delik Çapına Göre', 'Mobilyada oynayan rafın pimini delik çapı ve raf kalınlığı belirler; ölçüyü siz girersiniz.', _olcuye_ozel_raf_pimi_tutucu_uretimi),
     ('olcuye-ozel-mandal-kilit-dili-uretimi', 'Kapak Kapanmıyorsa: Mandal ve Kilit Dili', 'Delik aralığı, dil boyu ve tırnak açısı: vitrin, alet çantası ve dolap mandalları için ölçüsü sitede seçilen aile.', _olcuye_ozel_mandal_kilit_dili_uretimi),
     ('dus-kabini-banyo-plastik-parca-uretimi', 'Duş Kabini ve Banyo Plastik Parçası: Makara, Kılavuz, Fitil Tutucusu', 'Duş kabini makarası, kılavuz pabucu ve fitil tutucusu: nem ve buhara dayanıklı malzeme sınıfıyla.', _dus_kabini_banyo_plastik_parca_uretimi),
@@ -23665,8 +23633,8 @@ CONTENT_PAGES = [
     ('ticari-arac-kamyon-plastik-parca-ozel-uretim', 'Kamyon ve Ticari Araç Kabin Plastik Parçası', 'Havalandırma ızgarası, torpido kapağı ve kaplama klipsi: otomobil kategorisinde 24.000\'i aşkın ürün.', _ticari_arac_kamyon_plastik_parca_ozel_uretim),
     ('asinmaya-dayanikli-surtunme-parcasi-uretimi', 'Aşınmaya Dayanıklı Parça: Doğru Malzeme Sınıfı', 'Kızak, kılavuz ve aşınma plakaları: ölçü kadar malzeme sınıfı da belirleyici.', _asinmaya_dayanikli_surtunme_parcasi_uretimi),
     ('yaga-ve-kimyasala-dayanikli-plastik-parca-uretimi', 'Yağ ve Kimyasala Dayanıklı Plastik Parça: Doğru Sınıf', 'Yağ, gres, alkol ve solvent temasında sıvıya göre seçilen malzeme sınıfı belirleyici.', _yaga_ve_kimyasala_dayanikli_plastik_parca_uretimi),
-    ('kalip-yaptirmadan-parca-urettirme', 'Kalıp Yaptırmadan Parça: Küçük Seri ve Adet', 'Kalıp maliyeti olmadan küçük seri; adet arttıkça birim maliyet düşer, ölçü kaydı ikinci siparişi hızlandırır.', _kalip_yaptirmadan_parca_urettirme),
-    ('plastik-pim-yaptirma', 'Plastik Pim: Çap, Boy ve Geçme Payı', 'Kaybolan ya da kırılan pimin çapı, boyu ve geçme payı; ölçüyü siz belirlersiniz.', _plastik_pim_yaptirma),
+    ('kalip-yaptirmadan-parca-urettirme', 'Küçük Seri Parça Siparişi: Adet ve Maliyet', 'PRUVO\'da kalıp yok; adet arttıkça birim maliyet düşer. Küçük seride sitede ölçüsü seçilen kalemler kullanılır, ikinci siparişte ölçü kaydı korunur.', _kalip_yaptirmadan_parca_urettirme),
+    ('plastik-pim-yaptirma', 'Kaybolan ya da Kırılan Plastik Pim: Çap, Boy ve Geçme Payı', 'Çap, boy ve geçme payı ürün sayfasındaki alanlara siz yazarsınız; pim numuneden hazırlanmaz, katalogdaki seçeneklerden seçilir.', _plastik_pim_yaptirma),
     ('kirik-plastik-tirnak-yaptirma', 'Kırık Geçme Tırnağı: Kapağı Değiştirmeden Onarım', 'Tırnak yüksekliği, kök kalınlığı ve esneme payı: kapağı değiştirmeden onarım.', _kirik_plastik_tirnak_yaptirma),
     ('cekmece-rayi-plastik-parcasi-yaptirma', 'Çekmece Rayı: Kırılan Plastik Takımı Parçası Nereden Bulunur', 'Durdurucu, kızak dili ve makara: kanal genişliği, delik aralığı ve sağ-sol simetrisi belirleyici.', _cekmece_rayi_plastik_parcasi_yaptirma),
     ('plastik-stoper-durdurucu-yaptirma', 'Plastik Stoper ve Durdurucu: Hareketin Sınırını Belirleyen Parça', 'Gövde yüksekliği, yuva çapı ve temas yüzeyi açısı: hareketin duracağı nokta.', _plastik_stoper_durdurucu_yaptirma),
@@ -23675,11 +23643,11 @@ CONTENT_PAGES = [
     ('cam-krikosu-plastik-parcasi-yaptirma', 'Cam Kriko Kırıldığında: Metal Aksam Sağlamken', 'Cam kaldırma kızağı, kelepçe ve halat yuvası; araç cam mekanizması kalemleri katalogda.', _cam_krikosu_plastik_parcasi_yaptirma),
     ('darbeye-dayanikli-plastik-parca-yaptirma', 'Darbeye Dayanıklı Plastik Parça: Malzeme ve Kesit Birlikte', 'Enerjiyi esneme ile karşılayan tok sınıf ve doğru kesit; sınırsız dayanım vaadi değil.', _darbeye_dayanikli_plastik_parca_yaptirma),
     ('cim-bicme-bahce-makinesi-plastik-parca-yaptirma', 'Çim Biçme Makinesi Plastik Parçası: Doğru Ölçü, Doğru Malzeme', 'Tekerlek göbeği, yükseklik ayar kolu, kapak mandalı ve misina kafası tutucusu.', _cim_bicme_bahce_makinesi_plastik_parca_yaptirma),
-    ('ozel-parca-kac-gunde-hazir-olur', 'Ne Kadar Sürede Hazır Olur? Takvimi Ölçü Onayı Belirler', '3-5 iş günü; süre siparişten sonra başlar, sabit tasarım ürünlerde de aynı.', _ozel_parca_kac_gunde_hazir_olur),
+    ('ozel-parca-kac-gunde-hazir-olur', 'Ne Kadar Sürede Hazır Olur? Takvimi Ölçü Belirler', '3-5 iş günü; süre siparişten sonra başlar, sabit tasarım ürünlerde de aynı. Bekleme süresini belirleyen ölçü ve malzeme durumu.', _ozel_parca_kac_gunde_hazir_olur),
     ('plastik-parcaya-vida-disi-acilir-mi', 'Plastik Parçaya Vida Dişi Açılır mı? Dayanıklı Bağlantı Rehberi', 'Plastik parçaya vida dişi açılır mı? Doğrudan diş, metal gömme somun ve plastik vida kovanı seçenekleri; katalogdaki bağlantı parçaları ve doğru malzeme.', _plastik_parcaya_vida_disi_acilir_mi),
     ('hangi-parcalar-ozel-uretimle-yapilamaz', 'Hangi Parçalar Özel Üretimle Yapılamaz?', 'Hangi işler kapsam dışı: yük taşıma, yüksek basınç, sürekli çok yüksek sıcaklık, sertifikalı gıda teması ve metal işleme. Sınırı baştan söylüyoruz.', _hangi_parcalar_ozel_uretimle_yapilamaz),
     ('karbon-fiber-takviyeli-naylon-parca-ne-zaman-gerekir', 'Karbon Fiber Takviyeli Naylon Ne Zaman Gerekir?', 'Karbon ve cam elyaf takviyeli naylon ne zaman gerekir? Beş soruyla karar, malzeme merdiveni ve katalogdaki hazır parça aileleri.', _karbon_fiber_takviyeli_naylon_parca_ne_zaman_gerekir),
-    ('kaseye-islenecek-logo-dosyasi-nasil-hazirlanir', 'Kaşe Logosu İçin Dosya Nasıl Hazırlanır?', 'Kaşeye logo işlenmesi için dosya SVG mi PNG mi olmalı? Gönderdiğiniz logonun işlenebilir olup olmadığını önceden anlayın, doğru dosyayla sipariş verin.', _kaseye_islenecek_logo_dosyasi_nasil_hazirlanir),
+    ("kaseye-islenecek-logo-dosyasi-nasil-hazirlanir", "Kaşe Logosu İçin Dosya Nasıl Hazırlanır?", "Kaşeye logo yüklemek için SVG mi PNG mi gerektiği, iki renge indirme ve ince çizgi kontrolü; dosyayı siz hazırlarsınız.", _kaseye_islenecek_logo_dosyasi_nasil_hazirlanir),
     ('kayis-profili-nasil-belirlenir-gt2-htd-t5', 'Kayış Profili Nasıl Anlaşılır? GT2, HTD ve T5 Ayrımı', 'Kayış profili GT2, HTD ve T5 arasında nasıl ayrılır? Diş adımı ölçümü, profil isimleri, katalogdaki hazır kasnak ve kayış seçenekleri.', _kayis_profili_nasil_belirlenir_gt2_htd_t5),
     ('kirik-dislinin-modulu-nasil-bulunur', 'Kırık Dişlinin Modülü Nasıl Bulunur?', 'Eski bir dişlinin modülü dış çap ve diş sayısından nasıl hesaplanır? Formül, standart modüller, kontrol yöntemi ve katalogdaki hazır dişli kayıtları.', _kirik_dislinin_modulu_nasil_bulunur),
     ('klasik-arac-eski-model-oto-plastik-parca-uretimi', 'Eski Model Araç: Yedek Parçayı Katalogda Bulma Rehberi', 'Eski model araçta kaybolan küçük plastik parçalar katalogda nasıl bulunur? Marka-model sayfaları, kategori girişleri, malzeme seçimi ve dürüst sınır.', _klasik_arac_eski_model_oto_plastik_parca_uretimi),
@@ -23693,42 +23661,42 @@ CONTENT_PAGES = [
     ('paketleme-makinesi-plastik-yedek-parca-yaptirma', 'Paketleme Makinesi Plastik Yedek Parçası', 'Paketleme hattını durduran küçük kılavuz, kapak ve düğme parçaları katalogda nasıl bulunur? Lattı durduran sorunu ayırma yöntemi.', _paketleme_makinesi_plastik_yedek_parca_yaptirma),
     ('tarimsal-sulama-ekipmani-plastik-parca-yaptirma', 'Tarımsal Sulama Ekipmanı Plastik Parçası', 'Sulama ekipmanındaki kelepçe, vana kolu ve kapak tutucusu: katalogda arama yolu, saha dayanımı ayrıntıları ve basınç sınırı.', _tarimsal_sulama_ekipmani_plastik_parca_yaptirma),
     ('tekne-kabin-dolap-mandali-yaptirma', 'Tekne Kabin Dolap Mandalı: Yedek Parça Rehberi', 'Tekne kabin dolap mandalı ve tutucusu: marin kategorisinde arama, doğru montaj ve güvenlik dışı sınır.', _tekne_kabin_dolap_mandali_yaptirma),
-    ('titresim-sonumleyici-esnek-plastik-parca-yaptirma', 'Titreşim Sönümleyici Esnek Plastik Parça', 'Titreşimi ve temas sesini azaltan esnek tampon, ayak ve ara parça: sertlik kararı, prova adımları ve malzeme seçimi.', _titresim_sonumleyici_esnek_plastik_parca_yaptirma),
+    ('titresim-sonumleyici-esnek-plastik-parca-yaptirma', 'Titreşim Sönümleyici: Esnek Tampon ve Ayak Seçenekleri', 'Titreşimi ve temas sesini azaltan esnek tampon, ayak ve ara parça: sertlik kararı ve malzeme seçimi katalogda.', _titresim_sonumleyici_esnek_plastik_parca_yaptirma),
     ('oto-havalandirma-izgara-klipsi-yaptirma', 'Oto Havalandırma Izgara Klipsi Parçası Nereden Bulunur', 'Oto havalandırma ızgarasının küçük bağlantı klipsi: marka-model uyumu, katalogda arama ve montaj sonrası işlev kontrolü.', _oto_havalandirma_izgara_klipsi_yaptirma),
-    ('ozel-parcaya-logo-ve-yazi-isleme', 'Özel Parçaya Logo ve Yazı İşleme', 'Parça yüzeyine logo, yön oku ve parça kodu işleme: uygun içerikler, yerleşim kuralları ve okunaklılık provası.', _ozel_parcaya_logo_ve_yazi_isleme),
+    ('ozel-parcaya-logo-ve-yazi-isleme', 'Parça Üzerine Yazı ve İşaretleme', 'Parça yüzeyine yön oku, kısa kullanım notu ya da parça kodu işlenir: uygun içerikler, yerleşim kuralları ve okunaklılık provası.', _ozel_parcaya_logo_ve_yazi_isleme),
     ('mil-rulman-icin-olcuye-ozel-plastik-yuva', 'Mil ve Rulman İçin sitede ölçüsü seçilen Plastik Yuva', 'Metal rulmanı veya mili taşıyan plastik yuva: iç çap, dış çap, geçme toleransı, hizalama kontrolü ve malzeme seçimi.', _mil_rulman_icin_olcuye_ozel_plastik_yuva),
     ('numune-olmadan-plastik-parca-yaptirilir-mi', "Numunesiz Plastik Parça Yapılır mı?", "Numunesiz de katalogdaki hazır parça bulunabilir; numuneden ölçü alarak üretim yapmıyoruz. Arama yolu, malzeme ve sınırlar anlatılıyor.", _numune_olmadan_plastik_parca_yaptirilir_mi),
     ('olcuye-ozel-triger-kayisi-yaptirma', 'Triger Kayışı: Sitedeki Hazır Ölçüler', 'sitede ölçüsü seçilen triger kayışı: GT2, HTD ve T profilleri, kapalı döngü ya da düz biçim, diş adedi ve genişlik seçimi.', _olcuye_ozel_triger_kayisi_yaptirma),
-    ('olcuye-ozel-kutu-bolmeli-organizer-uretimi', 'Ölçüye Özel Kutu ve Bölmeli Organizer', 'İç en, boy, yükseklik, duvar, bölme sayısı ve geçme kapak seçimini belirleyin; çekmece veya atölyeniz için ölçüye özel organizeri kolayca online sipariş edin.', _olcuye_ozel_kutu_bolmeli_organizer_uretimi),
-    ('kisiye-ozel-jeton-cip-madalyon-yaptirma', 'Kişiye Özel Jeton, Çip ve Madalyon', 'Çap, kalınlık, tek veya çift yüz, gömme, oyma ya da kabartma yazı ve kenar desenini seçerek kişiye özel jeton, oyun çipi veya madalyonu online hazırlatın.', _kisiye_ozel_jeton_cip_madalyon_yaptirma),
+    ("olcuye-ozel-kutu-bolmeli-organizer-uretimi", "Ölçüye Özel Kutu ve Bölmeli Organizer", "İç en, boy, yükseklik, duvar, bölme sayısı ve geçme kapak seçimini belirleyin; ölçüye özel organizeri online sipariş edin.", _olcuye_ozel_kutu_bolmeli_organizer_uretimi),
+    ("kisiye-ozel-jeton-cip-madalyon-yaptirma", "Kişiye Özel Jeton, Çip ve Madalyon", "Çap, kalınlık, tek veya çift yüz, gömme, oyma ya da kabartma yazı ve kenar desenini seçerek kişiye özel jetonu online hazırlatın.", _kisiye_ozel_jeton_cip_madalyon_yaptirma),
     ('olcuye-ozel-vidali-kavanoz-ve-kor-tapa', 'sitede ölçüsü seçilen Vidalı Kavanoz ve Kör Tapa', 'Vidalı kavanoz ve kör tapa: gövde çapı, yükseklik, diş adımı ve cidar aralıkları, kullanım ve sızdırmazlık sınırı.', _olcuye_ozel_vidali_kavanoz_ve_kor_tapa),
-    ('araba-guneslik-klipsi-yaptirma', 'Araba Güneşlik Klipsi Parçası Nereden Bulunur', 'Araba güneşlik klipsi: marka-model-kasa uyumu, ölçüm yöntemi, katalog kaydı ve doğru malzeme.', _araba_guneslik_klipsi_yaptirma),
+    ('araba-guneslik-klipsi-yaptirma', 'Araba Güneşlik Klipsi Parçası Nereden Bulunur', 'Araba güneşlik klipsi: marka-model-kasa uyumu, katalog kaydı, doğru malzeme ve ölçüyü sitede yazma yolu.', _araba_guneslik_klipsi_yaptirma),
     ('araba-koltuk-ayar-dugmesi-kolu-yaptirma', 'Araba Koltuk Ayar Düğmesi ve Kolu Parçası Nereden Bulunur', 'Koltuk ayar düğmesi ve kolu: mil profili, sağ-sol yönü, katalog uyumu ve güvenlik dışı sınır.', _araba_koltuk_ayar_dugmesi_kolu_yaptirma),
     ('bagaj-perdesi-klipsi-braketi-yaptirma', 'Bagaj Perdesi Klipsi ve Braketi Parçası Nereden Bulunur', 'Bagaj perdesi klipsi, askısı ve braketi: pim ölçüsü, aynalı yön, katalogda arama ve taşıma yükü uyarısı.', _bagaj_perdesi_klipsi_braketi_yaptirma),
     ('sogukta-dondurucuda-dayanikli-plastik-parca-yaptirma', 'Soğukta ve Dondurucuda Dayanıklı Plastik Parça', 'Dondurucu ve soğuk oda parçaları: düşük sıcaklık, yoğuşma ve darbe koşullarında malzeme seçimi ve katalogda arama.', _sogukta_dondurucuda_dayanikli_plastik_parca_yaptirma),
     ('plastik-parcada-gecme-toleransi-nasil-belirlenir', 'Plastik Parçada Geçme Toleransı Nasıl Belirlenir?', 'Sıkı, kayar ve boşluklu geçme arasındaki fark; ölçü alma, prova ve malzeme seçimiyle geçme toleransı nasıl kurulur.', _plastik_parcada_gecme_toleransi_nasil_belirlenir),
     ('parca-fotografiyla-fiyat-teklifi-alinir-mi', "Parça Fotoğrafıyla Fiyat Teklifi Verilir mi?", "Fotoğraftan özel fiyat üretmiyoruz; fiyat sitedeki ürün kayıtlarında yazılıdır. Katalogda arama yolu ve doğru malzeme anlatılıyor.", _parca_fotografiyla_fiyat_teklifi_alinir_mi),
     ('kablo-gecis-burcu-gerilim-alici-yaptirma', 'sitede ölçüsü seçilen Kablo Geçiş Burcu ve Gerilim Alıcı', 'Kablo geçiş burcu ve gerilim alıcı: kablo çapı, panel kalınlığı ve yuva ölçüsüne göre seçim ile elektrik güvenliği sınırı.', _kablo_gecis_burcu_gerilim_alici_yaptirma),
-    ('olcuye-ozel-zincir-dislisi-uretimi', 'Ölçüye Özel Zincir Dişlisi Üretimi', 'Diş sayısı, adım, mil çapı ve kanal genişliğini seçerek ölçüye özel zincir dişlisini ürün sayfasından sipariş edin; uyum ölçüleri ve sınırlar içeride.', _olcuye_ozel_zincir_dislisi_uretimi),
+    ("olcuye-ozel-zincir-dislisi-uretimi", "Zincir Dişlisi Seçimi: Adım, Diş Sayısı ve Mil Çapı", "Zincir adımı, diş sayısı, mil deliği çapı ve göbek ölçüsünü ürün sayfasından siz seçersiniz; parça seçtiğiniz değerlerde basılır.", _olcuye_ozel_zincir_dislisi_uretimi),
     ('olcuye-ozel-el-carki-volan-uretimi', 'El Çarkı ve Volan: Sitedeki Hazır Ölçüler', 'El çarkı ve volan: dış çap, göbek, mil deliği ve kol sayısına göre seçim, katalogda arama ve tork sınırı.', _olcuye_ozel_el_carki_volan_uretimi),
     ('olcuye-ozel-flans-baglanti-uretimi', 'Flanş ve Bağlantı: Sitedeki Hazır Ölçüler', 'sitede ölçüsü seçilen flanş ve bağlantı: dış çap, iç çap, cıvata deliği ve delik dairesi; flanslı burç ve kademeli adaptör seçenekleri.', _olcuye_ozel_flans_baglanti_uretimi),
     ('bebek-arabasi-puset-plastik-parca-yaptirma', 'Bebek Arabası ve Puset Plastik Parçası Nereden Bulunur', 'Bebek arabası ve puset parçaları: katalogda arama, malzeme seçimi ve güvenlik-kritik parçalara dokunmama sınırı.', _bebek_arabasi_puset_plastik_parca_yaptirma),
     ('balikcilik-olta-makinesi-plastik-parca-yaptirma', 'Balıkçılık ve Olta Makinesi Plastik Parçası', 'Olta makinesi ve balıkçılık ekipmanı parçaları: dişli, kol, makara ve tutucu; ıslak ve tuzlu ortamda malzeme seçimi.', _balikcilik_olta_makinesi_plastik_parca_yaptirma),
     ('teknik-cizim-veya-stl-ile-parca-urettirme', 'Teknik Çizim veya STL Dosyasıyla Parça Bulma', "STL ya da çizim dosyası gönderip ondan üretim yaptırmıyoruz; dosya yalnızca katalogdaki doğru hazır parçayı bulmak için kullanılıyor.", _teknik_cizim_veya_stl_ile_parca_urettirme),
-    ("kirik-plastik-parca-tamir-mi-yeniden-uretim-mi", "Kırık Plastik Parça: Tamir mi, Hazır Yedek mi?",
-     "Kırılan bir plastik parça için yapıştırma, katalogdaki hazır yedek ve sitede ölçüsü seçilen seçenek: hangi yol sizin durumunuza uyar, nasıl karar verilir.", _kirik_plastik_parca_tamir_mi_yeniden_uretim_mi),
+    ("kirik-plastik-parca-tamir-mi-yeniden-uretim-mi", "Kırık Plastik Parça: Onarım mı, Hazır Yedek mi?",
+     "Kırılan parça için üç yol: yapıştırmak, katalogdaki hazır yedeği bulmak ya da sitede ölçüsü seçilen bir parça almak.", _kirik_plastik_parca_tamir_mi_yeniden_uretim_mi),
     ('elektrik-yalitkani-plastik-parca-uretimi', 'Elektrik Yalıtkanı Plastik Parça', 'Klemens ayıracı, izolasyon plakası ve bara mesafe parçası: malzeme, sınır ve katalogdaki hazır seçenekler.', _elektrik_yalitkani_plastik_parca_uretimi),
     ("metal-parca-yerine-plastik-muadil-uretimi", "Metal Parçanın Plastik Muadili: Doğru Seçim",
      "Paslanan metal parçanın yerine geçen plastik muadil hangi durumda doğru, hangi durumda riskli: aşınma, korozyon, yük ve ısı sınırları.", _metal_parca_yerine_plastik_muadil_uretimi),
     ("olcuye-ozel-sonsuz-disli-uretimi", "Sonsuz Dişli: Profil, Adım ve Malzeme Seçimi",
      "Sonsuz dişli çiftinde modül, diş sayısı, adım ve kavrama açısı nasıl belirlenir; katalogdaki hazır dişli aileleri ve ölçüyü sitede seçtiğiniz ürünler.", _olcuye_ozel_sonsuz_disli_uretimi),
-                    ("olcuye-ozel-plastik-kanca-aski-uretimi", "Ölçüye Özel Plastik Kanca ve Askı", "Kancanın ağız genişliği, montaj deliği aralığı ve gövde derinliği sitede seçilen değerler; doğru malzeme, taşıma sınırı ve katalogdaki hazır seçenekler.", _olcuye_ozel_plastik_kanca_aski_uretimi),
-                    ("olcuye-ozel-hortum-rakoru-dirsek-uretimi", "Ölçüye Özel Hortum Rakoru ve Dirsek Üretimi", "Hortum iç çapı, dikenli kademe sayısı ve dönüş açısı sitede seçilen değerler; doğru malzeme, basınç ve sıcaklık sınırı içeride.", _olcuye_ozel_hortum_rakoru_dirsek_uretimi),
+                    ("olcuye-ozel-plastik-kanca-aski-uretimi", "Plastik Kanca ve Askı: Sitede Ölçüsü Seçilen Seçenekler", "Ağız genişliği, montaj deliği aralığı ve gövde derinliği ürün sayfasında siz yazarsınız; malzeme, taşıma sınırı ve hazır seçenekler.", _olcuye_ozel_plastik_kanca_aski_uretimi),
+                    ("olcuye-ozel-hortum-rakoru-dirsek-uretimi", "Hortum Rakoru ve Dirsek: Sitede Ölçüsü Seçilen Seçenekler", "Hortum iç çapı, dikenli kademe sayısı ve dönüş açısı sitede seçilen değerler; doğru malzeme, basınç ve sıcaklık sınırı içeride.", _olcuye_ozel_hortum_rakoru_dirsek_uretimi),
     ("kahve-makinesi-plastik-parca-yaptirma", "Kahve Makinesi Plastik Parçası: Yedeği Bulma Rehberi",
      "Kahve makinesinde kırılan kapak, mandal ve tutamak gibi parçalar için hazır yedeği katalogda bulma yolu, ölçü ve malzeme seçimi.", _kahve_makinesi_plastik_parca_yaptirma),
     ("distan-takma-deniz-motoru-plastik-parca-uretimi", "Dıştan Takma Deniz Motoru: Yedek Parça Rehberi",
      "Dıştan takma deniz motorunda kırılan kapak, mandal, kelepçe kolu ve tutucu parçaları için hazır yedeği katalogda bulma yolu; tuz, UV ve sıcaklık koşulları.", _distan_takma_deniz_motoru_plastik_parca_uretimi),
-    ('plastik-parca-kac-dereceye-dayanir', 'Plastik Parça Kaç Dereceye Dayanır?', 'Plastik parça kaç dereceye dayanır? PLA, PETG, ASA ve PA-CF için sıcaklık tavanını, hangi koşulda hangi malzemenin uygun olduğunu örneklerle sayfada anlattık.', _plastik_parca_kac_dereceye_dayanir),
+    ("plastik-parca-kac-dereceye-dayanir", "Plastik Parça Kaç Dereceye Dayanır?", "Plastik parça kaç dereceye dayanır? PLA, PETG, ASA ve PA-CF için sıcaklık tavanını, hangi koşulda hangi malzemenin uygun olduğunu sayfada anlatıyoruz.", _plastik_parca_kac_dereceye_dayanir),
     ("parcanin-hangi-plastikten-oldugu-nasil-anlasilir", "Parçanın Hangi Plastikten Olduğu Nasıl Anlaşılır?",
      "Elde bir plastik parça varken malzemesini tanımanın pratik yolları: görünüm, esneklik, kenar kesiti, ısı davranışı ve katalog eşleşmesi.", _parcanin_hangi_plastikten_oldugu_nasil_anlasilir),
     ('gida-temasina-uygun-plastik-parca-uretimi', 'Gıda Temasına Uygun Plastik Parça', 'Gıdayla temas eden mutfak ve hat parçalarında süre, sıcaklık ve temizlik koşulu; malzeme ve katalogdaki seçenekler.', _gida_temasina_uygun_plastik_parca_uretimi),
@@ -23737,17 +23705,17 @@ CONTENT_PAGES = [
     ("firin-ocak-dugmesi-ve-kulpu-yaptirma", "Firin ve Ocak Düğmesi ile Kulpu: Yedek Parça Rehberi",
      "Ocak düğmesi, fırın kulpu ve kapak aksamı gibi parçaların hazır yedeğini katalogda bulma yolu; sıcaklık ve yalıtım koşulları.", _firin_ocak_dugmesi_ve_kulpu_yaptirma),
     ("olcuye-ozel-helisel-disli-uretimi", "Helisel Dişli: Adım ve Kavrama Açısı",
-     "Helisel dişlide adım, diş sayısı, kavrama açısı ve modül nasıl belirlenir; hazır dişli aileleri ve ölçüye özel seçenekler.", _olcuye_ozel_helisel_disli_uretimi),
+     "Adım, diş sayısı, kavrama açısı ve modül nasıl belirlenir; hazır dişli aileleri ve sitede ölçüsü seçilen seçenekler.", _olcuye_ozel_helisel_disli_uretimi),
     ("olcuye-ozel-halat-makarasi-palanga-uretimi", "Halat Makarası ve Palanga: Kapasite ve Malzeme",
      "Halat makarası ve palanga parçalarında makara çapı, oluk genişliği, fren ve kancanın görevi; hazır katalog ve sitede ölçüsü seçilen seçenekler.", _olcuye_ozel_halat_makarasi_palanga_uretimi),
     ("olcuye-ozel-kayis-gergi-makarasi-uretimi", "Kayış Gergi Makarası: Merkez ve Ayarlama",
-     "Kayış gergi makarasında merkez konumu, açı aralığı, göbek ve sıkma nasıl ayarlanır; hazır kasnak aileleri ve ölçüye özel seçenekler.", _olcuye_ozel_kayis_gergi_makarasi_uretimi),
+     "Merkez konumu, açı aralığı, göbek ve sıkma nasıl ayarlanır; hazır kasnak aileleri ve sitede ölçüsü seçilen seçenekler.", _olcuye_ozel_kayis_gergi_makarasi_uretimi),
     ("olcuye-ozel-helezon-burgu-tasima-vidasi-uretimi", "Helezon Burgu Taşıma Vidası: Kanal ve Çap",
-     "Helezon burgu taşıma vidasında dış çap, kanal derinliği, adım ve yük nasıl belirlenir; hazır burgu parçaları ve ölçüye özel seçenekler.", _olcuye_ozel_helezon_burgu_tasima_vidasi_uretimi),
+     "Dış çap, kanal derinliği, adım ve yük nasıl belirlenir; hazır burgu parçaları ve sitede ölçüsü seçilen seçenekler.", _olcuye_ozel_helezon_burgu_tasima_vidasi_uretimi),
     ("olcuye-ozel-plastik-klemens-terminal-blok-uretimi", "Plastik Klemens ve Terminal Bloğu: Ölçü Seçimi",
-     "Klemens ve terminal bloklarında kanal aralığı, iletken kesiti, vida ölçüsü ve montaj ölçüsü nasıl seçilir; hazır kayıtlar ve ölçüye özel seçenekler.", _olcuye_ozel_plastik_klemens_terminal_blok_uretimi),
+     "Kanal aralığı, iletken kesiti, vida ölçüsü ve montaj ölçüsü nasıl seçilir; hazır kayıtlar ve sitede ölçüsü seçilen seçenekler.", _olcuye_ozel_plastik_klemens_terminal_blok_uretimi),
     ("olcuye-ozel-lineer-kizak-kilavuz-uretimi", "Lineer Kızak Kılavuzu: Yük ve Malzeme",
-     "Lineer kızak kılavuzunda profil, yük, kayma ve montaj ölçüsü nasıl seçilir; katalogdaki hazır raylar ve ölçüye özel seçenekler.", _olcuye_ozel_lineer_kizak_kilavuz_uretimi),
+     "Profil, yük, kayma ve montaj ölçüsü nasıl seçilir; katalogdaki hazır raylar ve sitede ölçüsü seçilen seçenekler.", _olcuye_ozel_lineer_kizak_kilavuz_uretimi),
     ("yazarkasa-pos-cihazi-plastik-parca-uretimi", "Yazarkasa ve Pos Cihazı Parçası: Yedek Rehberi",
      "Yazarkasa, pos terminali ve satış noktası cihazlarının kırılan kabuk, tuş ve tutucu parçaları için hazır yedek ve sitede ölçüsü seçilen seçenekler.", _yazarkasa_pos_cihazi_plastik_parca_uretimi),
     ("terazi-tarti-baskul-plastik-parca-uretimi", "Terazi, Tartı ve Baskül Parçası: Ölçü Rehberi",
@@ -23759,11 +23727,11 @@ CONTENT_PAGES = [
     ("kendinden-yagli-dusuk-surtunmeli-plastik-parca-uretimi", "Kendinden Yağlı Düşük Sürtünmeli Parça: Malzeme",
      "Kendi kendini yağlayan düşük sürtünmeli plastik parça hangi durumlarda gerekir; malzeme seçimi, katalogdaki hazır parçalar ve sınırlar.", _kendinden_yagli_dusuk_surtunmeli_plastik_parca_uretimi),
     ("olcuye-ozel-trapez-vida-somunu-uretimi", "Trapez Vida ve Somun: Diş Adımı ve Malzeme",
-     "Trapez vida ve somunda diş açısı, adım, yük ve malzeme nasıl seçilir; katalogdaki hazır kayıtlar ve ölçüye özel seçenekler.", _olcuye_ozel_trapez_vida_somunu_uretimi),
+     "Diş açısı, adım, yük ve malzeme nasıl seçilir; katalogdaki hazır kayıtlar ve sitede ölçüsü seçilen seçenekler.", _olcuye_ozel_trapez_vida_somunu_uretimi),
     ("olcuye-ozel-rijit-mil-kaplini-uretimi", "Rijit Mil Kaplini: Boşluk ve Titreşim",
-     "Rijit mil kaplininde kaplin boyu, mil çapı, boşluk payı ve malzeme nasıl seçilir; katalogdaki hazır kaplinler ve ölçüye özel seçenekler.", _olcuye_ozel_rijit_mil_kaplini_uretimi),
+     "Kaplin boyu, mil çapı, boşluk payı ve malzeme nasıl seçilir; katalogdaki hazır kaplinler ve sitede ölçüsü seçilen seçenekler.", _olcuye_ozel_rijit_mil_kaplini_uretimi),
     ("olcuye-ozel-plastik-vana-musluk-kolu-uretimi", "Plastik Vana ve Musluk Kolu: Sızdırmazlık",
-     "Vana ve musluk kollarında gövde çapı, conta yüzeyi, hareket açısı ve malzeme nasıl seçilir; hazır kayıtlar ve ölçüye özel seçenekler.", _olcuye_ozel_plastik_vana_musluk_kolu_uretimi),
+     "Gövde çapı, conta yüzeyi, hareket açısı ve malzeme nasıl seçilir; hazır kayıtlar ve sitede ölçüsü seçilen seçenekler.", _olcuye_ozel_plastik_vana_musluk_kolu_uretimi),
     ("kuafor-berber-ekipmani-plastik-parca-uretimi", "Kuaför ve Berber Ekipmanı Parçası: Yedek Rehberi",
      "Makas kulp yastığı, tutucu, kablo makarası ve saklama parçalarının hazır yedekleri; hijyen ve sürekli kullanım koşullarında malzeme seçimi.", _kuafor_berber_ekipmani_plastik_parca_uretimi),
     ("dikis-makinesi-plastik-parca-ozel-uretim", "Dikis Makinesi Parçası: Yedek Rehberi",
@@ -23799,7 +23767,7 @@ CONTENT_PAGES = [
     ('kimyasal-tank-depolama-plastik-parca-uretimi', 'Kimyasal Tank ve Depolama Ekipmanı Parça Rehberi', 'Kimyasal tank, varil ve depolama ekipmanı için plastik parçalar: malzeme uyumluluğu, sızdırmazlık sınırı ve katalogdaki hazır seçenekler.', _kimyasal_tank_depolama_plastik_parca_uretimi),
     ("birden-fazla-adet-ozel-parca-siparisi-toplu", "Birden Fazla (Toplu) Parça Siparişi Verilir mi?", "Aynı parçadan çok adet siparişi: katalogdaki ürünlerde adet seçimi, sitede ölçüsü seçilen aile toplu kullanım, planlama ve sınır.", _birden_fazla_adet_ozel_parca_siparisi_toplu),
     ('siparis-sonrasi-olcu-degisikligi-iptal-politikasi', 'Sipariş Sonrası Ölçü Değişikliği ve İptal Politikası', 'Sitede girdiğiniz ölçüyü sipariş sonrası değiştirme, iptal ve iade koşulları: hangi aşamada değişiklik yapılabilir, üretim başladıysa ne olur.', _siparis_sonrasi_olcu_degisikligi_iptal_politikasi),
-    ('olcu-tutmazsa-ne-olur-uyum-garantisi', 'Ölçü Tutmazsa Ne Olur? Uyum Politikası', 'Sitede girdiğiniz ölçüye göre hazırlanan parça oturmazsa ne olur: uyum garantisi vermiyoruz, doğru ölçü ve tolerans bilgisi, iade ve ayıp halleri.', _olcu_tutmazsa_ne_olur_uyum_garantisi),
+    ('olcu-tutmazsa-ne-olur-uyum-garantisi', 'Ölçü Tutmazsa Ne Olur? Uyum Politikası', 'Girdiğiniz ölçüye göre hazırlanan parça oturmazsa uyum garantisi vermiyoruz; doğru ölçü bilgisi, iade ve ayıp halleri anlatılıyor.', _olcu_tutmazsa_ne_olur_uyum_garantisi),
     ("olcuye-ozel-plastik-mafsal-kuresel-eklem-uretimi", "Plastik Mafsal ve Küresel Eklem Rehberi", "Plastik mafsallar ve küresel eklemler nasıl çalışır, hangi yükte güvenilirdir, katalogdaki hazır seçenekler ve malzeme seçimi.", _olcuye_ozel_plastik_mafsal_kuresel_eklem_uretimi),
                     ("olcuye-ozel-plastik-boru-kelepcesi-ve-aski-uretimi", "Ölçüye Özel Plastik Boru Kelepçesi ve Askı", "Boru çapı, gövde genişliği, delik aralığı ve kapanma biçimi sitede seçilen değerler; malzeme, ısı ve basınç sınırı içeride.", _olcuye_ozel_plastik_boru_kelepcesi_ve_aski_uretimi),
     ("olcuye-ozel-plastik-mil-kamasi-ve-kama-yuvasi-uretimi", "Plastik Mil Kaması ve Kama Yuvası Rehberi", "Mil kama ve kama yuvası ne işe yarar, hangi malzemeden olur, katalogdaki hazır seçenekler ve ölçüyü sitede girdiğiniz ürün ailesi.", _olcuye_ozel_plastik_mil_kamasi_ve_kama_yuvasi_uretimi),
@@ -23808,10 +23776,10 @@ CONTENT_PAGES = [
     ("evcil-hayvan-ekipmani-plastik-parca-uretimi", "Evcil Hayvan Ekipmanı Plastik Parça Rehberi", "Kedi köpek ekipmanı için plastik parçalar: çiğneme, ısırma ve temizlik koşullarında doğru malzeme, katalogdaki hazır seçenekler ve güvenli sınırlar.", _evcil_hayvan_ekipmani_plastik_parca_uretimi),
     ("ozel-uretim-plastik-parca-boyanabilir-mi", "Plastik Parça Boyanabilir mi? Malzeme Rehberi", "3D baskı parçaya boya, astar, zımpara ve yüzey işlemi uygulanabilir mi: hangi malzemeye hangi işlem oturur, katalogdaki renk seçenekleri.", _ozel_uretim_plastik_parca_boyanabilir_mi),
     ("ayni-parcadan-tekrar-siparis-ve-olcu-kaydi", "Aynı Parçadan Tekrar Sipariş: Ölçü Kaydı Nasıl İşler?",
-     "Daha önce hazırlatılan bir parçanın ölçü kaydı saklanır; ikinci siparişte ölçüyü yeniden çıkarmak gerekmez. Kaydın sınırları ve malzeme gözden geçirmesi anlatılıyor.", _ayni_parcadan_tekrar_siparis_ve_olcu_kaydi),
-    ("kaucuk-parca-yerine-esnek-plastik-muadil-uretimi", "Kauçuk Yerine Esnek Plastik Parça Rehberi", "Kauçuk bir parçanın yerine esnek plastik kullanılabilir mi: TPU ve TPE farkları, uygulama sınırları ve katalogdaki esnek parça seçenekleri.", _kaucuk_parca_yerine_esnek_plastik_muadil_uretimi),
+     "Hazır katalog ürünlerinde aynı kayıt tekrar tekrar sepete eklenebilir; sitede ölçüsü seçilen ürünlerde aynı değerleri siz yazarsınız.", _ayni_parcadan_tekrar_siparis_ve_olcu_kaydi),
+    ("kaucuk-parca-yerine-esnek-plastik-muadil-uretimi", "Kauçuk Yerine Esnek Plastik Parça Rehberi", "Kauçuk bir parçanın yerine esnek plastik kullanılabilir mi: TPU'nun sert ve yumuşak sınıf farkları, uygulama sınırları ve katalogdaki esnek parça seçenekleri.", _kaucuk_parca_yerine_esnek_plastik_muadil_uretimi),
     ("isik-geciren-yari-saydam-plastik-parca-uretimi", "Yarı Saydam Işık Geçiren Plastik Parça Rehberi", "Işık geçiren yarı saydam plastik parçalar: hangi malzeme ne kadar saydam, kalınlık etkisi, katalogdaki hazır seçenekler ve beklenti yönetimi.", _isik_geciren_yari_saydam_plastik_parca_uretimi),
-    ("uzaktan-kumanda-pil-kapagi-yaptirma", "Uzaktan Kumanda Pil Kapağı Rehberi", "Uzaktan kumanda pil kapağı kaybolduğunda ya da kırıldığında katalogdaki hazır kapaklar, ölçüyü sitede girdiğiniz seçenekler ve malzeme seçimi.", _uzaktan_kumanda_pil_kapagi_yaptirma),
+    ("uzaktan-kumanda-pil-kapagi-yaptirma", "Uzaktan Kumanda Pil Kapağı Rehberi", "Uzaktan kumanda pil kapağı kaybolduğunda katalogdaki hazır kapaklar, sitede ölçüsü seçilen seçenekler ve malzeme seçimi anlatılıyor.", _uzaktan_kumanda_pil_kapagi_yaptirma),
     ('olcuye-ozel-plastik-samandira-seviye-elemani-uretimi', 'Plastik Şamandıra ve Seviye Elemanı Rehberi', 'Şamandıra, seviye elemanı ve sıvı seviye takip parçaları: su altında çalışma koşulları, malzeme seçimi, katalogdaki hazır seçenekler.', _olcuye_ozel_plastik_samandira_seviye_elemani_uretimi),
     ('olcuye-ozel-mengene-cenesi-yumusak-cene-uretimi', 'Plastik Mengene Çenesi ve Yumuşak Çene Rehberi', 'Mengene çenesi, yumuşak çene ve koruyucu çene parçaları: işlenen malzemeye göre doğru sertlik, katalogdaki hazır seçenekler ve sınırlar.', _olcuye_ozel_mengene_cenesi_yumusak_cene_uretimi),
     ('olcuye-ozel-teleskopik-boru-kilidi-sikma-bilezigi-uretimi', 'Teleskopik Boru Kilidi ve Sıkma Bileziği Rehberi', 'Teleskopik boru kilidi ve sıkma bileziği nasıl çalışır, sıkma payı nasıl belirlenir, katalogdaki hazır seçenekler ve ölçüyü sitede girdiğiniz aile.', _olcuye_ozel_teleskopik_boru_kilidi_sikma_bilezigi_uretimi),
@@ -23819,7 +23787,7 @@ CONTENT_PAGES = [
     ('otomatik-kapi-bahce-kapisi-plastik-parca-uretimi', 'Otomatik Kapı ve Bahçe Kapısı Plastik Parça Rehberi', 'Otomatik kapı, bahçe kapısı ve kepenk sistemlerindeki plastik parçalar: güneş, yağmur ve sürekli hareket altında malzeme seçimi, katalogdaki hazır seçenekler.', _otomatik_kapi_bahce_kapisi_plastik_parca_uretimi),
     ('soguk-hava-deposu-sogutma-ekipmani-plastik-parca-uretimi', 'Soğuk Hava Deposu ve Soğutma Ekipmanı Parça Rehberi', 'Soğuk hava deposu ve soğutma ekipmanı için plastik parçalar: düşük sıcaklık etkisi, doğru malzeme seçimi, katalogdaki hazır seçenekler ve sınırlar.', _soguk_hava_deposu_sogutma_ekipmani_plastik_parca_uretimi),
     ("muadil-parca-nedir-orijinaliyle-farki", "Muadil Parça Nedir, Orijinalinden Farkı Ne?", "Muadil parça ne demek, orijinalinden farkı nedir? Orijinal, seri muadil ve katalogdaki hazır parçayı yan yana koyduk; malzeme farkı ve sınırı da açıkça yazdık.", _muadil_parca_nedir_orijinaliyle_farki),
-    ("ozel-uretim-plastik-parca-su-sizdirir-mi", "Ölçüye Özel Plastik Parça Su Sızdırır mı?", "Katalogdaki ölçüye özel parçalar su tutar mı, sızdırmazlık nasıl kurulur, hangi basınca kadar gider? Conta yatağını ve dürüst sınırı açıkça yazdık.", _ozel_uretim_plastik_parca_su_sizdirir_mi),
+    ("ozel-uretim-plastik-parca-su-sizdirir-mi", "Ölçülü Plastik Parça Su Sızdırır mı?", "Sitedeki ölçülü parçalar su tutar mı, sızdırmazlık nasıl kurulur, hangi basınca kadar gider? Conta yatağı ve dürüst sınır açıkça yazıldı.", _ozel_uretim_plastik_parca_su_sizdirir_mi),
     ("sessiz-calisan-gicirti-yapmayan-plastik-parca-uretimi", "Sessiz Çalışan, Gıcırtı Yapmayan Plastik Parça", "Gıcırtı ve tıkırtının üç nedeni, katalogdaki sessiz çalışma aileleri ve doğru malzeme çifti; 41.000'den fazla hazır parça içinde arama yolu anlatılıyor.", _sessiz_calisan_gicirti_yapmayan_plastik_parca_uretimi),
     ("isi-yalitimi-saglayan-plastik-ara-parca-uretimi", "Isı Yalıtan Plastik Ara Parça", "Sıcak yüzeyle montaj arasındaki ısı köprüsünü kesen plastik ara parça, takoz ve pul: kesit mantığı, katalogdaki aileler ve sıcaklık sınırı.", _isi_yalitimi_saglayan_plastik_ara_parca_uretimi),
     ("oto-far-kulagi-tespit-tirnagi-yaptirma", "Far Kulağı ve Far Tespit Tırnağı", "Far kulağı ve tespit tırnağı neden çatlar, hangi malzeme dayanır, katalogda nerede bulunur? Arama yolu ve doğru sınır burada.", _oto_far_kulagi_tespit_tirnagi_yaptirma),
@@ -23829,42 +23797,42 @@ CONTENT_PAGES = [
     ("yelkenli-tekne-donanim-parcasi-ozel-uretim", "Yelkenli Tekne Donanım Parçası", "Makara kapağı, ip yönlendirici, tente kızağı takozu ve mandal kapağı katalogda; arama yolu, malzeme seçimi ve yük dışı parça sınırı anlatılıyor.", _yelkenli_tekne_donanim_parcasi_ozel_uretim),
     ("tekne-sintine-pompasi-parcasi-ozel-uretim", "Tekne Sintine Pompası Parçası", "Sintine pompası süzgeci, üst kapağı, hortum rakoru ve şamandıra tutucusu katalogda: arama yolu, nem ve malzeme seçimi, emniyet sınırı.", _tekne_sintine_pompasi_parcasi_ozel_uretim),
     ("tekne-aku-ekipman-sabitleme-parcasi-ozel-uretim", "Tekne Akü ve Ekipman Sabitleme Parçası", "Akü kutusu kapağı, ekipman braketi, kelepçe ve takoz katalogda; tuz ve titreşim koşuluna uygun malzeme ile yük sınırı anlatılıyor.", _tekne_aku_ekipman_sabitleme_parcasi_ozel_uretim),
-    ("tekne-yedek-parcasi-bulunamiyorsa-ozel-uretim", "Bulunamayan Tekne Yedek Parçası", "Tekne yedek parçası katalogda yoksa ne yapılır: 41.000'den fazla hazır parçada arama yolu, ölçüyü sitede yazma akışı ve dürüst sınır.", _tekne_yedek_parcasi_bulunamiyorsa_ozel_uretim),
+    ("tekne-yedek-parcasi-bulunamiyorsa-ozel-uretim", "Tekne Yedek Parçası Katalogda Yoksa Ne Olur?", "Eksik olan bütün bir sistem değil, avuç içi kadar bir plastik elemandır: kapak, tırnak, burç, tutamak. Hazır parçada arama yolu anlatılıyor.", _tekne_yedek_parcasi_bulunamiyorsa_ozel_uretim),
     ("oto-tampon-baglanti-klipsi-yaptirma", "Oto Tampon Bağlantı Klipsi ve Tırnağı", "Tampon klipsi, bağlantı penası ve tespit tırnağı neden çatlar, hangi malzeme dayanır, katalogda nerede bulunur? Arama yolu ve sınır burada.", _oto_tampon_baglanti_klipsi_yaptirma),
     ("oto-yan-ayna-kapagi-govdesi-yaptirma", "Oto Yan Ayna Kapağı ve Gövdesi", "Yan ayna kapağı ve gövdesi neden çatlar, hangi malzeme dayanır, katalogda nerede bulunur? Modele göre arama yolu ve sınır burada.", _oto_yan_ayna_kapagi_govdesi_yaptirma),
-    ("olcuye-ozel-motosiklet-camurluk-uretimi", "Ölçüye Özel Motosiklet Çamurluk ve Uzatma", "Motosiklet çamurluğu ve uzatması: yol darbesi, güneş ve titreşim koşulları, katalogdaki marka sayfaları ve malzeme seçimi.", _olcuye_ozel_motosiklet_camurluk_uretimi),
+    ("olcuye-ozel-motosiklet-camurluk-uretimi", "Plastik Motosiklet Çamurluk ve Uzatma: Sitede Ölçüsü Seçilen Seçenekler", "Yol darbesi, güneş ve titreşim koşulları, katalogdaki marka sayfaları ve malzeme seçimi; ölçüyü ürün sayfasında siz yazarsınız.", _olcuye_ozel_motosiklet_camurluk_uretimi),
     ("bisiklet-zincir-koruma-jant-teli-koruyucu-uretimi", "Bisiklet Zincir Koruma ve Jant Teli Koruyucu", "Zincir koruma diski ve jant teli koruyucu: neden bulunmaz, katalogda nasıl aranır, sürtünme ve güneş için malzeme seçimi.", _bisiklet_zincir_koruma_jant_teli_koruyucu_uretimi),
     ("deniz-motosikleti-jetski-plastik-parca-uretimi", "Deniz Motosikleti (Jet Ski) Plastik Parçası", "Jet ski bagaj kapağı mandalı, ayna gövdesi, gösterge çerçevesi ve mat klipsi: tuz, güneş ve darbe koşulu ile sınır.", _deniz_motosikleti_jetski_plastik_parca_uretimi),
     ("oto-kapi-acma-kolu-ve-ic-kol-yaptirma", "Oto Kapı Açma Kolu ve İç Kol", "Araç iç açma kolu, kolçak kapağı, kapı kolu çerçevesi ve tespit tırnağı katalogda: yorulma koşulu, doğru malzeme ve güvenlik sınırı.", _oto_kapi_acma_kolu_ve_ic_kol_yaptirma),
     ("romork-treyler-plastik-parca-ozel-uretim", "Römork ve Treyler Plastik Parçası", "Römork soket kapağı, çamurluk klipsi, lamba braketi ve branda mandalı: açıkta yıpranma koşulu, katalog arama yolu ve güvenlik sınırı.", _romork_treyler_plastik_parca_ozel_uretim),
     ("ofis-koltugu-ve-sandalye-plastik-parca-yaptirma", "Ofis Koltuğu ve Sandalye Plastik Parçası", "Ofis koltuğunun kolçak kapağı, ayar kolu, mekanizma kapağı ve tutucusu katalogda; yorulma koşulu, malzeme ve taşıyıcı hat sınırı.", _ofis_koltugu_ve_sandalye_plastik_parca_yaptirma),
     ("hidrolik-pnomatik-ekipman-plastik-parca-uretimi", "Hidrolik ve Pnömatik Ekipman Plastik Parçası", "Kumanda topuzu, koruma kapağı, sensör braketi ve hortum tutucusu katalogda: yağ, sıcaklık ve titreşim koşuluna uygun malzeme ile basınç sınırı.", _hidrolik_pnomatik_ekipman_plastik_parca_uretimi),
-    ("olcuye-ozel-plastik-koruk-ve-toz-mansonu-uretimi", "Ölçüye Özel Plastik Körük ve Toz Manşonu", "Mil, mafsal ve kumanda kolu için körük ve toz manşonu: iç ve dış çap, serbest boy ve kıvrım sayısı değerlerini sitede siz yazarsınız.", _olcuye_ozel_plastik_koruk_ve_toz_mansonu_uretimi),
-    ("olcuye-ozel-plastik-suzgec-ve-filtre-sepeti-uretimi", "Ölçüye Özel Plastik Süzgeç ve Filtre Sepeti", "Pompa emiş süzgeci, filtre sepeti ve delikli kafes: dış çap, yükseklik ve delik ölçüsünü sitede siz yazarsınız; malzeme ve basınç sınırı anlatılıyor.", _olcuye_ozel_plastik_suzgec_ve_filtre_sepeti_uretimi),
+    ("olcuye-ozel-plastik-koruk-ve-toz-mansonu-uretimi", "Plastik Körük ve Toz Manşonu: Sitede Ölçüsü Seçilen Seçenekler", "İç ve dış çap, serbest boy ve kıvrım sayısı değerlerini ürün sayfasında siz yazarsınız; manşon numuneden hazırlanmaz.", _olcuye_ozel_plastik_koruk_ve_toz_mansonu_uretimi),
+    ("olcuye-ozel-plastik-suzgec-ve-filtre-sepeti-uretimi", "Plastik Süzgeç ve Filtre Sepeti: Sitede Ölçüsü Seçilen Seçenekler", "Dış çap, yükseklik ve delik ölçüsünü ürün sayfasında siz yazarsınız; malzeme ve basınç sınırı anlatılıyor.", _olcuye_ozel_plastik_suzgec_ve_filtre_sepeti_uretimi),
     ("surekli-yuk-altinda-plastik-parca-deforme-olur-mu", "Sürekli Yük Altında Plastik Parça Deforme Olur mu?", "Sürekli yük altındaki plastik parça zamanla yavaşça şekil değiştirir: sürünmenin nedeni, hangi parçalarda önemli olduğu ve katalogda nasıl azaltıldığı.", _surekli_yuk_altinda_plastik_parca_deforme_olur_mu),
     ("ozel-uretim-plastik-parca-nasil-monte-edilir", "Ölçüye Özel Plastik Parça Nasıl Monte Edilir?", "Katalogdaki ölçüye özel parça nasıl takılır: vida sıkma ölçüsü, pilot delik, geçme sıkılığı, genleşme payı ve montaj sırası adım adım.", _ozel_uretim_plastik_parca_nasil_monte_edilir),
-    ("ozel-uretim-parcanin-yuzey-kalitesi-nasil-olur", "Ölçüye Özel Parçanın Yüzey Kalitesi Nasıl Olur?", "Katalogdaki ölçüye özel parçanın yüzeyi nasıl görünür, hangi yüzeyler pürüzsüz olur ve boyayla nasıl eşitlenir? Beklentiyi burada kuruyoruz.", _ozel_uretim_parcanin_yuzey_kalitesi_nasil_olur),
+    ("ozel-uretim-parcanin-yuzey-kalitesi-nasil-olur", "Ölçülü Parçanın Yüzey Kalitesi Nasıl Olur?", "Sitedeki ölçülü parçanın yüzeyi nasıl görünür, hangi yüzeyler pürüzsüz olur ve boyayla nasıl eşitlenir? Beklentiyi burada kuruyoruz.", _ozel_uretim_parcanin_yuzey_kalitesi_nasil_olur),
     ("cikma-parca-mi-ozel-uretim-mi", "Çıkma Parça mı, Katalogdaki Ürün mü?", "Bulunamayan parçada iki yolun karşılaştırması: yaş, uyum, adet, malzeme, süre ve katalogda arama yolu.", _cikma_parca_mi_ozel_uretim_mi),
 
     ('atv-utv-plastik-parca-ozel-uretim', "ATV ve UTV Plastik Parçası: Arazi Koşuluna Uygun Yedek Parça",
      "Çamurluk klipsi, far çerçevesi ve kumanda topuzu için güneş, toz ve darbe yüküne göre malzeme seçimi ile güvenlik elemanlarının kapsam dışı olduğu anlatılıyor.", _atv_utv_plastik_parca_ozel_uretim),
-    ('bavul-ve-valiz-plastik-parca-yaptirma', "Bavul ve Valiz Plastik Parçası: Yedek Parça Bulma",
-     "Teleskopik kol tutamağı, tekerlek çatalı, köşe ayağı ve kilit düğmesi için ölçü bilgisi, kabin ve ambar koşullarına göre malzeme seçimi ve güvenlik sınırı anlatılıyor.", _bavul_ve_valiz_plastik_parca_yaptirma),
+    ('bavul-ve-valiz-plastik-parca-yaptirma', "Bavul ve Valiz Parçaları: Katalogdaki Yedekler",
+     "Teleskopik kol tutamağı, tekerlek çatalı, köşe ayağı ve kilit düğmesi için katalogdaki hazır yedekler ve malzeme seçimi.", _bavul_ve_valiz_plastik_parca_yaptirma),
     ("laptop-notebook-plastik-parca-yaptirma", "Laptop ve Dizüstü Bilgisayar Plastik Parçası", "Dizüstü bilgisayarın menteşe kapağı, port kapağı, çerçeve tırnağı ve taban ayağı katalogda: marka sayfaları, malzeme ve cihaz sınırı.", _laptop_notebook_plastik_parca_yaptirma),
     ('bahce-ve-balkon-mobilyasi-plastik-parca-yaptirma', "Bahçe ve Balkon Mobilyası Plastik Parçası: Yedek Parça Bulma",
      "Şezlong mandalı, ayak tapası, şemsiye bileziği ve kaydırmaz ped için ölçü, dış mekân malzeme seçimi ve yük taşıyan elemanların kapsam dışı olduğu anlatılıyor.", _bahce_ve_balkon_mobilyasi_plastik_parca_yaptirma),
     ("tente-ve-pergole-plastik-parca-uretimi", "Tente ve Pergole Plastik Parçası", "Tente ve pergole sisteminin profil uç kapağı, kanal kaması, ray kılavuz takozu ve kör tapası: arama yolu, malzeme ve yük sınırı.", _tente_ve_pergole_plastik_parca_uretimi),
     ("plastik-parca-neden-kirilir-yine-kirilir-mi", "Plastik Parça Neden Kırılır, Aynı Yerden Yine Kırılır mı?", "Plastik parça neden hep aynı yerden çatlar? Kırık yüzeyden nedenin nasıl okunduğu, altı yaygın kırılma biçimi ve doğru malzeme burada.", _plastik_parca_neden_kirilir_yine_kirilir_mi),
-    ("olcuye-ozel-plastik-bobin-ve-sarim-makarasi-uretimi", "Ölçüye Özel Plastik Bobin ve Sarım Makarası", "Tel, ip, kablo ve şerit saran bobin: göbek çapı, yanak çapı, sarım genişliği ve mil deliği değerlerini sitede siz yazarsınız.", _olcuye_ozel_plastik_bobin_ve_sarim_makarasi_uretimi),
-    ("olcuye-ozel-kelebek-somun-ve-yildiz-kol-uretimi", "Ölçüye Özel Kelebek Somun ve Yıldız Kol", "Elle sıkılan kelebek somunu, yıldız kollu topuzu ve tırtıllı somunu diş ölçüsü, kol boyu ve malzemeye göre seçersiniz; katalogda mevcut.", _olcuye_ozel_kelebek_somun_ve_yildiz_kol_uretimi),
+    ("olcuye-ozel-plastik-bobin-ve-sarim-makarasi-uretimi", "Plastik Bobin ve Sarım Makarası: Sitede Ölçüsü Seçilen Seçenekler", "Göbek çapı, yanak çapı, sarım genişliği ve mil deliği değerlerini ürün sayfasında siz yazarsınız.", _olcuye_ozel_plastik_bobin_ve_sarim_makarasi_uretimi),
+    ("olcuye-ozel-kelebek-somun-ve-yildiz-kol-uretimi", "Kelebek Somun ve Yıldız Kol: Sitede Ölçüsü Seçilen Seçenekler", "Diş ölçüsü, kol boyu ve malzemeye göre seçim; ölçüyü ürün sayfasında siz yazarsınız, somun numuneden hazırlanmaz.", _olcuye_ozel_kelebek_somun_ve_yildiz_kol_uretimi),
     ("market-rafi-ve-magaza-ekipmani-plastik-parca-uretimi", "Market Rafı ve Mağaza Ekipmanı Plastik Parçası", "Raf etiket rayı klipsi, ürün iticisi kızağı, askı çubuğu başlığı ve sepet tutamağı katalogda; adet kırılımı ve yük sınırı anlatılıyor.", _market_rafi_ve_magaza_ekipmani_plastik_parca_uretimi),
     ("oyun-parki-ekipmani-plastik-parca-uretimi", "Oyun Parkı Ekipmanı Plastik Parçası", "Oyun grubunun kaybolan cıvata kapağı, boru ucu tapası, panel köşe koruyucusu ve bilgi plakası tutucusu katalogda: malzeme ve çocuk güvenliği sınırı.", _oyun_parki_ekipmani_plastik_parca_uretimi),
     ("klozet-kapagi-mentesesi-ve-rezervuar-parcasi-yaptirma", "Klozet Kapağı Menteşesi ve Rezervuar Parçası", "Klozet kapağının menteşe seti, oturma takozu ve rezervuarın basma butonu ile kolu katalogda: ölçü mantığı, malzeme ve su sınırı.", _klozet_kapagi_mentesesi_ve_rezervuar_parcasi_yaptirma),
 
-    ("olcuye-ozel-montaj-aparati-ve-jig-uretimi", "Ölçüye Özel Montaj Aparatı ve Jig", "Atölyede tekrar eden işi kısaltan delik şablonu, sabitleme jigi, kontrol mastarı ve dizme kızağı: ölçüyü sitede siz yazarsınız.", _olcuye_ozel_montaj_aparati_ve_jig_uretimi),
-    ("prototip-ve-deneme-parcasi-urettirme", "Prototip ve Deneme Parçası", "Yeni bir parçanın ilk örneğini katalogdaki ölçüye özel ailelerden sipariş edersiniz: ölçüyü siz yazarsınız, denersiniz ve revizyonla ilerlersiniz.", _prototip_ve_deneme_parcasi_urettirme),
-    ("gonderilen-numune-parca-geri-verilir-mi", "Parçanız Size Geri Verilir mi?", "Gönderdiğiniz parça sizindir: PRUVO'da parça göndermeniz gerekmiyor, ölçüyü sitede siz yazıyorsunuz. Gönderdiğinizde nasıl saklanır ve iade edilir.", _gonderilen_numune_parca_geri_verilir_mi),
-("karmasik-geometrili-parca-birebir-cikarilir-mi", "Karmaşık Geometrili Parça Birebir Çıkarılır mı?", "Kavisli yüzeyli ve çok tırnaklı parçalarda katalogdaki hangi aileler işe yarar, hangi geometri zorlar? Arama yolu, malzeme ve dürüst sınır burada.", _karmasik_geometrili_parca_birebir_cikarilir_mi),
+    ("olcuye-ozel-montaj-aparati-ve-jig-uretimi", "Montaj Aparatı ve Jig: Sitede Ölçüsü Seçilen Seçenekler", "Delik şablonu, sabitleme jigi, kontrol mastarı ve dizme kızağı: ölçüyü ürün sayfasında siz yazarsınız, parça numuneden hazırlanmaz.", _olcuye_ozel_montaj_aparati_ve_jig_uretimi),
+    ("prototip-ve-deneme-parcasi-urettirme", "Bir Parçayı Denemeden Önce Ne Yapılır?", "Katalogdaki sitede ölçüsü seçilen ailelerden bir parça sipariş eder, elinize alıp denersiniz; beğenmezseniz yeni bir sipariş verirsiniz.", _prototip_ve_deneme_parcasi_urettirme),
+    ("gonderilen-numune-parca-geri-verilir-mi", "Parçanız Size Geri Verilir mi?", "Parça göndermeniz gerekmiyor: katalogdaki ürünü seçer, ölçüyü sitede siz yazarsınız; elinizdeki parça bize ulaşmaz ve iade edilmez.", _gonderilen_numune_parca_geri_verilir_mi),
+("karmasik-geometrili-parca-birebir-cikarilir-mi", "Karmaşık Geometrili Parça Birebir Çıkarılır mı?", "Katalogda bu geometriyi karşılayan hazır aileler var; kendi çiziminize göre parça çıkarılmaz. Arama yolu, malzeme ve dürüst sınır burada.", _karmasik_geometrili_parca_birebir_cikarilir_mi),
 ("sag-parcadan-sol-parca-uretilir-mi", "Sağ Parçadan Sol (Ayna) Parça Üretilir mi?", "Çift parçalı ürünlerde sağ ve sol eşi katalogda nasıl bulunur, ayna alırken hangi kural geçerlidir? Arama yolu ve dürüst sınır burada.", _sag_parcadan_sol_parca_uretilir_mi),
     ('akulu-cocuk-arabasi-plastik-parca-yaptirma', "Akülü Çocuk Arabası Plastik Parça: Yedek Parça Kataloğunda Arama",
      "Redüktör dişlisi, tekerlek göbeği, pedal kapağı ve kapı mandalı gibi kalemlerin katalogda nasıl aranacağı, aşınma ve malzeme seçimi anlatılıyor; güvenlik elemanları kapsam dışı.", _akulu_cocuk_arabasi_plastik_parca_yaptirma),
@@ -23875,18 +23843,18 @@ CONTENT_PAGES = [
     ("elektrikli-arac-sarj-istasyonu-plastik-parca-uretimi", "Elektrikli Araç Şarj İstasyonu Plastik Parçası", "Şarj ünitesinin park yuvası, kablo askısı, kapak ve montaj parçaları: dış koşul, malzeme ve akım sınırı.", _elektrikli_arac_sarj_istasyonu_plastik_parca_uretimi),
 
     ("olcuye-ozel-plastik-emniyet-pimi-ve-kesme-pimi-uretimi", "Emniyet Pimi ve Kesme Pimi", "Kopması istenen makine elemanı: boyun kesiti ve malzeme sınıfı, sayısal kopma değeri verilmez, katalogdaki pim kalemleri.", _olcuye_ozel_plastik_emniyet_pimi_ve_kesme_pimi_uretimi),
-    ("olcuye-ozel-plastik-sevk-olugu-ve-urun-kilavuzu-uretimi", "Ölçüye Özel Sevk Oluğu ve Ürün Kılavuzu Üretimi", "Paketleme hattında ürünü yönlendiren sevk oluğu ve kılavuz çıtaları: aşınma nedenleri, doğru malzeme seçimi ve katalogdaki hazır parçalardan arama yolu.", _olcuye_ozel_plastik_sevk_olugu_ve_urun_kilavuzu_uretimi),
+    ("olcuye-ozel-plastik-sevk-olugu-ve-urun-kilavuzu-uretimi", "Sevk Oluğu ve Ürün Kılavuzu: Sitede Ölçüsü Seçilen Seçenekler", "Paketleme hattında ürünü yönlendiren sevk oluğu ve kılavuz çıtaları: aşınma nedenleri, doğru malzeme ve katalogdaki hazır parçalar.", _olcuye_ozel_plastik_sevk_olugu_ve_urun_kilavuzu_uretimi),
     ("ruzgar-turbini-ve-yenilenebilir-enerji-ekipmani-plastik-parca-uretimi", "Rüzgar Türbini ve Enerji Ekipmanı Parça Üretimi", "Rüzgar türbini ve yenilenebilir enerji sahasındaki küçük plastik parçalar: neden kırılır, hangi malzeme dayanır, katalogda nerede aranır.", _ruzgar_turbini_ve_yenilenebilir_enerji_ekipmani_plastik_parca_uretimi),
     ("yuruyen-merdiven-ve-yuruyen-bant-plastik-parca-uretimi", "Yürüyen Merdiven ve Bant Plastik Parça Üretimi", "Yürüyen merdiven ve bant arızasının büyük kısmı küçük plastik parçalardan gelir: etek paneli, korkuluk kapağı, servis kapağı mandalı ve kumanda tuş kapağı.", _yuruyen_merdiven_ve_yuruyen_bant_plastik_parca_uretimi),
     ("plaj-ve-sahil-isletmesi-ekipmani-plastik-parca-uretimi", "Plaj ve Sahil İşletmesi Ekipmanı Plastik Parça Üretimi", "Plaj işletmesindeki şemsiye, sandalye, duş ve can güvenliği ekipmanı: tuz, güneş ve nemin parçaya etkisi ile katalogdaki hazır seçenekler.", _plaj_ve_sahil_isletmesi_ekipmani_plastik_parca_uretimi),
     ("geri-donusum-tesisi-ve-atik-ayristirma-ekipmani-plastik-parca-uretimi", "Geri Dönüşüm Tesisi ve Atık Ayrıştırma Ekipmanı Plastik Parça Üretimi", "Geri dönüşüm tesislerinde konveyör kapağı, ayırma ekranı ve sensör yuvası gibi kalemler: toz, nem ve aşınmanın etkisi, doğru malzeme ve katalog yolu.", _geri_donusum_tesisi_ve_atik_ayristirma_ekipmani_plastik_parca_uretimi),
-    ("tekne-radar-direk-ve-anten-baglantisi-ozel-uretim", "Tekne Radar Direği ve Anten Bağlantısı Özel Üretim", "Tekne radar direği, anten kaidesi ve kablo geçiş bağlantıları: deniz ortamında tuz ve titreşim, doğru malzeme ve katalogdaki hazır seçenekler.", _tekne_radar_direk_ve_anten_baglantisi_ozel_uretim),
-    ("oto-cakmaklik-ve-usb-yuvasi-cercevesi-yaptirma", "Oto Çakmaklık ve USB Yuvası Çerçevesi Yaptırma", "Araç orta konsolundaki çakmaklık ve USB yuvası çerçevesi: neden kırılır, doğru malzeme ve marka-model sayfalarından arama yolu.", _oto_cakmaklik_ve_usb_yuvasi_cercevesi_yaptirma),
+    ("tekne-radar-direk-ve-anten-baglantisi-ozel-uretim", "Tekne Radar Direği ve Anten Bağlantısı: Katalogdaki Hazır Seçenekler", "Tekne radar direği, anten kaidesi ve kablo geçiş bağlantıları: deniz ortamında tuz ve titreşim, doğru malzeme ve katalogdaki seçenekler.", _tekne_radar_direk_ve_anten_baglantisi_ozel_uretim),
+    ("oto-cakmaklik-ve-usb-yuvasi-cercevesi-yaptirma", "Oto Çakmaklık ve USB Yuvası Çerçevesi: Katalogdaki Seçenekler", "Araç orta konsolundaki çerçeve: neden kırılır, doğru malzeme ve marka-model sayfalarından arama yolu.", _oto_cakmaklik_ve_usb_yuvasi_cercevesi_yaptirma),
     ("elektromanyetik-sinyali-engellemeyen-plastik-parca-uretimi", "Sinyal Geçirgen Plastik Parça", "Anten kapağı ve telemetri muhafazası: yalıtkan malzeme seçimi, kapak kalınlığı, iç yerleşim ve ölçüm sınırı.", _elektromanyetik_sinyali_engellemeyen_plastik_parca_uretimi),
-    ("kirik-parcanin-eksik-kalan-bolumu-tamamlanir-mi", "Kırık Parçadaki Eksik Bölüm Tamamlanır mı?", "Yalnız bir bölümü kırılan parçanın eksik kısmı neden doğrudan hazırlanamaz; bunun yerine katalogda hazır parça arama yolu ve siteden ölçü seçme adımı.", _kirik_parcanin_eksik_kalan_bolumu_tamamlanir_mi),
+    ("kirik-parcanin-eksik-kalan-bolumu-tamamlanir-mi", "Kırık Parçadaki Eksik Bölüm Tamamlanır mı?", "Yalnız bir bölümü kırılan parçanın eksik kısmı doğrudan hazırlanamaz; yerine katalogda hazır parça aranır ve ölçü sitede seçilir.", _kirik_parcanin_eksik_kalan_bolumu_tamamlanir_mi),
     ("makinenin-tum-plastik-parcalarini-yenileme", "Makinenin Tüm Plastik Parçalarını Yenileme", "Bir makinenin tüm plastik parçalarını yenilemek için pratik yol: kalem listesi çıkarma, katalogda karşılık arama, marka-model sayfası ve toplu sipariş.", _makinenin_tum_plastik_parcalarini_yenileme),
-                    ("olcuye-ozel-plastik-firca-gobegi-ve-firca-tutucusu-uretimi", "Ölçüye Özel Fırça Göbeği ve Fırça Tutucusu", "Fırça göbeği, kıl yuvası, kapak bileziği ve makineye bağlanan tutucu: belirleyici ölçüler, doğru malzeme ve dürüst sınır.", _olcuye_ozel_plastik_firca_gobegi_ve_firca_tutucusu_uretimi),
-                    ("olcuye-ozel-plastik-kilit-karsiligi-ve-dil-yuvasi-uretimi", "Ölçüye Özel Kilit Karşılığı ve Dil Yuvası", "Kilidin sabit tarafındaki karşılık plakası ve dil yuvası: ölçüler, dil payı, doğru malzeme ve güvenlik sınırı.", _olcuye_ozel_plastik_kilit_karsiligi_ve_dil_yuvasi_uretimi),
+                    ("olcuye-ozel-plastik-firca-gobegi-ve-firca-tutucusu-uretimi", "Fırça Göbeği ve Fırça Tutucusu: Sitede Ölçüsü Seçilen Seçenekler", "Fırça göbeği, kıl yuvası, kapak bileziği ve makineye bağlanan tutucu: belirleyici ölçüler, doğru malzeme ve dürüst sınır.", _olcuye_ozel_plastik_firca_gobegi_ve_firca_tutucusu_uretimi),
+                    ("olcuye-ozel-plastik-kilit-karsiligi-ve-dil-yuvasi-uretimi", "Kilit Karşılığı ve Dil Yuvası: Sitede Ölçüsü Seçilen Seçenekler", "Kilidin sabit tarafındaki karşılık plakası ve dil yuvası: ölçüler, dil payı, doğru malzeme ve güvenlik sınırı.", _olcuye_ozel_plastik_kilit_karsiligi_ve_dil_yuvasi_uretimi),
     ("tas-ve-mermer-atolyesi-ekipmani-plastik-parca-uretimi", "Taş ve Mermer Atölyesi Ekipmanı Parçası", "Tezgâh kızağı, dayama takozu, su siperliği ve tasnif parçaları için katalog yolu, aşındırıcı ortama uygun malzeme ve kapsam sınırı anlatılıyor.", _tas_ve_mermer_atolyesi_ekipmani_plastik_parca_uretimi),
     ("at-ciftligi-ve-binicilik-tesisi-ekipmani-plastik-parca-uretimi", "At Çiftliği ve Binicilik Tesisi Ekipmanı Parçası", "Ahırda kırılan boks kapısı burcu, yemlik bileziği ve suluk kapağı: malzeme, sınır ve katalogdaki hazır seçenekler.", _at_ciftligi_ve_binicilik_tesisi_ekipmani_plastik_parca_uretimi),
     ("sinema-tiyatro-ve-konferans-salonu-plastik-parca-uretimi", "Sinema, Tiyatro ve Konferans Salonu Parçası", "Salon koltuğu kapağı, kolçak, numara plakası ve delege ünitesi çerçevesi için katalog yolu, malzeme seçimi ve kapsam sınırı anlatılıyor.", _sinema_tiyatro_ve_konferans_salonu_plastik_parca_uretimi),
@@ -23894,58 +23862,58 @@ CONTENT_PAGES = [
     ("tekne-balik-bulucu-ve-iskandil-braketi-ozel-uretim", "Tekne Balık Bulucu ve İskandil Braketi", "Tekne balık bulucu ekranı ve iskandil probu braketlerinin katalog yolu, deniz koşuluna uygun malzeme seçimi ve kapsam sınırı anlatılıyor.", _tekne_balik_bulucu_ve_iskandil_braketi_ozel_uretim),
                     ("motosiklet-gidon-ucu-ve-kumanda-kutusu-kapagi-ozel-uretim", "Motosiklet Gidon Ucu ve Kumanda Kutusu Kapağı", "Gidon ucu kapağı, kumanda kutusu muhafazası ve kelepçe kapağı: ölçüler, titreşim etkisi, malzeme ve güvenlik sınırı.", _motosiklet_gidon_ucu_ve_kumanda_kutusu_kapagi_ozel_uretim),
     ("vakum-altinda-calisan-plastik-parca-uretimi", "Vakum Altında Çalışan Plastik Parça Üretimi", "Emiş hattında çalışan rakor, kapak, süzgeç ve tutucu kalemleri için çökme ve kaçak sebepleri, malzeme seçimi ve kapsam sınırı anlatılıyor.", _vakum_altinda_calisan_plastik_parca_uretimi),
-                    ("ozel-uretim-parca-sertifikali-mi-belgeli-mi", "Özel Üretim Parça Sertifikalı mı, Belgeli mi?", "Ölçüye özel hazırlanan parça sertifikalı mı? Neyi yazılı beyan ederiz, neyi veremeyiz, belgeli ekipmanda hangi sırayla ilerlenir.", _ozel_uretim_parca_sertifikali_mi_belgeli_mi),
+                    ("ozel-uretim-parca-sertifikali-mi-belgeli-mi", "Hazırlanan Parça Sertifikalı mı, Belgeli mi?", "Sitede hazırlanan parça sertifikalı ya da belgelendirilmiş parça değildir. Neyi yazılı beyan ederiz, neyi veremeyiz, açıkça yazıldı.", _ozel_uretim_parca_sertifikali_mi_belgeli_mi),
     ("parcanin-hangi-olcusu-kritik-hangisi-degil", "Parçanın Hangi Ölçüsü Kritik, Hangisi Değil?", "Bir parçanın hangi ölçüsü işlevi belirler, hangisi yalnız görünüştedir? Kritik ölçüyü ayırmanın üç sorusu ve ölçü listesi mantığı anlatılıyor.", _parcanin_hangi_olcusu_kritik_hangisi_degil),
     # --- wave-44 (11 landing) ---
-                    ("olcuye-ozel-sertifika-diploma-ve-tablo-cercevesi-uretimi", "Özel Ölçü Sertifika ve Tablo Çerçevesi", "Sertifika, diploma ve tablo çerçevesini standart ölçüde bulamıyorsanız iç açıklık, profil genişliği ve derinliğe göre hazırlanır.", _olcuye_ozel_sertifika_diploma_ve_tablo_cercevesi_uretimi),
+                    ("olcuye-ozel-sertifika-diploma-ve-tablo-cercevesi-uretimi", "Sertifika ve Tablo Çerçevesi: Standart Ölçüde Bulma", "Sertifika, diploma ve tablo çerçevesini standart ölçüde bulamıyorsanız katalogdaki çerçeve ailelerine bakın; kendi belgenize göre imalat yapılmaz.", _olcuye_ozel_sertifika_diploma_ve_tablo_cercevesi_uretimi),
     ('kozmetik-ve-parfumeri-dolum-hatti-ekipmani-plastik-parca-uretimi', 'Kozmetik ve Parfümeri Dolum Hattı Ekipmanı Plastik Parçası', 'Dolum hattındaki yıldız çark, kılavuz ray ve sensör tutucusu: malzeme, kapsam sınırı ve katalogdaki seçenekler.', _kozmetik_ve_parfumeri_dolum_hatti_ekipmani_plastik_parca_uretimi),
     ('bowling-ve-oyun-salonu-ekipmani-plastik-parca-uretimi', 'Bowling ve Oyun Salonu Ekipmanı Plastik Parçası', 'Top iade kanalı kılavuzu, skor ünitesi kapağı ve jeton ünitesi kapağı: malzeme seçimi, sınır ve katalogdaki seçenekler.', _bowling_ve_oyun_salonu_ekipmani_plastik_parca_uretimi),
     ('ozel-uretim-parcaya-seri-numarasi-ve-qr-kod-islenir-mi', 'Parçaya Seri Numarası ve QR Kod İşlenir mi?', 'Seri numarası ve QR kod işleme: boyut, okunabilirlik, yüzey seçimi ve resmi belgelendirme sınırı bu sayfada anlatılıyor.', _ozel_uretim_parcaya_seri_numarasi_ve_qr_kod_islenir_mi),
-    ('kargoda-hasar-goren-ozel-uretim-parcada-ne-yapilir', 'Kargoda Hasar Gören Parçada Ne Yapılır?', 'Kargoda hasar gören özel üretim parçada ne yapılır? Üretim hatasıyla taşıma hasarını nasıl ayırt ettiğimizi, bildirim ve yeniden üretim sürecini anlattık.', _kargoda_hasar_goren_ozel_uretim_parcada_ne_yapilir),
+    ("kargoda-hasar-goren-ozel-uretim-parcada-ne-yapilir", "Kargoda Hasar Gören Parçada Ne Yapılır?", "Kargoda hasar gören parçada hasar bildirimi ve iade akışı; taşıma hasarı ile üretim hatası nasıl ayırt edilir.", _kargoda_hasar_goren_ozel_uretim_parcada_ne_yapilir),
     ('temiz-oda-ortaminda-kullanilan-plastik-parca-uretimi', 'Temiz Oda Ortamı İçin Plastik Parça', 'Temiz oda ortamında kılavuz, tutucu ve sensör muhafazası için düşük partikül salan malzeme, yüzey yaklaşımı ve sertifikasyon sınırı anlatılıyor.', _temiz_oda_ortaminda_kullanilan_plastik_parca_uretimi),
                     ("olcuye-ozel-plastik-kilit-pulu-ve-emniyet-rondelasi-uretimi", "Kilit Pulu ve Emniyet Rondelası Üretimi", "İç çap, dış çap, et kalınlığı ve tırnak sayısına göre kilit pulu ve emniyet rondelası; malzeme ve yüksek tork sınırı sayfada.", _olcuye_ozel_plastik_kilit_pulu_ve_emniyet_rondelasi_uretimi),
     ('kilitli-teker-fren-mekanizmali-govde-ozel-uretimi', 'Frenli (Kilitli) Teker Gövdesi', 'Raf ve servis arabasının kırılan kilitli teker gövdesi: ölçüler, malzeme, sınır ve katalogdaki seçenekler.', _kilitli_teker_fren_mekanizmali_govde_ozel_uretimi),
                     ("olcuye-ozel-plastik-rulman-kece-yuvasi-ve-toz-kapagi-uretimi", "Rulman Keçe Yuvası ve Toz Kapağı", "Rulmanın keçe yuvası ve toz kapağı: iç çap, dış çap ve oturma derinliği; malzeme, basınç ve sıcaklık sınırı sayfada.", _olcuye_ozel_plastik_rulman_kece_yuvasi_ve_toz_kapagi_uretimi),
-                    ("olcuye-ozel-surtunmeli-mentese-uretimi", "Sürtünmeli Menteşe Özel Üretimi", "Kapağı bırakıldığı açıda tutan sürtünmeli menteşe: mil çapı, dönüş açısı, malzeme ve güvenliğe bağlı kullanım sınırı.", _olcuye_ozel_surtunmeli_mentese_uretimi),
-                    ("olcuye-ozel-plastik-vantuz-tutucu-govdesi-uretimi", "Vantuz Tutucu Gövdesi Özel Üretimi", "Vantuzun üstüne oturan plastik tutucu ve montaj gövdesi: sap ölçüsü, yuva biçimi, malzeme ve dürüst sınır sayfada.", _olcuye_ozel_plastik_vantuz_tutucu_govdesi_uretimi),
+                    ("olcuye-ozel-surtunmeli-mentese-uretimi", "Sürtünmeli Menteşe: Sitede Ölçüsü Seçilen Seçenekler", "Kapağı bırakıldığı açıda tutan sürtünmeli menteşe: mil çapı, dönüş açısı ve malzeme; ölçüyü ürün sayfasında siz yazarsınız.", _olcuye_ozel_surtunmeli_mentese_uretimi),
+                    ("olcuye-ozel-plastik-vantuz-tutucu-govdesi-uretimi", "Vantuz Tutucu Gövdesi: Katalogdaki Seçenekler", "Vantuzun üstüne oturan plastik tutucu ve montaj gövdesi: sap ölçüsü, yuva biçimi, malzeme ve dürüst sınır sayfada.", _olcuye_ozel_plastik_vantuz_tutucu_govdesi_uretimi),
     # --- wave-45 (11 landing) ---
     ('tekne-seyir-feneri-braketi-ve-kaidesi-ozel-uretim', 'Tekne Seyir Feneri Braketi ve Kaidesi', 'Seyir feneri braketi, kaidesi ve koruma kafesinin katalog yolu, deniz koşuluna uygun malzeme ve fenerin optik aksamının kapsam dışı olduğu anlatılıyor.', _tekne_seyir_feneri_braketi_ve_kaidesi_ozel_uretim),
-                    ("mutfak-robotu-ve-blender-plastik-parcasi-yaptirma", "Mutfak Robotu ve Blender Plastik Parçası Yaptırma", "Blender kavanoz tırnağı, kaplin göbeği ve kapak mandalı: kırılma nedenleri, malzeme, katalogdaki seçenekler ve sipariş yolu.", _mutfak_robotu_ve_blender_plastik_parcasi_yaptirma),
-    ('priz-ve-anahtar-cercevesi-plastik-parcasi-yaptirma', 'Priz ve Anahtar Çerçevesi Plastik Parçası Yaptırma', 'Priz-anahtar çerçevesi, kapağı ve montaj ringi için katalog yolu, malzeme seçimi ve akım taşıyan iç mekanizmanın kapsam dışı olduğu anlatılıyor.', _priz_ve_anahtar_cercevesi_plastik_parcasi_yaptirma),
+                    ("mutfak-robotu-ve-blender-plastik-parcasi-yaptirma", "Mutfak Robotu ve Blender Plastik Parçası: Katalogdaki Seçenekler", "Kavanoz tırnağı, kaplin göbeği ve kapak mandalı: kırılma nedenleri, malzeme ve katalogdaki hazır seçenekler; numuneden üretim yapılmaz.", _mutfak_robotu_ve_blender_plastik_parcasi_yaptirma),
+    ('priz-ve-anahtar-cercevesi-plastik-parcasi-yaptirma', 'Priz ve Anahtar Çerçevesi: Katalogdaki Hazır Seçenekler', 'Çerçeve, kapak ve montaj halkası için katalog yolu, malzeme seçimi ve akım taşıyan iç mekanizmanın kapsam dışı olduğu.', _priz_ve_anahtar_cercevesi_plastik_parcasi_yaptirma),
     ('baza-ve-yatak-mekanizmasi-plastik-parcasi-yaptirma', 'Baza ve Yatak Mekanizması Plastik Parçası', 'Açılır bazada kırılan mafsal burcu, pim yuvası ve kilit dili: kalem grupları, malzeme ve katalogdaki seçenekler.', _baza_ve_yatak_mekanizmasi_plastik_parcasi_yaptirma),
-                    ("olcuye-ozel-sineklik-cercevesi-ve-kose-parcasi-uretimi", "Ölçüye Özel Sineklik Köşe Parçası Üretimi", "Sineklik köşe parçası, kelebek kilidi, menteşe pimi ve fitil tutucusu: profil kesiti, açı, güneşe dayanıklı malzeme ve sınır.", _olcuye_ozel_sineklik_cercevesi_ve_kose_parcasi_uretimi),
+                    ("olcuye-ozel-sineklik-cercevesi-ve-kose-parcasi-uretimi", "Sineklik Köşe Parçası: Sitede Ölçüsü Seçilen Seçenekler", "Sineklik köşe parçası, kelebek kilidi, menteşe pimi ve fitil tutucusu: profil kesiti, açı, güneşe dayanıklı malzeme ve sınır.", _olcuye_ozel_sineklik_cercevesi_ve_kose_parcasi_uretimi),
     ('meyve-sebze-hasat-ve-tasnif-ekipmani-plastik-parca-uretimi', 'Meyve Sebze Hasat ve Tasnif Ekipmanı Plastik Parçası', 'Hasat ve tasnif hattındaki taşıyıcı kase, sıyırıcı ve ayırıcı parmak: malzeme, sınır ve katalogdaki seçenekler.', _meyve_sebze_hasat_ve_tasnif_ekipmani_plastik_parca_uretimi),
                     ("ormancilik-ve-motorlu-testere-ekipmani-plastik-parca-uretimi", "Ormancılık ve Motorlu Testere Plastik Parçası", "Motorlu testere ve budama makinesinin gövde kapağı, tutamağı ve titreşim takozu yuvası: ölçüler, malzeme, kesici aksamın kapsam dışı olması.", _ormancilik_ve_motorlu_testere_ekipmani_plastik_parca_uretimi),
-    ('telefon-tutucu-ve-tablet-standi-plastik-parcasi-yaptirma', 'Telefon Tutucu ve Tablet Standı Parçası Yaptırma', 'Telefon tutucusu mafsal başı, kelepçe kolu ve tablet standı parçalarının katalog yolu, araç içi sıcaklıkta malzeme seçimi ve kapsam sınırı anlatılıyor.', _telefon_tutucu_ve_tablet_standi_plastik_parcasi_yaptirma),
+    ('telefon-tutucu-ve-tablet-standi-plastik-parcasi-yaptirma', 'Telefon Tutucu ve Tablet Standı: Katalogdaki Hazır Seçenekler', 'Mafsal başı, kelepçe kolu ve stand parçalarının katalog yolu, araç içi sıcaklıkta malzeme seçimi ve numuneden hazırlanmadığı.', _telefon_tutucu_ve_tablet_standi_plastik_parcasi_yaptirma),
     ('vida-basi-yuvasi-ve-havsa-olcusu-nasil-belirlenir', 'Vida Başı Yuvası ve Havşa Ölçüsü Nasıl Belirlenir', 'Vida başı yuvası ve havşa ölçüsü baş çapı, baş yüksekliği ve koni açısıyla belirlenir. Ölçünün vidadan ve kırık parçadaki izden nasıl okunacağı anlatılıyor.', _vida_basi_yuvasi_ve_havsa_olcusu_nasil_belirlenir),
-    ('ozel-uretim-parcaya-orijinal-metal-parcalar-aktarilir-mi', 'Orijinal Metal Parçalar Yeni Parçaya Aktarılır mı?', 'Gövdedeki pim, gömme somun, rulman ve mıknatısı nasıl değerlendiririz? Yuva toleransı, malzeme seçimi ve katalog yolu bu sayfada anlatılıyor.', _ozel_uretim_parcaya_orijinal_metal_parcalar_aktarilir_mi),
+    ('ozel-uretim-parcaya-orijinal-metal-parcalar-aktarilir-mi', 'Orijinal Metal Parçalar Yeni Parçaya Aktarılır mı?', 'Gövde kırıldığında içindeki pim, gömme somun, rulman ve mıknatıs çoğu zaman sağlamdır; yuva toleransı ve malzeme seçimi sayfada.', _ozel_uretim_parcaya_orijinal_metal_parcalar_aktarilir_mi),
     ('parca-olcusu-sicaklikla-degisir-mi', 'Parça Ölçüsü Sıcaklıkla Değişir mi?', 'Plastik ısındığında genleşir, soğuyunca küçülür. Geçme payının sıcaklık aralığına göre nasıl kurulduğu ve hangi sınıfın kararlı olduğu anlatılıyor.', _parca_olcusu_sicaklikla_degisir_mi),
     # --- wave-46 (11 landing) ---
     ("trafik-sinyalizasyon-ve-yol-ekipmani-plastik-parca-uretimi", "Trafik ve Yol Ekipmanı Plastik Parça Üretimi", "Levha kelepçesi, direk dibi kapağı ve kablo geçiş kapağı için katalog yolu, dış mekân malzeme seçimi ve güvenlik kapsam dışı anlatılıyor.", _trafik_sinyalizasyon_ve_yol_ekipmani_plastik_parca_uretimi),
     ("aluminyum-dograma-ve-cephe-sistemi-plastik-parca-uretimi", "Alüminyum Doğrama ve Cephe Sistemi Plastik Parçası", "Alüminyum doğramada kırılan ispanyolet dişlisi, kayar kanat makarası ve takozlar: malzeme, sıcaklık sınırı ve katalogdaki seçenekler.", _aluminyum_dograma_ve_cephe_sistemi_plastik_parca_uretimi),
     ("dogalgaz-ve-su-sayaci-kutusu-plastik-parca-uretimi", "Doğalgaz ve Su Sayacı Kutusu Plastik Parçası", "Sayaç kutusunda kırılan kapak, mandal ve menteşe pimi: kapsam sınırı, malzeme ve katalogdaki hazır seçenekler.", _dogalgaz_ve_su_sayaci_kutusu_plastik_parca_uretimi),
-    ("utu-ve-buhar-kazani-plastik-parcasi-yaptirma", "Ütü ve Buhar Kazanı Plastik Parçası Yaptırma", "Ütü ve buhar kazanındaki plastik aksam: sıcaklık sınırları, su deposu kapağı, düğme ve tutamak kalemleri ile katalog yolu.", _utu_ve_buhar_kazani_plastik_parcasi_yaptirma),
-                    ("oto-kalorifer-klape-kolu-ve-kanat-parcasi-yaptirma", "Oto Kalorifer Klape Kolu ve Kanat Parçası", "Kalorifer klape kolu, kanat mili ve dişli sektörü: belirtiye göre teşhis, ölçüler, doğru malzeme ve katalogdaki seçenekler.", _oto_kalorifer_klape_kolu_ve_kanat_parcasi_yaptirma),
+    ("utu-ve-buhar-kazani-plastik-parcasi-yaptirma", "Ütü ve Buhar Kazanı Plastik Parçası: Katalogdaki Seçenekler", "Sıcaklık sınırları, su deposu kapağı, düğme ve tutamak kalemleri: numuneden hazırlama yapılmaz, katalogdaki hazır seçenekler kullanılır.", _utu_ve_buhar_kazani_plastik_parcasi_yaptirma),
+                    ("oto-kalorifer-klape-kolu-ve-kanat-parcasi-yaptirma", "Oto Kalorifer Klape Kolu ve Kanat Parçası: Katalogdaki Seçenekler", "Klape kolu, kanat mili ve dişli sektörü: belirtiye göre teşhis, doğru malzeme ve katalogdaki hazır seçenekler.", _oto_kalorifer_klape_kolu_ve_kanat_parcasi_yaptirma),
                     ("motosiklet-arka-canta-ve-kutu-kilit-parcasi-ozel-uretim", "Motosiklet Arka Çanta ve Kutu Kilit Parçası", "Arka kutunun kilit dili, mandalı, menteşe pimi ve taşıma kolu: ölçüler, malzeme ve taşıyıcı taban plakasının kapsam dışı olması.", _motosiklet_arka_canta_ve_kutu_kilit_parcasi_ozel_uretim),
-                    ("olcuye-ozel-plastik-firdondu-ve-doner-baglanti-uretimi", "Ölçüye Özel Plastik Fırdöndü ve Döner Bağlantı", "Halatın, tentenin ve askının burulmasını çözen fırdöndü ve döner bağlantı: uç biçimi, boşluk, malzeme ve yük sınırı.", _olcuye_ozel_plastik_firdondu_ve_doner_baglanti_uretimi),
-                    ("olcuye-ozel-plastik-merdane-gobegi-ve-rulo-ucu-uretimi", "Ölçüye Özel Merdane Göbeği ve Rulo Ucu", "Rulo ve merdanenin uç tapası, göbek burcu, mil adaptörü ve sarım göbeği: belirleyici ölçüler, malzeme ve sınır.", _olcuye_ozel_plastik_merdane_gobegi_ve_rulo_ucu_uretimi),
+                    ("olcuye-ozel-plastik-firdondu-ve-doner-baglanti-uretimi", "Plastik Fırdöndü ve Döner Bağlantı: Sitede Ölçüsü Seçilen Seçenekler", "Halatın, tentenin ve askının burulmasını çözen fırdöndü ve döner bağlantı: uç biçimi, boşluk, malzeme ve yük sınırı.", _olcuye_ozel_plastik_firdondu_ve_doner_baglanti_uretimi),
+                    ("olcuye-ozel-plastik-merdane-gobegi-ve-rulo-ucu-uretimi", "Merdane Göbeği ve Rulo Ucu: Sitede Ölçüsü Seçilen Seçenekler", "Rulo ve merdanenin uç tapası, göbek burcu, mil adaptörü ve sarım göbeği: belirleyici ölçüler, malzeme ve sınır.", _olcuye_ozel_plastik_merdane_gobegi_ve_rulo_ucu_uretimi),
     ("cilde-temas-eden-plastik-parca-uretimi", "Cilde Temas Eden Plastik Parça", "Elde tutulan, kola takılan ya da cilde değen parçalarda yüzey pürüzlülüğü ve temizlenebilirlik; malzeme ve katalogdaki seçenekler.", _cilde_temas_eden_plastik_parca_uretimi),
-                    ("ozel-uretim-parca-sonradan-delinir-kesilir-mi", "Özel Üretim Parça Sonradan Delinir, Kesilir mi?", "Hazırlanan plastik parça sonradan delinebilir, kesilebilir ve zımparalanabilir; deliği baştan koymanın avantajı sayfada.", _ozel_uretim_parca_sonradan_delinir_kesilir_mi),
+                    ("ozel-uretim-parca-sonradan-delinir-kesilir-mi", "Hazırlanan Parça Sonradan Delinir, Kesilir mi?", "Evet, delinebilir, kesilebilir ve zımparalanabilir; yine de deliği baştan yazdığınız ölçüye göre açmak daha sağlıklı sonuç verir.", _ozel_uretim_parca_sonradan_delinir_kesilir_mi),
     ("plastik-parcada-vida-ne-kadar-sikilmali", "Plastik Parçada Vida Ne Kadar Sıkılmalı?", "Plastik parçada vida metaldeki gibi sıkılmaz. Temas noktasından sonra çeyrek tur kuralı, diş sıyırma nedenleri ve gömme somun çözümü bu sayfada yazılı.", _plastik_parcada_vida_ne_kadar_sikilmali),                    ("olcuye-ozel-plastik-vida-kovani-uretimi", "Plastik vida kovanı", "Plastik gövdeye gömülen metal vidalı kovan yerine kullanılan tüm-plastik vida yuvası; ölçü, diş tipi ve malzeme açıklamalı.", _olcuye_ozel_plastik_vida_kovani_uretimi),
-    ("olcuye-ozel-plastik-led-difuzor-halkasi-uretimi", "Ölçüye özel plastik LED difüzör halkası", "LED armatürlerinde ışığı yumuşatan halka biçimli eleman: iç ve dış çap, yükseklik ve yüzey dokusu belirleyicidir; katalogdaki hazır LED kalemleri ve sitede ölçüsü seçilen çerçeve seçenekleri.", _olcuye_ozel_plastik_led_difuzor_halkasi_uretimi),
+    ("olcuye-ozel-plastik-led-difuzor-halkasi-uretimi", "Plastik LED Difüzör Halkası: Sitede Ölçüsü Seçilen Seçenekler", "LED armatürlerinde ışığı yumuşatan halka: iç ve dış çap, yükseklik ve yüzey dokusu; ölçüyü ürün sayfasında siz yazarsınız.", _olcuye_ozel_plastik_led_difuzor_halkasi_uretimi),
     ("akilli-elektrik-sayaci-sebeke-ekipmani-plastik-parca-uretimi", "Akıllı Elektrik Sayacı ve Şebeke Ekipmanı Plastik Parça: Yedek Parça Nasıl Bulunur?",
      "Sayaç gövdesi, klemens kapağı, kablo giriş rakoru ve montaj braketi gibi kalemler 41.000'den fazla hazır parçalık katalogda aranır; UV, yalıtım ve ölçü bilgileri anlatılıyor.", _akilli_elektrik_sayaci_sebeke_ekipmani_plastik_parca_uretimi),
     ("oto-yikama-ekipmani-plastik-parca-uretimi", "Oto yıkama ekipmanı plastik parça", "Oto yıkama tesislerindeki fırça adaptörü, meme gövdesi, hortum rakoru ve tutamak kalemleri: su, deterjan ve darbe koşuluna uygun malzeme seçimi ile katalog yolu.", _oto_yikama_ekipmani_plastik_parca_uretimi),
     ("ozel-plastik-parca-minimum-siparis-adedi-nedir", "Minimum sipariş adedi nedir", "Hazır katalog parçaları tek kalemlik siparişlerle de verilebilir; sitede ölçüsü seçilen kalemlerde adet sınırı yoktur. Adet maliyeti nasıl etkiler?", _ozel_plastik_parca_minimum_siparis_adedi_nedir),
-    ("plastik-parca-siparisinde-revizyon-ve-degisiklik-yapilabilir-mi", "Plastik Parça Siparişinde Revizyon ve Değişiklik Yapılabilir mi?", "Üretim öncesi ölçü ve malzeme değişikliği nasıl yürür, üretim başladıktan sonra ne değişir? Politika ve ödeme adımları bu sayfada.", _plastik_parca_siparisinde_revizyon_ve_degisiklik_yapilabilir_mi),
+    ("plastik-parca-siparisinde-revizyon-ve-degisiklik-yapilabilir-mi", "Plastik Parça Siparişinde Değişiklik Yapılabilir mi?", "Sipariş öncesi ölçü ve malzeme değişikliği nasıl yürür, hazırlık başladıktan sonra ne değişir? Politika ve ödeme adımları bu sayfada.", _plastik_parca_siparisinde_revizyon_ve_degisiklik_yapilabilir_mi),
     ("endustriyel-solvent-dayanimli-plastik-parca-uretimi", "Endüstriyel Solvent Dayanımlı Plastik Parça", "Aseton, toluen, IPA temasında parça: solvent listesi, sıcaklık, et kalınlığı, ömür ve kapsam dışı ortamlar.", _endustriyel_solvent_dayanimli_plastik_parca_uretimi),
     ("elektriksel-iletken-plastik-parca-uretimi", "Elektriksel İletken Plastik Parça", "Statik yük boşaltan iletken sınıf: karbon takviyeli naylon, ESD uygulamaları, ölçüm sınırı ve kapsam dışı başlıklar.", _elektriksel_iletken_plastik_parca_uretimi),
     ("surgulu-dolap-ray-plastik-makara-oem-parca-uretimi", "Sürgülü dolap ray plastik makara muadili", "Gardırop ve sürgülü dolap ray sistemindeki makara, tampon ve bağlantı elemanları: yük, sürtünme ve gürültü beklentisine göre malzeme ve katalog yolu.", _surgulu_dolap_ray_plastik_makara_oem_parca_uretimi),
     ("hvac-termostat-kadran-ve-dugme-plastik-oem-parca-uretimi", "HVAC Termostat Kadran ve Düğme Parçası", "Duvar tipi HVAC termostatının kadran, düğme ve gösterge elemanları: yıpranma nedenleri, doğru malzeme ve katalogda arama yolu.", _hvac_termostat_kadran_ve_dugme_plastik_oem_parca_uretimi),
     ("otomotiv-cam-kaldirma-regulator-plastik-oem-parca-uretimi", "Cam kaldırma regülatör muadili", "Araç cam kaldırma mekanizmasının dişli, kremayer ve kızak elemanları: yük, aşınma ve güvenlik sınırı ile katalogdaki hazır yedek parça yolu.", _otomotiv_cam_kaldirma_regulator_plastik_oem_parca_uretimi),
     # --- wave-51 (11 landing) ---
-    ("olcuye-ozel-plastik-boru-mansonu-uretimi", "Plastik Boru Manşonu Ölçüye Özel Üretimi", "İki boruyu düz birleştiren iç-dış geçme manşon: dış çap, iç çap, boy ve duvar kalınlığı; katalogdaki hazır seçenekler ve geçme payı.", _olcuye_ozel_plastik_boru_mansonu_uretimi),
-    ("olcuye-ozel-plastik-kanal-ici-splitter-uretimi", "Kanal İçi Splitter Ölçüye Özel Üretimi", "Kablo kanalı içinde kablo gruplarını fiziksel olarak ayıran bölmeli splitter: kanal ölçüsü ve bölme sayısına göre hazırlanır.", _olcuye_ozel_plastik_kanal_ici_splitter_uretimi),
+    ("olcuye-ozel-plastik-boru-mansonu-uretimi", "Plastik Boru Manşonu: Sitede Ölçüsü Seçilen Seçenekler", "İki boruyu düz birleştiren iç-dış geçme manşon: dış çap, iç çap, boy ve duvar kalınlığı; katalogdaki hazır seçenekler ve geçme payı.", _olcuye_ozel_plastik_boru_mansonu_uretimi),
+    ("olcuye-ozel-plastik-kanal-ici-splitter-uretimi", "Kanal İçi Splitter: Sitede Ölçüsü Seçilen Seçenekler", "Kablo kanalı içinde kablo gruplarını ayıran bölmeli splitter: kanal ölçüsü ve bölme sayısı ürün sayfasında belirlenir.", _olcuye_ozel_plastik_kanal_ici_splitter_uretimi),
     ("olcuye-ozel-plastik-klemens-din-ray-adaptoru-uretimi", "Klemens DIN ray adaptörü", "Metal DIN ray üzerine taşınacak yardımcı elemanı tutan plastik adaptör: ray tipi, bağlantı geometrisi ve malzeme seçimi ile katalog yolu.", _olcuye_ozel_plastik_klemens_din_ray_adaptoru_uretimi),
     ("eczane-ve-medikal-paketleme-hatti-plastik-parca-uretimi", "Eczane ve Medikal Paketleme Hattı Plastik Parçası", "Blister, şişe etiketleme ve kutu katlama hatlarının yardımcı plastik aksamı: hız, aşınma, ilaç teması ve sınır.", _eczane_ve_medikal_paketleme_hatti_plastik_parca_uretimi),
     ("rc-arac-plastik-suspansiyon-parcasi-uretimi", "RC araç süspansiyon parçası", "RC model araç salıncak, pivot burcu, direksiyon kolu ve şok bağlantı elemanları: darbe ve burulma yüküne göre malzeme seçimi ile katalog yolu.", _rc_arac_plastik_suspansiyon_parcasi_uretimi),
@@ -23960,46 +23928,46 @@ CONTENT_PAGES = [
                     ("olcuye-ozel-plastik-duz-rondela-uretimi", "Plastik düz rondela", "Düz ve düz yüzeyli plastik rondela: iç çap, dış çap ve et kalınlığı, taşıma pulu olarak kullanımı ve sınırı.", _olcuye_ozel_plastik_duz_rondela_uretimi),
     ("tersane-gemi-bakim-atolyesi-plastik-parca-uretimi", "Tersane ve gemi bakım atölyesi parçası", "Gemi destek takozu, kızak pabucu ve bakım standı aksamı: yük, tuz ve UV koşuluna göre malzeme seçimi ile katalogdaki hazır yardımcı elemanlar.", _tersane_gemi_bakim_atolyesi_plastik_parca_uretimi),
     ("cikolata-uretim-hatti-plastik-parca-uretimi", "Çikolata Üretim Hattı Plastik Parçası", "Çikolata hattındaki kılavuz, ayırıcı, tutucu ve mesnet aksamı: gıda teması, malzeme ve katalogdaki kalemler.", _cikolata_uretim_hatti_plastik_parca_uretimi),
-    ("manyetik-separator-plastik-parca-uretimi", "Manyetik Separatör Plastik Parçası", "Manyetik separatörün gövde kapağı, flanşı ve rakoru: malzeme, basınç sınırı ve katalogdaki ölçüye özel seçenekler.", _manyetik_separator_plastik_parca_uretimi),
+    ("manyetik-separator-plastik-parca-uretimi", "Manyetik Separatör Plastik Parçası", "Gövde kapağı, flanş ve rakor: malzeme, basınç sınırı ve katalogdaki sitede ölçüsü seçilen seçenekler; ölçüyü siz yazarsınız.", _manyetik_separator_plastik_parca_uretimi),
     ("plastik-parca-siparisinde-boya-veya-kaplama-dahil-mi", "Boya ve kaplama dahil mi", "Boya, lake, toz boya ve kaplama hizmeti standart teslim kapsamında değildir; parça seçilen malzemenin stok renginde hazırlanır ve yüzey işlemi ayrıca konuşulur.", _plastik_parca_siparisinde_boya_veya_kaplama_dahil_mi),
-    ("plastik-parca-olcusu-kucultulunce-fiyat-duser-mi", "Ölçü küçültünce fiyat düşer mi", "Ölçüye özel plastik parça siparişinde ölçü küçüldükçe fiyatın nasıl değiştiği; ölçü, malzeme ve geometri birlikte fiyatı belirler, kesin yüzde vermek doğru olmaz.", _plastik_parca_olcusu_kucultulunce_fiyat_duser_mi),
+    ("plastik-parca-olcusu-kucultulunce-fiyat-duser-mi", "Ölçü küçültünce fiyat düşer mi", "Ölçüye özel plastik parça siparişinde ölçü, malzeme ve geometri birlikte fiyatı belirler; kesin yüzde vermek doğru olmaz.", _plastik_parca_olcusu_kucultulunce_fiyat_duser_mi),
     ("antifouling-biofouling-direncli-deniz-plastik-parca-uretimi", "Antifouling ve Biofouling Dirençli Deniz Plastik Parça: Malzeme ve Sınırlar",
      "Antifouling boya ve kaplama satılmıyor; seçilen polimerin yapışma eğilimini azalttığı söyleniyor ve deniz canlısı hiç yapışmaz garantisi verilmiyor.", _antifouling_biofouling_direncli_deniz_plastik_parca_uretimi),
     ("tuz-spreyi-astm-b117-dayanimli-plastik-parca-uretimi", "Tuz spreyi ASTM B117 dayanımlı parça", "ASTM B117 hızlandırılmış tuz spreyi testinin kapsamı, polimer seçimi ve neden test raporu verilmediği: dış mekân parçaları için doğru sınıf.", _tuz_spreyi_astm_b117_dayanimli_plastik_parca_uretimi),
     ("drone-inis-takozu-plastik-oem-parca-uretimi", "Drone İniş Takozu Plastik Parça", "Drone iniş takozu: gövde altı geometri, iniş yüksekliği, darbe sönümleme, malzeme ve uçuş güvenliği sınırı.", _drone_inis_takozu_plastik_oem_parca_uretimi),
     ("olcuye-ozel-plastik-salincak-ve-salincak-ayagi-uretimi", "Plastik Salıncak ve Salıncak Ayağı Üretimi", "Bahçe tipi hafif salıncağın oturak-ip bağlantı elemanı ve salıncak ayağı için katalog yolu, dış mekân malzeme seçimi ve kullanım sınırı anlatılıyor.", _w53_olcuye_ozel_plastik_salincak_ve_salincak_ayagi_uretimi),
-    ("olcuye-ozel-plastik-yay-sapi-ve-yay-tutucu-uretimi", "Plastik Yay Sapı ve Yay Tutucu Üretimi", "Yayın uç noktasını sabitleyen plastik sap ve tutucu gövdesi ölçüye özel hazırlanır; metal yay telinin sarımı kapsam dışıdır.", _w53_olcuye_ozel_plastik_yay_sapi_ve_yay_tutucu_uretimi),
-    ("olcuye-ozel-plastik-mil-ayagi-ve-mil-blok-uretimi", "Plastik Mil Ayağı ve Mil Bloğu Üretimi", "Plastik mil ayağı ve mil bloğu gövdesi ölçüye özel hazırlanır; düşük-orta devir ve hafif yük uygulamaları için uygundur, ağır sanayi kapsam dışıdır.", _w53_olcuye_ozel_plastik_mil_ayagi_ve_mil_blok_uretimi),
-    ("universite-ve-arastirma-laboratuvari-plastik-parca-uretimi", "Üniversite ve araştırma laboratuvarı plastik parça", "Araştırma laboratuvarlarının deney düzeneği aparatı, ölçüm tutucusu ve tez prototipi ihtiyaçları: malzeme seçimi, ölçü teyidi ve tıbbi sınır.", _w53_universite_ve_arastirma_laboratuvari_plastik_parca_uretimi),
+    ("olcuye-ozel-plastik-yay-sapi-ve-yay-tutucu-uretimi", "Plastik Yay Sapı ve Yay Tutucu: Sitede Ölçüsü Seçilen Seçenekler", "Yayın uç noktasını sabitleyen plastik sap ve tutucu gövdesi: ölçüler ürün sayfasında siz yazarsınız; metal yay teli kapsam dışıdır.", _w53_olcuye_ozel_plastik_yay_sapi_ve_yay_tutucu_uretimi),
+    ("olcuye-ozel-plastik-mil-ayagi-ve-mil-blok-uretimi", "Plastik Mil Ayağı ve Mil Bloğu: Sitede Ölçüsü Seçilen Seçenekler", "Mil ayağı ve mil bloğu: düşük-orta devir ve hafif yük uygulamaları için uygundur, ağır sanayi kapsam dışıdır.", _w53_olcuye_ozel_plastik_mil_ayagi_ve_mil_blok_uretimi),
+    ("universite-ve-arastirma-laboratuvari-plastik-parca-uretimi", "Üniversite ve Araştırma Laboratuvarı Plastik Parça", "Deney düzeneği aparatı, ölçüm tutucusu ve tez çalışması ihtiyaçları: malzeme seçimi, katalogdaki hazır seçenekler ve tıbbi sınır.", _w53_universite_ve_arastirma_laboratuvari_plastik_parca_uretimi),
     ("muze-ve-sergi-vitrin-ekipmani-plastik-parca-uretimi", "Müze ve Sergi Vitrin Ekipmanı Plastik Parça", "Müze ve sergi alanlarının vitrin, raf ve aydınlatma plastik elemanları için katalog yolu, estetik malzeme seçimi ve eser koruma sınırı anlatılıyor.", _w53_muze_ve_sergi_vitrin_ekipmani_plastik_parca_uretimi),
     ("liman-ve-konteyner-terminali-ekipmani-plastik-parca-uretimi", "Liman ve Konteyner Terminali Ekipmanı Plastik Parça", "Liman ve konteyner terminali yardımcı plastik ekipmanları için katalog yolu, tuz ve UV dayanımı ile yük taşıyan elemanların kapsam dışı olduğu anlatılıyor.", _w53_liman_ve_konteyner_terminali_ekipmani_plastik_parca_uretimi),
-    ("plastik-parca-numune-onayi-ve-prototip-sureci-nasil-isler", "Ölçü teyidi ve prototip süreci", "Siparişte ölçü ve tasarımın nasıl kilitlendiği: dijital model, yazılı teyit, üretim öncesi onay görseli ve tekrar siparişlerde kayıt kullanımı.", _w53_plastik_parca_numune_onayi_ve_prototip_sureci_nasil_isler),
-    ("plastik-parca-tolerans-degerini-kim-belirler-uretici-mi-musteri-mi", "Tolerans karar sahipliği, üretici mi müşteri mi", "Plastik parça siparişinde tolerans değerini kim belirler sorusunu süreç karar sahipliği açısından yazılı paylaşıyoruz; teknik hesap ayrı sayfada anlatılır.", _w53_plastik_parca_tolerans_degerini_kim_belirler_uretici_mi_musteri_mi),
+    ("plastik-parca-numune-onayi-ve-prototip-sureci-nasil-isler", "Ölçü Teyidi Adımı: Katalogda Gerçekte Ne Var?", "Siparişte ölçüyü siz yazarsınız; katalog akışında ayrı bir teyit turu, deneme adımı ya da revizyon turu yoktur.", _w53_plastik_parca_numune_onayi_ve_prototip_sureci_nasil_isler),
+    ("plastik-parca-tolerans-degerini-kim-belirler-uretici-mi-musteri-mi", "Tolerans değerini kim belirler, üretici mi müşteri mi?", "Tolerans kararı fonksiyon ihtiyacınıza göre siz verirsiniz; üretilebilirlik, maliyet ve fire tarafı sitede anlatılır.", _w53_plastik_parca_tolerans_degerini_kim_belirler_uretici_mi_musteri_mi),
     ("termal-sok-ve-ani-sicaklik-degisimine-dayanikli-plastik-parca-uretimi", "Termal Şok ve Ani Sıcaklık Değişimine Dayanıklı Plastik Parça", "Saniyeler içinde gerçekleşen ani sıcaklık geçişlerine maruz kalacak ölçüye özel plastik kalemler için malzeme ve geometri yaklaşımı anlatılıyor.", _w53_termal_sok_ve_ani_sicaklik_degisimine_dayanikli_plastik_parca_uretimi),
     ("radyasyona-dayanikli-plastik-parca-uretimi", "Radyasyona dayanıklı plastik parça üretimi", "İyonize radyasyon altında malzeme davranışı, doz birikimi ve tasarım prensipleri: hangi bilgiyi paylaşıyoruz, hangi testi yapmıyoruz.", _w53_radyasyona_dayanikli_plastik_parca_uretimi),
-    ("pos-terminali-ve-satis-noktasi-plastik-oem-parca-uretimi", "POS Terminali ve Satış Noktası Plastik OEM Parça Üretimi", "POS terminali ve satış noktası cihazlarının gövde, kapak ve tutucu OEM plastik parçaları için katalog yolu, malzeme seçimi ve güvenlik sınırı anlatılıyor.", _w53_pos_terminali_ve_satis_noktasi_plastik_oem_parca_uretimi),
+    ("pos-terminali-ve-satis-noktasi-plastik-oem-parca-uretimi", "POS Terminali ve Satış Noktası Plastik OEM Parçası: Katalogdaki Seçenekler", "Gövde, kapak ve tutucu OEM parçaları için katalog yolu, malzeme seçimi ve güvenlik sınırı anlatılıyor; numuneden hazırlanmaz.", _w53_pos_terminali_ve_satis_noktasi_plastik_oem_parca_uretimi),
     # --- wave-54 (11 landing) ---
-    ("olcuye-ozel-plastik-miknatis-mandal-govdesi-uretimi", "Ölçüye özel plastik mıknatıs mandal gövdesi", "Çekmece ve dolap kapağı için manyetik mandal gövdesi: mıknatıs ölçüsü, yuva derinliği ve karşılık plakası; mıknatısın kendisi kapsam dışıdır.", _olcuye_ozel_plastik_miknatis_mandal_govdesi_uretimi),
-    ("olcuye-ozel-plastik-yumusak-kapanma-tamponu-uretimi", "Ölçüye özel plastik yumuşak kapanma tamponu", "Çekmece ve dolap kapağının son darbesini sönümleyen plastik tampon: strok, temas yüzeyi ve sönümleme beklentisine göre geometri.", _olcuye_ozel_plastik_yumusak_kapanma_tamponu_uretimi),
+    ("olcuye-ozel-plastik-miknatis-mandal-govdesi-uretimi", "Plastik Mıknatıs Mandal Gövdesi: Sitede Ölçüsü Seçilen Seçenekler", "Çekmece ve dolap kapağı için manyetik mandal gövdesi: mıknatıs ölçüsü, yuva derinliği ve karşılık plakası; mıknatısın kendisi kapsam dışıdır.", _olcuye_ozel_plastik_miknatis_mandal_govdesi_uretimi),
+    ("olcuye-ozel-plastik-yumusak-kapanma-tamponu-uretimi", "Plastik Yumuşak Kapanma Tamponu: Sitede Ölçüsü Seçilen Seçenekler", "Çekmece ve dolap kapağının son darbesini sönümleyen plastik tampon: strok, temas yüzeyi ve sönümleme beklentisi ürün sayfasında belirlenir.", _olcuye_ozel_plastik_yumusak_kapanma_tamponu_uretimi),
     ("olcuye-ozel-plastik-cam-tutucu-lastik-conta-cercevesi-uretimi", "Plastik Cam Tutucu Lastik Conta Çerçevesi Üretimi", "Dolap kapağı, vitrin önü ve camekan uygulamalarında paneli çerçeve içinde tutan conta çerçevesi: profil, sıkma ve malzeme seçimi.", _olcuye_ozel_plastik_cam_tutucu_lastik_conta_cercevesi_uretimi),
     ("tibbi-goruntuleme-cihazi-plastik-muhafaza-uretimi", "Tıbbi görüntüleme cihazı plastik muhafaza", "Röntgen, MR ve BT cihazlarının dış gövde, kablo kanalı ve kapak elemanları: tıbbi cihaz kapsamı dışı, uygun malzeme ve sınır.", _tibbi_goruntuleme_cihazi_plastik_muhafaza_uretimi),
     ("bira-fabrikasi-brewery-ekipmani-plastik-parca-uretimi", "Bira fabrikası ve brewery ekipmanı için yedek parça", "Bira mayşeleme, kaynatma ve fermantasyon hattındaki yardımcı plastik elemanlar: katalogda arama yolu, doğru malzeme ve üretim sınırı.", _bira_fabrikasi_brewery_ekipmani_plastik_parca_uretimi),
-    ("plastik-parca-olcusunu-kendim-veremiyorsam-olcu-hizmeti-var-mi", "Ölçüyü kendin veremiyorsan ölçü hizmeti var mı", "Ölçüyü nasıl belirleyeceğiniz: katalogdaki hazır kalemler, sitedeki ölçü alanları ve sitede var mı diye sorabileceğiniz yol.", _plastik_parca_olcusunu_kendim_veremiyorsam_olcu_hizmeti_var_mi),
-    ("plastik-parca-siparisinde-revizyon-kac-kez-yapilabilir", "Siparişte revizyon kaç kez yapılabilir", "Tasarım revizyonu ile üretim sonrası düzeltmenin farkı, revizyon sürecinin nasıl yürüdüğü ve neden bir sayı yerine süreç anlatıldığı.", _plastik_parca_siparisinde_revizyon_kac_kez_yapilabilir),
+    ("plastik-parca-olcusunu-kendim-veremiyorsam-olcu-hizmeti-var-mi", "Ölçüyü kendin veremiyorsan ölçü hizmeti var mı", "Ücretli ölçü hizmeti yok: ölçüyü siz yazarsınız. Katalogdaki hazır kalemler, sitedeki ölçü alanları ve sitede var mı diye soracağınız yol.", _plastik_parca_olcusunu_kendim_veremiyorsam_olcu_hizmeti_var_mi),
+    ("plastik-parca-siparisinde-revizyon-kac-kez-yapilabilir", "Siparişte Değişiklik Kaç Kez Yapılabilir?", "Revizyon turu yoktur, çünkü tasarım turu da yoktur: ölçüyü siz yazarsınız, sonradan değişiklik isterseniz yeni bir sipariş verirsiniz.", _plastik_parca_siparisinde_revizyon_kac_kez_yapilabilir),
     ("alci-cimento-tozuna-dayanikli-plastik-parca-uretimi", "Alçı ve Çimento Tozuna Dayanıklı Plastik Parça: Malzeme Seçimi ve Katalog",
      "Alkali toz altında çalışan atölye parçaları için kimyasal dayanım, aşınma ve sıcaklık ölçütleri anlatılıyor; mutlak dayanıklılık iddiasında bulunulmuyor.", _alci_cimento_tozuna_dayanikli_plastik_parca_uretimi),
     ("radyolusent-rontgen-goruntuleme-uyumlu-plastik-parca-uretimi", "Radyolusent röntgen görüntüleme uyumlu plastik parça", "X-ışını geçirgenliği, görüntü alanı içindeki konum ve parça geometrisi: radyolusentlik testi verilmeden doğru polimer seçimi.", _radyolusent_rontgen_goruntuleme_uyumlu_plastik_parca_uretimi),
     ("akilli-saat-sarj-pimi-plastik-oem-parca-uretimi", "Akıllı Saat Şarj Pimi ve Tutucusu Plastik Parça: Yedek Parça Bulma",
      "Şarj gövdesi, yuva ve mandal gibi plastik taşıyıcılar 41.000'den fazla hazır parçalık katalogda aranır; metal pim ve kontak tarafının kapsam dışı olduğu açıkça yazılıyor.", _akilli_saat_sarj_pimi_plastik_oem_parca_uretimi),
-    ("olcuye-ozel-plastik-kalici-gerilim-giderici-cengel-uretimi", "Plastik Kalıcı Gerilim Giderici Çengel Ölçüye Özel", "Kablo çıkış noktasında bükülme yükünü karşılayan gerilim giderici çengel: kablo çapı, çıkış açısı ve bükülme yarıçapına göre hazırlanır.", _olcuye_ozel_plastik_kalici_gerilim_giderici_cengel_uretimi),
-    ("olcuye-ozel-plastik-sikistirma-kamasi-uretimi", "Ölçüye özel plastik sıkıştırma kaması", "İki yüzeyi sıkıştırarak bağlayan plastik kama elemanı: yüzey aralığı, kama açısı ve yükün nasıl belirleyici olduğu.", _olcuye_ozel_plastik_sikistirma_kamasi_uretimi),
-    ("olcuye-ozel-plastik-akis-yonlendirici-kanatciki-uretimi", "Plastik Hava Yönlendirme Kanatçığı Ölçüye Özel Üretimi", "Kanal veya oluk içinde hava akışını yönlendiren kanatçık ve plaka: kanal kesiti, kanat açısı ve hava hızı; katalogdaki hazır seçenekler ve malzeme sınıfları.", _olcuye_ozel_plastik_akis_yonlendirici_kanatciki_uretimi),
+    ("olcuye-ozel-plastik-kalici-gerilim-giderici-cengel-uretimi", "Kalıcı Gerilim Giderici Çengel: Sitede Ölçüsü Seçilen Seçenekler", "Kablo çıkış noktasında bükülme yükünü karşılayan gerilim giderici çengel: kablo çapı, çıkış açısı ve bükülme yarıçapı alanlarına siz yazarsınız.", _olcuye_ozel_plastik_kalici_gerilim_giderici_cengel_uretimi),
+    ("olcuye-ozel-plastik-sikistirma-kamasi-uretimi", "Plastik Sıkıştırma Kaması: Sitede Ölçüsü Seçilen Seçenekler", "İki yüzeyi sıkıştırarak bağlayan plastik kama elemanı: yüzey aralığı, kama açısı ve yükün nasıl belirleyici olduğu.", _olcuye_ozel_plastik_sikistirma_kamasi_uretimi),
+    ("olcuye-ozel-plastik-akis-yonlendirici-kanatciki-uretimi", "Plastik Hava Yönlendirme Kanatçığı: Sitede Ölçüsü Seçilen Seçenekler", "Kanal veya oluk içinde hava akışını yönlendiren kanatçık ve plaka: kanal kesiti, kanat açısı ve hava hızı; katalogdaki hazır seçenekler.", _olcuye_ozel_plastik_akis_yonlendirici_kanatciki_uretimi),
     ("hidroponik-topraksiz-tarim-ekipmani-plastik-parca-uretimi", "Hidroponik ve Topraksız Tarım Ekipmanı Plastik Parçaları", "Topraksız tarımda kanal, saksı taşıyıcı ve besin tankı ekipmanı: besin çözeltisi temasına uygun malzeme ve katalogdaki hazır seçenekler.", _hidroponik_topraksiz_tarim_ekipmani_plastik_parca_uretimi),
     ("atik-su-aritma-kanalizasyon-ekipmani-plastik-parca-uretimi", "Atık Su Arıtma ve Kanalizasyon Ekipmanı Plastik Parça: Malzeme ve Sınır",
      "Hat adımı, bağlantı çapı, conta yüzeyi ve kimyasal koşul bilgisiyle malzeme seçimi; basınçlı ana hat bileşenlerinin kapsam dışı olduğu belirtiliyor.", _atik_su_aritma_kanalizasyon_ekipmani_plastik_parca_uretimi),
-    ("plastik-parca-icin-hangi-cad-cizim-formati-kabul-edilir", "Plastik parça hangi CAD formatıyla üretilir", "Plastik parça siparişi için hangi CAD çizim/dosya formatlarının kabul edildiği sorusunu açıkça cevaplıyoruz; netleşmeyen formatları WhatsApp'tan birlikte konuşuruz.", _plastik_parca_icin_hangi_cad_cizim_formati_kabul_edilir),
-    ("ayni-parcanin-farkli-renk-varyasyonlari-uretilebilir-mi", "Aynı Parçanın Farklı Renkleri Üretilebilir mi?",
-     "Stok renkler ve özel ton seçenekleri, renk eşleşmesinin sınırları, UV solması ve yüzey işlemi seçenekleri anlatılıyor.", _ayni_parcanin_farkli_renk_varyasyonlari_uretilebilir_mi),
+    ("plastik-parca-icin-hangi-cad-cizim-formati-kabul-edilir", "Plastik Parça için Çizim ve CAD Dosyası Gönderilir mi?", "Çizim, CAD dosyası, numune ya da fotoğraftan özel üretim yapmıyoruz; sitede ölçüsü seçilen katalog kalemlerinden sipariş verirsiniz.", _plastik_parca_icin_hangi_cad_cizim_formati_kabul_edilir),
+    ("ayni-parcanin-farkli-renk-varyasyonlari-uretilebilir-mi", "Parça Renkleri: Stok Seçenekler ve Sınırlar",
+     "Stok renk listesi, renk eşleşmesinin sınırları, UV solması ve yüzey işlemi seçenekleri anlatılıyor.", _ayni_parcanin_farkli_renk_varyasyonlari_uretilebilir_mi),
     ("asetik-asit-sirke-temas-plastik-parca-uretimi", "Asetik Asit ve Sirke Temaslı Plastik Parça: Malzeme ve Sınır",
      "Seyreltik ve konsantre sirke temasında malzeme seçimi, gıda temas sertifikası verilmediği ve temizlik prosedürünün müşteriye ait olduğu açıkça yazılıyor.", _asetik_asit_sirke_temas_plastik_parca_uretimi),
     ("kuru-buz-kati-co2-temas-plastik-parca-uretimi", "Kuru Buz Katı CO2 Temas Plastik Parça", "Gıda dondurma, kuru temizleme ve soğuk zincir lojistiğinde kuru buzla temas eden yardımcı plastik parçalar: termal şok sınırı ve doğru malzeme.", _kuru_buz_kati_co2_temas_plastik_parca_uretimi),
@@ -24010,22 +23978,22 @@ CONTENT_PAGES = [
 # --- wave-56 tuples ---
 
 
-                    ("olcuye-ozel-plastik-hizli-degistirme-plakasi-uretimi", "Plastik hızlı değiştirme plakası ölçüye özel", "Tezgah ve bağlama aparatında kullanılan plastik hızlı değiştirme plakası: konumlama pimi, kam kilidi geometrisi ve malzeme.", _olcuye_ozel_plastik_hizli_degistirme_plakasi_uretimi),
-                    ("olcuye-ozel-plastik-motor-arka-kapak-contasi-uretimi", "Motor arka kapak contası ölçüye özel", "Küçük DC ve step motorun arka kapak ile gövde arasındaki sızdırmazlık contası: ölçüler, titreşim, ısı ve kimyasal koşula göre malzeme.", _olcuye_ozel_plastik_motor_arka_kapak_contasi_uretimi),
+                    ("olcuye-ozel-plastik-hizli-degistirme-plakasi-uretimi", "Plastik Hızlı Değiştirme Plakası: Sitede Ölçüsü Seçilen Seçenekler", "Tezgah ve bağlama aparatında kullanılan hızlı değiştirme plakası: konumlama pimi, kam kilidi geometrisi ve malzeme alanları ürün sayfasında.", _olcuye_ozel_plastik_hizli_degistirme_plakasi_uretimi),
+                    ("olcuye-ozel-plastik-motor-arka-kapak-contasi-uretimi", "Motor Arka Kapak Contası: Sitede Ölçüsü Seçilen Seçenekler", "Küçük DC ve step motorun arka kapak ile gövde arasındaki sızdırmazlık contası: ölçüler, titreşim, ısı ve kimyasal koşula göre malzeme.", _olcuye_ozel_plastik_motor_arka_kapak_contasi_uretimi),
     ("kozmetik-kisisel-bakim-uretim-hatti-plastik-parca-uretimi", "Kozmetik ve Kişisel Bakım Üretim Hattı Plastik Parçası", "Kozmetik dolum hattında kılavuz kanal, kapak kızağı ve nozul tutucu: malzeme, sınır ve katalogdaki kalemler.", _kozmetik_kisisel_bakim_uretim_hatti_plastik_parca_uretimi),
     ("mantar-yetistiricilik-kompost-tesisi-plastik-parca-uretimi", "Mantar Yetiştiriciliği ve Kompost Tesisi Plastik Parçası", "Kompost ve inkübasyon tesisindeki poşet tutucu, taşıma kanalı ve havalandırma: malzeme, sınır ve katalogdaki kalemler.", _mantar_yetistiricilik_kompost_tesisi_plastik_parca_uretimi),
-    ("plastik-parca-siparisinde-garanti-suresi-ne-kadardir", "Plastik parça siparişinde garanti süresi", "Ölçüye özel üretilen plastik parçanın garanti süresi sipariş onayında yazılı paylaşılır; üretim hatası ve malzeme hatası kapsamına giren durumlar ayrıca açıklanır.", _plastik_parca_siparisinde_garanti_suresi_ne_kadardir),
-    ("plastik-parca-siparisinde-garanti-kapsami-nedir", "Plastik parça siparişinde garanti kapsamı", "Plastik parça siparişinde garanti kapsamına giren ve girmeyen durumlar yazılı paylaşılır; imalat ve malzeme hatası tazmin kapsamındadır, doğal aşınma dışıdır.", _plastik_parca_siparisinde_garanti_kapsami_nedir),
+    ("plastik-parca-siparisinde-garanti-suresi-ne-kadardir", "Plastik Parça Siparişinde Garanti Süresi", "Garanti süresi parçanın teslim tarihinden itibaren işler; yalnız imalat ve malzeme hatası için geçerlidir.", _plastik_parca_siparisinde_garanti_suresi_ne_kadardir),
+    ("plastik-parca-siparisinde-garanti-kapsami-nedir", "Plastik parça siparişinde garanti kapsamı", "İmalat ve malzeme hatası tazmin kapsamındadır; doğal aşınma, yanlış ölçü ve çalışma koşulları dışı kullanım kapsam dışıdır.", _plastik_parca_siparisinde_garanti_kapsami_nedir),
     ("plastik-parca-siparisinde-siparis-iptali-yapilabilir-mi", "Plastik Parça Siparişinde İptal Koşulları", "Üretim öncesi iptal ile üretim başladıktan sonraki iptal farklıdır: maliyet, yazılı kayıt ve cayma hakkının sınırları bu sayfada anlatılıyor.", _plastik_parca_siparisinde_siparis_iptali_yapilabilir_mi),
     ("amonyak-gubre-temas-plastik-parca-uretimi", "Amonyağa Dayanıklı Plastik Parça", "Gübre tankı ve soğutma sisteminde amonyak temaslı parçalar: alkali kimyasal etki, malzeme seçimi ve katalogdaki kalemler.", _amonyak_gubre_temas_plastik_parca_uretimi),
     ("hidrojen-peroksit-dezenfektan-temas-plastik-parca-uretimi", "Hidrojen Peroksite Dayanıklı Plastik Parça", "Sterilizasyon ve dezenfeksiyon hattında oksidatif temasa dayanıklı parçalar: malzeme, sınır ve katalogdaki kalemler.", _hidrojen_peroksit_dezenfektan_temas_plastik_parca_uretimi),
-    ("e-kitap-okuyucu-kilif-mentesesi-plastik-oem-parca-uretimi", "E-kitap Okuyucu Kılıfı Menteşesi Plastik Parçası", "E-kitap okuyucu kılıfının ince profilli menteşesi: çevrim, malzeme ve katalogdaki ölçüye özel seçenekler.", _e_kitap_okuyucu_kilif_mentesesi_plastik_oem_parca_uretimi),
+    ("e-kitap-okuyucu-kilif-mentesesi-plastik-oem-parca-uretimi", "E-kitap Okuyucu Kılıfı Menteşesi: Sitede Ölçüsü Seçilen Seçenekler", "E-kitap okuyucu kılıfının ince profilli menteşesi: çevrim, malzeme ve katalogdaki sitede ölçüsü seçilen seçenekler.", _e_kitap_okuyucu_kilif_mentesesi_plastik_oem_parca_uretimi),
     ("akilli-ev-hoparlor-govde-ust-kapak-plastik-oem-parca-uretimi", "Akıllı Ev Hoparlörü Gövde Üst Kapak Parçası", "Akıllı ev hoparlörünün üst gövde kapağı: kırılma nedenleri, doğru malzeme, sıcaklık sınırı ve katalogdaki hazır seçenekler.", _akilli_ev_hoparlor_govde_ust_kapak_plastik_oem_parca_uretimi),
     ("olcuye-ozel-plastik-hava-filtresi-cercevesi-ve-kaseti-uretimi", "Hava Filtresi Çerçevesi ve Kaseti Üretimi", "HVAC ve endüstriyel tesislerde kullanılan filtre yatağı, conta yivi ve tutucu çerçeve: sızdırmazlık yuvası ve malzeme seçimi.", _olcuye_ozel_plastik_hava_filtresi_cercevesi_ve_kaseti_uretimi),
     ("olcuye-ozel-plastik-catal-klevis-baglanti-ucu-uretimi", "Çatal (Klevis) Bağlantı Ucu Üretimi", "Kumanda kolu ve hafif bağlantı düzeneklerindeki klevis ucu: çatal açıklığı, pim çapı ve kulak kalınlığı; katalogdaki hazır seçenekler.", _olcuye_ozel_plastik_catal_klevis_baglanti_ucu_uretimi),
     ("buz-pisti-ve-kis-sporlari-ekipmani-plastik-parca-uretimi", "Buz Pisti ve Kış Sporları Ekipmanı Parçası", "Buz pisti ve kış sporları tesisi için yardımcı plastik parçalar: soğuk ve darbe koşulu, katalogda arama yolu, malzeme ve sınır.", _buz_pisti_ve_kis_sporlari_ekipmani_plastik_parca_uretimi),
     ("hidroelektrik-santral-ve-baraj-ekipmani-plastik-parca-uretimi", "Hidroelektrik Santral ve Baraj Ekipmanı Plastik Parçaları", "Hidroelektrik santral ve baraj tesislerinde sensör muhafazası, kablo kutusu ve pano bağlantı elemanları: dış mekân sınıfı, UV ve nem koşulları.", _hidroelektrik_santral_ve_baraj_ekipmani_plastik_parca_uretimi),
-    ("ozel-uretim-plastik-parca-tavlanir-mi-isil-islem-gorur-mu", "Özel üretim parça ısıl işlem görür mü", "Plastikte tavlama, sertleştirme ve menevişleme uygulanmaz; gerilim giderme ve kristalleşme ayarı hangi durumda planlanır.", _ozel_uretim_plastik_parca_tavlanir_mi_isil_islem_gorur_mu),
+    ("ozel-uretim-plastik-parca-tavlanir-mi-isil-islem-gorur-mu", "Hazırlanan Parça Isıl İşlem Görür mü?", "Plastikte tavlama, sertleştirme ve menevişleme uygulanmaz; gerilim giderme ve kristalleşme ayarı hangi durumda planlanır.", _ozel_uretim_plastik_parca_tavlanir_mi_isil_islem_gorur_mu),
     ("ozel-uretim-parcada-koku-olur-mu", "Özel üretim parçada koku olur mu", "Yeni plastik kokusu neden oluşur, hangi malzeme sınıfı daha az kokar ve koku beklentisi siparişte nasıl belirtilir.", _ozel_uretim_parcada_koku_olur_mu),
     ("asit-ve-baz-temasli-plastik-parca-uretimi", "Asit ve Baz Temaslı Plastik Parça: Malzeme Haritası ve Sınırlar",
      "Kimyasal adı, konsantrasyon, temas şekli, süre ve sıcaklık bilgisiyle malzeme seçimi; mutlak dayanıklılık garantisi verilmediği açıkça yazılıyor.", _asit_ve_baz_temasli_plastik_parca_uretimi),
