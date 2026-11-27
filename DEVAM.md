@@ -6,8 +6,14 @@
 
 - 🔴🔴🔴 **Okan 20 Eki 20:2x:** Okan'a "bas/tıkla/onayla" YOK, işi bitir, son çare pencere, cevap ≤2 cümle (hafıza `okan-emri-is-biter-pencere-son-care-20-eki`). **Okan kalıcı izni 14:2x:** çip dalı SERİT B yeşil → sormadan merge.
 
+## ✅ 27 Kas 04:3x — NUMUNE B KAPANDI (yeni hesap açılış oturumu) kanıt: /private/tmp/claude-501/-Users-okan-dev-pruvo/31396119-5509-4059-a668-619f8c7443c5/scratchpad/kanit/2026-11-27-0430-numune-b-merge.txt
+- 🔴 **SIRADAKİ TEK İŞ:** kutu ArTisT 03:4x "Parti 2 Organization şeması koda girmemiş" talebini ölç → spec → işçi; ardından 25+26 Kas Tamirci YARGI (`/Users/okan/.claude/cron/tamirci-spec/KraL-Tamirci-2026112{5,6}.md`).
+- **B zinciri:** 5 kol rc=0 → dal push `c0badeed` → SERİT B `45907618231` success · uç ESIT + PARITE GECTI · DAL_PROVA YESIL 9/0/0 · landing-hukuk test 14/14 · drift YEŞİL. kanıt: /private/tmp/claude-501/-Users-okan-dev-pruvo/31396119-5509-4059-a668-619f8c7443c5/scratchpad/kanit/2026-11-27-0430-numune-b-merge.txt
+- **Main'e alış:** push kapısı aday bütçesi (tek merge 197.145, squash 545.492 > 150.000) → dal zinciri 14 ardışık merge (`f95a9f15`…`f041bc3f`, 60–147K, 1–13 `[skip ci]`), kanca atlama 0, son ağaç = test edilen `a1ecc2d3`. 🔴 Ders: son commit GÖVDESİNDE "[skip ci]" ibaresi geçti → CI tetiklenmedi → deploy+nobet elle dispatch; son parça mesajında işaret kelimesi bile geçmez. kanıt: /private/tmp/claude-501/-Users-okan-dev-pruvo/31396119-5509-4059-a668-619f8c7443c5/scratchpad/kanit/2026-11-27-0430-numune-b-merge.txt
+- **Canlı:** Pages `45921951353` 7/7 success (skipped 0) · D1 41685 0/0/0 · parite 300 BİREBİR · hizmet sayfası yeni metin ✅ · worktree+yerel/uzak dal SİLİNDİ (20→19) · `isci-tur-cikti/numune-b*` SİLİNDİ · DEVAM 33 blok arşive `76d90975` · MaCiT nöbeti `56f0f05a` · MOTOR ORANI Claude 0 / m3 1 · Okan'a çıkan: YOK. kanıt: /private/tmp/claude-501/-Users-okan-dev-pruvo/31396119-5509-4059-a668-619f8c7443c5/scratchpad/kanit/2026-11-27-0430-numune-b-merge.txt
+
 ## 🔁 DEVİR — 27 Kas 01:1x, KraL (Tamirci-24Kas oturumu) → yeni hesap
-- 🔴 **SIRADAKİ TEK İŞ:** aşağıdaki 24 Kas bloğunun B zinciri ①→② (`c0badeed` kolları koş → dal push → SERİT B → merge-kapisi).
+- ✅ ~~SIRADAKİ TEK İŞ: B zinciri~~ → KAPANDI (üst blok).
 - **Nerede kaldım:** 24 Kas Tamirci KAPANDI (m3 `tamir` rc=0 $2,78; kutu YARGI; Pages `45326862346` attempt 2 7/7 yeşil). 24 Kas 07:2x'ten beri KraL'da iş YOK: isci.log `tamir` son = 24 Kas · kutuda 25 + 26 Kas YARGI YOK (spec'ler `/Users/okan/.claude/cron/tamirci-spec/KraL-Tamirci-2026112{5,6}.md`; `/private/tmp/pruvo-bekci-teslim` silinmiş).
 - **Açık talepler (kutu):** ArTisT 26 Kas 23:1x GSC 5xx 123 (`/urun/<slug>/`, 24 Kas tarama; 24 Kas 05:07Z `nobet-404` 503'üyle AYNI pencere) + 404→410/301 kararı · ArTisT 27 Kas numune Ads envanteri (BaBa istisna hükmü bekliyor).
 - **Ağaç/dal:** main `340fc0cd` = origin · ana ağaç 0 kirli · `pruvo-wt-numune-b` 0 kirli, `c0badeed` ahead 1 **bilerek yerel** (push zincirin ② adımı, ① ölçümü önce). Diğer 18 worktree + 12 ahead dal eski oturumların (12-27 Eki), bu oturumun DEĞİL.
